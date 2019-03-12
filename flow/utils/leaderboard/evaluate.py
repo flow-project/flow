@@ -11,6 +11,7 @@ from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from flow.utils.rllib import get_flow_params, get_rllib_config
 from flow.utils.registry import make_create_env
+from flow.utils.exceptions import FatalFlowError
 
 from flow.benchmarks.grid0 import flow_params as grid0
 from flow.benchmarks.grid1 import flow_params as grid1
@@ -54,32 +55,32 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
 
     Parameters
     ----------
-        benchmark : str
-            name of the benchmark, must be printed as it is in the
-            benchmarks folder; otherwise a ValueError will be raised
-        _get_actions : method
-            the mapping from states to actions for the RL agent(s)
-        _get_states : method, optional
-            a mapping from the environment object in Flow to some state, which
-            overrides the _get_states method of the environment. Note that the
-            same cannot be done for the actions.
+    benchmark : str
+        name of the benchmark, must be printed as it is in the
+        benchmarks folder; otherwise a FatalFlowError will be raised
+    _get_actions : method
+        the mapping from states to actions for the RL agent(s)
+    _get_states : method, optional
+        a mapping from the environment object in Flow to some state, which
+        overrides the _get_states method of the environment. Note that the
+        same cannot be done for the actions.
 
     Returns
     -------
-        float
-            mean of the evaluation return of the benchmark from NUM_RUNS number
-            of simulations
-        float
-            standard deviation of the evaluation return of the benchmark from
-            NUM_RUNS number of simulations
+    float
+        mean of the evaluation return of the benchmark from NUM_RUNS number
+        of simulations
+    float
+        standard deviation of the evaluation return of the benchmark from
+        NUM_RUNS number of simulations
 
     Raises
     ------
-        ValueError
-            If the specified benchmark is not available.
+    flow.utils.exceptions.FatalFlowError
+        If the specified benchmark is not available.
     """
     if benchmark not in AVAILABLE_BENCHMARKS.keys():
-        raise ValueError(
+        raise FatalFlowError(
             "benchmark {} is not available. Check spelling?".format(benchmark))
 
     # get the flow params from the benchmark
@@ -140,14 +141,14 @@ def get_compute_action_rllab(path_to_pkl):
 
     Parameters
     ----------
-        path_to_pkl : str
-            pkl file created by rllab that contains the policy information
+    path_to_pkl : str
+        pkl file created by rllab that contains the policy information
 
     Returns
     -------
-        method
-            the compute_action method from the algorithm along with the trained
-            parameters
+    method
+        the compute_action method from the algorithm along with the trained
+        parameters
     """
     # get the agent/policy
     data = joblib.load(path_to_pkl)
@@ -169,19 +170,19 @@ def get_compute_action_rllib(path_to_dir, checkpoint_num, alg):
 
     Parameters
     ----------
-        path_to_dir : str
-            RLlib directory containing training results
-        checkpoint_num : int
-            checkpoint number / training iteration of the learned policy
-        alg : str
-            name of the RLlib algorithm that was used during the training
-            procedure
+    path_to_dir : str
+        RLlib directory containing training results
+    checkpoint_num : int
+        checkpoint number / training iteration of the learned policy
+    alg : str
+        name of the RLlib algorithm that was used during the training
+        procedure
 
     Returns
     -------
-        method
-            the compute_action method from the algorithm along with the trained
-            parameters
+    method
+        the compute_action method from the algorithm along with the trained
+        parameters
     """
     # collect the configuration information from the RLlib checkpoint
     result_dir = path_to_dir if path_to_dir[-1] != '/' else path_to_dir[:-1]
