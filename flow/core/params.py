@@ -628,7 +628,7 @@ class NetParams:
         path to the .osm file that should be used to generate the network
         configuration files. This parameter is only needed / used if the
         OpenStreetMapScenario class is used.
-    netfile : str, optional
+    template : str, optional
         path to the .net.xml file that should be passed to SUMO. This is
         only needed / used if the NetFileScenario class is used, such as
         in the case of Bay Bridge experiments (which use a custom net.xml
@@ -643,7 +643,7 @@ class NetParams:
                  inflows=None,
                  in_flows=None,
                  osm_path=None,
-                 netfile=None,
+                 template=None,
                  additional_params=None):
         """Instantiate NetParams."""
         self.no_internal_links = no_internal_links
@@ -652,7 +652,7 @@ class NetParams:
         else:
             self.inflows = inflows
         self.osm_path = osm_path
-        self.netfile = netfile
+        self.template = template
         self.additional_params = additional_params or {}
 
 
