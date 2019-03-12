@@ -28,6 +28,13 @@ version = ''
 # The full version, including alpha/beta/rc tags
 release = '0.3.0'
 
+autodoc_mock_imports = [
+    "rllab.core.serializable.Serializable",
+    "AAPI",
+    'PyANGKernel',
+    'AAPI.GKGUISystem',
+    'thread'
+]
 
 # -- General configuration ---------------------------------------------------
 
@@ -185,4 +192,4 @@ numpydoc_use_plotsv = True
 numpydoc_show_class_members = False
 numpydoc_show_inherited_class_members = True
 numpydoc_class_members_toctree = True
-numpydoc_use_blockquotes = True
+numpydoc_use_blockquotes = Trueautodoc_mock_imports = ["django"]
