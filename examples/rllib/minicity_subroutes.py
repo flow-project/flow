@@ -355,7 +355,7 @@ additional_env_params = {
     'target_velocity': 11,
     'switch_time': 7,
     'num_observed': 2,
-    'discrete': False,
+    'discrete': True,
     'tl_type': 'controlled',
     'subnetwork': SUBNETWORK.value
 }
@@ -381,6 +381,7 @@ flow_params = dict(
     sumo=SumoParams(
         sim_step=1,
         render=RENDERER,
+        restart_instance=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -404,26 +405,38 @@ flow_params = dict(
     # tls=tl_logic,
 )
 
+# TODO: look into running multiple simulations per step
+
 
 def setup_exps():
-
-    alg_run = 'PPO'
+    alg_run = 'DQN'
 
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config['num_workers'] = N_CPUS
-    config['train_batch_size'] = HORIZON * N_ROLLOUTS
-    config['sample_batch_size'] = 2
-    config['sgd_minibatch_size'] = 10
-    config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [32, 32]})
-    config['use_gae'] = True
-    config['lambda'] = 0.97
-    config['kl_target'] = 0.02
-    config['num_sgd_iter'] = 10
-    config['horizon'] = HORIZON
+    config["timesteps_per_iteration"] = HORIZON * N_ROLLOUTS
+    config["hiddens"] = [256]
+    config["lr"] = 5e-4  # TODO: hp tune
+    config["grad_norm_clipping"] = 40  # TODO: hp tune
+    config["schedule_max_timesteps"] = 100000  # TODO: maybe try 5e5, 1e6
+    config["buffer_size"] = 50000  # TODO: maybe try 1e5, 5e5
+    config["target_network_update_freq"] = 500  # TODO: this is too small
     config['model']['custom_model'] = "my_model"
     config['model']['custom_options'] = {}
+
+    # config['num_workers'] = N_CPUS
+    # config['train_batch_size'] = HORIZON * N_ROLLOUTS
+    # config['sample_batch_size'] = 2
+    # config['sgd_minibatch_size'] = 10
+    # config['gamma'] = 0.999  # discount rate
+    # config['model'].update({'fcnet_hiddens': [32, 32]})
+    # config['use_gae'] = True
+    # config['lambda'] = 0.97
+    # config['kl_target'] = 0.02
+    # config['num_sgd_iter'] = 10
+    # config['horizon'] = HORIZON
+    # config['model']['custom_model'] = "my_model"
+    # config['model']['custom_options'] = {}
 
     # save the flow params for replay
     flow_json = json.dumps(
