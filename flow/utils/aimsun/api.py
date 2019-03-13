@@ -30,7 +30,7 @@ def create_client(port, print_status=False):
         print('Listening for connection...', end=' ')
 
     stop = False
-    while not stop:              
+    while not stop:
         # try to connect
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
