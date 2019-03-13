@@ -32,9 +32,9 @@ SUBNETWORK = SubRoute.SUB4  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
 
 TRAFFIC_LIGHTS = True       # CHANGE THIS to True to add traffic lights to Minicity
 
+RENDERER = 'drgb'  #'drgb'        # PARAMETER.
+                            # Set to True to use default Sumo renderer,
 
-RENDERER = True  #'drgb'        # PARAMETER. 
-                            # Set to True to use default Sumo renderer, 
                             # Set to 'drgb' for Fangyu's renderer
 
 USE_CNN = False            # Set to True to use Pixel-learning CNN agent
@@ -79,8 +79,12 @@ class MinicityRouter(BaseRouter):
             next_edge = subnetwork_edges[edge]
             self.counter = 0
         elif type(subnetwork_edges[edge]) == list:
-            next_edge = random.choice(subnetwork_edges[edge])
-            self.counter = 0
+            if type(subnetwork_edges[edge][0]) == str:
+                next_edge = random.choice(subnetwork_edges[edge])
+            else:
+                # Edge choices weighted by integer.
+                # Inefficient untested implementation, but doesn't rely on numpy.random.choice or Python >=3.6 random.choices
+                next_edge = random.choice(sum(([edge]*weight for edge, weight in subnetwork_edges), []))
         self.prev_edge = edge
         if next_edge is None:
             return None
@@ -137,7 +141,6 @@ def define_traffic_lights():
         else:
             tl_logic.add(node_id, phases=phases,
                          tls_type="actuated", programID=1)
-
     return tl_logic
 
 
@@ -183,9 +186,9 @@ def minicity_example(render=None,
         veh_id="idm",
         acceleration_controller=(IDMController, {}),
         routing_controller=(MinicityRouter, {}),
-        # car_following_params=SumoCarFollowingParams(
-        #     speed_mode=1,
-        # ),
+        sumo_car_following_params=SumoCarFollowingParams(
+            decel=4.5,
+        ),
         # lane_change_params=SumoLaneChangeParams(
         #     lane_change_mode="strategic",
         # ),
@@ -197,9 +200,9 @@ def minicity_example(render=None,
         veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(MinicityRouter, {}),
-        # car_following_params=SumoCarFollowingParams(
-        #     speed_mode="strategic",
-        # ),
+        sumo_car_following_params=SumoCarFollowingParams(
+            decel=4.5,
+        ),
         speed_mode="all_checks",
         lane_change_mode="strategic",
         initial_speed=0,
@@ -286,7 +289,7 @@ if __name__ == "__main__":
                            save_render=False,
                            sight_radius=30,
                            pxpm=pxpm,
-                           show_radius=True)
+                           show_radius=False)
 
     # run for a set number of rollouts / time steps
     exp.run(1, 7200, convert_to_csv=True)

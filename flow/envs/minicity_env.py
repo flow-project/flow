@@ -13,13 +13,7 @@ from flow.scenarios.subnetworks import *
 from flow.envs.loop.loop_accel import AccelCNNEnv
 
 ADDITIONAL_ENV_PARAMS = {
-    # minimum switch time for each traffic light (in seconds)
-    "switch_time": 2.0,
-    # whether the traffic lights should be actuated by sumo or RL
-    # options are "controlled" and "actuated"
-    "tl_type": "controlled",
-    # determines whether the action space is meant to be discrete or continuous
-    "discrete": False,
+
 }
 
 ADDITIONAL_PO_ENV_PARAMS = {
@@ -74,7 +68,7 @@ class MiniCityTrafficLightsEnv(Env):
                     'Environment parameter "{}" not supplied'.format(p))
 
         self.rows = 1
-        self.cols = 5
+        self.cols = 1
         # self.num_observed = self.grid_array.get("num_observed", 3)
         self.num_traffic_lights = self.rows * self.cols
         self.tl_type = env_params.additional_params.get('tl_type')
@@ -149,19 +143,18 @@ class MiniCityTrafficLightsEnv(Env):
             # the second column indicates the direction that is currently being
             # allowed to flow. 0 is flowing top to bottom, 1 is left to right
             # For third column, 0 signifies yellow and 1 green or red
-
             if self.last_change[i, 2] == 0:  # currently yellow
                 self.last_change[i, 0] += self.sim_step
                 if self.last_change[i, 0] >= self.min_switch_time:
                     if self.last_change[i, 1] == 0:
                         self.traffic_lights.set_state(
                             node_id='n_i4',
-                            state="GGGGGrrrGGGGGrrr",
+                            state="GGGrrrGGGrrr",
                             env=self)
                     else:
                         self.traffic_lights.set_state(
                             node_id='n_i4',
-                            state='GrrrGGGGGrrrGGGG',
+                            state='rrrGGGrrrGGG',
                             env=self)
                     self.last_change[i, 2] = 1
             else:
@@ -169,20 +162,29 @@ class MiniCityTrafficLightsEnv(Env):
                     if self.last_change[i, 1] == 0:
                         self.traffic_lights.set_state(
                             node_id='n_i4',
-                            state='yyyyyrrryyyyyrrr',
+                            state='rrryyyrrryyy',
                             env=self)
                     else:
                         self.traffic_lights.set_state(
                             node_id='n_i4',
-                            state='yrrryyyyyrrryyyy',
+                            state='yyyrrryyyrrr',
                             env=self)
                     self.last_change[i, 0] = 0.0
                     self.last_change[i, 1] = not self.last_change[i, 1]
                     self.last_change[i, 2] = 0
 
+    # def compute_reward(self, rl_actions, **kwargs):
+    #     """See class definition."""
+    #     return rewards.penalize_tl_changes(rl_actions >= 0.5, gain=1.0)
+    #     # reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
+    #     #          (2000.0 * 100)
+    #     # return reward
+
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
-        return rewards.penalize_tl_changes(rl_actions >= 0.5, gain=1.0)
+        max_speed = self.scenario.max_speed
+        speed = self.vehicles.get_speed(self.vehicles.get_ids())
+        return (0.8*np.mean(speed) - 0.2*np.std(speed))/max_speed
 
 
 class AccelCNNSubnetEnv(AccelCNNEnv):
@@ -207,7 +209,7 @@ class AccelCNNSubnetEnv(AccelCNNEnv):
         if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
             # render a frame
             self.pyglet_render()
-            
+
             # cache rendering
             if reset:
                 self.frame_buffer = [self.frame.copy() for _ in range(5)]
@@ -244,12 +246,29 @@ class AccelCNNSubnetEnv(AccelCNNEnv):
 
 class AccelCNNSubnetTrainingEnv(MiniCityTrafficLightsEnv):
 
+    @property
+    def observation_space(self):
+        """See class definition."""
+        subnet_spec = \
+            SUBNET_CROP[self.env_params.additional_params['subnetwork']]
+        subnet_xmin = subnet_spec[0]
+        subnet_xmax = subnet_spec[1]
+        subnet_ymin = subnet_spec[2]
+        subnet_ymax = subnet_spec[3]
+        height = subnet_ymax - subnet_ymin
+        width = subnet_xmax - subnet_xmin
+        channel = 6
+        return Box(0., 1., [height, width, channel])
+
     # Currently has a bug with "sights_buffer / 255" in original AccelCNNEnv
     # Using cropped frame buffer as state instead
     def get_state(self, **kwargs):
         """See class definition."""
-        cropped_frame_buffer = np.squeeze(np.array(self.frame_buffer))
-        cropped_frame_buffer = np.moveaxis(cropped_frame_buffer, 0, -1).T
+        cropped_frame_buffer = np.asarray(self.frame_buffer.copy())
+        cropped_frame_buffer = np.dstack((cropped_frame_buffer[0,...],
+                                          cropped_frame_buffer[1,...],))
+        cropped_frame_buffer = cropped_frame_buffer.T   
+
         return cropped_frame_buffer / 255.
 
     def render(self, reset=False, buffer_length=5):
@@ -264,39 +283,41 @@ class AccelCNNSubnetTrainingEnv(MiniCityTrafficLightsEnv):
         if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
             # render a frame
             self.pyglet_render()
-            
+
+            subnet_spec = \
+                SUBNET_CROP[self.env_params.additional_params['subnetwork']]
+            subnet_xmin = subnet_spec[0]
+            subnet_xmax = subnet_spec[1]
+            subnet_ymin = subnet_spec[2]
+            subnet_ymax = subnet_spec[3]
             # cache rendering
             if reset:
                 self.frame_buffer = [self.frame.copy() for _ in range(5)]
                 self.sights_buffer = [self.sights.copy() for _ in range(5)]
 
                 # Crop self.frame_buffer to subnetwork only
-                for frame in self.frame_buffer:
-                    subnet_xmin = SUBNET_CROP[self.env_params.additional_params['subnetwork']][0]
-                    subnet_xmax = SUBNET_CROP[self.env_params.additional_params['subnetwork']][1]
-                    subnet_ymin = SUBNET_CROP[self.env_params.additional_params['subnetwork']][2]
-                    subnet_ymax = SUBNET_CROP[self.env_params.additional_params['subnetwork']][3]
-                    frame = frame[subnet_ymin:subnet_ymax,
-                                  subnet_xmin:subnet_xmax, :]
+                for idx, frame in enumerate(self.frame_buffer):
+                    self.frame_buffer[idx] = frame[subnet_ymin:subnet_ymax, 
+                                                  subnet_xmin:subnet_xmax, :]
             else:
                 if self.step_counter % int(1/self.sim_step) == 0:
                     next_frame = self.frame.copy()
-                    subnet_xmin = SUBNET_CROP[self.env_params.additional_params['subnetwork']][0]
-                    subnet_xmax = SUBNET_CROP[self.env_params.additional_params['subnetwork']][1]
-                    subnet_ymin = SUBNET_CROP[self.env_params.additional_params['subnetwork']][2]
-                    subnet_ymax = SUBNET_CROP[self.env_params.additional_params['subnetwork']][3]
                     next_frame = next_frame[subnet_ymin:subnet_ymax,
                                             subnet_xmin:subnet_xmax, :]
-
-                    # Save a cropped image to current executing directory for debug
-                    plt.imsave('test_subnet_crop.png', next_frame)
-
                     self.frame_buffer.append(next_frame)
                     self.sights_buffer.append(self.sights.copy())
-
+                    # Save a cropped image to current executing directory for debug
+                    plt.imsave('test_subnet_crop.png', next_frame)
+                    # Do this only when you are debugging (: It's slow.
                 if len(self.frame_buffer) > buffer_length:
                     self.frame_buffer.pop(0)
                     self.sights_buffer.pop(0)
+        #print("RENDER///////////////////////////////////////////////////////")
+        #print("Frame buffer:")
+        #for frame in self.frame_buffer:
+        #    print(np.asarray(frame).shape)
+        #print("Time:", self.time_counter)
+        #print("///////////////////////////////////////////////////////RENDER")        
 
     # # ===============================
     # # ============ UTILS ============
