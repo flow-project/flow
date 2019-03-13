@@ -682,14 +682,14 @@ else:
 # set sim step
 sim_step = data["sim_step"]
 # retrieve experiment by name
-experiment_name = "Micro SRC Experiment 867"
+experiment_name = config.AIMSUN_DEFAULT_EXPERIMENT
 experiment = model.getCatalog().findByName(
     experiment_name, model.getType("GKTExperiment"))
 set_sim_step(experiment, sim_step)
 
 # run the simulation
 # find the replication
-replication_name = "Replication 870"
+replication_name = config.AIMSUN_DEFAULT_REPLICATION
 replication = model.getCatalog().findByName(replication_name)
 # execute, "play": run with GUI, "execute": run in batch mode
 mode = 'play' if data['render'] is True else 'execute'
