@@ -32,8 +32,6 @@ class SubRoute(Enum):
 #    that edge as a next edge.
 # 2. If the element is a list of strings, the vehicle will uniformly choose
 #    among all written edges.
-# 3. If the element is a list of tuples, the specific next edges are chosen
-#    using the weighting specific by the integer second element.
 SUBROUTE_EDGES = [
     # Full network
     {

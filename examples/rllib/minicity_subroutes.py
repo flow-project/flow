@@ -7,34 +7,158 @@ from matplotlib import pyplot as plt
 
 import ray
 from flow.controllers import BaseRouter, IDMController, RLController
-from flow.core.experiment import SumoExperiment
+
 from flow.core.params import (EnvParams, InFlows, InitialConfig, NetParams,
                               SumoCarFollowingParams, SumoLaneChangeParams,
                               SumoParams)
 from flow.core.traffic_lights import TrafficLights
 from flow.core.vehicles import Vehicles
-from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS, AccelEnv
-from flow.envs.minicity_env import (ADDITIONAL_ENV_PARAMS, AccelCNNSubnetEnv,
-                                    MiniCityTrafficLightsEnv)
+
 from flow.scenarios.minicity import ADDITIONAL_NET_PARAMS, MiniCityScenario
 from flow.scenarios.subnetworks import (SUBNET_CROP, SUBNET_IDM,
                                         SUBNET_INFLOWS, SUBNET_RL,
                                         SUBROUTE_EDGES, SubRoute)
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
-from ray.rllib.agents.agent import get_agent_class
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
 # time horizon of a single rollout
-HORIZON = 10
+HORIZON = 50
 # number of rollouts per training iteration
-N_ROLLOUTS = 1
+N_ROLLOUTS = 2
 # number of parallel workers
 N_CPUS = 2
 
 
 np.random.seed(204)
+
+#################################################################
+# CUSTOM ARCHITECTURE'drgb'
+#################################################################
+from ray.rllib.models import ModelCatalog, Model
+import tensorflow as tf
+
+class MyModelClass(Model):
+    def _build_layers_v2(self, input_dict, num_outputs, options):
+        """Define the layers of a custom model.
+
+        Arguments:
+            input_dict (dict): Dictionary of input tensors, including "obs",
+                "prev_action", "prev_reward", "is_training".
+            num_outputs (int): Output tensor must be of size
+                [BATCH_SIZE, num_outputs].
+            options (dict): Model options.
+
+        Returns:
+            (outputs, feature_layer): Tensors of size [BATCH_SIZE, num_outputs]
+                and [BATCH_SIZE, desired_feature_size].
+
+        When using dict or tuple observation spaces, you can access
+        the nested sub-observation batches here as well:
+
+        Examples:
+            # >>> print(input_dict)
+            {'prev_actions': <tf.Tensor shape=(?,) dtype=int64>,
+             'prev_rewards': <tf.Tensor shape=(?,) dtype=float32>,
+             'is_training': <tf.Tensor shape=(), dtype=bool>,
+             'obs': OrderedDict([
+                ('sensors', OrderedDict([
+                    ('front_cam', [
+                        <tf.Tensor shape=(?, 10, 10, 3) dtype=float32>,
+                        <tf.Tensor shape=(?, 10, 10, 3) dtype=float32>]),
+                    ('position', <tf.Tensor shape=(?, 3) dtype=float32>),
+                    ('velocity', <tf.Tensor shape=(?, 3) dtype=float32>)]))])}
+        """
+        inputs = input_dict['obs']
+        print(inputs)
+        # Convolutional layer 1
+        conv1 = tf.layers.conv2d(
+          inputs=inputs,
+          filters=16,
+          kernel_size=[4, 4],
+          padding="same",
+          activation=tf.nn.relu)
+        # Pooling layer 1
+        pool1 = tf.layers.max_pooling2d(
+          inputs=conv1,
+          pool_size=[2, 2],
+          strides=2)
+        # Convolutional layer 2
+        conv2 = tf.layers.conv2d(
+          inputs=pool1,
+          filters=16,
+          kernel_size=[4, 4],
+          padding="same",
+          activation=tf.nn.relu)
+        # Pooling layer 2
+        pool2 = tf.layers.max_pooling2d(
+          inputs=conv2,
+          pool_size=[2, 2],
+          strides=2)
+        # Fully connected layer 1
+        flat = tf.contrib.layers.flatten(pool2)
+        fc1 = tf.layers.dense(
+          inputs=flat,
+          units=32,
+          activation=tf.nn.sigmoid)
+        # Fully connected layer 2
+        fc2 = tf.layers.dense(
+          inputs=fc1,
+          units=num_outputs,
+          activation=None)
+        return fc2, fc1
+
+    def value_function(self):
+        """Builds the value function output.
+
+        This method can be overridden to customize the implementation of the
+        value function (e.g., not sharing hidden layers).
+
+        Returns:
+            Tensor of size [BATCH_SIZE] for the value function.
+        """
+        return tf.reshape(tf.linear(self.last_layer, 1, "value", tf.normc_initializer(1.0)), [-1])
+
+    def custom_loss(self, policy_loss, loss_inputs):
+        """Override to customize the loss function used to optimize this model.
+
+        This can be used to incorporate self-supervised losses (by defining
+        a loss over existing input and output tensors of this model), and
+        supervised losses (by defining losses over a variable-sharing copy of
+        this model's layers).
+
+        You can find an runnable example in examples/custom_loss.py.
+
+        Arguments:
+            policy_loss (Tensor): scalar policy loss from the policy graph.
+            loss_inputs (dict): map of input placeholders for rollout data.
+
+        Returns:
+            Scalar tensor for the customized loss for this model.
+        """
+        return policy_loss
+
+    def custom_stats(self):
+        """Override to return custom metrics from your model.
+
+        The stats will be reported as part of the learner stats, i.e.,
+            info:
+                learner:
+                    model:
+                        key1: metric1
+                        key2: metric2
+
+        Returns:
+            Dict of string keys to scalar tensors.
+        """
+        return {}
+
+ModelCatalog.register_custom_model("my_model", MyModelClass)
 
 #################################################################
 # MODIFIABLE PARAMETERS
@@ -61,14 +185,15 @@ USE_CNN = True  # Set to True to use Pixel-learning CNN agent
 # Minicity Environment Instantiation Logic
 #################################################################
 
+
 class MinicityRouter(BaseRouter):
     """A router used to continuously re-route vehicles in minicity scenario.
-
     This class allows the vehicle to pick a random route at junctions.
     """
 
     def __init__(self, veh_id, router_params):
         self.prev_edge = None
+        self.counter = 0 # Number of time steps that vehicle has not moved
         super().__init__(veh_id, router_params)
 
     def choose_route(self, env):
@@ -78,25 +203,31 @@ class MinicityRouter(BaseRouter):
         edge = env.vehicles.get_edge(self.veh_id)
         # if edge[0] == 'e_63':
         #     return ['e_63', 'e_94', 'e_52']
+
         subnetwork_edges = SUBROUTE_EDGES[SUBNETWORK.value]
-        if edge not in subnetwork_edges or edge == self.prev_edge:
+
+        if edge not in subnetwork_edges:
             next_edge = None
+        elif edge == self.prev_edge and self.counter < 5:
+            next_edge = None
+            self.counter += 1
+        elif edge == self.prev_edge and self.counter >= 5:
+            if type(subnetwork_edges[edge]) == str:
+                next_edge = subnetwork_edges[edge]
+            else:
+                next_edge = random.choice(subnetwork_edges[edge])
+            self.counter = 0
         elif type(subnetwork_edges[edge]) == str:
             next_edge = subnetwork_edges[edge]
+            self.counter = 0
         elif type(subnetwork_edges[edge]) == list:
-            if type(subnetwork_edges[edge][0]) == str:
-                next_edge = random.choice(subnetwork_edges[edge])
-            else:
-                # Edge choices weighted by integer.
-                # Inefficient untested implementation, but doesn't rely on numpy.random.choice or Python >=3.6 random.choices
-                next_edge = random.choice(
-                    sum(([edge] * weight for edge, weight in subnetwork_edges), []))
+            next_edge = random.choice(subnetwork_edges[edge])
+            self.counter = 0
         self.prev_edge = edge
         if next_edge is None:
             return None
         else:
             return [edge, next_edge]
-
 
 def define_traffic_lights():
     tl_logic = TrafficLights(baseline=False)
@@ -151,35 +282,30 @@ def define_traffic_lights():
     return tl_logic
 
 
-pxpm = 1
-sim_params = SumoParams(sim_step=0.25, emission_path='./data/')
-
-
-if pxpm is not None:
-    sim_params.pxpm = pxpm
 
 vehicles = Vehicles()  # modified from VehicleParams
+
 vehicles.add(
     veh_id="idm",
     acceleration_controller=(IDMController, {}),
     routing_controller=(MinicityRouter, {}),
-    # car_following_params=SumoCarFollowingParams(
-    #     speed_mode=1,
-    # ),
+    sumo_car_following_params=SumoCarFollowingParams(
+        decel = 4.5,
+    ),
     # lane_change_params=SumoLaneChangeParams(
     #     lane_change_mode="strategic",
     # ),
     speed_mode="all_checks",
     lane_change_mode="strategic",
     initial_speed=0,
-    num_vehicles=SUBNET_IDM[SUBNETWORK.value])
+    num_vehicles=0)
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
     routing_controller=(MinicityRouter, {}),
-    # car_following_params=SumoCarFollowingParams(
-    #     speed_mode="strategic",
-    # ),
+    sumo_car_following_params=SumoCarFollowingParams(
+        decel = 4.5,
+    ),
     speed_mode="all_checks",
     lane_change_mode="strategic",
     initial_speed=0,
@@ -202,14 +328,14 @@ if len(SUBNET_INFLOWS[SUBNETWORK.value]) > 0:
         assert edge in SUBROUTE_EDGES[SUBNETWORK.value].keys()
         inflow.add(veh_type="idm",
                    edge=edge,
-                   vehs_per_hour=1000,  # Change this to modify bandwidth/traffic
+                   vehs_per_hour=100,  # Change this to modify bandwidth/traffic
                    departLane="free",
-                   departSpeed=7.5)
+                   departSpeed=7)
         inflow.add(veh_type="rl",
                    edge=edge,
                    vehs_per_hour=1,  # Change this to modify bandwidth/traffic
                    departLane="free",
-                   departSpeed=7.5)
+                   departSpeed=7)
     net_params = NetParams(
         inflows=inflow,
         no_internal_links=False, additional_params=additional_net_params)
@@ -217,6 +343,7 @@ else:
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
+print(SUBROUTE_EDGES[SUBNETWORK.value].keys())
 initial_config = InitialConfig(
     spacing="random",
     min_gap=5,
@@ -225,7 +352,7 @@ initial_config = InitialConfig(
 
 
 additional_env_params = {
-    'target_velocity': 50,
+    'target_velocity': 11,
     'switch_time': 7,
     'num_observed': 2,
     'discrete': False,
@@ -253,7 +380,7 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=1,
-        render=False,
+        render=RENDERER,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -295,6 +422,8 @@ def setup_exps():
     config['kl_target'] = 0.02
     config['num_sgd_iter'] = 10
     config['horizon'] = HORIZON
+    config['model']['custom_model'] = "my_model"
+    config['model']['custom_options'] = {}
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -311,7 +440,10 @@ def setup_exps():
 
 if __name__ == '__main__':
     alg_run, gym_name, config = setup_exps()
-    ray.init(num_cpus=N_CPUS + 1, redirect_output=False)
+    try:
+        ray.init(num_cpus=N_CPUS + 1)
+    except DeprecationWarning:
+        ray.init(num_cpus=N_CPUS + 1, redirect_output=False)
     trials = run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,
