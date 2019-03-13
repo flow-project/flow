@@ -189,8 +189,12 @@ class MiniCityTrafficLightsEnv(Env):
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         max_speed = self.scenario.max_speed
+
         speed = self.vehicles.get_speed(self.vehicles.get_ids())
-        return (0.8*np.mean(speed) - 0.2*np.std(speed))/max_speed
+        if len(self.vehicles.get_ids()) ==0 :
+            return 0
+        else :
+            return (0.8*np.mean(speed) - 0.2*np.std(speed))/max_speed
 
 
 class AccelCNNSubnetEnv(AccelCNNEnv):
@@ -223,19 +227,19 @@ class AccelCNNSubnetEnv(AccelCNNEnv):
 
                 # Crop self.frame_buffer to subnetwork only
                 for frame in self.frame_buffer:
-                    subnet_xmin = SUBNET_CROP[self.env_params.additional_params['subnetwork']][0]
-                    subnet_xmax = SUBNET_CROP[self.env_params.additional_params['subnetwork']][1]
-                    subnet_ymin = SUBNET_CROP[self.env_params.additional_params['subnetwork']][2]
-                    subnet_ymax = SUBNET_CROP[self.env_params.additional_params['subnetwork']][3]
+                    subnet_xmin = self.env_params.additional_params['xmin']
+                    subnet_xmax = self.env_params.additional_params['xmax']
+                    subnet_ymin = self.env_params.additional_params['ymin']
+                    subnet_ymax = self.env_params.additional_params['ymax']
                     frame = frame[subnet_ymin:subnet_ymax,
                                   subnet_xmin:subnet_xmax, :]
             else:
                 if self.step_counter % int(1/self.sim_step) == 0:
                     next_frame = self.frame.copy()
-                    subnet_xmin = SUBNET_CROP[self.env_params.additional_params['subnetwork']][0]
-                    subnet_xmax = SUBNET_CROP[self.env_params.additional_params['subnetwork']][1]
-                    subnet_ymin = SUBNET_CROP[self.env_params.additional_params['subnetwork']][2]
-                    subnet_ymax = SUBNET_CROP[self.env_params.additional_params['subnetwork']][3]
+                    subnet_xmin = self.env_params.additional_params['xmin']
+                    subnet_xmax = self.env_params.additional_params['xmax']
+                    subnet_ymin = self.env_params.additional_params['ymin']
+                    subnet_ymax = self.env_params.additional_params['ymax']
                     next_frame = next_frame[subnet_ymin:subnet_ymax,
                                             subnet_xmin:subnet_xmax, :]
 
@@ -257,10 +261,10 @@ class AccelCNNSubnetTrainingEnv(MiniCityTrafficLightsEnv):
         """See class definition."""
         subnet_spec = \
             SUBNET_CROP[self.env_params.additional_params['subnetwork']]
-        subnet_xmin = subnet_spec[0]
-        subnet_xmax = subnet_spec[1]
-        subnet_ymin = subnet_spec[2]
-        subnet_ymax = subnet_spec[3]
+        subnet_xmin = self.env_params.additional_params['xmin']
+        subnet_xmax = self.env_params.additional_params['xmax']
+        subnet_ymin = self.env_params.additional_params['ymin']
+        subnet_ymax = self.env_params.additional_params['ymax']
         height = subnet_ymax - subnet_ymin
         width = subnet_xmax - subnet_xmin
         channel = 6
@@ -292,10 +296,10 @@ class AccelCNNSubnetTrainingEnv(MiniCityTrafficLightsEnv):
 
             subnet_spec = \
                 SUBNET_CROP[self.env_params.additional_params['subnetwork']]
-            subnet_xmin = subnet_spec[0]
-            subnet_xmax = subnet_spec[1]
-            subnet_ymin = subnet_spec[2]
-            subnet_ymax = subnet_spec[3]
+            subnet_xmin = self.env_params.additional_params['xmin']
+            subnet_xmax = self.env_params.additional_params['xmax']
+            subnet_ymin = self.env_params.additional_params['ymin']
+            subnet_ymax = self.env_params.additional_params['ymax']
             # cache rendering
             if reset:
                 self.frame_buffer = [self.frame.copy() for _ in range(5)]
@@ -313,7 +317,7 @@ class AccelCNNSubnetTrainingEnv(MiniCityTrafficLightsEnv):
                     self.frame_buffer.append(next_frame)
                     self.sights_buffer.append(self.sights.copy())
                     # Save a cropped image to current executing directory for debug
-                    plt.imsave('test_subnet_crop.png', next_frame)
+                    plt.imsave('test_subnet_crop{}-{}-{}-{}.png'.format(subnet_xmin,subnet_xmax,subnet_ymin,subnet_ymax), next_frame)
                     # Do this only when you are debugging (: It's slow.
                 if len(self.frame_buffer) > buffer_length:
                     self.frame_buffer.pop(0)

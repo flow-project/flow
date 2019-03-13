@@ -350,14 +350,22 @@ initial_config = InitialConfig(
     edges_distribution=list(SUBROUTE_EDGES[SUBNETWORK.value].keys())
 )
 
-
+xmin = int(input("What is xmin? 0}"))
+xmax = int(input("What is xmax? 1200"))
+ymin = int(input("What is ymin? 0"))
+ymax = int(input("What is ymax? 1200"))
 additional_env_params = {
     'target_velocity': 11,
     'switch_time': 7,
     'num_observed': 2,
     'discrete': True,
     'tl_type': 'controlled',
-    'subnetwork': SUBNETWORK.value
+    'subnetwork': SUBNETWORK.value,
+    'xmin':xmin,
+    'xmax':xmax,
+    'ymin':ymin,
+    'ymax':ymax,
+
 }
 
 
@@ -382,6 +390,7 @@ flow_params = dict(
         sim_step=1,
         render=RENDERER,
         restart_instance=True
+        pxpm = 1
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
