@@ -20,7 +20,7 @@ args = parser.parse_args()
 
 file_list = args.files
 
-plt.figure(figsize=(27, 9))
+plt.figure(figsize=(14, 10))
 for i, file_name in enumerate(file_list):
     inflows = []
     outflows = []

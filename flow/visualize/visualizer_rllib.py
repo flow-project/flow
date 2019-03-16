@@ -227,7 +227,6 @@ def visualizer_rllib(args):
                         action[agent_id], state_init, logits = agent.compute_action(
                             state[agent_id], state=state_init, policy_id=policy_map_fn(agent_id))
                     else:
-                        print('HEY HEY HEY WE ARE HERE')
                         action[agent_id] = agent.compute_action(
                             state[agent_id], policy_id=policy_map_fn(agent_id))
             else:
