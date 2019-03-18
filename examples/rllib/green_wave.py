@@ -26,6 +26,20 @@ N_CPUS = 2
 
 
 def gen_edges(row_num, col_num):
+    """Generate the names of the outer edges in the grid network.
+
+    Parameters
+    ----------
+    col_num : int
+        number of columns in the grid
+    row_num : int
+        number of rows in the grid
+
+    Returns
+    -------
+    list of str
+        names of all the outer edges
+    """
     edges = []
     for i in range(col_num):
         edges += ['left' + str(row_num) + '_' + str(i)]
@@ -40,7 +54,26 @@ def gen_edges(row_num, col_num):
 
 
 def get_flow_params(col_num, row_num, additional_net_params):
-    initial_config = InitialConfig(
+    """Define the network and initial params in the presence of inflows.
+
+    Parameters
+    ----------
+    col_num : int
+        number of columns in the grid
+    row_num : int
+        number of rows in the grid
+    additional_net_params : dict
+        network-specific parameters that are unique to the grid
+
+    Returns
+    -------
+    flow.core.params.InitialConfig
+        parameters specifying the initial configuration of vehicles in the
+        network
+    flow.core.params.NetParams
+        network-specific parameters used to generate the scenario
+    """
+    initial = InitialConfig(
         spacing='custom', lanes_distribution=float('inf'), shuffle=True)
 
     inflow = InFlows()
@@ -53,12 +86,12 @@ def get_flow_params(col_num, row_num, additional_net_params):
             departLane='free',
             departSpeed=20)
 
-    net_params = NetParams(
+    net = NetParams(
         inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params)
 
-    return initial_config, net_params
+    return initial, net
 
 
 def get_non_flow_params(enter_speed, add_net_params):
@@ -84,12 +117,12 @@ def get_non_flow_params(enter_speed, add_net_params):
         network-specific parameters used to generate the scenario
     """
     additional_init_params = {'enter_speed': enter_speed}
-    initial_config = InitialConfig(
+    initial = InitialConfig(
         spacing='custom', additional_params=additional_init_params)
-    net_params = NetParams(
+    net = NetParams(
         no_internal_links=False, additional_params=add_net_params)
 
-    return initial_config, net_params
+    return initial, net
 
 
 V_ENTER = 30
