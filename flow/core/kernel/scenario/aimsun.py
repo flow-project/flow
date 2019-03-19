@@ -87,6 +87,10 @@ class AimsunKernelScenario(KernelScenario):
         else:
             script_path = osp.join(config.PROJECT_PATH,
                                 'flow/utils/aimsun/load.py')
+            file_path = osp.join(config.PROJECT_PATH,
+                                'flow/utils/aimsun/aimsun_template_path')
+            with open(file_path, 'w') as f:
+                f.write(template_path)
 
         # start the aimsun process
         aimsun_call = [aimsun_path, "-script", script_path]
