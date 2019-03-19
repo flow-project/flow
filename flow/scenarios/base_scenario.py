@@ -109,8 +109,7 @@ class Scenario(Serializable):
             self.connections = None
 
         # specify routes vehicles can take
-        if net_params.template is not None and net_params.template[:-4] == ".ang":  
-            # FIXME not very elegant
+        if net_params.template is not None and net_params.template[-4:] == ".ang":  
             # we don't want to specify routes when loading an Aimsun template
             self.routes = [] 
         else: 
