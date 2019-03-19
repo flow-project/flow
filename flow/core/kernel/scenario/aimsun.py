@@ -90,12 +90,12 @@ class AimsunKernelScenario(KernelScenario):
         template_path = scenario.net_params.template
         if template_path is None:
             script_path = osp.join(config.PROJECT_PATH,
-                                    'flow/utils/aimsun/generate.py')
+                                   'flow/utils/aimsun/generate.py')
         else:
             script_path = osp.join(config.PROJECT_PATH,
-                                    'flow/utils/aimsun/load.py')
+                                   'flow/utils/aimsun/load.py')
             file_path = osp.join(config.PROJECT_PATH,
-                                    'flow/utils/aimsun/aimsun_template_path')
+                                 'flow/utils/aimsun/aimsun_template_path')
             with open(file_path, 'w') as f:
                 f.write(template_path)
 
@@ -124,7 +124,8 @@ class AimsunKernelScenario(KernelScenario):
 
                 # list of edges and internal links (junctions)
                 self._edge_list = [
-                    edge_id for edge_id in self._edges.keys() if edge_id[0] != ':'
+                    edge_id for edge_id in self._edges.keys()
+                    if edge_id[0] != ':'
                 ]
                 self._junction_list = list(
                     set(self._edges.keys()) - set(self._edge_list))
