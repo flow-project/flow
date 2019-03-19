@@ -446,14 +446,14 @@ class AimsunParams(SimParams):
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
     scenario_name : str, optional
-        name of the scenario generated in Aimsun. 
+        name of the scenario generated in Aimsun.
     experiment_name : str, optional
         name of the experiment generated in Aimsun
     replication_name : str, optional
-        name of the replication generated in Aimsun. When loading 
+        name of the replication generated in Aimsun. When loading
         an Aimsun template, this parameter must be set to the name
         of the replication to be run by the simulation; in this case,
-        the scenario_name and experiment_name parameters are not 
+        the scenario_name and experiment_name parameters are not
         necessary as they will be obtained from the replication name.
     centroid_config_name : str, optional
         name of the centroid configuration to load in Aimsun. This
@@ -461,8 +461,8 @@ class AimsunParams(SimParams):
         not when generating one.
     subnetwork_name : str, optional
         name of the subnetwork to load in Aimsun. This parameter is not
-        used when generating a network; it can be used when loading an 
-        Aimsun template containing a subnetwork in order to only load 
+        used when generating a network; it can be used when loading an
+        Aimsun template containing a subnetwork in order to only load
         the objects contained in this subnetwork. If set to None or if the
         specified subnetwork does not exist, the whole network will be loaded.
     """

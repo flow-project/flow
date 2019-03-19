@@ -89,13 +89,13 @@ class AimsunKernelScenario(KernelScenario):
         # network from a template
         template_path = scenario.net_params.template
         if template_path is None:
-        script_path = osp.join(config.PROJECT_PATH,
-                               'flow/utils/aimsun/generate.py')
+            script_path = osp.join(config.PROJECT_PATH,
+                                    'flow/utils/aimsun/generate.py')
         else:
             script_path = osp.join(config.PROJECT_PATH,
-                                'flow/utils/aimsun/load.py')
+                                    'flow/utils/aimsun/load.py')
             file_path = osp.join(config.PROJECT_PATH,
-                                'flow/utils/aimsun/aimsun_template_path')
+                                    'flow/utils/aimsun/aimsun_template_path')
             with open(file_path, 'w') as f:
                 f.write(template_path)
 
@@ -106,14 +106,14 @@ class AimsunKernelScenario(KernelScenario):
         # merge types into edges
         if scenario.net_params.osm_path is None:
             if scenario.net_params.template is None:
-            for i in range(len(scenario.edges)):
-                if 'type' in scenario.edges[i]:
-                    for typ in scenario.types:
-                        if typ['id'] == scenario.edges[i]['type']:
-                            new_dict = deepcopy(typ)
-                            new_dict.pop("id")
-                            scenario.edges[i].update(new_dict)
-                            break
+                for i in range(len(scenario.edges)):
+                    if 'type' in scenario.edges[i]:
+                        for typ in scenario.types:
+                            if typ['id'] == scenario.edges[i]['type']:
+                                new_dict = deepcopy(typ)
+                                new_dict.pop("id")
+                                scenario.edges[i].update(new_dict)
+                                break
 
             self._edges = {}
             for edge in deepcopy(scenario.edges):
@@ -131,9 +131,9 @@ class AimsunKernelScenario(KernelScenario):
 
             else:
                 # load scenario from template
-                scenario_data_file = "flow/core/kernel/scenario/scenario_data.json"
-                filepath = os.path.join(config.PROJECT_PATH, scenario_data_file)
-                
+                scenario_file = "flow/core/kernel/scenario/scenario_data.json"
+                filepath = os.path.join(config.PROJECT_PATH, scenario_file)
+
                 while not os.path.exists(filepath):
                     time.sleep(0.5)
                 with open(filepath) as f:
