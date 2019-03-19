@@ -445,6 +445,26 @@ class AimsunParams(SimParams):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
+    scenario_name : str, optional
+        name of the scenario generated in Aimsun. 
+    experiment_name : str, optional
+        name of the experiment generated in Aimsun
+    replication_name : str, optional
+        name of the replication generated in Aimsun. When loading 
+        an Aimsun template, this parameter must be set to the name
+        of the replication to be run by the simulation; in this case,
+        the scenario_name and experiment_name parameters are not 
+        necessary as they will be obtained from the replication name.
+    centroid_config_name : str, optional
+        name of the centroid configuration to load in Aimsun. This
+        parameter is only used when loading an Aimsun template,
+        not when generating one.
+    subnetwork_name : str, optional
+        name of the subnetwork to load in Aimsun. This parameter is not
+        used when generating a network; it can be used when loading an 
+        Aimsun template containing a subnetwork in order to only load 
+        the objects contained in this subnetwork. If set to None or if the
+        specified subnetwork does not exist, the whole network will be loaded.
     """
     def __init__(self,
                  sim_step=0.1,
@@ -454,11 +474,21 @@ class AimsunParams(SimParams):
                  save_render=False,
                  sight_radius=25,
                  show_radius=False,
-                 pxpm=2):
+                 pxpm=2,
+                 scenario_name="Dynamic Scenario 802",
+                 experiment_name="Micro SRC Experiment 867",
+                 replication_name="Replication 870",
+                 centroid_config_name="Centroid Configuration 802",
+                 subnetwork_name=None):
         """Instantiate AimsunParams."""
         super(AimsunParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
             sight_radius, show_radius, pxpm)
+        self.scenario_name = scenario_name
+        self.experiment_name = experiment_name
+        self.replication_name = replication_name
+        self.centroid_config_name = centroid_config_name
+        self.subnetwork_name = subnetwork_name
 
 
 class SumoParams(SimParams):
