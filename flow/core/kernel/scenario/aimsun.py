@@ -80,8 +80,13 @@ class AimsunKernelScenario(KernelScenario):
 
         # path to the supplementary file that is used to generate an aimsun
         # network from a template
+        template_path = scenario.net_params.template
+        if template_path is None:
         script_path = osp.join(config.PROJECT_PATH,
                                'flow/utils/aimsun/generate.py')
+        else:
+            script_path = osp.join(config.PROJECT_PATH,
+                                'flow/utils/aimsun/load.py')
 
         # start the aimsun process
         aimsun_call = [aimsun_path, "-script", script_path]
