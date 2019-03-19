@@ -81,7 +81,7 @@ def get_dict_from_objects(sections, nodes, turnings, cen_connections):
     for s in sections:
         scenario_data['sections'][s.getId()] = {
             'name': s.getName(),
-            'num_lanes': s.getNbFullLanes(),
+            'numLanes': s.getNbFullLanes(),
             # FIXME this is sum of lanes lengths (bc they don't have to be of the same size)
             'length': s.getLanesLength2D(),
             'speed': s.getSpeed()

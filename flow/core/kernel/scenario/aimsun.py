@@ -153,6 +153,13 @@ class AimsunKernelScenario(KernelScenario):
 
             with open(filepath) as f:
                 self._edges = json.load(f)
+            # list of edges and internal links (junctions)
+            self._edge_list = [
+                edge_id for edge_id in self._edges.keys()
+                if edge_id[0] != ':'
+            ]
+            self._junction_list = list(
+                set(self._edges.keys()) - set(self._edge_list))
 
             # delete the file
             os.remove(filepath)
@@ -272,14 +279,11 @@ class AimsunKernelScenario(KernelScenario):
 
     def get_edge_list(self):
         """See parent class."""
-        return [
-            edge_id for edge_id in self._edges.keys() if edge_id[0] != ":"
-        ]
+        return self._edge_list
 
     def get_junction_list(self):
         """See parent class."""
-        return list(
-            set(self._edges.keys()) - set(self._edge_list))
+        return self._junction_list
 
     def get_edge(self, x):  # TODO: maybe remove
         """See parent class."""
