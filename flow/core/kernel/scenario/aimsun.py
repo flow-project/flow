@@ -115,19 +115,19 @@ class AimsunKernelScenario(KernelScenario):
                                 scenario.edges[i].update(new_dict)
                                 break
 
-            self._edges = {}
-            for edge in deepcopy(scenario.edges):
-                edge_name = edge['id']
-                self._edges[edge_name] = {}
-                del edge['id']
-                self._edges[edge_name] = edge
+                self._edges = {}
+                for edge in deepcopy(scenario.edges):
+                    edge_name = edge['id']
+                    self._edges[edge_name] = {}
+                    del edge['id']
+                    self._edges[edge_name] = edge
 
-            # list of edges and internal links (junctions)
-            self._edge_list = [
-                edge_id for edge_id in self._edges.keys() if edge_id[0] != ':'
-            ]
-            self._junction_list = list(
-                set(self._edges.keys()) - set(self._edge_list))
+                # list of edges and internal links (junctions)
+                self._edge_list = [
+                    edge_id for edge_id in self._edges.keys() if edge_id[0] != ':'
+                ]
+                self._junction_list = list(
+                    set(self._edges.keys()) - set(self._edge_list))
 
             else:
                 # load scenario from template
