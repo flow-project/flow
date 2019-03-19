@@ -140,9 +140,9 @@ class AimsunKernelScenario(KernelScenario):
                 with open(filepath) as f:
                     content = json.load(f)
 
-                    self._edges = content['sections']
-                    self._edge_list = self._edges.keys()
-                    self._junction_list = []  # TODO
+                self._edges = content['sections']
+                self._edge_list = self._edges.keys()
+                self._junction_list = content['turnings']
 
         else:
             data_file = 'flow/utils/aimsun/osm_edges.json'
