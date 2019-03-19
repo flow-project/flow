@@ -256,7 +256,7 @@ def generate_net(nodes, edges, connections, inflows, veh_types, traffic_lights):
     set_vehicles_color(model)
 
     # set API
-    scenario_name = "Dynamic Scenario 866"
+    scenario_name = data["scenario_name"]
     scenario = model.getCatalog().findByName(
         scenario_name, model.getType("GKScenario"))  # find scenario
     scenario_data = scenario.getInputData()
@@ -344,7 +344,7 @@ def generate_net_osm(file_name, inflows, veh_types):
     set_vehicles_color(model)
 
     # set API
-    scenario_name = "Dynamic Scenario 866"
+    scenario_name = data["scenario_name"]
     scenario = model.getCatalog().findByName(
         scenario_name, model.getType("GKScenario"))  # find scenario
     scenario_data = scenario.getInputData()
@@ -682,14 +682,14 @@ else:
 # set sim step
 sim_step = data["sim_step"]
 # retrieve experiment by name
-experiment_name = config.AIMSUN_DEFAULT_EXPERIMENT
+experiment_name = data["experiment_name"]
 experiment = model.getCatalog().findByName(
     experiment_name, model.getType("GKTExperiment"))
 set_sim_step(experiment, sim_step)
 
 # run the simulation
 # find the replication
-replication_name = config.AIMSUN_DEFAULT_REPLICATION
+replication_name = data["replication_name"]
 replication = model.getCatalog().findByName(replication_name)
 # execute, "play": run with GUI, "execute": run in batch mode
 mode = 'play' if data['render'] is True else 'execute'
