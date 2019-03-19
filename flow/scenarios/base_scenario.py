@@ -114,7 +114,7 @@ class Scenario(Serializable):
             # we don't want to specify routes when loading an Aimsun template
             self.routes = [] 
         else: 
-        self.routes = self.specify_routes(net_params)
+            self.routes = self.specify_routes(net_params)
 
         # optional parameters, used to get positions from some global reference
         self.edge_starts = self.specify_edge_starts()
