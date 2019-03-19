@@ -71,7 +71,7 @@ def get_dict_from_objects(sections, nodes, turnings, cen_connections):
         centroid_config_name, model.getType("GKCentroidConfiguration"))
     if not centroid_config:
         print("[load.py] ERROR: Centroid configuration "
-              centroid_config_name + " does not exist.")
+              + centroid_config_name + " does not exist.")
     for c in centroid_config.getOriginCentroids():
         scenario_data['centroids'][c.getId()] = {'type': 'in'}
     for c in centroid_config.getDestinationCentroids():
@@ -173,7 +173,7 @@ if subnetwork_name is not None:
         scenario_data = load_subnetwork(subnetwork, scenario)
     else:
         print("[load.py] ERROR: Subnetwork " + subnetwork_name
-              " could not be found. Loading the whole network.")
+              + " could not be found. Loading the whole network.")
         scenario_data = load_network()
 else:
     scenario_data = load_network()
@@ -184,7 +184,7 @@ scenario_data_path = os.path.join(config.PROJECT_PATH, scenario_data_file)
 with open(scenario_data_path, "w") as f:
     json.dump(scenario_data, f, sort_keys=True, indent=4)
     print("[load.py] Template's scenario data written into "
-          scenario_data_path)
+          + scenario_data_path)
 
 # get simulation step attribute column
 col_sim = model.getColumn('GKExperiment::simStepAtt')
