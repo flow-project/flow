@@ -24,11 +24,3 @@ AIMSUN_NEXT_PATH = "/home/user/Aimsun_Next_XXX"
 # path to the aimsun_flow environment's main directory (required for Aimsun
 # simulations)
 AIMSUN_SITEPACKAGES = "/path/to/envs/aimsun_flow"
-
-# name of the experiment that is created or loaded by default
-# during an Aimsun simulation
-AIMSUN_DEFAULT_EXPERIMENT = "Micro SRC Experiment 867"
-
-# name of the replication that is created or loaded by default
-# during an Aimsun simulation
-AIMSUN_DEFAULT_REPLICATION = "Replication 870"
