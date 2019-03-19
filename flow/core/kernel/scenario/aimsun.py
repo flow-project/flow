@@ -78,6 +78,13 @@ class AimsunKernelScenario(KernelScenario):
         aimsun_path = osp.join(osp.expanduser(config.AIMSUN_NEXT_PATH),
                                binary_name)
 
+        # remove scenario data file if if still exists from
+        # the previous simulation
+        data_file = 'flow/core/kernel/scenario/scenario_data.json'
+        filepath = os.path.join(config.PROJECT_PATH, data_file)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+
         # path to the supplementary file that is used to generate an aimsun
         # network from a template
         template_path = scenario.net_params.template
@@ -98,6 +105,7 @@ class AimsunKernelScenario(KernelScenario):
 
         # merge types into edges
         if scenario.net_params.osm_path is None:
+            if scenario.net_params.template is None:
             for i in range(len(scenario.edges)):
                 if 'type' in scenario.edges[i]:
                     for typ in scenario.types:
@@ -120,6 +128,21 @@ class AimsunKernelScenario(KernelScenario):
             ]
             self._junction_list = list(
                 set(self._edges.keys()) - set(self._edge_list))
+
+            else:
+                # load scenario from template
+                scenario_data_file = "flow/core/kernel/scenario/scenario_data.json"
+                filepath = os.path.join(config.PROJECT_PATH, scenario_data_file)
+                
+                while not os.path.exists(filepath):
+                    time.sleep(0.5)
+                with open(filepath) as f:
+                    content = json.load(f)
+
+                    self._edges = content['sections']
+                    self._edge_list = self._edges.keys()
+                    self._junction_list = []  # TODO
+
         else:
             data_file = 'flow/utils/aimsun/osm_edges.json'
             filepath = os.path.join(config.PROJECT_PATH, data_file)
