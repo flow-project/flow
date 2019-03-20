@@ -18,6 +18,7 @@ import gym
 import numpy as np
 import os
 import sys
+import time
 
 import ray
 try:
@@ -100,7 +101,10 @@ def visualizer_rllib(args):
         sys.exit(1)
 
     sim_params.restart_instance = False
-    sim_params.emission_path = './test_time_rollout/'
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    emission_path = '{0}/test_time_rollout/'.format(dir_path)
+
+    sim_params.emission_path = emission_path
 
     # pick your rendering mode
     if args.render_mode == 'sumo_web3d':
@@ -264,8 +268,10 @@ def visualizer_rllib(args):
 
     # if prompted, convert the emission file into a csv file
     if args.emission_to_csv:
+        time.sleep(0.1)
+        
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        emission_filename = '{0}-emission.xml'.format(scenario.name)
+        emission_filename = '{0}-emission.xml'.format(env.scenario.name)
 
         emission_path = \
             '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
