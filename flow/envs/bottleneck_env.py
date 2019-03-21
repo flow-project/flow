@@ -759,8 +759,12 @@ class DesiredVelocityEnv(BottleneckEnv):
                 if segment[2]:  # if controlled
                     num_lanes = self.k.scenario.num_lanes(segment[0])
                     action_size += num_lanes * segment[1]
+        add_params = self.env_params.additional_params
+        max_accel = add_params.get("max_accel")
+        max_decel = add_params.get("max_decel")
         return Box(
-            low=-1.5, high=1.0, shape=(int(action_size), ), dtype=np.float32)
+            low=-max_decel*self.sim_step, high=max_accel*self.sim_step,
+            shape=(int(action_size), ), dtype=np.float32)
 
     def get_state(self):
         """See class definition."""

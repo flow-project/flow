@@ -60,7 +60,7 @@ for edge in outer_edges:
         edge=edge,
         vehs_per_hour=EDGE_INFLOW,
         departLane="free",
-        departSpeed="max")
+        departSpeed=V_ENTER)
 
 flow_params = dict(
     # name of the experiment
@@ -87,7 +87,7 @@ flow_params = dict(
         horizon=HORIZON,
         additional_params={
             "target_velocity": 50,
-            "switch_time": 2,
+            "switch_time": 3,
             "num_observed": 2,
             "discrete": False,
             "tl_type": "actuated"
