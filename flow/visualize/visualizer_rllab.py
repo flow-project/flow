@@ -51,7 +51,7 @@ def visualizer_rllab(args):
     print('Average, std return: {}, {}'.format(np.mean(rew), np.std(rew)))
 
     # if prompted, convert the emission file into a csv file
-    if args.emission_to_csv:
+    if args.gen_emission:
         dir_path = os.path.dirname(os.path.realpath(__file__))
         emission_filename = '{0}-emission.xml'.format(
             unwrapped_env.scenario.name)
@@ -79,11 +79,6 @@ def create_parser():
         type=str,
         default='traffic_plot',
         help='Prefix for all generated plots')
-    parser.add_argument(
-        '--emission_to_csv',
-        action='store_true',
-        help='Specifies whether to convert the emission file '
-             'created by sumo into a csv file')
     parser.add_argument(
         '--gen_emission',
         action='store_true',

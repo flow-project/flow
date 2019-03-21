@@ -264,7 +264,7 @@ def visualizer_rllib(args):
     env.unwrapped.terminate()
 
     # if prompted, convert the emission file into a csv file
-    if args.emission_to_csv:
+    if args.gen_emission:
         dir_path = os.path.dirname(os.path.realpath(__file__))
         emission_filename = '{0}-emission.xml'.format(scenario.name)
 
@@ -315,11 +315,6 @@ def create_parser():
         type=int,
         default=1,
         help='The number of rollouts to visualize.')
-    parser.add_argument(
-        '--emission-to-csv',
-        action='store_true',
-        help='Specifies whether to convert the emission file '
-             'created by sumo into a csv file')
     parser.add_argument(
         '--gen_emission',
         action='store_true',
