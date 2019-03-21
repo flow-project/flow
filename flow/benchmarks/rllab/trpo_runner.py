@@ -13,7 +13,7 @@ from rllab.misc.instrument import run_experiment_lite
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 
 # use this to specify the environment to run
 from flow.benchmarks.grid1 import flow_params
@@ -32,12 +32,12 @@ def run_task(*_):
     """
     env_name = flow_params["env_name"]
     exp_tag = flow_params["exp_tag"]
-    sumo_params = flow_params["sumo"]
+    sim_params = flow_params["sim"]
     vehicles = flow_params["veh"]
     env_params = flow_params["env"]
     net_params = flow_params["net"]
     initial_config = flow_params.get("initial", InitialConfig())
-    traffic_lights = flow_params.get("tls", TrafficLights())
+    traffic_lights = flow_params.get("tls", TrafficLightParams())
 
     # import the scenario class
     module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
@@ -51,7 +51,7 @@ def run_task(*_):
         initial_config=initial_config,
         traffic_lights=traffic_lights)
 
-    pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
+    pass_params = (env_name, sim_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)

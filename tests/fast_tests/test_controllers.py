@@ -1,13 +1,14 @@
 import unittest
 
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import EnvParams, InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import SumoCarFollowingParams
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController, \
     OVMController, BCMController, LinearOVM, CFMController
+from flow.controllers import FollowerStopper, PISaturation
 from tests.setup_scripts import ring_road_exp_setup
 import os
 import numpy as np
@@ -23,7 +24,6 @@ class TestCFMController(unittest.TestCase):
     def setUp(self):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
-
         contr_params = {
             "time_delay": 0,
             "k_d": 1,
@@ -34,12 +34,12 @@ class TestCFMController(unittest.TestCase):
             "noise": 0
         }
 
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test_0",
             acceleration_controller=(CFMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=20, decel=5),
             num_vehicles=5)
 
@@ -55,14 +55,14 @@ class TestCFMController(unittest.TestCase):
 
     def test_get_action(self):
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         test_headways = [5, 10, 15, 20, 25]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
-            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
             for veh_id in ids
         ]
 
@@ -83,12 +83,12 @@ class TestBCMController(unittest.TestCase):
             {"time_delay": 0, "k_d": 1, "k_v": 1, "k_c": 1, "d_des": 1,
              "v_des": 8, "noise": 0}
 
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(BCMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=15, decel=5),
             num_vehicles=5)
 
@@ -104,14 +104,14 @@ class TestBCMController(unittest.TestCase):
 
     def test_get_action(self):
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         test_headways = [5, 10, 15, 20, 25]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
-            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
             for veh_id in ids
         ]
 
@@ -138,12 +138,12 @@ class TestOVMController(unittest.TestCase):
             "noise": 0
         }
 
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(OVMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=15, decel=5),
             num_vehicles=5)
 
@@ -159,14 +159,14 @@ class TestOVMController(unittest.TestCase):
 
     def test_get_action(self):
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         test_headways = [0, 10, 5, 5, 5]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
-            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
             for veh_id in ids
         ]
 
@@ -188,12 +188,12 @@ class TestLinearOVM(unittest.TestCase):
             {"time_delay": 0, "v_max": 30, "adaptation": 0.65,
              "h_st": 5, "noise": 0}
 
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(LinearOVM, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=15, decel=5),
             num_vehicles=5)
 
@@ -209,14 +209,14 @@ class TestLinearOVM(unittest.TestCase):
 
     def test_get_action(self):
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         test_headways = [5, 10, 10, 15, 0]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
-            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
             for veh_id in ids
         ]
 
@@ -235,12 +235,12 @@ class TestIDMController(unittest.TestCase):
         # also make sure that the input params are what is expected
         contr_params = {"v0": 30, "b": 1.5, "delta": 4, "s0": 2, "noise": 0}
 
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 tau=1, accel=1, decel=5),
             num_vehicles=5)
 
@@ -256,14 +256,14 @@ class TestIDMController(unittest.TestCase):
 
     def test_get_action(self):
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         test_headways = [10, 20, 30, 40, 50]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
-            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
             for veh_id in ids
         ]
 
@@ -274,12 +274,12 @@ class TestIDMController(unittest.TestCase):
         # set the perceived headway to zero
         test_headways = [0, 0, 0, 0, 0]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         # make sure the controller doesn't return a ZeroDivisionError when the
         # headway is zero
         [
-            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
             for veh_id in ids
         ]
 
@@ -295,7 +295,8 @@ class TestInstantaneousFailsafe(unittest.TestCase):
         additional_env_params = {
             "target_velocity": 8,
             "max_accel": 3,
-            "max_decel": 3
+            "max_decel": 3,
+            "sort_vehicles": False
         }
         env_params = EnvParams(additional_params=additional_env_params)
 
@@ -317,14 +318,14 @@ class TestInstantaneousFailsafe(unittest.TestCase):
             initial_config=initial_config)
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(env, scenario)
+        self.exp = Experiment(env)
 
     def tearDown_failsafe(self):
         # free data used by the class
         self.exp = None
 
     def test_no_crash_OVM(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(OVMController, {
@@ -342,7 +343,7 @@ class TestInstantaneousFailsafe(unittest.TestCase):
         self.tearDown_failsafe()
 
     def test_no_crash_LinearOVM(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(LinearOVM, {
@@ -366,7 +367,7 @@ class TestSafeVelocityFailsafe(TestInstantaneousFailsafe):
     """
 
     def test_no_crash_OVM(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(OVMController, {
@@ -384,7 +385,7 @@ class TestSafeVelocityFailsafe(TestInstantaneousFailsafe):
         self.tearDown_failsafe()
 
     def test_no_crash_LinearOVM(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(LinearOVM, {
@@ -430,14 +431,14 @@ class TestStaticLaneChanger(unittest.TestCase):
 
     def test_static_lane_changer(self):
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         # run the experiment for a few iterations and collect the lane index
         # for vehicles
-        lanes = [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
+        lanes = [self.env.k.vehicle.get_lane(veh_id) for veh_id in ids]
         for i in range(5):
             self.env.step(rl_actions=[])
-            lanes += [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
+            lanes += [self.env.k.vehicle.get_lane(veh_id) for veh_id in ids]
 
         # set the timer as very high and reset (the timer used to cause bugs at
         # the beginning of a new run for this controller)
@@ -446,13 +447,139 @@ class TestStaticLaneChanger(unittest.TestCase):
 
         # run the experiment for a few more iterations and collect the lane
         # index for vehicles
-        lanes = [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
+        lanes = [self.env.k.vehicle.get_lane(veh_id) for veh_id in ids]
         for i in range(5):
             self.env.step(rl_actions=[])
-            lanes += [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
+            lanes += [self.env.k.vehicle.get_lane(veh_id) for veh_id in ids]
 
         # assert that all lane indices are zero
         self.assertEqual(sum(np.array(lanes)), 0)
+
+
+class TestFollowerStopper(unittest.TestCase):
+
+    """
+    Makes sure that vehicles with a static lane-changing controller do not
+    change lanes.
+    """
+
+    def setUp(self):
+        # add a few vehicles to the network using the requested model
+        # also make sure that the input params are what is expected
+        contr_params = {"v_des": 7.5}
+
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test_0",
+            acceleration_controller=(FollowerStopper, contr_params),
+            routing_controller=(ContinuousRouter, {}),
+            car_following_params=SumoCarFollowingParams(
+                accel=20, decel=5),
+            num_vehicles=5)
+
+        # create the environment and scenario classes for a ring road
+        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+
+    def tearDown(self):
+        # terminate the traci instance
+        self.env.terminate()
+
+        # free data used by the class
+        self.env = None
+
+    def test_get_action(self):
+        self.env.reset()
+        ids = self.env.k.vehicle.get_ids()
+
+        test_headways = [5, 10, 15, 20, 25]
+        test_speeds = [5, 7.5, 7.5, 8, 7]
+        for i, veh_id in enumerate(ids):
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.test_set_speed(veh_id, test_speeds[i])
+
+        requested_accel = [
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
+            for veh_id in ids
+        ]
+
+        expected_accel = [-16.666667, 0, 0., -5., 5.]
+
+        np.testing.assert_array_almost_equal(requested_accel, expected_accel)
+
+    def test_find_intersection_dist(self):
+        self.env.reset()
+        ids = self.env.k.vehicle.get_ids()
+
+        test_edges = ["", "center"]
+        for i, veh_id in enumerate(ids):
+            if i < 2:
+                self.env.k.vehicle.test_set_edge(veh_id, test_edges[i])
+
+        requested = [
+            self.env.k.vehicle.get_acc_controller(
+                veh_id).find_intersection_dist(self.env)
+            for veh_id in ids
+        ]
+
+        expected = [-10, 0, 23., 34.5, 46.]
+
+        np.testing.assert_array_almost_equal(requested, expected)
+
+        # we also check that the accel value is None when this value is
+        # negative
+        self.assertIsNone(self.env.k.vehicle.get_acc_controller(
+            ids[0]).get_action(self.env))
+
+
+class TestPISaturation(unittest.TestCase):
+
+    """
+    Makes sure that vehicles with a static lane-changing controller do not
+    change lanes.
+    """
+
+    def setUp(self):
+        # add a few vehicles to the network using the requested model
+        # also make sure that the input params are what is expected
+        contr_params = {}
+
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test_0",
+            acceleration_controller=(PISaturation, contr_params),
+            routing_controller=(ContinuousRouter, {}),
+            car_following_params=SumoCarFollowingParams(
+                accel=20, decel=5),
+            num_vehicles=5)
+
+        # create the environment and scenario classes for a ring road
+        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+
+    def tearDown(self):
+        # terminate the traci instance
+        self.env.terminate()
+
+        # free data used by the class
+        self.env = None
+
+    def test_get_action(self):
+        self.env.reset()
+        ids = self.env.k.vehicle.get_ids()
+
+        test_headways = [5, 10, 15, 20, 25]
+        test_speeds = [5, 7.5, 7.5, 8, 7]
+        for i, veh_id in enumerate(ids):
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.test_set_speed(veh_id, test_speeds[i])
+
+        requested_accel = [
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
+            for veh_id in ids
+        ]
+
+        expected_accel = [20., -36.847826, -35.76087, -37.173913, -31.086957]
+
+        np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
 
 if __name__ == '__main__':

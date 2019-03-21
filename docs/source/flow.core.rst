@@ -1,16 +1,15 @@
 flow.core package
 =================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    flow.core.kernel
+
 Submodules
 ----------
-
-flow.core.config.template module
---------------------------------
-
-.. automodule:: flow.core.config.template
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 flow.core.experiment module
 ---------------------------
@@ -36,26 +35,10 @@ flow.core.rewards module
     :undoc-members:
     :show-inheritance:
 
-flow.core.traffic\_lights module
---------------------------------
-
-.. automodule:: flow.core.traffic_lights
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 flow.core.util module
 ---------------------
 
 .. automodule:: flow.core.util
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-flow.core.vehicles module
--------------------------
-
-.. automodule:: flow.core.vehicles
     :members:
     :undoc-members:
     :show-inheritance:

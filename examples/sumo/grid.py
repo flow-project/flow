@@ -1,9 +1,9 @@
 """Grid example."""
 from flow.controllers.routing_controllers import GridRouter
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import VehicleParams
+from flow.core.params import TrafficLightParams
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.grid import SimpleGridScenario
 
@@ -15,44 +15,44 @@ def grid_example(render=None):
     Parameters
     ----------
     render: bool, optional
-        specifies whether to use sumo's gui during execution
+        specifies whether to use the gui during execution
 
     Returns
     -------
-    exp: flow.core.SumoExperiment type
+    exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
         vehicles and balanced traffic lights on a grid.
     """
     inner_length = 300
     long_length = 500
     short_length = 300
-    n = 2
-    m = 3
+    N_ROWS = 2
+    N_COLUMNS = 3
     num_cars_left = 20
     num_cars_right = 20
     num_cars_top = 20
     num_cars_bot = 20
-    tot_cars = (num_cars_left + num_cars_right) * m \
-        + (num_cars_top + num_cars_bot) * n
+    tot_cars = (num_cars_left + num_cars_right) * N_COLUMNS \
+        + (num_cars_top + num_cars_bot) * N_ROWS
 
     grid_array = {
         "short_length": short_length,
         "inner_length": inner_length,
         "long_length": long_length,
-        "row_num": n,
-        "col_num": m,
+        "row_num": N_ROWS,
+        "col_num": N_COLUMNS,
         "cars_left": num_cars_left,
         "cars_right": num_cars_right,
         "cars_top": num_cars_top,
         "cars_bot": num_cars_bot
     }
 
-    sumo_params = SumoParams(sim_step=0.1, render=True)
+    sim_params = SumoParams(sim_step=0.1, render=True)
 
     if render is not None:
-        sumo_params.render = render
+        sim_params.render = render
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="human",
         routing_controller=(GridRouter, {}),
@@ -60,7 +60,7 @@ def grid_example(render=None):
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    tl_logic = TrafficLights(baseline=False)
+    tl_logic = TrafficLightParams(baseline=False)
     phases = [{
         "duration": "31",
         "minDur": "8",
@@ -95,7 +95,7 @@ def grid_example(render=None):
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
-    initial_config = InitialConfig()
+    initial_config = InitialConfig(spacing='custom')
 
     scenario = SimpleGridScenario(
         name="grid-intersection",
@@ -104,9 +104,9 @@ def grid_example(render=None):
         initial_config=initial_config,
         traffic_lights=tl_logic)
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = AccelEnv(env_params, sim_params, scenario)
 
-    return SumoExperiment(env, scenario)
+    return Experiment(env)
 
 
 if __name__ == "__main__":

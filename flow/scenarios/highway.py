@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 import numpy as np
 
 ADDITIONAL_NET_PARAMS = {
@@ -18,23 +18,24 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class HighwayScenario(Scenario):
-    """Highway scenario class."""
+    """Highway scenario class.
+
+    Requires from net_params:
+
+    * **length** : length of the highway
+    * **lanes** : number of lanes in the highway
+    * **speed_limit** : max speed limit of the highway
+
+    See flow/scenarios/base_scenario.py for description of params.
+    """
 
     def __init__(self,
                  name,
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
-        """Initialize a highway scenario.
-
-        Requires from net_params:
-        - length: length of the highway
-        - lanes: number of lanes in the highway
-        - speed_limit: max speed limit of the highway
-
-        See flow/scenarios/base_scenario.py for description of params.
-        """
+                 traffic_lights=TrafficLightParams()):
+        """Initialize a highway scenario."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
@@ -56,8 +57,8 @@ class HighwayScenario(Scenario):
         for i in range(num_edges+1):
             nodes += [{
                 "id": "edge_{}".format(i),
-                "x": repr(segment_lengths[i]),
-                "y": repr(0)
+                "x": segment_lengths[i],
+                "y": 0
             }]
 
         return nodes
@@ -75,7 +76,7 @@ class HighwayScenario(Scenario):
                 "type": "highwayType",
                 "from": "edge_{}".format(i),
                 "to": "edge_{}".format(i+1),
-                "length": repr(segment_length)
+                "length": segment_length
             }]
 
         return edges
@@ -87,8 +88,8 @@ class HighwayScenario(Scenario):
 
         types = [{
             "id": "highwayType",
-            "numLanes": repr(lanes),
-            "speed": repr(speed_limit)
+            "numLanes": lanes,
+            "speed": speed_limit
         }]
 
         return types
@@ -109,25 +110,11 @@ class HighwayScenario(Scenario):
                       for i in range(self.num_edges)]
         return edgestarts
 
-    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
+    @staticmethod
+    def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
         """Generate a user defined set of starting positions.
+
         This method is just used for testing.
-
-        Parameters
-        ----------
-        initial_config : InitialConfig type
-            see flow/core/params.py
-        num_vehicles : int
-            number of vehicles to be placed on the network
-        kwargs : dict
-            extra components, usually defined during reset to overwrite initial
-            config parameters
-
-        Returns
-        -------
-        startpositions : list of tuple (float, float)
-            list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes : list of int
-            list of start lanes
         """
-        return kwargs["start_positions"], kwargs["start_lanes"]
+        return initial_config.additional_params["start_positions"], \
+            initial_config.additional_params["start_lanes"]
