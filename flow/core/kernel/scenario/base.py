@@ -3,6 +3,7 @@
 import logging
 import random
 import numpy as np
+from copy import deepcopy
 from flow.utils.exceptions import FatalFlowError
 
 # length of vehicles in the network, in meters
@@ -270,6 +271,31 @@ class KernelScenario(object):
         list of int
             list of start lanes
         """
+        if isinstance(initial_config.edges_distribution, dict):
+            # check that the number of vehicle in edges_distribution matches
+            # that of the vehicles class
+            num_vehicles_e = sum(initial_config.edges_distribution[k]
+                                 for k in initial_config.edges_distribution)
+            assert num_vehicles == num_vehicles_e, \
+                'Number of vehicles in edges_distribution and the Vehicles ' \
+                'class do not match: {}, {}'.format(num_vehicles,
+                                                    num_vehicles_e)
+
+            # add starting positions and lanes
+            edges_distribution = deepcopy(initial_config.edges_distribution)
+            startpositions, startlanes = [], []
+            for key in edges_distribution:
+                # set the edge distribution to only include the next edge
+                initial_config.edges_distribution = [key]
+                # set the number of vehicles that this edge can carry
+                num_vehicles = edges_distribution[key]
+                # recursively collect the next starting positions and lanes
+                pos, lane = self.gen_even_start_pos(
+                    initial_config, num_vehicles)
+                startpositions.extend(pos)
+                startlanes.extend(lane)
+            return startpositions, startlanes
+
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = \
             self._get_start_pos_util(initial_config, num_vehicles)
@@ -370,6 +396,31 @@ class KernelScenario(object):
         list of int
             list of start lanes
         """
+        if isinstance(initial_config.edges_distribution, dict):
+            # check that the number of vehicle in edges_distribution matches
+            # that of the vehicles class
+            num_vehicles_e = sum(initial_config.edges_distribution[k]
+                                 for k in initial_config.edges_distribution)
+            assert num_vehicles == num_vehicles_e, \
+                'Number of vehicles in edges_distribution and the Vehicles ' \
+                'class do not match: {}, {}'.format(num_vehicles,
+                                                    num_vehicles_e)
+
+            # add starting positions and lanes
+            edges_distribution = deepcopy(initial_config.edges_distribution)
+            startpositions, startlanes = [], []
+            for key in edges_distribution:
+                # set the edge distribution to only include the next edge
+                initial_config.edges_distribution = [key]
+                # set the number of vehicles that this edge can carry
+                num_vehicles = edges_distribution[key]
+                # recursively collect the next starting positions and lanes
+                pos, lane = self.gen_random_start_pos(
+                    initial_config, num_vehicles)
+                startpositions.extend(pos)
+                startlanes.extend(lane)
+            return startpositions, startlanes
+
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = self._get_start_pos_util(
             initial_config, num_vehicles)
