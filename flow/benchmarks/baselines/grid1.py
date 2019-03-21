@@ -28,7 +28,6 @@ def grid1_baseline(num_runs, render=True):
         flow.core.experiment.Experiment
             class needed to run simulations
     """
-
     exp_tag = flow_params['exp_tag']
     sim_params = flow_params['sim']
     vehicles = flow_params['veh']

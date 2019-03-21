@@ -35,7 +35,7 @@ class TrafficLightGridEnv(Env):
     * switch_time: minimum switch time for each traffic light (in seconds).
       Earlier RL commands are ignored.
     * tl_type: whether the traffic lights should be actuated by sumo or RL
-      options are "controlled" and "actuated"
+      options are respectively "actuated" and "controlled"
     * discrete: determines whether the action space is meant to be discrete or
       continuous
 
@@ -567,7 +567,8 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         if self.env_params.evaluate:
             return - rewards.min_delay_unscaled(self)
         else:
-            return rewards.desired_velocity(self, fail=kwargs["fail"])
+            return (- rewards.min_delay_unscaled(self) +
+                    rewards.penalize_standstill(self, gain=0.2))
 
     def additional_command(self):
         """See class definition."""

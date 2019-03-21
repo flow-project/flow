@@ -778,8 +778,8 @@ class SumoCarFollowingParams:
     def __init__(
             self,
             speed_mode='right_of_way',
-            accel=1.0,
-            decel=1.5,
+            accel=2.6,
+            decel=4.5,
             sigma=0.5,
             tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
             min_gap=2.5,
