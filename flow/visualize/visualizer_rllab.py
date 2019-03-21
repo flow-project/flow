@@ -25,7 +25,8 @@ def visualizer_rllab(args):
 
     # Set sumo to make a video
     sim_params = unwrapped_env.sim_params
-    sim_params.emission_path = './test_time_rollout/'
+    sim_params.emission_path = './test_time_rollout/' if args.gen_emission \
+        else None
     if args.no_render:
         sim_params.render = False
     else:
@@ -83,6 +84,11 @@ def create_parser():
         action='store_true',
         help='Specifies whether to convert the emission file '
              'created by sumo into a csv file')
+    parser.add_argument(
+        '--gen_emission',
+        action='store_true',
+        help='Specifies whether to generate an emission file from the '
+             'simulation')
     return parser
 
 
