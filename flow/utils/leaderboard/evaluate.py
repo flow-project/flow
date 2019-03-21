@@ -6,11 +6,12 @@ flow/benchmarks, as well as method for importing neural network controllers
 from rllab and rllib.
 """
 
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.utils.rllib import get_flow_params, get_rllib_config
 from flow.utils.registry import make_create_env
+from flow.utils.exceptions import FatalFlowError
 
 from flow.benchmarks.grid0 import flow_params as grid0
 from flow.benchmarks.grid1 import flow_params as grid1
@@ -54,45 +55,45 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
 
     Parameters
     ----------
-        benchmark : str
-            name of the benchmark, must be printed as it is in the
-            benchmarks folder; otherwise a ValueError will be raised
-        _get_actions : method
-            the mapping from states to actions for the RL agent(s)
-        _get_states : method, optional
-            a mapping from the environment object in Flow to some state, which
-            overrides the _get_states method of the environment. Note that the
-            same cannot be done for the actions.
+    benchmark : str
+        name of the benchmark, must be printed as it is in the
+        benchmarks folder; otherwise a FatalFlowError will be raised
+    _get_actions : method
+        the mapping from states to actions for the RL agent(s)
+    _get_states : method, optional
+        a mapping from the environment object in Flow to some state, which
+        overrides the _get_states method of the environment. Note that the
+        same cannot be done for the actions.
 
     Returns
     -------
-        float
-            mean of the evaluation return of the benchmark from NUM_RUNS number
-            of simulations
-        float
-            standard deviation of the evaluation return of the benchmark from
-            NUM_RUNS number of simulations
+    float
+        mean of the evaluation return of the benchmark from NUM_RUNS number
+        of simulations
+    float
+        standard deviation of the evaluation return of the benchmark from
+        NUM_RUNS number of simulations
 
     Raises
     ------
-        ValueError
-            If the specified benchmark is not available.
+    flow.utils.exceptions.FatalFlowError
+        If the specified benchmark is not available.
     """
     if benchmark not in AVAILABLE_BENCHMARKS.keys():
-        raise ValueError(
+        raise FatalFlowError(
             "benchmark {} is not available. Check spelling?".format(benchmark))
 
     # get the flow params from the benchmark
     flow_params = AVAILABLE_BENCHMARKS[benchmark]
 
     exp_tag = flow_params["exp_tag"]
-    sumo_params = flow_params["sumo"]
+    sim_params = flow_params["sim"]
     vehicles = flow_params["veh"]
     env_params = flow_params["env"]
     env_params.evaluate = True  # Set to true to get evaluation returns
     net_params = flow_params["net"]
     initial_config = flow_params.get("initial", InitialConfig())
-    traffic_lights = flow_params.get("tls", TrafficLights())
+    traffic_lights = flow_params.get("tls", TrafficLightParams())
 
     # import the environment and scenario classes
     module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
@@ -119,12 +120,12 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
         env_class = _env_class
 
     env = env_class(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, scenario=scenario)
 
-    # create a SumoExperiment object with the "rl_actions" method as
+    # create a Experiment object with the "rl_actions" method as
     # described in the inputs. Note that the state may not be that which is
     # specified by the environment.
-    exp = SumoExperiment(env=env, scenario=scenario)
+    exp = Experiment(env=env)
 
     # run the experiment and return the reward
     res = exp.run(
@@ -140,14 +141,14 @@ def get_compute_action_rllab(path_to_pkl):
 
     Parameters
     ----------
-        path_to_pkl : str
-            pkl file created by rllab that contains the policy information
+    path_to_pkl : str
+        pkl file created by rllab that contains the policy information
 
     Returns
     -------
-        method
-            the compute_action method from the algorithm along with the trained
-            parameters
+    method
+        the compute_action method from the algorithm along with the trained
+        parameters
     """
     # get the agent/policy
     data = joblib.load(path_to_pkl)
@@ -169,19 +170,19 @@ def get_compute_action_rllib(path_to_dir, checkpoint_num, alg):
 
     Parameters
     ----------
-        path_to_dir : str
-            RLlib directory containing training results
-        checkpoint_num : int
-            checkpoint number / training iteration of the learned policy
-        alg : str
-            name of the RLlib algorithm that was used during the training
-            procedure
+    path_to_dir : str
+        RLlib directory containing training results
+    checkpoint_num : int
+        checkpoint number / training iteration of the learned policy
+    alg : str
+        name of the RLlib algorithm that was used during the training
+        procedure
 
     Returns
     -------
-        method
-            the compute_action method from the algorithm along with the trained
-            parameters
+    method
+        the compute_action method from the algorithm along with the trained
+        parameters
     """
     # collect the configuration information from the RLlib checkpoint
     result_dir = path_to_dir if path_to_dir[-1] != '/' else path_to_dir[:-1]

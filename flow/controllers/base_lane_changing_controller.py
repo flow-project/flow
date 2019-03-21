@@ -6,20 +6,19 @@ class BaseLaneChangeController:
 
     Instantiates a controller and forces the user to pass a
     lane_changing duration to the controller.
+
+    Parameters
+    ----------
+    veh_id : str
+        ID of the vehi cle this controller is used for
+    lane_change_params : dict
+        Dictionary of lane changes params that may optional contain
+        "min_gap", which denotes the minimize safe gap (in meters) a car
+        is willing to lane-change into.
     """
 
     def __init__(self, veh_id, lane_change_params=None):
-        """Instantiate the base class for lane-changing controllers.
-
-        Attributes
-        ----------
-        veh_id: string
-            ID of the vehicle this controller is used for
-        lane_change_params: dict
-            Dictionary of lane changes params that may optional contain
-            "min_gap", which denotes the minimize safe gap (in meters) a car
-            is willing to lane-change into.
-        """
+        """Instantiate the base class for lane-changing controllers."""
         if lane_change_params is None:
             lane_change_params = {}
 
@@ -37,12 +36,12 @@ class BaseLaneChangeController:
 
         Parameters
         ----------
-        env: flow.envs.Env type
+        env : flow.envs.Env
             state of the environment at the current time step
 
         Returns
         -------
-        lc_action: float or int
+        float or int
             requested lane change action
         """
         raise NotImplementedError
@@ -52,9 +51,14 @@ class BaseLaneChangeController:
 
         Modifies the lane change action to ensure safety, if requested.
 
+        Parameters
+        ----------
+        env : flow.envs.Env
+            state of the environment at the current time step
+
         Returns
         -------
-        lc_action: float or int
+        float or int
             lane change action
         """
         lc_action = self.get_lane_change_action(env)
