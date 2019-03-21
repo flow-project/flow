@@ -95,7 +95,8 @@ def visualizer_rllib(args):
         sys.exit(1)
 
     sim_params.restart_instance = False
-    sim_params.emission_path = './test_time_rollout/'
+    sim_params.emission_path = './test_time_rollout/' if args.gen_emission \
+        else None
 
     # pick your rendering mode
     if args.render_mode == 'sumo_web3d':
@@ -319,6 +320,11 @@ def create_parser():
         action='store_true',
         help='Specifies whether to convert the emission file '
              'created by sumo into a csv file')
+    parser.add_argument(
+        '--gen_emission',
+        action='store_true',
+        help='Specifies whether to generate an emission file from the '
+             'simulation')
     parser.add_argument(
         '--evaluate',
         action='store_true',
