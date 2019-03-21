@@ -4,7 +4,6 @@ import numpy as np
 
 from flow.core.params import InitialConfig, NetParams
 from flow.core.params import VehicleParams
-from flow.utils.exceptions import FatalFlowError
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
