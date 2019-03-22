@@ -1,4 +1,4 @@
-![Flow Logo](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/flow-logo.jpg)
+<img src="docs/img/square_logo.png" align="right" width="25%"/>
 
 [![Build Status](https://travis-ci.com/flow-project/flow.svg?branch=master)](https://travis-ci.com/flow-project/flow)
 [![Docs](https://readthedocs.org/projects/flow/badge)](http://flow.readthedocs.org/en/latest/)
