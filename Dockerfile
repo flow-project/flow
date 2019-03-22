@@ -9,7 +9,8 @@ RUN apt-get update && \
     vim \
     gfortran \
     apt-utils && \
-    pip install -U pip
+    pip install -U pip \
+                   jupyter
 
 # Flow dependencies
 RUN cd ~ && \
@@ -55,11 +56,13 @@ RUN cd ~ && \
 RUN	echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc && \
 	echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc && \
 	echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
-
-# Add Julia dependencies
-RUN apt-get update
-RUN apt-get install -y julia libnettle4 && apt-get clean
-
-# Install Julia kernel
-RUN julia -e 'Pkg.add("IJulia")'
-RUN julia -e 'Pkg.add("Gadfly")' && julia -e 'Pkg.add("RDatasets")'
+ARG NB_USER
+ARG NB_UID
+ENV USER ${NB_USER}
+ENV HOME /home/${NB_USER}
+RUN adduser --disabled-password \
+    --gecos "Default user" \
+    --uid ${NB_UID} \
+    ${NB_USER}
+WORKDIR ${HOME}
+USER ${USER}
