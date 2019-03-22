@@ -9,7 +9,7 @@ RUN apt-get update && \
     vim \
     gfortran \
     apt-utils && \
-    pip install -U pip && \
+    pip install -U pip
 
 # Flow dependencies
 RUN cd ~ && \
