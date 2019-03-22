@@ -10,7 +10,6 @@ RUN apt-get update && \
     gfortran \
     apt-utils && \
     pip install -U pip && \
-    conda install numpy
 
 # Flow dependencies
 RUN cd ~ && \
@@ -21,8 +20,8 @@ RUN cd ~ && \
 RUN cd ~ && \
 	git clone https://github.com/flow-project/flow.git && \
     cd flow && \
-    git checkout v0.3.0 && \
-	pip install -e .
+    git checkout binder && \
+	pip install -e . --verbose
 
 # SUMO dependencies
 RUN apt-get install -y \
