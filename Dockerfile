@@ -55,3 +55,11 @@ RUN cd ~ && \
 RUN	echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc && \
 	echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc && \
 	echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
+
+# Add Julia dependencies
+RUN apt-get update
+RUN apt-get install -y julia libnettle4 && apt-get clean
+
+# Install Julia kernel
+RUN julia -e 'Pkg.add("IJulia")'
+RUN julia -e 'Pkg.add("Gadfly")' && julia -e 'Pkg.add("RDatasets")'
