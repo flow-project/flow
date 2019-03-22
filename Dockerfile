@@ -3,7 +3,8 @@ MAINTAINER Fangyu Wu (fangyuwu@berkeley.edu)
 
 
 # System
-RUN conda install python=3.5 && \
+RUN conda uninstall enum34 && \
+    conda install python=3.5 && \
     apt-get update && \
 	apt-get -y upgrade && \
 	apt-get install -y \
