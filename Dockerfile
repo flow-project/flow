@@ -6,6 +6,7 @@ RUN apt-get update && \
 	apt-get -y upgrade && \
 	apt-get install -y \
     vim \
+    gfortran \
     apt-utils && \
     pip install -U pip
 
