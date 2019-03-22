@@ -583,6 +583,10 @@ class EnvParams:
         flag indicating that the evaluation reward should be used
         so the evaluation reward should be used rather than the
         normal reward
+    clip_actions : bool, optional
+        specifies whether to clip actions from the policy by their range when
+        they are inputted to the reward function. Note that the actions are
+        still clipped before they are provided to `apply_rl_actions`.
     """
 
     def __init__(self,
@@ -590,7 +594,8 @@ class EnvParams:
                  horizon=500,
                  warmup_steps=0,
                  sims_per_step=1,
-                 evaluate=False):
+                 evaluate=False,
+                 clip_actions=True):
         """Instantiate EnvParams."""
         self.additional_params = \
             additional_params if additional_params is not None else {}
@@ -598,6 +603,7 @@ class EnvParams:
         self.warmup_steps = warmup_steps
         self.sims_per_step = sims_per_step
         self.evaluate = evaluate
+        self.clip_actions = clip_actions
 
     def get_additional_param(self, key):
         """Return a variable from additional_params."""

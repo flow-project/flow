@@ -40,7 +40,9 @@ def run_task(*_):
     env_params = EnvParams(
         horizon=HORIZON,
         additional_params=additional_env_params,
-        warmup_steps=750)
+        warmup_steps=750,
+        clip_actions=False
+    )
 
     additional_net_params = {
         "length": 260,
