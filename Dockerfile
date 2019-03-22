@@ -1,6 +1,20 @@
 FROM continuumio/miniconda3:latest
 MAINTAINER Fangyu Wu (fangyuwu@berkeley.edu)
 
+# Binder dependencies
+RUN pip install -U pip \
+                   jupyter \
+                   notebook
+ARG NB_USER
+ARG NB_UID
+ENV USER ${NB_USER}
+ENV HOME /home/${NB_USER}
+
+RUN adduser --disabled-password \
+    --gecos "Default user" \
+    --uid ${NB_UID} \
+    ${NB_USER}
+WORKDIR ${HOME}
 
 # System
 RUN apt-get update && \
@@ -8,9 +22,8 @@ RUN apt-get update && \
 	apt-get install -y \
     vim \
     gfortran \
-    apt-utils && \
-    pip install -U pip \
-                   jupyter
+    apt-utils
+
 
 # Flow dependencies
 RUN cd ~ && \
@@ -56,13 +69,3 @@ RUN cd ~ && \
 RUN	echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc && \
 	echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc && \
 	echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
-ARG NB_USER
-ARG NB_UID
-ENV USER ${NB_USER}
-ENV HOME /home/${NB_USER}
-RUN adduser --disabled-password \
-    --gecos "Default user" \
-    --uid ${NB_UID} \
-    ${NB_USER}
-WORKDIR ${HOME}
-USER ${USER}
