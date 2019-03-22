@@ -27,7 +27,6 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
 
-# import flow.envs
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
@@ -121,20 +120,6 @@ def visualizer_rllib(args):
     create_env, env_name = make_create_env(
         params=flow_params, version=0)
     register_env(env_name, create_env)
-
-    # Recreate the scenario from the pickled parameters
-    exp_tag = flow_params['exp_tag']
-    net_params = flow_params['net']
-    vehicles = flow_params['veh']
-    initial_config = flow_params['initial']
-    module = __import__('flow.scenarios', fromlist=[flow_params['scenario']])
-    scenario_class = getattr(module, flow_params['scenario'])
-
-    scenario = scenario_class(
-        name=exp_tag,
-        vehicles=vehicles,
-        net_params=net_params,
-        initial_config=initial_config)
 
     # check if the environment is a single or multiagent environment, and
     # get the right address accordingly
@@ -269,7 +254,7 @@ def visualizer_rllib(args):
     # if prompted, convert the emission file into a csv file
     if args.emission_to_csv:
         time.sleep(0.1)
-        
+
         dir_path = os.path.dirname(os.path.realpath(__file__))
         emission_filename = '{0}-emission.xml'.format(env.scenario.name)
 
