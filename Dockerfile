@@ -1,10 +1,10 @@
 FROM continuumio/miniconda3:latest
 MAINTAINER Fangyu Wu (fangyuwu@berkeley.edu)
 
-conda install python=3.5
 
 # System
-RUN apt-get update && \
+RUN conda install python=3.5 && \
+    apt-get update && \
 	apt-get -y upgrade && \
 	apt-get install -y \
     vim \
