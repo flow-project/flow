@@ -665,17 +665,17 @@ class InitialConfig:
 
     Parameters
     ----------
-    shuffle : bool, optional
+    shuffle : bool, optional  # TODO: remove
         specifies whether the ordering of vehicles in the Vehicles class
         should be shuffled upon initialization.
     spacing : str, optional
         specifies the positioning of vehicles in the network relative to
         one another. May be one of: "uniform", "random", or "custom".
         Default is "uniform".
-    min_gap : float, optional
+    min_gap : float, optional  # TODO: remove
         minimum gap between two vehicles upon initialization, in meters.
         Default is 0 m.
-    x0 : float, optional
+    x0 : float, optional  # TODO: remove
         position of the first vehicle to be placed in the network
     perturbation : float, optional
         standard deviation used to perturb vehicles from their uniform
@@ -687,9 +687,15 @@ class InitialConfig:
         number of lanes vehicles should be dispersed into. If the value is
         greater than the total number of lanes on an edge, vehicles are
         spread across all lanes.
-    edges_distribution : list of str, optional
-        list of edges vehicles may be placed on initialization, default is
-        all lanes (stated as "all")
+    edges_distribution : str or list of str or dict, optional
+        edges vehicles may be placed on during initialization, may be one
+        of:
+
+        * "all": vehicles are distributed over all edges
+        * list of edges: list of edges vehicles can be distributed over
+        * dict of edges: where the key is the name of the edge to be
+          utilized, and the elements are the number of cars to place on
+          each edge
     additional_params : dict, optional
         some other network-specific params
     """
