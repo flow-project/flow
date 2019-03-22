@@ -3,15 +3,14 @@ MAINTAINER Fangyu Wu (fangyuwu@berkeley.edu)
 
 
 # System
-RUN conda uninstall enum34 && \
-    conda install python=3.5 && \
-    apt-get update && \
+RUN apt-get update && \
 	apt-get -y upgrade && \
 	apt-get install -y \
     vim \
     gfortran \
     apt-utils && \
-    pip install -U pip
+    pip install -U pip && \
+    conda install numpy
 
 # Flow dependencies
 RUN cd ~ && \
