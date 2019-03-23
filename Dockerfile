@@ -16,9 +16,6 @@ RUN adduser --disabled-password \
     --uid ${NB_UID} \
     ${NB_USER}
 WORKDIR ${HOME}
-USER root
-RUN chown -R ${NB_UID} ${HOME}
-USER ${NB_USER}
 
 # System
 RUN apt-get update && \
@@ -73,3 +70,7 @@ RUN cd ~ && \
 RUN	echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc && \
 	echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc && \
 	echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
+USER root
+RUN chown -R ${NB_UID} ${HOME}
+USER ${NB_USER}
+
