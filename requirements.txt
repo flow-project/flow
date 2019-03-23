@@ -15,6 +15,7 @@ matplotlib==3.0.0
 imutils==0.5.1
 numpydoc
 ray==0.6.1
+opencv-python
 
 # theano==0.8.2 # for rllab
 # lasagne # for rllab
