@@ -5,7 +5,7 @@ MAINTAINER Fangyu Wu (fangyuwu@berkeley.edu)
 RUN pip install -U pip \
                    jupyter \
                    notebook
-ARG NB_USER=ubuntu
+ARG NB_USER=jovyan
 ARG NB_UID=1000
 ENV USER ${NB_USER}
 ENV NB_UID ${NB_UID}
