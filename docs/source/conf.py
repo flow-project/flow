@@ -27,6 +27,7 @@ class Mock(MagicMock):
 
 
 MOCK_MODULES = [
+    'rllab',
     "rllab.core.serializable.Serializable",
     "AAPI",
     'PyANGKernel',
