@@ -1,13 +1,14 @@
 FROM continuumio/miniconda3:latest
 MAINTAINER Fangyu Wu (fangyuwu@berkeley.edu)
 
-# Binder dependencies
+# Binder
 RUN pip install -U pip \
                    jupyter \
                    notebook
-ARG NB_USER
-ARG NB_UID
+ARG NB_USER=ubuntu
+ARG NB_UID=1000
 ENV USER ${NB_USER}
+ENV NB_UID ${NB_UID}
 ENV HOME /home/${NB_USER}
 
 RUN adduser --disabled-password \
@@ -15,6 +16,9 @@ RUN adduser --disabled-password \
     --uid ${NB_UID} \
     ${NB_USER}
 WORKDIR ${HOME}
+USER root
+RUN chown -R ${NB_UID} ${HOME}
+USER ${NB_USER}
 
 # System
 RUN apt-get update && \
