@@ -5,11 +5,11 @@ MAINTAINER Fangyu Wu (fangyuwu@berkeley.edu)
 RUN pip install -U pip \
                    jupyter \
                    notebook
-ARG NB_USER=jovyan
-ARG NB_UID=1000
-ENV USER ${NB_USER}
-ENV NB_UID ${NB_UID}
-ENV HOME /home/${NB_USER}
+ARG NB_USER="jovyan"
+ARG NB_UID="1000"
+ENV USER="${NB_USER}"
+ENV NB_UID="${NB_UID}"
+ENV HOME="/home/${NB_USER}"
 
 RUN adduser --disabled-password \
     --gecos "Default user" \
@@ -67,9 +67,9 @@ RUN cd ~ && \
                 psutil
     
 # Startup process
-RUN	echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc && \
-	echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc && \
-	echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
+ENV SUMO_HOME="${HOME}/sumo"
+ENV PATH="${HOME}/sumo/bin:${PATH}"
+ENV PYTHONPATH="${HOME}/sumo/tools:${PYTHONPATH}"
 USER root
 RUN chown -R ${NB_UID} ${HOME}
 USER ${NB_USER}
