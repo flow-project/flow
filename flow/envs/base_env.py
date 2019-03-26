@@ -472,10 +472,14 @@ class Env(*classdef):
         if self.sim_params.render:
             self.k.vehicle.update_vehicle_colors()
 
+        if self.simulator == 'traci':
+            initial_ids = self.k.kernel_api.vehicle.getIDList()
+        else:
+            initial_ids = self.initial_ids
+
         # check to make sure all vehicles have been spawned
-        if len(self.initial_ids) > self.k.vehicle.num_vehicles:
-            missing_vehicles = list(
-                set(self.initial_ids) - set(self.k.vehicle.get_ids()))
+        if len(self.initial_ids) > len(initial_ids):
+            missing_vehicles = list(set(self.initial_ids) - set(initial_ids))
             msg = '\nNot enough vehicles have spawned! Bad start?\n' \
                   'Missing vehicles / initial state:\n'
             for veh_id in missing_vehicles:
