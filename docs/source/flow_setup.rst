@@ -142,7 +142,10 @@ during the execution of various tasks. The path should look something like:
 
 ::
 
-    /home/user/Aimsun_Next_X_Y_Z/
+    /home/user/Aimsun_Next_X_Y_Z/                   # Linux
+    /Applications/Aimsun Next.app/Contents/MacOS/   # OS X
+
+`Note for Mac users:` when you download Aimsun, you will get a folder named "Programming". You need to rename it to "programming" (all lowercase) and to move it inside the "Aimsun Next.app/Contents/MacOS/" directory so that the python API can work.
 
 In addition, being that Aimsun's python API is written to support Python 2.7.4,
 we will need to create a Python 2.7.4 conda environment that Aimsun can refer
@@ -190,9 +193,12 @@ optional but may be of use when trying to execute some of the examples files
 located in Flow.
 RLlib is one such library.
 First visit <https://github.com/flow-project/ray/blob/master/doc/source/installation.rst> and
-install the required packages. Do NOT `pip install ray`.
+install the required packages.
 
-The installation process for this library is as follows:
+If you are not intending to develop RL algorithms or customize rllib you don't need to do anything,
+Ray was installed when you created the conda environment. 
+
+If you are intending to modify Ray, the installation process for this library is as follows:
 
 ::
 

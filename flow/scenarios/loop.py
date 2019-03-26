@@ -18,7 +18,17 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class LoopScenario(Scenario):
-    """Ring road scenario."""
+    """Ring road scenario.
+
+    Requires from net_params:
+
+    * **length** : length of the circle
+    * **lanes** : number of lanes in the circle
+    * **speed_limit** : max speed limit of the circle
+    * **resolution** : number of nodes resolution
+
+    See flow/scenarios/base_scenario.py for description of params.
+    """
 
     def __init__(self,
                  name,
@@ -26,16 +36,7 @@ class LoopScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a loop scenario.
-
-        Requires from net_params:
-        - length: length of the circle
-        - lanes: number of lanes in the circle
-        - speed_limit: max speed limit of the circle
-        - resolution: number of nodes resolution
-
-        See flow/scenarios/base_scenario.py for description of params.
-        """
+        """Initialize a loop scenario."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))

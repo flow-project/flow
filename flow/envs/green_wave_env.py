@@ -100,7 +100,7 @@ class TrafficLightGridEnv(Env):
         if self.tl_type != "actuated":
             for i in range(self.rows * self.cols):
                 self.k.traffic_light.set_state(
-                    node_id='center' + str(i), state="GGGrrrGGGrrr")
+                    node_id='center' + str(i), state="GrGr")
                 self.last_change[i, 2] = 1
 
         # # Additional Information for Plotting
@@ -252,7 +252,7 @@ class TrafficLightGridEnv(Env):
 
         Parameters
         ----------
-        veh_ids: str
+        veh_ids : str
             vehicle identifier
 
         Returns
@@ -287,9 +287,9 @@ class TrafficLightGridEnv(Env):
 
         Returns
         -------
-        sorted_ids: list
+        sorted_ids : list
             a list of all vehicle IDs sorted by position
-        sorted_extra_data: list or tuple
+        sorted_extra_data : list or tuple
             an extra component (list, tuple, etc...) containing extra sorted
             data, such as positions. If no extra component is needed, a value
             of None should be returned
@@ -313,12 +313,12 @@ class TrafficLightGridEnv(Env):
 
         Parameters
         ----------
-        edges: list <str> or str
+        edges : list of str or str
             name of the edge(s)
 
         Returns
         -------
-        list <int> or int
+        list of int or int
             a number uniquely identifying each edge
         """
         if isinstance(edges, list):
