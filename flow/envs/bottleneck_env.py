@@ -43,6 +43,9 @@ RAMP_METER_AREA = 80
 MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3
 MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15
 
+BOTTLE_NECK_LEN = 280
+NUM_VEHICLE_NORM = 20
+
 ADDITIONAL_ENV_PARAMS = {
     # maximum acceleration for autonomous vehicles, in m/s^2
     "max_accel": 3,
@@ -88,16 +91,18 @@ PERIOD = 10.0
 
 
 class BottleneckEnv(Env):
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
-        """Environment used as a simplified representation of the toll booth
-        portion of the bay bridge. Contains ramp meters, and a toll both.
+    """Abstract bottleneck environment
 
-        Additional
-        ----------
-        Vehicles are rerouted to the start of their original routes once they
-        reach the end of the network in order to ensure a constant number of
-        vehicles.
-        """
+    This environment is used as a simplified representation of the toll booth
+    portion of the bay bridge. Contains ramp meters, and a toll both.
+
+    Additional
+        Vehicles are rerouted to the start of their original routes once
+        they reach the end of the network in order to ensure a constant
+        number of vehicles.
+    """
+
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -117,15 +122,9 @@ class BottleneckEnv(Env):
             int(np.ceil(1.5 * self.scaling)), int(np.ceil(2.6 * self.scaling)))
 
         self.tl_state = ""
-        self.disable_tb = env_params.get_additional_param("disable_tb")
-        self.disable_ramp_metering = \
-            env_params.get_additional_param("disable_ramp_metering")
-        self.rl_id_list = deepcopy(self.k.vehicle.get_rl_ids())
-
         self.next_period = START_RECORD_TIME / self.sim_step
-        self.cars_arrived = 0
 
-        # values for the ramp meter
+        # values for the ALINEA ramp meter algorithm
         self.n_crit = env_add_params.get("n_crit", 8)
         self.q_max = env_add_params.get("q_max", 1100)
         self.q_min = env_add_params.get("q_min", .25 * 1100)
@@ -165,9 +164,9 @@ class BottleneckEnv(Env):
                 self.edge_dict[edge][lane].append((veh_id, pos))
             except Exception:
                 pass
-        if not self.disable_tb:
+        if not self.env_params.additional_params['disable_tb']:
             self.apply_toll_bridge_control()
-        if not self.disable_ramp_metering:
+        if not self.env_params.additional_params['disable_ramp_metering']:
             self.ramp_meter_lane_change_control()
             self.alinea()
 
@@ -178,12 +177,7 @@ class BottleneckEnv(Env):
             (self.outflow_index + 1) % self.smoothed_num.shape[0]
 
         if self.time_counter > self.next_period:
-            self.density = self.cars_arrived  # / (PERIOD/self.sim_step)
-            # print(self.density)
             self.next_period += PERIOD / self.sim_step
-            self.cars_arrived = 0
-
-        self.cars_arrived += self.k.vehicle.get_num_arrived()
 
     def ramp_meter_lane_change_control(self):
         cars_that_have_left = []
@@ -225,8 +219,16 @@ class BottleneckEnv(Env):
                         }
 
     def alinea(self):
-        """Implementation of ALINEA from Toll Plaza Merging Traffic Control
-           for Throughput Maximization"""
+        """Utilize the ALINEA algorithm for toll booth metering control.
+
+        This acts as an implementation of the ramp metering control algorithm
+        from the article:
+
+        Spiliopoulou, Anastasia D., Ioannis Papamichail, and Markos
+        Papageorgiou. "Toll plaza merging traffic control for throughput
+        maximization." Journal of Transportation Engineering 136.1 (2009):
+        67-76.
+        """
         self.feedback_timer += self.sim_step
         self.ramp_state += self.sim_step
         if self.feedback_timer > self.feedback_update_time:
@@ -308,12 +310,12 @@ class BottleneckEnv(Env):
                                 traffic_light_states[lane] = "r"
                                 self.toll_wait_time[lane] -= 1
 
-        newTLState = "".join(traffic_light_states)
+        new_tl_state = "".join(traffic_light_states)
 
-        if newTLState != self.tl_state:
-            self.tl_state = newTLState
+        if new_tl_state != self.tl_state:
+            self.tl_state = new_tl_state
             self.k.traffic_light.set_state(
-                node_id=TB_TL_ID, state=newTLState)
+                node_id=TB_TL_ID, state=new_tl_state)
 
     def distance_to_bottleneck(self, veh_id):
         pre_bottleneck_edges = {
@@ -330,12 +332,7 @@ class BottleneckEnv(Env):
         else:
             return -1
 
-    def get_bottleneck_outflow_vehicles_per_hour(self, sample_period):
-        """Return the vehs/hour based on sample_period."""
-        return self.k.vehicle.get_outflow_rate(sample_period)
-
     def get_bottleneck_density(self, lanes=None):
-        BOTTLE_NECK_LEN = 280
         bottleneck_ids = self.k.vehicle.get_ids_by_edge(['3', '4'])
         if lanes:
             veh_ids = [
@@ -373,7 +370,6 @@ class BottleneckEnv(Env):
 
     def compute_reward(self, rl_actions, **kwargs):
         """ Outflow rate over last ten seconds normalized to max of 1 """
-
         reward = self.k.vehicle.get_outflow_rate(10 * self.sim_step) / \
             (2000.0 * self.scaling)
         return reward
@@ -384,32 +380,32 @@ class BottleneckEnv(Env):
 
 
 class BottleNeckAccelEnv(BottleneckEnv):
-    """Environment used to train vehicles to effectively
-       pass through a bottleneck.
+    """Environment used to train vehicles to effectively pass through a
+    bottleneck.
 
-       States
-           An observation is the edge position, speed, lane, and edge number of
-           the AV, the distance to and velocity of the vehicles
-           in front and behind the AV for all lanes. Additionally, we pass the
-           density and average velocity of all edges. Finally, we pad with
-           zeros in case an AV has exited the system.
-           Note: the vehicles are arranged in an initial order, so we pad
-           the missing vehicle at its normal position in the order
+    States
+        An observation is the edge position, speed, lane, and edge number of
+        the AV, the distance to and velocity of the vehicles
+        in front and behind the AV for all lanes. Additionally, we pass the
+        density and average velocity of all edges. Finally, we pad with
+        zeros in case an AV has exited the system.
+        Note: the vehicles are arranged in an initial order, so we pad
+        the missing vehicle at its normal position in the order
 
-       Actions
-           The action space consist of a list in which the first half
-           is accelerations and the second half is a direction for lane
-           changing that we round
+    Actions
+        The action space consist of a list in which the first half
+        is accelerations and the second half is a direction for lane
+        changing that we round
 
-       Rewards
-           The reward is the two-norm of the difference between the speed of
-           all vehicles in the network and some desired speed. To this we add
-           a positive reward for moving the vehicles forward
+    Rewards
+        The reward is the two-norm of the difference between the speed of
+        all vehicles in the network and some desired speed. To this we add
+        a positive reward for moving the vehicles forward, and a penalty to
+        vehicles that lane changing too frequently.
 
-       Termination
-           A rollout is terminated once the time horizon is reached.
-
-       """
+    Termination
+        A rollout is terminated once the time horizon is reached.
+   """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         for p in ADDITIONAL_RL_ENV_PARAMS.keys():
@@ -419,6 +415,14 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
         super().__init__(env_params, sim_params, scenario, simulator)
         self.add_rl_if_exit = env_params.get_additional_param("add_rl_if_exit")
+        self.num_rl = deepcopy(self.scenario.vehicles.num_rl_vehicles)
+        self.rl_id_list = deepcopy(
+            [veh_id for veh_id in self.scenario.vehicles.ids
+             if self.scenario.vehicles.type_parameters[
+                 self.scenario.vehicles.get_type(veh_id)][
+                 'acceleration_controller'][0] == RLController]
+        )
+        self.max_speed = self.k.scenario.max_speed()
 
     @property
     def observation_space(self):
@@ -464,6 +468,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
                 (self.k.vehicle.get_speed(veh_id) / self.max_speed),
                 (self.k.vehicle.get_lane(veh_id) / MAX_LANES), edge_num
             ]))
+
         # if all the missing vehicles are at the end, pad
         diff = self.num_rl - int(rl_obs.shape[0] / 4)
         if diff > 0:
@@ -541,6 +546,17 @@ class BottleNeckAccelEnv(BottleneckEnv):
             self, gain=0.1) - rewards.boolean_action_penalty(
                 lane_change_acts, gain=1.0))
 
+    @property
+    def action_space(self):
+        """See class definition."""
+        max_decel = self.env_params.additional_params["max_decel"]
+        max_accel = self.env_params.additional_params["max_accel"]
+
+        lb = [-abs(max_decel), -1] * self.scenario.vehicles.num_rl_vehicles
+        ub = [max_accel, 1] * self.scenario.vehicles.num_rl_vehicles
+
+        return Box(np.array(lb), np.array(ub), dtype=np.float32)
+
     def _apply_rl_actions(self, actions):
         """
         See parent class.
@@ -560,10 +576,11 @@ class BottleNeckAccelEnv(BottleneckEnv):
                                key=self.k.vehicle.get_x_by_id)
 
         # represents vehicles that are allowed to change lanes
-        non_lane_changing_veh = \
-            [self.time_counter <= self.lane_change_duration
-             + self.k.vehicle.get_last_lc(veh_id)
-             for veh_id in sorted_rl_ids]
+        non_lane_changing_veh = [
+            self.time_counter <= self.env_params.additional_params[
+                'lane_change_duration'] + self.k.vehicle.get_last_lc(veh_id)
+            for veh_id in sorted_rl_ids]
+
         # vehicle that are not allowed to change have their directions set to 0
         direction[non_lane_changing_veh] = \
             np.array([0] * sum(non_lane_changing_veh))
@@ -572,6 +589,12 @@ class BottleNeckAccelEnv(BottleneckEnv):
         self.k.vehicle.apply_lane_change(sorted_rl_ids, direction=direction)
 
     def additional_command(self):
+        """Reintroduce any RL vehicle that may have exited in the last step.
+
+        This is used to maintain a constant number of RL vehicle in the system
+        at all times, in order to comply with a fixed size observation and
+        action space.
+        """
         super().additional_command()
         # if the number of rl vehicles has decreased introduce it back in
         num_rl = self.k.vehicle.num_rl_vehicles
@@ -597,22 +620,22 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
 
 class DesiredVelocityEnv(BottleneckEnv):
-    """Environment used to train vehicles to effectively pass
-       through a bottleneck by specifying the velocity that RL vehicles
-       should attempt to travel in certain regions of space
+    """Environment used to train vehicles to effectively pass through a
+    bottleneck by specifying the velocity that RL vehicles should attempt to
+    travel in certain regions of space
 
-       States
-           An observation is the number of vehicles in each lane in each
-           segment
+    States
+        An observation is the number of vehicles in each lane in each
+        segment
 
-       Actions
-           The action space consist of a list in which each element
-           corresponds to the desired speed that RL vehicles should travel in
-           that region of space
+    Actions
+        The action space consist of a list in which each element
+        corresponds to the desired speed that RL vehicles should travel in
+        that region of space
 
-       Rewards
-           The reward is the outflow of the bottleneck plus a reward
-           for RL vehicles making forward progress
+    Rewards
+        The reward is the outflow of the bottleneck plus a reward
+        for RL vehicles making forward progress
     """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
@@ -749,7 +772,6 @@ class DesiredVelocityEnv(BottleneckEnv):
         num_rl_vehicles_list = []
         vehicle_speeds_list = []
         rl_speeds_list = []
-        NUM_VEHICLE_NORM = 20
         for i, edge in enumerate(EDGE_LIST):
             num_lanes = self.k.scenario.num_lanes(edge)
             num_vehicles = np.zeros((self.num_obs_segments[i], num_lanes))
@@ -780,10 +802,9 @@ class DesiredVelocityEnv(BottleneckEnv):
             vehicle_speeds_list += vehicle_speeds.flatten().tolist()
             rl_speeds_list += rl_vehicle_speeds.flatten().tolist()
 
-        unnorm_veh_list = np.asarray(num_vehicles_list) * \
-            NUM_VEHICLE_NORM
-        unnorm_rl_list = np.asarray(num_rl_vehicles_list) * \
-            NUM_VEHICLE_NORM
+        unnorm_veh_list = np.asarray(num_vehicles_list) * NUM_VEHICLE_NORM
+        unnorm_rl_list = np.asarray(num_rl_vehicles_list) * NUM_VEHICLE_NORM
+
         # compute the mean speed if the speed isn't zero
         num_rl = len(num_rl_vehicles_list)
         num_veh = len(num_vehicles_list)
@@ -804,9 +825,10 @@ class DesiredVelocityEnv(BottleneckEnv):
     def _apply_rl_actions(self, rl_actions):
         """
         RL actions are split up into 3 levels.
-        First, they're split into edge actions.
-        Then they're split into segment actions.
-        Then they're split into lane actions.
+
+        * First, they're split into edge actions.
+        * Then they're split into segment actions.
+        * Then they're split into lane actions.
         """
         for rl_id in self.k.vehicle.get_rl_ids():
             edge = self.k.vehicle.get_edge(rl_id)
@@ -837,7 +859,6 @@ class DesiredVelocityEnv(BottleneckEnv):
 
     def compute_reward(self, rl_actions, **kwargs):
         """Outflow rate over last ten seconds normalized to max of 1."""
-
         if self.env_params.evaluate:
             if self.time_counter == self.env_params.horizon:
                 reward = self.k.vehicle.get_outflow_rate(500)
@@ -845,20 +866,36 @@ class DesiredVelocityEnv(BottleneckEnv):
                 return 0
         else:
             reward = self.k.vehicle.get_outflow_rate(10 * self.sim_step) / \
-                     (2000.0 * self.scaling)
+                (2000.0 * self.scaling)
         return reward
 
     def reset(self):
+        """Reset the environment with a new inflow rate.
+
+        The diverse set of inflows are used to generate a policy that is more
+        robust with respect to the inflow rate. The inflow rate is update by
+        creating a new scenario similar to the previous one, but with a new
+        Inflow object with a rate within the additional environment parameter
+        "inflow_range", which is a list consisting of the smallest and largest
+        allowable inflow rates.
+
+        **WARNING**: The inflows assume there are vehicles of type
+        "followerstopper" and "human" within the VehicleParams object.
+        """
         add_params = self.env_params.additional_params
         if add_params.get("reset_inflow"):
             inflow_range = add_params.get("inflow_range")
             flow_rate = np.random.uniform(
                 min(inflow_range), max(inflow_range)) * self.scaling
+
+            # We try this for 100 trials in case unexpected errors during
+            # instantiation.
             for _ in range(100):
                 try:
+                    # introduce new inflows within the pre-defined inflow range
                     inflow = InFlows()
                     inflow.add(
-                        veh_type="followerstopper",
+                        veh_type="followerstopper",  # FIXME: make generic
                         edge="1",
                         vehs_per_hour=flow_rate * .1,
                         departLane="random",
@@ -870,6 +907,8 @@ class DesiredVelocityEnv(BottleneckEnv):
                         departLane="random",
                         departSpeed=10)
 
+                    # all other network parameters should match the previous
+                    # environment (we only want to change the inflow)
                     additional_net_params = {
                         "scaling": self.scaling,
                         "speed_limit": self.net_params.
@@ -882,7 +921,7 @@ class DesiredVelocityEnv(BottleneckEnv):
 
                     vehicles = VehicleParams()
                     vehicles.add(
-                        veh_id="human",
+                        veh_id="human",  # FIXME: make generic
                         car_following_params=SumoCarFollowingParams(
                             speed_mode=9,
                         ),
@@ -905,6 +944,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                         ),
                         num_vehicles=1 * self.scaling)
 
+                    # recreate the scenario object
                     self.scenario = self.scenario.__class__(
                         name=self.scenario.orig_name,
                         vehicles=vehicles,

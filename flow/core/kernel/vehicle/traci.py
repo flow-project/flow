@@ -317,7 +317,6 @@ class TraCIVehicle(KernelVehicle):
             del self.__vehicles[veh_id]
             del self.__sumo_obs[veh_id]
             self.__ids.remove(veh_id)
-            self.num_vehicles -= 1
 
             # remove it from all other ids (if it is there)
             if veh_id in self.__human_ids:
@@ -328,16 +327,23 @@ class TraCIVehicle(KernelVehicle):
                     self.__controlled_lc_ids.remove(veh_id)
             else:
                 self.__rl_ids.remove(veh_id)
-                self.num_rl_vehicles -= 1
 
             # make sure that the rl ids remain sorted
             self.__rl_ids.sort()
         except KeyError:
             pass
 
+        # modify the number of vehicles and RL vehicles
+        self.num_vehicles = len(self.get_ids())
+        self.num_rl_vehicles = len(self.get_rl_ids())
+
     def test_set_speed(self, veh_id, speed):
         """Set the speed of the specified vehicle."""
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = speed
+
+    def test_set_edge(self, veh_id, edge):
+        """Set the speed of the specified vehicle."""
+        self.__sumo_obs[veh_id][tc.VAR_ROAD_ID] = edge
 
     def set_follower(self, veh_id, follower):
         """Set the follower of the specified vehicle."""

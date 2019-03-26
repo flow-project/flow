@@ -14,9 +14,11 @@ parser : ArgumentParser
 
 import argparse
 from datetime import datetime
+import gym
 import numpy as np
 import os
 import sys
+import time
 
 import ray
 try:
@@ -24,10 +26,7 @@ try:
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
-from ray.rllib.models import ModelCatalog
-import gym
 
-import flow.envs
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
@@ -44,27 +43,10 @@ Here the arguments are:
 """
 
 
-class _RLlibPreprocessorWrapper(gym.ObservationWrapper):
-    """Adapts a RLlib preprocessor for use as an observation wrapper."""
-
-    def __init__(self, env, preprocessor):
-        super(_RLlibPreprocessorWrapper, self).__init__(env)
-        self.preprocessor = preprocessor
-
-        from gym.spaces.box import Box
-        self.observation_space = Box(
-            -1.0, 1.0, preprocessor.shape, dtype=np.float32)
-
-    def observation(self, observation):
-        return self.preprocessor.transform(observation)
-
-
 def visualizer_rllib(args):
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
         else args.result_dir[:-1]
 
-    # config = get_rllib_config(result_dir + '/..')
-    # pkl = get_rllib_pkl(result_dir + '/..')
     config = get_rllib_config(result_dir)
     # TODO(ev) backwards compatibility hack
     try:
@@ -90,11 +72,6 @@ def visualizer_rllib(args):
     sim_params = flow_params['sim']
     setattr(sim_params, 'num_clients', 1)
 
-    # Create and register a gym+rllib env
-    create_env, env_name = make_create_env(
-        params=flow_params, version=0, render=False)
-    register_env(env_name, create_env)
-
     # Determine agent and checkpoint
     config_run = config['env_config']['run'] if 'run' in config['env_config'] \
         else None
@@ -118,7 +95,10 @@ def visualizer_rllib(args):
         sys.exit(1)
 
     sim_params.restart_instance = False
-    sim_params.emission_path = './test_time_rollout/'
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    emission_path = '{0}/test_time_rollout/'.format(dir_path)
+
+    sim_params.emission_path = emission_path
 
     # pick your rendering mode
     if args.render_mode == 'sumo_web3d':
@@ -136,34 +116,23 @@ def visualizer_rllib(args):
         sim_params.pxpm = 4
         sim_params.save_render = True
 
-    # Recreate the scenario from the pickled parameters
-    exp_tag = flow_params['exp_tag']
-    net_params = flow_params['net']
-    vehicles = flow_params['veh']
-    initial_config = flow_params['initial']
-    module = __import__('flow.scenarios', fromlist=[flow_params['scenario']])
-    scenario_class = getattr(module, flow_params['scenario'])
-
-    scenario = scenario_class(
-        name=exp_tag,
-        vehicles=vehicles,
-        net_params=net_params,
-        initial_config=initial_config)
+    # Create and register a gym+rllib env
+    create_env, env_name = make_create_env(
+        params=flow_params, version=0)
+    register_env(env_name, create_env)
 
     # check if the environment is a single or multiagent environment, and
     # get the right address accordingly
-    single_agent_envs = [env for env in dir(flow.envs)
-                         if not env.startswith('__')]
+    # single_agent_envs = [env for env in dir(flow.envs)
+    #                      if not env.startswith('__')]
 
-    if flow_params['env_name'] in single_agent_envs:
-        env_loc = 'flow.envs'
-    else:
-        env_loc = 'flow.multiagent_envs'
+    # if flow_params['env_name'] in single_agent_envs:
+    #     env_loc = 'flow.envs'
+    # else:
+    #     env_loc = 'flow.multiagent_envs'
 
     # Start the environment with the gui turned on and a path for the
     # emission file
-    module = __import__(env_loc, fromlist=[flow_params['env_name']])
-    env_class = getattr(module, flow_params['env_name'])
     env_params = flow_params['env']
     env_params.restart_instance = False
     if args.evaluate:
@@ -180,14 +149,11 @@ def visualizer_rllib(args):
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
 
-    _env = env_class(
-        env_params=env_params,
-        sim_params=sim_params,
-        scenario=scenario,
-        simulator=flow_params['simulator']
-    )
-    _prep = ModelCatalog.get_preprocessor(_env, options={})
-    env = _RLlibPreprocessorWrapper(_env, _prep)
+    if hasattr(agent, "local_evaluator") and \
+            os.environ.get("TEST_FLAG") != 'True':
+        env = agent.local_evaluator.env
+    else:
+        env = gym.make(env_name)
 
     if multiagent:
         rets = {}
@@ -197,6 +163,29 @@ def visualizer_rllib(args):
             rets[key] = []
     else:
         rets = []
+
+    if config['model']['use_lstm']:
+        use_lstm = True
+        if multiagent:
+            state_init = {}
+            # map the agent id to its policy
+            policy_map_fn = config['multiagent']['policy_mapping_fn'].func
+            size = config['model']['lstm_cell_size']
+            for key in config['multiagent']['policy_graphs'].keys():
+                state_init[key] = [np.zeros(size, np.float32),
+                                   np.zeros(size, np.float32)
+                                   ]
+        else:
+            state_init = [
+                np.zeros(config['model']['lstm_cell_size'], np.float32),
+                np.zeros(config['model']['lstm_cell_size'], np.float32)
+            ]
+    else:
+        use_lstm = False
+
+    env.restart_simulation(
+        sim_params=sim_params, render=sim_params.render)
+
     final_outflows = []
     mean_speed = []
     for i in range(args.num_rollouts):
@@ -212,8 +201,14 @@ def visualizer_rllib(args):
             if multiagent:
                 action = {}
                 for agent_id in state.keys():
-                    action[agent_id] = agent.compute_action(
-                        state[agent_id], policy_id=policy_map_fn(agent_id))
+                    if use_lstm:
+                        action[agent_id], state_init[agent_id], logits = \
+                            agent.compute_action(
+                            state[agent_id], state=state_init[agent_id],
+                            policy_id=policy_map_fn(agent_id))
+                    else:
+                        action[agent_id] = agent.compute_action(
+                            state[agent_id], policy_id=policy_map_fn(agent_id))
             else:
                 action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
@@ -258,8 +253,10 @@ def visualizer_rllib(args):
 
     # if prompted, convert the emission file into a csv file
     if args.emission_to_csv:
+        time.sleep(0.1)
+
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        emission_filename = '{0}-emission.xml'.format(scenario.name)
+        emission_filename = '{0}-emission.xml'.format(env.scenario.name)
 
         emission_path = \
             '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
@@ -319,12 +316,11 @@ def create_parser():
         help='Specifies whether to use the \'evaluate\' reward '
              'for the environment.')
     parser.add_argument(
-        '--render-mode',
+        '--render_mode',
         type=str,
-        default='sumo-gui',
-        help='Pick the render mode. Options include sumo-web3d, '
-             'rgbd, sumo-gui, and no-render. For more details'
-             'see the visualization tutorial.')
+        default='sumo_gui',
+        help='Pick the render mode. Options include sumo_web3d, '
+             'rgbd and sumo_gui')
     parser.add_argument(
         '--save_render',
         action='store_true',

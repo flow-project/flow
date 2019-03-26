@@ -18,7 +18,16 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class HighwayScenario(Scenario):
-    """Highway scenario class."""
+    """Highway scenario class.
+
+    Requires from net_params:
+
+    * **length** : length of the highway
+    * **lanes** : number of lanes in the highway
+    * **speed_limit** : max speed limit of the highway
+
+    See flow/scenarios/base_scenario.py for description of params.
+    """
 
     def __init__(self,
                  name,
@@ -26,15 +35,7 @@ class HighwayScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a highway scenario.
-
-        Requires from net_params:
-        - length: length of the highway
-        - lanes: number of lanes in the highway
-        - speed_limit: max speed limit of the highway
-
-        See flow/scenarios/base_scenario.py for description of params.
-        """
+        """Initialize a highway scenario."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
@@ -110,7 +111,7 @@ class HighwayScenario(Scenario):
         return edgestarts
 
     @staticmethod
-    def gen_custom_start_pos(cls, initial_config, num_vehicles):
+    def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
         """Generate a user defined set of starting positions.
 
         This method is just used for testing.

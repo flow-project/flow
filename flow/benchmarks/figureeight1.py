@@ -4,11 +4,9 @@ Trains a fraction of vehicles in a ring road structure to regulate the flow of
 vehicles through an intersection. In this example, every other vehicle in the
 network is an autonomous vehicle.
 
-Action Dimension: (7, )
-
-Observation Dimension: (28, )
-
-Horizon: 1500 steps
+- **Action Dimension**: (7, )
+- **Observation Dimension**: (28, )
+- **Horizon**: 1500 steps
 """
 
 from copy import deepcopy
@@ -31,7 +29,7 @@ for i in range(7):
         }),
         routing_controller=(ContinuousRouter, {}),
         car_following_params=SumoCarFollowingParams(
-            speed_mode="no_collide",
+            speed_mode="obey_safe_speed",
         ),
         num_vehicles=1)
     vehicles.add(
@@ -39,7 +37,7 @@ for i in range(7):
         acceleration_controller=(RLController, {}),
         routing_controller=(ContinuousRouter, {}),
         car_following_params=SumoCarFollowingParams(
-            speed_mode="no_collide",
+            speed_mode="obey_safe_speed",
         ),
         num_vehicles=1)
 

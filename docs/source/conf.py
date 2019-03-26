@@ -16,6 +16,27 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import sys
+from unittest.mock import MagicMock
+
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MagicMock()
+
+
+MOCK_MODULES = [
+    'rllab',
+    "rllab.core.serializable.Serializable",
+    'rllab.sampler.utils.rollout',
+    "AAPI",
+    'PyANGKernel',
+    'AAPI.GKGUISystem',
+    'thread'
+]
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 
 # -- Project information -----------------------------------------------------
 
@@ -44,6 +65,7 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
+    'numpydoc',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -179,3 +201,9 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
+
+numpydoc_use_plotsv = True
+numpydoc_show_class_members = False
+numpydoc_show_inherited_class_members = True
+numpydoc_class_members_toctree = True
+numpydoc_use_blockquotes = Trueautodoc_mock_imports = ["django"]
