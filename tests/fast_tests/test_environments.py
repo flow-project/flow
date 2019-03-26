@@ -494,7 +494,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         env.reset()
         self.assertEqual(env.k.scenario.length(), 239)
         env.reset()
-        self.assertEqual(env.k.scenario.length(), 224)
+        self.assertEqual(env.k.scenario.length(), 256)
 
     def test_v_eq_max_function(self):
         """

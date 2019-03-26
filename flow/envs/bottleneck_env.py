@@ -552,8 +552,8 @@ class BottleNeckAccelEnv(BottleneckEnv):
         max_decel = self.env_params.additional_params["max_decel"]
         max_accel = self.env_params.additional_params["max_accel"]
 
-        lb = [-abs(max_decel), -1] * self.scenario.vehicles.num_rl_vehicles
-        ub = [max_accel, 1] * self.scenario.vehicles.num_rl_vehicles
+        lb = [-abs(max_decel), -1] * self.num_rl
+        ub = [max_accel, 1] * self.num_rl
 
         return Box(np.array(lb), np.array(ub), dtype=np.float32)
 
