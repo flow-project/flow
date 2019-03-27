@@ -4,11 +4,9 @@ Trains a small percentage of autonomous vehicles to dissipate shockwaves caused
 by merges in an open network. The autonomous penetration rate in this example
 is 10%.
 
-Action Dimension: (5, )
-
-Observation Dimension: (25, )
-
-Horizon: 750 steps
+- **Action Dimension**: (5, )
+- **Observation Dimension**: (25, )
+- **Horizon**: 750 steps
 """
 
 from copy import deepcopy
@@ -40,14 +38,14 @@ vehicles.add(
     veh_id="human",
     acceleration_controller=(SimCarFollowingController, {}),
     car_following_params=SumoCarFollowingParams(
-        speed_mode="no_collide",
+        speed_mode="obey_safe_speed",
     ),
     num_vehicles=5)
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
     car_following_params=SumoCarFollowingParams(
-        speed_mode="no_collide",
+        speed_mode="obey_safe_speed",
     ),
     num_vehicles=0)
 

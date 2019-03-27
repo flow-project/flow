@@ -299,7 +299,6 @@ class TraCIVehicle(KernelVehicle):
             del self.__vehicles[veh_id]
             del self.__sumo_obs[veh_id]
             self.__ids.remove(veh_id)
-            self.num_vehicles -= 1
 
             # remove it from all other ids (if it is there)
             if veh_id in self.__human_ids:
@@ -310,16 +309,23 @@ class TraCIVehicle(KernelVehicle):
                     self.__controlled_lc_ids.remove(veh_id)
             else:
                 self.__rl_ids.remove(veh_id)
-                self.num_rl_vehicles -= 1
 
             # make sure that the rl ids remain sorted
             self.__rl_ids.sort()
         except KeyError:
             pass
 
+        # modify the number of vehicles and RL vehicles
+        self.num_vehicles = len(self.get_ids())
+        self.num_rl_vehicles = len(self.get_rl_ids())
+
     def test_set_speed(self, veh_id, speed):
         """Set the speed of the specified vehicle."""
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = speed
+
+    def test_set_edge(self, veh_id, edge):
+        """Set the speed of the specified vehicle."""
+        self.__sumo_obs[veh_id][tc.VAR_ROAD_ID] = edge
 
     def set_follower(self, veh_id, follower):
         """Set the follower of the specified vehicle."""
@@ -529,15 +535,14 @@ class TraCIVehicle(KernelVehicle):
     def get_lane_leaders_speed(self, veh_id, error=list()):
         """See parent class."""
         lane_leaders = self.get_lane_leaders(veh_id)
-        return [0 if lane_leader is '' else
-                self.get_speed(lane_leader) for lane_leader in lane_leaders]
+        return [0 if lane_leader == '' else self.get_speed(lane_leader)
+                for lane_leader in lane_leaders]
 
     def get_lane_followers_speed(self, veh_id, error=list()):
         """See parent class."""
         lane_followers = self.get_lane_followers(veh_id)
-        return [0 if lane_follower is '' else
-                self.get_speed(lane_follower) for
-                lane_follower in lane_followers]
+        return [0 if lane_follower == '' else self.get_speed(lane_follower)
+                for lane_follower in lane_followers]
 
     def set_lane_leaders(self, veh_id, lane_leaders):
         """Set the lane leaders of the specified vehicle."""

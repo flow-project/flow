@@ -44,7 +44,7 @@ def loop_merge_example(render=None):
         car_following_params=SumoCarFollowingParams(
             minGap=0.0,
             tau=0.5,
-            speed_mode="no_collide",
+            speed_mode="obey_safe_speed",
         ),
         lane_change_params=SumoLaneChangeParams())
     vehicles.add(
@@ -56,7 +56,7 @@ def loop_merge_example(render=None):
         car_following_params=SumoCarFollowingParams(
             minGap=0.01,
             tau=0.5,
-            speed_mode="no_collide",
+            speed_mode="obey_safe_speed",
         ),
         lane_change_params=SumoLaneChangeParams())
 

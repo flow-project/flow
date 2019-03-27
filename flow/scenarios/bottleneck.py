@@ -14,7 +14,17 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class BottleneckScenario(Scenario):
-    """Scenario class for bottleneck simulations."""
+    """Scenario class for bottleneck simulations.
+
+    Requires from net_params:
+
+    * **scaling** : the factor multiplying number of lanes
+
+    In order for right-of-way dynamics to take place at the intersection,
+    set *no_internal_links* in net_params to False.
+
+    See flow/scenarios/base_scenario.py for description of params.
+    """
 
     def __init__(self,
                  name,
@@ -22,16 +32,7 @@ class BottleneckScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Instantiate the scenario class.
-
-        Requires from net_params:
-        - scaling: the factor multiplying number of lanes
-
-        In order for right-of-way dynamics to take place at the intersection,
-        set "no_internal_links" in net_params to False.
-
-        See flow/scenarios/base_scenario.py for description of params.
-        """
+        """Instantiate the scenario class."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))

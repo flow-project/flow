@@ -20,7 +20,21 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class Figure8Scenario(Scenario):
-    """Figure eight scenario class."""
+    """Figure eight scenario class.
+
+    Requires from net_params:
+
+    * **ring_radius** : radius of the circular portions of the network. Also
+      corresponds to half the length of the perpendicular straight lanes.
+    * **resolution** : number of nodes resolution in the circular portions
+    * **lanes** : number of lanes in the network
+    * **speed** : max speed of vehicles in the network
+
+    In order for right-of-way dynamics to take place at the intersection,
+    set *no_internal_links* in net_params to False.
+
+    See flow/scenarios/base_scenario.py for description of params.
+    """
 
     def __init__(self,
                  name,
@@ -28,20 +42,7 @@ class Figure8Scenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a figure 8 scenario.
-
-        Requires from net_params:
-        - ring_radius: radius of the circular portions of the network. Also
-          corresponds to half the length of the perpendicular straight lanes.
-        - resolution: number of nodes resolution in the circular portions
-        - lanes: number of lanes in the network
-        - speed: max speed of vehicles in the network
-
-        In order for right-of-way dynamics to take place at the intersection,
-        set "no_internal_links" in net_params to False.
-
-        See flow/scenarios/base_scenario.py for description of params.
-        """
+        """Initialize a figure 8 scenario."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
