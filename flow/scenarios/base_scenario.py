@@ -49,7 +49,7 @@ class Scenario(Serializable):
       file. This file is specified in the NetParams object. For example:
 
         >>> from flow.core.params import NetParams
-        >>> net_params = NetParams(netfile='/path/to/netfile.net.xml')
+        >>> net_params = NetParams(template='/path/to/template')
 
       In this case, no ``specify_nodes`` and ``specify_edges`` methods are
       needed. However, a ``specify_routes`` method is still needed to specify
@@ -93,7 +93,7 @@ class Scenario(Serializable):
         self.initial_config = initial_config
         self.traffic_lights = traffic_lights
 
-        if net_params.netfile is None and net_params.osm_path is None:
+        if net_params.template is None and net_params.osm_path is None:
             # specify the attributes of the nodes
             self.nodes = self.specify_nodes(net_params)
             # collect the attributes of each edge
