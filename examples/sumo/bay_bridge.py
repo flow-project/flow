@@ -161,9 +161,9 @@ def bay_bridge_example(render=None,
             departSpeed=20)  # no data for this
 
     net_params = NetParams(inflows=inflow, no_internal_links=False)
-    net_params.netfile = NETFILE
+    net_params.template = NETFILE
 
-    # download the netfile from AWS
+    # download the network template file from AWS
     if use_traffic_lights:
         my_url = "https://s3-us-west-1.amazonaws.com/flow.netfiles/" \
                  "bay_bridge_TL_all_green.net.xml"
