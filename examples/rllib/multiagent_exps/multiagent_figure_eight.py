@@ -34,7 +34,7 @@ from flow.utils.rllib import FlowParamsEncoder
 # time horizon of a single rollout
 HORIZON = 1500
 # number of rollouts per training iteration
-N_ROLLOUTS = 4
+N_ROLLOUTS = 100
 # number of parallel workers
 N_CPUS = 2
 
@@ -170,7 +170,7 @@ if __name__ == '__main__':
             'env': env_name,
             'checkpoint_freq': 1,
             'stop': {
-                'training_iteration': 1
+                'training_iteration': 10
             },
             'config': config,
             # 'upload_dir': 's3://<BUCKET NAME>'
