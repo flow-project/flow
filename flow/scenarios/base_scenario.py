@@ -287,7 +287,10 @@ class Scenario(Serializable):
 
         The routes are specified as lists of edges the vehicle must traverse,
         with the first edge corresponding to the edge the vehicle begins on.
-        Note that the edges must be connected for the route to be valid.
+        Note that the edges must be connected for the route to be valid. If
+        this method is not implemented, vehicles that enter a network are
+        assigned routes consisting solely on their current edges, and exit the
+        network once they reach the end of their edge.
 
         Currently, only one route is allowed from any given starting edge.
 
@@ -303,7 +306,7 @@ class Scenario(Serializable):
             Element = list of edges a vehicle starting from this edge must
             traverse.
         """
-        raise NotImplementedError
+        return None
 
     @staticmethod
     def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
