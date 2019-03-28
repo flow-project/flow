@@ -886,7 +886,7 @@ class TestDefaultRoutes(unittest.TestCase):
 
     def test_default_routes(self):
         env_params = EnvParams()
-        sim_params = SumoParams(render=True)
+        sim_params = SumoParams(render=False)
         initial_config = InitialConfig()
         vehicles = VehicleParams()
         vehicles.add('human', num_vehicles=100)
