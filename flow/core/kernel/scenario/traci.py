@@ -4,7 +4,6 @@ from flow.core.kernel.scenario import KernelScenario
 from flow.core.util import makexml, printxml, ensure_dir
 import time
 import os
-import sys
 import subprocess
 import xml.etree.ElementTree as ElementTree
 from lxml import etree
@@ -202,6 +201,10 @@ class TraCIScenario(KernelScenario):
         self.total_edgestarts.sort(key=lambda tup: tup[1])
 
         self.total_edgestarts_dict = dict(self.total_edgestarts)
+
+        if self.network.routes is None:
+            print("No routes specified, defaulting to single edge routes.")
+            self.network.routes = {edge: [edge] for edge in self._edge_list}
 
         # create the sumo configuration files
         cfg_name = self.generate_cfg(self.network.net_params,
@@ -568,8 +571,7 @@ class TraCIScenario(KernelScenario):
 
         # this handles removing all roads in the network that cannot be ridden
         # by vehicles
-        net_cmd += \
-            " --remove-edges.by-vclass rail_slow,rail_fast,bicycle,pedestrian"
+        net_cmd += " --keep-edges.by-vclass passenger"
 
         # this removes edges that are not connected to a network (isolated)
         net_cmd += " --remove-edges.isolated"
@@ -579,8 +581,7 @@ class TraCIScenario(KernelScenario):
         if net_params.no_internal_links:
             net_cmd += " --no_internal_links"
 
-        subprocess.call(
-            net_cmd, stdout=sys.stdout, stderr=sys.stderr, shell=True)
+        subprocess.call(net_cmd, shell=True)
 
         # name of the .net.xml file (located in cfg_path)
         self.netfn = netfn
