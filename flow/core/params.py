@@ -540,8 +540,7 @@ class SumoParams(SimParams):
                  restart_instance=False,
                  print_warnings=True,
                  teleport_time=-1,
-                 num_clients=1,
-                 sumo_binary=None):
+                 num_clients=1):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
@@ -626,13 +625,10 @@ class NetParams:
         entering the network from these edges
     osm_path : str, optional
         path to the .osm file that should be used to generate the network
-        configuration files. This parameter is only needed / used if the
-        OpenStreetMapScenario class is used.
-    netfile : str, optional
-        path to the .net.xml file that should be passed to SUMO. This is
-        only needed / used if the NetFileScenario class is used, such as
-        in the case of Bay Bridge experiments (which use a custom net.xml
-        file)
+        configuration files
+    template : str, optional
+        path to the network template file that should be used when generating
+        the network/routes
     additional_params : dict, optional
         network specific parameters; see each subclass for a description of
         what is needed
@@ -641,9 +637,8 @@ class NetParams:
     def __init__(self,
                  no_internal_links=True,
                  inflows=None,
-                 in_flows=None,
                  osm_path=None,
-                 netfile=None,
+                 template=None,
                  additional_params=None):
         """Instantiate NetParams."""
         self.no_internal_links = no_internal_links
@@ -652,7 +647,7 @@ class NetParams:
         else:
             self.inflows = inflows
         self.osm_path = osm_path
-        self.netfile = netfile
+        self.template = template
         self.additional_params = additional_params or {}
 
 
