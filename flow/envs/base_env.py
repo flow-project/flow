@@ -68,6 +68,24 @@ class Env(*classdef):
     """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+        """Initialize the environment class.
+
+        Parameters
+        ----------
+        env_params : flow.core.params.EnvParams
+           see flow/core/params.py
+        sim_params : flow.core.params.SimParams
+           see flow/core/params.py
+        scenario : flow.scenarios.Scenario
+            see flow/scenarios/base_scenario.py
+        simulator : str
+            the simulator used, one of {'traci', 'aimsun'}. Defaults to 'traci'
+
+        Raises
+        ------
+        flow.utils.exceptions.FatalFlowError
+            if the render mode is not set to a valid value
+        """
         # Invoke serializable if using rllab
         if serializable_flag:
             Serializable.quick_init(self, locals())
@@ -165,8 +183,8 @@ class Env(*classdef):
         elif self.sim_params.render in [True, False]:
             pass  # default to sumo-gui (if True) or sumo (if False)
         else:
-            raise ValueError('Mode %s is not supported!' %
-                             self.sim_params.render)
+            raise FatalFlowError(
+                'Mode %s is not supported!' % self.sim_params.render)
         atexit.register(self.terminate)
 
     def restart_simulation(self, sim_params, render=None):
