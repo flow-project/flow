@@ -889,7 +889,7 @@ class TestDefaultRoutes(unittest.TestCase):
         sim_params = SumoParams(render=False)
         initial_config = InitialConfig()
         vehicles = VehicleParams()
-        vehicles.add('human', num_vehicles=100)
+        vehicles.add('human', num_vehicles=1)
         net_params = NetParams(additional_params=ADDITIONAL_NET_PARAMS)
 
         # create the scenario
