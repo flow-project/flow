@@ -2,11 +2,13 @@
 
 from flow.core.kernel.scenario import KernelScenario
 from flow.core.util import makexml, printxml, ensure_dir
+from flow.core.params import TrafficLightParams
 import time
 import os
 import subprocess
 import xml.etree.ElementTree as ElementTree
 from lxml import etree
+import re
 
 E = etree.Element
 
@@ -360,10 +362,10 @@ class TraCIScenario(KernelScenario):
 
         Parameters
         ----------
-        net_params : flow.core.params.NetParams type
+        net_params : flow.core.params.NetParams
             network-specific parameters. Different networks require different
             net_params; see the separate sub-classes for more information.
-        traffic_lights : flow.core.traffic_lights.TrafficLights type
+        traffic_lights : flow.core.params.TrafficLightParams
             traffic light information, used to determine which nodes are
             treated as traffic lights
         nodes : list of dict
@@ -528,7 +530,7 @@ class TraCIScenario(KernelScenario):
         error = None
         for _ in range(RETRIES_ON_ERROR):
             try:
-                edges_dict, conn_dict = self._import_edges_from_net()
+                edges_dict, conn_dict = self._import_edges_from_net(net_params)
                 return edges_dict, conn_dict
             except Exception as e:
                 print('Error during start: {}'.format(e))
@@ -544,7 +546,7 @@ class TraCIScenario(KernelScenario):
 
         Parameters
         ----------
-        net_params : flow.core.params.NetParams type
+        net_params : flow.core.params.NetParams
             network-specific parameters. Different networks require different
             net_params; see the separate sub-classes for more information.
 
@@ -566,7 +568,7 @@ class TraCIScenario(KernelScenario):
         netfn = "%s.net.xml" % self.name
 
         # generate the network file with sumo
-        net_cmd = "netconvert --osm-files {0} --output-file {1}".\
+        net_cmd = "netconvert --osm-files {0} --output-file {1}". \
             format(osm_path, self.cfg_path + netfn)
 
         # this handles removing all roads in the network that cannot be ridden
@@ -587,7 +589,7 @@ class TraCIScenario(KernelScenario):
         self.netfn = netfn
 
         # collect data from the generated network configuration file
-        edges_dict, conn_dict = self._import_edges_from_net()
+        edges_dict, conn_dict = self._import_edges_from_net(net_params)
 
         return edges_dict, conn_dict
 
@@ -599,7 +601,7 @@ class TraCIScenario(KernelScenario):
 
         Parameters
         ----------
-        net_params : flow.core.params.NetParams type
+        net_params : flow.core.params.NetParams
             network-specific parameters. Different networks require different
             net_params; see the separate sub-classes for more information.
 
@@ -615,10 +617,13 @@ class TraCIScenario(KernelScenario):
                 from the arriving edge/lane pairs
         """
         # name of the .net.xml file (located in cfg_path)
-        self.netfn = net_params.template
+        if type(net_params.template) is str:
+            self.netfn = net_params.template
+        else:
+            self.netfn = net_params.template['net']
 
         # collect data from the generated network configuration file
-        edges_dict, conn_dict = self._import_edges_from_net()
+        edges_dict, conn_dict = self._import_edges_from_net(net_params)
 
         return edges_dict, conn_dict
 
@@ -632,9 +637,9 @@ class TraCIScenario(KernelScenario):
 
         Parameters
         ----------
-        net_params : NetParams type
+        net_params : flow.core.params.NetParams
             see flow/core/params.py
-        traffic_lights : flow.core.traffic_lights.TrafficLights type
+        traffic_lights : flow.core.params.TrafficLightParams
             traffic light information, used to determine which nodes are
             treated as traffic lights
         routes : dict
@@ -781,12 +786,17 @@ class TraCIScenario(KernelScenario):
 
         printxml(routes, self.cfg_path + self.roufn)
 
-    def _import_edges_from_net(self):
+    def _import_edges_from_net(self, net_params):
         """Import edges from a configuration file.
 
         This is a utility function for computing edge information. It imports a
         network configuration file, and returns the information on the edges
         and junctions located in the file.
+
+        Parameters
+        ----------
+        net_params : flow.core.params.NetParams
+            see flow/core/params.py
 
         Returns
         -------
@@ -803,9 +813,9 @@ class TraCIScenario(KernelScenario):
         """
         # import the .net.xml file containing all edge/type data
         parser = etree.XMLParser(recover=True)
-        tree = ElementTree.parse(
-            os.path.join(self.cfg_path, self.netfn), parser=parser)
-
+        net_path = os.path.join(self.cfg_path, self.netfn) \
+            if net_params.template is None else self.netfn
+        tree = ElementTree.parse(net_path, parser=parser)
         root = tree.getroot()
 
         # Collect information on the available types (if any are available).
