@@ -352,8 +352,10 @@ class Env(*classdef):
         # collect observation new state associated with action
         next_observation = np.copy(states)
 
-        # test if the agent should terminate due to a crash
-        done = crash
+        # test if the environment should terminate due to a collision or the
+        # time horizon being met
+        done = crash or (self.time_counter >= self.env_params.warmup_steps
+                         + self.env_params.horizon)
 
         # compute the info for each agent
         infos = {}
