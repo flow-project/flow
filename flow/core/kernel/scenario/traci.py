@@ -2,13 +2,11 @@
 
 from flow.core.kernel.scenario import KernelScenario
 from flow.core.util import makexml, printxml, ensure_dir
-from flow.core.params import TrafficLightParams
 import time
 import os
 import subprocess
 import xml.etree.ElementTree as ElementTree
 from lxml import etree
-import re
 
 E = etree.Element
 
