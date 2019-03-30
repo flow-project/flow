@@ -322,15 +322,16 @@ def bottleneck_visualizer(args):
         filename = args.filename
         outflow_name = '/bottleneck_outflow_{}.txt'.format(filename)
         speed_name = '/speed_outflow_{}.txt'.format(filename)
-        np.savetxt(output_path + outflow_name,
-                   outflow_arr, delimiter=', ')
-        np.savetxt(output_path + speed_name,
-                   velocity_arr, delimiter=', ')
+        with open(output_path + outflow_name, 'ba') as file:
+            np.savetxt(file, outflow_arr, delimiter=', ')
+        with open(output_path + speed_name, 'ba') as file:
+            np.savetxt(file,
+                       velocity_arr, delimiter=', ')
     else:
-        np.savetxt(output_path + '/bottleneck_outflow_MA_LC_LSTM.txt',
-                   outflow_arr, delimiter=', ')
-        np.savetxt(output_path + '/speed_outflow_MA_LC_LSTM.txt',
-                   velocity_arr, delimiter=', ')
+        with open(output_path + '/test.txt', 'ab') as file:
+            np.savetxt(file, outflow_arr, delimiter=', ')
+        with open(output_path + '/test.txt', 'ab') as file:
+            np.savetxt(file, velocity_arr, delimiter=', ')
 
     # Plot the inflow results
     unique_inflows = sorted(list(set(outflow_arr[:, 0])))

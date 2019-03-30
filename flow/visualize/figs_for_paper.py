@@ -35,8 +35,8 @@ def plot_file(file_name, color, marker=None, use_min_max=False):
                                    for inflow in unique_inflows])
         plt.fill_between(unique_inflows, mean_outflows - std_outflows,
                          mean_outflows + std_outflows, alpha=0.25, color=color)
-        plt.fill_between(unique_inflows, min_outflows,
-                         max_outflows, alpha=0.1, color=color)
+        # plt.fill_between(unique_inflows, min_outflows,
+        #                  max_outflows, alpha=0.1, color=color)
 
     if marker:
         plt.plot(unique_inflows, mean_outflows, linewidth=2, color=color, marker=marker)
@@ -50,10 +50,66 @@ if __name__ == '__main__':
     plot_file('data/inflows_outflows.csv', 'b', use_min_max=True)
     plt.xlabel('Inflow' + r'$ \ \frac{vehs}{hour}$')
     plt.ylabel('Outflow' + r'$ \ \frac{vehs}{hour}$')
-    plt.title('Inflow vs. Outflow for uncontrolled intersection, no LC')
+    plt.title('Inflow vs. Outflow for uncontrolled bottleneck, no lane change')
     plt.tick_params(labelsize=20)
     plt.rcParams['xtick.minor.size'] = 20
     plt.minorticks_on()
     plt.legend(['Average outflow', 'Std. deviation', 'Max-min'])
-    plt.legend()
     plt.show()
+
+    # First we build the inflows outflows curve with lane changing
+    # plt.figure(figsize=(14, 10))
+    # plot_file('data/inflows_outflows_LC.csv', 'b', use_min_max=True)
+    # plt.xlabel('Inflow' + r'$ \ \frac{vehs}{hour}$')
+    # plt.ylabel('Outflow' + r'$ \ \frac{vehs}{hour}$')
+    # plt.title('Inflow vs. Outflow for uncontrolled bottleneck, lane changing')
+    # plt.tick_params(labelsize=20)
+    # plt.rcParams['xtick.minor.size'] = 20
+    # plt.minorticks_on()
+    # plt.legend(['Average outflow', 'Std. deviation', 'Max-min'])
+    # plt.show()
+    #
+    # plt.figure(figsize=(14, 10))
+    # plot_file('data/inflows_outflows.csv', 'b', use_min_max=False)
+    # plot_file('data/bottleneck_outflow_SA.txt', 'r', use_min_max=False)
+    # plot_file('data/bottleneck_outflow_MA.txt', 'g', use_min_max=False)
+    # plot_file('data/bottleneck_outflow_MA_3.txt', 'y', use_min_max=False)
+    # plt.xlabel('Inflow' + r'$ \ \frac{vehs}{hour}$')
+    # plt.ylabel('Outflow' + r'$ \ \frac{vehs}{hour}$')
+    # plt.title('Inflow vs. outflow without lane changing')
+    # plt.tick_params(labelsize=20)
+    # plt.rcParams['xtick.minor.size'] = 20
+    # plt.minorticks_on()
+    # plt.legend(['Uncontrolled Outflow', 'Single Agent', 'Multi-Agent, aggregate',
+    #             'Multi-Agent, no aggregation'])
+    # plt.show()
+
+    # plt.figure(figsize=(14, 10))
+    # plot_file('data/inflows_outflows.csv', 'b', use_min_max=True)
+    # plot_file('data/bottleneck_outflow_SA.txt', 'r', use_min_max=False)
+    # plot_file('data/bottleneck_outflow_MA.txt', 'g', use_min_max=False)
+    # plot_file('data/bottleneck_outflow_MA_3.txt', 'y', use_min_max=True)
+    # plt.xlabel('Inflow' + r'$ \ \frac{vehs}{hour}$')
+    # plt.ylabel('Outflow' + r'$ \ \frac{vehs}{hour}$')
+    # plt.title('Inflow vs. outflow without lane changing')
+    # plt.tick_params(labelsize=20)
+    # plt.rcParams['xtick.minor.size'] = 20
+    # plt.minorticks_on()
+    # plt.legend(['Uncontrolled Outflow', 'Single Agent', 'Multi-Agent, aggregate',
+    #             'Multi-Agent, no aggregation'])
+    # plt.show()
+    #
+    # plt.figure(figsize=(14, 10))
+    # plot_file('data/inflows_outflows_LC.csv', 'b', use_min_max=True)
+    # plot_file('data/bottleneck_outflow_SA_LC.txt', 'r', use_min_max=False)
+    # plot_file('data/bottleneck_outflow_MA_LC.txt', 'g', use_min_max=False)
+    # plot_file('data/bottleneck_outflow_MA_LC_LSTM2.txt', 'y', use_min_max=True)
+    # plt.xlabel('Inflow' + r'$ \ \frac{vehs}{hour}$')
+    # plt.ylabel('Outflow' + r'$ \ \frac{vehs}{hour}$')
+    # plt.title('Inflow vs. outflow with lane changing')
+    # plt.tick_params(labelsize=20)
+    # plt.rcParams['xtick.minor.size'] = 20
+    # plt.minorticks_on()
+    # plt.legend(['Uncontrolled Outflow', 'Single Agent', 'Multi-Agent, aggregate',
+    #             'Multi-Agent, no aggregation'])
+    # plt.show()
