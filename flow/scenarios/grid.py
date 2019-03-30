@@ -73,7 +73,39 @@ class SimpleGridScenario(Scenario):
     In order for right-of-way dynamics to take place at the intersections,
     set *no_internal_links* in net_params to False.
 
-    See flow/scenarios/base_scenario.py for description of params.
+    Usage
+    -----
+    >>> from flow.core.params import NetParams
+    >>> from flow.core.params import VehicleParams
+    >>> from flow.core.params import InitialConfig
+    >>> from flow.scenarios import SimpleGridScenario
+    >>>
+    >>> scenario = SimpleGridScenario(
+    >>>     name='grid',
+    >>>     vehicles=VehicleParams(),
+    >>>     net_params=NetParams(
+    >>>         additional_params={
+    >>>             'grid_array': {
+    >>>                 'row_num': 3,
+    >>>                 'col_num': 2,
+    >>>                 'inner_length': 500,
+    >>>                 'short_length': 500,
+    >>>                 'long_length': 500,
+    >>>                 'cars_top': 20,
+    >>>                 'cars_bot': 20,
+    >>>                 'cars_left': 20,
+    >>>                 'cars_right': 20,
+    >>>             },
+    >>>             'horizontal_lanes': 1,
+    >>>             'vertical_lanes': 1,
+    >>>             'speed_limit': {
+    >>>                 'vertical': 35,
+    >>>                 'horizontal': 35
+    >>>             }
+    >>>         },
+    >>>         no_internal_links=False  # we want junctions
+    >>>     )
+    >>> )
     """
 
     def __init__(self,
