@@ -3,7 +3,6 @@
 from os.path import dirname, realpath
 from setuptools import find_packages, setup, Distribution
 import setuptools.command.build_ext as _build_ext
-import subprocess
 from flow.version import __version__
 
 
@@ -15,10 +14,7 @@ def _read_requirements_file():
 
 class build_ext(_build_ext.build_ext):
     def run(self):
-        subprocess.check_call(
-            ['pip', 'install',
-             'https://s3-us-west-1.amazonaws.com/flow-sumo/flow-0.3.0/'
-             'sumotools-0.3.0-py3-none-any.whl'])
+        pass
 
 
 class BinaryDistribution(Distribution):
