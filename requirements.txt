@@ -16,7 +16,6 @@ imutils==0.5.1
 numpydoc
 ray==0.6.1
 opencv-python
-https://akreidieh.s3.amazonaws.com/sumo/flow-0.3.1/sumotools-0.3.1-py3-none-any.whl
 
 # theano==0.8.2 # for rllab
 # lasagne # for rllab
