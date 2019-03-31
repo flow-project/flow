@@ -98,7 +98,7 @@ class TestEvenStartPos(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        # place 5 vehicles in the network (we need at least more than 1)
+        # place 15 vehicles in the network (we need at least more than 1)
         vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
@@ -365,6 +365,27 @@ class TestEvenStartPos(unittest.TestCase):
         for veh_id in self.env.k.vehicle.get_ids():
             self.assertTrue(self.env.k.vehicle.get_edge(veh_id) in edges)
 
+    def test_edges_distribution_dict(self):
+        """
+        Tests that vehicles of the correct quantity are placed on each edge
+        when edges_distribution is a dict.
+        """
+        # test that when the number of vehicles don't match an AssertionError
+        # is raised
+        edges = {"top": 2, "bottom": 1}
+        initial_config = InitialConfig(edges_distribution=edges)
+        self.assertRaises(AssertionError, self.setUp_gen_start_pos,
+                          initial_config=initial_config)
+
+        # verify that the correct number of vehicles are placed in each edge
+        edges = {"top": 5, "bottom": 6, "left": 4}
+        initial_config = InitialConfig(edges_distribution=edges)
+        self.setUp_gen_start_pos(initial_config)
+
+        for edge in edges:
+            self.assertEqual(len(self.env.k.vehicle.get_ids_by_edge(edge)),
+                             edges[edge])
+
     def test_num_vehicles(self):
         """
         Tests that the number of starting positions generated is:
@@ -521,6 +542,27 @@ class TestRandomStartPos(unittest.TestCase):
         # edges_distribution term
         for veh_id in self.env.k.vehicle.get_ids():
             self.assertTrue(self.env.k.vehicle.get_edge(veh_id) in edges)
+
+    def test_edges_distribution_dict(self):
+        """
+        Tests that vehicles of the correct quantity are placed on each edge
+        when edges_distribution is a dict.
+        """
+        # test that when the number of vehicles don't match an AssertionError
+        # is raised
+        edges = {"top": 2, "bottom": 1}
+        initial_config = InitialConfig(edges_distribution=edges)
+        self.assertRaises(AssertionError, self.setUp_gen_start_pos,
+                          initial_config=initial_config)
+
+        # verify that the correct number of vehicles are placed in each edge
+        edges = {"top": 2, "bottom": 3, "left": 0}
+        initial_config = InitialConfig(edges_distribution=edges)
+        self.setUp_gen_start_pos(initial_config)
+
+        for edge in edges:
+            self.assertEqual(len(self.env.k.vehicle.get_ids_by_edge(edge)),
+                             edges[edge])
 
 
 class TestEvenStartPosVariableLanes(unittest.TestCase):

@@ -70,22 +70,22 @@ def grid_example(render=None):
         "duration": "31",
         "minDur": "8",
         "maxDur": "45",
-        "state": "GrGr"
+        "state": "GrGrGrGrGrGr"
     }, {
         "duration": "6",
         "minDur": "3",
         "maxDur": "6",
-        "state": "yryr"
+        "state": "yryryryryryr"
     }, {
         "duration": "31",
         "minDur": "8",
         "maxDur": "45",
-        "state": "rGrG"
+        "state": "rGrGrGrGrGrG"
     }, {
         "duration": "6",
         "minDur": "3",
         "maxDur": "6",
-        "state": "ryry"
+        "state": "ryryryryryry"
     }]
     tl_logic.add("center0", phases=phases, programID=1)
     tl_logic.add("center1", phases=phases, programID=1)
