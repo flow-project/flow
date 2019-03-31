@@ -566,7 +566,7 @@ class TraCIScenario(KernelScenario):
         netfn = "%s.net.xml" % self.name
 
         # generate the network file with sumo
-        net_cmd = "netconvert --osm-files {0} --output-file {1}". \
+        net_cmd = "netconvert --osm-files {0} --output-file {1}".\
             format(osm_path, self.cfg_path + netfn)
 
         # this handles removing all roads in the network that cannot be ridden
