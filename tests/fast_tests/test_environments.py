@@ -792,7 +792,7 @@ class TestBottleneckEnv(unittest.TestCase):
 
     def test_get_avg_bottleneck_velocity(self):
         self.env.step(None)
-        self.assertAlmostEqual(self.env.get_avg_bottleneck_velocity(), 0.5, 1)
+        self.assertAlmostEqual(self.env.get_avg_bottleneck_velocity(), 1.3, 1)
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
@@ -874,7 +874,6 @@ class TestBottleneckAccelEnv(unittest.TestCase):
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
         # check the observation space
-        print(self.env.observation_space.shape)
         self.assertTrue(test_space(
             self.env.observation_space,
             expected_size=12,
