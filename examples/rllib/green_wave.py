@@ -178,7 +178,7 @@ flow_params = dict(
     net=net_params,
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/

@@ -104,7 +104,6 @@ class Experiment:
             ret_list = []
             state = self.env.reset()
             for j in range(num_steps):
-                vehicles = self.env.vehicles
                 state, reward, done, _ = self.env.step(rl_actions(state))
                 vel[j] = np.mean(
                     self.env.k.vehicle.get_speed(self.env.k.vehicle.get_ids()))
@@ -119,7 +118,7 @@ class Experiment:
             ret_lists.append(ret_list)
             mean_vels.append(np.mean(vel))
             std_vels.append(np.std(vel))
-            outflows.append(vehicles.get_outflow_rate(int(500)))
+            outflows.append(self.env.k.vehicle.get_outflow_rate(int(500)))
             print("Round {0}, return: {1}".format(i, ret))
 
         info_dict["returns"] = rets
