@@ -76,7 +76,7 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
         else:
             if self.env_params.additional_params.get('communicate', False):
                 # eight possible signals if above
-                if self.env_params.additional_params.get('aggregate_info'):
+                if self.env_params.additional_params.get('aggregate_info', True):
                     return Box(low=-1.0, high=1.0,
                                shape=(6 * MAX_LANES * self.scaling + 17,),
                                dtype=np.float32)
@@ -85,7 +85,7 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                                shape=(6 * MAX_LANES * self.scaling + 11,),
                                dtype=np.float32)
             else:
-                if self.env_params.additional_params.get('aggregate_info'):
+                if self.env_params.additional_params.get('aggregate_info', True):
                     return Box(low=-1.0, high=1.0,
                                shape=(6 * MAX_LANES * self.scaling + 9,),
                                dtype=np.float32)
@@ -128,7 +128,7 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                 veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
                                                    self.veh_statistics(rl_id)))
                             for rl_id in self.k.vehicle.get_rl_ids()}
-            if self.env_params.additional_params.get('aggregate_info'):
+            if self.env_params.additional_params.get('aggregate_info', True):
                 agg_statistics = self.aggregate_statistics()
                 veh_info = {rl_id: np.concatenate((val, agg_statistics))
                                      for rl_id, val in veh_info.items()}
