@@ -337,8 +337,8 @@ class Env(*classdef):
             crash = self.k.simulation.check_collision()
 
             # stop collecting new simulation steps if there is a collision
-            # if crash:
-            #     break
+            if crash:
+                break
 
             # render a frame
             self.render()
