@@ -95,9 +95,9 @@ additional_env_params = {
     'inflow_range': [800, 2000],
     'start_inflow': flow_rate,
     'congest_penalty': False,
-    'communicate': True,
+    'communicate': False,
     "centralized_obs": False,
-    "aggregate_info": False,
+    "aggregate_info": True,
     "AV_FRAC": AV_FRAC
 }
 
@@ -199,22 +199,22 @@ def setup_exps():
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
     config['gamma'] = 0.999  # discount rate
     config['model'].update({'fcnet_hiddens': [64, 64]})
-    config['clip_actions'] = False
+    config['clip_actions'] = True
     config['horizon'] = HORIZON
-    config['use_centralized_vf'] = tune.grid_search([True, False])
-    config['max_vf_agents'] = 140
-    config['simple_optimizer'] = True
-    config['vf_clip_param'] = 100
+    config['use_centralized_vf'] = False
+    # config['max_vf_agents'] = 140
+    # config['simple_optimizer'] = True
+    # config['vf_clip_param'] = 100
 
     # Grid search things
     config['lr'] = tune.grid_search([5e-5, 5e-4])
     config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # LSTM Things
-    config['model']['use_lstm'] = True
+    config['model']['use_lstm'] = tune.grid_search([True, False])
     #config['model']['use_lstm'] = tune.grid_search([True, False])
     # # config['model']["max_seq_len"] = tune.grid_search([5, 10])
-    config['model']["lstm_cell_size"] = 64
+    # config['model']["lstm_cell_size"] = 64
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -249,7 +249,8 @@ def setup_exps():
 
 if __name__ == '__main__':
     alg_run, env_name, config = setup_exps()
-    ray.init(redis_address='localhost:6379')
+    ray.init()
+    # ray.init(redis_address='localhost:6379')
     # ray.init(num_cpus = 4, redirect_output=False)
     run_experiments({
         flow_params["exp_tag"]: {
@@ -261,7 +262,7 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/3-03-2019/MultiDecentralObsBottleneckOutflowLSTMComm",
+                          "/4-31-2019/MA_Aggregate_NoLC",
             'num_samples': 2,
         },
     })

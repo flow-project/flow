@@ -44,9 +44,9 @@ Here the arguments are:
 1 - the number of the checkpoint
 """
 
-OUTFLOW_RANGE = [400, 2500]
+OUTFLOW_RANGE = [1200, 1300]
 STEP_SIZE = 100
-NUM_TRIALS = 20
+NUM_TRIALS = 1
 END_LEN = 500
 
 
