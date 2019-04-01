@@ -24,7 +24,7 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 2000
 # number of parallel workers
-N_CPUS = 1
+N_CPUS = 40
 # number of rollouts per training iteration
 N_ROLLOUTS = N_CPUS
 
@@ -97,7 +97,7 @@ additional_env_params = {
     'congest_penalty': False,
     'communicate': False,
     "centralized_obs": False,
-    "aggregate_info": True,
+    "aggregate_info": False,
     "AV_FRAC": AV_FRAC
 }
 
@@ -263,7 +263,7 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/4-31-2019/MA_NoLC_NoComm",
+                          "/4-31-2019/MA_NoLC_NoComm_NoAgg",
             'num_samples': 2,
         },
     })
