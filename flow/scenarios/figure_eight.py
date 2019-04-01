@@ -22,6 +22,11 @@ ADDITIONAL_NET_PARAMS = {
 class Figure8Scenario(Scenario):
     """Figure eight scenario class.
 
+    The figure eight network is an extension of the ring road network: Two
+    rings, placed at opposite ends of the network, are connected by an
+    intersection with road segments of length equal to the diameter of the
+    rings. Serves as a simulation of a closed loop intersection.
+
     Requires from net_params:
 
     * **ring_radius** : radius of the circular portions of the network. Also
@@ -33,7 +38,26 @@ class Figure8Scenario(Scenario):
     In order for right-of-way dynamics to take place at the intersection,
     set *no_internal_links* in net_params to False.
 
-    See flow/scenarios/base_scenario.py for description of params.
+    Usage
+    -----
+    >>> from flow.core.params import NetParams
+    >>> from flow.core.params import VehicleParams
+    >>> from flow.core.params import InitialConfig
+    >>> from flow.scenarios import Figure8Scenario
+    >>>
+    >>> scenario = Figure8Scenario(
+    >>>     name='figure_eight',
+    >>>     vehicles=VehicleParams(),
+    >>>     net_params=NetParams(
+    >>>         additional_params={
+    >>>             'radius_ring': 50,
+    >>>             'lanes': 75,
+    >>>             'speed_limit': 30,
+    >>>             'resolution': 40
+    >>>         },
+    >>>         no_internal_links=False  # we want junctions
+    >>>     )
+    >>> )
     """
 
     def __init__(self,
