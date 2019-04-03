@@ -148,16 +148,6 @@ class AimsunKernelScenario(KernelScenario):
         # these optional parameters need only be used if "no-internal-links"
         # is set to "false" while calling sumo's netconvert function
         self.internal_edgestarts = self.network.internal_edge_starts
-        self.intersection_edgestarts = self.network.intersection_edge_starts
-
-        # in case the user did not write the intersection edge-starts in
-        # internal edge-starts as well (because of redundancy), merge the two
-        # together
-        self.internal_edgestarts += self.intersection_edgestarts
-        seen = set()
-        self.internal_edgestarts = \
-            [item for item in self.internal_edgestarts
-             if item[1] not in seen and not seen.add(item[1])]
         self.internal_edgestarts_dict = dict(self.internal_edgestarts)
 
         # total_edgestarts and total_edgestarts_dict contain all of the above

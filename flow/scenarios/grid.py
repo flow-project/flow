@@ -593,14 +593,6 @@ class SimpleGridScenario(Scenario):
 
         return edgestarts
 
-    # TODO actually define the intersection edge starts
-    # used for get distance to intersections
-    def specify_intersection_edge_starts(self):
-        """See parent class."""
-        intersection_edgestarts = \
-            [(":center", 0)]
-        return intersection_edgestarts
-
     @staticmethod
     def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
         """See parent class."""
