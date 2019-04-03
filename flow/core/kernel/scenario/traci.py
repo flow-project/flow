@@ -650,6 +650,7 @@ class TraCIScenario(KernelScenario):
 
         # add the routes to the .add.xml file
         for (edge, route) in self.rts.items():
+            # TODO: probabilistic with each route
             add.append(E('route', id='route%s' % edge, edges=' '.join(route)))
 
         # add (optionally) the traffic light properties to the .add.xml file
@@ -774,6 +775,7 @@ class TraCIScenario(KernelScenario):
                 for key in inflow:
                     if not isinstance(inflow[key], str):
                         inflow[key] = repr(inflow[key])
+                    # TODO: probabilistic with each route
                     if key == 'edge':
                         inflow['route'] = 'route{}'.format(inflow['edge'])
                         del inflow['edge']

@@ -911,9 +911,14 @@ class TraCIVehicle(KernelVehicle):
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
+        if type(self.master_kernel.scenario.rts[edge][0]) == 'str':
+            # in this case there is a single, deterministic route
+            route_num = 0
+
+        # TODO: probabilistic with each route
         self.kernel_api.vehicle.addFull(
             veh_id,
-            'route{}'.format(edge),
+            'route{}_{}'.format(edge, route_num),
             typeID=str(type_id),
             departLane=str(lane),
             departPos=str(pos),
