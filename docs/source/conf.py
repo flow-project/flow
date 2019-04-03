@@ -16,6 +16,27 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import sys
+from unittest.mock import MagicMock
+
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MagicMock()
+
+
+MOCK_MODULES = [
+    'rllab',
+    "rllab.core.serializable.Serializable",
+    'rllab.sampler.utils.rollout',
+    "AAPI",
+    'PyANGKernel',
+    'AAPI.GKGUISystem',
+    'thread'
+]
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 
 # -- Project information -----------------------------------------------------
 
@@ -28,13 +49,6 @@ version = ''
 # The full version, including alpha/beta/rc tags
 release = '0.3.0'
 
-autodoc_mock_imports = [
-    "rllab.core.serializable.Serializable",
-    "AAPI",
-    'PyANGKernel',
-    'AAPI.GKGUISystem',
-    'thread'
-]
 
 # -- General configuration ---------------------------------------------------
 
