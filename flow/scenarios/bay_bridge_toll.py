@@ -30,7 +30,29 @@ EDGES_DISTRIBUTION = [
 
 
 class BayBridgeTollScenario(Scenario):
-    """A scenario used to simulate the Bay Bridge toll."""
+    """A scenario used to simulate the bottleneck portion of the Bay Bridge.
+
+    The bay bridge was originally imported from OpenStreetMap and subsequently
+    modified to more closely match the network geometry of the actual Bay
+    Bridge. As opposed to BayBridgeScenario, this scenario places vehicles on a
+    reduced portion of the Bay Bridge in order to reduce the number of vehicles
+    that need to be simulated.
+
+    Usage
+    -----
+    >>> from flow.core.params import NetParams
+    >>> from flow.core.params import VehicleParams
+    >>> from flow.core.params import InitialConfig
+    >>> from flow.scenarios import BayBridgeTollScenario
+    >>>
+    >>> scenario = BayBridgeTollScenario(
+    >>>     name='bay_bridge_toll',
+    >>>     vehicles=VehicleParams(),
+    >>>     net_params=NetParams(
+    >>>         no_internal_links=False  # we want junctions
+    >>>     )
+    >>> )
+    """
 
     def specify_routes(self, net_params):
         """See parent class.
