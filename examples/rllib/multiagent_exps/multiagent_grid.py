@@ -17,8 +17,6 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
 from flow.core.params import VehicleParams
 from flow.controllers import SimCarFollowingController, GridRouter
 
-from flow.multiagent_envs.multiagent_env import MultiEnv # added by ashkan
-
 # time horizon of a single rollout
 HORIZON = 200
 # number of rollouts per training iteration
@@ -155,7 +153,7 @@ flow_params = dict(
     exp_tag='green_wave',
 
     # name of the flow environment the experiment is running on
-    env_name='multiagent_grid',
+    env_name='MultiAgentGrid',
 
     # name of the scenario class the experiment is running on
     scenario='SimpleGridScenario',
@@ -228,8 +226,8 @@ def setup_exps():
 
     # Setup PG with an ensemble of `num_policies` different policy graphs
     policy_graphs = {}
-    for i in range(200):
-        idx = "a" + str(i)
+    for i in range(N_FOG_NODES):
+        idx = "intersection" + str(i)
         policy_graphs[idx] = gen_policy() 
 
     def policy_mapping_fn(agent_id):
