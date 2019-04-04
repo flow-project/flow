@@ -7,6 +7,7 @@ import os
 import subprocess
 import xml.etree.ElementTree as ElementTree
 from lxml import etree
+from copy import deepcopy
 
 E = etree.Element
 
@@ -204,7 +205,7 @@ class TraCIScenario(KernelScenario):
         # specify routes vehicles can take  # TODO: move into a method
         self.rts = self.network.routes
 
-        self.make_routes()
+        self.make_routes(self.network.routes)
 
         # specify the location of the sumo configuration file
         self.cfg = self.cfg_path + cfg_name
@@ -622,9 +623,9 @@ class TraCIScenario(KernelScenario):
 
         Parameters
         ----------
-        net_params : NetParams type
+        net_params : flow.core.params.NetParams
             see flow/core/params.py
-        traffic_lights : flow.core.traffic_lights.TrafficLights type
+        traffic_lights : flow.core.params.TrafficLightParams
             traffic light information, used to determine which nodes are
             treated as traffic lights
         routes : dict
@@ -632,16 +633,27 @@ class TraCIScenario(KernelScenario):
             Element = list of edges a vehicle starting from this edge must
             traverse.
         """
-        # specify routes vehicles can take
-        self.rts = routes
-
         add = makexml('additional',
                       'http://sumo.dlr.de/xsd/additional_file.xsd')
 
         # add the routes to the .add.xml file
-        for (edge, route) in self.rts.items():
-            # TODO: probabilistic with each route
-            add.append(E('route', id='route%s' % edge, edges=' '.join(route)))
+        for route_id in routes.keys():
+            if type(routes[route_id][0]) == str:
+                # in this case, we only have one route
+                num_routes = 1
+                route = [(routes[route_id], 1)]
+            else:
+                # in this case, each item is a route
+                num_routes = len(routes[route_id])
+                route = routes[route_id]
+
+            for i in range(num_routes):
+                r, _ = route[i]
+                add.append(E(
+                    'route',
+                    id='route{}_{}'.format(route_id, i),
+                    edges=' '.join(r)
+                ))
 
         # add (optionally) the traffic light properties to the .add.xml file
         num_traffic_lights = len(list(traffic_lights.get_properties().keys()))
@@ -741,14 +753,22 @@ class TraCIScenario(KernelScenario):
         printxml(cfg, self.cfg_path + self.sumfn)
         return self.sumfn
 
-    def make_routes(self):
+    def make_routes(self, routes):
         """Generate .rou.xml files using net files and netconvert.
 
         This file specifies the sumo-specific properties of vehicles with
         similar types, and well as the inflows of vehicles.
+
+        Parameters
+        ----------
+        routes : dict
+
+            * Key = name of the starting edge
+            * Element = list of edges a vehicle starting from this edge must
+              traverse.
         """
         vehicles = self.network.vehicles
-        routes = makexml('routes', 'http://sumo.dlr.de/xsd/routes_file.xsd')
+        rts = makexml('routes', 'http://sumo.dlr.de/xsd/routes_file.xsd')
 
         # add the types of vehicles to the xml file
         for params in vehicles.types:
@@ -756,22 +776,47 @@ class TraCIScenario(KernelScenario):
                 key: str(params['type_params'][key])
                 for key in params['type_params']
             }
-            routes.append(E('vType', id=params['veh_id'], **type_params_str))
+            rts.append(E('vType', id=params['veh_id'], **type_params_str))
 
         # add the inflows from various edges to the xml file
         if self.network.net_params.inflows is not None:
             total_inflows = self.network.net_params.inflows.get()
             for inflow in total_inflows:
+                # convert any non-string element in the inflow dict to a string
                 for key in inflow:
                     if not isinstance(inflow[key], str):
                         inflow[key] = repr(inflow[key])
-                    # TODO: probabilistic with each route
-                    if key == 'edge':
-                        inflow['route'] = 'route{}'.format(inflow['edge'])
-                        del inflow['edge']
-                routes.append(_flow(**inflow))
 
-        printxml(routes, self.cfg_path + self.roufn)
+                # get the name of the edge the inflows correspond to, and the
+                # total inflow rate of the specific inflow
+                edge = deepcopy(inflow['edge'])
+                if 'vehsPerHour' in inflow:
+                    flag = 0
+                    rate = float(inflow['vehsPerHour'])
+                else:
+                    flag = 1
+                    rate = float(inflow['probability'])
+                del inflow['edge']
+
+                if type(routes[edge][0]) == str:
+                    # in this case, we only have one route
+                    num_routes = 1
+                    routes[edge] = [(routes[edge], 1)]
+                else:
+                    # in this case, each item is a route
+                    num_routes = len(routes[edge])
+
+                for i in range(num_routes):
+                    _, frac = routes[edge][i]
+                    inflow['route'] = 'route{}_{}'.format(edge, i)
+                    if flag:
+                        inflow['probability'] = str(rate * frac)
+                    else:
+                        inflow['vehsPerHour'] = str(rate * frac)
+
+                    rts.append(_flow(**inflow))
+
+        printxml(rts, self.cfg_path + self.roufn)
 
     def _import_edges_from_net(self):
         """Import edges from a configuration file.

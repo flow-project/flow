@@ -11,6 +11,7 @@ from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
 from bisect import bisect_left
 import itertools
+import random
 
 # colors for vehicles
 WHITE = (255, 255, 255)
@@ -911,14 +912,21 @@ class TraCIVehicle(KernelVehicle):
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
-        if type(self.master_kernel.scenario.rts[edge][0]) == 'str':
+        print(self.master_kernel.scenario.rts[edge][0])
+        if type(self.master_kernel.scenario.rts[edge][0]) == str:
             # in this case there is a single, deterministic route
-            route_num = 0
+            num_routes = 1
+            frac = [1]
+        else:
+            # this is the case where there are multiple possible routes
+            num_routes = len(self.master_kernel.scenario.rts[edge])
+            frac = [val[1] for val in self.master_kernel.scenario.rts[edge]]
 
         # TODO: probabilistic with each route
         self.kernel_api.vehicle.addFull(
             veh_id,
-            'route{}_{}'.format(edge, route_num),
+            'route{}_{}'.format(edge, np.random.choice(
+                [i for i in range(num_routes)], size=1, p=frac)[0]),
             typeID=str(type_id),
             departLane=str(lane),
             departPos=str(pos),
