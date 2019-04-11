@@ -1,4 +1,4 @@
-gym>=0.10.5
+gym==0.10.5
 scipy
 numpy
 lxml>=4.2.4
