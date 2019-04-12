@@ -80,6 +80,13 @@ VEH_GET_TIMESTEP = 0x14
 # TODO: not 100% sure what this is...
 VEH_GET_TIMEDELTA = 0x15
 
+# TMP test
+VEH_GET_TYPE_NAME = 0x91
+VEH_GET_LENGTH = 0x94
+
+VEH_SET_TRACKED = 0x92
+VEH_SET_NO_TRACKED = 0x93
+
 
 ###############################################################################
 #                           Traffic Light Commands                            #

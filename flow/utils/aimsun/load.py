@@ -1,6 +1,7 @@
 # flake8: noqa
 import sys
 import os
+sys.path.append("/Users/nathan/projects/flow/")
 import flow.config as config
 
 SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
@@ -52,7 +53,6 @@ def load_subnetwork(subnetwork, scenario):
 # Loads all the data into dictionaries
 def get_dict_from_objects(sections, nodes, turnings, cen_connections):
     scenario_data = {
-        'data': {},  # TODO
         'sections': {},
         'nodes': {},
         'turnings': {},
@@ -82,9 +82,11 @@ def get_dict_from_objects(sections, nodes, turnings, cen_connections):
         scenario_data['sections'][s.getId()] = {
             'name': s.getName(),
             'numLanes': s.getNbFullLanes(),
-            # FIXME this is sum of lanes lengths (bc they don't have to be of the same size)
-            'length': s.getLanesLength2D(),
-            'speed': s.getSpeed()
+            # FIXME this is a mean of the lanes lengths 
+            # (bc they don't have to be all of the same size)
+            # it may not be 100% accurate
+            'length': s.getLanesLength2D() / s.getNbFullLanes(),
+            'max_speed': s.getSpeed()
         }
 
     # load nodes
@@ -98,12 +100,13 @@ def get_dict_from_objects(sections, nodes, turnings, cen_connections):
     for t in turnings:
         scenario_data['turnings'][t.getId()] = {
             'name': t.getName(),
+            'length': t.getPolygon().length2D() / 2, # FIXME not totally accurate
             'origin_section_name': t.getOrigin().getName(),
             'origin_section_id': t.getOrigin().getId(),
             'dest_section_name': t.getDestination().getName(),
             'dest_section_id': t.getDestination().getId(),
             'node_id': t.getNode().getId(),
-            'speed': t.getSpeed(),
+            'max_speed': t.getSpeed(),
             'origin_from_lane': t.getOriginFromLane(),
             'origin_to_lane': t.getOriginToLane(),
             'dest_from_lane': t.getDestinationFromLane(),
@@ -118,7 +121,7 @@ def get_dict_from_objects(sections, nodes, turnings, cen_connections):
         to_name = c.getConnectionObject().getName()
 
         # invert from and to if connection is reversed
-        if c.getConnectionType() == 2:  # TODO verify this
+        if c.getConnectionType() == 1:  # TODO verify this
             from_id, to_id = to_id, from_id
             from_name, to_name = to_name, from_name
 
@@ -161,6 +164,9 @@ if not replication:
 # retrieve experiment and scenario
 experiment = replication.getExperiment()
 scenario = experiment.getScenario()
+scenario_data = scenario.getInputData()
+scenario_data.addExtension(os.path.join(
+    config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
 
 # if subnetwork_name was specified in the Aimsun params,
 # try to only load subnetwork; it not specified or if
@@ -182,7 +188,7 @@ else:
 scenario_data_file = "flow/core/kernel/scenario/scenario_data.json"
 scenario_data_path = os.path.join(config.PROJECT_PATH, scenario_data_file)
 with open(scenario_data_path, "w") as f:
-    json.dump(scenario_data, f, sort_keys=True, indent=4)
+    json.dump(scenario_data, f, sort_keys=True, indent=4) 
     print("[load.py] Template's scenario data written into "
           + scenario_data_path)
 

@@ -1,4 +1,6 @@
 # flake8: noqa
+import sys
+sys.path.append("/Users/nathan/projects/flow/")
 import flow.config as config
 import sys
 import os
@@ -58,6 +60,7 @@ def send_message(conn, in_format, values):
 
         # send the remaining components of the message (which is of length less
         # than or equal to 256)
+
         conn.send(values)
 
         # wait for a reply
@@ -101,6 +104,8 @@ def retrieve_message(conn, out_format):
 def threaded_client(conn):
     # send feedback that the connection is active
     conn.send('Ready.')
+
+    print("start thread")
 
     done = False
     while not done:
@@ -173,6 +178,16 @@ def threaded_client(conn):
                 # TODO
                 send_message(conn, in_format='i', values=(0,))
 
+            elif data == ac.VEH_SET_TRACKED:
+                send_message(conn, in_format='i', values=(0,))
+                veh_id, = retrieve_message(conn, 'i')
+                aimsun_api.AKIVehSetAsTracked(veh_id)
+
+            elif data == ac.VEH_SET_NO_TRACKED:
+                send_message(conn, in_format='i', values=(0,))
+                veh_id, = retrieve_message(conn, 'i')
+                aimsun_api.AKIVehSetAsNoTracked(veh_id)
+
             elif data == ac.VEH_GET_ENTERED_IDS:
                 send_message(conn, in_format='i', values=(0,))
 
@@ -221,6 +236,30 @@ def threaded_client(conn):
 
                 send_message(conn, in_format='i', values=(aimsun_type_pos,))
 
+            # TMP can probs do better cf VEH_GET_TYPE_ID
+            elif data == ac.VEH_GET_TYPE_NAME:
+                send_message(conn, in_format='i', values=(0,))
+                veh_id, = retrieve_message(conn, 'i')
+
+                static_info = aimsun_api.AKIVehGetStaticInf(veh_id)
+                typename = aimsun_api.AKIVehGetVehTypeName(static_info.type)
+
+                anyNonAsciiChar = aimsun_api.boolp()
+                output = str(aimsun_api.AKIConvertToAsciiString(typename, True, anyNonAsciiChar))
+
+                send_message(conn, in_format='str', values=(output,))
+
+
+            elif data == ac.VEH_GET_LENGTH:
+                send_message(conn, in_format='i', values=(0,))
+                veh_id, = retrieve_message(conn, 'i')
+
+                static_info = aimsun_api.AKIVehGetStaticInf(veh_id)
+                output = static_info.length
+
+                send_message(conn, in_format='f', values=(output,))
+
+
             elif data == ac.VEH_GET_STATIC:
                 send_message(conn, in_format='i', values=(0,))
                 veh_id, = retrieve_message(conn, 'i')
@@ -261,9 +300,27 @@ def threaded_client(conn):
             elif data == ac.VEH_GET_TRACKING:
                 send_message(conn, in_format='i', values=(0,))
 
-                veh_id, = retrieve_message(conn, 'i')
+                # veh_id, = retrieve_message(conn, 'i')
 
-                tracking_info = aimsun_api.AKIVehTrackedGetInf(veh_id)
+                info_bitmap = None
+                while info_bitmap is None:
+                    info_bitmap = conn.recv(2048)
+
+                tracked = info_bitmap[-1]
+                info_bitmap = info_bitmap[:-1]
+
+                s = ""
+                for i in range(len(info_bitmap)):
+                    if info_bitmap[i] == ':':
+                        info_bitmap = info_bitmap[i+1:]
+                        break
+                    s += info_bitmap[i]
+                veh_id = int(s)
+
+                if tracked == '1':  # vehicle is tracked
+                    tracking_info = aimsun_api.AKIVehTrackedGetInf(veh_id)
+                else:  # vehicle is not be tracked
+                    tracking_info = aimsun_api.AKIVehGetInf(veh_id)
                 output = (
                           # tracking_info.report,
                           # tracking_info.idVeh,
@@ -291,12 +348,29 @@ def threaded_client(conn):
                           tracking_info.idSectionFrom,
                           tracking_info.idLaneFrom,
                           tracking_info.idSectionTo,
-                          tracking_info.idLaneTo)
+                          tracking_info.idLaneTo)#[info_id]
+                
+                actual_output = []
+                in_format = ''
+                for i in range(len(info_bitmap)):
+                    if info_bitmap[i] == '1':
+                        if i <= 12: in_format += 'f '
+                        else: in_format += 'i '
+                        actual_output.append(output[i])
+                if in_format == '':
+                    return
+                else:
+                    in_format = in_format[:-1]
 
+                if len(actual_output) == 0:
+                    actual_output = None
+
+                # print("veh_id", veh_id, "speed", tracking_info.CurrentSpeed, "pos", tracking_info.CurrentPos)
+                #in_format = 'f' if info_id <= 12 else 'i'
                 send_message(conn,
-                             in_format='f f f f f f f f f f f f f i i i i i i '
-                                       'i i',
-                             values=output)
+                             in_format=in_format,#'f f f f f f f f f f f f f i i i i i i '
+                                       #'i i',
+                             values=actual_output)#(output,))
 
             elif data == ac.VEH_GET_LEADER:
                 send_message(conn, in_format='i', values=(0,))
@@ -371,8 +445,17 @@ def threaded_client(conn):
                 edge_aimsun = model.getCatalog().findByName(
                     edge, model.getType('GKSection'))
 
-                send_message(conn, in_format='i',
+                if edge_aimsun:
+                    print("edge found", edge, edge_aimsun)
+                    send_message(conn, in_format='i',
                              values=(edge_aimsun.getId(),))
+                else:
+                    print("edge not found", edge, "but it's fine we send ID instead")
+                    send_message(conn, in_format='i',
+                            values=(int(edge),))
+
+
+
 
             # in case the message is unknown, return -1001
             else:
@@ -380,6 +463,8 @@ def threaded_client(conn):
 
     # close the connection
     conn.close()
+
+    print("end thread")
 
 
 def AAPILoad():
@@ -396,6 +481,7 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
     # tcp/ip connection from the aimsun process
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
     server_socket.bind(('localhost', PORT))
 
     # connect to the Flow instance

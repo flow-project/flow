@@ -475,10 +475,13 @@ class AimsunParams(SimParams):
                  sight_radius=25,
                  show_radius=False,
                  pxpm=2,
-                 scenario_name="Dynamic Scenario 802",
-                 experiment_name="Micro SRC Experiment 867",
-                 replication_name="Replication 870",
-                 centroid_config_name="Centroid Configuration 802",
+                 # set to match Flow_Aimsun.ang's scenario name
+                 scenario_name="Dynamic Scenario 866",  
+                 # set to match Flow_Aimsun.ang's experiment name
+                 experiment_name="Micro SRC Experiment 867",  
+                 # set to match Flow_Aimsun.ang's replication name
+                 replication_name="Replication 870",  
+                 centroid_config_name=None,
                  subnetwork_name=None):
         """Instantiate AimsunParams."""
         super(AimsunParams, self).__init__(

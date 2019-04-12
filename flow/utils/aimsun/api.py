@@ -33,6 +33,7 @@ def create_client(port, print_status=False):
     while not stop:
         # try to connect
         try:
+            # print("try connecting")
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect(('localhost', port))
 
@@ -43,11 +44,14 @@ def create_client(port, print_status=False):
             stop = True
 
         except Exception as e:
+            print("failure connecting 1", e)
             logging.debug('Cannot connect to the server: {}'.format(e))
-            time.sleep(1)
 
         except socket.error:
+            # print("failure connecting 2")
             stop = False
+
+    # print("connected")
 
     # print the return statement
     if print_status:
@@ -74,7 +78,9 @@ class FlowAimsunAPI(object):
             the port number of the socket connection
         """
         self.port = port
+        print("begin create client")
         self.s = create_client(port, print_status=True)
+        print("end create client")
 
     def _send_command(self, command_type, in_format, values, out_format):
         """Send an arbitrary command via the connection.
@@ -132,7 +138,7 @@ class FlowAimsunAPI(object):
                 while not done:
                     # get the next bit of data
                     data = None
-                    while data is None:
+                    while data is None or data == b'':
                         data = self.s.recv(256)
 
                     # concatenate the results
@@ -146,6 +152,7 @@ class FlowAimsunAPI(object):
                     data = None
                     while data is None:
                         data = self.s.recv(unpacker.size)
+
                     done = unpacker.unpack(data)[0] == 0
             else:
                 unpacker = struct.Struct(format=out_format)
@@ -154,7 +161,9 @@ class FlowAimsunAPI(object):
                     data = self.s.recv(unpacker.size)
                 unpacked_data = unpacker.unpack(data)
 
+
             return unpacked_data
+
 
     def simulation_step(self):
         """Advance the simulation by one step.
@@ -208,8 +217,8 @@ class FlowAimsunAPI(object):
             name of the start edge
         lane : int
             start lane
-        type_id : int
-            vehicle type
+        type_id : int or string
+            vehicle type (id or name)
         pos : float
             starting position
         speed : float
@@ -224,6 +233,17 @@ class FlowAimsunAPI(object):
         int
             name of the new vehicle in Aimsun
         """
+        print(edge, lane, type_id, pos, speed, next_section)
+
+        # if type_id is a string, retrieve the id of the type
+        # TODO make a conversion table to avoid useless API calls
+        # so basically put the dict back
+        if isinstance(type_id, str):
+            type_id = self._send_command(ac.VEH_GET_TYPE_ID, 
+                                         in_format='str', 
+                                         values=(type_id,), 
+                                         out_format='i')[0]
+
         veh_id, = self._send_command(
             ac.ADD_VEHICLE,
             in_format='i i i f f i',
@@ -358,6 +378,20 @@ class FlowAimsunAPI(object):
                                   values=(flow_id,),
                                   out_format='i')[0]
 
+    def get_vehicle_type_name(self, veh_id):
+        # TMP
+        return self._send_command(ac.VEH_GET_TYPE_NAME,
+                                  in_format='i',
+                                  values=(veh_id,),
+                                  out_format='str')
+
+    def get_vehicle_length(self, veh_id):
+        # TMP
+        return self._send_command(ac.VEH_GET_LENGTH,
+                                  in_format='i',
+                                  values=(veh_id,),
+                                  out_format='f')[0]
+
     def get_vehicle_static_info(self, veh_id):
         """Return the static information of the specified vehicle.
 
@@ -406,7 +440,7 @@ class FlowAimsunAPI(object):
 
         return static_info
 
-    def get_vehicle_tracking_info(self, veh_id):
+    def get_vehicle_tracking_info(self, veh_id, info_bitmap, tracked=True): # FIXME tmp mb
         """Return the tracking information of the specified vehicle.
 
         Parameters
@@ -419,11 +453,52 @@ class FlowAimsunAPI(object):
         flow.utils.aimsun.struct.InfVeh
             tracking info object
         """
-        return self._send_command(
+
+        out_format = ''
+        for i in range(len(info_bitmap)):
+            if info_bitmap[i] == '1':
+                if i <= 12: out_format += 'f '
+                else: out_format += 'i '
+        if out_format == '':
+            return
+        else:
+            out_format = out_format[:-1]
+
+        info_bitmap == "1" if tracked else "0"
+        val = str(veh_id) + ":" + info_bitmap
+
+        info = self._send_command(
             ac.VEH_GET_TRACKING,
-            in_format='i',
-            values=(veh_id,),
-            out_format='f f f f f f f f f f f f f i i i i i i i i')
+            in_format='str',
+            values=(val,),#(veh_id, info_bitmap),
+            out_format=out_format)#[0]#'f f f f f f f f f f f f f i i i i i i i i')
+
+        ret = aimsun_struct.InfVeh()
+        count = 0
+
+        if info_bitmap[0]  == '1': ret.CurrentPos       = info[count] ; count += 1
+        if info_bitmap[1]  == '1': ret.distance2End     = info[count] ; count += 1
+        if info_bitmap[2]  == '1': ret.xCurrentPos      = info[count] ; count += 1
+        if info_bitmap[3]  == '1': ret.yCurrentPos      = info[count] ; count += 1
+        if info_bitmap[4]  == '1': ret.zCurrentPos      = info[count] ; count += 1
+        if info_bitmap[5]  == '1': ret.xCurrentPosBack  = info[count] ; count += 1
+        if info_bitmap[6]  == '1': ret.yCurrentPosBack  = info[count] ; count += 1
+        if info_bitmap[7]  == '1': ret.zCurrentPosBack  = info[count] ; count += 1
+        if info_bitmap[8]  == '1': ret.CurrentSpeed     = info[count] ; count += 1
+        if info_bitmap[9]  == '1': ret.TotalDistance    = info[count] ; count += 1
+        if info_bitmap[10] == '1': ret.SectionEntranceT = info[count] ; count += 1
+        if info_bitmap[11] == '1': ret.CurrentStopTime  = info[count] ; count += 1
+        if info_bitmap[12] == '1': ret.stopped          = info[count] ; count += 1
+        if info_bitmap[13] == '1': ret.idSection        = info[count] ; count += 1
+        if info_bitmap[14] == '1': ret.segment          = info[count] ; count += 1
+        if info_bitmap[15] == '1': ret.numberLane       = info[count] ; count += 1
+        if info_bitmap[16] == '1': ret.idJunction       = info[count] ; count += 1
+        if info_bitmap[17] == '1': ret.idSectionFrom    = info[count] ; count += 1
+        if info_bitmap[18] == '1': ret.idLaneFrom       = info[count] ; count += 1
+        if info_bitmap[19] == '1': ret.idSectionTo      = info[count] ; count += 1
+        if info_bitmap[20] == '1': ret.idLaneTo         = info[count] ; count += 1
+
+        return ret
 
     def get_vehicle_leader(self, veh_id):
         """Return the leader of a specific vehicle.
@@ -544,3 +619,10 @@ class FlowAimsunAPI(object):
                            in_format='i i i',
                            values=(tl_id, link_index, state),
                            out_format=None)
+
+
+    # TODO doc
+    def set_vehicle_tracked(self, veh_id):
+        self._send_command(ac.VEH_SET_TRACKED, in_format='i', values=(veh_id,), out_format=None)
+    def set_vehicle_no_tracked(self, veh_id):
+        self._send_command(ac.VEH_SET_NO_TRACKED, in_format='i', values=(veh_id,), out_format=None)
