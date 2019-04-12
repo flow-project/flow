@@ -2,6 +2,8 @@
 
 from flow.core.kernel.simulation import KernelSimulation
 from flow.core.util import ensure_dir
+import sys
+sys.path.append("/Users/nathan/projects/flow/")
 import flow.config as config
 import traci.constants as tc
 import traci

@@ -1,0 +1,40 @@
+
+# tracklist 2
+
+## sat 04/06
+
+
+
+## todo
+
+- [x] track only certain types of vehicles ("rl", "Car"...) -> done (+ simplified to remove aimsun/flow type conversions, which could be extended to veh ids as well? actually mb not because generate.py) (much faster than tracking everything even on small network)
+- [ ] avoid disconnecting/reconnecting to server all the time -> tried but not working very well, mb multiple threads at some point? "Ready" sent before send_command calls are over
+- [ ] subscribe to certain parameters only -> would it really be faster?
+- [ ] set vehicle as Tracked/Untracked etc (cf sun 03/31), check if faster
+- [ ] move hard-coded subscriptions (to veh types and veh inf) somewhere else (either method in envs but specific to aimsun, or in aimsun params..)
+- [ ] merge veh_id and aimsun_id? -> probably not bc load.py
+- [ ] fix vehicle headways (cf sun 03/31) -> almost done, need scenario data in vehicle file
+- [ ] clean code and push everything into a new branch
+
+- [ ] print live data and measurements
+- [ ] insert some RL vehicles with inflows, be able to see them and track them
+- [ ] be able to make rllib control the RL vehicles
+- [ ] redefine routes into some probability graph (Aboudy?)
+- [ ] find settings to get shockwaves in I210 (Joy?)
+- [ ] train soft policies on subsections of network (eg some merges)
+- [ ] transfer learning policies on small sections to entire network
+
+## bugs 
+
+- [ ] fix vehicles bug in `grid.py` (?)
+- [ ] error about dividing by 0 (or mean on empty slice) when there are no (tracked) cars in the network
+
+## Qs
+
+- static info returned directly as a struct from api while tracking info returned as a tuple and then converted into a struct -> any reason for that?
+
+- can now track only certain types of vehicles ("rl", "Car"...) -> faster, but getting only certain info is not necessarily that much faster altho wait can be optimized lots
+
+- inflows for RL vehicles? can't do inflows in Aimsun so not really useful to implement it -> 2 possibilities for demand in Aimsun: OD matrices (counts for each couple input centroid/output centroid), traffic states (flows in network + turning proportions) -> ?
+
+- wb routes? we only wanna control RL vehicles -> add them through the inflows (?) with -1 next section routes and then reroute them in real time? (so no need for a route structure except for load.py)
