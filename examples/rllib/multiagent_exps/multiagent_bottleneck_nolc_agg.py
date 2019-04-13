@@ -138,7 +138,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MA_NO_LC',
+    exp_tag='MA_NO_LC_Agg',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -250,8 +250,8 @@ def setup_exps():
 
 if __name__ == '__main__':
     alg_run, env_name, config = setup_exps()
-    # ray.init(num_cpus=2)
-    ray.init(redis_address='localhost:6379')
+    ray.init(object_store_memory=80*10e9, redis_max_memory=80*10e9)
+    # ray.init(redis_address='localhost:6379')
     # ray.init(num_cpus = 4, redirect_output=False)
     run_experiments({
         flow_params["exp_tag"]: {
@@ -263,7 +263,7 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/4-31-2019/MA_NoLC_NoComm_NoAgg",
+                          "/4-01-2019/MA_NoLC_NoComm_Agg",
             'num_samples': 2,
         },
     })

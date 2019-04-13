@@ -112,10 +112,10 @@ class MultiEnv(MultiAgentEnv, Env):
         states = self.get_state()
         done = {key: key in self.k.vehicle.get_arrived_ids()
                 for key in states.keys()}
-        if crash:
-            done['__all__'] = True
-        else:
-            done['__all__'] = False
+        # if crash:
+        #     done['__all__'] = True
+        # else:
+        done['__all__'] = False
         infos = {key: {} for key in states.keys()}
 
         clipped_actions = self.clip_actions(rl_actions)

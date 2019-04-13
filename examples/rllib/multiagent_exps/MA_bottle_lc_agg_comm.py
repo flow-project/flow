@@ -24,7 +24,7 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 2000
 # number of parallel workers
-N_CPUS = 40
+N_CPUS = 38
 # number of rollouts per training iteration
 N_ROLLOUTS = N_CPUS
 
@@ -33,7 +33,7 @@ NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = 0.1
-LANE_CHANGING = 'OFF'
+LANE_CHANGING = 'ON'
 lc_mode = {'OFF': 0, 'ON': 1621}
 
 vehicles = VehicleParams()
@@ -95,9 +95,9 @@ additional_env_params = {
     'inflow_range': [800, 2000],
     'start_inflow': flow_rate,
     'congest_penalty': False,
-    'communicate': False,
+    'communicate': True,
     "centralized_obs": False,
-    "aggregate_info": False,
+    "aggregate_info": True,
     "AV_FRAC": AV_FRAC
 }
 
@@ -138,7 +138,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MA_NO_LC',
+    exp_tag='MA_LC_Agg_COMM',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -198,7 +198,7 @@ def setup_exps():
     config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
     config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [64, 64]})
+    config['model'].update({'fcnet_hiddens': [256, 256]})
     config['clip_actions'] = True
     config['horizon'] = HORIZON
     config['vf_share_layers'] = True
@@ -263,7 +263,7 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/4-01-2019/MA_NoLC_NoComm_NoAgg",
-            'num_samples': 2,
+                          "/4-13-2019/MA_LC_AGG_COMM",
+            'num_samples': 1,
         },
     })

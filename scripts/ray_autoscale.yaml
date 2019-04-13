@@ -5,16 +5,16 @@ cluster_name: test #<YOUR NAME>
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
-min_workers: 1 #<NUM WORKERS IN CLUSTER>
+min_workers: 0 #<NUM WORKERS IN CLUSTER>
 
 # The maximum number of workers nodes to launch in addition to the head
 # node. This takes precedence over min_workers.
-max_workers: 1
+max_workers: 0
 
 # The initial number of worker nodes to launch in addition to the head
 # node. When the cluster is first brought up (or when it is refreshed with a
 # subsequent `ray up`) this number of nodes will be started.
-initial_workers: 1
+initial_workers: 0
 
 # The autoscaler will scale up the cluster to this target fraction of resource
 # usage. For example, if a cluster of 10 nodes is 100% busy and
@@ -44,7 +44,7 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: m4.16xlarge
+    InstanceType: m4.10xlarge
     ImageId: ami-0067051ba5c8f0b64 # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
@@ -52,10 +52,10 @@ head_node:
 #        SpotOptions:
 #            MaxPrice: "1.0"
 # You can provision additional disk space with a conf as follows
-    BlockDeviceMappings:
-        - DeviceName: /dev/sda1
-          Ebs:
-              VolumeSize: 80
+#    BlockDeviceMappings:
+#        - DeviceName: /dev/sda1
+#          Ebs:
+#              VolumeSize: 80
 
 
     # Additional options in the boto docs.
@@ -65,7 +65,7 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
-    InstanceType: m4.16xlarge
+    InstanceType: m4.10xlarge
     ImageId: ami-0067051ba5c8f0b64 # Flow AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
@@ -75,10 +75,10 @@ worker_nodes:
 #        SpotOptions:
 #            MaxPrice: "1.0"
 # You can provision additional disk space with a conf as follows
-    BlockDeviceMappings:
-        - DeviceName: /dev/sda1
-          Ebs:
-              VolumeSize: 80
+#    BlockDeviceMappings:
+#        - DeviceName: /dev/sda1
+#          Ebs:
+#              VolumeSize: 80
 
     # Additional options in the boto docs.
 
@@ -87,7 +87,7 @@ setup_commands:
     - cd flow && git fetch && git checkout final_cdc_exps
     # set up ray by pip installing and copying over rllib and tune folder
     - pip install --upgrade pyzmq notebook
-    - pip install ray==0.6.4
+    - pip install ray==0.6.5
     - pip install lz4
 #    - git clone https://github.com/flow-project/ray.git
 #    - cd ray && git fetch && git checkout centralized_vf_pr3
@@ -124,7 +124,7 @@ head_start_ray_commands:
       --redis-port=6379
       --object-manager-port=8076
       --autoscaling-config=~/ray_bootstrap_config.yaml
-      --object-store-memory=80000000000
+      # --object-store-memory=80000000000
 # Command to start ray on worker nodes. You don't need to change this.
 worker_start_ray_commands:
     - ray stop
@@ -133,4 +133,4 @@ worker_start_ray_commands:
       ray start
       --redis-address=$RAY_HEAD_IP:6379
       --object-manager-port=8076
-      --object-store-memory=80000000000
+      # --object-store-memory=80000000000
