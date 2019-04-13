@@ -115,6 +115,7 @@ class MultiEnv(MultiAgentEnv, Env):
         # if crash:
         #     done['__all__'] = True
         # else:
+        print('states are', states)
         done['__all__'] = False
         infos = {key: {} for key in states.keys()}
 
