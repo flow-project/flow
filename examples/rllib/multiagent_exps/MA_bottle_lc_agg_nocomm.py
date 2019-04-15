@@ -212,7 +212,7 @@ def setup_exps():
     config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # LSTM Things
-    config['model']['use_lstm'] = tune.grid_search([True, False])
+    # config['model']['use_lstm'] = tune.grid_search([True, False])
     config['model']['lstm_use_prev_action_reward'] = True
     #config['model']['use_lstm'] = tune.grid_search([True, False])
     # # config['model']["max_seq_len"] = tune.grid_search([5, 10])
