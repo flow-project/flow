@@ -22,7 +22,7 @@ from flow.controllers import RLController, ContinuousRouter, \
     SimLaneChangeController
 
 # time horizon of a single rollout
-HORIZON = 2000
+HORIZON = 10
 # number of parallel workers
 N_CPUS = 38
 # number of rollouts per training iteration
@@ -138,7 +138,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MA_NoLC_Agg_NoComm',
+    exp_tag='MA_NO_LC',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -213,10 +213,10 @@ def setup_exps():
 
     # LSTM Things
     config['model']['use_lstm'] = tune.grid_search([True, False])
-    config['model']['lstm_use_prev_action_reward'] = True
     #config['model']['use_lstm'] = tune.grid_search([True, False])
     # # config['model']["max_seq_len"] = tune.grid_search([5, 10])
-    config['model']["lstm_cell_size"] = 64
+    # config['model']["lstm_cell_size"] = 64
+
     # save the flow params for replay
     flow_json = json.dumps(
         flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
@@ -262,8 +262,8 @@ if __name__ == '__main__':
                 'training_iteration': 350
             },
             'config': config,
-            'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/4-15-2019/MA_NoLC_Agg_NoComm",
+            # 'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
+            #               "/4-31-2019/MA_NoLC_NoComm",
             'num_samples': 1,
         },
     })

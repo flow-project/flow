@@ -138,7 +138,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='/MA_NoLC_NoAgg_NoComm',
+    exp_tag='MA_NoLC_NoAgg_NoComm',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -198,7 +198,7 @@ def setup_exps():
     config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
     config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [256, 256]})
+    config['model'].update({'fcnet_hiddens': [64, 64]})
     config['clip_actions'] = True
     config['horizon'] = HORIZON
     config['vf_share_layers'] = True
@@ -213,9 +213,10 @@ def setup_exps():
 
     # LSTM Things
     config['model']['use_lstm'] = tune.grid_search([True, False])
+    config['model']['lstm_use_prev_action_reward'] = True
     #config['model']['use_lstm'] = tune.grid_search([True, False])
     # # config['model']["max_seq_len"] = tune.grid_search([5, 10])
-    # config['model']["lstm_cell_size"] = 64
+    config['model']["lstm_cell_size"] = 64
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -263,7 +264,7 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/4-01-2019/MA_NoLC_NoAgg_NoComm",
+                          "/4-15-2019/MA_NoLC_NoAgg_NoComm",
             'num_samples': 1,
         },
     })
