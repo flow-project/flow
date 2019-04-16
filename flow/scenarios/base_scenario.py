@@ -114,7 +114,7 @@ class Scenario(Serializable):
         # optional parameters, used to get positions from some global reference
         self.edge_starts = self.specify_edge_starts()
         self.internal_edge_starts = self.specify_internal_edge_starts()
-        self.intersection_edge_starts = self.specify_intersection_edge_starts()
+        self.intersection_edge_starts = []  # this will be deprecated
 
     # TODO: convert to property
     def specify_edge_starts(self):
@@ -135,25 +135,6 @@ class Scenario(Serializable):
             ex: [(edge0, pos0), (edge1, pos1), ...]
         """
         return None
-
-    # TODO: convert to property
-    def specify_intersection_edge_starts(self):
-        """Define edge starts for intersections.
-
-        This is meant to provide some global reference frame for the
-        intersections in the network.
-
-        This does not need to be specified if no intersections exist. These
-        values can be used to determine the distance of some agent from the
-        nearest and/or all intersections.
-
-        Returns
-        -------
-        list of (str, float)
-            list of intersection names and starting positions,
-            ex: [(intersection0, pos0), (intersection1, pos1), ...]
-        """
-        return []
 
     # TODO: convert to property
     def specify_internal_edge_starts(self):
@@ -287,7 +268,10 @@ class Scenario(Serializable):
 
         The routes are specified as lists of edges the vehicle must traverse,
         with the first edge corresponding to the edge the vehicle begins on.
-        Note that the edges must be connected for the route to be valid.
+        Note that the edges must be connected for the route to be valid. If
+        this method is not implemented, vehicles that enter a network are
+        assigned routes consisting solely on their current edges, and exit the
+        network once they reach the end of their edge.
 
         Currently, only one route is allowed from any given starting edge.
 
@@ -303,7 +287,7 @@ class Scenario(Serializable):
             Element = list of edges a vehicle starting from this edge must
             traverse.
         """
-        raise NotImplementedError
+        return None
 
     @staticmethod
     def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
