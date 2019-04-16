@@ -1,0 +1,4 @@
+ray submit ray_autoscale.yaml --start --stop --tmux --cluster-name=EugeneMultiAgentNoAggCommp2 ../examples/rllib/multiagent_exps/MA_bottle_lc_noagg_comm_p2.py
+ray submit ray_autoscale.yaml --start --stop --tmux --cluster-name=EugeneMultiAgentNoAggCommp4 ../examples/rllib/multiagent_exps/MA_bottle_lc_noagg_comm_p4.py
+ray submit ray_autoscale.yaml --start --stop --tmux --cluster-name=EugeneMultiAgentNoAggCommp6 ../examples/rllib/multiagent_exps/MA_bottle_lc_noagg_comm_p6.py
+ray submit ray_autoscale.yaml --start --stop --tmux --cluster-name=EugeneMultiAgentNoAggCommp8 ../examples/rllib/multiagent_exps/MA_bottle_lc_noagg_comm_p8.py
