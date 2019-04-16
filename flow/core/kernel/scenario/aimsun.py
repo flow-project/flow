@@ -5,6 +5,7 @@ import json
 import subprocess
 import os.path as osp
 import os
+import platform
 import time
 from flow.core.kernel.scenario.base import KernelScenario
 
@@ -65,8 +66,12 @@ class AimsunKernelScenario(KernelScenario):
             json.dump(output, outfile, sort_keys=True, indent=4)
 
         # path to the Aimsun_Next binary
+        if platform.system() == 'Darwin':  # OS X
+            binary_name = 'Aimsun Next'
+        else:
+            binary_name = 'Aimsun_Next'
         aimsun_path = osp.join(osp.expanduser(config.AIMSUN_NEXT_PATH),
-                               'Aimsun_Next')
+                               binary_name)
 
         # path to the supplementary file that is used to generate an aimsun
         # network from a template
@@ -143,16 +148,6 @@ class AimsunKernelScenario(KernelScenario):
         # these optional parameters need only be used if "no-internal-links"
         # is set to "false" while calling sumo's netconvert function
         self.internal_edgestarts = self.network.internal_edge_starts
-        self.intersection_edgestarts = self.network.intersection_edge_starts
-
-        # in case the user did not write the intersection edge-starts in
-        # internal edge-starts as well (because of redundancy), merge the two
-        # together
-        self.internal_edgestarts += self.intersection_edgestarts
-        seen = set()
-        self.internal_edgestarts = \
-            [item for item in self.internal_edgestarts
-             if item[1] not in seen and not seen.add(item[1])]
         self.internal_edgestarts_dict = dict(self.internal_edgestarts)
 
         # total_edgestarts and total_edgestarts_dict contain all of the above

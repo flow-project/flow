@@ -27,7 +27,6 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
 
-# import flow.envs
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
@@ -73,11 +72,6 @@ def visualizer_rllib(args):
     sim_params = flow_params['sim']
     setattr(sim_params, 'num_clients', 1)
 
-    # Create and register a gym+rllib env
-    create_env, env_name = make_create_env(
-        params=flow_params, version=0, render=False)
-    register_env(env_name, create_env)
-
     # Determine agent and checkpoint
     config_run = config['env_config']['run'] if 'run' in config['env_config'] \
         else None
@@ -103,8 +97,7 @@ def visualizer_rllib(args):
     sim_params.restart_instance = False
     dir_path = os.path.dirname(os.path.realpath(__file__))
     emission_path = '{0}/test_time_rollout/'.format(dir_path)
-
-    sim_params.emission_path = emission_path
+    sim_params.emission_path = emission_path if args.gen_emission else None
 
     # pick your rendering mode
     if args.render_mode == 'sumo_web3d':
@@ -122,19 +115,10 @@ def visualizer_rllib(args):
         sim_params.pxpm = 4
         sim_params.save_render = True
 
-    # Recreate the scenario from the pickled parameters
-    exp_tag = flow_params['exp_tag']
-    net_params = flow_params['net']
-    vehicles = flow_params['veh']
-    initial_config = flow_params['initial']
-    module = __import__('flow.scenarios', fromlist=[flow_params['scenario']])
-    scenario_class = getattr(module, flow_params['scenario'])
-
-    scenario = scenario_class(
-        name=exp_tag,
-        vehicles=vehicles,
-        net_params=net_params,
-        initial_config=initial_config)
+    # Create and register a gym+rllib env
+    create_env, env_name = make_create_env(
+        params=flow_params, version=0)
+    register_env(env_name, create_env)
 
     # check if the environment is a single or multiagent environment, and
     # get the right address accordingly
@@ -267,9 +251,9 @@ def visualizer_rllib(args):
     env.unwrapped.terminate()
 
     # if prompted, convert the emission file into a csv file
-    if args.emission_to_csv:
+    if args.gen_emission:
         time.sleep(0.1)
-        
+
         dir_path = os.path.dirname(os.path.realpath(__file__))
         emission_filename = '{0}-emission.xml'.format(env.scenario.name)
 
@@ -321,10 +305,10 @@ def create_parser():
         default=1,
         help='The number of rollouts to visualize.')
     parser.add_argument(
-        '--emission-to-csv',
+        '--gen_emission',
         action='store_true',
-        help='Specifies whether to convert the emission file '
-             'created by sumo into a csv file')
+        help='Specifies whether to generate an emission file from the '
+             'simulation')
     parser.add_argument(
         '--evaluate',
         action='store_true',
