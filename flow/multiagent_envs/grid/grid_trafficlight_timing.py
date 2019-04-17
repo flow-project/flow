@@ -126,14 +126,24 @@ class MultiAgentGrid(PO_TrafficLightGridEnv, MultiEnv):
         Velocities, distance to intersections, edge number (for nearby
         vehicles), and traffic light state.
         """
-        tl_box = Box(
+        num_closest_vehicles = 3
+        num_inbounds = 4
+        speed = Box(
+            low=0,
+            high=1,
+            shape=(num_inbounds * num_closest_vehicles,),
+            dtype=np.float32)
+        dist_to_intersec = Box(
             low=0.,
             high=1,
-            shape=(12 * self.num_observed * self.num_traffic_lights +
-                   2 * len(self.k.scenario.get_edge_list()) +
-                   3 * self.num_traffic_lights,),
+            shape=(num_inbounds * num_closest_vehicles,),
             dtype=np.float32)
-        return tl_box
+        traffic_lights = Box(
+            low=0.,
+            high=1,
+            shape=(num_inbounds,),
+            dtype=np.float32)
+        return Tuple((speed, dist_to_intersec, traffic_lights))
 
     def get_state(self):
         """
