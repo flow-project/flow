@@ -2,7 +2,6 @@
 from flow.core.kernel.vehicle.base import KernelVehicle
 import collections
 import numpy as np
-from copy import deepcopy
 from flow.utils.aimsun.struct import InfVeh
 # from flow.controllers.car_following_models import SimCarFollowingController
 # from flow.controllers.rlcontroller import RLController
