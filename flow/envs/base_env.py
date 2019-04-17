@@ -87,7 +87,6 @@ class Env(*classdef):
             if the render mode is not set to a valid value
         """
         # Invoke serializable if using rllab
-
         if serializable_flag:
             Serializable.quick_init(self, locals())
 
@@ -131,7 +130,6 @@ class Env(*classdef):
         # initialize the simulation using the simulation kernel. This will use
         # the scenario kernel as an input in order to determine what network
         # needs to be simulated.
-
         kernel_api = self.k.simulation.start_simulation(
             scenario=self.k.scenario, sim_params=sim_params)
 
@@ -187,7 +185,6 @@ class Env(*classdef):
         else:
             raise FatalFlowError(
                 'Mode %s is not supported!' % self.sim_params.render)
-        
         atexit.register(self.terminate)
 
     def restart_simulation(self, sim_params, render=None):
@@ -282,8 +279,7 @@ class Env(*classdef):
             indicates whether the episode has ended
         info : dict
             contains other diagnostic information from the previous action
-        """
-        
+        """        
         for _ in range(self.env_params.sims_per_step):
             self.time_counter += 1
             self.step_counter += 1
@@ -619,10 +615,10 @@ class Env(*classdef):
         environment opens the TraCI connection.
         """
         try:
-            print(  # FIXME could be aimsun
+            print(  
                 "Closing connection to TraCI and stopping simulation.\n"
                 "Note, this may print an error message when it closes."
-            )
+            )  # FIXME could be aimsun
             self.k.close()
 
             # close pyglet renderer

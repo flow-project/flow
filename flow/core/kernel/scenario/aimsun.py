@@ -1,7 +1,6 @@
 """Script containing the base scenario kernel class."""
 from copy import deepcopy
 import sys
-sys.path.append("/Users/nathan/projects/flow/")
 import flow.config as config
 import json
 import subprocess
@@ -139,9 +138,12 @@ class AimsunKernelScenario(KernelScenario):
 
                 while not os.path.exists(filepath):
                     time.sleep(0.5)
-                # file exists, wait to make sure the data has been entirely written
-                time.sleep(3.0)  # FIXME mb see if file size still changes 
-                # or load.py writes blank file when done
+
+                # file exists, wait to make sure all the data has been written
+                # TODO create a blank file when load.py is done writing
+                # in case 3 seconds isn't enough
+                time.sleep(3.0)
+
                 with open(filepath) as f:
                     time.sleep(0.5)
                     content = json.load(f)
@@ -149,6 +151,7 @@ class AimsunKernelScenario(KernelScenario):
                 self._edges = content['sections']
                 self._edge_list = self._edges.keys()
                 self._junction_list = content['turnings']
+                # TODO load everything that is in content into the scenario
 
         else:
             data_file = 'flow/utils/aimsun/osm_edges.json'
@@ -231,8 +234,6 @@ class AimsunKernelScenario(KernelScenario):
         self._edge_aimsun2flow = {}
         
         for edge in self.get_edge_list():
-            # print(edge, aimsun_edge)
-            # aimsun_edge = str(edge) # FIXME
             aimsun_edge = self.kernel_api.get_edge_name(edge)
             self._edge_flow2aimsun[edge] = aimsun_edge
             self._edge_aimsun2flow[aimsun_edge] = edge

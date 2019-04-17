@@ -85,7 +85,6 @@ class Experiment:
         info_dict : dict
             contains returns, average speed per step
         """
-
         info_dict = {}
         if rl_actions is None:
             def rl_actions(*_):
@@ -98,14 +97,12 @@ class Experiment:
         mean_vels = []
         std_vels = []
         for i in range(num_runs):
-            print("Run #" + str(i))
             vel = np.zeros(num_steps)
             logging.info("Iter #" + str(i))
             ret = 0
             ret_list = []
             state = self.env.reset()
             for j in range(num_steps):
-                print("Step #" + str(j))
                 state, reward, done, _ = self.env.step(rl_actions(state))
                 vel[j] = np.mean(
                     self.env.k.vehicle.get_speed(self.env.k.vehicle.get_ids()))
