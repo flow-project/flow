@@ -2,8 +2,13 @@ import unittest
 import os
 import numpy as np
 
-from flow.core.params import InitialConfig, NetParams
+from flow.core.params import InitialConfig
+from flow.core.params import NetParams
 from flow.core.params import VehicleParams
+from flow.core.params import EnvParams
+from flow.core.params import SumoParams
+from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
+from flow.envs import TestEnv
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
@@ -13,6 +18,16 @@ from tests.setup_scripts import ring_road_exp_setup, figure_eight_exp_setup, \
 from tests.setup_scripts import variable_lanes_exp_setup
 
 os.environ["TEST_FLAG"] = "True"
+
+
+class NoRouteNetwork(LoopScenario):
+    """A network with no routes.
+
+    Used to check for default route assignment.
+    """
+
+    def specify_routes(self, net_params):
+        return None
 
 
 class TestGetX(unittest.TestCase):
@@ -98,7 +113,7 @@ class TestEvenStartPos(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        # place 5 vehicles in the network (we need at least more than 1)
+        # place 15 vehicles in the network (we need at least more than 1)
         vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
@@ -365,6 +380,27 @@ class TestEvenStartPos(unittest.TestCase):
         for veh_id in self.env.k.vehicle.get_ids():
             self.assertTrue(self.env.k.vehicle.get_edge(veh_id) in edges)
 
+    def test_edges_distribution_dict(self):
+        """
+        Tests that vehicles of the correct quantity are placed on each edge
+        when edges_distribution is a dict.
+        """
+        # test that when the number of vehicles don't match an AssertionError
+        # is raised
+        edges = {"top": 2, "bottom": 1}
+        initial_config = InitialConfig(edges_distribution=edges)
+        self.assertRaises(AssertionError, self.setUp_gen_start_pos,
+                          initial_config=initial_config)
+
+        # verify that the correct number of vehicles are placed in each edge
+        edges = {"top": 5, "bottom": 6, "left": 4}
+        initial_config = InitialConfig(edges_distribution=edges)
+        self.setUp_gen_start_pos(initial_config)
+
+        for edge in edges:
+            self.assertEqual(len(self.env.k.vehicle.get_ids_by_edge(edge)),
+                             edges[edge])
+
     def test_num_vehicles(self):
         """
         Tests that the number of starting positions generated is:
@@ -521,6 +557,27 @@ class TestRandomStartPos(unittest.TestCase):
         # edges_distribution term
         for veh_id in self.env.k.vehicle.get_ids():
             self.assertTrue(self.env.k.vehicle.get_edge(veh_id) in edges)
+
+    def test_edges_distribution_dict(self):
+        """
+        Tests that vehicles of the correct quantity are placed on each edge
+        when edges_distribution is a dict.
+        """
+        # test that when the number of vehicles don't match an AssertionError
+        # is raised
+        edges = {"top": 2, "bottom": 1}
+        initial_config = InitialConfig(edges_distribution=edges)
+        self.assertRaises(AssertionError, self.setUp_gen_start_pos,
+                          initial_config=initial_config)
+
+        # verify that the correct number of vehicles are placed in each edge
+        edges = {"top": 2, "bottom": 3, "left": 0}
+        initial_config = InitialConfig(edges_distribution=edges)
+        self.setUp_gen_start_pos(initial_config)
+
+        for edge in edges:
+            self.assertEqual(len(self.env.k.vehicle.get_ids_by_edge(edge)),
+                             edges[edge])
 
 
 class TestEvenStartPosVariableLanes(unittest.TestCase):
@@ -823,6 +880,41 @@ class TestNextPrevEdge(unittest.TestCase):
         prev_edge = env.k.scenario.prev_edge(
             env.k.scenario.get_edge_list()[0], 0)
         self.assertTrue(len(prev_edge) == 0)
+
+
+class TestDefaultRoutes(unittest.TestCase):
+
+    def test_default_routes(self):
+        env_params = EnvParams()
+        sim_params = SumoParams(render=False)
+        initial_config = InitialConfig()
+        vehicles = VehicleParams()
+        vehicles.add('human', num_vehicles=1)
+        net_params = NetParams(additional_params=ADDITIONAL_NET_PARAMS)
+
+        # create the scenario
+        scenario = NoRouteNetwork(
+            name='bay_bridge',
+            net_params=net_params,
+            initial_config=initial_config,
+            vehicles=vehicles
+        )
+
+        # create the environment
+        env = TestEnv(
+            env_params=env_params,
+            sim_params=sim_params,
+            scenario=scenario
+        )
+
+        # check the routes
+        self.assertDictEqual(
+            env.k.scenario.rts,
+            {"top": ["top"],
+             "bottom": ["bottom"],
+             "left": ["left"],
+             "right": ["right"]}
+        )
 
 
 if __name__ == '__main__':
