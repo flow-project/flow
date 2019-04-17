@@ -1,6 +1,5 @@
 """Contains the Flow/Aimsun API manager."""
 import socket
-import time
 import logging
 import struct
 
