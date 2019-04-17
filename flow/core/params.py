@@ -476,11 +476,11 @@ class AimsunParams(SimParams):
                  show_radius=False,
                  pxpm=2,
                  # set to match Flow_Aimsun.ang's scenario name
-                 scenario_name="Dynamic Scenario 866",  
+                 scenario_name="Dynamic Scenario 866",
                  # set to match Flow_Aimsun.ang's experiment name
-                 experiment_name="Micro SRC Experiment 867",  
+                 experiment_name="Micro SRC Experiment 867",
                  # set to match Flow_Aimsun.ang's replication name
-                 replication_name="Replication 870",  
+                 replication_name="Replication 870",
                  centroid_config_name=None,
                  subnetwork_name=None):
         """Instantiate AimsunParams."""

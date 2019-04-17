@@ -1,5 +1,4 @@
 
-import sys
 import flow.config as config
 import flow.utils.aimsun.constants
 from flow.utils.aimsun.api import FlowAimsunAPI
