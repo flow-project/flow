@@ -3,6 +3,7 @@ import sys
 import flow.config as config
 import flow.utils.aimsun.constants
 from flow.utils.aimsun.api import FlowAimsunAPI
+from flow.utils.aimsun.struct import InfVeh
 import unittest
 import os
 import subprocess
@@ -27,6 +28,41 @@ class TestConstants(unittest.TestCase):
 
         # makes sure than no two numbers are the same
         self.assertEqual(len(var), np.unique(variables).shape[0])
+
+
+class TestStruct(unittest.TestCase):
+    """Tests for the objects in flow/utils/aimsun/struct.py."""
+
+    def test_inf_veh(self):
+        """Verify that the InfVeh object contains the expected attributes."""
+        expected_variables = [
+            'CurrentPos',
+            'distance2End',
+            'xCurrentPos',
+            'yCurrentPos',
+            'zCurrentPos',
+            'xCurrentPosBack',
+            'yCurrentPosBack',
+            'zCurrentPosBack',
+            'CurrentSpeed',
+            'TotalDistance',
+            'SectionEntranceT',
+            'CurrentStopTime',
+            'stopped',
+            'idSection',
+            'segment',
+            'numberLane',
+            'idJunction',
+            'idSectionFrom',
+            'idLaneFrom',
+            'idSectionTo',
+            'idLaneTo'
+        ]
+
+        obj = InfVeh()
+
+        for val in expected_variables:
+            self.assertIn(val, obj.__dict__.keys())
 
 
 class TestDummyAPI(unittest.TestCase):
