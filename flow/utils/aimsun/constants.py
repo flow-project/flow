@@ -80,12 +80,17 @@ VEH_GET_TIMESTEP = 0x14
 # TODO: not 100% sure what this is...
 VEH_GET_TIMEDELTA = 0x15
 
-# TMP test
-VEH_GET_TYPE_NAME = 0x91
-VEH_GET_LENGTH = 0x94
+#: get vehicle type name in Aimsun
+VEH_GET_TYPE_NAME = 0x16
 
-VEH_SET_TRACKED = 0x92
-VEH_SET_NO_TRACKED = 0x93
+#: get vehicle length
+VEH_GET_LENGTH = 0x17
+
+#: set vehicle as tracked in Aimsun
+VEH_SET_TRACKED = 0x18
+
+#: set vehicle as untracked in Aimsun
+VEH_SET_NO_TRACKED = 0x19
 
 
 ###############################################################################
@@ -93,10 +98,10 @@ VEH_SET_NO_TRACKED = 0x93
 ###############################################################################
 
 #: get traffic light IDs
-TL_GET_IDS = 0x16
+TL_GET_IDS = 0x1A
 
 #: set traffic light state
-TL_SET_STATE = 0x17
+TL_SET_STATE = 0x1B
 
 #: get traffic light state
-TL_GET_STATE = 0x18
+TL_GET_STATE = 0x1C

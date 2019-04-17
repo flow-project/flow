@@ -25,7 +25,6 @@ def create_client(port, print_status=False):
         socket for client connection
     """
     # create a socket connection
-
     if print_status:
         print('Listening for connection...', end=' ')
 
@@ -33,7 +32,6 @@ def create_client(port, print_status=False):
     while not stop:
         # try to connect
         try:
-            # print("try connecting")
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect(('localhost', port))
 
@@ -44,14 +42,10 @@ def create_client(port, print_status=False):
             stop = True
 
         except Exception as e:
-            print("failure connecting 1", e)
             logging.debug('Cannot connect to the server: {}'.format(e))
 
         except socket.error:
-            # print("failure connecting 2")
             stop = False
-
-    # print("connected")
 
     # print the return statement
     if print_status:
@@ -78,9 +72,7 @@ class FlowAimsunAPI(object):
             the port number of the socket connection
         """
         self.port = port
-        print("begin create client")
         self.s = create_client(port, print_status=True)
-        print("end create client")
 
     def _send_command(self, command_type, in_format, values, out_format):
         """Send an arbitrary command via the connection.
@@ -152,7 +144,6 @@ class FlowAimsunAPI(object):
                     data = None
                     while data is None:
                         data = self.s.recv(unpacker.size)
-
                     done = unpacker.unpack(data)[0] == 0
             else:
                 unpacker = struct.Struct(format=out_format)
@@ -161,9 +152,7 @@ class FlowAimsunAPI(object):
                     data = self.s.recv(unpacker.size)
                 unpacked_data = unpacker.unpack(data)
 
-
             return unpacked_data
-
 
     def simulation_step(self):
         """Advance the simulation by one step.
@@ -233,16 +222,15 @@ class FlowAimsunAPI(object):
         int
             name of the new vehicle in Aimsun
         """
-        print(edge, lane, type_id, pos, speed, next_section)
-
+        
         # if type_id is a string, retrieve the id of the type
-        # TODO make a conversion table to avoid useless API calls
-        # so basically put the dict back
         if isinstance(type_id, str):
             type_id = self._send_command(ac.VEH_GET_TYPE_ID, 
                                          in_format='str', 
                                          values=(type_id,), 
                                          out_format='i')[0]
+        # TODO maybe put back the type conversion dict
+        # to avoid useless API calls
 
         veh_id, = self._send_command(
             ac.ADD_VEHICLE,
@@ -361,7 +349,7 @@ class FlowAimsunAPI(object):
             return [int(v) for v in veh_ids]
 
     def get_vehicle_type_id(self, flow_id):
-        """Get's the Aimsun type number of a Flow vehicle types.
+        """Get the Aimsun type number of a Flow vehicle types.
 
         Parameters
         ----------
@@ -379,14 +367,36 @@ class FlowAimsunAPI(object):
                                   out_format='i')[0]
 
     def get_vehicle_type_name(self, veh_id):
-        # TMP
+        """Get the Aimsun type name of an Aimsun vehicle.
+
+        Parameters
+        ----------
+        veh_id : int
+            id of the vehicle in Aimsun
+
+        Returns
+        -------
+        str
+            Aimsun-specific vehicle type name
+        """
         return self._send_command(ac.VEH_GET_TYPE_NAME,
                                   in_format='i',
                                   values=(veh_id,),
                                   out_format='str')
 
     def get_vehicle_length(self, veh_id):
-        # TMP
+        """Get the length of an Aimsun vehicle.
+
+        Parameters
+        ----------
+        veh_id : int
+            id of the vehicle in Aimsun
+
+        Returns
+        -------
+        float
+            length of the vehicle in Aimsun
+        """
         return self._send_command(ac.VEH_GET_LENGTH,
                                   in_format='i',
                                   values=(veh_id,),
@@ -440,13 +450,19 @@ class FlowAimsunAPI(object):
 
         return static_info
 
-    def get_vehicle_tracking_info(self, veh_id, info_bitmap, tracked=True): # FIXME tmp mb
+    def get_vehicle_tracking_info(self, veh_id, info_bitmap, tracked=True):
         """Return the tracking information of the specified vehicle.
 
         Parameters
         ----------
         veh_id : int
             name of the vehicle in Aimsun
+        info_bitmap : str
+            bitmap representing the tracking info to be returned
+            (cf function make_bitmap_for_tracking in vehicle/aimsun.py)
+        tracked : boolean (defaults to True)
+            whether the vehicle is tracked in Aimsun 
+
 
         Returns
         -------
@@ -454,6 +470,7 @@ class FlowAimsunAPI(object):
             tracking info object
         """
 
+        # build the output format from the bitmap
         out_format = ''
         for i in range(len(info_bitmap)):
             if info_bitmap[i] == '1':
@@ -464,15 +481,19 @@ class FlowAimsunAPI(object):
         else:
             out_format = out_format[:-1]
 
+        # append tracked boolean and vehicle id to the bitmap
+        # so that the command only has one parameter
         info_bitmap == "1" if tracked else "0"
         val = str(veh_id) + ":" + info_bitmap
 
+        # retrieve the vehicle tracking info specified by the bitmap
         info = self._send_command(
             ac.VEH_GET_TRACKING,
             in_format='str',
-            values=(val,),#(veh_id, info_bitmap),
-            out_format=out_format)#[0]#'f f f f f f f f f f f f f i i i i i i i i')
+            values=(val,),
+            out_format=out_format)
 
+        # put these tracking info into a struct 
         ret = aimsun_struct.InfVeh()
         count = 0
 
@@ -620,9 +641,29 @@ class FlowAimsunAPI(object):
                            values=(tl_id, link_index, state),
                            out_format=None)
 
-
-    # TODO doc
     def set_vehicle_tracked(self, veh_id):
-        self._send_command(ac.VEH_SET_TRACKED, in_format='i', values=(veh_id,), out_format=None)
+        """Set a vehicle as tracked in Aimsun, thus allowing faster
+        tracking information retrieval.
+
+        Parameters
+        ----------
+        veh_id : int
+            name of the vehicle in Aimsun
+        """
+        self._send_command(ac.VEH_SET_TRACKED, 
+                           in_format='i', 
+                           values=(veh_id,), 
+                           out_format=None)
+
     def set_vehicle_no_tracked(self, veh_id):
-        self._send_command(ac.VEH_SET_NO_TRACKED, in_format='i', values=(veh_id,), out_format=None)
+        """Set a tracked vehicle as untracked in Aimsun
+
+        Parameters
+        ----------
+        veh_id : int
+            name of the vehicle in Aimsun
+        """
+        self._send_command(ac.VEH_SET_NO_TRACKED, 
+                           in_format='i', 
+                           values=(veh_id,), 
+                           out_format=None)

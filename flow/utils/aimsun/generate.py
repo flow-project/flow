@@ -1,7 +1,6 @@
 # flake8: noqa
 import sys
 import os
-sys.path.append("/Users/nathan/projects/flow/")
 import flow.config as config
 
 SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
