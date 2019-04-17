@@ -68,8 +68,8 @@ class AimsunKernelVehicle(KernelVehicle):
         self.total_num_type = {}
 
         # type of vehicles that will be tracked
-        # note: vehicles added via the scenario (ie by calling the 
-        # add_vehicle function) will also be tracked, even if their 
+        # note: vehicles added via the scenario (ie by calling the
+        # add_vehicle function) will also be tracked, even if their
         # type is not specified here
         self.tracked_vehicle_types = {"rl", "Car"}
 
@@ -110,9 +110,9 @@ class AimsunKernelVehicle(KernelVehicle):
 
     def make_bitmap_for_tracking(self, infos):
         """
-        input: set containing all infos that we want 
+        input: set containing all infos that we want
         (see list of info in __init__)
-        returns a corresponding bitmap to be used in the 
+        returns a corresponding bitmap to be used in the
         self.kernel_api.get_vehicle_tracking_info function
         """
         bitmap = ""
@@ -193,8 +193,8 @@ class AimsunKernelVehicle(KernelVehicle):
                 if lead_id_aimsun in self._id_aimsun2flow:
                     lead_id = self._id_aimsun2flow[lead_id_aimsun]
                     inf_veh_leader = self.__vehicles[lead_id]['tracking_info']
-                    leader_length =
-                        self.__vehicles[lead_id]['static_info'].length
+                    leader_length = self.__vehicles[lead_id]['static_info'].\
+                        length
                     self.__vehicles[veh_id]['leader'] = lead_id
                     self.__vehicles[lead_id]['follower'] = veh_id
                 else:
@@ -208,8 +208,8 @@ class AimsunKernelVehicle(KernelVehicle):
                     inf_veh_leader = self.kernel_api.get_vehicle_tracking_info(
                         lead_id_aimsun, tracked_info_leader, tracked=False
                     )
-                    leader_length =
-                        self.kernel_api.get_vehicle_length(lead_id_aimsun)
+                    leader_length = self.kernel_api.\
+                        get_vehicle_length(lead_id_aimsun)
                     self.__vehicles[veh_id]['leader'] = -1
 
                 # FIXME can be simplified
@@ -220,11 +220,11 @@ class AimsunKernelVehicle(KernelVehicle):
                     if inf_veh_leader.idSection != -1:
                         # veh in section and leader in same section
                         if inf_veh.idSection == inf_veh_leader.idSection:
-                            gap = inf_veh_leader.CurrentPos
+                            gap = inf_veh_leader.CurrentPos\
                                 - inf_veh.CurrentPos - leader_length
                         # veh in section and leader in next section
                         elif inf_veh_leader.idSection == next_section:
-                            gap = inf_veh.distance2End
+                            gap = inf_veh.distance2End\
                                 + inf_veh_leader.CurrentPos - leader_length
                             # TODO need to add junction length (we have
                             # turning id -> get its length)
@@ -235,7 +235,7 @@ class AimsunKernelVehicle(KernelVehicle):
                     else:
                         # veh in section and leader in next junction
                         if inf_veh_leader.idSectionFrom == inf_veh.idSection:
-                            gap = inf_veh.distance2End
+                            gap = inf_veh.distance2End\
                                 + inf_veh_leader.CurrentPos - leader_length
                         # veh in section and leader several junctions ahead
                         else:
@@ -245,7 +245,7 @@ class AimsunKernelVehicle(KernelVehicle):
                     if inf_veh_leader.idSection == -1:
                         # veh in junction and leader in same junction
                         if inf_veh.idJunction == inf_veh_leader.idJunction:
-                            gap = inf_veh_leader.CurrentPos
+                            gap = inf_veh_leader.CurrentPos\
                                 - inf_veh.CurrentPos - leader_length
                         # veh in junction and leader in next junction
                         # veh in junction and leader several junctions ahead
@@ -255,7 +255,7 @@ class AimsunKernelVehicle(KernelVehicle):
                     else:
                         # veh in junction and leader in next section
                         if inf_veh_leader.idSection == inf_veh.idSectionTo:
-                            gap = inf_veh.distance2End
+                            gap = inf_veh.distance2End\
                                 + inf_veh_leader.CurrentPos - leader_length
                         # veh in junction and leader several sections ahead
                         else:
@@ -367,7 +367,7 @@ class AimsunKernelVehicle(KernelVehicle):
             speed=speed,
             next_section=next_section)
 
-        self.__vehicles[veh_id]['static_info'] = 
+        self.__vehicles[veh_id]['static_info'] =\
             self.kernel_api.get_vehicle_static_info(aimsun_id)
         self.__vehicles[veh_id]['tracking_info'] = InfVeh()
 

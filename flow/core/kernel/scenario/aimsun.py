@@ -7,6 +7,7 @@ import os
 import platform
 import time
 from flow.core.kernel.scenario.base import KernelScenario
+from copy import deepcopy
 
 # length of vehicles in the network, in meters
 VEHICLE_LENGTH = 5
