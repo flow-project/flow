@@ -4,9 +4,9 @@ import collections
 import numpy as np
 from copy import deepcopy
 from flow.utils.aimsun.struct import InfVeh
-from flow.controllers.car_following_models import SimCarFollowingController
-from flow.controllers.rlcontroller import RLController
-from flow.controllers.lane_change_controllers import SimLaneChangeController
+# from flow.controllers.car_following_models import SimCarFollowingController
+# from flow.controllers.rlcontroller import RLController
+# from flow.controllers.lane_change_controllers import SimLaneChangeController
 
 import time
 
@@ -68,27 +68,26 @@ class AimsunKernelVehicle(KernelVehicle):
         self.total_num_type = {}
 
         # type of vehicles that will be tracked
-        # note: vehicles added via the scenario (ie by calling the add_vehicle
-        # function) will also be tracked, even if their type is not specified here
-        self.tracked_vehicle_types = {"rl","Car"}#,"human", "Car"}
+        # note: vehicles added via the scenario (ie by calling the 
+        # add_vehicle function) will also be tracked, even if their 
+        # type is not specified here
+        self.tracked_vehicle_types = {"rl", "Car"}
 
-        # all the vehicle tracking information that should be stored for the tracked vehicles
-        # info that can be tracked: 
+        # all the vehicle tracking information that should be stored
+        # for the tracked vehicles info that can be tracked:
         # CurrentPos, distance2End, xCurrentPos, yCurrentPos, zCurrentPos,
         # xCurrentPosBack, yCurrentPosBack, zCurrentPosBack, CurrentSpeed,
-        # TotalDistance, SectionEntranceT, CurrentStopTime, stopped, 
-        # idSection, segment, numberLane, idJunction, idSectionFrom, 
+        # TotalDistance, SectionEntranceT, CurrentStopTime, stopped,
+        # idSection, segment, numberLane, idJunction, idSectionFrom,
         # idLaneFrom, idSectionTo, idLaneTo
         self.tracked_info_bitmap = self.make_bitmap_for_tracking({
-            'CurrentPos', 'distance2End', 
+            'CurrentPos', 'distance2End',
             'xCurrentPos', 'yCurrentPos', 'xCurrentPosBack', 'yCurrentPosBack',
             'CurrentSpeed', 'numberLane',
             'idSection', 'idJunction', 'idSectionFrom', 'idSectionTo'
         })
         # FIXME lots of these used in simulation/aimsun.py, used when
         # we want to store the values in an emission file (necessary?)
-        "111111111000010011010"
-
 
     def initialize(self, vehicles):
         """
@@ -111,35 +110,37 @@ class AimsunKernelVehicle(KernelVehicle):
 
     def make_bitmap_for_tracking(self, infos):
         """
-        input: set containing all infos that we want (see list of info in __init__)
-        returns a corresponding bitmap to be used in the self.kernel_api.get_vehicle_tracking_info function
+        input: set containing all infos that we want 
+        (see list of info in __init__)
+        returns a corresponding bitmap to be used in the 
+        self.kernel_api.get_vehicle_tracking_info function
         """
         bitmap = ""
 
-        bitmap += '1' if 'CurrentPos'       in infos else '0'
-        bitmap += '1' if 'distance2End'     in infos else '0'
-        bitmap += '1' if 'xCurrentPos'      in infos else '0'
-        bitmap += '1' if 'yCurrentPos'      in infos else '0'
-        bitmap += '1' if 'zCurrentPos'      in infos else '0'
-        bitmap += '1' if 'xCurrentPosBack'  in infos else '0'
-        bitmap += '1' if 'yCurrentPosBack'  in infos else '0'
-        bitmap += '1' if 'zCurrentPosBack'  in infos else '0'
-        bitmap += '1' if 'CurrentSpeed'     in infos else '0'
-        bitmap += '1' if 'TotalDistance'    in infos else '0'
+        bitmap += '1' if 'CurrentPos' in infos else '0'
+        bitmap += '1' if 'distance2End' in infos else '0'
+        bitmap += '1' if 'xCurrentPos' in infos else '0'
+        bitmap += '1' if 'yCurrentPos' in infos else '0'
+        bitmap += '1' if 'zCurrentPos' in infos else '0'
+        bitmap += '1' if 'xCurrentPosBack' in infos else '0'
+        bitmap += '1' if 'yCurrentPosBack' in infos else '0'
+        bitmap += '1' if 'zCurrentPosBack' in infos else '0'
+        bitmap += '1' if 'CurrentSpeed' in infos else '0'
+        bitmap += '1' if 'TotalDistance' in infos else '0'
         bitmap += '1' if 'SectionEntranceT' in infos else '0'
-        bitmap += '1' if 'CurrentStopTime'  in infos else '0'
-        bitmap += '1' if 'stopped'          in infos else '0'
-        bitmap += '1' if 'idSection'        in infos else '0'
-        bitmap += '1' if 'segment'          in infos else '0'
-        bitmap += '1' if 'numberLane'       in infos else '0'
-        bitmap += '1' if 'idJunction'       in infos else '0'
-        bitmap += '1' if 'idSectionFrom'    in infos else '0'
-        bitmap += '1' if 'idLaneFrom'       in infos else '0'
-        bitmap += '1' if 'idSectionTo'      in infos else '0'
-        bitmap += '1' if 'idLaneTo'         in infos else '0'
+        bitmap += '1' if 'CurrentStopTime' in infos else '0'
+        bitmap += '1' if 'stopped' in infos else '0'
+        bitmap += '1' if 'idSection' in infos else '0'
+        bitmap += '1' if 'segment' in infos else '0'
+        bitmap += '1' if 'numberLane' in infos else '0'
+        bitmap += '1' if 'idJunction' in infos else '0'
+        bitmap += '1' if 'idSectionFrom' in infos else '0'
+        bitmap += '1' if 'idLaneFrom' in infos else '0'
+        bitmap += '1' if 'idSectionTo' in infos else '0'
+        bitmap += '1' if 'idLaneTo' in infos else '0'
 
         return bitmap
- 
+
     ###########################################################################
     #               Methods for interacting with the simulator                #
     ###########################################################################
@@ -149,10 +150,11 @@ class AimsunKernelVehicle(KernelVehicle):
 
         This is used to store an updated vehicle information object.
         """
-        
         for veh_type in self.tracked_vehicle_types:
-            print("- Type:", veh_type, ", count:", self.num_type[veh_type], ", total since start:", self.total_num_type[veh_type])
-        
+            print("- Type:", veh_type, ", count:",
+                  self.num_type[veh_type], ", total since start:",
+                  self.total_num_type[veh_type])
+
         # collect the entered and exited vehicle_ids
         added_vehicles = self.kernel_api.get_entered_ids()
         exited_vehicles = self.kernel_api.get_exited_ids()
@@ -179,7 +181,7 @@ class AimsunKernelVehicle(KernelVehicle):
                 self.kernel_api.get_vehicle_tracking_info(
                     aimsun_id, self.tracked_info_bitmap
                 )
-    
+
             # get the leader, follower, and headway for each tracked vehicle
             lead_id_aimsun = self.kernel_api.get_vehicle_leader(aimsun_id)
             if lead_id_aimsun < -1:
@@ -191,34 +193,41 @@ class AimsunKernelVehicle(KernelVehicle):
                 if lead_id_aimsun in self._id_aimsun2flow:
                     lead_id = self._id_aimsun2flow[lead_id_aimsun]
                     inf_veh_leader = self.__vehicles[lead_id]['tracking_info']
-                    leader_length = self.__vehicles[lead_id]['static_info'].length
-                    self.__vehicles[veh_id]['leader'] = lead_id  
+                    leader_length =
+                        self.__vehicles[lead_id]['static_info'].length
+                    self.__vehicles[veh_id]['leader'] = lead_id
                     self.__vehicles[lead_id]['follower'] = veh_id
-                else:             
+                else:
                     # TODO can be hardcoded when we won't change it anymore
                     tracked_info_leader = self.make_bitmap_for_tracking({
                         'CurrentPos', 'distance2End',
-                        'idSection', 'idJunction', 'idSectionFrom', 'idSectionTo'
+                        'idSection', 'idJunction',
+                        'idSectionFrom', 'idSectionTo'
                     })
-                    "110000000000010011010"
 
                     inf_veh_leader = self.kernel_api.get_vehicle_tracking_info(
                         lead_id_aimsun, tracked_info_leader, tracked=False
                     )
-                    leader_length = self.kernel_api.get_vehicle_length(lead_id_aimsun)
-                    self.__vehicles[veh_id]['leader'] = -1   
+                    leader_length =
+                        self.kernel_api.get_vehicle_length(lead_id_aimsun)
+                    self.__vehicles[veh_id]['leader'] = -1
 
                 # FIXME can be simplified
-                if inf_veh.idSection != -1: # vehicle is in a section                
-                    next_section = self.kernel_api.get_next_section(aimsun_id, inf_veh.idSection)
-                    if inf_veh_leader.idSection != -1: # leader is in a section
+                if inf_veh.idSection != -1:  # vehicle is in a section
+                    next_section = self.kernel_api.get_next_section(
+                        aimsun_id, inf_veh.idSection)
+                    # leader is in a section
+                    if inf_veh_leader.idSection != -1:
                         # veh in section and leader in same section
                         if inf_veh.idSection == inf_veh_leader.idSection:
-                            gap = inf_veh_leader.CurrentPos - inf_veh.CurrentPos - leader_length
+                            gap = inf_veh_leader.CurrentPos
+                                - inf_veh.CurrentPos - leader_length
                         # veh in section and leader in next section
                         elif inf_veh_leader.idSection == next_section:
-                            gap = inf_veh.distance2End + inf_veh_leader.CurrentPos - leader_length
-                            # TODO need to add junction length (we have turning id -> get its length)
+                            gap = inf_veh.distance2End
+                                + inf_veh_leader.CurrentPos - leader_length
+                            # TODO need to add junction length (we have
+                            # turning id -> get its length)
                         # veh in section and leader several sections ahead
                         else:
                             # TODO
@@ -226,7 +235,8 @@ class AimsunKernelVehicle(KernelVehicle):
                     else:
                         # veh in section and leader in next junction
                         if inf_veh_leader.idSectionFrom == inf_veh.idSection:
-                            gap = inf_veh.distance2End + inf_veh_leader.CurrentPos - leader_length
+                            gap = inf_veh.distance2End
+                                + inf_veh_leader.CurrentPos - leader_length
                         # veh in section and leader several junctions ahead
                         else:
                             # TODO
@@ -235,7 +245,8 @@ class AimsunKernelVehicle(KernelVehicle):
                     if inf_veh_leader.idSection == -1:
                         # veh in junction and leader in same junction
                         if inf_veh.idJunction == inf_veh_leader.idJunction:
-                            gap = inf_veh_leader.CurrentPos - inf_veh.CurrentPos - leader_length
+                            gap = inf_veh_leader.CurrentPos
+                                - inf_veh.CurrentPos - leader_length
                         # veh in junction and leader in next junction
                         # veh in junction and leader several junctions ahead
                         else:
@@ -244,7 +255,8 @@ class AimsunKernelVehicle(KernelVehicle):
                     else:
                         # veh in junction and leader in next section
                         if inf_veh_leader.idSection == inf_veh.idSectionTo:
-                            gap = inf_veh.distance2End + inf_veh_leader.CurrentPos - leader_length
+                            gap = inf_veh.distance2End
+                                + inf_veh_leader.CurrentPos - leader_length
                         # veh in junction and leader several sections ahead
                         else:
                             # TODO
@@ -254,13 +266,12 @@ class AimsunKernelVehicle(KernelVehicle):
 
         end = time.time()
         if len(self.__ids) > 0:
-            print("update time per tracked vehicle (ms):", 1000 * (end - start) / len(self.__ids))
-  
+            print("update time per tracked vehicle (ms):",
+                  1000 * (end - start) / len(self.__ids))
 
     def _add_departed(self, aimsun_id):
         """See parent class."""
         # get vehicle information from API
-
         static_inf_veh = self.kernel_api.get_vehicle_static_info(aimsun_id)
 
         # get the vehicle's type
@@ -293,7 +304,8 @@ class AimsunKernelVehicle(KernelVehicle):
         # store an empty tracking info object
         self.__vehicles[veh_id]['tracking_info'] = InfVeh()
 
-        """ TODO
+        """
+        TODO
         # specify the acceleration controller class
         accel_controller = \
             self.type_parameters[type_id]["acceleration_controller"]
@@ -332,7 +344,7 @@ class AimsunKernelVehicle(KernelVehicle):
         # set the "last_lc" parameter of the vehicle
         self.__vehicles[veh_id]["last_lc"] = -float("inf")
         """
-        self.__human_ids.append(veh_id) # FIXME
+        self.__human_ids.append(veh_id)  # FIXME
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
@@ -355,7 +367,8 @@ class AimsunKernelVehicle(KernelVehicle):
             speed=speed,
             next_section=next_section)
 
-        self.__vehicles[veh_id]['static_info'] = self.kernel_api.get_vehicle_static_info(aimsun_id)
+        self.__vehicles[veh_id]['static_info'] = 
+            self.kernel_api.get_vehicle_static_info(aimsun_id)
         self.__vehicles[veh_id]['tracking_info'] = InfVeh()
 
         # set the Aimsun/Flow vehicle ID converters
@@ -372,11 +385,8 @@ class AimsunKernelVehicle(KernelVehicle):
 
     def remove(self, aimsun_id):
         """See parent class."""
-        # aimsun_id = deepcopy(self._id_flow2aimsun[veh_id])
         veh_id = self._id_aimsun2flow[aimsun_id]
         self.kernel_api.remove_vehicle(aimsun_id)
-
-        print("remove", veh_id, aimsun_id)
 
         type_id = self.__vehicles[veh_id]['type_name']
         self.num_type[type_id] -= 1
@@ -396,9 +406,9 @@ class AimsunKernelVehicle(KernelVehicle):
             if veh_id in self.__controlled_lc_ids:
                 self.__controlled_lc_ids.remove(veh_id)
         elif veh_id in self.__rl_ids:
+            # FIXME should be else
             self.__rl_ids.remove(veh_id)
             self.num_rl_vehicles -= 1
-            # FIXME should be else 
 
         # make sure that the rl ids remain sorted
         self.__rl_ids.sort()

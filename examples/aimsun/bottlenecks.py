@@ -1,7 +1,7 @@
 """File demonstrating formation of congestion in bottleneck."""
 
-from flow.core.params import AimsunParams, EnvParams, NetParams, InitialConfig, \
-    InFlows
+from flow.core.params import AimsunParams, EnvParams, NetParams, \
+    InitialConfig, InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 
@@ -107,4 +107,3 @@ if __name__ == '__main__':
     # inflow, number of steps, binary
     exp = bottleneck_example(INFLOW, 1000, render=True)
     exp.run(5, 1000)
-    
