@@ -522,7 +522,7 @@ class FlowAimsunAPI(object):
         ]
 
         for map_index in range(21):
-            if info_bitmap[map_index] == '1'
+            if info_bitmap[map_index] == '1':
                 setattr(ret, attr_by_index[count], info[count])
                 count += 1
 
