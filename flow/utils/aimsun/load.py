@@ -192,6 +192,12 @@ with open(scenario_data_path, "w") as f:
     print("[load.py] Template's scenario data written into "
           + scenario_data_path)
 
+# create a check file to announce that we are done
+# writing all the scenario data into the .json file
+check_file = "flow/core/kernel/scenario/scenario_data_check"
+check_file_path = os.path.join(config.PROJECT_PATH, check_file)
+open(check_file_path, 'a').close()
+
 # get simulation step attribute column
 col_sim = model.getColumn('GKExperiment::simStepAtt')
 # set new simulation step value
