@@ -5,7 +5,7 @@ import struct
 
 import flow.utils.aimsun.constants as ac
 import flow.utils.aimsun.struct as aimsun_struct
-
+from flow.core.kernel.vehicle.aimsun import INFOS_ATTR_BY_INDEX
 
 def create_client(port, print_status=False):
     """Create a socket connection with the server.
@@ -483,7 +483,7 @@ class FlowAimsunAPI(object):
 
         # append tracked boolean and vehicle id to the bitmap
         # so that the command only has one parameter
-        info_bitmap == "1" if tracked else "0"
+        info_bitmap += "1" if tracked else "0"
         val = str(veh_id) + ":" + info_bitmap
 
         # retrieve the vehicle tracking info specified by the bitmap
@@ -495,35 +495,10 @@ class FlowAimsunAPI(object):
 
         # place these tracking info into a struct
         ret = aimsun_struct.InfVeh()
-
-        attr_by_index = [
-            'CurrentPos',
-            'distance2End',
-            'xCurrentPos',
-            'yCurrentPos',
-            'zCurrentPos',
-            'xCurrentPosBack',
-            'yCurrentPosBack',
-            'zCurrentPosBack',
-            'CurrentSpeed',
-            'TotalDistance',
-            'SectionEntranceT',
-            'CurrentStopTime',
-            'stopped',
-            'idSection',
-            'segment',
-            'numberLane',
-            'idJunction',
-            'idSectionFrom',
-            'idLaneFrom',
-            'idSectionTo',
-            'idLaneTo'
-        ]
-
         count = 0
-        for map_index in range(21):
+        for map_index in range(len(INFOS_ATTR_BY_INDEX)):
             if info_bitmap[map_index] == '1':
-                setattr(ret, attr_by_index[map_index], info[count])
+                setattr(ret, INFOS_ATTR_BY_INDEX[map_index], info[count])
                 count += 1
 
         return ret

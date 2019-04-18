@@ -14,6 +14,15 @@ WHITE = (255, 255, 255)
 CYAN = (0, 255, 255)
 RED = (255, 0, 0)
 
+# this is used when identifying if a specific object is tracked
+INFOS_ATTR_BY_INDEX = [
+    'CurrentPos', 'distance2End', 'xCurrentPos', 'yCurrentPos', 'zCurrentPos',
+    'xCurrentPosBack', 'yCurrentPosBack', 'zCurrentPosBack', 'CurrentSpeed',
+    'TotalDistance', 'SectionEntranceT', 'CurrentStopTime', 'stopped',
+    'idSection', 'segment', 'numberLane', 'idJunction', 'idSectionFrom',
+    'idLaneFrom', 'idSectionTo', 'idLaneTo'
+]
+
 
 class AimsunKernelVehicle(KernelVehicle):
     """Aimsun vehicle kernel.
@@ -116,27 +125,8 @@ class AimsunKernelVehicle(KernelVehicle):
         """
         bitmap = ""
 
-        bitmap += '1' if 'CurrentPos' in infos else '0'
-        bitmap += '1' if 'distance2End' in infos else '0'
-        bitmap += '1' if 'xCurrentPos' in infos else '0'
-        bitmap += '1' if 'yCurrentPos' in infos else '0'
-        bitmap += '1' if 'zCurrentPos' in infos else '0'
-        bitmap += '1' if 'xCurrentPosBack' in infos else '0'
-        bitmap += '1' if 'yCurrentPosBack' in infos else '0'
-        bitmap += '1' if 'zCurrentPosBack' in infos else '0'
-        bitmap += '1' if 'CurrentSpeed' in infos else '0'
-        bitmap += '1' if 'TotalDistance' in infos else '0'
-        bitmap += '1' if 'SectionEntranceT' in infos else '0'
-        bitmap += '1' if 'CurrentStopTime' in infos else '0'
-        bitmap += '1' if 'stopped' in infos else '0'
-        bitmap += '1' if 'idSection' in infos else '0'
-        bitmap += '1' if 'segment' in infos else '0'
-        bitmap += '1' if 'numberLane' in infos else '0'
-        bitmap += '1' if 'idJunction' in infos else '0'
-        bitmap += '1' if 'idSectionFrom' in infos else '0'
-        bitmap += '1' if 'idLaneFrom' in infos else '0'
-        bitmap += '1' if 'idSectionTo' in infos else '0'
-        bitmap += '1' if 'idLaneTo' in infos else '0'
+        for attr in INFOS_ATTR_BY_INDEX:
+            bitmap += '1' if attr in infos else '0'
 
         return bitmap
 
