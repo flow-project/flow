@@ -81,9 +81,13 @@ class AimsunKernelScenario(KernelScenario):
         # remove scenario data file if if still exists from
         # the previous simulation
         data_file = 'flow/core/kernel/scenario/scenario_data.json'
-        filepath = os.path.join(config.PROJECT_PATH, data_file)
-        if os.path.exists(filepath):
-            os.remove(filepath)
+        data_file_path = os.path.join(config.PROJECT_PATH, data_file)
+        if os.path.exists(data_file_path):
+            os.remove(data_file_path)
+        check_file = 'flow/core/kernel/scenario/scenario_data_check'
+        check_file_path = os.path.join(config.PROJECT_PATH, check_file)
+        if os.path.exists(check_file_path):
+            os.remove(check_file_path)
 
         # path to the supplementary file that is used to generate an aimsun
         # network from a template
@@ -133,18 +137,19 @@ class AimsunKernelScenario(KernelScenario):
             else:
                 # load scenario from template
                 scenario_file = "flow/core/kernel/scenario/scenario_data.json"
-                filepath = os.path.join(config.PROJECT_PATH, scenario_file)
+                scenario_path = os.path.join(config.PROJECT_PATH, scenario_file)
 
-                while not os.path.exists(filepath):
-                    time.sleep(0.5)
+                check_file = "flow/core/kernel/scenario/scenario_data_check"
+                check_path = os.path.join(config.PROJECT_PATH, check_file)
 
-                # file exists, wait to make sure all the data has been written
-                # TODO create a blank file when load.py is done writing
-                # in case 3 seconds isn't enough
-                time.sleep(3.0)
+                # a check file is created when all the scenario data
+                # have been written ; it is necessary since writing
+                # all the data can take several seconds for large scenarios
+                while not os.path.exists(check_path):
+                    time.sleep(0.1)
 
-                with open(filepath) as f:
-                    time.sleep(0.5)
+                # scenario_data.json has been written, load its content
+                with open(scenario_path) as f:
                     content = json.load(f)
 
                 self._edges = content['sections']
