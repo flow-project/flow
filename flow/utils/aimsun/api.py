@@ -495,7 +495,6 @@ class FlowAimsunAPI(object):
 
         # place these tracking info into a struct
         ret = aimsun_struct.InfVeh()
-        count = 0
 
         attr_by_index = [
             'CurrentPos',
@@ -521,9 +520,10 @@ class FlowAimsunAPI(object):
             'idLaneTo'
         ]
 
+        count = 0
         for map_index in range(21):
             if info_bitmap[map_index] == '1':
-                setattr(ret, attr_by_index[count], info[count])
+                setattr(ret, attr_by_index[map_index], info[count])
                 count += 1
 
         return ret
