@@ -7,6 +7,7 @@ import flow.utils.aimsun.constants as ac
 import flow.utils.aimsun.struct as aimsun_struct
 from flow.core.kernel.vehicle.aimsun import INFOS_ATTR_BY_INDEX
 
+
 def create_client(port, print_status=False):
     """Create a socket connection with the server.
 

@@ -136,8 +136,8 @@ class AimsunKernelScenario(KernelScenario):
 
             else:
                 # load scenario from template
-                scenario_file = "flow/core/kernel/scenario/scenario_data.json"
-                scenario_path = os.path.join(config.PROJECT_PATH, scenario_file)
+                scenar_file = "flow/core/kernel/scenario/scenario_data.json"
+                scenar_path = os.path.join(config.PROJECT_PATH, scenar_file)
 
                 check_file = "flow/core/kernel/scenario/scenario_data_check"
                 check_path = os.path.join(config.PROJECT_PATH, check_file)
@@ -149,7 +149,7 @@ class AimsunKernelScenario(KernelScenario):
                     time.sleep(0.1)
 
                 # scenario_data.json has been written, load its content
-                with open(scenario_path) as f:
+                with open(scenar_path) as f:
                     content = json.load(f)
 
                 self._edges = content['sections']
