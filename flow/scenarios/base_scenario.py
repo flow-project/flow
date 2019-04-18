@@ -109,7 +109,7 @@ class Scenario(Serializable):
             self.connections = None
 
         # specify routes vehicles can take
-            self.routes = self.specify_routes(net_params)
+        self.routes = self.specify_routes(net_params)
 
         # optional parameters, used to get positions from some global reference
         self.edge_starts = self.specify_edge_starts()
