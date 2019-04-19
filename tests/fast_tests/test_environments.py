@@ -587,7 +587,10 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
         # check the observation space
         self.assertTrue(test_space(
             env.observation_space,
-            expected_size=3, expected_min=0, expected_max=1))
+            expected_size=3,
+            expected_min=-float('inf'),
+            expected_max=float('inf')
+        ))
 
         # check the action space
         self.assertTrue(test_space(
@@ -874,7 +877,6 @@ class TestBottleneckAccelEnv(unittest.TestCase):
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
         # check the observation space
-        print(self.env.observation_space.shape)
         self.assertTrue(test_space(
             self.env.observation_space,
             expected_size=12,
