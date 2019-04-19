@@ -352,8 +352,10 @@ class Env(*classdef):
         # collect observation new state associated with action
         next_observation = np.copy(states)
 
-        # test if the agent should terminate due to a crash
-        done = crash
+        # test if the environment should terminate due to a collision or the
+        # time horizon being met
+        done = crash or (self.time_counter >= self.env_params.warmup_steps
+                         + self.env_params.horizon)
 
         # compute the info for each agent
         infos = {}
@@ -618,18 +620,14 @@ class Env(*classdef):
         environment opens the TraCI connection.
         """
         try:
-            print(
-                "Closing connection to TraCI and stopping simulation.\n"
-                "Note, this may print an error message when it closes."
-            )
+            # close everything within the kernel
             self.k.close()
-
             # close pyglet renderer
             if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
                 self.renderer.close()
         except FileNotFoundError:
-            print("Skip automatic termination. "
-                  "Connection is probably already closed.")
+            # Skip automatic termination. Connection is probably already closed
+            pass
 
     def render(self, reset=False, buffer_length=5):
         """Render a frame.

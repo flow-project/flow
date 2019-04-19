@@ -7,7 +7,7 @@
 2. **Install Jupyter** with `pip install jupyter`. Verify that you can start
    a Jupyter notebook with the command `jupyter-notebook`.
 3. **Install Flow** by executing the following [installation instructions](
-   https://berkeleyflow.readthedocs.io/en/latest/flow_setup.html).
+   https://flow.readthedocs.io/en/latest/flow_setup.html).
 
 ## Tutorials
 
@@ -15,7 +15,7 @@ Each file ``tutorials/tutorial*.ipynb`` is a separate tutorial. They can be
 opened in a Jupyter notebook by running the following commands.
 
 ```shell
-cd <flow-path>/tutorials/exercises
+cd <flow-path>/tutorials
 jupyter-notebook
 ```
 
@@ -23,7 +23,7 @@ Instructions are written in each file. To do each exercise, first run all of
 the cells in the Jupyter notebook. Then modify the ones that need to be 
 modified in order to prevent any exceptions from being raised. Throughout these
 exercises, you may find the [Flow documentation](
-https://berkeleyflow.readthedocs.io/en/latest/) helpful. The content of each 
+https://flow.readthedocs.io/en/latest/) helpful. The content of each 
 exercise is as follows:
 
 **Tutorial 1:** Running SUMO simulations in Flow.
@@ -39,12 +39,14 @@ testing simulations in the presence of an RLlib/rllab agent.
 
 **Tutorial 6:** Creating custom scenarios.
 
-**Tutorial 7:** Creating custom environments.
+**Tutorial 7:** Importing networks from OpenStreetMap.
 
-**Tutorial 8:** Creating custom controllers.
+**Tutorial 8:** Creating custom environments.
 
-**Tutorial 9:** Traffic lights.
+**Tutorial 9:** Creating custom controllers.
 
-**Tutorial 10:** Running simulations with inflows of vehicles.
+**Tutorial 10:** Traffic lights.
 
-**Tutorial 11:** Running rllab experiments on Amazon EC2 instances.
+**Tutorial 11:** Running simulations with inflows of vehicles.
+
+**Tutorial 12:** Running rllab experiments on Amazon EC2 instances.
