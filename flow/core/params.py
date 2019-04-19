@@ -445,6 +445,26 @@ class AimsunParams(SimParams):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
+    scenario_name : str, optional
+        name of the scenario generated in Aimsun.
+    experiment_name : str, optional
+        name of the experiment generated in Aimsun
+    replication_name : str, optional
+        name of the replication generated in Aimsun. When loading
+        an Aimsun template, this parameter must be set to the name
+        of the replication to be run by the simulation; in this case,
+        the scenario_name and experiment_name parameters are not
+        necessary as they will be obtained from the replication name.
+    centroid_config_name : str, optional
+        name of the centroid configuration to load in Aimsun. This
+        parameter is only used when loading an Aimsun template,
+        not when generating one.
+    subnetwork_name : str, optional
+        name of the subnetwork to load in Aimsun. This parameter is not
+        used when generating a network; it can be used when loading an
+        Aimsun template containing a subnetwork in order to only load
+        the objects contained in this subnetwork. If set to None or if the
+        specified subnetwork does not exist, the whole network will be loaded.
     """
     def __init__(self,
                  sim_step=0.1,
@@ -454,11 +474,24 @@ class AimsunParams(SimParams):
                  save_render=False,
                  sight_radius=25,
                  show_radius=False,
-                 pxpm=2):
+                 pxpm=2,
+                 # set to match Flow_Aimsun.ang's scenario name
+                 scenario_name="Dynamic Scenario 866",
+                 # set to match Flow_Aimsun.ang's experiment name
+                 experiment_name="Micro SRC Experiment 867",
+                 # set to match Flow_Aimsun.ang's replication name
+                 replication_name="Replication 870",
+                 centroid_config_name=None,
+                 subnetwork_name=None):
         """Instantiate AimsunParams."""
         super(AimsunParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
             sight_radius, show_radius, pxpm)
+        self.scenario_name = scenario_name
+        self.experiment_name = experiment_name
+        self.replication_name = replication_name
+        self.centroid_config_name = centroid_config_name
+        self.subnetwork_name = subnetwork_name
 
 
 class SumoParams(SimParams):
@@ -625,10 +658,13 @@ class NetParams:
         entering the network from these edges
     osm_path : str, optional
         path to the .osm file that should be used to generate the network
-        configuration files
+        configuration files. This parameter is only needed / used if the
+        OpenStreetMapScenario class is used.
     template : str, optional
-        path to the network template file that should be used when generating
-        the network/routes
+        path to the .net.xml file that should be passed to SUMO. This is
+        only needed / used if the NetFileScenario class is used, such as
+        in the case of Bay Bridge experiments (which use a custom net.xml
+        file)
     additional_params : dict, optional
         network specific parameters; see each subclass for a description of
         what is needed
