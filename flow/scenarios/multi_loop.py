@@ -24,6 +24,9 @@ VEHICLE_LENGTH = 5  # length of vehicles in the network, in meters
 class MultiLoopScenario(Scenario):
     """Ring road scenario.
 
+    This network is similar to `LoopScenario`, but generates multiple separate
+    ring roads in the same simulation.
+
     Requires from net_params:
 
     * **length** : length of the circle
@@ -32,7 +35,27 @@ class MultiLoopScenario(Scenario):
     * **resolution** : number of nodes resolution
     * **num_ring** : number of rings in the system
 
-    See flow/scenarios/base_scenario.py for description of params.
+    Usage
+    -----
+    >>> from flow.core.params import NetParams
+    >>> from flow.core.params import VehicleParams
+    >>> from flow.core.params import InitialConfig
+    >>> from flow.scenarios import MultiLoopScenario
+    >>>
+    >>> scenario = MultiLoopScenario(
+    >>>     name='multi_ring_road',
+    >>>     vehicles=VehicleParams(),
+    >>>     net_params=NetParams(
+    >>>         additional_params={
+    >>>             'length': 230,
+    >>>             'lanes': 1,
+    >>>             'speed_limit': 30,
+    >>>             'resolution': 40,
+    >>>             'num_rings': 7
+    >>>         },
+    >>>         no_internal_links=True  # we do not want junctions
+    >>>     )
+    >>> )
     """
 
     def __init__(self,
