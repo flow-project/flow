@@ -133,35 +133,29 @@ class TestDummyAPI(unittest.TestCase):
         self.assertEqual(static_info.idsectionExit, 25)
         self.assertEqual(static_info.idLine, 26)
 
-        # test the get_vehicle_tracking_info method
-        (CurrentPos, distance2End, xCurrentPos, yCurrentPos, zCurrentPos,
-         xCurrentPosBack, yCurrentPosBack, zCurrentPosBack, CurrentSpeed,
-         TotalDistance, SectionEntranceT, CurrentStopTime, stopped, idSection,
-         segment, numberLane, idJunction, idSectionFrom, idLaneFrom,
-         idSectionTo, idLaneTo) = \
-            self.kernel_api.get_vehicle_tracking_info(veh_id=1,
-                                                      info_bitmap='1'*21)
-        self.assertEqual(CurrentPos, 4)
-        self.assertEqual(distance2End, 5)
-        self.assertEqual(xCurrentPos, 6)
-        self.assertEqual(yCurrentPos, 7)
-        self.assertEqual(zCurrentPos, 8)
-        self.assertEqual(xCurrentPosBack, 9)
-        self.assertEqual(yCurrentPosBack, 10)
-        self.assertEqual(zCurrentPosBack, 11)
-        self.assertEqual(CurrentSpeed, 12)
-        self.assertEqual(TotalDistance, 14)
-        self.assertEqual(SectionEntranceT, 17)
-        self.assertEqual(CurrentStopTime, 18)
-        self.assertEqual(stopped, 19)
-        self.assertEqual(idSection, 20)
-        self.assertEqual(segment, 21)
-        self.assertEqual(numberLane, 22)
-        self.assertEqual(idJunction, 23)
-        self.assertEqual(idSectionFrom, 24)
-        self.assertEqual(idLaneFrom, 25)
-        self.assertEqual(idSectionTo, 26)
-        self.assertEqual(idLaneTo, 27)
+        tracking_inf = self.kernel_api.get_vehicle_tracking_info(
+            veh_id=1, info_bitmap='1'*21)
+        self.assertEqual(tracking_inf.CurrentPos, 4)
+        self.assertEqual(tracking_inf.distance2End, 5)
+        self.assertEqual(tracking_inf.xCurrentPos, 6)
+        self.assertEqual(tracking_inf.yCurrentPos, 7)
+        self.assertEqual(tracking_inf.zCurrentPos, 8)
+        self.assertEqual(tracking_inf.xCurrentPosBack, 9)
+        self.assertEqual(tracking_inf.yCurrentPosBack, 10)
+        self.assertEqual(tracking_inf.zCurrentPosBack, 11)
+        self.assertEqual(tracking_inf.CurrentSpeed, 12)
+        self.assertEqual(tracking_inf.TotalDistance, 14)
+        self.assertEqual(tracking_inf.SectionEntranceT, 17)
+        self.assertEqual(tracking_inf.CurrentStopTime, 18)
+        self.assertEqual(tracking_inf.stopped, 19)
+        self.assertEqual(tracking_inf.idSection, 20)
+        self.assertEqual(tracking_inf.segment, 21)
+        self.assertEqual(tracking_inf.numberLane, 22)
+        self.assertEqual(tracking_inf.idJunction, 23)
+        self.assertEqual(tracking_inf.idSectionFrom, 24)
+        self.assertEqual(tracking_inf.idLaneFrom, 25)
+        self.assertEqual(tracking_inf.idSectionTo, 26)
+        self.assertEqual(tracking_inf.idLaneTo, 27)
 
         # test the get traffic light IDs method when the list is not empty
         tl_ids = self.kernel_api.get_traffic_light_ids()
