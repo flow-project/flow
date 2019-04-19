@@ -149,7 +149,7 @@ class Scenario(Serializable):
         # optional parameters, used to get positions from some global reference
         self.edge_starts = self.specify_edge_starts()
         self.internal_edge_starts = self.specify_internal_edge_starts()
-        self.intersection_edge_starts = self.specify_intersection_edge_starts()
+        self.intersection_edge_starts = []  # this will be deprecated
 
     # TODO: convert to property
     def specify_edge_starts(self):
@@ -170,25 +170,6 @@ class Scenario(Serializable):
             ex: [(edge0, pos0), (edge1, pos1), ...]
         """
         return None
-
-    # TODO: convert to property
-    def specify_intersection_edge_starts(self):
-        """Define edge starts for intersections.
-
-        This is meant to provide some global reference frame for the
-        intersections in the network.
-
-        This does not need to be specified if no intersections exist. These
-        values can be used to determine the distance of some agent from the
-        nearest and/or all intersections.
-
-        Returns
-        -------
-        list of (str, float)
-            list of intersection names and starting positions,
-            ex: [(intersection0, pos0), (intersection1, pos1), ...]
-        """
-        return []
 
     # TODO: convert to property
     def specify_internal_edge_starts(self):

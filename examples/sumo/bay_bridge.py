@@ -13,7 +13,7 @@ from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.scenarios.bay_bridge import BayBridgeScenario, EDGES_DISTRIBUTION
 from flow.controllers import SimCarFollowingController, BayBridgeRouter
 
-NETFILE = os.path.join(
+TEMPLATE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "bay_bridge.net.xml")
 
 
@@ -161,9 +161,9 @@ def bay_bridge_example(render=None,
             departSpeed=20)  # no data for this
 
     net_params = NetParams(inflows=inflow, no_internal_links=False)
-    net_params.template = NETFILE
+    net_params.template = TEMPLATE
 
-    # download the network template file from AWS
+    # download the template from AWS
     if use_traffic_lights:
         my_url = "https://s3-us-west-1.amazonaws.com/flow.netfiles/" \
                  "bay_bridge_TL_all_green.net.xml"
@@ -174,7 +174,7 @@ def bay_bridge_example(render=None,
     data_to_write = my_file.read()
 
     with open(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), NETFILE),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), TEMPLATE),
             "wb+") as f:
         f.write(data_to_write)
 

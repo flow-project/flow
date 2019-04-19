@@ -118,7 +118,7 @@ class TraCIScenario(KernelScenario):
 
         # create the network configuration files
         if self.network.net_params.template is not None:
-            self._edges, self._connections = self.generate_net_from_netfile(
+            self._edges, self._connections = self.generate_net_from_template(
                 self.network.net_params)
         elif self.network.net_params.osm_path is not None:
             self._edges, self._connections = self.generate_net_from_osm(
@@ -180,16 +180,6 @@ class TraCIScenario(KernelScenario):
         # these optional parameters need only be used if "no-internal-links"
         # is set to "false" while calling sumo's netconvert function
         self.internal_edgestarts = self.network.internal_edge_starts
-        self.intersection_edgestarts = self.network.intersection_edge_starts
-
-        # in case the user did not write the intersection edge-starts in
-        # internal edge-starts as well (because of redundancy), merge the two
-        # together
-        self.internal_edgestarts += self.intersection_edgestarts
-        seen = set()
-        self.internal_edgestarts = \
-            [item for item in self.internal_edgestarts
-             if item[1] not in seen and not seen.add(item[1])]
         self.internal_edgestarts_dict = dict(self.internal_edgestarts)
 
         # total_edgestarts and total_edgestarts_dict contain all of the above
@@ -591,7 +581,7 @@ class TraCIScenario(KernelScenario):
 
         return edges_dict, conn_dict
 
-    def generate_net_from_netfile(self, net_params):
+    def generate_net_from_template(self, net_params):
         """Pass relevant data from an already processed .net.xml file.
 
         This method is used to collect the edges and connection data from a

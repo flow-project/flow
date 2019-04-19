@@ -97,8 +97,7 @@ def visualizer_rllib(args):
     sim_params.restart_instance = False
     dir_path = os.path.dirname(os.path.realpath(__file__))
     emission_path = '{0}/test_time_rollout/'.format(dir_path)
-
-    sim_params.emission_path = emission_path
+    sim_params.emission_path = emission_path if args.gen_emission else None
 
     # pick your rendering mode
     if args.render_mode == 'sumo_web3d':
@@ -252,7 +251,7 @@ def visualizer_rllib(args):
     env.unwrapped.terminate()
 
     # if prompted, convert the emission file into a csv file
-    if args.emission_to_csv:
+    if args.gen_emission:
         time.sleep(0.1)
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -306,10 +305,10 @@ def create_parser():
         default=1,
         help='The number of rollouts to visualize.')
     parser.add_argument(
-        '--emission-to-csv',
+        '--gen_emission',
         action='store_true',
-        help='Specifies whether to convert the emission file '
-             'created by sumo into a csv file')
+        help='Specifies whether to generate an emission file from the '
+             'simulation')
     parser.add_argument(
         '--evaluate',
         action='store_true',

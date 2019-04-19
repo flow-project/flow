@@ -1,3 +1,4 @@
+
 import flow.config as config
 import flow.utils.aimsun.constants
 from flow.utils.aimsun.api import FlowAimsunAPI
@@ -138,7 +139,8 @@ class TestDummyAPI(unittest.TestCase):
          TotalDistance, SectionEntranceT, CurrentStopTime, stopped, idSection,
          segment, numberLane, idJunction, idSectionFrom, idLaneFrom,
          idSectionTo, idLaneTo) = \
-            self.kernel_api.get_vehicle_tracking_info(veh_id=1)
+            self.kernel_api.get_vehicle_tracking_info(veh_id=1,
+                                                      info_bitmap='1'*21)
         self.assertEqual(CurrentPos, 4)
         self.assertEqual(distance2End, 5)
         self.assertEqual(xCurrentPos, 6)
