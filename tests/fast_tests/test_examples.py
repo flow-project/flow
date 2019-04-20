@@ -4,6 +4,7 @@ import unittest
 from examples.sumo.bay_bridge import bay_bridge_example
 from examples.sumo.bay_bridge_toll import bay_bridge_toll_example
 from examples.sumo.bottlenecks import bottleneck_example
+from examples.sumo.density_exp import run_bottleneck
 from examples.sumo.figure_eight import figure_eight_example
 from examples.sumo.grid import grid_example
 from examples.sumo.highway import highway_example
@@ -128,6 +129,10 @@ class TestSumoExamples(unittest.TestCase):
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
+
+    def test_density_exp(self):
+        """Verifies that examples/sumo/density_exp.py is working."""
+        _ = run_bottleneck.remote(100, 1, 10, render=False)
 
 
 class TestRllibExamples(unittest.TestCase):
