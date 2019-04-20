@@ -2,6 +2,7 @@ import unittest
 import os
 import numpy as np
 
+from flow.config import PROJECT_PATH
 from flow.core.params import InitialConfig
 from flow.core.params import NetParams
 from flow.core.params import VehicleParams
@@ -9,6 +10,7 @@ from flow.core.params import EnvParams
 from flow.core.params import SumoParams
 from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
 from flow.envs import TestEnv
+from flow.scenarios import Scenario
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
@@ -914,6 +916,38 @@ class TestDefaultRoutes(unittest.TestCase):
              "bottom": ["bottom"],
              "left": ["left"],
              "right": ["right"]}
+        )
+
+
+class TestOpenStreetMap(unittest.TestCase):
+    """Tests the formation of osm files with Flow. This is done on a section of
+    Northside UC Berkeley."""
+
+    def test_sumo(self):
+        sim_params = SumoParams()
+        vehicles = VehicleParams()
+        vehicles.add(veh_id="test")
+        env_params = EnvParams()
+        net_params = NetParams(
+            no_internal_links=False,
+            osm_path=os.path.join(PROJECT_PATH, 'tests/data/euclid.osm'))
+
+        scenario = Scenario(
+            name="UC-Berkeley-Northside",
+            vehicles=vehicles,
+            net_params=net_params)
+
+        env = TestEnv(env_params, sim_params, scenario)
+
+        self.assertListEqual(
+            env.k.scenario.get_edge_list(),
+            ['-184876631#0', '-184876631#1', '-184876631#2', '-184876631#3',
+             '-22016936#0', '-22016936#1', '-6400775#0', '-6400775#1',
+             '-6400775#2', '-6400775#3', '-6400775#4', '-6400775#5',
+             '184876631#0', '184876631#1', '184876631#2', '184876631#3',
+             '22016934#0', '22016934#1', '22016936#0', '22016936#1',
+             '22016937#0', '22016937#1', '22016937#2', '6400775#0',
+             '6400775#1', '6400775#2', '6400775#3', '6400775#4', '6400775#5']
         )
 
 
