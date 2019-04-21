@@ -54,7 +54,7 @@ def figure_eight_example(render=None):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = figure_eight_example()
+    exp = figure_eight_example(render=True)
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

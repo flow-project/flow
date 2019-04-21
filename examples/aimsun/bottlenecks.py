@@ -1,7 +1,7 @@
 """File demonstrating formation of congestion in bottleneck."""
 
-from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
-    InFlows
+from flow.core.params import AimsunParams, EnvParams, NetParams, \
+    InitialConfig, InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 
@@ -41,10 +41,9 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
     if render is None:
         render = False
 
-    sim_params = SumoParams(
+    sim_params = AimsunParams(
         sim_step=0.8,
         render=render,
-        overtake_right=False,
         restart_instance=restart_instance)
 
     vehicles = VehicleParams()
