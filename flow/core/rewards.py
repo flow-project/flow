@@ -156,7 +156,6 @@ def min_delay_unscaled(env):
     float
         reward value
     """
-
     vel = np.array(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
 
     vel = vel[vel >= -1e-6]
