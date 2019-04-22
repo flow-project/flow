@@ -151,7 +151,9 @@ def threaded_client(conn):
 
             elif data == ac.VEH_GET_TRACKING:
                 send_message(conn, in_format='i', values=(0,))
-                retrieve_message(conn, 'i')
+                info_bitmap = None
+                while info_bitmap is None:
+                    info_bitmap = conn.recv(2048)
                 output = (4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 17, 18, 19, 20, 21,
                           22, 23, 24, 25, 26, 27)
                 send_message(conn,
