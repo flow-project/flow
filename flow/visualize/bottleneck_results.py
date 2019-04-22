@@ -44,9 +44,9 @@ Here the arguments are:
 1 - the number of the checkpoint
 """
 
-OUTFLOW_RANGE = [1200, 1300]
+OUTFLOW_RANGE = [400, 2500]
 STEP_SIZE = 100
-NUM_TRIALS = 1
+NUM_TRIALS = 20
 END_LEN = 500
 
 
@@ -320,17 +320,17 @@ def bottleneck_visualizer(args):
         os.path.dirname(__file__), './data'))
     if args.filename:
         filename = args.filename
-        outflow_name = '/bottleneck_outflow_{}.txt'.format(filename)
-        speed_name = '/speed_outflow_{}.txt'.format(filename)
+        outflow_name = '/second_exps/bottleneck_outflow_{}.txt'.format(filename)
+        speed_name = '/second_exps/speed_outflow_{}.txt'.format(filename)
         with open(output_path + outflow_name, 'ba') as file:
             np.savetxt(file, outflow_arr, delimiter=', ')
         with open(output_path + speed_name, 'ba') as file:
             np.savetxt(file,
                        velocity_arr, delimiter=', ')
     else:
-        with open(output_path + '/test.txt', 'ab') as file:
+        with open(output_path + '/second_exps/bottleneck_outflow.txt', 'ab') as file:
             np.savetxt(file, outflow_arr, delimiter=', ')
-        with open(output_path + '/test.txt', 'ab') as file:
+        with open(output_path + '/second_exps/speed_outflow.txt', 'ab') as file:
             np.savetxt(file, velocity_arr, delimiter=', ')
 
     # Plot the inflow results

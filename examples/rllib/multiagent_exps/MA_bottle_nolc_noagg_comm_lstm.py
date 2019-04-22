@@ -22,9 +22,9 @@ from flow.controllers import RLController, ContinuousRouter, \
     SimLaneChangeController
 
 # time horizon of a single rollout
-HORIZON = 2000
+HORIZON = 1500
 # number of parallel workers
-N_CPUS = 38
+N_CPUS = 9
 # number of rollouts per training iteration
 N_ROLLOUTS = N_CPUS
 
@@ -205,7 +205,7 @@ def setup_exps():
     # config['use_centralized_vf'] = False
     # config['max_vf_agents'] = 140
     # config['simple_optimizer'] = True
-    # config['vf_clip_param'] = 100
+    config['vf_clip_param'] = 100
 
     # Grid search things
     config['lr'] = tune.grid_search([5e-5, 5e-4])
@@ -264,7 +264,7 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/4-16-2019/MA_NoLC_NoAgg_Comm_LSTM",
+                          "/4-22-2019/MA_NoLC_NoAgg_Comm_LSTM",
             'num_samples': 1,
         },
     })
