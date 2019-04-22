@@ -831,6 +831,11 @@ class TraCIVehicle(KernelVehicle):
 
     def apply_acceleration(self, veh_ids, acc):
         """See parent class."""
+        # to hand the case of a single vehicle
+        if type(veh_ids) == str:
+            veh_ids = [veh_ids]
+            acc = [acc]
+
         for i, vid in enumerate(veh_ids):
             if acc[i] is not None and vid in self.get_ids():
                 this_vel = self.get_speed(vid)
@@ -839,6 +844,11 @@ class TraCIVehicle(KernelVehicle):
 
     def apply_lane_change(self, veh_ids, direction):
         """See parent class."""
+        # to hand the case of a single vehicle
+        if type(veh_ids) == str:
+            veh_ids = [veh_ids]
+            direction = [direction]
+
         # if any of the directions are not -1, 0, or 1, raise a ValueError
         if any(d not in [-1, 0, 1] for d in direction):
             raise ValueError(
@@ -868,6 +878,11 @@ class TraCIVehicle(KernelVehicle):
 
     def choose_routes(self, veh_ids, route_choices):
         """See parent class."""
+        # to hand the case of a single vehicle
+        if type(veh_ids) == str:
+            veh_ids = [veh_ids]
+            route_choices = [route_choices]
+
         for i, veh_id in enumerate(veh_ids):
             if route_choices[i] is not None:
                 self.kernel_api.vehicle.setRoute(

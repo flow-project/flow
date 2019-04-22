@@ -402,16 +402,21 @@ class AimsunKernelVehicle(KernelVehicle):
         # make sure that the rl ids remain sorted
         self.__rl_ids.sort()
 
-    def apply_acceleration(self, veh_ids, acc):
+    def apply_acceleration(self, veh_id, acc):
         """See parent class."""
-        for i, veh_id in enumerate(veh_ids):
+        # to hand the case of a single vehicle
+        if type(veh_id) == str:
+            veh_id = [veh_id]
+            acc = [acc]
+
+        for i, veh_id in enumerate(veh_id):
             if acc[i] is not None:
                 this_vel = self.get_speed(veh_id)
                 next_vel = max(this_vel + acc[i] * self.sim_step, 0)
                 aimsun_id = self._id_flow2aimsun[veh_id]
                 self.kernel_api.set_speed(aimsun_id, next_vel)
 
-    def apply_lane_change(self, veh_ids, direction):
+    def apply_lane_change(self, veh_id, direction):
         """Apply an instantaneous lane-change to a set of vehicles.
 
         This method also prevents vehicles from moving to lanes that do not
@@ -421,9 +426,9 @@ class AimsunKernelVehicle(KernelVehicle):
 
         Parameters
         ----------
-        veh_ids : list of str
+        veh_id : str or list of str
             list of vehicle identifiers
-        direction : list of {-2, -1, 0, 1}
+        direction : {-2, -1, 0, 1} or list of {-2, -1, 0, 1}
             -2: reset, gives back the control to the default simulation model
             -1: lane change to the right
              0: no lane change
@@ -434,13 +439,18 @@ class AimsunKernelVehicle(KernelVehicle):
         ValueError
             If any of the direction values are not -2, -1, 0, or 1.
         """
+        # to hand the case of a single vehicle
+        if type(veh_id) == str:
+            veh_id = [veh_id]
+            direction = [direction]
+
         # if any of the directions are not -1, 0, or 1, raise a ValueError
         if any(d not in [-2, -1, 0, 1] for d in direction):
             raise ValueError(
                 "Direction values for lane changes may only be: -2, -1, 0, \
                 or 1.")
 
-        for i, veh_id in enumerate(veh_ids):
+        for i, veh_id in enumerate(veh_id):
             # check for no lane change
             if direction[i] == 0:
                 continue
@@ -462,12 +472,12 @@ class AimsunKernelVehicle(KernelVehicle):
                     self.prev_last_lc[veh_id] = \
                         self.__vehicles[veh_id]["last_lc"]
 
-    def choose_routes(self, veh_ids, route_choices):
+    def choose_routes(self, veh_id, route_choices):
         """Update the route choice of vehicles in the network.
 
         Parameters
         ----------
-        veh_ids : list
+        veh_id : str or list of str
             list of vehicle identifiers
         route_choices : array_like
             list of edges the vehicle wishes to traverse, starting with the
