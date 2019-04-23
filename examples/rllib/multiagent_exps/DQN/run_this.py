@@ -4,11 +4,24 @@ from flow.multiagent_envs.grid.grid_trafficlight_timing import MultiAgentGrid
 from RL_brain import DeepQNetwork
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.envs.green_wave_env import ADDITIONAL_ENV_PARAMS
 from flow.scenarios.grid import SimpleGridScenario
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.controllers.routing_controllers import GridRouter
+
+ADDITIONAL_ENV_PARAMS = {
+    # minimum switch time for each traffic light (in seconds)
+    "switch_time": 2.0,
+    # whether the traffic lights should be actuated by sumo or RL
+    # options are "controlled" and "actuated"
+    "tl_type": "controlled",
+    # determines whether the action space is meant to be discrete or continuous
+    "discrete": False,
+    # num of vehicles the agent can observe on each incoming edge
+    "num_observed": 2,
+    # velocity to use in reward functions
+    "target_velocity": 30,
+}
 
 def create_grid_env(render=None):
     """
@@ -33,6 +46,7 @@ def create_grid_env(render=None):
     num_cars_right = 20
     num_cars_top = 20
     num_cars_bot = 20
+    
     tot_cars = (num_cars_left + num_cars_right) * N_COLUMNS \
         + (num_cars_top + num_cars_bot) * N_ROWS
 
