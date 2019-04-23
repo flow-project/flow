@@ -112,13 +112,13 @@ class TraCIScenario(KernelScenario):
         self.sumfn = '%s.sumo.cfg' % self.network.name
         self.guifn = '%s.gui.cfg' % self.network.name
 
-        # can only provide one of osm path or netfile path to the scenario
-        assert self.network.net_params.netfile is None \
+        # can only provide one of osm path or template path to the scenario
+        assert self.network.net_params.template is None \
             or self.network.net_params.osm_path is None
 
         # create the network configuration files
-        if self.network.net_params.netfile is not None:
-            self._edges, self._connections = self.generate_net_from_netfile(
+        if self.network.net_params.template is not None:
+            self._edges, self._connections = self.generate_net_from_template(
                 self.network.net_params)
         elif self.network.net_params.osm_path is not None:
             self._edges, self._connections = self.generate_net_from_osm(
@@ -220,15 +220,19 @@ class TraCIScenario(KernelScenario):
         is to prevent them from building up in the debug folder. Note that in
         the case of import .net.xml files we do not want to delete them.
         """
-        if self.network.net_params.netfile is None:
-            os.remove(self.net_path + self.nodfn)
-            os.remove(self.net_path + self.edgfn)
-            os.remove(self.net_path + self.cfgfn)
-            os.remove(self.cfg_path + self.addfn)
-            os.remove(self.cfg_path + self.guifn)
-            os.remove(self.cfg_path + self.netfn)
-            os.remove(self.cfg_path + self.roufn)
-            os.remove(self.cfg_path + self.sumfn)
+        if self.network.net_params.template is None:
+            try:
+                os.remove(self.net_path + self.nodfn)
+                os.remove(self.net_path + self.edgfn)
+                os.remove(self.net_path + self.cfgfn)
+                os.remove(self.cfg_path + self.addfn)
+                os.remove(self.cfg_path + self.guifn)
+                os.remove(self.cfg_path + self.netfn)
+                os.remove(self.cfg_path + self.roufn)
+                os.remove(self.cfg_path + self.sumfn)
+            except FileNotFoundError:
+                # the files were never created
+                pass
 
             # the connection file is not always created
             try:
@@ -581,11 +585,11 @@ class TraCIScenario(KernelScenario):
 
         return edges_dict, conn_dict
 
-    def generate_net_from_netfile(self, net_params):
+    def generate_net_from_template(self, net_params):
         """Pass relevant data from an already processed .net.xml file.
 
         This method is used to collect the edges and connection data from a
-        netfile and pass it to the scenario class for later use.
+        template and pass it to the scenario class for later use.
 
         Parameters
         ----------
@@ -605,7 +609,7 @@ class TraCIScenario(KernelScenario):
                 from the arriving edge/lane pairs
         """
         # name of the .net.xml file (located in cfg_path)
-        self.netfn = net_params.netfile
+        self.netfn = net_params.template
 
         # collect data from the generated network configuration file
         edges_dict, conn_dict = self._import_edges_from_net()
