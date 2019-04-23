@@ -102,7 +102,7 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         """
         speeds = []
         dist_to_intersec = []
-        traffic_lights = []
+        traffic_light_states = []
         max_speed = max(
             self.k.scenario.speed_limit(edge)
             for edge in self.k.scenario.get_edge_list())
@@ -112,35 +112,39 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         agent_state_dict = {}
         i = 0
         # self.scenario.grid
-        for node, edges in self.scenario.get_node_mapping():
+        for intersection, edges in self.scenario.get_node_mapping():
             i = i + 1
-            observed_ids = self.k_closest_to_intersection(edges, self.num_closest_vehicles)
+            observed_vehicle_ids = self.k_closest_to_intersection(edges, self.num_closest_vehicles)
 
-            # check which edges we have so we can always pad in the right
-            # positions
             speeds = [
                 self.k.vehicle.get_speed(veh_id) / max_speed
-                for veh_id in observed_ids
+                for veh_id in observed_vehicle_ids
             ]
             dist_to_intersec = [
                 (self.k.scenario.edge_length(
                     self.k.vehicle.get_edge(veh_id))
                 - self.k.vehicle.get_position(veh_id)) / max_dist
-                for veh_id in observed_ids
+                for veh_id in observed_vehicle_ids
             ]
-            # self.k.traffic_light.get_ids
+            traffic_states_chars = self.k.traffic_light.get_state(intersection)
+            for j in range(4):
+                if (traffic_states_chars[j] == 'G' or traffic_states_chars[j] == 'g'): # if traffic light is green
+                    traffic_light_states.append(1)
+                elif (traffic_states_chars[j] == 'R' or traffic_states_chars[j] == 'r'): # if traffic light is red
+                    traffic_light_states.append(0)
+                else:
+                   traffic_light_states.append(0.5) 
 
-            # 'GrGr' = self.k.traffic_light.get_state(node)
 
-            if len(observed_ids) < self.num_closest_vehicles:
-                diff = self.num_closest_vehicles - len(observed_ids)
+            if len(observed_vehicle_ids) < self.num_closest_vehicles:
+                diff = self.num_closest_vehicles - len(observed_vehicle_ids)
                 speeds += [0] * diff
                 dist_to_intersec += [0] * diff
                 edge_number += [0] * diff
             
             state = np.array(
                 np.concatenate([
-                    speeds, dist_to_intersec, traffic_lights,
+                    speeds, dist_to_intersec, traffic_light_states,
                     self.last_change.flatten().tolist()
                 ]))
 
