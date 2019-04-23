@@ -32,6 +32,19 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         self.N_FOG_NODES = len(self.k.traffic_light.get_ids())
         super().__init__(env_params, sim_params, scenario, simulator)
 
+
+    @property
+    def action_space(self):
+        """See class definition."""
+        if self.discrete:
+            return Discrete(2 ** self.num_traffic_lights)
+        else:
+            return Box(
+                low=0,
+                high=1,
+                shape=(self.num_traffic_lights,),
+                dtype=np.float32)
+
     @property
     def observation_space(self):
         """
@@ -44,46 +57,19 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         speed = Box(
             low=0,
             high=1,
-            shape=(num_inbounds * self.num_closest_vehicles,),
+            shape=(self.num_inbounds * self.num_closest_vehicles,),
             dtype=np.float32)
         dist_to_intersec = Box(
             low=0.,
             high=1,
-            shape=(num_inbounds * self.num_closest_vehicles,),
+            shape=(self.num_inbounds * self.num_closest_vehicles,),
             dtype=np.float32)
         traffic_lights = Box(
             low=0.,
             high=1,
-            shape=(num_inbounds,),
+            shape=(self.num_inbounds,),
             dtype=np.float32)
         return Tuple((speed, dist_to_intersec, traffic_lights))
-
-    
-    def _apply_rl_actions(self, rl_actions):
-        """See class definition."""
-        sorted_rl_ids = [
-            veh_id for veh_id in self.sorted_ids
-            if veh_id in self.k.vehicle.get_rl_ids()
-        ]
-        av_action = rl_actions['av']
-        adv_action = rl_actions['adversary']
-        perturb_weight = self.env_params.additional_params['perturb_weight']
-        rl_action = av_action + perturb_weight * adv_action
-        self.k.vehicle.apply_acceleration(sorted_rl_ids, rl_action)
-
-    def compute_reward(self, rl_actions, **kwargs):
-        """The agents receives opposing speed rewards.
-
-        The agent receives the class definition reward,
-        the adversary receives the negative of the agent reward
-        """
-        if self.env_params.evaluate:
-            reward = np.mean(self.k.vehicle.get_speed(
-                self.k.vehicle.get_ids()))
-            return {'av': reward, 'adversary': -reward}
-        else:
-            reward = rewards.desired_velocity(self, fail=kwargs['fail'])
-            return {'av': reward, 'adversary': -reward}
 
     # def get_state(self, **kwargs):
     #     state = np.array([[
@@ -112,6 +98,7 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         i = 0
         for intersection, edges in self.scenario.get_node_mapping():
             i = i + 1
+            agent_id = "intersection" + str(i)
             observed_vehicle_ids = self.k_closest_to_intersection(edges, self.num_closest_vehicles)
 
             speeds = [
@@ -125,7 +112,6 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
                 for veh_id in observed_vehicle_ids
             ]
 
-            # traffic light states
             traffic_states_chars = self.k.traffic_light.get_state(intersection)
             for j in range(self.num_inbounds):
                 if traffic_states_chars[j] == 'G' or traffic_states_chars[j] == 'g': # if traffic light is green
@@ -138,21 +124,48 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
             # construct the state (observation) for each agent
             observation = np.array(
                 np.concatenate([
-                    speeds, dist_to_intersec, traffic_light_states,
-                    self.last_change.flatten().tolist()
+                    speeds, dist_to_intersec, traffic_light_states  # or:   speeds, dist_to_intersec, self.last_change.flatten().tolist()
                 ]))
+            observation = np.ndarray.flatten(observation)
 
             # each intersection is an agent, so we will make a dictionary that maps form 'intersectionI' to the state of that agent.
-            agent_id = "intersection" + str(i)
             agent_state_dict.update({agent_id: observation})
 
         return agent_state_dict   
-    
-    def compute_reward(self, rl_actions, **kwargs):
+
+    def _apply_rl_actions(self, rl_actions):
         """See class definition."""
+        sorted_rl_ids = [
+            veh_id for veh_id in self.sorted_ids
+            if veh_id in self.k.vehicle.get_rl_ids()
+        ]
+        av_action = rl_actions['av']
+        adv_action = rl_actions['adversary']
+        perturb_weight = self.env_params.additional_params['perturb_weight']
+        rl_action = av_action + perturb_weight * adv_action
+        self.k.vehicle.apply_acceleration(sorted_rl_ids, rl_action)
+
+    def compute_reward(self, rl_actions, **kwargs):
+        """Each agents receives a reward that is with regards
+        to the delay of the vehicles it observers
+        """
+        # in the warmup steps
+        if rl_actions is None:
+            return {}
+
+        agent_reward_dict = {}
+        for intersection, edges in self.scenario.get_node_mapping():
+            i = i + 1
+            agent_id = "intersection" + str(i)
+
+            observed_vehicle_ids = self.k_closest_to_intersection(edges, self.num_closest_vehicles)
+            # construct the reward for each agent
+            reward = np.mean(self.k.vehicle.get_speed(observed_vehicle_ids))    # or:      reward = - rewards.avg_delay_specified_vehicles(self, observed_vehicle_ids)
+            # each intersection is an agent, so we will make a dictionary that maps form 'intersectionI' to the reward of that agent.
+            agent_reward_dict.update({agent_id: reward})
+
         if self.env_params.evaluate:
-            return - rewards.avg_delay_specified_vehicles(self, veh_ids)
+            return agent_reward_dict
         else:
-            return rewards.desired_velocity(self, fail=kwargs["fail"])
-    
-    #  action_space, and additional_command are the same as 'PO_TrafficLightGridEnv'
+            reward = rewards.desired_velocity(self, fail=kwargs['fail'])
+            return agent_reward_dict
