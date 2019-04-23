@@ -128,21 +128,23 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
             # traffic light states
             traffic_states_chars = self.k.traffic_light.get_state(intersection)
             for j in range(self.num_inbounds):
-                if (traffic_states_chars[j] == 'G' or traffic_states_chars[j] == 'g'): # if traffic light is green
+                if traffic_states_chars[j] == 'G' or traffic_states_chars[j] == 'g': # if traffic light is green
                     traffic_light_states.append(1)
-                elif (traffic_states_chars[j] == 'R' or traffic_states_chars[j] == 'r'): # if traffic light is red
+                elif traffic_states_chars[j] == 'R' or traffic_states_chars[j] == 'r': # if traffic light is red
                     traffic_light_states.append(0)
                 else:
                    traffic_light_states.append(0.5) 
 
-            state = np.array(
+            # construct the state (observation) for each agent
+            observation = np.array(
                 np.concatenate([
                     speeds, dist_to_intersec, traffic_light_states,
                     self.last_change.flatten().tolist()
                 ]))
 
-            idx = "intersection" + str(i)
-            agent_state_dict[idx] = state
+            # each intersection is an agent, so we will make a dictionary that maps form 'intersectionI' to the state of that agent.
+            agent_id = "intersection" + str(i)
+            agent_state_dict.update({agent_id: observation})
 
         return agent_state_dict   
     
