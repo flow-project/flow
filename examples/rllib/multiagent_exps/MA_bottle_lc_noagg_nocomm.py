@@ -22,7 +22,7 @@ from flow.controllers import RLController, ContinuousRouter, \
     SimLaneChangeController
 
 # time horizon of a single rollout
-HORIZON = 1500
+HORIZON = 2000
 # number of parallel workers
 N_CPUS = 9
 # number of rollouts per training iteration
@@ -198,13 +198,13 @@ def setup_exps():
     config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
     config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [64, 64]})
+    config['model'].update({'fcnet_hiddens': [32, 32]})
     config['clip_actions'] = True
     config['horizon'] = HORIZON
     # config['vf_share_layers'] = True
     # config['use_centralized_vf'] = False
     # config['max_vf_agents'] = 140
-    # config['simple_optimizer'] = True
+    config['simple_optimizer'] = True
     config['vf_clip_param'] = 100
 
     # Grid search things
@@ -264,7 +264,7 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/4-22-2019/MA_LC_NoAgg_NoComm",
+                          "/4-23-2019/MA_LC_NoAgg_NoComm",
             'num_samples': 64,
         },
     })

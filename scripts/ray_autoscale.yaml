@@ -87,18 +87,18 @@ setup_commands:
     - cd flow && git fetch && git checkout final_cdc_exps
     # set up ray by pip installing and copying over rllib and tune folder
     - pip install --upgrade pyzmq notebook
-    - pip install ray==0.6.5
+    - pip install ray==0.6.2
     - pip install lz4
-#    - git clone https://github.com/flow-project/ray.git
-#    - cd ray && git fetch && git checkout centralized_vf_pr3
-#    # soft link in rllib
-#    - echo "y" | python ray/python/ray/rllib/setup-rllib-dev.py
-#    # replace tune correctly
-#    - rm /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune/util.py
-#    - cd ray && cp python/ray/tune/util.py /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune
-#    # replace autoscaler correctly
-#    - rm /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/autoscaler/autoscaler.py
-#    - cd ray && cp python/ray/autoscaler/autoscaler.py /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/autoscaler/autoscaler.py
+    - git clone https://github.com/flow-project/ray.git
+    - cd ray && git fetch && git checkout centralized_vf_pr3
+    # soft link in rllib
+    - echo "y" | python ray/python/ray/rllib/setup-rllib-dev.py
+    # replace tune correctly
+    - rm /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune/util.py
+    - cd ray && cp python/ray/tune/util.py /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune
+    # replace autoscaler correctly
+    - rm /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/autoscaler/autoscaler.py
+    - cd ray && cp python/ray/autoscaler/autoscaler.py /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/autoscaler/autoscaler.py
     # set up sumo and anaconda
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
@@ -112,7 +112,7 @@ head_setup_commands:
 # Custom commands that will be run on worker nodes after common setup.
 worker_setup_commands: []
 
-initialization_commands: []
+# initialization_commands: []
 
 # Command to start ray on the head node. You don't need to change this.
 head_start_ray_commands:
