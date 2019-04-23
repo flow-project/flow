@@ -1,5 +1,4 @@
 """Script containing the base scenario kernel class."""
-from copy import deepcopy
 import flow.config as config
 import json
 import subprocess
@@ -8,6 +7,7 @@ import os
 import platform
 import time
 from flow.core.kernel.scenario.base import KernelScenario
+from copy import deepcopy
 
 # length of vehicles in the network, in meters
 VEHICLE_LENGTH = 5
@@ -50,7 +50,12 @@ class AimsunKernelScenario(KernelScenario):
             "osm_path": scenario.net_params.osm_path,
             'render': self.sim_params.render,
             "sim_step": self.sim_params.sim_step,
-            "traffic_lights": None
+            "traffic_lights": None,
+            "scenario_name": self.sim_params.scenario_name,
+            "experiment_name": self.sim_params.experiment_name,
+            "replication_name": self.sim_params.replication_name,
+            "centroid_config_name": self.sim_params.centroid_config_name,
+            "subnetwork_name": self.sim_params.subnetwork_name
         }
 
         if scenario.net_params.inflows is not None:
@@ -73,10 +78,30 @@ class AimsunKernelScenario(KernelScenario):
         aimsun_path = osp.join(osp.expanduser(config.AIMSUN_NEXT_PATH),
                                binary_name)
 
+        # remove scenario data file if if still exists from
+        # the previous simulation
+        data_file = 'flow/core/kernel/scenario/scenario_data.json'
+        data_file_path = os.path.join(config.PROJECT_PATH, data_file)
+        if os.path.exists(data_file_path):
+            os.remove(data_file_path)
+        check_file = 'flow/core/kernel/scenario/scenario_data_check'
+        check_file_path = os.path.join(config.PROJECT_PATH, check_file)
+        if os.path.exists(check_file_path):
+            os.remove(check_file_path)
+
         # path to the supplementary file that is used to generate an aimsun
         # network from a template
-        script_path = osp.join(config.PROJECT_PATH,
-                               'flow/utils/aimsun/generate.py')
+        template_path = scenario.net_params.template
+        if template_path is None:
+            script_path = osp.join(config.PROJECT_PATH,
+                                   'flow/utils/aimsun/generate.py')
+        else:
+            script_path = osp.join(config.PROJECT_PATH,
+                                   'flow/utils/aimsun/load.py')
+            file_path = osp.join(config.PROJECT_PATH,
+                                 'flow/utils/aimsun/aimsun_template_path')
+            with open(file_path, 'w') as f:
+                f.write(template_path)
 
         # start the aimsun process
         aimsun_call = [aimsun_path, "-script", script_path]
@@ -84,28 +109,54 @@ class AimsunKernelScenario(KernelScenario):
 
         # merge types into edges
         if scenario.net_params.osm_path is None:
-            for i in range(len(scenario.edges)):
-                if 'type' in scenario.edges[i]:
-                    for typ in scenario.types:
-                        if typ['id'] == scenario.edges[i]['type']:
-                            new_dict = deepcopy(typ)
-                            new_dict.pop("id")
-                            scenario.edges[i].update(new_dict)
-                            break
+            if scenario.net_params.template is None:
+                for i in range(len(scenario.edges)):
+                    if 'type' in scenario.edges[i]:
+                        for typ in scenario.types:
+                            if typ['id'] == scenario.edges[i]['type']:
+                                new_dict = deepcopy(typ)
+                                new_dict.pop("id")
+                                scenario.edges[i].update(new_dict)
+                                break
 
-            self._edges = {}
-            for edge in deepcopy(scenario.edges):
-                edge_name = edge['id']
-                self._edges[edge_name] = {}
-                del edge['id']
-                self._edges[edge_name] = edge
+                self._edges = {}
+                for edge in deepcopy(scenario.edges):
+                    edge_name = edge['id']
+                    self._edges[edge_name] = {}
+                    del edge['id']
+                    self._edges[edge_name] = edge
 
-            # list of edges and internal links (junctions)
-            self._edge_list = [
-                edge_id for edge_id in self._edges.keys() if edge_id[0] != ':'
-            ]
-            self._junction_list = list(
-                set(self._edges.keys()) - set(self._edge_list))
+                # list of edges and internal links (junctions)
+                self._edge_list = [
+                    edge_id for edge_id in self._edges.keys()
+                    if edge_id[0] != ':'
+                ]
+                self._junction_list = list(
+                    set(self._edges.keys()) - set(self._edge_list))
+
+            else:
+                # load scenario from template
+                scenar_file = "flow/core/kernel/scenario/scenario_data.json"
+                scenar_path = os.path.join(config.PROJECT_PATH, scenar_file)
+
+                check_file = "flow/core/kernel/scenario/scenario_data_check"
+                check_path = os.path.join(config.PROJECT_PATH, check_file)
+
+                # a check file is created when all the scenario data
+                # have been written ; it is necessary since writing
+                # all the data can take several seconds for large scenarios
+                while not os.path.exists(check_path):
+                    time.sleep(0.1)
+
+                # scenario_data.json has been written, load its content
+                with open(scenar_path) as f:
+                    content = json.load(f)
+
+                self._edges = content['sections']
+                self._edge_list = self._edges.keys()
+                self._junction_list = content['turnings']
+                # TODO load everything that is in content into the scenario
+
         else:
             data_file = 'flow/utils/aimsun/osm_edges.json'
             filepath = os.path.join(config.PROJECT_PATH, data_file)
@@ -115,6 +166,13 @@ class AimsunKernelScenario(KernelScenario):
 
             with open(filepath) as f:
                 self._edges = json.load(f)
+            # list of edges and internal links (junctions)
+            self._edge_list = [
+                edge_id for edge_id in self._edges.keys()
+                if edge_id[0] != ':'
+            ]
+            self._junction_list = list(
+                set(self._edges.keys()) - set(self._edge_list))
 
             # delete the file
             os.remove(filepath)
@@ -168,6 +226,7 @@ class AimsunKernelScenario(KernelScenario):
         # versa
         self._edge_flow2aimsun = {}
         self._edge_aimsun2flow = {}
+
         for edge in self.get_edge_list():
             aimsun_edge = self.kernel_api.get_edge_name(edge)
             self._edge_flow2aimsun[edge] = aimsun_edge
@@ -224,14 +283,11 @@ class AimsunKernelScenario(KernelScenario):
 
     def get_edge_list(self):
         """See parent class."""
-        return [
-            edge_id for edge_id in self._edges.keys() if edge_id[0] != ":"
-        ]
+        return self._edge_list
 
     def get_junction_list(self):
         """See parent class."""
-        return list(
-            set(self._edges.keys()) - set(self._edge_list))
+        return self._junction_list
 
     def get_edge(self, x):  # TODO: maybe remove
         """See parent class."""
