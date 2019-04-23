@@ -221,14 +221,18 @@ class TraCIScenario(KernelScenario):
         the case of import .net.xml files we do not want to delete them.
         """
         if self.network.net_params.template is None:
-            os.remove(self.net_path + self.nodfn)
-            os.remove(self.net_path + self.edgfn)
-            os.remove(self.net_path + self.cfgfn)
-            os.remove(self.cfg_path + self.addfn)
-            os.remove(self.cfg_path + self.guifn)
-            os.remove(self.cfg_path + self.netfn)
-            os.remove(self.cfg_path + self.roufn)
-            os.remove(self.cfg_path + self.sumfn)
+            try:
+                os.remove(self.net_path + self.nodfn)
+                os.remove(self.net_path + self.edgfn)
+                os.remove(self.net_path + self.cfgfn)
+                os.remove(self.cfg_path + self.addfn)
+                os.remove(self.cfg_path + self.guifn)
+                os.remove(self.cfg_path + self.netfn)
+                os.remove(self.cfg_path + self.roufn)
+                os.remove(self.cfg_path + self.sumfn)
+            except FileNotFoundError:
+                # the files were never created
+                pass
 
             # the connection file is not always created
             try:
