@@ -40,7 +40,7 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         Velocities, distance to intersections, and traffic light state.
         """
         self.num_closest_vehicles = 3
-        num_inbounds = 4
+        self.num_inbounds = 4
         speed = Box(
             low=0,
             high=1,
@@ -96,9 +96,9 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
 
     def get_state(self):
         """
-        Returns self.num_closest_vehicles number of vehicles closest to each traffic
-        light and for each vehicle its velocity, distance to intersection,
-        edge_number traffic light state. This is partially observed
+        Returns self.num_closest_vehicles number of vehicles on each bound, closest to each traffic
+        light and for each vehicle its velocity, distance to intersection. At also returns the state 
+        of the 4 traffic lights in the intersection This is partially observed
         """
         speeds = []
         dist_to_intersec = []
@@ -108,10 +108,8 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
             for edge in self.k.scenario.get_edge_list())
         max_dist = max(self.scenario.short_length, self.scenario.long_length,
                        self.scenario.inner_length)
-
         agent_state_dict = {}
         i = 0
-        # self.scenario.grid
         for intersection, edges in self.scenario.get_node_mapping():
             i = i + 1
             observed_vehicle_ids = self.k_closest_to_intersection(edges, self.num_closest_vehicles)
@@ -126,8 +124,10 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
                 - self.k.vehicle.get_position(veh_id)) / max_dist
                 for veh_id in observed_vehicle_ids
             ]
+
+            # traffic light states
             traffic_states_chars = self.k.traffic_light.get_state(intersection)
-            for j in range(4):
+            for j in range(self.num_inbounds):
                 if (traffic_states_chars[j] == 'G' or traffic_states_chars[j] == 'g'): # if traffic light is green
                     traffic_light_states.append(1)
                 elif (traffic_states_chars[j] == 'R' or traffic_states_chars[j] == 'r'): # if traffic light is red
@@ -135,13 +135,6 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
                 else:
                    traffic_light_states.append(0.5) 
 
-
-            if len(observed_vehicle_ids) < self.num_closest_vehicles:
-                diff = self.num_closest_vehicles - len(observed_vehicle_ids)
-                speeds += [0] * diff
-                dist_to_intersec += [0] * diff
-                edge_number += [0] * diff
-            
             state = np.array(
                 np.concatenate([
                     speeds, dist_to_intersec, traffic_light_states,

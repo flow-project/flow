@@ -417,7 +417,7 @@ class TrafficLightGridEnv(Env):
                     key=sort_lambda
                 )
                 # padding. Added by Ashkan
-                dists += dist[:k] + ([-1] * max(k - len(dist), 0))
+                dists += dist[:k] + ([0] * max(k - len(dist), 0))
         else:
             vehicles = self.k.vehicle.get_ids_by_edge(edges)
             dist = sorted(
