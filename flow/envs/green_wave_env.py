@@ -184,7 +184,7 @@ class TrafficLightGridEnv(Env):
         """See class definition."""
         # check if the action space is discrete
         if self.discrete:
-            # convert single value to list of 0's and 1's
+            # convert single value (Discrete) to list of 0's and 1's
             rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
             rl_mask = [0] * (self.num_traffic_lights - len(rl_mask)) + rl_mask
         else:

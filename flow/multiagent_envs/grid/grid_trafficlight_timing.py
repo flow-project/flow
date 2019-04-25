@@ -6,7 +6,9 @@ from flow.multiagent_envs.multiagent_env import MultiEnv
 
 
 
+
 # todo for Ashkan: This needs to be defined for multi-agent RL in grid scenario
+from gym.spaces.discrete import Discrete
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 from flow.envs.green_wave_env import TrafficLightGridEnv
@@ -30,6 +32,7 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
     
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):       
         self.N_FOG_NODES = len(self.k.traffic_light.get_ids())
+        self.num_traffic_lights = self.N_FOG_NODES * 4
         super().__init__(env_params, sim_params, scenario, simulator)
 
 
@@ -134,6 +137,9 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         return agent_state_dict   
 
     def _apply_rl_actions(self, rl_actions):
+        
+        
+        
         """See class definition."""
         sorted_rl_ids = [
             veh_id for veh_id in self.sorted_ids
