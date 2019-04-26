@@ -14,7 +14,7 @@ from flow.scenarios.bay_bridge_toll import BayBridgeTollScenario
 from flow.scenarios.bay_bridge_toll import EDGES_DISTRIBUTION
 from flow.controllers import SimCarFollowingController, BayBridgeRouter
 
-NETFILE = os.path.join(
+TEMPLATE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "bottleneck.net.xml")
 
 
@@ -91,9 +91,9 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
         departSpeed=10)
 
     net_params = NetParams(
-        inflows=inflow, no_internal_links=False, netfile=NETFILE)
+        inflows=inflow, no_internal_links=False, template=TEMPLATE)
 
-    # download the netfile from AWS
+    # download the template from AWS
     if use_traffic_lights:
         my_url = "https://s3-us-west-1.amazonaws.com/flow.netfiles/" \
                  "bay_bridge_TL_all_green.net.xml"
@@ -104,7 +104,7 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
     data_to_write = my_file.read()
 
     with open(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), NETFILE),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), TEMPLATE),
             "wb+") as f:
         f.write(data_to_write)
 
