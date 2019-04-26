@@ -49,7 +49,7 @@ class Scenario(Serializable):
       file. This file is specified in the NetParams object. For example:
 
         >>> from flow.core.params import NetParams
-        >>> net_params = NetParams(netfile='/path/to/netfile.net.xml')
+        >>> net_params = NetParams(template='/path/to/netfile.net.xml')
 
       In this case, no ``specify_nodes`` and ``specify_edges`` methods are
       needed. However, a ``specify_routes`` method is still needed to specify
@@ -93,7 +93,7 @@ class Scenario(Serializable):
         self.initial_config = initial_config
         self.traffic_lights = traffic_lights
 
-        if net_params.netfile is None and net_params.osm_path is None:
+        if net_params.template is None and net_params.osm_path is None:
             # specify the attributes of the nodes
             self.nodes = self.specify_nodes(net_params)
             # collect the attributes of each edge
@@ -114,7 +114,7 @@ class Scenario(Serializable):
         # optional parameters, used to get positions from some global reference
         self.edge_starts = self.specify_edge_starts()
         self.internal_edge_starts = self.specify_internal_edge_starts()
-        self.intersection_edge_starts = self.specify_intersection_edge_starts()
+        self.intersection_edge_starts = []  # this will be deprecated
 
     # TODO: convert to property
     def specify_edge_starts(self):
@@ -135,25 +135,6 @@ class Scenario(Serializable):
             ex: [(edge0, pos0), (edge1, pos1), ...]
         """
         return None
-
-    # TODO: convert to property
-    def specify_intersection_edge_starts(self):
-        """Define edge starts for intersections.
-
-        This is meant to provide some global reference frame for the
-        intersections in the network.
-
-        This does not need to be specified if no intersections exist. These
-        values can be used to determine the distance of some agent from the
-        nearest and/or all intersections.
-
-        Returns
-        -------
-        list of (str, float)
-            list of intersection names and starting positions,
-            ex: [(intersection0, pos0), (intersection1, pos1), ...]
-        """
-        return []
 
     # TODO: convert to property
     def specify_internal_edge_starts(self):

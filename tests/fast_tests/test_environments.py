@@ -587,7 +587,10 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
         # check the observation space
         self.assertTrue(test_space(
             env.observation_space,
-            expected_size=3, expected_min=0, expected_max=1))
+            expected_size=3,
+            expected_min=-float('inf'),
+            expected_max=float('inf')
+        ))
 
         # check the action space
         self.assertTrue(test_space(
@@ -606,6 +609,69 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
                 env_params=self.env_params,
                 expected_observed=["human_0"]
             )
+        )
+
+    def test_reward(self):
+        """Check the reward function for different values.
+
+        The reward function should be a linear combination of the average speed
+        of all vehicles and a penalty on the requested accelerations by the
+        AVs.
+        """
+        # create the environment
+        env = WaveAttenuationPOEnv(
+            sim_params=self.sim_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+        env.reset()
+
+        # check the reward for no acceleration
+
+        env.k.vehicle.test_set_speed('human_0', 0)
+        env.k.vehicle.test_set_speed('rl_0', 0)
+        self.assertAlmostEqual(
+            env.compute_reward(rl_actions=[0], fail=False),
+            0
+        )
+
+        env.k.vehicle.test_set_speed('human_0', 0)
+        env.k.vehicle.test_set_speed('rl_0', 1)
+        self.assertAlmostEqual(
+            env.compute_reward(rl_actions=[0], fail=False),
+            0.1
+        )
+
+        env.k.vehicle.test_set_speed('human_0', 1)
+        env.k.vehicle.test_set_speed('rl_0', 1)
+        self.assertAlmostEqual(
+            env.compute_reward(rl_actions=[0], fail=False),
+            0.2
+        )
+
+        # check the fail option
+
+        env.k.vehicle.test_set_speed('human_0', 1)
+        env.k.vehicle.test_set_speed('rl_0', 1)
+        self.assertAlmostEqual(
+            env.compute_reward(rl_actions=[0], fail=True),
+            0
+        )
+
+        # check the effect of RL actions
+
+        env.k.vehicle.test_set_speed('human_0', 1)
+        env.k.vehicle.test_set_speed('rl_0', 1)
+        self.assertAlmostEqual(
+            env.compute_reward(rl_actions=None, fail=False),
+            0
+        )
+
+        env.k.vehicle.test_set_speed('human_0', 1)
+        env.k.vehicle.test_set_speed('rl_0', 1)
+        self.assertAlmostEqual(
+            env.compute_reward(rl_actions=[1], fail=False),
+            -3.8
         )
 
 
