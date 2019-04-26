@@ -72,18 +72,9 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         traffic_lights = Box(
             low=0,
             high=1,
-            shape=(1,), # the state of this intersection. Either left-right, or top-bottom traffic is passing
+            shape=(self.num_inbounds,), # the state of this intersection. Either left-right, or top-bottom traffic is passing
             dtype=np.float32)
         return Tuple((speed, dist_to_intersec, traffic_lights))
-
-    # def get_state(self, **kwargs):
-    #     state = np.array([[
-    #         self.k.vehicle.get_speed(veh_id) / self.k.scenario.max_speed(),
-    #         self.k.vehicle.get_x_by_id(veh_id) / self.k.scenario.length()
-    #     ] for veh_id in self.sorted_ids])
-    #     state = np.ndarray.flatten(state)
-    #     print(state, state.shape)
-    #     return {'av': state, 'adversary': state}
 
     def get_state(self):
         """
@@ -91,20 +82,23 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         light and for each vehicle its velocity, distance to intersection. At also returns the state 
         of the 4 traffic lights in the intersection This is partially observed
         """
-        speeds = []
-        dist_to_intersec = []
-        traffic_light_states = []
+
         max_speed = max(
             self.k.scenario.speed_limit(edge)
             for edge in self.k.scenario.get_edge_list())
+
         max_dist = max(self.scenario.short_length, self.scenario.long_length,
-                       self.scenario.inner_length)
+                    self.scenario.inner_length)
         agent_state_dict = {}
         i = 0
         for intersection, edges in self.scenario.get_node_mapping():
             i = i + 1
-            agent_id = "intersection" + str(i)
+            agent_id = "intersection" + str(i) # each intersection is an agent
             observed_vehicle_ids = self.k_closest_to_intersection(edges, self.num_closest_vehicles)
+
+            speeds = []
+            dist_to_intersec = []
+            traffic_light_states = []
 
             speeds = [
                 self.k.vehicle.get_speed(veh_id) / max_speed
@@ -121,21 +115,23 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
                             - self.k.vehicle.get_position(veh_id)) / max_dist
                     )
 
-            traffic_states_chars = self.k.traffic_light.get_state(intersection) 
+            traffic_light_states_chars = self.k.traffic_light.get_state(intersection) 
+            
             for j in range(self.num_inbounds):
-                if traffic_states_chars[j] == 'G' or traffic_states_chars[j] == 'g': # if traffic light is green
+                if traffic_light_states_chars[j] == 'G' or traffic_light_states_chars[j] == 'g': # if traffic light is green
                     traffic_light_states.append(1)
-                elif traffic_states_chars[j] == 'R' or traffic_states_chars[j] == 'r': # if traffic light is red
+                elif traffic_light_states_chars[j] == 'R' or traffic_light_states_chars[j] == 'r': # if traffic light is red
                     traffic_light_states.append(0)
                 else:
                    traffic_light_states.append(0.5) 
 
+            
             # construct the state (observation) for each agent
             observation = np.array(
                 np.concatenate([
                     speeds, dist_to_intersec, traffic_light_states  # or:   speeds, dist_to_intersec, self.last_change.flatten().tolist()
                 ]))
-            observation = np.ndarray.flatten(observation)
+            # observation = np.ndarray.flatten(observation)
 
             # each intersection is an agent, so we will make a dictionary that maps form 'intersectionI' to the state of that agent.
             agent_state_dict.update({agent_id: observation})

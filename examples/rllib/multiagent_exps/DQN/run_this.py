@@ -130,13 +130,14 @@ def run_grid():
         while True:
             # fresh env
             env.render()
-
-            # RL choose action based on observation
-            action = RL.choose_action(observation)
+            action = dict()
+            for agent_id in observation.keys():
+                # RL choose action based on observation
+                action[agent_id] = RL.choose_action(observation[agent_id])
 
             # RL take action and get next observation and reward
             observation_, reward, done = env.step(action)
-            
+
             RL.store_transition(observation, action, reward, observation_)
 
             if (step > 200) and (step % 5 == 0):
@@ -160,8 +161,10 @@ if __name__ == "__main__":
     env_params, sim_params, scenario = create_grid_env()
 
     env = MultiAgentGrid(env_params, sim_params, scenario)
+ 
     n_features = sum([x.shape[0] for x in env.observation_space.sample()])
-    RL = DeepQNetwork(env.num_traffic_lights * 2, n_features,
+    print(n_features)
+    RL = DeepQNetwork(2, n_features,
                       learning_rate=0.01,
                       reward_decay=0.9,
                       e_greedy=0.9,
