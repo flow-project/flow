@@ -34,6 +34,7 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         
         super().__init__(env_params, sim_params, scenario, simulator)
         self.NUM_FOG_NODES = len(self.k.traffic_light.get_ids())
+        self.agent_name_prefix = 'intersection'
 
 
     @property
@@ -93,7 +94,7 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         i = 0
         for intersection, edges in self.scenario.get_node_mapping():
             i = i + 1
-            agent_id = "intersection" + str(i) # each intersection is an agent
+            agent_id = self.agent_name_prefix + str(i) 
             observed_vehicle_ids = self.k_closest_to_intersection(edges, self.num_closest_vehicles)
 
             speeds = []
@@ -133,50 +134,54 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
                 ]))
             # observation = np.ndarray.flatten(observation)
 
-            # each intersection is an agent, so we will make a dictionary that maps form 'intersectionI' to the state of that agent.
+            # each intersection is an agent, so we will make a dictionary that maps form "self.agent_name_prefix+'i'" to the state of that agent.
             agent_state_dict.update({agent_id: observation})
 
         return agent_state_dict   
 
     def _apply_rl_actions(self, rl_actions):
-    
-        # check if the action space is discrete
-        if self.discrete:
-            # convert single value (Discrete) to list of 0's and 1's
-            rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
-        else:
-            # convert values less than 0.5 to zero and above to 1. 0's indicate
-            # that should not switch the direction
-            rl_mask = rl_actions > 0.5
 
-        for agent_id, action in enumerate(rl_mask):
+        for agent_name in rl_actions:
+            action = rl_actions[agent_name]
+            # check if the action space is discrete
+            
+            if self.discrete:
+                # convert single value (Discrete) to list of 0's and 1's
+                action = [int(x) for x in list('{0:0b}'.format(action))]
+            else:
+                # convert values less than 0.5 to zero and above to 1. 0's indicate
+                # that should not switch the direction
+                action = action > 0.5
+            agent_num = agent_name[len(self.agent_name_prefix) : len(agent_name)] # agent_id = '15' if agent_name is 'intersection15'
+            print(agent_num)
+            print(self.last_change.shape())
             # check if our timer has exceeded the yellow phase, meaning it
             # should switch to red
-            if self.last_change[agent_id, 2] == 0:  # currently yellow
-                self.last_change[agent_id, 0] += self.sim_step
-                if self.last_change[agent_id, 0] >= self.min_switch_time:
-                    if self.last_change[agent_id, 1] == 0:
+            if self.last_change[agent_num, 2] == 0:  # currently yellow
+                self.last_change[agent_num, 0] += self.sim_step
+                if self.last_change[agent_num, 0] >= self.min_switch_time:
+                    if self.last_change[agent_num, 1] == 0:
                         self.k.traffic_light.set_state(
-                            node_id='intersection{}'.format(agent_id),
+                            node_id=agent_name,
                             state="GrGr")
                     else:
                         self.k.traffic_light.set_state(
-                            node_id='intersection{}'.format(agent_id),
+                            node_id=agent_name,
                             state='rGrG')
-                    self.last_change[agent_id, 2] = 1
+                    self.last_change[agent_num, 2] = 1
             else:
                 if action:
-                    if self.last_change[agent_id, 1] == 0:
+                    if self.last_change[agent_num, 1] == 0:
                         self.k.traffic_light.set_state(
-                            node_id='intersection{}'.format(agent_id),
+                            node_id=self.agent_name_prefix,
                             state='yryr')
                     else:
                         self.k.traffic_light.set_state(
-                            node_id='intersection{}'.format(agent_id),
+                            node_id=self.agent_name_prefix,
                             state='ryry')
-                    self.last_change[agent_id, 0] = 0.0
-                    self.last_change[agent_id, 1] = not self.last_change[agent_id, 1]
-                    self.last_change[agent_id, 2] = 0
+                    self.last_change[agent_num, 0] = 0.0
+                    self.last_change[agent_num, 1] = not self.last_change[agent_num, 1]
+                    self.last_change[agent_num, 2] = 0
 
     def compute_reward(self, rl_actions, **kwargs):
         """Each agents receives a reward that is with regards
@@ -189,12 +194,12 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         agent_reward_dict = {}
         for intersection, edges in self.scenario.get_node_mapping():
             i = i + 1
-            agent_id = "intersection" + str(i)
+            agent_id = self.agent_name_prefix + str(i)
 
             observed_vehicle_ids = self.k_closest_to_intersection(edges, self.num_closest_vehicles)
             # construct the reward for each agent
             reward = np.mean(self.k.vehicle.get_speed(observed_vehicle_ids))    # or:      reward = - rewards.avg_delay_specified_vehicles(self, observed_vehicle_ids)
-            # each intersection is an agent, so we will make a dictionary that maps form 'intersectionI' to the reward of that agent.
+            # each intersection is an agent, so we will make a dictionary that maps form "self.agent_name_prefix+'i'" to the reward of that agent.
             agent_reward_dict.update({agent_id: reward})
 
         if self.env_params.evaluate:

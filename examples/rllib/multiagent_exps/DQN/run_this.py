@@ -163,7 +163,7 @@ if __name__ == "__main__":
     env = MultiAgentGrid(env_params, sim_params, scenario)
  
     n_features = sum([x.shape[0] for x in env.observation_space.sample()])
-    print(n_features)
+   
     RL = DeepQNetwork(2, n_features,
                       learning_rate=0.01,
                       reward_decay=0.9,
