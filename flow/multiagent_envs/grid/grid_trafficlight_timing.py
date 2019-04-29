@@ -72,8 +72,8 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
             dtype=np.float32)
         traffic_lights = Box(
             low=0,
-            high=1,
-            shape=(self.num_inbounds,), # the state of this intersection. Either left-right, or top-bottom traffic is passing
+            high=3,
+            shape=(1,), # the state of this intersection. 4 possibilities. Either left-right, or top-bottom traffic is passing, or it's the yellow light between them
             dtype=np.float32)
         return Tuple((speed, dist_to_intersec, traffic_lights))
 
@@ -118,13 +118,15 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
 
             traffic_light_states_chars = self.k.traffic_light.get_state(intersection) 
             
-            for j in range(self.num_inbounds):
-                if traffic_light_states_chars[j] == 'G' or traffic_light_states_chars[j] == 'g': # if traffic light is green
-                    traffic_light_states.append(1)
-                elif traffic_light_states_chars[j] == 'R' or traffic_light_states_chars[j] == 'r': # if traffic light is red
-                    traffic_light_states.append(0)
-                else:
-                   traffic_light_states.append(0.5) 
+            
+            if traffic_light_states_chars == 'GrGr' :
+                traffic_light_states.append(1)
+            elif traffic_light_states_chars == 'rGrG': 
+                traffic_light_states.append(0)
+            elif traffic_light_states_chars == 'yryr' :
+                traffic_light_states.append(2) 
+            else: # ryry
+                traffic_light_states.append(3) 
 
             
             # construct the state (observation) for each agent
@@ -153,35 +155,35 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
                 # that should not switch the direction
                 action = action > 0.5
             agent_num = agent_name[len(self.agent_name_prefix) : len(agent_name)] # agent_id = '15' if agent_name is 'intersection15'
-            print(agent_num)
-            print(self.last_change.shape())
+            tl_num = int(agent_num, 10) - 1 # the index of traffic lights starts from 0
+           
             # check if our timer has exceeded the yellow phase, meaning it
             # should switch to red
-            if self.last_change[agent_num, 2] == 0:  # currently yellow
-                self.last_change[agent_num, 0] += self.sim_step
-                if self.last_change[agent_num, 0] >= self.min_switch_time:
-                    if self.last_change[agent_num, 1] == 0:
+            if self.last_change[tl_num, 2] == 0:  # currently yellow
+                self.last_change[tl_num, 0] += self.sim_step
+                if self.last_change[tl_num, 0] >= self.min_switch_time:
+                    if self.last_change[tl_num, 1] == 0:
                         self.k.traffic_light.set_state(
-                            node_id=agent_name,
+                            node_id='center' + str(tl_num),
                             state="GrGr")
                     else:
                         self.k.traffic_light.set_state(
-                            node_id=agent_name,
+                            node_id='center' + str(tl_num),
                             state='rGrG')
-                    self.last_change[agent_num, 2] = 1
+                    self.last_change[tl_num, 2] = 1
             else:
                 if action:
-                    if self.last_change[agent_num, 1] == 0:
+                    if self.last_change[tl_num, 1] == 0:
                         self.k.traffic_light.set_state(
-                            node_id=self.agent_name_prefix,
+                            node_id='center' + str(tl_num),
                             state='yryr')
                     else:
                         self.k.traffic_light.set_state(
-                            node_id=self.agent_name_prefix,
+                            node_id='center' + str(tl_num),
                             state='ryry')
-                    self.last_change[agent_num, 0] = 0.0
-                    self.last_change[agent_num, 1] = not self.last_change[agent_num, 1]
-                    self.last_change[agent_num, 2] = 0
+                    self.last_change[tl_num, 0] = 0.0
+                    self.last_change[tl_num, 1] = not self.last_change[tl_num, 1]
+                    self.last_change[tl_num, 2] = 0
 
     def compute_reward(self, rl_actions, **kwargs):
         """Each agents receives a reward that is with regards
