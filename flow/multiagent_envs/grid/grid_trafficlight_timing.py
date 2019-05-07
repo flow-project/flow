@@ -192,7 +192,7 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         # in the warmup steps
         if rl_actions is None:
             return {}
-
+        i = 0
         agent_reward_dict = {}
         for intersection, edges in self.scenario.get_node_mapping():
             i = i + 1

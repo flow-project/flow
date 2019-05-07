@@ -42,6 +42,7 @@ def create_grid_env(render=None):
     short_length = 300
     N_ROWS = 2
     N_COLUMNS = 3
+    num_agents = N_ROWS * N_COLUMNS
     num_cars_left = 20
     num_cars_right = 20
     num_cars_top = 20
@@ -119,7 +120,7 @@ def create_grid_env(render=None):
         initial_config=initial_config,
         traffic_lights=tl_logic)
 
-    return env_params, sim_params, scenario
+    return env_params, sim_params, scenario, num_agents
 
 def run_grid():
     step = 0
@@ -133,15 +134,20 @@ def run_grid():
             action = dict()
             for agent_id in observation.keys():
                 # RL choose action based on observation
-                action[agent_id] = RL.choose_action(observation[agent_id])
+                action[agent_id] = RL[agent_id].choose_action(observation[agent_id])
 
             # RL take action and get next observation and reward
-            observation_, reward, done = env.step(action)
+            observation_, reward, done, _ = env.step(action)
+           
+            # print(reward)
 
-            RL.store_transition(observation, action, reward, observation_)
+            for agent_id in observation.keys():
+                print('kkk')
+                RL[agent_id].store_transition(observation[agent_id], action[agent_id], reward[agent_id], observation_[agent_id])
 
-            if (step > 200) and (step % 5 == 0):
-                RL.learn()
+                if (step > 1):
+                    print('hhhh')
+                    RL[agent_id].learn()
 
             # swap observation
             observation = observation_
@@ -158,19 +164,22 @@ def run_grid():
 
 if __name__ == "__main__":
     # maze game
-    env_params, sim_params, scenario = create_grid_env()
+    env_params, sim_params, scenario, num_agents = create_grid_env()
 
     env = MultiAgentGrid(env_params, sim_params, scenario)
  
     n_features = sum([x.shape[0] for x in env.observation_space.sample()])
-   
-    RL = DeepQNetwork(2, n_features,
+    RL = dict()
+    for agent_id in range(1, num_agents+1):
+        agent_name = 'intersection'+str(agent_id)
+        RL[agent_name] = DeepQNetwork(2, n_features,
                       learning_rate=0.01,
                       reward_decay=0.9,
                       e_greedy=0.9,
                       replace_target_iter=200,
                       memory_size=2000,
+                      agent = agent_id,
                       # output_graph=True
                       )
     run_grid()
-    RL.plot_cost() 
+    # RL.plot_cost() 

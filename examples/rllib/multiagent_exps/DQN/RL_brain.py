@@ -24,6 +24,7 @@ class DeepQNetwork:
             self,
             n_actions,
             n_features,
+            agent,
             learning_rate=0.01,
             reward_decay=0.9,
             e_greedy=0.9,
@@ -31,7 +32,7 @@ class DeepQNetwork:
             memory_size=500,
             batch_size=32,
             e_greedy_increment=None,
-            output_graph=False,
+            output_graph=False,          
     ):
         self.n_actions = n_actions
         self.n_features = n_features
@@ -51,7 +52,7 @@ class DeepQNetwork:
         self.memory = np.zeros((self.memory_size, n_features * 2 + 2))
 
         # consist of [target_net, evaluate_net]
-        self._build_net()
+        self._build_net(agent)
         t_params = tf.get_collection('target_net_params')
         e_params = tf.get_collection('eval_net_params')
         self.replace_target_op = [tf.assign(t, e) for t, e in zip(t_params, e_params)]
@@ -66,11 +67,11 @@ class DeepQNetwork:
         self.sess.run(tf.global_variables_initializer())
         self.cost_his = []
 
-    def _build_net(self):
+    def _build_net(self, agent):
         # ------------------ build evaluate_net ------------------
         self.s = tf.placeholder(tf.float32, [None, self.n_features], name='s')  # input
         self.q_target = tf.placeholder(tf.float32, [None, self.n_actions], name='Q_target')  # for calculating loss
-        with tf.variable_scope('eval_net'):
+        with tf.variable_scope('eval_net'+str(agent)):
             # c_names(collections_names) are the collections to store variables
             c_names, n_l1, w_initializer, b_initializer = \
                 ['eval_net_params', tf.GraphKeys.GLOBAL_VARIABLES], 10, \
@@ -95,7 +96,7 @@ class DeepQNetwork:
 
         # ------------------ build target_net ------------------
         self.s_ = tf.placeholder(tf.float32, [None, self.n_features], name='s_')    # input
-        with tf.variable_scope('target_net'):
+        with tf.variable_scope('target_net'+str(agent)):
             # c_names(collections_names) are the collections to store variables
             c_names = ['target_net_params', tf.GraphKeys.GLOBAL_VARIABLES]
 
@@ -119,6 +120,7 @@ class DeepQNetwork:
 
         # replace the old memory with new memory
         index = self.memory_counter % self.memory_size
+        
         self.memory[index, :] = transition
 
         self.memory_counter += 1
