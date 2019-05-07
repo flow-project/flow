@@ -3,6 +3,7 @@
 from flow.visualize import visualizer_rllib as vs_rllib
 from flow.visualize.visualizer_rllib import visualizer_rllib
 import flow.visualize.capacity_diagram_generator as cdg
+import flow.visualize.time_space_diagram as tsd
 
 import os
 import unittest
@@ -100,6 +101,86 @@ class TestPlotters(unittest.TestCase):
                                              expected_unique_inflows)
         np.testing.assert_array_almost_equal(mean_outflows, expected_means)
         np.testing.assert_array_almost_equal(std_outflows, expected_stds)
+
+    def test_time_space_diagram_figure_eight(self):
+        # check that the exported data matches the expected emission file data
+        fig8_emission_data = {
+            'idm_3': {'pos': [27.25, 28.25, 30.22, 33.17],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.98, 2.95],
+                      'edge': ['upper_ring', 'upper_ring', 'upper_ring',
+                               'upper_ring']},
+            'idm_4': {'pos': [56.02, 57.01, 58.99, 61.93],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.98, 2.95],
+                      'edge': ['upper_ring', 'upper_ring', 'upper_ring',
+                               'upper_ring']},
+            'idm_5': {'pos': [84.79, 85.78, 87.76, 90.7],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.98, 2.95],
+                      'edge': ['upper_ring', 'upper_ring', 'upper_ring',
+                               'upper_ring']},
+            'idm_2': {'pos': [28.77, 29.76, 1.63, 4.58],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.97, 2.95],
+                      'edge': ['top', 'top', 'upper_ring', 'upper_ring']},
+            'idm_13': {'pos': [106.79, 107.79, 109.77, 112.74],
+                       'time': [1.0, 2.0, 3.0, 4.0],
+                       'vel': [0.0, 0.99, 1.98, 2.96],
+                       'edge': ['lower_ring', 'lower_ring', 'lower_ring',
+                                'lower_ring']},
+            'idm_9': {'pos': [22.01, 23.0, 24.97, 27.92],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.97, 2.95],
+                      'edge': ['left', 'left', 'left', 'left']},
+            'idm_6': {'pos': [113.56, 114.55, 116.52, 119.47],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.97, 2.95],
+                      'edge': ['upper_ring', 'upper_ring', 'upper_ring',
+                               'upper_ring']},
+            'idm_8': {'pos': [29.44, 0.28, 2.03, 4.78],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.84, 1.76, 2.75],
+                      'edge': ['right', ':center_0', ':center_0',
+                               ':center_0']},
+            'idm_12': {'pos': [78.03, 79.02, 80.99, 83.94],
+                       'time': [1.0, 2.0, 3.0, 4.0],
+                       'vel': [0.0, 0.99, 1.98, 2.95],
+                       'edge': ['lower_ring', 'lower_ring', 'lower_ring',
+                                'lower_ring']},
+            'idm_10': {'pos': [20.49, 21.48, 23.46, 26.41],
+                       'time': [1.0, 2.0, 3.0, 4.0],
+                       'vel': [0.0, 0.99, 1.98, 2.95],
+                       'edge': ['lower_ring', 'lower_ring', 'lower_ring',
+                                'lower_ring']},
+            'idm_11': {'pos': [49.26, 50.25, 52.23, 55.17],
+                       'time': [1.0, 2.0, 3.0, 4.0],
+                       'vel': [0.0, 0.99, 1.98, 2.95],
+                       'edge': ['lower_ring', 'lower_ring', 'lower_ring',
+                                'lower_ring']},
+            'idm_1': {'pos': [0.0, 0.99, 2.97, 5.91],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.98, 2.95],
+                      'edge': ['top', 'top', 'top', 'top']},
+            'idm_7': {'pos': [0.67, 1.66, 3.64, 6.58],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.97, 2.94],
+                      'edge': ['right', 'right', 'right', 'right']},
+            'idm_0': {'pos': [0.0, 1.0, 2.98, 5.95],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 1.0, 1.99, 2.97],
+                      'edge': ['bottom', 'bottom', 'bottom', 'bottom']}
+        }
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        actual_emission_data = tsd.import_data_from_emission(
+            os.path.join(dir_path, 'test_files/fig8_emission.csv'))
+        self.assertDictEqual(fig8_emission_data, actual_emission_data)
+
+    def test_time_space_diagram_merge(self):
+        pass
+
+    def test_time_space_diagram_ring_road(self):
+        pass
 
 
 if __name__ == '__main__':
