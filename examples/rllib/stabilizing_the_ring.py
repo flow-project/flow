@@ -65,6 +65,7 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         warmup_steps=750,
+        clip_actions=False,
         additional_params={
             "max_accel": 1,
             "max_decel": 1,

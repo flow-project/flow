@@ -361,8 +361,11 @@ class Env(*classdef):
         infos = {}
 
         # compute the reward
-        rl_clipped = self.clip_actions(rl_actions)
-        reward = self.compute_reward(rl_clipped, fail=crash)
+        if self.env_params.clip_actions:
+            rl_clipped = self.clip_actions(rl_actions)
+            reward = self.compute_reward(rl_clipped, fail=crash)
+        else:
+            reward = self.compute_reward(rl_actions, fail=crash)
 
         return next_observation, reward, done, infos
 
