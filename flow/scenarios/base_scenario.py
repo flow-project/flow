@@ -371,6 +371,10 @@ class Scenario(Serializable):
             * Element = dict of departure speed, vehicle type, depart Position,
               depart edges
         """
+        # this is meant to deal with the case that there is only one rou file
+        if type(file_names) == str:
+            file_names = [file_names]
+
         vehicle_data = dict()
         routes_data = dict()
         type_data = defaultdict(int)
