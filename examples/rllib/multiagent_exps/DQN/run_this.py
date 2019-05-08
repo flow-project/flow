@@ -63,7 +63,7 @@ def create_grid_env(render=None):
         "cars_bot": num_cars_bot
     }
 
-    sim_params = SumoParams(sim_step=0.1, render=True)
+    sim_params = SumoParams(sim_step=0.1, render=False)
 
     if render is not None:
         sim_params.render = render
@@ -130,7 +130,7 @@ def run_grid():
 
         while True:
             # fresh env
-            env.render()
+            # env.render()
             action = dict()
             for agent_id in observation.keys():
                 # RL choose action based on observation
@@ -138,23 +138,23 @@ def run_grid():
 
             # RL take action and get next observation and reward
             observation_, reward, done, _ = env.step(action)
-           
-            # print(reward)
 
             for agent_id in observation.keys():
-                print('kkk')
+                # print(agent_id)
                 RL[agent_id].store_transition(observation[agent_id], action[agent_id], reward[agent_id], observation_[agent_id])
 
-                if (step > 1):
-                    print('hhhh')
+                if (step > 100 and step % 10 == 0):
                     RL[agent_id].learn()
+                    print(reward)
+                    # print(RL[agent_id])
+
+                # break while loop when end of this episode
+                if done[agent_id]:
+                    break
 
             # swap observation
             observation = observation_
-
-            # break while loop when end of this episode
-            if done:
-                break
+            
             step += 1
 
     # end of game
