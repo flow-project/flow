@@ -2,13 +2,25 @@
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
+from flow.core.params import SumoCarFollowingParams
+from flow.core.params import SumoLaneChangeParams
 import time
+import xml.etree.ElementTree as ElementTree
+from lxml import etree
+from collections import defaultdict
 
 try:
     # Import serializable if rllab is installed
     from rllab.core.serializable import Serializable
 except ImportError:
     Serializable = object
+
+# default sumo probability value  TODO (ak): remove
+DEFAULT_PROBABILITY = 0
+# default sumo vehicle length value (in meters) TODO (ak): remove
+DEFAULT_LENGTH = 5
+# default sumo vehicle class class TODO (ak): remove
+DEFAULT_VCLASS = 0
 
 
 class Scenario(Serializable):
@@ -49,7 +61,7 @@ class Scenario(Serializable):
       file. This file is specified in the NetParams object. For example:
 
         >>> from flow.core.params import NetParams
-        >>> net_params = NetParams(template='/path/to/netfile.net.xml')
+        >>> net_params = NetParams(template='/path/to/template')
 
       In this case, no ``specify_nodes`` and ``specify_edges`` methods are
       needed. However, a ``specify_routes`` method is still needed to specify
@@ -93,6 +105,9 @@ class Scenario(Serializable):
         self.initial_config = initial_config
         self.traffic_lights = traffic_lights
 
+        # specify routes vehicles can take
+        self.routes = self.specify_routes(net_params)
+
         if net_params.template is None and net_params.osm_path is None:
             # specify the attributes of the nodes
             self.nodes = self.specify_nodes(net_params)
@@ -102,14 +117,41 @@ class Scenario(Serializable):
             self.types = self.specify_types(net_params)
             # specify the connection attributes (default is None)
             self.connections = self.specify_connections(net_params)
+
+        # this is to be used if file paths other than the the network geometry
+        # file is specified
+        elif type(net_params.template) is dict:
+            if 'rou' in net_params.template:
+                veh, rou = self._vehicle_infos(net_params.template['rou'])
+
+                vtypes = self._vehicle_type(net_params.template.get('vtype'))
+                cf = self._get_cf_params(vtypes)
+                lc = self._get_lc_params(vtypes)
+
+                # add the vehicle types to the VehicleParams object
+                for t in vtypes:
+                    vehicles.add(veh_id=t, car_following_params=cf[t],
+                                 lane_change_params=lc[t], num_vehicles=0)
+
+                # add the routes of the vehicles that will be departed later
+                # under the name of the vehicle. This will later be identified
+                # by k.vehicles._add_departed
+                self.routes = rou
+
+                # vehicles to be added with different departure times
+                self.template_vehicles = veh
+
+            self.types = None
+            self.nodes = None
+            self.edges = None
+            self.connections = None
+
+        # osm_path or template as type str
         else:
             self.nodes = None
             self.edges = None
             self.types = None
             self.connections = None
-
-        # specify routes vehicles can take
-        self.routes = self.specify_routes(net_params)
 
         # optional parameters, used to get positions from some global reference
         self.edge_starts = self.specify_edge_starts()
@@ -314,6 +356,150 @@ class Scenario(Serializable):
             list of start speeds
         """
         raise NotImplementedError
+
+    @staticmethod
+    def _vehicle_infos(file_names):
+        """Import of vehicle from a configuration file.
+
+        This is a utility function for computing vehicle information. It
+        imports a network configuration file, and returns the information on
+        the vehicle and add it into the Vehicle object.
+
+        Parameters
+        ----------
+        file_names : list of str
+            path to the xml file to load
+
+        Returns
+        -------
+        dict <dict>
+
+            * Key = id of the vehicle
+            * Element = dict of departure speed, vehicle type, depart Position,
+              depart edges
+        """
+        # this is meant to deal with the case that there is only one rou file
+        if isinstance(file_names, str):
+            file_names = [file_names]
+
+        vehicle_data = dict()
+        routes_data = dict()
+        type_data = defaultdict(int)
+
+        for filename in file_names:
+            # import the .net.xml file containing all edge/type data
+            parser = etree.XMLParser(recover=True)
+            tree = ElementTree.parse(filename, parser=parser)
+            root = tree.getroot()
+
+            # collect the departure properties and routes and vehicles whose
+            # properties are instantiated within the .rou.xml file. This will
+            # only apply if such data is within the file (it is not implemented
+            # by scenarios in Flow).
+            for vehicle in root.findall('vehicle'):
+                # collect the edges the vehicle is meant to traverse
+                route = vehicle.find('route')
+                route_edges = route.attrib["edges"].split(' ')
+
+                # collect the names of each vehicle type and number of vehicles
+                # of each type
+                type_vehicle = vehicle.attrib['type']
+                type_data[type_vehicle] += 1
+
+                vehicle_data[vehicle.attrib['id']] = {
+                    'departSpeed': vehicle.attrib['departSpeed'],
+                    'depart': vehicle.attrib['depart'],
+                    'typeID': type_vehicle,
+                    'departPos': vehicle.attrib['departPos'],
+                }
+
+                routes_data[vehicle.attrib['id']] = route_edges
+
+            # collect the edges the vehicle is meant to traverse for the given
+            # sets of routes that are not associated with individual vehicles
+            for route in root.findall('route'):
+                route_edges = route.attrib["edges"].split(' ')
+                routes_data[route.attrib['id']] = route_edges
+
+        return vehicle_data, routes_data
+
+    @staticmethod
+    def _vehicle_type(filename):
+        """Import vehicle type data from a *.add.xml file.
+
+        This is a utility function for outputting all the type of vehicle.
+
+        Parameters
+        ----------
+        filename : str
+            path to the vtypes.add.xml file to load
+
+        Returns
+        -------
+        dict or None
+            the key is the vehicle_type id and the value is a dict we've type
+            of the vehicle, depart edges, depart Speed, departPos. If no
+            filename is provided, this method returns None as well.
+        """
+        if filename is None:
+            return None
+
+        parser = etree.XMLParser(recover=True)
+        tree = ElementTree.parse(filename, parser=parser)
+
+        root = tree.getroot()
+        veh_type = {}
+
+        # this hack is meant to support the LuST scenario and Flow scenarios
+        root = [root] if len(root.findall('vTypeDistribution')) == 0 \
+            else root.findall('vTypeDistribution')
+
+        for r in root:
+            for vtype in r.findall('vType'):
+                # TODO: make for everything
+                veh_type[vtype.attrib['id']] = {
+                    'vClass': vtype.attrib.get('vClass', DEFAULT_VCLASS),
+                    'accel': vtype.attrib['accel'],
+                    'decel': vtype.attrib['decel'],
+                    'sigma': vtype.attrib['sigma'],
+                    'length': vtype.attrib.get('length', DEFAULT_LENGTH),
+                    'minGap': vtype.attrib['minGap'],
+                    'maxSpeed': vtype.attrib['maxSpeed'],
+                    'probability': vtype.attrib.get(
+                        'probability', DEFAULT_PROBABILITY),
+                    'speedDev': vtype.attrib['speedDev']
+                }
+
+        return veh_type
+
+    @staticmethod
+    def _get_cf_params(vtypes):
+        """Return the car-following sumo params from vtypes."""
+        ret = {}
+        for typ in vtypes:
+            # TODO: add vClass
+            ret[typ] = SumoCarFollowingParams(
+                speed_mode='all_checks',
+                accel=float(vtypes[typ]['accel']),
+                decel=float(vtypes[typ]['decel']),
+                sigma=float(vtypes[typ]['sigma']),
+                length=float(vtypes[typ]['length']),
+                min_gap=float(vtypes[typ]['minGap']),
+                max_speed=float(vtypes[typ]['maxSpeed']),
+                probability=float(vtypes[typ]['probability']),
+                speed_dev=float(vtypes[typ]['speedDev'])
+            )
+
+        return ret
+
+    @staticmethod
+    def _get_lc_params(vtypes):
+        """Return the lane change sumo params from vtypes."""
+        ret = {}
+        for typ in vtypes:
+            ret[typ] = SumoLaneChangeParams(lane_change_mode=1621)
+
+        return ret
 
     def __str__(self):
         """Return the name of the scenario and the number of vehicles."""
