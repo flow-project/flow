@@ -15,6 +15,13 @@ try:
 except ImportError:
     Serializable = object
 
+# default sumo probability value  TODO (ak): remove
+DEFAULT_PROBABILITY = 0
+# default sumo vehicle length value (in meters) TODO (ak): remove
+DEFAULT_LENGTH = 5
+# default sumo vehicle class class TODO (ak): remove
+DEFAULT_VCLASS = 0
+
 
 class Scenario(Serializable):
     """Base scenario class.
@@ -372,7 +379,7 @@ class Scenario(Serializable):
               depart edges
         """
         # this is meant to deal with the case that there is only one rou file
-        if type(file_names) == str:
+        if isinstance(file_names, str):
             file_names = [file_names]
 
         vehicle_data = dict()
@@ -385,6 +392,10 @@ class Scenario(Serializable):
             tree = ElementTree.parse(filename, parser=parser)
             root = tree.getroot()
 
+            # collect the departure properties and routes and vehicles whose
+            # properties are instantiated within the .rou.xml file. This will
+            # only apply if such data is within the file (it is not implemented
+            # by scenarios in Flow).
             for vehicle in root.findall('vehicle'):
                 # collect the edges the vehicle is meant to traverse
                 route = vehicle.find('route')
@@ -404,11 +415,18 @@ class Scenario(Serializable):
 
                 routes_data[vehicle.attrib['id']] = route_edges
 
+            # collect the edges the vehicle is meant to traverse for the given
+            # sets of routes that are not associated with individual vehicles
+            for route in root.findall('route'):
+                route_edges = route.attrib["edges"].split(' ')
+
+                routes_data[route.attrib['id']] = route_edges
+
         return vehicle_data, routes_data
 
     @staticmethod
     def _vehicle_type(filename):
-        """Import vehicle type from a vtypes.add.xml file.
+        """Import vehicle type data from a *.add.xml file.
 
         This is a utility function for outputting all the type of vehicle.
 
@@ -433,19 +451,25 @@ class Scenario(Serializable):
         root = tree.getroot()
         veh_type = {}
 
-        for transport in root.findall('vTypeDistribution'):
-            for vtype in transport.findall('vType'):
+        # this hack is meant to support the LuST scenario and Flow scenarios
+        root = [root] if len(root.findall('vTypeDistribution')) == 0 \
+            else root.findall('vTypeDistribution')
+
+        for r in root:
+            for vtype in r.findall('vType'):
                 # TODO: make for everything
                 veh_type[vtype.attrib['id']] = {
-                    'vClass': vtype.attrib['vClass'],
+                    'vClass': vtype.attrib.get('vClass', DEFAULT_VCLASS),
                     'accel': vtype.attrib['accel'],
                     'decel': vtype.attrib['decel'],
                     'sigma': vtype.attrib['sigma'],
-                    'length': vtype.attrib['length'],
+                    'length': vtype.attrib.get('length', DEFAULT_LENGTH),
                     'minGap': vtype.attrib['minGap'],
                     'maxSpeed': vtype.attrib['maxSpeed'],
-                    'probability': vtype.attrib['probability'],
-                    'speedDev': vtype.attrib['speedDev']}
+                    'probability': vtype.attrib.get(
+                        'probability', DEFAULT_PROBABILITY),
+                    'speedDev': vtype.attrib['speedDev']
+                }
 
         return veh_type
 
