@@ -1000,6 +1000,39 @@ class TestNetworkTemplateGenerator(unittest.TestCase):
                              ['lane_change_params'].__dict__,
                              expected_lc_params)
 
+        # test for the case of vehicles in rou.xml
+        net_params = NetParams(
+            template={
+                # network geometry features
+                "net": os.path.join(dir_path, "test_files/fig8_test.net.xml"),
+                # features associated with the routes vehicles take
+                "rou": os.path.join(dir_path, "test_files/lust_test.rou.xml"),
+                # features associated with the properties of drivers
+                "vtype": os.path.join(dir_path, "test_files/fig8_test.add.xml")
+            },
+            no_internal_links=False
+        )
+
+        scenario = Scenario(
+            name="template",
+            net_params=net_params,
+            vehicles=VehicleParams()
+        )
+
+        expected_routes = {
+            'h21652c2:1': [
+                '--31878#3', '--31878#2', '--31878#1', '--31878#0', '-30872#0',
+                '-30872#1', '-30872#2', '-30872#3', '-32750#2', '-32750#3',
+                '-32750#4', '-32750#5', '-32750#6', '-32750#7', '-32750#8',
+                '-32750#9', '-32750#10', '-32750#11', '-32750#12',
+                '--30528#4', '--30528#3', '--30528#2', '--30528#1',
+                '--30528#0', '-31492#2', '--32674#9', '--32674#8',
+                '--32674#7', '--32674#6', '--32674#5', '--32674#4'
+            ]
+        }
+
+        self.assertDictEqual(scenario.routes, expected_routes)
+
 
 if __name__ == '__main__':
     unittest.main()
