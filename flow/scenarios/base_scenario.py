@@ -419,7 +419,6 @@ class Scenario(Serializable):
             # sets of routes that are not associated with individual vehicles
             for route in root.findall('route'):
                 route_edges = route.attrib["edges"].split(' ')
-
                 routes_data[route.attrib['id']] = route_edges
 
         return vehicle_data, routes_data
