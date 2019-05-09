@@ -7,6 +7,7 @@ from flow.core.params import NetParams
 from flow.core.params import VehicleParams
 from flow.core.params import EnvParams
 from flow.core.params import SumoParams
+from flow.scenarios import Scenario
 from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
 from flow.envs import TestEnv
 
@@ -915,6 +916,89 @@ class TestDefaultRoutes(unittest.TestCase):
              "left": ["left"],
              "right": ["right"]}
         )
+
+
+class TestNetworkTemplateGenerator(unittest.TestCase):
+
+    def test_network_template(self):
+        """Test generate data from network templates.
+
+        This methods tests that routes, vehicle types, and network parameters
+        generated from sumo network templates match the expected values. This
+        is done on a variant of the figure eight scenario.
+        """
+        # generate the network parameters for the figure eight net.xml,
+        # rou.xml, and add.xml files
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        net_params = NetParams(
+            template={
+                # network geometry features
+                "net": os.path.join(dir_path, "test_files/fig8_test.net.xml"),
+                # features associated with the routes vehicles take
+                "rou": os.path.join(dir_path, "test_files/fig8_test.rou.xml"),
+                # features associated with the properties of drivers
+                "vtype": os.path.join(dir_path, "test_files/fig8_test.add.xml")
+            },
+            no_internal_links=False
+        )
+
+        # create the scenario object from the network template files
+        scenario = Scenario(
+            name="template",
+            net_params=net_params,
+            vehicles=VehicleParams()
+        )
+
+        expected_routes = {
+            'routetop':
+                ['top', 'upper_ring', 'right', 'left', 'lower_ring', 'bottom'],
+            'routeupper_ring':
+                ['upper_ring', 'right', 'left', 'lower_ring', 'bottom', 'top'],
+            'routeleft':
+                ['left', 'lower_ring', 'bottom', 'top', 'upper_ring', 'right'],
+            'routebottom':
+                ['bottom', 'top', 'upper_ring', 'right', 'left', 'lower_ring'],
+            'routeright':
+                ['right', 'left', 'lower_ring', 'bottom', 'top', 'upper_ring'],
+            'routelower_ring':
+                ['lower_ring', 'bottom', 'top', 'upper_ring', 'right', 'left']
+        }
+
+        expected_cf_params = {
+            'controller_params': {
+                'speedFactor': 1.0,
+                'speedDev': 0.1,
+                'carFollowModel': 'IDM',
+                'decel': 1.5,
+                'impatience': 0.5,
+                'maxSpeed': 30.0,
+                'accel': 1.0,
+                'sigma': 0.5,
+                'tau': 1.0,
+                'minGap': 0.0
+            },
+            'speed_mode': 31
+        }
+
+        expected_lc_params = {
+            'controller_params': {
+                'lcCooperative': '1.0',
+                'lcKeepRight': '1.0',
+                'laneChangeModel': 'LC2013',
+                'lcStrategic': '1.0',
+                'lcSpeedGain': '1.0'
+            },
+            'lane_change_mode': 1621
+        }
+
+        # test the validity of the outputted results
+        self.assertDictEqual(scenario.routes, expected_routes)
+        self.assertDictEqual(scenario.vehicles.type_parameters['idm']
+                             ['car_following_params'].__dict__,
+                             expected_cf_params)
+        self.assertDictEqual(scenario.vehicles.type_parameters['idm']
+                             ['lane_change_params'].__dict__,
+                             expected_lc_params)
 
 
 if __name__ == '__main__':
