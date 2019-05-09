@@ -32,7 +32,7 @@ class DeepQNetwork:
             memory_size=500,
             batch_size=32,
             e_greedy_increment=None,
-            output_graph=False,          
+            output_graph=True,          
     ):
         self.n_actions = n_actions
         self.n_features = n_features

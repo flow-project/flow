@@ -63,7 +63,7 @@ def create_grid_env(render=None):
         "cars_bot": num_cars_bot
     }
 
-    sim_params = SumoParams(sim_step=0.1, render=False)
+    sim_params = SumoParams(sim_step=0.1, render=True)
 
     if render is not None:
         sim_params.render = render
@@ -76,31 +76,31 @@ def create_grid_env(render=None):
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    tl_logic = TrafficLightParams(baseline=False)
-    phases = [{
-        "duration": "31",
-        "minDur": "8",
-        "maxDur": "45",
-        "state": "GGGrrrGGGrrr"
-    }, {
-        "duration": "6",
-        "minDur": "3",
-        "maxDur": "6",
-        "state": "yyyrrryyyrrr"
-    }, {
-        "duration": "31",
-        "minDur": "8",
-        "maxDur": "45",
-        "state": "rrrGGGrrrGGG"
-    }, {
-        "duration": "6",
-        "minDur": "3",
-        "maxDur": "6",
-        "state": "rrryyyrrryyy"
-    }]
-    tl_logic.add("center0", phases=phases, programID=1)
-    tl_logic.add("center1", phases=phases, programID=1)
-    tl_logic.add("center2", tls_type="actuated", phases=phases, programID=1)
+    # tl_logic = TrafficLightParams(baseline=False)
+    # phases = [{
+    #     "duration": "31",
+    #     "minDur": "8",
+    #     "maxDur": "45",
+    #     "state": "GGGrrrGGGrrr"
+    # }, {
+    #     "duration": "6",
+    #     "minDur": "3",
+    #     "maxDur": "6",
+    #     "state": "yyyrrryyyrrr"
+    # }, {
+    #     "duration": "31",
+    #     "minDur": "8",
+    #     "maxDur": "45",
+    #     "state": "rrrGGGrrrGGG"
+    # }, {
+    #     "duration": "6",
+    #     "minDur": "3",
+    #     "maxDur": "6",
+    #     "state": "rrryyyrrryyy"
+    # }]
+    # tl_logic.add("center0", phases=phases, programID=1)
+    # tl_logic.add("center1", phases=phases, programID=1)
+    # tl_logic.add("center2", tls_type="actuated", phases=phases, programID=1)
 
     additional_net_params = {
         "grid_array": grid_array,
@@ -118,7 +118,8 @@ def create_grid_env(render=None):
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
-        traffic_lights=tl_logic)
+        # traffic_lights=tl_logic
+        )
 
     return env_params, sim_params, scenario, num_agents
 
