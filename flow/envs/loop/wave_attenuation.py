@@ -243,9 +243,6 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
 
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
-        super().__init__(env_params, sim_params, scenario, simulator)
-
     @property
     def observation_space(self):
         """See class definition."""
@@ -254,6 +251,9 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
     @property
     def active_observation_shape(self):
         return self.observation_space.shape
+
+    def convert_to_active_observation(self, observation):
+        return observation
 
     def get_state(self):
         """See class definition."""
