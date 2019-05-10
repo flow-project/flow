@@ -168,11 +168,11 @@ class Scenario(Serializable):
         distance of the link from some global reference, i.e. [(link_0, pos_0),
         (link_1, pos_1), ...]
     internal_edge_starts : list of (str, float)
-        A variable similar to `self.edge_starts` but for junctions within the
+        A variable similar to `edge_starts` but for junctions within the
         network. If no junctions are available, this variable will return the
         default variable: `[(':', -1)]` needed by sumo simulations.
     intersection_edge_starts : list of (str, float)
-        A variable similar to `self.edge_starts` but for intersections within
+        A variable similar to `edge_starts` but for intersections within
         the network. This variable will be deprecated in future releases.
 
     Example
