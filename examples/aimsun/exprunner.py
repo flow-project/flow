@@ -1,3 +1,7 @@
+"""
+code adapted from an example of the softlearning library
+(https://github.com/rail-berkeley/softlearning/blob/master/examples/development/main.py)
+"""
 import os
 import copy
 import glob
