@@ -141,12 +141,15 @@ class Scenario(Serializable):
           of other components of this list, such as "speed" and "numLanes".
 
         If the type variable is None, then no types are available within the
-        scenario.
+        scenario. Furthermore, a proper example of this variable being used can
+        be found under `specify_types` in flow/scenarios/loop.py.
 
         Note that, if the scenario is meant to generate the network from an
         OpenStreetMap or template file, this variable is set to None
     connections : list of dict or None
-        TODO
+        A variable used to describe how any specific node's incoming and
+        outgoing edges/lane pairs are connected. If no connections are
+        specified, sumo generates default connections.
 
         If the connections attribute is set to None, then the connections
         within the network will be specified by the simulator.
@@ -154,11 +157,11 @@ class Scenario(Serializable):
         Note that, if the scenario is meant to generate the network from an
         OpenStreetMap or template file, this variable is set to None
     routes : dict
-        A variable whose keys are the starting edge of a specific route and the
-        element is the list of edges a vehicle is meant to traverse starting
-        from that edge. These are only applied at the start of a simulation;
-        vehicles are allowed to reroute within the environment immediately
-        afterwards.
+        A variable whose keys are the starting edge of a specific route, and
+        whose values are the list of edges a vehicle is meant to traverse
+        starting from that edge. These are only applied at the start of a
+        simulation; vehicles are allowed to reroute within the environment
+        immediately afterwards.
     edge_starts : list of (str, float)
         a list of tuples in which the first element of the tuple is the name of
         the edge/intersection/internal_link, and the second value is the
@@ -179,7 +182,7 @@ class Scenario(Serializable):
     types of outputs to be expected from the different variables of a scenario
     class.
 
-    First of all, a the ring road scenario class can be instantiated by running
+    First of all, the ring road scenario class can be instantiated by running
     the following commands (note if this this unclear please refer to Tutorial
     1):
 
