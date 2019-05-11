@@ -1,9 +1,78 @@
 import unittest
-from flow.core.params import SumoParams, SumoLaneChangeParams, \
-    SumoCarFollowingParams
+from flow.core.params import EnvParams, SumoParams, SumoLaneChangeParams, \
+    SumoCarFollowingParams, VehicleParams, NetParams
+from flow.envs import Env
+from flow.scenarios import LoopScenario
 import os
+import numpy as np
+from gym.spaces import Box
 
 os.environ["TEST_FLAG"] = "True"
+
+
+class RLActionsEnv(Env):
+    """A class used when testing clipping actions."""
+
+    def _apply_rl_actions(self, rl_actions):
+        pass
+
+    def get_state(self):
+        return [1]
+
+    @property
+    def action_space(self):
+        return Box(low=-1, high=1, shape=(1,))
+
+    @property
+    def observation_space(self):
+        return Box(low=-1, high=1, shape=(1,))
+
+    def compute_reward(self, rl_actions, **kwargs):
+        """Returns what rl_actions is perceived as."""
+        return rl_actions[0]
+
+
+class TestEnvParams(unittest.TestCase):
+    """Tests flow.core.params.EnvParams"""
+
+    def test_clip_actions(self):
+        """Test that the actions are clipped in the reward function."""
+        sim_params = SumoParams()
+        vehicles = VehicleParams()
+        additional_net_params = {
+            "length": 230,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40
+        }
+        net_params = NetParams(additional_params=additional_net_params)
+        scenario = LoopScenario(
+            name="RingRoadTest",
+            vehicles=vehicles,
+            net_params=net_params)
+
+        # when set to False
+        env_params = EnvParams(clip_actions=False)
+        env = RLActionsEnv(
+            env_params=env_params, sim_params=sim_params, scenario=scenario)
+        env.reset()
+        _, ret, _, _ = env.step(rl_actions=[5])
+        self.assertEqual(np.mean(ret), 5)
+
+        # when set to True
+        env_params = EnvParams(clip_actions=True)
+        env = RLActionsEnv(
+            env_params=env_params, sim_params=sim_params, scenario=scenario)
+        env.reset()
+
+        _, ret, _, _ = env.step(rl_actions=[0.5])
+        self.assertEqual(ret, 0.5)
+
+        _, ret, _, _ = env.step(rl_actions=[5])
+        self.assertEqual(ret, 1)
+
+        _, ret, _, _ = env.step(rl_actions=[-5])
+        self.assertEqual(ret, -1)
 
 
 class TestSumoParams(unittest.TestCase):
@@ -28,8 +97,7 @@ class TestSumoParams(unittest.TestCase):
              seed=204,
              restart_instance=True,
              print_warnings=False,
-             teleport_time=-1,
-             sumo_binary=None)
+             teleport_time=-1)
 
         # ensure that the attributes match their correct values
         self.assertEqual(params.port, None)

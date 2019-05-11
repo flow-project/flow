@@ -112,8 +112,12 @@ class MultiEnv(MultiAgentEnv, Env):
             done['__all__'] = False
         infos = {key: {} for key in states.keys()}
 
-        clipped_actions = self.clip_actions(rl_actions)
-        reward = self.compute_reward(clipped_actions, fail=crash)
+        # compute the reward
+        if self.env_params.clip_actions:
+            clipped_actions = self.clip_actions(rl_actions)
+            reward = self.compute_reward(clipped_actions, fail=crash)
+        else:
+            reward = self.compute_reward(rl_actions, fail=crash)
 
         return states, reward, done, infos
 

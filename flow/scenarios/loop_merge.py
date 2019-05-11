@@ -25,6 +25,10 @@ ADDITIONAL_NET_PARAMS = {
 class TwoLoopsOneMergingScenario(Scenario):
     """Two loop merge scenario.
 
+    This network is expected to simulate a closed loop representation of a
+    merge. It consists of two rings that merge together for half the length of
+    the smaller ring.
+
     Requires from net_params:
 
     * **ring_radius** : radius of the loops
@@ -35,7 +39,28 @@ class TwoLoopsOneMergingScenario(Scenario):
     * **speed_limit** : max speed limit in the network
     * **resolution** : resolution of the curved portions
 
-    See flow/scenarios/base_scenario.py for description of params.
+    Usage
+    -----
+    >>> from flow.core.params import NetParams
+    >>> from flow.core.params import VehicleParams
+    >>> from flow.core.params import InitialConfig
+    >>> from flow.scenarios import TwoLoopsOneMergingScenario
+    >>>
+    >>> scenario = TwoLoopsOneMergingScenario(
+    >>>     name='two_loops_merge',
+    >>>     vehicles=VehicleParams(),
+    >>>     net_params=NetParams(
+    >>>         additional_params={
+    >>>             'ring_radius': 50,
+    >>>             'lane_length': 75,
+    >>>             'inner_lanes': 3,
+    >>>             'outer_lanes': 2,
+    >>>             'speed_limit': 30,
+    >>>             'resolution': 40
+    >>>         },
+    >>>         no_internal_links=False  # we want junctions
+    >>>     )
+    >>> )
     """
 
     def __init__(self,
