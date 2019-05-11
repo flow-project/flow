@@ -224,8 +224,8 @@ class TrafficLightGridEnv(Env):
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
-        # penalize traffic light changes for occurring
-        return - rewards.boolean_action_penalty(rl_actions >= 0.5, gain=1.0)
+        return - rewards.min_delay_unscaled(self) \
+            - rewards.boolean_action_penalty(rl_actions >= 0.5, gain=1.0)
 
     # ===============================
     # ============ UTILS ============

@@ -764,7 +764,7 @@ class DesiredVelocityEnv(BottleneckEnv):
 
     def get_state(self):
         """See class definition."""
-        # action space is number of vehicles in each segment in each lane,
+        # state space is number of vehicles in each segment in each lane,
         # number of rl vehicles in each segment in each lane
         # mean speed in each segment, and mean rl speed in each
         # segment in each lane

@@ -128,12 +128,12 @@ class WaveAttenuationEnv(Env):
         reward = eta_2 * np.mean(vel) / 20
 
         # punish accelerations (should lead to reduced stop-and-go waves)
-        eta = 8  # 0.25
-        rl_actions = np.array(rl_actions)
+        eta = 4  # 0.25
+        mean_actions = np.mean(np.abs(np.array(rl_actions)))
         accel_threshold = 0
 
-        if np.mean(np.abs(rl_actions)) > accel_threshold:
-            reward += eta * (accel_threshold - np.mean(np.abs(rl_actions)))
+        if mean_actions > accel_threshold:
+            reward += eta * (accel_threshold - mean_actions)
 
         return float(reward)
 
@@ -246,7 +246,8 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
     @property
     def observation_space(self):
         """See class definition."""
-        return Box(low=0, high=1, shape=(3, ), dtype=np.float32)
+        return Box(low=-float('inf'), high=float('inf'),
+                   shape=(3, ), dtype=np.float32)
 
     def get_state(self):
         """See class definition."""
@@ -264,7 +265,9 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
             self.k.vehicle.get_speed(rl_id) / max_speed,
             (self.k.vehicle.get_speed(lead_id) -
              self.k.vehicle.get_speed(rl_id)) / max_speed,
-            self.k.vehicle.get_headway(rl_id) / max_length
+            (self.k.vehicle.get_x_by_id(lead_id) -
+             self.k.vehicle.get_x_by_id(rl_id)) % self.k.scenario.length()
+            / max_length
         ])
 
         return observation

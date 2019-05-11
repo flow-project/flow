@@ -27,6 +27,10 @@ ADDITIONAL_NET_PARAMS = {
 class MergeScenario(Scenario):
     """Scenario class for highways with a single in-merge.
 
+    This scenario consists of a single or multi-lane highway network with an
+    on-ramp with a variable number of lanes that can be used to generate
+    periodic perturbation.
+
     Requires from net_params:
 
     * **merge_length** : length of the merge edge
@@ -36,7 +40,28 @@ class MergeScenario(Scenario):
     * **highway_lanes** : number of lanes in the highway
     * **speed_limit** : max speed limit of the network
 
-    See flow/scenarios/base_scenario.py for description of params.
+    Usage
+    -----
+    >>> from flow.core.params import NetParams
+    >>> from flow.core.params import VehicleParams
+    >>> from flow.core.params import InitialConfig
+    >>> from flow.scenarios import MergeScenario
+    >>>
+    >>> scenario = MergeScenario(
+    >>>     name='merge',
+    >>>     vehicles=VehicleParams(),
+    >>>     net_params=NetParams(
+    >>>         additional_params={
+    >>>             'merge_length': 100,
+    >>>             'pre_merge_length': 200,
+    >>>             'post_merge_length': 100,
+    >>>             'merge_lanes': 1,
+    >>>             'highway_lanes': 1,
+    >>>             'speed_limit': 30
+    >>>         },
+    >>>         no_internal_links=False  # we want junctions
+    >>>     )
+    >>> )
     """
 
     def __init__(self,
