@@ -53,10 +53,10 @@ def desired_velocity(env, fail=False, edge_list=None):
     cost = vel - target_vel
     cost = np.linalg.norm(cost)
 
-    try:
-        return max(max_cost - cost, 0) / max_cost
-    except ZeroDivisionError:
-        return 0
+    # epsilon term (to deal with ZeroDivisionError exceptions)
+    eps = np.finfo(np.float32).eps
+
+    return max(max_cost - cost, 0) / (max_cost + eps)
 
 
 def average_velocity(env, fail=False):
@@ -77,10 +77,6 @@ def total_velocity(env, fail=False):
         return 0.
     if len(vel) != 0:
         return sum(vel)
-
-
-def reward_density(env):
-    return env.k.vehicle.get_num_arrived() / env.sim_step
 
 
 def rl_forward_progress(env, gain=0.1):
@@ -135,11 +131,12 @@ def min_delay(env):
     time_step = env.sim_step
 
     max_cost = time_step * sum(vel.shape)
-    try:
-        cost = time_step * sum((v_top - vel) / v_top)
-        return max((max_cost - cost) / max_cost, 0)
-    except ZeroDivisionError:
-        return 0
+
+    # epsilon term (to deal with ZeroDivisionError exceptions)
+    eps = np.finfo(np.float32).eps
+
+    cost = time_step * sum((v_top - vel) / v_top)
+    return max((max_cost - cost) / (max_cost + eps), 0)
 
 
 def min_delay_unscaled(env):
@@ -164,11 +161,11 @@ def min_delay_unscaled(env):
         for edge in env.k.scenario.get_edge_list())
     time_step = env.sim_step
 
-    try:
-        cost = time_step * sum((v_top - vel) / v_top)
-        return cost / len(env.k.vehicle.get_ids())
-    except ZeroDivisionError:
-        return 0
+    # epsilon term (to deal with ZeroDivisionError exceptions)
+    eps = np.finfo(np.float32).eps
+
+    cost = time_step * sum((v_top - vel) / v_top)
+    return cost / (env.k.vehicle.num_vehicles + eps)
 
 
 def penalize_standstill(env, gain=1):
