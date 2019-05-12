@@ -9,6 +9,9 @@ from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.controllers.routing_controllers import GridRouter
 
+import csv
+import datetime
+
 ADDITIONAL_ENV_PARAMS = {
     # minimum switch time for each traffic light (in seconds)
     "switch_time": 2.0,
@@ -76,31 +79,31 @@ def create_grid_env(render=None):
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    # tl_logic = TrafficLightParams(baseline=False)
-    # phases = [{
-    #     "duration": "31",
-    #     "minDur": "8",
-    #     "maxDur": "45",
-    #     "state": "GGGrrrGGGrrr"
-    # }, {
-    #     "duration": "6",
-    #     "minDur": "3",
-    #     "maxDur": "6",
-    #     "state": "yyyrrryyyrrr"
-    # }, {
-    #     "duration": "31",
-    #     "minDur": "8",
-    #     "maxDur": "45",
-    #     "state": "rrrGGGrrrGGG"
-    # }, {
-    #     "duration": "6",
-    #     "minDur": "3",
-    #     "maxDur": "6",
-    #     "state": "rrryyyrrryyy"
-    # }]
-    # tl_logic.add("center0", phases=phases, programID=1)
-    # tl_logic.add("center1", phases=phases, programID=1)
-    # tl_logic.add("center2", tls_type="actuated", phases=phases, programID=1)
+    tl_logic = TrafficLightParams(baseline=False)
+    phases = [{
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": "GGGrrrGGGrrr"
+    }, {
+        "duration": "6",
+        "minDur": "3",
+        "maxDur": "6",
+        "state": "yyyrrryyyrrr"
+    }, {
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": "rrrGGGrrrGGG"
+    }, {
+        "duration": "6",
+        "minDur": "3",
+        "maxDur": "6",
+        "state": "rrryyyrrryyy"
+    }]
+    tl_logic.add("center0", phases=phases, programID=1)
+    tl_logic.add("center1", phases=phases, programID=1)
+    tl_logic.add("center2", tls_type="actuated", phases=phases, programID=1)
 
     additional_net_params = {
         "grid_array": grid_array,
@@ -118,50 +121,58 @@ def create_grid_env(render=None):
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
-        # traffic_lights=tl_logic
+        traffic_lights=tl_logic
         )
 
     return env_params, sim_params, scenario, num_agents
 
-def run_grid():
+def run_grid(writer, file):
     step = 0
-    for episode in range(300):
-        # initial observation
-        observation = env.reset()
 
-        while True:
-            # fresh env
-            # env.render()
-            action = dict()
-            for agent_id in observation.keys():
-                # RL choose action based on observation
-                action[agent_id] = RL[agent_id].choose_action(observation[agent_id])
+    observation = env.reset()
 
-            # RL take action and get next observation and reward
-            observation_, reward, done, _ = env.step(action)
+    for episode in range(1000000):
 
-            for agent_id in observation.keys():
-                # print(agent_id)
-                RL[agent_id].store_transition(observation[agent_id], action[agent_id], reward[agent_id], observation_[agent_id])
+        # fresh env
+        env.render()
+        action = dict()
+        for agent_id in observation.keys():
+            # RL choose action based on observation
+            action[agent_id] = RL[agent_id].choose_action(observation[agent_id])
 
-                if (step > 100 and step % 10 == 0):
-                    RL[agent_id].learn()
-                    print(reward)
-                    # print(RL[agent_id])
+        # RL take action and get next observation and reward
+        observation_, reward, done, _ = env.step(action)
+        
+        if episode % 10 == 0:
+            writer.writerow(reward.values())
+            file.flush()
 
-                # break while loop when end of this episode
-                if done[agent_id]:
-                    break
+        for agent_id in observation.keys():
+            RL[agent_id].store_transition(observation[agent_id], action[agent_id], reward[agent_id], observation_[agent_id])
 
-            # swap observation
-            observation = observation_
-            
-            step += 1
+            if (step > 100 and step % 10 == 0):
+                RL[agent_id].learn()
+
+            # break while loop when end of this episode
+            if done[agent_id]:
+                break
+
+        # swap observation
+        observation = observation_
+        
+        step += 1
 
     # end of game
     print('game over')
     env.destroy()
 
+def open_file_to_write():
+    # csv_file = "logs/multi-agent-grid" + str(datetime.datetime.now()) + ".csv"
+
+    csv_file = "logs/multi-agent-grid" + ".csv"
+    file = open(csv_file,'w')
+    writer = csv.writer(file, delimiter=',', quotechar='"')
+    return writer, file
 
 if __name__ == "__main__":
     # maze game
@@ -171,6 +182,9 @@ if __name__ == "__main__":
  
     n_features = sum([x.shape[0] for x in env.observation_space.sample()])
     RL = dict()
+
+    writer, file = open_file_to_write()
+            
     for agent_id in range(1, num_agents+1):
         agent_name = 'intersection'+str(agent_id)
         RL[agent_name] = DeepQNetwork(2, n_features,
@@ -182,5 +196,5 @@ if __name__ == "__main__":
                       agent = agent_id,
                       # output_graph=True
                       )
-    run_grid()
+    run_grid(writer, file)
     # RL.plot_cost() 

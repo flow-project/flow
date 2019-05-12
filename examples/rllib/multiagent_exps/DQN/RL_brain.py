@@ -31,19 +31,19 @@ class DeepQNetwork:
             replace_target_iter=300,
             memory_size=500,
             batch_size=32,
-            e_greedy_increment=None,
+            e_greedy_increment=0.01,
             output_graph=True,          
     ):
         self.n_actions = n_actions
         self.n_features = n_features
         self.lr = learning_rate
         self.gamma = reward_decay
-        self.epsilon_max = e_greedy
+        self.epsilon_max = e_greedy # see how much exploration you do. 100,000 may be enough?
         self.replace_target_iter = replace_target_iter
         self.memory_size = memory_size
         self.batch_size = batch_size
         self.epsilon_increment = e_greedy_increment
-        self.epsilon = 0 if e_greedy_increment is not None else self.epsilon_max
+        self.epsilon = 0.1 
 
         # total learning step
         self.learn_step_counter = 0
@@ -59,10 +59,15 @@ class DeepQNetwork:
 
         self.sess = tf.Session()
 
+        self.summary_writer = 0
+        self.summaries = 0
+
         if output_graph:
             # $ tensorboard --logdir=logs
-            # tf.train.SummaryWriter soon be deprecated, use following
-            tf.summary.FileWriter("logs/", self.sess.graph)
+            # self.summaries = tf.summary.merge_all()
+            self.summary_writer = tf.summary.FileWriter("logs/"
+            # ,self.sess.graph
+            )
 
         self.sess.run(tf.global_variables_initializer())
         self.cost_his = []
@@ -164,6 +169,12 @@ class DeepQNetwork:
         eval_act_index = batch_memory[:, self.n_features].astype(int)
         reward = batch_memory[:, self.n_features + 1]
 
+        # tf.summary.histogram('reward', reward[0])
+        
+        
+        # self.summaries = tf.summary.merge_all()
+        
+
         q_target[batch_index, eval_act_index] = reward + self.gamma * np.max(q_next, axis=1)
 
         """
@@ -193,14 +204,16 @@ class DeepQNetwork:
         """
 
         # train eval network
-        _, self.cost = self.sess.run([self._train_op, self.loss],
+        _, self.cost = self.sess.run([ self._train_op, self.loss],
                                      feed_dict={self.s: batch_memory[:, :self.n_features],
                                                 self.q_target: q_target})
+        # self.summary_writer.add_summary(self.cost, 'cost')
         self.cost_his.append(self.cost)
 
         # increasing epsilon
         self.epsilon = self.epsilon + self.epsilon_increment if self.epsilon < self.epsilon_max else self.epsilon_max
         self.learn_step_counter += 1
+        
 
     def plot_cost(self):
         import matplotlib.pyplot as plt
