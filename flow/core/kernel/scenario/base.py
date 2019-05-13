@@ -3,6 +3,8 @@
 import logging
 import random
 import numpy as np
+from copy import deepcopy
+from flow.utils.exceptions import FatalFlowError
 
 # length of vehicles in the network, in meters
 VEHICLE_LENGTH = 5
@@ -224,21 +226,26 @@ class KernelScenario(object):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         list of int
             list of start lanes
+
+        Raises
+        ------
+        flow.utils.exceptions.FatalFlowError
+            if the spacing mode is not {'uniform', 'random', 'custom'}
         """
         num_vehicles = num_vehicles or self.network.vehicles.num_vehicles
 
-        if initial_config.spacing == "uniform":
+        if initial_config.spacing == 'uniform':
             startpositions, startlanes = self.gen_even_start_pos(
                 initial_config, num_vehicles)
-        elif initial_config.spacing == "random":
+        elif initial_config.spacing == 'random':
             startpositions, startlanes = self.gen_random_start_pos(
                 initial_config, num_vehicles)
-        elif initial_config.spacing == "custom":
+        elif initial_config.spacing == 'custom':
             startpositions, startlanes = self.gen_custom_start_pos(
                 initial_config, num_vehicles)
         else:
-            raise ValueError('"spacing" argument in initial_config does not '
-                             'contain a valid option')
+            raise FatalFlowError('"spacing" argument in initial_config does '
+                                 'not contain a valid option')
 
         return startpositions, startlanes
 
@@ -264,6 +271,31 @@ class KernelScenario(object):
         list of int
             list of start lanes
         """
+        if isinstance(initial_config.edges_distribution, dict):
+            # check that the number of vehicle in edges_distribution matches
+            # that of the vehicles class
+            num_vehicles_e = sum(initial_config.edges_distribution[k]
+                                 for k in initial_config.edges_distribution)
+            assert num_vehicles == num_vehicles_e, \
+                'Number of vehicles in edges_distribution and the Vehicles ' \
+                'class do not match: {}, {}'.format(num_vehicles,
+                                                    num_vehicles_e)
+
+            # add starting positions and lanes
+            edges_distribution = deepcopy(initial_config.edges_distribution)
+            startpositions, startlanes = [], []
+            for key in edges_distribution:
+                # set the edge distribution to only include the next edge
+                initial_config.edges_distribution = [key]
+                # set the number of vehicles that this edge can carry
+                num_vehicles = edges_distribution[key]
+                # recursively collect the next starting positions and lanes
+                pos, lane = self.gen_even_start_pos(
+                    initial_config, num_vehicles)
+                startpositions.extend(pos)
+                startlanes.extend(lane)
+            return startpositions, startlanes
+
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = \
             self._get_start_pos_util(initial_config, num_vehicles)
@@ -364,6 +396,31 @@ class KernelScenario(object):
         list of int
             list of start lanes
         """
+        if isinstance(initial_config.edges_distribution, dict):
+            # check that the number of vehicle in edges_distribution matches
+            # that of the vehicles class
+            num_vehicles_e = sum(initial_config.edges_distribution[k]
+                                 for k in initial_config.edges_distribution)
+            assert num_vehicles == num_vehicles_e, \
+                'Number of vehicles in edges_distribution and the Vehicles ' \
+                'class do not match: {}, {}'.format(num_vehicles,
+                                                    num_vehicles_e)
+
+            # add starting positions and lanes
+            edges_distribution = deepcopy(initial_config.edges_distribution)
+            startpositions, startlanes = [], []
+            for key in edges_distribution:
+                # set the edge distribution to only include the next edge
+                initial_config.edges_distribution = [key]
+                # set the number of vehicles that this edge can carry
+                num_vehicles = edges_distribution[key]
+                # recursively collect the next starting positions and lanes
+                pos, lane = self.gen_random_start_pos(
+                    initial_config, num_vehicles)
+                startpositions.extend(pos)
+                startlanes.extend(lane)
+            return startpositions, startlanes
+
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = self._get_start_pos_util(
             initial_config, num_vehicles)
@@ -476,7 +533,7 @@ class KernelScenario(object):
 
         Raises
         ------
-        ValueError
+        flow.utils.exceptions.FatalFlowError
             If there is not enough space to place all vehicles in the allocated
             space in the network with the specified minimum gap.
         """
@@ -489,7 +546,7 @@ class KernelScenario(object):
             initial_config.bunching = 0
 
         # compute the lanes distribution (adjust of edge cases)
-        if initial_config.edges_distribution == "all":
+        if initial_config.edges_distribution == 'all':
             max_lane = max(
                 [self.num_lanes(edge_id) for edge_id in self.get_edge_list()])
         else:
@@ -506,7 +563,7 @@ class KernelScenario(object):
         else:
             lanes_distribution = initial_config.lanes_distribution
 
-        if initial_config.edges_distribution == "all":
+        if initial_config.edges_distribution == 'all':
             distribution_length = \
                 sum(self.edge_length(edge_id) *
                     min([self.num_lanes(edge_id), lanes_distribution])
@@ -519,7 +576,7 @@ class KernelScenario(object):
                     for edge_id in initial_config.edges_distribution
                     if self.edge_length(edge_id) > min_gap + VEHICLE_LENGTH)
 
-        if initial_config.edges_distribution == "all":
+        if initial_config.edges_distribution == 'all':
             available_edges = [
                 edge for edge in self.get_edge_list()
                 if self.edge_length(edge) > min_gap + VEHICLE_LENGTH]
@@ -533,8 +590,8 @@ class KernelScenario(object):
             num_vehicles * (min_gap + VEHICLE_LENGTH)
 
         if available_length < 0:
-            raise ValueError("There is not enough space to place all vehicles "
-                             "in the network.")
+            raise FatalFlowError('There is not enough space to place all '
+                                 'vehicles in the network.')
 
         return (initial_config.x0, min_gap, bunching, lanes_distribution,
                 available_length, available_edges, initial_config)

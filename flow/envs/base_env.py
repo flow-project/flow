@@ -37,10 +37,10 @@ else:
 class Env(*classdef):
     """Base environment class.
 
-    Provides the interface for controlling a SUMO simulation. Using this
-    class, you can start sumo, provide a scenario to specify a
-    configuration and controllers, perform simulation steps, and reset the
-    simulation to an initial configuration.
+    Provides the interface for interacting with various aspects of a traffic
+    simulation. Using this class, you can start a simulation instance, provide
+    a scenario to specify a configuration and controllers, perform simulation
+    steps, and reset the simulation to an initial configuration.
 
     Env is Serializable to allow for pickling and replaying of the policy.
 
@@ -64,10 +64,58 @@ class Env(*classdef):
     scenario : flow.scenarios.Scenario
         see flow/scenarios/base_scenario.py
     simulator : str
-        the simulator used, one of {'traci', 'aimsun'}. Defaults to 'traci'
+        the simulator used, one of {'traci', 'aimsun'}
+    k : flow.core.kernel.Kernel
+        Flow kernel object, using for state acquisition and issuing commands to
+        the certain components of the simulator. For more information, see:
+        flow/core/kernel/kernel.py
+    time_counter : int
+        number of steps taken since the start of a rollout
+    step_counter : int
+        number of steps taken since the environment was initialized, or since
+        `restart_simulation` was called
+    initial_state : dict
+        initial state information for all vehicles. The network is always
+        initialized with the number of vehicles originally specified in
+        VehicleParams
+
+        * Key = Vehicle ID,
+        * Entry = (vehicle type, starting edge, starting lane index, starting
+          position on edge, starting speed)
+
+    initial_ids : list of str
+        name of the vehicles that will originally available in the network at
+        the start of a rollout (i.e. after `env.reset()` is called). This also
+        corresponds to `self.initial_state.keys()`.
+    available_routes : dict
+        the available_routes variable contains a dictionary of routes vehicles
+        can traverse; to be used when routes need to be chosen dynamically.
+        Equivalent to `scenario.rts`.
+    renderer : flow.renderer.pyglet_renderer.PygletRenderer or None
+        renderer class, used to collect image-based representations of the
+        traffic network. This attribute is set to None if `sim_params.render`
+        is set to True or False.
     """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+        """Initialize the environment class.
+
+        Parameters
+        ----------
+        env_params : flow.core.params.EnvParams
+           see flow/core/params.py
+        sim_params : flow.core.params.SimParams
+           see flow/core/params.py
+        scenario : flow.scenarios.Scenario
+            see flow/scenarios/base_scenario.py
+        simulator : str
+            the simulator used, one of {'traci', 'aimsun'}. Defaults to 'traci'
+
+        Raises
+        ------
+        flow.utils.exceptions.FatalFlowError
+            if the render mode is not set to a valid value
+        """
         # Invoke serializable if using rllab
         if serializable_flag:
             Serializable.quick_init(self, locals())
@@ -86,8 +134,6 @@ class Env(*classdef):
         # step_counter: number of total steps taken
         self.step_counter = 0
         # initial_state:
-        #   Key = Vehicle ID,
-        #   Entry = (type_id, route_id, lane_index, lane_pos, speed, pos)
         self.initial_state = {}
         self.state = None
         self.obs_var_labels = []
@@ -165,8 +211,8 @@ class Env(*classdef):
         elif self.sim_params.render in [True, False]:
             pass  # default to sumo-gui (if True) or sumo (if False)
         else:
-            raise ValueError('Mode %s is not supported!' %
-                             self.sim_params.render)
+            raise FatalFlowError(
+                'Mode %s is not supported!' % self.sim_params.render)
         atexit.register(self.terminate)
 
     def restart_simulation(self, sim_params, render=None):
@@ -334,15 +380,20 @@ class Env(*classdef):
         # collect observation new state associated with action
         next_observation = np.copy(states)
 
-        # test if the agent should terminate due to a crash
-        done = crash
+        # test if the environment should terminate due to a collision or the
+        # time horizon being met
+        done = crash or (self.time_counter >= self.env_params.warmup_steps
+                         + self.env_params.horizon)
 
         # compute the info for each agent
         infos = {}
 
         # compute the reward
-        rl_clipped = self.clip_actions(rl_actions)
-        reward = self.compute_reward(rl_clipped, fail=crash)
+        if self.env_params.clip_actions:
+            rl_clipped = self.clip_actions(rl_actions)
+            reward = self.compute_reward(rl_clipped, fail=crash)
+        else:
+            reward = self.compute_reward(rl_actions, fail=crash)
 
         return next_observation, reward, done, infos
 
@@ -597,18 +648,14 @@ class Env(*classdef):
         environment opens the TraCI connection.
         """
         try:
-            print(
-                "Closing connection to TraCI and stopping simulation.\n"
-                "Note, this may print an error message when it closes."
-            )
+            # close everything within the kernel
             self.k.close()
-
             # close pyglet renderer
             if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
                 self.renderer.close()
         except FileNotFoundError:
-            print("Skip automatic termination. "
-                  "Connection is probably already closed.")
+            # Skip automatic termination. Connection is probably already closed
+            pass
 
     def render(self, reset=False, buffer_length=5):
         """Render a frame.

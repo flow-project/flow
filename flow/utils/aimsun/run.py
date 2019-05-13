@@ -1,4 +1,5 @@
 # flake8: noqa
+import sys
 import flow.config as config
 import sys
 import os
@@ -173,6 +174,16 @@ def threaded_client(conn):
                 # TODO
                 send_message(conn, in_format='i', values=(0,))
 
+            elif data == ac.VEH_SET_TRACKED:
+                send_message(conn, in_format='i', values=(0,))
+                veh_id, = retrieve_message(conn, 'i')
+                aimsun_api.AKIVehSetAsTracked(veh_id)
+
+            elif data == ac.VEH_SET_NO_TRACKED:
+                send_message(conn, in_format='i', values=(0,))
+                veh_id, = retrieve_message(conn, 'i')
+                aimsun_api.AKIVehSetAsNoTracked(veh_id)
+
             elif data == ac.VEH_GET_ENTERED_IDS:
                 send_message(conn, in_format='i', values=(0,))
 
@@ -221,6 +232,30 @@ def threaded_client(conn):
 
                 send_message(conn, in_format='i', values=(aimsun_type_pos,))
 
+            # FIXME can probably be done more efficiently cf. VEH_GET_TYPE_ID
+            elif data == ac.VEH_GET_TYPE_NAME:
+                send_message(conn, in_format='i', values=(0,))
+                veh_id, = retrieve_message(conn, 'i')
+
+                static_info = aimsun_api.AKIVehGetStaticInf(veh_id)
+                typename = aimsun_api.AKIVehGetVehTypeName(static_info.type)
+
+                anyNonAsciiChar = aimsun_api.boolp()
+                output = str(aimsun_api.AKIConvertToAsciiString(typename, True, anyNonAsciiChar))
+
+                send_message(conn, in_format='str', values=(output,))
+
+
+            elif data == ac.VEH_GET_LENGTH:
+                send_message(conn, in_format='i', values=(0,))
+                veh_id, = retrieve_message(conn, 'i')
+
+                static_info = aimsun_api.AKIVehGetStaticInf(veh_id)
+                output = static_info.length
+
+                send_message(conn, in_format='f', values=(output,))
+
+
             elif data == ac.VEH_GET_STATIC:
                 send_message(conn, in_format='i', values=(0,))
                 veh_id, = retrieve_message(conn, 'i')
@@ -261,10 +296,36 @@ def threaded_client(conn):
             elif data == ac.VEH_GET_TRACKING:
                 send_message(conn, in_format='i', values=(0,))
 
-                veh_id, = retrieve_message(conn, 'i')
+                info_bitmap = None
+                while info_bitmap is None:
+                    info_bitmap = conn.recv(2048)
 
-                tracking_info = aimsun_api.AKIVehTrackedGetInf(veh_id)
-                output = (
+                # bitmap is built as follows:
+                #   21 bits representing what information is to be returned
+                #   a ':' character
+                #   the id of the vehicle
+                #   a bit representing whether or not the vehicle is tracked
+
+                # retrieve the tracked boolean
+                tracked = info_bitmap[-1]
+                info_bitmap = info_bitmap[:-1]
+
+                # separate the actual bitmap from the vehicle id
+                s = ""
+                for i in range(len(info_bitmap)):
+                    if info_bitmap[i] == ':':
+                        info_bitmap = info_bitmap[i+1:]
+                        break
+                    s += info_bitmap[i]
+                veh_id = int(s)
+
+                # retrieve the tracking info of the vehicle
+                if tracked == '1':
+                    tracking_info = aimsun_api.AKIVehTrackedGetInf(veh_id)
+                else:
+                    tracking_info = aimsun_api.AKIVehGetInf(veh_id)
+
+                data = (
                           # tracking_info.report,
                           # tracking_info.idVeh,
                           # tracking_info.type,
@@ -292,10 +353,25 @@ def threaded_client(conn):
                           tracking_info.idLaneFrom,
                           tracking_info.idSectionTo,
                           tracking_info.idLaneTo)
+                
+                # form the output and output format according to the bitmap
+                output = []
+                in_format = ''
+                for i in range(len(info_bitmap)):
+                    if info_bitmap[i] == '1':
+                        if i <= 12: in_format += 'f '
+                        else: in_format += 'i '
+                        output.append(data[i])
+                if in_format == '':
+                    return
+                else:
+                    in_format = in_format[:-1]
+
+                if len(output) == 0:
+                    output = None
 
                 send_message(conn,
-                             in_format='f f f f f f f f f f f f f i i i i i i '
-                                       'i i',
+                             in_format=in_format,
                              values=output)
 
             elif data == ac.VEH_GET_LEADER:
@@ -371,8 +447,12 @@ def threaded_client(conn):
                 edge_aimsun = model.getCatalog().findByName(
                     edge, model.getType('GKSection'))
 
-                send_message(conn, in_format='i',
+                if edge_aimsun:
+                    send_message(conn, in_format='i',
                              values=(edge_aimsun.getId(),))
+                else:
+                    send_message(conn, in_format='i',
+                            values=(int(edge),))
 
             # in case the message is unknown, return -1001
             else:
