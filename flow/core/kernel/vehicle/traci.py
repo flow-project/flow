@@ -11,6 +11,7 @@ from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
 from bisect import bisect_left
 import itertools
+from copy import deepcopy
 
 # colors for vehicles
 WHITE = (255, 255, 255)
@@ -132,6 +133,20 @@ class TraCIVehicle(KernelVehicle):
             self._num_arrived.clear()
             self._departed_ids.clear()
             self._arrived_ids.clear()
+
+            # add vehicles from a network template, if applicable
+            if hasattr(self.master_kernel.scenario.network,
+                       "template_vehicles"):
+                for veh_id in self.master_kernel.scenario.network.\
+                        template_vehicles:
+                    vals = deepcopy(self.master_kernel.scenario.network.
+                                    template_vehicles[veh_id])
+                    # a step is executed during initialization, so add this sim
+                    # step to the departure time of vehicles
+                    vals['depart'] = str(
+                        float(vals['depart']) + 2 * self.sim_step)
+                    self.kernel_api.vehicle.addFull(
+                        veh_id, 'route{}'.format(veh_id), **vals)
         else:
             self.time_counter += 1
             # update the "last_lc" variable
@@ -926,9 +941,16 @@ class TraCIVehicle(KernelVehicle):
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
+        # If the vehicle has its own route, use that route. This is used in the
+        # case of network templates.
+        if veh_id in self.master_kernel.scenario.rts:
+            route_id = 'route{}'.format(veh_id)
+        else:
+            route_id = 'route{}'.format(edge)
+
         self.kernel_api.vehicle.addFull(
             veh_id,
-            'route{}'.format(edge),
+            route_id,
             typeID=str(type_id),
             departLane=str(lane),
             departPos=str(pos),
