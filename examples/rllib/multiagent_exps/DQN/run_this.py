@@ -127,22 +127,23 @@ def create_grid_env(render=None):
     return env_params, sim_params, scenario, num_agents
 
 def run_grid(writer, file):
-    step = 0
 
     observation = env.reset()
+    action = dict()
 
-    for episode in range(1000000):
-
+    for episode in range(10000000):
         # fresh env
         env.render()
-        action = dict()
-        for agent_id in observation.keys():
-            # RL choose action based on observation
-            action[agent_id] = RL[agent_id].choose_action(observation[agent_id])
-
-        # RL take action and get next observation and reward
-        observation_, reward, done, _ = env.step(action)
+       
+        if episode % 100 == 0:
+            for agent_id in observation.keys():
+                # RL choose action based on observation
+                action[agent_id] = RL[agent_id].choose_action(observation[agent_id])
         
+            # RL take action and get next observation and reward
+        observation_, reward, done, _ = env.step(action)
+        action = action.fromkeys(action, 0)
+
         if episode % 10 == 0:
             writer.writerow(reward.values())
             file.flush()
@@ -150,7 +151,7 @@ def run_grid(writer, file):
         for agent_id in observation.keys():
             RL[agent_id].store_transition(observation[agent_id], action[agent_id], reward[agent_id], observation_[agent_id])
 
-            if (step > 100 and step % 10 == 0):
+            if (episode > 100 and episode % 10 == 0):
                 RL[agent_id].learn()
 
             # break while loop when end of this episode
@@ -159,12 +160,9 @@ def run_grid(writer, file):
 
         # swap observation
         observation = observation_
-        
-        step += 1
 
     # end of game
     print('game over')
-    env.destroy()
 
 def open_file_to_write():
     # csv_file = "logs/multi-agent-grid" + str(datetime.datetime.now()) + ".csv"

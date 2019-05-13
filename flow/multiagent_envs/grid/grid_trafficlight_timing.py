@@ -41,8 +41,8 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
     def action_space(self):
         """See class definition."""
         if self.discrete: 
-            # each intersection is an agent, and the action is simply 0 or 1. 0 means left-right traffic passes
-            # and, 1 means top-bottom traffic passes
+            # each intersection is an agent, and the action is simply 0 or 1. 0 means no change in the traffic light 
+            # and 1 means switch the direction
             return Discrete(2)  
         else:
             return Box(
@@ -159,6 +159,7 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
            
             # check if our timer has exceeded the yellow phase, meaning it
             # should switch to red
+
             if self.last_change[tl_num, 2] == 0:  # currently yellow
                 self.last_change[tl_num, 0] += self.sim_step
                 if self.last_change[tl_num, 0] >= self.min_switch_time:
@@ -172,7 +173,7 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
                             state='rGrG')
                     self.last_change[tl_num, 2] = 1
             else:
-                if action:
+                if action == 1:
                     if self.last_change[tl_num, 1] == 0:
                         self.k.traffic_light.set_state(
                             node_id='center' + str(tl_num),
@@ -209,3 +210,6 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         else:
             reward = rewards.desired_velocity(self, fail=kwargs['fail'])
             return agent_reward_dict
+
+    def additional_command(self):
+        pass
