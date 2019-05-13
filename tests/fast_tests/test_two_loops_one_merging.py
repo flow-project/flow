@@ -91,10 +91,7 @@ class TestLoopMerges(unittest.TestCase):
 
     def tearDown(self):
         # terminate the traci instance
-        try:
-            self.env.terminate()
-        except FileNotFoundError:
-            pass
+        self.env.terminate()
 
         # free up used memory
         self.env = None

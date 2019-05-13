@@ -573,8 +573,7 @@ class SumoParams(SimParams):
                  restart_instance=False,
                  print_warnings=True,
                  teleport_time=-1,
-                 num_clients=1,
-                 sumo_binary=None):
+                 num_clients=1):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
@@ -680,7 +679,6 @@ class NetParams:
     def __init__(self,
                  no_internal_links=True,
                  inflows=None,
-                 in_flows=None,
                  osm_path=None,
                  template=None,
                  additional_params=None):
