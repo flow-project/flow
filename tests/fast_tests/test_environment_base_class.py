@@ -323,20 +323,6 @@ class TestAbstractMethods(unittest.TestCase):
         """Checks that get_state raises an error."""
         self.assertRaises(NotImplementedError, self.env.get_state)
 
-    def test_action_space(self):
-        try:
-            self.env.action_space
-            raise AssertionError
-        except NotImplementedError:
-            return
-
-    def test_observation_space(self):
-        try:
-            self.env.observation_space
-            raise AssertionError
-        except NotImplementedError:
-            return
-
     def test_compute_reward(self):
         """Checks that compute_reward returns 0."""
         self.assertEqual(self.env.compute_reward([]), 0)

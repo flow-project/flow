@@ -6,7 +6,6 @@ from flow.scenarios.base_scenario import Scenario
 import numpy as np
 from numpy import linspace, pi, sin, cos
 
-ADDITIONAL_NET_PARAMS = {}
 SCALING = 40
 
 
@@ -43,10 +42,6 @@ class MiniCityScenario(Scenario):
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
         """Instantiate the scenario class."""
-        for p in ADDITIONAL_NET_PARAMS.keys():
-            if p not in net_params.additional_params:
-                raise KeyError('Network parameter "{}" not supplied'.format(p))
-
         self.nodes_dict = dict()
 
         super().__init__(name, vehicles, net_params,
