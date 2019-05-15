@@ -22,9 +22,10 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
 from flow.controllers import RLController, IDMController, ContinuousRouter
 
+from flow.utils.softlearning import ExperimentRunner
+from flow.utils.softlearning import get_variant_spec, generate_experiment_kwargs
+
 from softlearning.misc.utils import deep_update
-from exprunner import ExperimentRunner
-from exprunner import get_variant_spec, generate_experiment_kwargs
 
 
 EPOCHS = 200

@@ -1,5 +1,11 @@
-"""ExperimentRunner class, get_variant_spec and generate_experiment_kwargs fcts
-code adapted from an example of the softlearning library
+"""
+Utility functions for Flow compatibility with the softlearning library (SAC).
+
+This includes: 
+- ExperimentRunner class
+- get_variant_spec function
+- generate_experiment_kwargs function
+- adapt_environment_for_sac function
 """
 
 import os
@@ -351,8 +357,3 @@ def _get_path_infos(self, paths, *args, **kwargs):
         aggregated_results[key + '-mean'] = np.mean(value)
 
     return aggregated_results
-       
-
-if __name__ == '__main__':
-    print("This file contains the ExperimentRunner class" + \
-          "and does not implement an actual example.")
