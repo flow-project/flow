@@ -1,6 +1,5 @@
 """
 code adapted from an example of the softlearning library
-(https://github.com/rail-berkeley/softlearning/blob/master/examples/development/main.py)
 """
 import os
 import copy
@@ -8,6 +7,7 @@ import glob
 import pickle
 import sys
 import types
+from collections import defaultdict
 
 import tensorflow as tf
 from ray import tune
@@ -23,6 +23,41 @@ from softlearning.misc.utils import set_seed, initialize_tf_variables
 
 from flow.utils.registry import make_create_env
 
+
+def convert_to_active_observation(self, observation):
+    return observation
+
+def get_path_infos(self, paths, *args, **kwargs):
+    """Log some general diagnostics from the env infos.
+    TODO(hartikainen): These logs don't make much sense right now. Need to
+    figure out better format for logging general env infos.
+    """
+    keys = list(paths[0].get('infos', [{}])[0].keys())
+
+    results = defaultdict(list)
+
+    for path in paths:
+        path_results = {
+            k: [
+                info[k]
+                for info in path['infos']
+            ] for k in keys
+        }
+        for info_key, info_values in path_results.items():
+            info_values = np.array(info_values)
+            results[info_key + '-first'].append(info_values[0])
+            results[info_key + '-last'].append(info_values[-1])
+            results[info_key + '-mean'].append(np.mean(info_values))
+            results[info_key + '-median'].append(np.median(info_values))
+            if np.array(info_values).dtype != np.dtype('bool'):
+                results[info_key + '-range'].append(np.ptp(info_values))
+
+    aggregated_results = {}
+    for key, value in results.items():
+        aggregated_results[key + '-mean'] = np.mean(value)
+
+    return aggregated_results
+       
 class ExperimentRunner(tune.Trainable):
     def _setup(self, variant):
         set_seed(variant['run_params']['seed'])
@@ -48,6 +83,12 @@ class ExperimentRunner(tune.Trainable):
         flow_params = variant['flow_params']
         create_env, _ = make_create_env(params=flow_params, version=0)
         env = create_env()
+
+        # add necessary methods and attributes to the environment
+        env.active_observation_shape = env.observation_space.shape
+        env.convert_to_active_observation = types.MethodType(
+            convert_to_active_observation, env)
+        env.get_path_infos = types.MethodType(get_path_infos, env)
 
         environment_params = variant['environment_params']
         training_environment = self.training_environment = (
@@ -109,10 +150,11 @@ class ExperimentRunner(tune.Trainable):
 
     @property
     def picklables(self):
+        env_params = self._variant['env_config']['flow_params']
         return {
             'variant': self._variant,
-            'training_environment': self._variant['env_config']['flow_params'],
-            'evaluation_environment': self._variant['env_config']['flow_params'],
+            'training_environment': env_params,
+            'evaluation_environment': env_params,
             'sampler': self.sampler,
             'algorithm': self.algorithm,
             'Qs': self.Qs,
@@ -221,4 +263,5 @@ class ExperimentRunner(tune.Trainable):
 
 
 if __name__ == '__main__':
-    print("This file contains the ExperimentRunner class and does not implement an actual example.")
+    print("This file contains the ExperimentRunner class" + \
+          "and does not implement an actual example.")

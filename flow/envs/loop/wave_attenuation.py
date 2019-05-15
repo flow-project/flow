@@ -18,7 +18,6 @@ from copy import deepcopy
 import numpy as np
 import random
 from scipy.optimize import fsolve
-from collections import defaultdict
 
 ADDITIONAL_ENV_PARAMS = {
     # maximum acceleration of autonomous vehicles
@@ -249,46 +248,6 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
         """See class definition."""
         return Box(low=-float('inf'), high=float('inf'),
                    shape=(3, ), dtype=np.float32)
-
-
-    # add additional methods
-    @property
-    def active_observation_shape(self):
-        return self.observation_space.shape
-    def convert_to_active_observation(self, observation):
-        return observation
-    def get_path_infos(self, paths, *args, **kwargs):
-        """Log some general diagnostics from the env infos.
-        TODO(hartikainen): These logs don't make much sense right now. Need to
-        figure out better format for logging general env infos.
-        """
-        keys = list(paths[0].get('infos', [{}])[0].keys())
-
-        results = defaultdict(list)
-
-        for path in paths:
-            path_results = {
-                k: [
-                    info[k]
-                    for info in path['infos']
-                ] for k in keys
-            }
-            for info_key, info_values in path_results.items():
-                info_values = np.array(info_values)
-                results[info_key + '-first'].append(info_values[0])
-                results[info_key + '-last'].append(info_values[-1])
-                results[info_key + '-mean'].append(np.mean(info_values))
-                results[info_key + '-median'].append(np.median(info_values))
-                if np.array(info_values).dtype != np.dtype('bool'):
-                    results[info_key + '-range'].append(np.ptp(info_values))
-
-        aggregated_results = {}
-        for key, value in results.items():
-            aggregated_results[key + '-mean'] = np.mean(value)
-
-        return aggregated_results
-       
-
 
     def get_state(self):
         """See class definition."""
