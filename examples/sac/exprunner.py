@@ -7,6 +7,7 @@ import copy
 import glob
 import pickle
 import sys
+import types
 
 import tensorflow as tf
 from ray import tune
@@ -43,6 +44,7 @@ class ExperimentRunner(tune.Trainable):
     def _build(self):
         variant = copy.deepcopy(self._variant)
 
+        # create Flow environment
         flow_params = variant['flow_params']
         create_env, _ = make_create_env(params=flow_params, version=0)
         env = create_env()
@@ -109,8 +111,8 @@ class ExperimentRunner(tune.Trainable):
     def picklables(self):
         return {
             'variant': self._variant,
-            'training_environment': self.training_environment,
-            'evaluation_environment': self.evaluation_environment,
+            'training_environment': self._variant['env_config']['flow_params'],
+            'evaluation_environment': self._variant['env_config']['flow_params'],
             'sampler': self.sampler,
             'algorithm': self.algorithm,
             'Qs': self.Qs,
@@ -216,3 +218,7 @@ class ExperimentRunner(tune.Trainable):
             Q_target.set_weights(Q.get_weights())
 
         self._built = True
+
+
+if __name__ == '__main__':
+    print("This file contains the ExperimentRunner class and does not implement an actual example.")

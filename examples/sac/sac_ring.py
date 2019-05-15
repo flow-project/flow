@@ -1,7 +1,8 @@
 """Ring road example.
 
 Trains a single autonomous vehicle to stabilize the flow of 21 human-driven
-vehicles in a variable length ring road.
+vehicles in a variable length ring road, using the softlearning library which
+implements a soft actor-critic algorithm.
 """
 
 import json
@@ -23,7 +24,7 @@ from flow.controllers import RLController, IDMController, ContinuousRouter
 # time horizon of a single rollout
 HORIZON = 3000
 # number of rollouts per training iteration
-N_ROLLOUTS = 20
+N_ROLLOUTS = 10
 # number of parallel workers
 N_CPUS = 2
 
@@ -99,9 +100,9 @@ import numpy as np
 M = 256
 REPARAMETERIZE = True
 
-DEFAULT_MAX_PATH_LENGTH = 1000
+DEFAULT_MAX_PATH_LENGTH = 3000
 DEFAULT_NUM_EPOCHS = 200
-NUM_CHECKPOINTS = 10
+NUM_CHECKPOINTS = 20
 
 GAUSSIAN_POLICY_PARAMS = {
     'type': 'GaussianPolicy',
@@ -115,8 +116,8 @@ ALGORITHM_PARAMS = {
     'type': 'SAC',
 
     'kwargs': {
-        'n_epochs': 200,
-        'epoch_length': 1000,
+        'n_epochs': DEFAULT_NUM_EPOCHS,
+        'epoch_length': HORIZON,
         'train_every_n_steps': 1,
         'n_train_repeat': 1,
         'eval_render_mode': None,
@@ -138,6 +139,9 @@ ALGORITHM_PARAMS = {
 def get_variant_spec_base():
     variant_spec = {
         # 'git_sha': get_git_rev(__file__),
+        'env_config': {
+            'flow_params': json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
+        },
         'flow_params': flow_params,        
         'environment_params': {
             'training': {
@@ -201,10 +205,10 @@ import multiprocessing
 from softlearning.misc.utils import datetimestamp
 
 def generate_experiment_kwargs(variant_spec):
-    local_dir = '~/ray_results/SAC_tmp/'
+    local_dir = '~/ray_results/SAC_ring/'
 
     resources_per_trial = {}
-    resources_per_trial['cpu'] = 1#multiprocessing.cpu_count()
+    resources_per_trial['cpu'] = N_CPUS#multiprocessing.cpu_count()
     resources_per_trial['gpu'] = 0#None
     resources_per_trial['extra_cpu'] = 0#None
     resources_per_trial['extra_gpu'] = 0#None
