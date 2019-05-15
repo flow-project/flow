@@ -79,7 +79,7 @@ class AimsunKernelVehicle(KernelVehicle):
         # note: vehicles added via the scenario (ie by calling the
         # add_vehicle function) will also be tracked, even if their
         # type is not specified here
-        self.tracked_vehicle_types = {"rl"} # {"rl", "Car"}
+        self.tracked_vehicle_types = {"rl", "Car"}
 
         # all the vehicle tracking information that should be stored
         # for the tracked vehicles info that can be tracked:
@@ -158,8 +158,7 @@ class AimsunKernelVehicle(KernelVehicle):
         if not reset:
             for aimsun_id in exited_vehicles:
                 if aimsun_id in self._id_aimsun2flow:
-                    veh_id = self._id_aimsun2flow[aimsun_id]
-                    self.remove(veh_id)
+                    self.remove(aimsun_id)
 
         start = time.time()
 
@@ -280,7 +279,6 @@ class AimsunKernelVehicle(KernelVehicle):
             self.num_type[type_id] += 1
             self.total_num_type[type_id] += 1
             self.__ids.append(veh_id)
-            self.__rl_ids.append(veh_id)  # FIXME
             self.__vehicles[veh_id] = {}
             # set the Aimsun/Flow vehicle ID converters
             self._id_aimsun2flow[aimsun_id] = veh_id
@@ -335,7 +333,7 @@ class AimsunKernelVehicle(KernelVehicle):
         # set the "last_lc" parameter of the vehicle
         self.__vehicles[veh_id]["last_lc"] = -float("inf")
         """
-        # self.__human_ids.append(veh_id)  # FIXME
+        self.__human_ids.append(veh_id)  # FIXME
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
@@ -344,7 +342,6 @@ class AimsunKernelVehicle(KernelVehicle):
         """See parent class."""
         self.num_vehicles += 1
         self.__ids.append(veh_id)
-        self.__rl_ids.append(veh_id)  # FIXME
         self.__vehicles[veh_id] = {}
         self.__vehicles[veh_id]["type_name"] = type_id
 
@@ -375,9 +372,9 @@ class AimsunKernelVehicle(KernelVehicle):
             self.num_type[type_id] = 1
             self.total_num_type[type_id] = 1
 
-    def remove(self, veh_id):
+    def remove(self, aimsun_id):
         """See parent class."""
-        aimsun_id = self._id_flow2aimsun[veh_id]
+        veh_id = self._id_aimsun2flow[aimsun_id]
         self.kernel_api.remove_vehicle(aimsun_id)
 
         type_id = self.__vehicles[veh_id]['type_name']
