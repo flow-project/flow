@@ -109,25 +109,29 @@ def get_flow_params(config):
             **veh_params)
 
     # convert all parameters from dict to their object form
+    def update_params_from_dict(obj, dict):
+        for k, v in dict.items():
+            setattr(obj, k, v)
+
     sim = SumoParams()  # TODO: add check for simulation type
-    sim.__dict__ = flow_params["sim"].copy()
+    update_params_from_dict(sim, flow_params["sim"])
 
     net = NetParams()
-    net.__dict__ = flow_params["net"].copy()
+    update_params_from_dict(net, flow_params["net"])
     net.inflows = InFlows()
     if flow_params["net"]["inflows"]:
-        net.inflows.__dict__ = flow_params["net"]["inflows"].copy()
+        update_params_from_dict(net.inflows, flow_params["net"]["inflows"])
 
     env = EnvParams()
-    env.__dict__ = flow_params["env"].copy()
+    update_params_from_dict(env, flow_params["env"])
 
     initial = InitialConfig()
     if "initial" in flow_params:
-        initial.__dict__ = flow_params["initial"].copy()
+        update_params_from_dict(initial, flow_params["initial"])
 
     tls = TrafficLightParams()
     if "tls" in flow_params:
-        tls.__dict__ = flow_params["tls"].copy()
+        update_params_from_dict(tls, flow_params["tls"])
 
     flow_params["sim"] = sim
     flow_params["env"] = env
