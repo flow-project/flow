@@ -135,11 +135,7 @@ class ExperimentRunner(tune.Trainable):
         create_env, _ = make_create_env(params=flow_params, version=0)
         env = create_env()
 
-        # add necessary methods and attributes to the environment
-        env.active_observation_shape = env.observation_space.shape
-        env.convert_to_active_observation = types.MethodType(
-            _convert_to_active_observation, env)
-        env.get_path_infos = types.MethodType(_get_path_infos, env)
+        adapt_environment_for_sac(env)
 
         environment_params = variant['environment_params']
         training_environment = self.training_environment = (
@@ -311,6 +307,14 @@ class ExperimentRunner(tune.Trainable):
             Q_target.set_weights(Q.get_weights())
 
         self._built = True
+
+
+def adapt_environment_for_sac(env):
+    # add necessary methods and attributes to the environment
+    env.active_observation_shape = env.observation_space.shape
+    env.convert_to_active_observation = types.MethodType(
+        _convert_to_active_observation, env)
+    env.get_path_infos = types.MethodType(_get_path_infos, env)
 
 
 def _convert_to_active_observation(self, observation):
