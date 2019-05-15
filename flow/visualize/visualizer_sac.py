@@ -16,6 +16,7 @@ from softlearning.samplers import rollouts
 
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
+from flow.utils.softlearning import adapt_environment_for_sac
 
 
 EXAMPLE_USAGE = "Example usage:\n\n" + \
@@ -55,6 +56,7 @@ def simulate_policy(args):
 
     create_env, _ = make_create_env(params=flow_params, version=0)
     evaluation_environment = create_env()
+    adapt_environment_for_sac(evaluation_environment)
 
     policy = (
         get_policy_from_variant(variant, evaluation_environment, Qs=[None]))
