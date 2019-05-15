@@ -1,13 +1,16 @@
-"""
+"""ExperimentRunner class, get_variant_spec and generate_experiment_kwargs fcts
 code adapted from an example of the softlearning library
 """
+
 import os
 import copy
 import glob
 import pickle
 import sys
 import types
+import json
 from collections import defaultdict
+import numpy as np
 
 import tensorflow as tf
 from ray import tune
@@ -18,46 +21,94 @@ from softlearning.policies.utils import get_policy_from_variant, get_policy
 from softlearning.replay_pools.utils import get_replay_pool_from_variant
 from softlearning.samplers.utils import get_sampler_from_variant
 from softlearning.value_functions.utils import get_Q_function_from_variant
-
 from softlearning.misc.utils import set_seed, initialize_tf_variables
+from softlearning.misc.utils import deep_update, datetimestamp
 
 from flow.utils.registry import make_create_env
+from flow.utils.rllib import FlowParamsEncoder
 
 
-def convert_to_active_observation(self, observation):
-    return observation
+def get_variant_spec(params):
+    variant_spec = {
+        'env_config': {
+            'flow_params': json.dumps(params['flow_params'], 
+                                      cls=FlowParamsEncoder, 
+                                      sort_keys=True, indent=4)
+        },
+        'flow_params': params['flow_params'],        
+        'environment_params': {
+            'training': {
+                'kwargs': {
+                    # Add environment params here
+                },
+            },
+            'evaluation': tune.sample_from(lambda spec: (
+                spec.get('config', spec)
+                ['environment_params']
+                ['training']
+            )),
+        },
+        'policy_params': params['gaussian_policy_params'],
+        'Q_params': {
+            'type': 'double_feedforward_Q_function',
+            'kwargs': {
+                'hidden_layer_sizes': params['gaussian_policy_params']
+                                            ['kwargs']['hidden_layer_sizes'],
+            }
+        },
+        'algorithm_params': params['algorithm_params'],
+        'replay_pool_params': {
+            'type': 'SimpleReplayPool',
+            'kwargs': {
+                'max_size': tune.sample_from(lambda spec: (
+                    {
+                        'SimpleReplayPool': int(1e6),
+                        'TrajectoryReplayPool': int(1e4),
+                    }.get(
+                        spec.get('config', spec)
+                        ['replay_pool_params']
+                        ['type'],
+                        int(1e6))
+                )),
+            }
+        },
+        'sampler_params': params['sampler_params'],
+        'run_params': params['run_params'],
+        'resources_per_trial': params['resources_per_trial']
+    }
 
-def get_path_infos(self, paths, *args, **kwargs):
-    """Log some general diagnostics from the env infos.
-    TODO(hartikainen): These logs don't make much sense right now. Need to
-    figure out better format for logging general env infos.
-    """
-    keys = list(paths[0].get('infos', [{}])[0].keys())
+    return variant_spec
 
-    results = defaultdict(list)
 
-    for path in paths:
-        path_results = {
-            k: [
-                info[k]
-                for info in path['infos']
-            ] for k in keys
-        }
-        for info_key, info_values in path_results.items():
-            info_values = np.array(info_values)
-            results[info_key + '-first'].append(info_values[0])
-            results[info_key + '-last'].append(info_values[-1])
-            results[info_key + '-mean'].append(np.mean(info_values))
-            results[info_key + '-median'].append(np.median(info_values))
-            if np.array(info_values).dtype != np.dtype('bool'):
-                results[info_key + '-range'].append(np.ptp(info_values))
+def generate_experiment_kwargs(variant_spec):
+    exp_name = variant_spec['flow_params']['exp_tag']
+    experiment_id = '-'.join((datetimestamp(), exp_name))
+    local_dir = '~/ray_results/' + exp_name
 
-    aggregated_results = {}
-    for key, value in results.items():
-        aggregated_results[key + '-mean'] = np.mean(value)
+    def create_trial_name_creator(trial_name_template):
+        def trial_name_creator(trial):
+            return trial_name_template.format(trial=trial)
+        return tune.function(trial_name_creator)
 
-    return aggregated_results
-       
+    experiment_kwargs = {
+        'name': experiment_id,
+        'resources_per_trial': variant_spec['resources_per_trial'],
+        'config': variant_spec,
+        'local_dir': local_dir,
+        'num_samples': 1,
+        'upload_dir': '',
+        'checkpoint_freq': (
+            variant_spec['run_params']['checkpoint_frequency']),
+        'checkpoint_at_end': (
+            variant_spec['run_params']['checkpoint_at_end']),
+        'trial_name_creator': create_trial_name_creator(
+            'id={trial.trial_id}-seed={trial.config[run_params][seed]}'),
+        'restore': None,
+    }
+
+    return experiment_kwargs
+
+
 class ExperimentRunner(tune.Trainable):
     def _setup(self, variant):
         set_seed(variant['run_params']['seed'])
@@ -87,8 +138,8 @@ class ExperimentRunner(tune.Trainable):
         # add necessary methods and attributes to the environment
         env.active_observation_shape = env.observation_space.shape
         env.convert_to_active_observation = types.MethodType(
-            convert_to_active_observation, env)
-        env.get_path_infos = types.MethodType(get_path_infos, env)
+            _convert_to_active_observation, env)
+        env.get_path_infos = types.MethodType(_get_path_infos, env)
 
         environment_params = variant['environment_params']
         training_environment = self.training_environment = (
@@ -261,6 +312,42 @@ class ExperimentRunner(tune.Trainable):
 
         self._built = True
 
+
+def _convert_to_active_observation(self, observation):
+    return observation
+
+
+def _get_path_infos(self, paths, *args, **kwargs):
+    """Log some general diagnostics from the env infos.
+    TODO(hartikainen): These logs don't make much sense right now. Need to
+    figure out better format for logging general env infos.
+    """
+    keys = list(paths[0].get('infos', [{}])[0].keys())
+
+    results = defaultdict(list)
+
+    for path in paths:
+        path_results = {
+            k: [
+                info[k]
+                for info in path['infos']
+            ] for k in keys
+        }
+        for info_key, info_values in path_results.items():
+            info_values = np.array(info_values)
+            results[info_key + '-first'].append(info_values[0])
+            results[info_key + '-last'].append(info_values[-1])
+            results[info_key + '-mean'].append(np.mean(info_values))
+            results[info_key + '-median'].append(np.median(info_values))
+            if np.array(info_values).dtype != np.dtype('bool'):
+                results[info_key + '-range'].append(np.ptp(info_values))
+
+    aggregated_results = {}
+    for key, value in results.items():
+        aggregated_results[key + '-mean'] = np.mean(value)
+
+    return aggregated_results
+       
 
 if __name__ == '__main__':
     print("This file contains the ExperimentRunner class" + \
