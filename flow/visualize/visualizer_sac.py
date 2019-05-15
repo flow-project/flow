@@ -12,73 +12,7 @@ from softlearning.samplers import rollouts
 
 from flow.utils.registry import make_create_env
 
-
-### FIXME retrieve flowparams from save file instead of hardcoding it
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.params import VehicleParams
-from flow.controllers import RLController, IDMController, ContinuousRouter
-vehicles = VehicleParams()
-vehicles.add(
-    veh_id="human",
-    acceleration_controller=(IDMController, {
-        "noise": 0.2
-    }),
-    routing_controller=(ContinuousRouter, {}),
-    num_vehicles=21)
-vehicles.add(
-    veh_id="rl",
-    acceleration_controller=(RLController, {}),
-    routing_controller=(ContinuousRouter, {}),
-    num_vehicles=1)
-flow_params = dict(
-    # name of the experiment
-    exp_tag="stabilizing_the_ring",
-
-    # name of the flow environment the experiment is running on
-    env_name="WaveAttenuationPOEnv",
-
-    # name of the scenarsio class the experiment is running on
-    scenario="LoopScenario",
-
-    # simulator that is used by the experiment
-    simulator='traci',
-
-    # sumo-related parameters (see flow.core.params.SumoParams)
-    sim=SumoParams(
-        sim_step=0.1,
-        render=True,
-    ),
-
-    # environment related parameters (see flow.core.params.EnvParams)
-    env=EnvParams(
-        horizon=5000,
-        warmup_steps=750,
-        additional_params={
-            "max_accel": 1,
-            "max_decel": 1,
-            "ring_length": [220, 270],
-        },
-    ),
-
-    # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
-    net=NetParams(
-        additional_params={
-            "length": 260,
-            "lanes": 1,
-            "speed_limit": 30,
-            "resolution": 40,
-        }, ),
-
-    # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
-    veh=vehicles,
-
-    # parameters specifying the positioning of vehicles upon initialization/
-    # reset (see flow.core.params.InitialConfig)
-    initial=InitialConfig(),
-)
-
+from flow.utils.rllib import get_flow_params
 
 
 """
@@ -103,7 +37,10 @@ def simulate_policy(checkpoint_path, max_path_length=5000, num_rollouts=1,
         with open(pickle_path, 'rb') as f:
             picklable = pickle.load(f)
 
-    # flow_params = variant['flow_params'] TODO
+    flow_params = get_flow_params(variant)
+    flow_params['sim'].render = True
+    print(flow_params)
+
     create_env, _ = make_create_env(params=flow_params, version=0)
     evaluation_environment = create_env()
 
