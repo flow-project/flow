@@ -3,7 +3,7 @@ language: python
 cache: pip
 
 python:
-  - "3.7"
+  - "3.5"
 
 os: linux
 
