@@ -88,11 +88,16 @@ class TrafficLightGridEnv(Env):
         }
         self.node_mapping = scenario.get_node_mapping()
 
-        # keeps track of the last time the traffic lights in an intersection were allowed to change (the last time the lights were allowed to change from a red-green state to a red-yellow state.).
+        # Keeps track of the last time the traffic lights in an intersection
+        # were allowed to change (the last time the lights were allowed to
+        # change from a red-green state to a red-yellow state.)
         self.last_change = np.zeros((self.rows * self.cols, 1))
-        # keeps track of the direction of the intersection (the direction that is currently being allowed to flow. 0 indicates flow from top to bottom, and 1 indicates flow from left to right.)
+        # Keeps track of the direction of the intersection (the direction that
+        # is currently being allowed to flow. 0 indicates flow from top to
+        # bottom, and 1 indicates flow from left to right.)
         self.direction = np.zeros((self.rows * self.cols, 1))
-        # value of 0 indicates that the intersection is in a red-yellow state. 1 indicates that the intersection is in a red-green state.
+        # Value of 0 indicates that the intersection is in a red-yellow state.
+        # value 1 indicates that the intersection is in a red-green state.
         self.currently_yellow = np.zeros((self.rows * self.cols, 1))
 
         # when this hits min_switch_time we change from yellow to red
