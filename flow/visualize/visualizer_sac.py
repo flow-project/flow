@@ -4,7 +4,6 @@ Run 'python3.7 visualizer_sac --help' to get example usage
 """
 
 import argparse
-from distutils.util import strtobool
 import json
 import os
 import pickle
