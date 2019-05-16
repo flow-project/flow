@@ -5,14 +5,9 @@ vehicles in a variable length ring road, using the softlearning library which
 implements a soft actor-critic algorithm.
 """
 
-import json
 import numpy as np
 
 import ray
-try:
-    from ray.rllib.agents.agent import get_agent_class
-except ImportError:
-    from ray.rllib.agents.registry import get_agent_class
 from ray import tune
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -22,7 +17,6 @@ from flow.controllers import RLController, IDMController, ContinuousRouter
 from flow.utils.softlearning import ExperimentRunner
 from flow.utils.softlearning import get_variant_spec
 from flow.utils.softlearning import generate_experiment_kwargs
-
 
 
 EPOCHS = 200
@@ -170,4 +164,3 @@ if __name__ == "__main__":
         trainable_class,
         **experiment_kwargs,
         reuse_actors=True)
-        

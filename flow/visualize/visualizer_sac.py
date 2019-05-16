@@ -39,9 +39,9 @@ def simulate_policy(args):
     checkpoint_path = os.path.join(experiment_path, checkpoint_dir)
 
     if not os.path.exists(variant_path):
-        raise ValueError(f"Couldn't find file {variant_path}")
+        raise ValueError("Couldn't find file {variant_path}")
     if not os.path.exists(checkpoint_path):
-        raise ValueError(f"Couldn't find file {checkpoint_path}")
+        raise ValueError("Couldn't find file {checkpoint_path}")
 
     with open(variant_path, 'r') as f:
         variant = json.load(f)
