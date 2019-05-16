@@ -35,7 +35,7 @@ def simulate_policy(args):
 
     experiment_path = args.result_dir
     variant_path = os.path.join(experiment_path, 'params.json')
-    checkpoint_dir = f"checkpoint_{args.checkpoint_num}"
+    checkpoint_dir = "checkpoint_{args.checkpoint_num}"
     checkpoint_path = os.path.join(experiment_path, checkpoint_dir)
 
     if not os.path.exists(variant_path):
@@ -98,13 +98,13 @@ def create_parser():
     parser.add_argument(
         '--horizon',
         type=int,
-        help='The horizon for each rollout (by default the same as' + \
+        help='The horizon for each rollout (by default the same as'
              'during the simulation).')
     parser.add_argument(
         '--deterministic',
         type=bool,
         default=False,
-        help='Whether or not the policy should be made deterministic' + \
+        help='Whether or not the policy should be made deterministic'
              '(False by default).')
     return parser
 

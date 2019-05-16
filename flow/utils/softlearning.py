@@ -1,7 +1,7 @@
 """
 Utility functions for Flow compatibility with the softlearning library (SAC).
 
-This includes: 
+This includes:
 - ExperimentRunner class
 - get_variant_spec function
 - generate_experiment_kwargs function
@@ -12,7 +12,6 @@ import os
 import copy
 import glob
 import pickle
-import sys
 import types
 import json
 from collections import defaultdict
@@ -21,14 +20,13 @@ import numpy as np
 import tensorflow as tf
 from ray import tune
 
-from softlearning.environments.utils import get_environment_from_params
 from softlearning.algorithms.utils import get_algorithm_from_variant
 from softlearning.policies.utils import get_policy_from_variant, get_policy
 from softlearning.replay_pools.utils import get_replay_pool_from_variant
 from softlearning.samplers.utils import get_sampler_from_variant
 from softlearning.value_functions.utils import get_Q_function_from_variant
 from softlearning.misc.utils import set_seed, initialize_tf_variables
-from softlearning.misc.utils import deep_update, datetimestamp
+from softlearning.misc.utils import datetimestamp
 
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
@@ -37,11 +35,11 @@ from flow.utils.rllib import FlowParamsEncoder
 def get_variant_spec(params):
     variant_spec = {
         'env_config': {
-            'flow_params': json.dumps(params['flow_params'], 
-                                      cls=FlowParamsEncoder, 
+            'flow_params': json.dumps(params['flow_params'],
+                                      cls=FlowParamsEncoder,
                                       sort_keys=True, indent=4)
         },
-        'flow_params': params['flow_params'],        
+        'flow_params': params['flow_params'],
         'environment_params': {
             'training': {
                 'kwargs': {
@@ -308,7 +306,7 @@ class ExperimentRunner(tune.Trainable):
         status.assert_consumed().run_restore_ops(self._session)
         initialize_tf_variables(self._session, only_uninitialized=True)
 
-        # TODO(hartikainen): target Qs should either be checkpointed or pickled.
+        # TODO(hartikainen): target Qs should either be checkpointed or pickled
         for Q, Q_target in zip(self.algorithm._Qs, self.algorithm._Q_targets):
             Q_target.set_weights(Q.get_weights())
 

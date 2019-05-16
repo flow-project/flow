@@ -14,18 +14,15 @@ try:
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray import tune
-from ray.tune import run_experiments
-from ray.tune.registry import register_env
 
-from flow.utils.registry import make_create_env
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
 from flow.controllers import RLController, IDMController, ContinuousRouter
 
 from flow.utils.softlearning import ExperimentRunner
-from flow.utils.softlearning import get_variant_spec, generate_experiment_kwargs
+from flow.utils.softlearning import get_variant_spec
+from flow.utils.softlearning import generate_experiment_kwargs
 
-from softlearning.misc.utils import deep_update
 
 
 EPOCHS = 200
@@ -100,9 +97,9 @@ flow_params = dict(
 )
 
 sac_params = dict(
-    flow_params = flow_params,
+    flow_params=flow_params,
 
-    algorithm_params = {
+    algorithm_params={
         'type': 'SAC',
 
         'kwargs': {
@@ -126,7 +123,7 @@ sac_params = dict(
         }
     },
 
-    gaussian_policy_params = {
+    gaussian_policy_params={
         'type': 'GaussianPolicy',
         'kwargs': {
             'hidden_layer_sizes': (256, 256),
@@ -134,7 +131,7 @@ sac_params = dict(
         }
     },
 
-    sampler_params = {
+    sampler_params={
         'type': 'SimpleSampler',
         'kwargs': {
             'max_path_length': HORIZON,
@@ -143,7 +140,7 @@ sac_params = dict(
         }
     },
 
-    run_params = {
+    run_params={
         'seed': tune.sample_from(
             lambda spec: np.random.randint(0, 10000)),
         'checkpoint_at_end': True,
@@ -151,7 +148,7 @@ sac_params = dict(
         'checkpoint_replay_pool': False,
     },
 
-    resources_per_trial = {
+    resources_per_trial={
         'cpu': N_CPUS,
         'gpu': N_GPUS,
         'extra_cpu': 0,
@@ -166,7 +163,7 @@ if __name__ == "__main__":
     experiment_kwargs = generate_experiment_kwargs(variant_spec)
 
     ray.init(
-        num_cpus=N_CPUS, 
+        num_cpus=N_CPUS,
         num_gpus=N_GPUS)
 
     tune.run(
