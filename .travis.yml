@@ -8,8 +8,6 @@ python:
 
 os: linux
 
-dist: trusty
-
 sudo: required
 
 git:
