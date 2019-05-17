@@ -521,7 +521,7 @@ class TestRandomStartPos(unittest.TestCase):
             initial_config=initial_config,
             vehicles=vehicles)
 
-    def tearDown_gen_start_pos(self):
+    def tearDown(self):
         # terminate the traci instance
         self.env.terminate()
 
