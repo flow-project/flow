@@ -29,7 +29,7 @@ EXAMPLE_USAGE = "Example usage:\n\n" + \
     "\t\"False\" whether the policy should be made deterministic (optional)\n"
 
 
-def simulate_policy(args):
+def visualizer_sac(args):
     session = tf.keras.backend.get_session()
 
     experiment_path = args.result_dir
@@ -114,4 +114,4 @@ def create_parser():
 if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
-    simulate_policy(args)
+    visualizer_sac(args)
