@@ -2,6 +2,8 @@
 # from flow.visualize.visualizer_rllab import visualizer_rllab
 from flow.visualize import visualizer_rllib as vs_rllib
 from flow.visualize.visualizer_rllib import visualizer_rllib
+from flow.visualize import visualizer_sac as vs_sac
+from flow.visualize.visualizer_sac import visualizer_sac
 
 import os
 import unittest
@@ -60,6 +62,21 @@ class TestVisualizerRLlib(unittest.TestCase):
 #         parser = vs_rllab.create_parser()
 #         pass_args = parser.parse_args(arg_str)
 #         visualizer_rllab(pass_args)
+
+
+class TestVisualizerSAC(unittest.TestCase):
+    """Tests visualizer_sac"""
+
+    def test_visualizer(self):
+        # current path
+        current_path = os.path.realpath(__file__).rsplit('/', 1)[0]
+
+        # run the experiment and check it doesn't crash
+        arg_str = '{}/../data/sac_data 1 --num-rollouts 1 --horizon 10 ' \
+                  '--no-render'.format(current_path).split()
+        parser = vs_sac.create_parser()
+        pass_args = parser.parse_args(arg_str)
+        visualizer_sac(pass_args)
 
 
 if __name__ == '__main__':
