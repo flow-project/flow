@@ -34,13 +34,13 @@ def simulate_policy(args):
 
     experiment_path = args.result_dir
     variant_path = os.path.join(experiment_path, 'params.json')
-    checkpoint_dir = "checkpoint_{args.checkpoint_num}"
+    checkpoint_dir = f"checkpoint_{args.checkpoint_num}"
     checkpoint_path = os.path.join(experiment_path, checkpoint_dir)
 
     if not os.path.exists(variant_path):
-        raise ValueError("Couldn't find file {variant_path}")
+        raise ValueError(f"Couldn't find file {variant_path}")
     if not os.path.exists(checkpoint_path):
-        raise ValueError("Couldn't find file {checkpoint_path}")
+        raise ValueError(f"Couldn't find file {checkpoint_path}")
 
     with open(variant_path, 'r') as f:
         variant = json.load(f)
@@ -51,7 +51,7 @@ def simulate_policy(args):
             picklable = pickle.load(f)
 
     flow_params = get_flow_params(variant)
-    flow_params['sim'].render = True
+    flow_params['sim'].render = False
 
     create_env, _ = make_create_env(params=flow_params, version=0)
     evaluation_environment = create_env()
