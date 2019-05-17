@@ -51,7 +51,7 @@ def simulate_policy(args):
             picklable = pickle.load(f)
 
     flow_params = get_flow_params(variant)
-    flow_params['sim'].render = False
+    flow_params['sim'].render = args.render
 
     create_env, _ = make_create_env(params=flow_params, version=0)
     evaluation_environment = create_env()
@@ -100,11 +100,14 @@ def create_parser():
         help='The horizon for each rollout (by default the same as'
              'during the simulation).')
     parser.add_argument(
-        '--deterministic',
-        type=bool,
-        default=False,
-        help='Whether or not the policy should be made deterministic'
-             '(False by default).')
+        '--deterministic', 
+        action='store_true',
+        help='Forces the policy to be deterministic.')
+    parser.add_argument(
+        '--no-render',
+        action='store_false',
+        dest='render',
+        help='To not render the simulation.')
     return parser
 
 
