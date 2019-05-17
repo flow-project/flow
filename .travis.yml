@@ -45,6 +45,7 @@ install:
   - pip install nose
   - pip install matplotlib
   - pip install jupyter
+  - sudo apt-get install libproj-dev
 
 before_script:
   - flake8 --version
