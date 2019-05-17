@@ -100,7 +100,7 @@ def create_parser():
         help='The horizon for each rollout (by default the same as'
              'during the simulation).')
     parser.add_argument(
-        '--deterministic', 
+        '--deterministic',
         action='store_true',
         help='Forces the policy to be deterministic.')
     parser.add_argument(
