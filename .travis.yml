@@ -45,7 +45,7 @@ install:
   - pip install nose
   - pip install matplotlib
   - pip install jupyter
-  - conda install patchelf=0.9
+  - conda install -y patchelf=0.9
   - pip install git+https://github.com/rail-berkeley/softlearning.git
 
 before_script:
