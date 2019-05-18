@@ -23,6 +23,9 @@ before_install:
   # clone softlearning library
   - git clone https://github.com/rail-berkeley/softlearning.git ~/softlearning
 
+  # necessary for pyglet renderer
+  - export DISPLAY=:0.0
+
   # Set up requirements for flow
   - conda env create -f environment.yml
   - source activate flow
@@ -51,6 +54,8 @@ install:
   - conda install -y patchelf=0.9
   - pip install tensorflow-probability
   - pip install gtimer
+  - pip install -U ray
+  - pip install git+https://github.com/hartikainen/serializable.git
   - pip install -e ~/softlearning
 
 before_script:
