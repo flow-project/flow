@@ -41,12 +41,14 @@ testing simulations in the presence of an RLlib/rllab agent.
 
 **Tutorial 7:** Importing networks from OpenStreetMap.
 
-**Tutorial 8:** Creating custom environments.
+**Tutorial 8:** Importing networks from simulator-specific template files.
 
-**Tutorial 9:** Creating custom controllers.
+**Tutorial 9:** Creating custom environments.
 
-**Tutorial 10:** Traffic lights.
+**Tutorial 10:** Creating custom controllers.
 
-**Tutorial 11:** Running simulations with inflows of vehicles.
+**Tutorial 11:** Traffic lights.
 
-**Tutorial 12:** Running rllab experiments on Amazon EC2 instances.
+**Tutorial 12:** Running simulations with inflows of vehicles.
+
+**Tutorial 13:** Running rllab experiments on Amazon EC2 instances.

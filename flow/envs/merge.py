@@ -108,7 +108,7 @@ class WaveAttenuationMergePOEnv(Env):
             # ignore rl vehicles outside the network
             if rl_id not in self.k.vehicle.get_rl_ids():
                 continue
-            self.k.vehicle.apply_acceleration([rl_id], [rl_actions[i]])
+            self.k.vehicle.apply_acceleration(rl_id, rl_actions[i])
 
     def get_state(self, rl_id=None, **kwargs):
         """See class definition."""
