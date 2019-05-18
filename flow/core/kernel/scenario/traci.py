@@ -766,7 +766,10 @@ class TraCIScenario(KernelScenario):
         # add the inflows from various edges to the xml file
         if self.network.net_params.inflows is not None:
             total_inflows = self.network.net_params.inflows.get()
-            for inflow in total_inflows:
+            for next_inflow in total_inflows:
+                # do not want to affect the original values
+                inflow = deepcopy(next_inflow)
+
                 # convert any non-string element in the inflow dict to a string
                 for key in inflow:
                     if not isinstance(inflow[key], str):
@@ -781,6 +784,8 @@ class TraCIScenario(KernelScenario):
                     flag, rate = 1, float(inflow['probability'])
                 del inflow['edge']
 
+                # distribute the inflow rates across all routes from a given
+                # edge on the basis of the provided fractions for each route
                 for i in range(len(routes[edge])):
                     _, frac = routes[edge][i]
                     inflow['route'] = 'route{}_{}'.format(edge, i)

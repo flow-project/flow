@@ -14,9 +14,12 @@ class ContinuousRouter(BaseRouter):
 
     def choose_route(self, env):
         """Adopt the current edge's route if about to leave the network."""
-        if env.k.vehicle.get_edge(self.veh_id) == \
-                env.k.vehicle.get_route(self.veh_id)[-1]:
-            return env.available_routes[env.k.vehicle.get_edge(self.veh_id)]
+        edge = env.k.vehicle.get_edge(self.veh_id)
+        current_route = env.k.vehicle.get_route(self.veh_id)
+
+        if edge == current_route[-1]:
+            # FIXME (ak): probabilistic across all possible routes
+            return env.available_routes[edge][0][0]
         else:
             return None
 
