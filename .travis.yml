@@ -50,6 +50,7 @@ install:
   - pip install jupyter
   - conda install -y patchelf=0.9
   - pip install tensorflow-probability
+  - pip install gtimer
   - pip install -e ~/softlearning
 
 before_script:
