@@ -11,7 +11,6 @@ from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
 from bisect import bisect_left
 import itertools
-import random
 from copy import deepcopy
 
 # colors for vehicles
