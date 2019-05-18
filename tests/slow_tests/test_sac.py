@@ -158,16 +158,15 @@ class TestSoftActorCritic(unittest.TestCase):
         variant_spec = get_variant_spec(sac_params)
         experiment_kwargs = generate_experiment_kwargs(variant_spec)
 
-        ray.init(
-            num_cpus=N_CPUS,
-            num_gpus=N_GPUS)
+        try:
+            ray.init(num_cpus=N_CPUS, num_gpus=N_GPUS)
+        except:
+            pass  # already initialized
 
         tune.run(
             trainable_class,
             **experiment_kwargs,
             reuse_actors=True)
-
-        ray.shutdown()
 
 
 if __name__ == '__main__':
