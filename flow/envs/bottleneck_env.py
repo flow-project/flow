@@ -415,13 +415,8 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
         super().__init__(env_params, sim_params, scenario, simulator)
         self.add_rl_if_exit = env_params.get_additional_param("add_rl_if_exit")
-        self.num_rl = deepcopy(self.scenario.vehicles.num_rl_vehicles)
-        self.rl_id_list = deepcopy(
-            [veh_id for veh_id in self.scenario.vehicles.ids
-             if self.scenario.vehicles.type_parameters[
-                 self.scenario.vehicles.get_type(veh_id)][
-                 'acceleration_controller'][0] == RLController]
-        )
+        self.num_rl = deepcopy(self.initial_vehicles.num_rl_vehicles)
+        self.rl_id_list = deepcopy(self.initial_vehicles.get_rl_ids())
         self.max_speed = self.k.scenario.max_speed()
 
     @property

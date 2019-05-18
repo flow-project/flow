@@ -123,7 +123,7 @@ class TestEvenStartPos(unittest.TestCase):
             num_vehicles=15)
 
         # create the environment and scenario classes for a ring road
-        self.env, self.scenario = ring_road_exp_setup(
+        self.env, _ = ring_road_exp_setup(
             net_params=net_params,
             initial_config=initial_config,
             vehicles=vehicles)
