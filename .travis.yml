@@ -20,6 +20,9 @@ before_install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - export TEST_FLAG="True"
 
+  # clone softlearning library
+  - git clone https://github.com/rail-berkeley/softlearning.git ~/softlearning
+
   # Set up requirements for flow
   - conda env create -f environment.yml
   - source activate flow
@@ -47,7 +50,7 @@ install:
   - pip install jupyter
   - conda install -y patchelf=0.9
   - pip install tensorflow-probability
-  - pip install -e git+https://github.com/rail-berkeley/softlearning.git
+  - pip install -e ~/softlearning
 
 before_script:
   - flake8 --version
