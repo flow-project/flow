@@ -160,7 +160,7 @@ class TestSoftActorCritic(unittest.TestCase):
 
         try:
             ray.init(num_cpus=N_CPUS, num_gpus=N_GPUS)
-        except:
+        except Exception:
             pass  # already initialized
 
         tune.run(
