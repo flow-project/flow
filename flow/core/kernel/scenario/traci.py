@@ -748,34 +748,20 @@ class TraCIScenario(KernelScenario):
 
         # add the routes to the .add.xml file
         for route_id in routes.keys():
-            if type(routes[route_id][0]) == str:
-                # in this case, we only have one route
-                num_routes = 1
-                route = [(routes[route_id], 1)]
-            else:
-                # in this case, each item is a route
-                num_routes = len(routes[route_id])
-                route = routes[route_id]
+            # in this case, we only have one route, convert into into a
+            # list of routes with one element
+            if isinstance(routes[route_id][0], str):
+                routes[route_id] = [(routes[route_id], 1)]
 
-            for i in range(num_routes):
-                r, _ = route[i]
+            # add each route incrementally, and add a second term to denote
+            # the route number of the given route at the given edge
+            for i in range(len(routes[route_id])):
+                r, _ = routes[route_id][i]
                 routes_data.append(E(
                     'route',
                     id='route{}_{}'.format(route_id, i),
                     edges=' '.join(r)
                 ))
-
-        # add the inflows from various edges to the xml file
-        if self.network.net_params.inflows is not None:
-            total_inflows = self.network.net_params.inflows.get()
-            for inflow in total_inflows:
-                for key in inflow:
-                    if not isinstance(inflow[key], str):
-                        inflow[key] = repr(inflow[key])
-                    if key == 'edge':
-                        inflow['route'] = 'route{}'.format(inflow['edge'])
-                        del inflow['edge']
-                routes_data.append(_flow(**inflow))
 
         # add the inflows from various edges to the xml file
         if self.network.net_params.inflows is not None:
@@ -790,22 +776,12 @@ class TraCIScenario(KernelScenario):
                 # total inflow rate of the specific inflow
                 edge = deepcopy(inflow['edge'])
                 if 'vehsPerHour' in inflow:
-                    flag = 0
-                    rate = float(inflow['vehsPerHour'])
+                    flag, rate = 0, float(inflow['vehsPerHour'])
                 else:
-                    flag = 1
-                    rate = float(inflow['probability'])
+                    flag, rate = 1, float(inflow['probability'])
                 del inflow['edge']
 
-                if isinstance(routes[edge][0], str):
-                    # in this case, we only have one route
-                    num_routes = 1
-                    routes[edge] = [(routes[edge], 1)]
-                else:
-                    # in this case, each item is a route
-                    num_routes = len(routes[edge])
-
-                for i in range(num_routes):
+                for i in range(len(routes[edge])):
                     _, frac = routes[edge][i]
                     inflow['route'] = 'route{}_{}'.format(edge, i)
                     if flag:
