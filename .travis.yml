@@ -46,7 +46,8 @@ install:
   - pip install matplotlib
   - pip install jupyter
   - conda install -y patchelf=0.9
-  - pip install git+https://github.com/rail-berkeley/softlearning.git
+  - pip install tensorflow-probability
+  - pip install -e git+https://github.com/rail-berkeley/softlearning.git
 
 before_script:
   - flake8 --version
