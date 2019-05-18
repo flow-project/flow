@@ -1,0 +1,2 @@
+model_checkpoint_path: "/Users/nathan/ray_results/SAC_ring/2019-05-12T11-06-49-experiment_name/id=28d3ad94-seed=1711_2019-05-12_11-06-49_8i_8w_g/checkpoint_150/checkpoint-1"
+all_model_checkpoint_paths: "/Users/nathan/ray_results/SAC_ring/2019-05-12T11-06-49-experiment_name/id=28d3ad94-seed=1711_2019-05-12_11-06-49_8i_8w_g/checkpoint_150/checkpoint-1"
