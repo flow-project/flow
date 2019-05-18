@@ -12,6 +12,7 @@ from flow.controllers.lane_change_controllers import SimLaneChangeController
 from bisect import bisect_left
 import itertools
 import random
+from copy import deepcopy
 
 # colors for vehicles
 WHITE = (255, 255, 255)
@@ -133,6 +134,20 @@ class TraCIVehicle(KernelVehicle):
             self._num_arrived.clear()
             self._departed_ids.clear()
             self._arrived_ids.clear()
+
+            # add vehicles from a network template, if applicable
+            if hasattr(self.master_kernel.scenario.network,
+                       "template_vehicles"):
+                for veh_id in self.master_kernel.scenario.network.\
+                        template_vehicles:
+                    vals = deepcopy(self.master_kernel.scenario.network.
+                                    template_vehicles[veh_id])
+                    # a step is executed during initialization, so add this sim
+                    # step to the departure time of vehicles
+                    vals['depart'] = str(
+                        float(vals['depart']) + 2 * self.sim_step)
+                    self.kernel_api.vehicle.addFull(
+                        veh_id, 'route{}_0'.format(veh_id), **vals)
         else:
             self.time_counter += 1
             # update the "last_lc" variable
@@ -817,6 +832,11 @@ class TraCIVehicle(KernelVehicle):
 
     def apply_acceleration(self, veh_ids, acc):
         """See parent class."""
+        # to hand the case of a single vehicle
+        if type(veh_ids) == str:
+            veh_ids = [veh_ids]
+            acc = [acc]
+
         for i, vid in enumerate(veh_ids):
             if acc[i] is not None and vid in self.get_ids():
                 this_vel = self.get_speed(vid)
@@ -825,6 +845,11 @@ class TraCIVehicle(KernelVehicle):
 
     def apply_lane_change(self, veh_ids, direction):
         """See parent class."""
+        # to hand the case of a single vehicle
+        if type(veh_ids) == str:
+            veh_ids = [veh_ids]
+            direction = [direction]
+
         # if any of the directions are not -1, 0, or 1, raise a ValueError
         if any(d not in [-1, 0, 1] for d in direction):
             raise ValueError(
@@ -854,6 +879,11 @@ class TraCIVehicle(KernelVehicle):
 
     def choose_routes(self, veh_ids, route_choices):
         """See parent class."""
+        # to hand the case of a single vehicle
+        if type(veh_ids) == str:
+            veh_ids = [veh_ids]
+            route_choices = [route_choices]
+
         for i, veh_id in enumerate(veh_ids):
             if route_choices[i] is not None:
                 self.kernel_api.vehicle.setRoute(
@@ -912,21 +942,23 @@ class TraCIVehicle(KernelVehicle):
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
-        print(self.master_kernel.scenario.rts[edge][0])
-        if type(self.master_kernel.scenario.rts[edge][0]) == str:
-            # in this case there is a single, deterministic route
-            num_routes = 1
-            frac = [1]
+        if veh_id in self.master_kernel.scenario.rts:
+            # If the vehicle has its own route, use that route. This is used in
+            # the case of network templates.
+            route_id = 'route{}_0'.format(veh_id)
+        elif isinstance(self.master_kernel.scenario.rts[edge][0], str):
+            # in this case there is a single, deterministic route for each edge
+            route_id = 'route{}_0'.format(edge)
         else:
             # this is the case where there are multiple possible routes
             num_routes = len(self.master_kernel.scenario.rts[edge])
             frac = [val[1] for val in self.master_kernel.scenario.rts[edge]]
+            route_id = 'route{}_{}'.format(edge, np.random.choice(
+                [i for i in range(num_routes)], size=1, p=frac)[0])
 
-        # TODO: probabilistic with each route
         self.kernel_api.vehicle.addFull(
             veh_id,
-            'route{}_{}'.format(edge, np.random.choice(
-                [i for i in range(num_routes)], size=1, p=frac)[0]),
+            route_id,
             typeID=str(type_id),
             departLane=str(lane),
             departPos=str(pos),
