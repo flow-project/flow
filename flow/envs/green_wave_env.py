@@ -1,5 +1,6 @@
 import numpy as np
 import re
+import ipdb
 
 from gym.spaces.discrete import Discrete
 from gym.spaces.box import Box
@@ -88,8 +89,17 @@ class TrafficLightGridEnv(Env):
         }
         self.node_mapping = scenario.get_node_mapping()
 
-        # keeps track of the last time the light was allowed to change.
-        self.last_change = np.zeros((self.rows * self.cols, 3))
+        # Keeps track of the last time the traffic lights in an intersection
+        # were allowed to change (the last time the lights were allowed to
+        # change from a red-green state to a red-yellow state.)
+        self.last_change = np.zeros((self.rows * self.cols, 1))
+        # Keeps track of the direction of the intersection (the direction that
+        # is currently being allowed to flow. 0 indicates flow from top to
+        # bottom, and 1 indicates flow from left to right.)
+        self.direction = np.zeros((self.rows * self.cols, 1))
+        # Value of 1 indicates that the intersection is in a red-yellow state.
+        # value 0 indicates that the intersection is in a red-green state.
+        self.currently_yellow = np.zeros((self.rows * self.cols, 1))
 
         # when this hits min_switch_time we change from yellow to red
         # the second column indicates the direction that is currently being
@@ -101,7 +111,7 @@ class TrafficLightGridEnv(Env):
             for i in range(self.rows * self.cols):
                 self.k.traffic_light.set_state(
                     node_id='center' + str(i), state="GrGr")
-                self.last_change[i, 2] = 1
+                self.currently_yellow[i] = 0
 
         # # Additional Information for Plotting
         # self.edge_mapping = {"top": [], "bot": [], "right": [], "left": []}
@@ -176,13 +186,16 @@ class TrafficLightGridEnv(Env):
 
         state = [
             speeds, dist_to_intersec, edges,
-            self.last_change.flatten().tolist()
+            self.last_change.flatten().tolist(),
+            self.direction.flatten().tolist(),
+            self.currently_yellow.flatten().tolist()
         ]
         return np.array(state)
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         # check if the action space is discrete
+        ipdb.set_trace()
         if self.discrete:
             # convert single value (Discrete) to list of 0's and 1's
             rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
@@ -193,12 +206,12 @@ class TrafficLightGridEnv(Env):
             rl_mask = rl_actions > 0.0
 
         for i, action in enumerate(rl_mask):
-            # check if our timer has exceeded the yellow phase, meaning it
-            # should switch to red
-            if self.last_change[i, 2] == 0:  # currently yellow
-                self.last_change[i, 0] += self.sim_step
-                if self.last_change[i, 0] >= self.min_switch_time:
-                    if self.last_change[i, 1] == 0:
+            
+            if self.currently_yellow[i] == 1:  # currently yellow
+                self.last_change[i] += self.sim_step
+                if self.last_change[i] >= self.min_switch_time: # check if our timer has exceeded the yellow phase, meaning it
+                # should switch to red
+                    if self.direction[i] == 0:
                         self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
                             state="GrGr")
@@ -206,10 +219,10 @@ class TrafficLightGridEnv(Env):
                         self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
                             state='rGrG')
-                    self.last_change[i, 2] = 1
+                    self.currently_yellow[i] = 0
             else:
                 if action:
-                    if self.last_change[i, 1] == 0:
+                    if self.direction[i] == 0:
                         self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
                             state='yryr')
@@ -217,9 +230,9 @@ class TrafficLightGridEnv(Env):
                         self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
                             state='ryry')
-                    self.last_change[i, 0] = 0.0
-                    self.last_change[i, 1] = not self.last_change[i, 1]
-                    self.last_change[i, 2] = 0
+                    self.last_change[i] = 0.0
+                    self.direction[i] = not self.direction[i]
+                    self.currently_yellow[i] = 1
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
@@ -560,7 +573,9 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         return np.array(
             np.concatenate([
                 speeds, dist_to_intersec, edge_number, density, velocity_avg,
-                self.last_change.flatten().tolist()
+                self.last_change.flatten().tolist(),
+                self.direction.flatten().tolist(),
+                self.currently_yellow.flatten().tolist()
             ]))
 
     def compute_reward(self, rl_actions, **kwargs):
