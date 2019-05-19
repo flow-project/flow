@@ -206,11 +206,11 @@ class TrafficLightGridEnv(Env):
             rl_mask = rl_actions > 0.0
 
         for i, action in enumerate(rl_mask):
-            
             if self.currently_yellow[i] == 1:  # currently yellow
                 self.last_change[i] += self.sim_step
-                if self.last_change[i] >= self.min_switch_time: # check if our timer has exceeded the yellow phase, meaning it
+                # Check if our timer has exceeded the yellow phase, meaning it
                 # should switch to red
+                if self.last_change[i] >= self.min_switch_time:
                     if self.direction[i] == 0:
                         self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
