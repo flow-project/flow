@@ -85,7 +85,7 @@ class BayBridgeRouter(ContinuousRouter):
 
         if edge == "183343422" and lane in [2] \
                 or edge == "124952179" and lane in [1, 2]:
-            new_route = env.available_routes[edge + "_1"]
+            new_route = env.available_routes[edge + "_1"][0][0]
         else:
             new_route = super().choose_route(env)
 
