@@ -945,11 +945,7 @@ class TraCIVehicle(KernelVehicle):
             # If the vehicle has its own route, use that route. This is used in
             # the case of network templates.
             route_id = 'route{}_0'.format(veh_id)
-        elif isinstance(self.master_kernel.scenario.rts[edge][0], str):
-            # in this case there is a single, deterministic route for each edge
-            route_id = 'route{}_0'.format(edge)
         else:
-            # this is the case where there are multiple possible routes
             num_routes = len(self.master_kernel.scenario.rts[edge])
             frac = [val[1] for val in self.master_kernel.scenario.rts[edge]]
             route_id = 'route{}_{}'.format(edge, np.random.choice(

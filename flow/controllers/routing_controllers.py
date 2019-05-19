@@ -1,6 +1,7 @@
-import random
-
 """Contains a list of custom routing controllers."""
+
+import random
+import numpy as np
 
 from flow.controllers.base_routing_controller import BaseRouter
 
@@ -13,13 +14,23 @@ class ContinuousRouter(BaseRouter):
     """
 
     def choose_route(self, env):
-        """Adopt the current edge's route if about to leave the network."""
+        """See parent class.
+
+        Adopt one of the current edge's routes if about to leave the network.
+        """
         edge = env.k.vehicle.get_edge(self.veh_id)
         current_route = env.k.vehicle.get_route(self.veh_id)
 
         if edge == current_route[-1]:
-            # FIXME (ak): probabilistic across all possible routes
-            return env.available_routes[edge][0][0]
+            # choose one of the available routes based on the fraction of times
+            # the given route can be chosen
+            num_routes = len(env.available_routes[edge])
+            frac = [val[1] for val in env.available_routes[edge]]
+            route_id = np.random.choice(
+                [i for i in range(num_routes)], size=1, p=frac)[0]
+
+            # pass the chosen route
+            return env.available_routes[edge][route_id][0]
         else:
             return None
 
