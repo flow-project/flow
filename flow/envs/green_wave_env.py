@@ -1,5 +1,6 @@
 import numpy as np
 import re
+import ipdb
 
 from gym.spaces.discrete import Discrete
 from gym.spaces.box import Box
@@ -96,8 +97,8 @@ class TrafficLightGridEnv(Env):
         # is currently being allowed to flow. 0 indicates flow from top to
         # bottom, and 1 indicates flow from left to right.)
         self.direction = np.zeros((self.rows * self.cols, 1))
-        # Value of 0 indicates that the intersection is in a red-yellow state.
-        # value 1 indicates that the intersection is in a red-green state.
+        # Value of 1 indicates that the intersection is in a red-yellow state.
+        # value 0 indicates that the intersection is in a red-green state.
         self.currently_yellow = np.zeros((self.rows * self.cols, 1))
 
         # when this hits min_switch_time we change from yellow to red
@@ -194,6 +195,7 @@ class TrafficLightGridEnv(Env):
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         # check if the action space is discrete
+        ipdb.set_trace()
         if self.discrete:
             # convert single value to list of 0's and 1's
             rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
@@ -204,11 +206,11 @@ class TrafficLightGridEnv(Env):
             rl_mask = rl_actions > 0.0
 
         for i, action in enumerate(rl_mask):
-            # check if our timer has exceeded the yellow phase, meaning it
-            # should switch to red
+            
             if self.currently_yellow[i] == 1:  # currently yellow
                 self.last_change[i] += self.sim_step
-                if self.last_change[i] >= self.min_switch_time:
+                if self.last_change[i] >= self.min_switch_time: # check if our timer has exceeded the yellow phase, meaning it
+                # should switch to red
                     if self.direction[i] == 0:
                         self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
