@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     start = time.time()
     print("stress test starting")
-    ray.init(redirect_output=False)
+    ray.init()
     flow_params["env"].horizon = 1
     horizon = flow_params["env"].horizon
 
