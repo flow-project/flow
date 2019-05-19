@@ -195,7 +195,7 @@ class TrafficLightGridEnv(Env):
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         # check if the action space is discrete
-        ipdb.set_trace()
+        
         if self.discrete:
             # convert single value (Discrete) to list of 0's and 1's
             rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
@@ -206,7 +206,6 @@ class TrafficLightGridEnv(Env):
             rl_mask = rl_actions > 0.0
 
         for i, action in enumerate(rl_mask):
-            
             if self.currently_yellow[i] == 1:  # currently yellow
                 self.last_change[i] += self.sim_step
                 if self.last_change[i] >= self.min_switch_time: # check if our timer has exceeded the yellow phase, meaning it

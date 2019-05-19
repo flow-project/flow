@@ -5,8 +5,6 @@ from flow.core import rewards
 from flow.multiagent_envs.multiagent_env import MultiEnv
 
 
-
-
 # todo for Ashkan: This needs to be defined for multi-agent RL in grid scenario
 from gym.spaces.discrete import Discrete
 from gym.spaces.box import Box
@@ -159,32 +157,33 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
            
             # check if our timer has exceeded the yellow phase, meaning it
             # should switch to red
-
-            if self.last_change[tl_num, 2] == 0:  # currently yellow
-                self.last_change[tl_num, 0] += self.sim_step
-                if self.last_change[tl_num, 0] >= self.min_switch_time:
-                    if self.last_change[tl_num, 1] == 0:
+            if self.currently_yellow[tl_num] == 1:  # currently yellow
+                self.last_change[tl_num] += self.sim_step
+                if self.last_change[tl_num] >= self.min_switch_time: # check if our timer has exceeded the yellow phase, meaning it
+                # should switch to red
+                    if self.direction[tl_num] == 0:
                         self.k.traffic_light.set_state(
-                            node_id='center' + str(tl_num),
+                            node_id='center{}'.format(tl_num),
                             state="GrGr")
                     else:
                         self.k.traffic_light.set_state(
-                            node_id='center' + str(tl_num),
+                            node_id='center{}'.format(tl_num),
                             state='rGrG')
-                    self.last_change[tl_num, 2] = 1
+                    self.currently_yellow[tl_num] = 0
             else:
-                if action == 1:
-                    if self.last_change[tl_num, 1] == 0:
+                if action:
+                    if self.direction[tl_num] == 0:
                         self.k.traffic_light.set_state(
-                            node_id='center' + str(tl_num),
+                            node_id='center{}'.format(tl_num),
                             state='yryr')
                     else:
                         self.k.traffic_light.set_state(
-                            node_id='center' + str(tl_num),
+                            node_id='center{}'.format(tl_num),
                             state='ryry')
-                    self.last_change[tl_num, 0] = 0.0
-                    self.last_change[tl_num, 1] = not self.last_change[tl_num, 1]
-                    self.last_change[tl_num, 2] = 0
+                    self.last_change[tl_num] = 0.0
+                    self.direction[tl_num] = not self.direction[tl_num]
+                    self.currently_yellow[tl_num] = 1
+
 
     def compute_reward(self, rl_actions, **kwargs):
         """Each agents receives a reward that is with regards

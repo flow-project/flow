@@ -77,7 +77,7 @@ def create_grid_env(render=None):
         routing_controller=(GridRouter, {}),
         num_vehicles=tot_cars)
 
-    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
+    env_params = EnvParams(horizon=200, additional_params=ADDITIONAL_ENV_PARAMS)
 
     tl_logic = TrafficLightParams(baseline=False)
     phases = [{
