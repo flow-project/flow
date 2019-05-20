@@ -29,11 +29,13 @@ def gen_edges(row_num, col_num):
         names of all the outer edges
     """
     edges = []
+
+    # build the left and then the right edges
     for i in range(col_num):
         edges += ['left' + str(row_num) + '_' + str(i)]
         edges += ['right' + '0' + '_' + str(i)]
 
-    # build the left and then the right edges
+    # build the bottom and then top edges
     for i in range(row_num):
         edges += ['bot' + str(i) + '_' + '0']
         edges += ['top' + str(i) + '_' + str(col_num)]
@@ -65,10 +67,10 @@ def get_flow_params(col_num, row_num, additional_net_params):
         spacing='custom', lanes_distribution=float('inf'), shuffle=True)
 
     inflow = InFlows()
-    outer_edges = gen_edges(col_num, row_num)
+    outer_edges = gen_edges(row_num, col_num)
     for i in range(len(outer_edges)):
         inflow.add(
-            veh_type='idm',
+            veh_type='human',
             edge=outer_edges[i],
             probability=0.25,
             departLane='free',
