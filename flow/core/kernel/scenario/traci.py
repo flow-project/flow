@@ -112,13 +112,13 @@ class TraCIScenario(KernelScenario):
         self.sumfn = '%s.sumo.cfg' % self.network.name
         self.guifn = '%s.gui.cfg' % self.network.name
 
-        # can only provide one of osm path or netfile path to the scenario
-        assert self.network.net_params.netfile is None \
+        # can only provide one of osm path or template path to the scenario
+        assert self.network.net_params.template is None \
             or self.network.net_params.osm_path is None
 
         # create the network configuration files
-        if self.network.net_params.netfile is not None:
-            self._edges, self._connections = self.generate_net_from_netfile(
+        if self.network.net_params.template is not None:
+            self._edges, self._connections = self.generate_net_from_template(
                 self.network.net_params)
         elif self.network.net_params.osm_path is not None:
             self._edges, self._connections = self.generate_net_from_osm(
@@ -196,15 +196,13 @@ class TraCIScenario(KernelScenario):
             print("No routes specified, defaulting to single edge routes.")
             self.network.routes = {edge: [edge] for edge in self._edge_list}
 
+        # specify routes vehicles can take  # TODO: move into a method
+        self.rts = self.network.routes
+
         # create the sumo configuration files
         cfg_name = self.generate_cfg(self.network.net_params,
                                      self.network.traffic_lights,
                                      self.network.routes)
-
-        # specify routes vehicles can take  # TODO: move into a method
-        self.rts = self.network.routes
-
-        self.make_routes()
 
         # specify the location of the sumo configuration file
         self.cfg = self.cfg_path + cfg_name
@@ -220,15 +218,19 @@ class TraCIScenario(KernelScenario):
         is to prevent them from building up in the debug folder. Note that in
         the case of import .net.xml files we do not want to delete them.
         """
-        if self.network.net_params.netfile is None:
-            os.remove(self.net_path + self.nodfn)
-            os.remove(self.net_path + self.edgfn)
-            os.remove(self.net_path + self.cfgfn)
-            os.remove(self.cfg_path + self.addfn)
-            os.remove(self.cfg_path + self.guifn)
-            os.remove(self.cfg_path + self.netfn)
-            os.remove(self.cfg_path + self.roufn)
-            os.remove(self.cfg_path + self.sumfn)
+        if self.network.net_params.template is None:
+            try:
+                os.remove(self.net_path + self.nodfn)
+                os.remove(self.net_path + self.edgfn)
+                os.remove(self.net_path + self.cfgfn)
+                os.remove(self.cfg_path + self.addfn)
+                os.remove(self.cfg_path + self.guifn)
+                os.remove(self.cfg_path + self.netfn)
+                os.remove(self.cfg_path + self.roufn)
+                os.remove(self.cfg_path + self.sumfn)
+            except FileNotFoundError:
+                # the files were never created
+                pass
 
             # the connection file is not always created
             try:
@@ -350,10 +352,10 @@ class TraCIScenario(KernelScenario):
 
         Parameters
         ----------
-        net_params : flow.core.params.NetParams type
+        net_params : flow.core.params.NetParams
             network-specific parameters. Different networks require different
             net_params; see the separate sub-classes for more information.
-        traffic_lights : flow.core.traffic_lights.TrafficLights type
+        traffic_lights : flow.core.params.TrafficLightParams
             traffic light information, used to determine which nodes are
             treated as traffic lights
         nodes : list of dict
@@ -518,7 +520,7 @@ class TraCIScenario(KernelScenario):
         error = None
         for _ in range(RETRIES_ON_ERROR):
             try:
-                edges_dict, conn_dict = self._import_edges_from_net()
+                edges_dict, conn_dict = self._import_edges_from_net(net_params)
                 return edges_dict, conn_dict
             except Exception as e:
                 print('Error during start: {}'.format(e))
@@ -534,7 +536,7 @@ class TraCIScenario(KernelScenario):
 
         Parameters
         ----------
-        net_params : flow.core.params.NetParams type
+        net_params : flow.core.params.NetParams
             network-specific parameters. Different networks require different
             net_params; see the separate sub-classes for more information.
 
@@ -577,19 +579,19 @@ class TraCIScenario(KernelScenario):
         self.netfn = netfn
 
         # collect data from the generated network configuration file
-        edges_dict, conn_dict = self._import_edges_from_net()
+        edges_dict, conn_dict = self._import_edges_from_net(net_params)
 
         return edges_dict, conn_dict
 
-    def generate_net_from_netfile(self, net_params):
+    def generate_net_from_template(self, net_params):
         """Pass relevant data from an already processed .net.xml file.
 
         This method is used to collect the edges and connection data from a
-        netfile and pass it to the scenario class for later use.
+        network template file and pass it to the scenario class for later use.
 
         Parameters
         ----------
-        net_params : flow.core.params.NetParams type
+        net_params : flow.core.params.NetParams
             network-specific parameters. Different networks require different
             net_params; see the separate sub-classes for more information.
 
@@ -605,26 +607,38 @@ class TraCIScenario(KernelScenario):
                 from the arriving edge/lane pairs
         """
         # name of the .net.xml file (located in cfg_path)
-        self.netfn = net_params.netfile
+        if type(net_params.template) is str:
+            self.netfn = net_params.template
+        else:
+            self.netfn = net_params.template['net']
 
         # collect data from the generated network configuration file
-        edges_dict, conn_dict = self._import_edges_from_net()
+        edges_dict, conn_dict = self._import_edges_from_net(net_params)
 
         return edges_dict, conn_dict
 
     def generate_cfg(self, net_params, traffic_lights, routes):
         """Generate .sumo.cfg files using net files and netconvert.
 
-        This includes files such as the routes vehicles can traverse,
-        properties of the traffic lights, and the view settings of the gui
-        (whether the gui is used or not). The background of the gui is set here
-        to be grey, with RGB values: (100, 100, 100).
+        This method is responsible for creating the following config files:
+
+        - *.add.xml: This file contains the sumo-specific properties of
+          vehicles with similar types, and properties of the traffic lights.
+        - *.rou.xml: This file contains the routes vehicles can traverse,
+          either from a specific starting edge, or by vehicle name, and well as
+          the inflows of vehicles.
+        - *.gui.cfg: This file contains the view settings of the gui (whether
+          the gui is used or not). The background of the gui is set here to be
+          grey, with RGB values: (100, 100, 100).
+        - *.sumo.cfg: This is the file that is used by the simulator to
+          identify the location of the various network, vehicle, and traffic
+          light properties that are used when instantiating the simulation.
 
         Parameters
         ----------
-        net_params : NetParams type
+        net_params : flow.core.params.NetParams
             see flow/core/params.py
-        traffic_lights : flow.core.traffic_lights.TrafficLights type
+        traffic_lights : flow.core.params.TrafficLightParams
             traffic light information, used to determine which nodes are
             treated as traffic lights
         routes : dict
@@ -632,15 +646,17 @@ class TraCIScenario(KernelScenario):
             Element = list of edges a vehicle starting from this edge must
             traverse.
         """
-        # specify routes vehicles can take
-        self.rts = routes
-
+        # this is the data that we will pass to the *.add.xml file
         add = makexml('additional',
                       'http://sumo.dlr.de/xsd/additional_file.xsd')
 
-        # add the routes to the .add.xml file
-        for (edge, route) in self.rts.items():
-            add.append(E('route', id='route%s' % edge, edges=' '.join(route)))
+        # add the types of vehicles to the xml file
+        for params in self.network.vehicles.types:
+            type_params_str = {
+                key: str(params['type_params'][key])
+                for key in params['type_params']
+            }
+            add.append(E('vType', id=params['veh_id'], **type_params_str))
 
         # add (optionally) the traffic light properties to the .add.xml file
         num_traffic_lights = len(list(traffic_lights.get_properties().keys()))
@@ -714,6 +730,7 @@ class TraCIScenario(KernelScenario):
 
         printxml(add, self.cfg_path + self.addfn)
 
+        # this is the data that we will pass to the *.gui.cfg file
         gui = E('viewsettings')
         gui.append(E('scheme', name='real world'))
         gui.append(
@@ -724,6 +741,32 @@ class TraCIScenario(KernelScenario):
               gridYSize='100.00'))
         printxml(gui, self.cfg_path + self.guifn)
 
+        # this is the data that we will pass to the *.rou.xml file
+        routes_data = makexml('routes',
+                              'http://sumo.dlr.de/xsd/routes_file.xsd')
+
+        # add the routes to the .add.xml file
+        for (edge, rt) in routes.items():
+            routes_data.append(E(
+                'route',
+                id='route{}'.format(edge),
+                edges=' '.join(rt)))
+
+        # add the inflows from various edges to the xml file
+        if self.network.net_params.inflows is not None:
+            total_inflows = self.network.net_params.inflows.get()
+            for inflow in total_inflows:
+                for key in inflow:
+                    if not isinstance(inflow[key], str):
+                        inflow[key] = repr(inflow[key])
+                    if key == 'edge':
+                        inflow['route'] = 'route{}'.format(inflow['edge'])
+                        del inflow['edge']
+                routes_data.append(_flow(**inflow))
+
+        printxml(routes_data, self.cfg_path + self.roufn)
+
+        # this is the data that we will pass to the *.sumo.cfg file
         cfg = makexml('configuration',
                       'http://sumo.dlr.de/xsd/sumoConfiguration.xsd')
 
@@ -740,43 +783,17 @@ class TraCIScenario(KernelScenario):
         printxml(cfg, self.cfg_path + self.sumfn)
         return self.sumfn
 
-    def make_routes(self):
-        """Generate .rou.xml files using net files and netconvert.
-
-        This file specifies the sumo-specific properties of vehicles with
-        similar types, and well as the inflows of vehicles.
-        """
-        vehicles = self.network.vehicles
-        routes = makexml('routes', 'http://sumo.dlr.de/xsd/routes_file.xsd')
-
-        # add the types of vehicles to the xml file
-        for params in vehicles.types:
-            type_params_str = {
-                key: str(params['type_params'][key])
-                for key in params['type_params']
-            }
-            routes.append(E('vType', id=params['veh_id'], **type_params_str))
-
-        # add the inflows from various edges to the xml file
-        if self.network.net_params.inflows is not None:
-            total_inflows = self.network.net_params.inflows.get()
-            for inflow in total_inflows:
-                for key in inflow:
-                    if not isinstance(inflow[key], str):
-                        inflow[key] = repr(inflow[key])
-                    if key == 'edge':
-                        inflow['route'] = 'route{}'.format(inflow['edge'])
-                        del inflow['edge']
-                routes.append(_flow(**inflow))
-
-        printxml(routes, self.cfg_path + self.roufn)
-
-    def _import_edges_from_net(self):
+    def _import_edges_from_net(self, net_params):
         """Import edges from a configuration file.
 
         This is a utility function for computing edge information. It imports a
         network configuration file, and returns the information on the edges
         and junctions located in the file.
+
+        Parameters
+        ----------
+        net_params : flow.core.params.NetParams
+            see flow/core/params.py
 
         Returns
         -------
@@ -793,9 +810,9 @@ class TraCIScenario(KernelScenario):
         """
         # import the .net.xml file containing all edge/type data
         parser = etree.XMLParser(recover=True)
-        tree = ElementTree.parse(
-            os.path.join(self.cfg_path, self.netfn), parser=parser)
-
+        net_path = os.path.join(self.cfg_path, self.netfn) \
+            if net_params.template is None else self.netfn
+        tree = ElementTree.parse(net_path, parser=parser)
         root = tree.getroot()
 
         # Collect information on the available types (if any are available).
