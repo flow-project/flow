@@ -97,8 +97,7 @@ class TestSumoParams(unittest.TestCase):
              seed=204,
              restart_instance=True,
              print_warnings=False,
-             teleport_time=-1,
-             sumo_binary=None)
+             teleport_time=-1)
 
         # ensure that the attributes match their correct values
         self.assertEqual(params.port, None)

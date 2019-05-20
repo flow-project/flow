@@ -81,8 +81,8 @@ def make_create_env(params, version=0, render=None):
             traffic_lights=traffic_lights,
         )
 
-        if render is not None:
-            sim_params.render = render
+        # accept new render type if not set to None
+        sim_params.render = render or sim_params.render
 
         # check if the environment is a single or multiagent environment, and
         # get the right address accordingly
