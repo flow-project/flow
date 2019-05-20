@@ -89,7 +89,7 @@
         "seed": null,
         "show_radius": false,
         "sight_radius": 25,
-        "sim_step": 0.5,
+        "sim_step": 0.2,
         "teleport_time": -1
     },
     "simulator": "traci",

@@ -123,12 +123,12 @@ def get_time_space_data(data, params):
     }
 
     # simulation step size
-    dt = flow_params['sim'].sim_step
+    dt = params['sim'].sim_step
 
     # number of simulation steps
     max_time = max(max(data[veh_id]['time']) for veh_id in data.keys())
     min_time = min(min(data[veh_id]['time']) for veh_id in data.keys())
-    num_steps = int((max_time - min_time)/dt) + 1
+    num_steps = int((max_time - min_time)/dt)
 
     # Get the function from switcher dictionary
     func = switcher[params['scenario']]
@@ -177,15 +177,15 @@ def _merge(data, params, dt, num_steps):
 
     # generate edge starts
     edgestarts = {
-        "inflow_highway": 0,
-        "left": inflow_edge_len + 0.1,
-        "center": inflow_edge_len + premerge + 8.1,
-        "inflow_merge": inflow_edge_len + premerge + postmerge + 8.1,
-        "bottom": 2 * inflow_edge_len + premerge + postmerge + 8.2,
-        ":left_0": inflow_edge_len,
-        ":center_0": inflow_edge_len + premerge + 0.1,
-        ":center_1": inflow_edge_len + premerge + 0.1,
-        ":bottom_0": 2 * inflow_edge_len + premerge + postmerge + 8.1
+        'inflow_highway': 0,
+        'left': inflow_edge_len + 0.1,
+        'center': inflow_edge_len + premerge + 8.1,
+        'inflow_merge': inflow_edge_len + premerge + postmerge + 8.1,
+        'bottom': 2 * inflow_edge_len + premerge + postmerge + 8.2,
+        ':left_0': inflow_edge_len,
+        ':center_0': inflow_edge_len + premerge + 0.1,
+        ':center_1': inflow_edge_len + premerge + 0.1,
+        ':bottom_0': 2 * inflow_edge_len + premerge + postmerge + 8.1
     }
 
     # compute the absolute position
@@ -197,17 +197,17 @@ def _merge(data, params, dt, num_steps):
     # the space-time diagram, and compute the number of vehicles at each step
     pos = np.zeros((num_steps, len(data.keys())))
     speed = np.zeros((num_steps, len(data.keys())))
-    for i, veh_id in enumerate(data.keys()):
+    for i, veh_id in enumerate(sorted(data.keys())):
         for spd, abs_pos, ti, edge in zip(data[veh_id]['vel'],
                                           data[veh_id]['abs_pos'],
                                           data[veh_id]['time'],
                                           data[veh_id]['edge']):
             # avoid vehicles outside the main highway
-            if int(ti * (1 / dt)) >= num_steps or \
+            if int(ti/dt)-1 >= num_steps or \
                     edge in ['inflow_merge', 'bottom', ':bottom_0']:
                 continue
-            speed[int(ti * (1 / dt)), i] = spd
-            pos[int(ti * (1 / dt)), i] = abs_pos
+            pos[int(ti/dt)-1, i] = abs_pos
+            speed[int(ti/dt)-1, i] = spd
 
     return pos, speed
 
@@ -264,14 +264,14 @@ def _ring_road(data, params, dt, num_steps):
     # create the output variables
     pos = np.zeros((num_steps, len(data.keys())))
     speed = np.zeros((num_steps, len(data.keys())))
-    for i, veh_id in enumerate(data.keys()):
+    for i, veh_id in enumerate(sorted(data.keys())):
         for spd, abs_pos, ti in zip(data[veh_id]['vel'],
                                     data[veh_id]['abs_pos'],
                                     data[veh_id]['time']):
-            if int(ti * (1 / dt)) >= num_steps:
+            if int(ti/dt)-1 >= num_steps:
                 continue
-            speed[int(ti * (1 / dt)), i] = spd
-            pos[int(ti * (1 / dt)), i] = abs_pos
+            pos[int(ti/dt)-1, i] = abs_pos
+            speed[int(ti/dt)-1, i] = spd
 
     return pos, speed
 
@@ -312,10 +312,10 @@ def _figure_eight(data, params, dt, num_steps):
     """
     # import network data from flow params
     net_params = params['net']
-    ring_radius = net_params.additional_params["radius_ring"]
+    ring_radius = net_params.additional_params['radius_ring']
     ring_edgelen = ring_radius * np.pi / 2.
     intersection = 2 * ring_radius
-    junction = 2.9 + 3.3 * net_params.additional_params["lanes"]
+    junction = 2.9 + 3.3 * net_params.additional_params['lanes']
     inner = 0.28
 
     # generate edge starts
@@ -325,13 +325,13 @@ def _figure_eight(data, params, dt, num_steps):
         'upper_ring': intersection + junction + 2 * inner,
         'right': intersection + 3 * ring_edgelen + junction + 3 * inner,
         'left': 1.5*intersection + 3*ring_edgelen + 2*junction + 3*inner,
-        "lower_ring": 2*intersection + 3*ring_edgelen + 2*junction + 4*inner,
-        ":bottom_0": 0,
-        ":center_1": intersection / 2 + inner,
-        ":top_0": intersection + junction + inner,
-        ":right_0": intersection + 3 * ring_edgelen + junction + 2 * inner,
-        ":center_0": 1.5*intersection + 3*ring_edgelen + junction + 3*inner,
-        ":left_0": 2 * intersection + 3*ring_edgelen + 2*junction + 3*inner,
+        'lower_ring': 2*intersection + 3*ring_edgelen + 2*junction + 4*inner,
+        ':bottom_0': 0,
+        ':center_1': intersection / 2 + inner,
+        ':top_0': intersection + junction + inner,
+        ':right_0': intersection + 3 * ring_edgelen + junction + 2 * inner,
+        ':center_0': 1.5*intersection + 3*ring_edgelen + junction + 3*inner,
+        ':left_0': 2 * intersection + 3*ring_edgelen + 2*junction + 3*inner,
         # for aimsun
         'bottom_to_top': intersection / 2 + inner,
         'right_to_left': junction + 3 * inner,
@@ -345,14 +345,14 @@ def _figure_eight(data, params, dt, num_steps):
     # create the output variables
     pos = np.zeros((num_steps, len(data.keys())))
     speed = np.zeros((num_steps, len(data.keys())))
-    for i, veh_id in enumerate(data.keys()):
+    for i, veh_id in enumerate(sorted(data.keys())):
         for spd, abs_pos, ti in zip(data[veh_id]['vel'],
                                     data[veh_id]['abs_pos'],
                                     data[veh_id]['time']):
-            if int(ti * (1 / dt)) >= num_steps:
+            if int(ti/dt)-1 >= num_steps:
                 continue
-            speed[int(ti * (1 / dt)), i] = spd
-            pos[int(ti * (1 / dt)), i] = abs_pos
+            pos[int(ti/dt)-1, i] = abs_pos
+            speed[int(ti/dt)-1, i] = spd
 
     # reorganize data for space-time plot
     figure8_len = 6*ring_edgelen + 2*intersection + 2*junction + 10*inner
@@ -365,34 +365,6 @@ def _figure_eight(data, params, dt, num_steps):
         - pos[pos > intersection_loc[1]] + figure8_len + intersection_loc[0]
 
     return pos, speed
-
-
-def create_parser():
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        description='[Flow] Generates time space diagrams for flow networks.',
-        epilog='python time_space_diagram.py </path/to/emission>.csv '
-               '</path/to/flow_params>.json')
-
-    # required arguments
-    parser.add_argument('emission_path', type=str,
-                        help='path to the csv file.')
-    parser.add_argument('flow_params', type=str,
-                        help='path to the flow_params json file.')
-
-    # optional arguments
-    parser.add_argument('--steps', type=int, default=1,
-                        help='rate at which steps are plotted.')
-    parser.add_argument('--title', type=str, default='Time Space Diagram',
-                        help='rate at which steps are plotted.')
-    parser.add_argument('--max_speed', type=int, default=8,
-                        help='The maximum speed in the color range.')
-    parser.add_argument('--start', type=float, default=0,
-                        help='initial time (in sec) in the plot.')
-    parser.add_argument('--stop', type=float, default=float('inf'),
-                        help='final time (in sec) in the plot.')
-
-    return parser
 
 
 def _get_abs_pos(edge, rel_pos, edgestarts):
@@ -421,8 +393,31 @@ def _get_abs_pos(edge, rel_pos, edgestarts):
 
 
 if __name__ == '__main__':
-    # import parser arguments
-    parser = create_parser()
+    # create the parser
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='[Flow] Generates time space diagrams for flow networks.',
+        epilog='python time_space_diagram.py </path/to/emission>.csv '
+               '</path/to/flow_params>.json')
+
+    # required arguments
+    parser.add_argument('emission_path', type=str,
+                        help='path to the csv file.')
+    parser.add_argument('flow_params', type=str,
+                        help='path to the flow_params json file.')
+
+    # optional arguments
+    parser.add_argument('--steps', type=int, default=1,
+                        help='rate at which steps are plotted.')
+    parser.add_argument('--title', type=str, default='Time Space Diagram',
+                        help='rate at which steps are plotted.')
+    parser.add_argument('--max_speed', type=int, default=8,
+                        help='The maximum speed in the color range.')
+    parser.add_argument('--start', type=float, default=0,
+                        help='initial time (in sec) in the plot.')
+    parser.add_argument('--stop', type=float, default=float('inf'),
+                        help='final time (in sec) in the plot.')
+
     args = parser.parse_args()
 
     # flow_params is imported as a dictionary
@@ -454,7 +449,7 @@ if __name__ == '__main__':
     norm = plt.Normalize(0, args.max_speed)
     cols = []
 
-    xmin = max(0, args.start)
+    xmin = max(sim_step, args.start)
     xmax = min(total_time, args.stop)
     xbuffer = (xmax - xmin) * 0.025  # 2.5% of range
     ymin, ymax = np.amin(pos), np.amax(pos)
