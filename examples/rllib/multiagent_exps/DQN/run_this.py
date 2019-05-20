@@ -7,10 +7,13 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.scenarios.grid import SimpleGridScenario
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
+from flow.core.params import InFlows
 from flow.controllers.routing_controllers import GridRouter
 
 import csv
 import datetime
+
+USE_INFLOWS = True
 
 ADDITIONAL_ENV_PARAMS = {
     # minimum switch time for each traffic light (in seconds)
@@ -26,6 +29,104 @@ ADDITIONAL_ENV_PARAMS = {
     "target_velocity": 30,
 }
 
+def gen_edges(row_num, col_num):
+    """Generate the names of the outer edges in the grid network.
+
+    Parameters
+    ----------
+    col_num : int
+        number of columns in the grid
+    row_num : int
+        number of rows in the grid
+
+    Returns
+    -------
+    list of str
+        names of all the outer edges
+    """
+    edges = []
+    # build the left and then the right edges
+    for i in range(col_num):
+        edges += ['left' + str(row_num-1) + '_' + str(i)]
+        edges += ['right' + '0' + '_' + str(i)]
+  
+    for i in range(row_num):
+        edges += ['bot' + str(i) + '_' + '0']
+        edges += ['top' + str(i) + '_' + str(col_num-1)]
+
+    return edges
+
+def get_flow_params(col_num, row_num, additional_net_params):
+    """Define the network and initial params in the presence of inflows.
+
+    Parameters
+    ----------
+    col_num : int
+        number of columns in the grid
+    row_num : int
+        number of rows in the grid
+    additional_net_params : dict
+        network-specific parameters that are unique to the grid
+
+    Returns
+    -------
+    flow.core.params.InitialConfig
+        parameters specifying the initial configuration of vehicles in the
+        network
+    flow.core.params.NetParams
+        network-specific parameters used to generate the scenario
+    """
+    initial = InitialConfig(
+        spacing='custom', lanes_distribution=float('inf'), shuffle=True)
+
+    inflow = InFlows()
+    outer_edges = gen_edges(col_num, row_num)
+    for i in range(len(outer_edges)):
+        inflow.add(
+            veh_type='human',
+            edge=outer_edges[i],
+            probability=0.25,
+            departLane='free',
+            departSpeed=20)
+
+    net = NetParams(
+        inflows=inflow,
+        no_internal_links=False,
+        additional_params=additional_net_params)
+
+    return initial, net
+
+
+def get_non_flow_params(enter_speed, add_net_params):
+    """Define the network and initial params in the absence of inflows.
+
+    Note that when a vehicle leaves a network in this case, it is immediately
+    returns to the start of the row/column it was traversing, and in the same
+    direction as it was before.
+
+    Parameters
+    ----------
+    enter_speed : float
+        initial speed of vehicles as they enter the network.
+    add_net_params: dict
+        additional network-specific parameters (unique to the grid)
+
+    Returns
+    -------
+    flow.core.params.InitialConfig
+        parameters specifying the initial configuration of vehicles in the
+        network
+    flow.core.params.NetParams
+        network-specific parameters used to generate the scenario
+    """
+    additional_init_params = {'enter_speed': enter_speed}
+    initial = InitialConfig(
+        spacing='custom', additional_params=additional_init_params)
+    net = NetParams(
+        no_internal_links=False, additional_params=add_net_params)
+
+    return initial, net
+
 def create_grid_env(render=None):
     """
     creates an environment for the grid scenario.
@@ -40,6 +141,7 @@ def create_grid_env(render=None):
     grid_env: 
         
     """
+    v_enter = 10
     inner_length = 300
     long_length = 500
     short_length = 300
@@ -111,10 +213,16 @@ def create_grid_env(render=None):
         "horizontal_lanes": 1,
         "vertical_lanes": 1
     }
-    net_params = NetParams(
-        no_internal_links=False, additional_params=additional_net_params)
 
-    initial_config = InitialConfig(spacing='custom')
+    if USE_INFLOWS:
+	        initial_config, net_params = get_flow_params(
+	            col_num=N_COLUMNS,
+	            row_num=N_ROWS,
+	            additional_net_params=additional_net_params)
+    else:
+	        initial_config, net_params = get_non_flow_params(
+	            enter_speed=v_enter,
+	            add_net_params=additional_net_params)
 
     scenario = SimpleGridScenario(
         name="grid-intersection",
@@ -177,7 +285,6 @@ if __name__ == "__main__":
     env_params, sim_params, scenario, num_agents = create_grid_env()
 
     env = MultiAgentGrid(env_params, sim_params, scenario)
- 
     n_features = sum([x.shape[0] for x in env.observation_space.sample()])
     RL = dict()
 
