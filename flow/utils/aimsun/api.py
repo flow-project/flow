@@ -1,11 +1,11 @@
 """Contains the Flow/Aimsun API manager."""
 import socket
-import time
 import logging
 import struct
 
 import flow.utils.aimsun.constants as ac
 import flow.utils.aimsun.struct as aimsun_struct
+from flow.core.kernel.vehicle.aimsun import INFOS_ATTR_BY_INDEX
 
 
 def create_client(port, print_status=False):
@@ -30,24 +30,20 @@ def create_client(port, print_status=False):
 
     stop = False
     while not stop:
+        # try to connect
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            connected = False
-            num_tries = 0
-            while not connected and num_tries < 100:
-                num_tries += 1
-                try:
-                    s.connect(('localhost', port))
-                    connected = True
-                except Exception as e:
-                    logging.debug('Cannot connect to the server: {}'.format(e))
-                    time.sleep(1)
+            s.connect(('localhost', port))
 
             # check the connection
             data = None
             while data is None:
                 data = s.recv(2048)
             stop = True
+
+        except Exception as e:
+            logging.debug('Cannot connect to the server: {}'.format(e))
+
         except socket.error:
             stop = False
 
@@ -134,7 +130,7 @@ class FlowAimsunAPI(object):
                 while not done:
                     # get the next bit of data
                     data = None
-                    while data is None:
+                    while data is None or data == b'':
                         data = self.s.recv(256)
 
                     # concatenate the results
@@ -210,8 +206,8 @@ class FlowAimsunAPI(object):
             name of the start edge
         lane : int
             start lane
-        type_id : int
-            vehicle type
+        type_id : int or string
+            vehicle type (id or name)
         pos : float
             starting position
         speed : float
@@ -226,6 +222,15 @@ class FlowAimsunAPI(object):
         int
             name of the new vehicle in Aimsun
         """
+        # if type_id is a string, retrieve the id of the type
+        if isinstance(type_id, str):
+            type_id = self._send_command(ac.VEH_GET_TYPE_ID,
+                                         in_format='str',
+                                         values=(type_id,),
+                                         out_format='i')[0]
+        # TODO maybe put back the type conversion dict
+        # to avoid useless API calls
+
         veh_id, = self._send_command(
             ac.ADD_VEHICLE,
             in_format='i i i f f i',
@@ -343,7 +348,7 @@ class FlowAimsunAPI(object):
             return [int(v) for v in veh_ids]
 
     def get_vehicle_type_id(self, flow_id):
-        """Get's the Aimsun type number of a Flow vehicle types.
+        """Get the Aimsun type number of a Flow vehicle types.
 
         Parameters
         ----------
@@ -359,6 +364,42 @@ class FlowAimsunAPI(object):
                                   in_format='str',
                                   values=(flow_id,),
                                   out_format='i')[0]
+
+    def get_vehicle_type_name(self, veh_id):
+        """Get the Aimsun type name of an Aimsun vehicle.
+
+        Parameters
+        ----------
+        veh_id : int
+            id of the vehicle in Aimsun
+
+        Returns
+        -------
+        str
+            Aimsun-specific vehicle type name
+        """
+        return self._send_command(ac.VEH_GET_TYPE_NAME,
+                                  in_format='i',
+                                  values=(veh_id,),
+                                  out_format='str')
+
+    def get_vehicle_length(self, veh_id):
+        """Get the length of an Aimsun vehicle.
+
+        Parameters
+        ----------
+        veh_id : int
+            id of the vehicle in Aimsun
+
+        Returns
+        -------
+        float
+            length of the vehicle in Aimsun
+        """
+        return self._send_command(ac.VEH_GET_LENGTH,
+                                  in_format='i',
+                                  values=(veh_id,),
+                                  out_format='f')[0]
 
     def get_vehicle_static_info(self, veh_id):
         """Return the static information of the specified vehicle.
@@ -408,24 +449,60 @@ class FlowAimsunAPI(object):
 
         return static_info
 
-    def get_vehicle_tracking_info(self, veh_id):
+    def get_vehicle_tracking_info(self, veh_id, info_bitmap, tracked=True):
         """Return the tracking information of the specified vehicle.
 
         Parameters
         ----------
         veh_id : int
             name of the vehicle in Aimsun
+        info_bitmap : str
+            bitmap representing the tracking info to be returned
+            (cf function make_bitmap_for_tracking in vehicle/aimsun.py)
+        tracked : boolean (defaults to True)
+            whether the vehicle is tracked in Aimsun.
+
 
         Returns
         -------
         flow.utils.aimsun.struct.InfVeh
             tracking info object
         """
-        return self._send_command(
+
+        # build the output format from the bitmap
+        out_format = ''
+        for i in range(len(info_bitmap)):
+            if info_bitmap[i] == '1':
+                if i <= 12:
+                    out_format += 'f '
+                else:
+                    out_format += 'i '
+        if out_format == '':
+            return
+        else:
+            out_format = out_format[:-1]
+
+        # append tracked boolean and vehicle id to the bitmap
+        # so that the command only has one parameter
+        info_bitmap += "1" if tracked else "0"
+        val = str(veh_id) + ":" + info_bitmap
+
+        # retrieve the vehicle tracking info specified by the bitmap
+        info = self._send_command(
             ac.VEH_GET_TRACKING,
-            in_format='i',
-            values=(veh_id,),
-            out_format='f f f f f f f f f f f f f i i i i i i i i')
+            in_format='str',
+            values=(val,),
+            out_format=out_format)
+
+        # place these tracking info into a struct
+        ret = aimsun_struct.InfVeh()
+        count = 0
+        for map_index in range(len(INFOS_ATTR_BY_INDEX)):
+            if info_bitmap[map_index] == '1':
+                setattr(ret, INFOS_ATTR_BY_INDEX[map_index], info[count])
+                count += 1
+
+        return ret
 
     def get_vehicle_leader(self, veh_id):
         """Return the leader of a specific vehicle.
@@ -545,4 +622,31 @@ class FlowAimsunAPI(object):
         self._send_command(ac.TL_SET_STATE,
                            in_format='i i i',
                            values=(tl_id, link_index, state),
+                           out_format=None)
+
+    def set_vehicle_tracked(self, veh_id):
+        """Set a vehicle as tracked in Aimsun, thus allowing faster
+        tracking information retrieval.
+
+        Parameters
+        ----------
+        veh_id : int
+            name of the vehicle in Aimsun
+        """
+        self._send_command(ac.VEH_SET_TRACKED,
+                           in_format='i',
+                           values=(veh_id,),
+                           out_format=None)
+
+    def set_vehicle_no_tracked(self, veh_id):
+        """Set a tracked vehicle as untracked in Aimsun
+
+        Parameters
+        ----------
+        veh_id : int
+            name of the vehicle in Aimsun
+        """
+        self._send_command(ac.VEH_SET_NO_TRACKED,
+                           in_format='i',
+                           values=(veh_id,),
                            out_format=None)
