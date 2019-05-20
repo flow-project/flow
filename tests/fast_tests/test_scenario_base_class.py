@@ -8,7 +8,6 @@ from flow.core.params import NetParams
 from flow.core.params import VehicleParams
 from flow.core.params import EnvParams
 from flow.core.params import SumoParams
-from flow.scenarios import Scenario
 from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
 from flow.envs import TestEnv
 from flow.scenarios import Scenario
