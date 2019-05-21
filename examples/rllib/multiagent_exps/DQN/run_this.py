@@ -47,12 +47,13 @@ def gen_edges(row_num, col_num):
     edges = []
     # build the left and then the right edges
     for i in range(col_num):
-        edges += ['left' + str(row_num-1) + '_' + str(i)]
+        edges += ['left' + str(row_num) + '_' + str(i)]
         edges += ['right' + '0' + '_' + str(i)]
   
+    # build the bottom and then top edges
     for i in range(row_num):
         edges += ['bot' + str(i) + '_' + '0']
-        edges += ['top' + str(i) + '_' + str(col_num-1)]
+        edges += ['top' + str(i) + '_' + str(col_num)]
 
     return edges
 
@@ -80,7 +81,7 @@ def get_flow_params(col_num, row_num, additional_net_params):
         spacing='custom', lanes_distribution=float('inf'), shuffle=True)
 
     inflow = InFlows()
-    outer_edges = gen_edges(col_num, row_num)
+    outer_edges = gen_edges(row_num, col_num)
     for i in range(len(outer_edges)):
         inflow.add(
             veh_type='human',
@@ -268,9 +269,6 @@ def run_grid(writer, file):
 
         # swap observation
         observation = observation_
-
-    # end of game
-    print('game over')
 
 def open_file_to_write():
     # csv_file = "logs/multi-agent-grid" + str(datetime.datetime.now()) + ".csv"
