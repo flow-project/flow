@@ -4,19 +4,10 @@ Trains a a small percentage of rl vehicles to dissipate shockwaves caused by
 merges in an open network.
 """
 import numpy as np
-import json
 
 import ray
-try:
-    from ray.rllib.agents.agent import get_agent_class
-except ImportError:
-    from ray.rllib.agents.registry import get_agent_class
-from ray.tune import run_experiments
-from ray.tune.registry import register_env
 from ray import tune
 
-from flow.utils.registry import make_create_env
-from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
@@ -34,9 +25,6 @@ from flow.utils.softlearning import generate_experiment_kwargs
 EXP_NUM = 0
 
 
-
-
-# 600 * 20 * 200 = 2'400'000 steps
 EPOCHS = 400
 HORIZON = 2000
 N_CHECKPOINTS = 40

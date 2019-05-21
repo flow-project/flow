@@ -144,12 +144,14 @@ class WaveAttenuationMergePOEnv(Env):
                 self.follower.append(follower)
                 follow_speed = self.k.vehicle.get_speed(follower)
                 follow_head = self.k.vehicle.get_headway(follower)
-
+              
             observation[5 * i + 0] = this_speed / max_speed
-            observation[5 * i + 1] = (lead_speed - this_speed) / max_speed
+            observation[5 * i + 1] = ((lead_speed - this_speed) / max_speed + 2.0) / 2.0
             observation[5 * i + 2] = lead_head / max_length
-            observation[5 * i + 3] = (this_speed - follow_speed) / max_speed
+            observation[5 * i + 3] = ((this_speed - follow_speed) / max_speed + 2.0) / 2.0
             observation[5 * i + 4] = follow_head / max_length
+
+        observation = np.clip(observation, 0, 1)
 
         return observation
 

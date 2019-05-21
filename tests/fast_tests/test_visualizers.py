@@ -2,12 +2,9 @@
 # from flow.visualize.visualizer_rllab import visualizer_rllab
 from flow.visualize import visualizer_rllib as vs_rllib
 from flow.visualize.visualizer_rllib import visualizer_rllib
-<<<<<<< HEAD
 from flow.visualize import visualizer_sac as vs_sac
 from flow.visualize.visualizer_sac import visualizer_sac
-=======
 import flow.visualize.capacity_diagram_generator as cdg
->>>>>>> origin/master
 
 import os
 import unittest

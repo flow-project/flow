@@ -106,6 +106,7 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.2,
         render=False,
+        restart_instance=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -182,7 +183,7 @@ if __name__ == "__main__":
             "checkpoint_freq": 20,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 200,
+                "training_iteration": 5,
             },
         }
     })

@@ -79,7 +79,7 @@ class AimsunKernelVehicle(KernelVehicle):
         # note: vehicles added via the scenario (ie by calling the
         # add_vehicle function) will also be tracked, even if their
         # type is not specified here
-        self.tracked_vehicle_types = {"rl"} # {"rl", "Car"}
+        self.tracked_vehicle_types = {"rl"}  # {"rl", "Car"}
 
         # all the vehicle tracking information that should be stored
         # for the tracked vehicles info that can be tracked:
