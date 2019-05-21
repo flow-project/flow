@@ -33,7 +33,7 @@ def IBVP(U, U_R, U_L):
     # clf
     # """"parameters"""
     L = 30  # length of road
-    N = 10  # (N = L/dx)reduce spacial grid resolution
+    N = 0.5  # (N = L/dx)reduce spacial grid resolution
     dx = L / N
 
     x = np.array([1.5, 4.5, 7.5, 10.5, 13.5, 16.5, 19.5, 22.5, 25.5, 28.5])
@@ -58,7 +58,7 @@ def IBVP(U, U_R, U_L):
 
     U = np.insert(np.append(U[1:len(U) - 1], U_R), 0, U_L)
 
-        # plot current profile during execution
+    # plot current profile during execution
 
     plt.plot(x, U[1:len(U) - 1], 'b-')
     plt.axis([0, L, -0.1, 4.1])
@@ -104,8 +104,7 @@ class LWR(gym.Env):
 
         return obs, rew, done, info_dict
 
-#what happens if we do not reset? When does this actually happen?
-#can we animate this?
+
     def reset(self):
         """
 
@@ -127,6 +126,7 @@ if __name__ == "__main__":
    env = LWR(U, U_L)
 
    obs = env.reset()
-   for _ in range(20):
+   for _ in range(10):
        action = None  # agent.compute(obs)
        obs, rew, done, _ = env.step(U_R)
+       # update plot
