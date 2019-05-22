@@ -61,7 +61,6 @@ def visualizer_rllib(args):
             multiagent = False
     except Exception:
         multiagent = False
-        
 
     # Run on only one cpu for rendering purposes
     config['num_workers'] = 0
