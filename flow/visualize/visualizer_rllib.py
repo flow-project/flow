@@ -51,16 +51,17 @@ def visualizer_rllib(args):
     # TODO(ev) backwards compatibility hack
     try:
         pkl = get_rllib_pkl(result_dir)
-    except Exception:
-        pass
 
-    # check if we have a multiagent scenario but in a
-    # backwards compatible way
-    if config.get('multiagent', {}).get('policy_graphs', {}):
-        multiagent = True
-        config['multiagent'] = pkl['multiagent']
-    else:
+        # check if we have a multiagent scenario but in a
+        # backwards compatible way
+        if config.get('multiagent', {}).get('policy_graphs', {}):
+            multiagent = True
+            config['multiagent'] = pkl['multiagent']
+        else:
+            multiagent = False
+    except Exception:
         multiagent = False
+        
 
     # Run on only one cpu for rendering purposes
     config['num_workers'] = 0

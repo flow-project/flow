@@ -48,4 +48,5 @@ class MultiAgentAccelEnv(AccelEnv, MultiEnv):
             self.k.vehicle.get_x_by_id(veh_id) / self.k.scenario.length()
         ] for veh_id in self.sorted_ids])
         state = np.ndarray.flatten(state)
+        state = np.clip(state, 0, 1)
         return {'av': state, 'adversary': state}

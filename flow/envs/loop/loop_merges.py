@@ -195,8 +195,10 @@ class TwoLoopsMergePOEnv(Env):
         vel_stats[1] = np.mean(vel_all[num_inner:])
         vel_stats = np.nan_to_num(vel_stats)
 
-        return np.concatenate(
+        state = np.concatenate(
             (normalized_vel, normalized_pos, queue_length, vel_stats))
+        state = np.clip(state, 0, np.inf)
+        return state
 
     @property
     def sorted_ids(self):

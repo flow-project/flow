@@ -74,11 +74,12 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
 
             observation = np.array([
                 self.k.vehicle.get_speed(rl_id) / max_speed,
-                (self.k.vehicle.get_speed(lead_id) -
+                ((self.k.vehicle.get_speed(lead_id) -
                  self.k.vehicle.get_speed(rl_id))
-                / max_speed,
+                / max_speed + 2.0) / 2.0,
                 self.k.vehicle.get_headway(rl_id) / max_length
             ])
+            observation = np.clip(observation, 0, 1)
             obs.update({rl_id: observation})
 
         return obs
