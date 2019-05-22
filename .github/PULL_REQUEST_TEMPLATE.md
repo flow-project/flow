@@ -29,8 +29,6 @@ Related PR/issue (optional): Link to related issues, PRs or branches (see https:
 - **Code affected**: Scenarios and tests
 - **Related PR or issue**: None
 
----
-
 ## Description
 
 <!-- Describe all the changes introduced in this PR -->
