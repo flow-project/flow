@@ -114,8 +114,8 @@ class LWR(gym.Env):
 
         return self.obs
 
-# a few more parameters
-# Length of road
+# A few more parameters we need to preset
+# Length of road and spacial grid resolution --> this will be important when calibrating
 
 x = np.array([1.5, 4.5, 7.5, 10.5, 13.5, 16.5, 19.5, 22.5, 25.5, 28.5]) # points on x axis to plot
 U = initial(x) #compute initial points
