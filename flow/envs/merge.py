@@ -153,6 +153,7 @@ class WaveAttenuationMergePOEnv(Env):
                                       + 2.0) / 2.0
             observation[5 * i + 4] = follow_head / max_length
 
+        # make sure values are contained in observation_space
         observation = np.clip(observation, 0, 1)
 
         return observation
