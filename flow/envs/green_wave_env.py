@@ -194,7 +194,6 @@ class TrafficLightGridEnv(Env):
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         # check if the action space is discrete
-        ipdb.set_trace()
         if self.discrete:
             # convert single value to list of 0's and 1's
             rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
