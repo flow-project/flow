@@ -42,12 +42,12 @@ def plot_progress(filepath, columns):
             for row in reader:
                 for col in columns:
                     data[col].append(float(row[col]))
-        except KeyError as e:
+        except KeyError:
             print(f'Error: {__file__} was called with an unknown column name '
                   f'"{col}". Run `python {__file__} {filepath}` to get a list '
                   f'of all the existing columns.')
             raise
-        except ValueError as e:
+        except ValueError:
             print(f'Error: {__file__} was called with an invalid column name '
                   f'"{col}". This column contains values that are not '
                   f'convertible to floats.')
@@ -69,7 +69,7 @@ def create_parser():
     parser.add_argument('file', type=str, help='Path to the csv file.')
     parser.add_argument(
         'columns', type=str, nargs='*', help='Names of the columns to plot.')
-    
+
     return parser
 
 
