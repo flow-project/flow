@@ -25,7 +25,7 @@ N_ROLLOUTS = 20
 N_CPUS = 2
 
 
-def gen_edges(row_num, col_num):
+def gen_edges(col_num, row_num):
     """Generate the names of the outer edges in the grid network.
 
     Parameters
@@ -77,7 +77,7 @@ def get_flow_params(col_num, row_num, additional_net_params):
         spacing='custom', lanes_distribution=float('inf'), shuffle=True)
 
     inflow = InFlows()
-    outer_edges = gen_edges(row_num, col_num)
+    outer_edges = gen_edges(col_num, row_num)
     for i in range(len(outer_edges)):
         inflow.add(
             veh_type='idm',
