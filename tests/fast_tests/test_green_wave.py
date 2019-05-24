@@ -56,7 +56,7 @@ class TestUtils(unittest.TestCase):
         self.exp = Experiment(self.env)
 
     @staticmethod
-    def gen_edges(row_num, col_num):
+    def gen_edges(col_num, row_num):
         edges = []
         for i in range(col_num):
             edges += ["left" + str(row_num) + '_' + str(i)]
