@@ -111,7 +111,7 @@ def setup_exps():
     config = agent_cls._default_config.copy()
     config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
-    config['simple_optimizer'] = True
+    config['simple_optimizer'] = False
     config['gamma'] = 0.999  # discount rate
     config['model'].update({'fcnet_hiddens': [32, 32]})
     config['lr'] = tune.grid_search([1e-5])
