@@ -142,17 +142,17 @@ class TrafficLightGridEnv(Env):
         speed = Box(
             low=0,
             high=1,
-            shape=(self.scenario.vehicles.num_vehicles,),
+            shape=(self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
         dist_to_intersec = Box(
             low=0.,
             high=np.inf,
-            shape=(self.scenario.vehicles.num_vehicles,),
+            shape=(self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
         edge_num = Box(
             low=0.,
             high=1,
-            shape=(self.scenario.vehicles.num_vehicles,),
+            shape=(self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
         traffic_lights = Box(
             low=0.,
@@ -164,9 +164,10 @@ class TrafficLightGridEnv(Env):
     def get_state(self):
         """See class definition."""
         # compute the normalizers
-        max_dist = max(self.k.scenario.network.short_length,
-                       self.k.scenario.network.long_length,
-                       self.k.scenario.network.inner_length)
+        grid_array = self.net_params.additional_params["grid_array"]
+        max_dist = max(grid_array["short_length"],
+                       grid_array["long_length"],
+                       grid_array["inner_length"])
 
         # get the state arrays
         speeds = [
@@ -518,8 +519,9 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         max_speed = max(
             self.k.scenario.speed_limit(edge)
             for edge in self.k.scenario.get_edge_list())
-        max_dist = max(self.scenario.short_length, self.scenario.long_length,
-                       self.scenario.inner_length)
+        grid_array = self.net_params.additional_params["grid_array"]
+        max_dist = max(grid_array["short_length"], grid_array["long_length"],
+                       grid_array["inner_length"])
         all_observed_ids = []
 
         for node, edges in self.scenario.get_node_mapping():

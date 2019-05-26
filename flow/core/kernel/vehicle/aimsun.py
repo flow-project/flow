@@ -4,7 +4,7 @@ import collections
 import numpy as np
 from flow.utils.aimsun.struct import InfVeh
 # from flow.controllers.car_following_models import SimCarFollowingController
-# from flow.controllers.rlcontroller import RLController
+from flow.controllers.rlcontroller import RLController
 # from flow.controllers.lane_change_controllers import SimLaneChangeController
 
 import time
@@ -98,14 +98,31 @@ class AimsunKernelVehicle(KernelVehicle):
         # we want to store the values in an emission file (necessary?)
 
     def initialize(self, vehicles):
-        """
+        """Initialize vehicle state information.
 
-        :param vehicles:
-        :return:
+        This is responsible for collecting vehicle type information from the
+        VehicleParams object and placing them within the Vehicles kernel.
+
+        Parameters
+        ----------
+        vehicles : flow.core.params.VehicleParams
+            initial vehicle parameter information, including the types of
+            individual vehicles and their initial speeds
         """
         self.type_parameters = vehicles.type_parameters
         self.num_vehicles = 0
         self.num_rl_vehicles = 0
+
+        self.__vehicles.clear()
+        for typ in vehicles.initial:
+            for i in range(typ['num_vehicles']):
+                veh_id = '{}_{}'.format(typ['veh_id'], i)
+                self.__vehicles[veh_id] = dict()
+                self.__vehicles[veh_id]['type'] = typ['veh_id']
+                self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
+                self.num_vehicles += 1
+                if typ['acceleration_controller'][0] == RLController:
+                    self.num_rl_vehicles += 1
 
         for tracked_type in self.tracked_vehicle_types:
             self.num_type[tracked_type] = 0
