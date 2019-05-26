@@ -124,7 +124,7 @@ class TestEvenStartPos(unittest.TestCase):
             num_vehicles=15)
 
         # create the environment and scenario classes for a ring road
-        self.env, self.scenario = ring_road_exp_setup(
+        self.env, _ = ring_road_exp_setup(
             net_params=net_params,
             initial_config=initial_config,
             vehicles=vehicles)
@@ -278,7 +278,7 @@ class TestEvenStartPos(unittest.TestCase):
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
-        lanes = self.env.scenario.net_params.additional_params['lanes']
+        lanes = self.env.net_params.additional_params['lanes']
 
         # get the positions of all vehicles
         ids = self.env.k.vehicle.get_ids()
@@ -339,7 +339,7 @@ class TestEvenStartPos(unittest.TestCase):
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
-        lanes = self.env.scenario.net_params.additional_params['lanes']
+        lanes = self.env.net_params.additional_params['lanes']
 
         # get the positions of all vehicles
         ids = self.env.k.vehicle.get_ids()
