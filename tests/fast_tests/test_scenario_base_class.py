@@ -277,7 +277,7 @@ class TestEvenStartPos(unittest.TestCase):
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
-        lanes = self.env.scenario.net_params.additional_params['lanes']
+        lanes = self.env.net_params.additional_params['lanes']
 
         # get the positions of all vehicles
         ids = self.env.k.vehicle.get_ids()
@@ -338,7 +338,7 @@ class TestEvenStartPos(unittest.TestCase):
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
-        lanes = self.env.scenario.net_params.additional_params['lanes']
+        lanes = self.env.net_params.additional_params['lanes']
 
         # get the positions of all vehicles
         ids = self.env.k.vehicle.get_ids()

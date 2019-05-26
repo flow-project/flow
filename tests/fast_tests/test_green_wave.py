@@ -8,7 +8,7 @@ from tests.setup_scripts import grid_mxn_exp_setup
 class TestEnvironment(unittest.TestCase):
     def setUp(self):
         # create the environment and scenario classes for a ring road
-        self.env, self.scenario = grid_mxn_exp_setup()
+        self.env, _ = grid_mxn_exp_setup()
         self.env.reset()
 
         # instantiate an experiment class
@@ -49,7 +49,7 @@ class TestEnvironment(unittest.TestCase):
 class TestUtils(unittest.TestCase):
     def setUp(self):
         # create the environment and scenario classes for a ring road
-        self.env, self.scenario = grid_mxn_exp_setup()
+        self.env, _ = grid_mxn_exp_setup()
         self.env.reset()
 
         # instantiate an experiment class
@@ -76,7 +76,7 @@ class TestUtils(unittest.TestCase):
             self.env.k.vehicle.get_ids_by_edge(e) for e in self.gen_edges(1, 1)
         ]
         dists = [self.env.get_distance_to_intersection(v) for v in veh_ids]
-        grid = self.env.scenario.net_params.additional_params['grid_array']
+        grid = self.env.net_params.additional_params['grid_array']
         short_length = grid['short_length']
 
         # The first check asserts all the lists are equal. With the default
