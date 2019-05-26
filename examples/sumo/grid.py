@@ -26,21 +26,21 @@ def grid_example(render=None):
     inner_length = 300
     long_length = 500
     short_length = 300
-    N_ROWS = 2
-    N_COLUMNS = 3
+    n_rows = 2
+    n_columns = 3
     num_cars_left = 20
     num_cars_right = 20
     num_cars_top = 20
     num_cars_bot = 20
-    tot_cars = (num_cars_left + num_cars_right) * N_COLUMNS \
-        + (num_cars_top + num_cars_bot) * N_ROWS
+    tot_cars = (num_cars_left + num_cars_right) * n_columns \
+        + (num_cars_top + num_cars_bot) * n_rows
 
     grid_array = {
         "short_length": short_length,
         "inner_length": inner_length,
         "long_length": long_length,
-        "row_num": N_ROWS,
-        "col_num": N_COLUMNS,
+        "row_num": n_rows,
+        "col_num": n_columns,
         "cars_left": num_cars_left,
         "cars_right": num_cars_right,
         "cars_top": num_cars_top,
@@ -84,7 +84,7 @@ def grid_example(render=None):
     }]
     tl_logic.add("center0", phases=phases, programID=1)
     tl_logic.add("center1", phases=phases, programID=1)
-    tl_logic.add("center2", tls_type="actuated", phases=phases, programID=1)
+    tl_logic.add("center2", phases=phases, programID=1, tls_type="actuated")
 
     additional_net_params = {
         "grid_array": grid_array,

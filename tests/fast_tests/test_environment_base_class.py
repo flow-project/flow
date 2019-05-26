@@ -212,7 +212,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         ids = self.env.k.vehicle.get_ids()
         lane0 = np.array(
             [self.env.k.vehicle.get_lane(veh_id) for veh_id in ids])
-        max_lanes = self.env.scenario.net_params.additional_params['lanes']
+        max_lanes = self.env.net_params.additional_params['lanes']
 
         # perform lane-changing actions using the direction method
         direction0 = np.array([0, 1, 0, 1, -1])
