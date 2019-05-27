@@ -141,7 +141,7 @@ class MultiEnv(MultiAgentEnv, Env):
         self.time_counter = 0
 
         # warn about not using restart_instance when using inflows
-        if len(self.scenario.net_params.inflows.get()) > 0 and \
+        if len(self.net_params.inflows.get()) > 0 and \
                 not self.sim_params.restart_instance:
             print(
                 "**********************************************************\n"
@@ -167,7 +167,7 @@ class MultiEnv(MultiAgentEnv, Env):
             self.restart_simulation(self.sim_params)
 
         # perform shuffling (if requested)
-        elif self.scenario.initial_config.shuffle:
+        elif self.initial_config.shuffle:
             self.setup_initial_state()
 
         # clear all vehicles from the network and the vehicles class

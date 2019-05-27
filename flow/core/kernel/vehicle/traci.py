@@ -69,15 +69,32 @@ class TraCIVehicle(KernelVehicle):
         self._arrived_ids = []
 
     def initialize(self, vehicles):
-        """
+        """Initialize vehicle state information.
 
-        :param vehicles:
-        :return:
+        This is responsible for collecting vehicle type information from the
+        VehicleParams object and placing them within the Vehicles kernel.
+
+        Parameters
+        ----------
+        vehicles : flow.core.params.VehicleParams
+            initial vehicle parameter information, including the types of
+            individual vehicles and their initial speeds
         """
         self.type_parameters = vehicles.type_parameters
         self.minGap = vehicles.minGap
         self.num_vehicles = 0
         self.num_rl_vehicles = 0
+
+        self.__vehicles.clear()
+        for typ in vehicles.initial:
+            for i in range(typ['num_vehicles']):
+                veh_id = '{}_{}'.format(typ['veh_id'], i)
+                self.__vehicles[veh_id] = dict()
+                self.__vehicles[veh_id]['type'] = typ['veh_id']
+                self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
+                self.num_vehicles += 1
+                if typ['acceleration_controller'][0] == RLController:
+                    self.num_rl_vehicles += 1
 
     def update(self, reset):
         """See parent class.
@@ -214,9 +231,10 @@ class TraCIVehicle(KernelVehicle):
         if veh_type not in self.type_parameters:
             raise KeyError("Entering vehicle is not a valid type.")
 
-        self.num_vehicles += 1
         self.__ids.append(veh_id)
-        self.__vehicles[veh_id] = dict()
+        if veh_id not in self.__vehicles:
+            self.num_vehicles += 1
+            self.__vehicles[veh_id] = dict()
 
         # specify the type
         self.__vehicles[veh_id]["type"] = veh_type
@@ -365,6 +383,9 @@ class TraCIVehicle(KernelVehicle):
     def get_type(self, veh_id):
         """Return the type of the vehicle of veh_id."""
         return self.__vehicles[veh_id]["type"]
+
+    def get_initial_speed(self, veh_id):
+        return self.__vehicles[veh_id]["initial_speed"]
 
     def get_ids(self):
         """See parent class."""
