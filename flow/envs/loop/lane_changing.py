@@ -83,8 +83,8 @@ class LaneChangeAccelEnv(AccelEnv):
         max_decel = self.env_params.additional_params["max_decel"]
         max_accel = self.env_params.additional_params["max_accel"]
 
-        lb = [-abs(max_decel), -1] * self.scenario.vehicles.num_rl_vehicles
-        ub = [max_accel, 1] * self.scenario.vehicles.num_rl_vehicles
+        lb = [-abs(max_decel), -1] * self.initial_vehicles.num_rl_vehicles
+        ub = [max_accel, 1] * self.initial_vehicles.num_rl_vehicles
 
         return Box(np.array(lb), np.array(ub), dtype=np.float32)
 
@@ -94,7 +94,7 @@ class LaneChangeAccelEnv(AccelEnv):
         return Box(
             low=0,
             high=1,
-            shape=(3 * self.scenario.vehicles.num_vehicles, ),
+            shape=(3 * self.initial_vehicles.num_vehicles, ),
             dtype=np.float32)
 
     def compute_reward(self, rl_actions, **kwargs):
@@ -204,8 +204,8 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
         return Box(
             low=0,
             high=1,
-            shape=(4 * self.scenario.vehicles.num_rl_vehicles *
-                   self.num_lanes + self.scenario.vehicles.num_rl_vehicles, ),
+            shape=(4 * self.initial_vehicles.num_rl_vehicles *
+                   self.num_lanes + self.initial_vehicles.num_rl_vehicles, ),
             dtype=np.float32)
 
     def get_state(self):

@@ -192,7 +192,7 @@ def grid_example(render=None):
     }]
     tl_logic.add("center0", phases=phases, programID=1)
     tl_logic.add("center1", phases=phases, programID=1)
-    tl_logic.add("center2", tls_type="actuated", phases=phases, programID=1)
+    tl_logic.add("center2", phases=phases, programID=1, tls_type="actuated")
 
     additional_net_params = {
         "grid_array": grid_array,
