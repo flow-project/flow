@@ -1,4 +1,4 @@
-dist: xenial   # required for Python >= 3.7
+dist: xenial  # required for Python >= 3.7
 language: python
 
 cache: pip
@@ -58,8 +58,6 @@ install:
   - pip install -U pyglet
   - pip install git+https://github.com/hartikainen/serializable.git
   - pip install -e ~/softlearning
-  - echo "filefile"
-  - cat /home/travis/miniconda/envs/flow/lib/python3.7/site-packages/pyglet/__init__.py
 
 before_script:
   - flake8 --version
