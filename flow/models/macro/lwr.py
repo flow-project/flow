@@ -37,7 +37,7 @@ def Gflux(u, v, r):
         TODO
     """
     # demand
-    d = v * u * (1 - u / r) * (u < 0.5 * r) + 0.25 * v * r * (U >= 0.5 * r)
+    d = v * u * (1 - u / r) * (u < 0.5 * r) + 0.25 * v * r * (u >= 0.5 * r)
 
     # supply
     s = v * u * (1 - u / r) * (u > 0.5 * r) + 0.25 * v * r * (u <= 0.5 * r)
@@ -95,10 +95,6 @@ def IBVP(u, u_r, u_l):
 
     u = np.insert(np.append(u[1:len(u) - 1], u_r), 0, u_l)
 
-    # plot current profile during execution
-    plt.plot(x, u[1:len(u) - 1], 'b-')
-    plt.axis([0, L, -0.1, 4.1])
-    plt.show()
 
     return u[1:len(u) - 1]
 
@@ -195,7 +191,16 @@ if __name__ == "__main__":
 
     # run a single rollout of the environment
     obs = env.reset()
-    for _ in range(10):
+    for _ in range(50):
         action = u_r  # agent.compute(obs)
         obs, rew, done, _ = env.step(action)
-        # update plot
+        # plot current profile during execution
+        plt.plot(x, env.obs, 'b-')
+        plt.axis([0, 30, -0.1, 4.1]) # must be preset (0, length of street(x_axis), y_axis)
+        plt.draw()
+        plt.pause(0.00001)
+        plt.clf()
+    #plot final plot
+    plt.plot(x, env.obs, 'b-')
+    plt.axis([0, 30, -0.1, 4.1])  # must be preset (0, length of street(x_axis), y_axis)
+    plt.show()
