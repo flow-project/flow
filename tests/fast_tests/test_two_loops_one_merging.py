@@ -6,8 +6,7 @@ from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
 from flow.core.params import VehicleParams
-from flow.envs.loop.loop_merges import TwoLoopsMergePOEnv, \
-    ADDITIONAL_ENV_PARAMS
+from flow.envs import TestEnv
 from flow.scenarios.loop_merge import TwoLoopsOneMergingScenario
 
 os.environ["TEST_FLAG"] = "True"
@@ -43,7 +42,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
             ),
             num_vehicles=5)
 
-    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
+    env_params = EnvParams()
 
     additional_net_params = {
         "ring_radius": 50,
@@ -72,7 +71,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
         net_params,
         initial_config=initial_config)
 
-    env = TwoLoopsMergePOEnv(env_params, sim_params, scenario)
+    env = TestEnv(env_params, sim_params, scenario)
 
     return env, scenario
 
