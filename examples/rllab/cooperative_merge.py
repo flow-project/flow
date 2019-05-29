@@ -70,12 +70,10 @@ def run_task(*_):
     env_params = EnvParams(
         horizon=HORIZON,
         additional_params={
+            "target_velocity": 10,
             "max_accel": 3,
             "max_decel": 3,
-            "target_velocity": 10,
-            "n_preceding": 2,
-            "n_following": 2,
-            "n_merging_in": 2,
+            "sort_vehicles": False
         })
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
