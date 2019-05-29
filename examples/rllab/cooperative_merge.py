@@ -86,8 +86,7 @@ def run_task(*_):
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
-    initial_config = InitialConfig(
-        x0=50, spacing="uniform", additional_params={"merge_bunching": 0})
+    initial_config = InitialConfig(x0=50, spacing="uniform")
 
     scenario = TwoLoopsOneMergingScenario(
         name=exp_tag,
