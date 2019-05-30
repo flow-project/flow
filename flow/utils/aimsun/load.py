@@ -140,6 +140,7 @@ file_path = os.path.join(config.PROJECT_PATH,
                          "flow/utils/aimsun/aimsun_template_path")
 with open(file_path, 'r') as f:
     template_path = f.readline()
+os.remove(file_path)
 
 # open template in Aimsun
 print("[load.py] Loading template " + template_path)
