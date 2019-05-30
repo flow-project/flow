@@ -25,10 +25,11 @@ from flow.utils.softlearning import generate_experiment_kwargs
 EXP_NUM = 0
 
 
-EPOCHS = 400
-HORIZON = 2000
+ITERATIONS = 400
+EPOCHS = 10
+HORIZON = 600
 N_CHECKPOINTS = 40
-N_CPUS = 1
+N_CPUS = 2
 N_GPUS = 0
 
 
@@ -145,8 +146,8 @@ sac_params = dict(
         'type': 'SAC',
 
         'kwargs': {
-            'n_epochs': EPOCHS,
-            'epoch_length': HORIZON,
+            'n_epochs': ITERATIONS,
+            'epoch_length': EPOCHS * HORIZON,
             'train_every_n_steps': 1,
             'n_train_repeat': 1,
             'eval_render_mode': None,
