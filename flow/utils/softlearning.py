@@ -273,7 +273,7 @@ class ExperimentRunner(tune.Trainable):
         env = create_env()
         adapt_environment_for_sac(env)
 
-        training_environment = self.training_environment = env 
+        training_environment = self.training_environment = env
         evaluation_environment = self.evaluation_environment = env
 
         replay_pool = self.replay_pool = (
