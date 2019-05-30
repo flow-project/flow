@@ -267,10 +267,14 @@ class ExperimentRunner(tune.Trainable):
             with open(pickle_path, 'rb') as f:
                 picklable = pickle.load(f)
 
-        training_environment = self.training_environment = picklable[
-            'training_environment']
-        evaluation_environment = self.evaluation_environment = picklable[
-            'evaluation_environment']
+        flow_params = self._variant['flow_params']
+
+        create_env, _ = make_create_env(params=flow_params, version=0)
+        env = create_env()
+        adapt_environment_for_sac(env)
+
+        training_environment = self.training_environment = env 
+        evaluation_environment = self.evaluation_environment = env
 
         replay_pool = self.replay_pool = (
             get_replay_pool_from_variant(self._variant, training_environment))
