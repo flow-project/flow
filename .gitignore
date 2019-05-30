@@ -103,9 +103,7 @@ debug/
 .vs/**
 
 # Custom for Aimsun
-*flow.ang
 *flow.ang.lck
 *flow.sqlite
-*Aimsun_Flow.ang
 *Aimsun_Flow.ang.old
 *Aimsun_Flow.sang
