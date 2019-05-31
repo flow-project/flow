@@ -83,4 +83,5 @@ class TestPygletRenderer(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    # unittest.main() FIXME
+    pass
