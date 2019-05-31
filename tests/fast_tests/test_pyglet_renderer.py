@@ -1,13 +1,14 @@
-from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
+# from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
 import os
 import unittest
 
 os.environ['TEST_FLAG'] = 'True'
 
 
-class TestPygletRenderer:  # (unittest.TestCase):
+class TestPygletRenderer(unittest.TestCase):
     """Tests pyglet_renderer"""
 
+    """
     def test_pyglet_renderer(self):
         # Ring road network polygons
         network = \
@@ -80,6 +81,7 @@ class TestPygletRenderer:  # (unittest.TestCase):
         self.assertEqual(renderer.sight_radius, sight_radius)
         self.assertEqual(renderer.pxpm, pxpm)
         self.assertEqual(renderer.show_radius, show_radius)
+        """
 
 
 if __name__ == '__main__':
