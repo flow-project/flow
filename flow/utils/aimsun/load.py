@@ -1,23 +1,17 @@
 # flake8: noqa
-import sys
-import os
-sys.path.append("/Users/nathan/projects/flow/")
-import flow.config as config
-
-SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
-                            "lib/python2.7/site-packages")
-sys.path.append(SITEPACKAGES)
-
-sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
-                             'programming/Aimsun Next API/AAPIPython/Micro'))
-
-from flow.core.params import InFlows
-from flow.core.params import TrafficLightParams
-
 from copy import deepcopy
 import json
 import numpy as np
 
+import os
+import sys
+
+import flow.config as config
+
+from flow.core.params import InFlows
+from flow.core.params import TrafficLightParams
+
+from flow.utils.aimsun.scripting_api import AimsunTemplate
 
 # Loads the whole network into a dictionary and returns it
 def load_network():
@@ -144,9 +138,12 @@ os.remove(file_path)
 
 # open template in Aimsun
 print("[load.py] Loading template " + template_path)
-gui = GKGUISystem.getGUISystem().getActiveGui()
-gui.loadNetwork(template_path)
-model = gui.getActiveModel()
+# gui = GKGUISystem.getGUISystem().getActiveGui()
+# gui.loadNetwork(template_path)
+# model = gui.getActiveModel()
+model = AimsunTemplate(GKGUISystem)
+model.load(template_path)
+model = model.model
 
 # collect the simulation parameters
 params_file = 'flow/core/kernel/scenario/data.json'
