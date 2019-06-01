@@ -1,93 +1,99 @@
 import sys
 import os
-import flow.config as config
+import types
 
-SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
-                            "lib/python2.7/site-packages")
-sys.path.append(SITEPACKAGES)
+# import flow.config as config
+# SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
+#                             "lib/python2.7/site-packages")
+# sys.path.append(SITEPACKAGES)
 
-sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
-                             'programming/Aimsun Next API/AAPIPython/Micro'))
+# sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
+#                              'programming/Aimsun Next API/AAPIPython/Micro'))
 
 
 class AimsunTemplate:
     """Interface to do scripting with Aimsun.
 
-    This can be used to create Aimsun templates or to load existing ones.
-    It provides a pythonic interface to manipulate the different objects
+    This can be used to create Aimsun templates or to load and modify existing 
+    ones. It provides a pythonic interface to manipulate the different objects
     accessible via scripting.
     """
-
-    # TODO remove action from init since we can have None anyway
-
-    def __init__(self, path, action='new'):
+    def __init__(self):
         """Initialize the template.
 
-        There are several ways to do that:
-        (1) load an existing template
-        (2) create a new template by duplicating an existing one
-        (3) create a new empty template
-        (4) do nothing (this assumes a template is already open in Aimsun)
+        This assumes that Aimsun is open, as it will try to access the
+        current active Aimsun window.
 
+        After that, this call provides different methods to manipulate
+        templates in this Aimsun window:
+        (1) to load a template, see 'load_template'
+        (2) to create a new template by duplicating an existing one, see
+            'duplicate_template'
+        (3) to create a new blank template, see 'new_template'
+        (4) if the template you want to use is already open in the Aimsun
+            window, then you don't have to do annything
+        """
+        self.gui = GKGUISystem.getGUISystem().getActiveGui()
+        self.model = self.gui.getActiveModel()
+
+    def load(self, path):
+        """Load an existing template into Aimsun
+        
         Parameters
         ----------
-        action : str
-            Which method to use to initialize the template
-            (1) -> "load"
-            (2) -> "duplicate"
-            (3) -> "new"
-            (4) -> None
         path : str
-            The path of the template that (1) should load or that (2) should
-            duplicate. This argument will be ignored if action is (3) or (4). 
+            the path of the template to load
 
         Raises
         ------
         ValueError
-            if action is not among "load", "duplicate", "new" or None.
+            if path is None
         FileNotFoundError
-            if action is eiher "load" or "duplicate" and path does not exist.
+            if path is provided but does not exist
         RuntimeError
-            if action is either "load" or "duplicate" and path exists but
-            Aimsun couldn't open the template for some reason.
+            if path exists but Aimsun couldn't open the template
+            for some reason        
         """
-        if action == 'load':
-            load(path)
-        elif action == 'duplicate':
-            new_doc(path)
-        elif action == 'new':
-            new_empty()
-        elif action == None:
-            pass
-        else:
-            raise ValueError('Class {self.__class__.__name__} initialized '
-                             'with invalid argument action="{action}". '
-                             'Possible values for argument "action" include: '
-                             '"new", "load".')
-
-    def load(self, path):
-        """Load an existing template into Aimsun"""
-        gui = GKGUISystem.getGUISystem().getActiveGui()
-        gui.loadNetwork(path)
-        self.model = gui.getActiveModel()
+        self.gui.loadNetwork(path)
+        self.model = self.gui.getActiveModel()
 
     def new_duplicate(self, path):
-        """Create a new template by duplicating an existing one"""
-        gui = GKGUISystem.getGUISystem().getActiveGui()
-        gui.newDoc(path)
-        self.model = gui.getActiveModel()
+        """Create a new template by duplicating an existing one
+        
+        Parameters
+        ----------
+        path : str
+            the path of the template to be duplicated
+
+        Raises
+        ------
+        ValueError
+            if path is None
+        FileNotFoundError
+            if path is provided but does not exist
+        RuntimeError
+            if path exists but Aimsun couldn't open the template
+            for some reason       
+        """
+        self.gui.newDoc(path)
+        self.model = self.gui.getActiveModel()
 
     def new_empty(self):
-        """Create a new empty template"""
-        gui = GKGUISystem.getGUISystem().getActiveGui()
-        gui.newSimpleDoc()
-        self.model = gui.getActiveModel()
+        """Create a new empty template"""   
+        self.gui.newSimpleDoc()
+        self.model = self.gui.getActiveModel()
+
+    # TODO add comments about saving the template
+    # TODO add checks that gui is active
 
     ####################################################################
     #                Methods to retrieve Aimsun objects                #
     ####################################################################
 
+    # TODO add checks that self.model is not None
+
     def __wrap_object(self, obj):
+        # TODO clean this function
         """Wrap Aimsun objects to provide more pythonic attribute access.
 
         For instance, if s is a GKSection object wrapped by this function:
@@ -96,23 +102,45 @@ class AimsunTemplate:
         - s.getNbFullLanes() becomes s.nb_full_lanes
         etc.
         """
+        self_tmp = self
         def custom_getattr(self, name):
+
+            no_attr_err = AttributeError('\'{}\' has no attribute \'{}\''.format(
+                                         self.__class__.__name__, name))
+
+            if name.startswith('get'):
+                raise no_attr_err
+
             # transform name from attr_name to getAttrName
             aimsun_name = \
-                'get' + ''.join(map(lambda x: x.capitalize(), name.split('_')))
+                ''.join(map(lambda x: x.capitalize(), name.split('_')))
+            
             try:
-                aimsun_function = getattr(self, aimsun_name)  
-                # aimsun_function = self.__getattribute__(aimsun_name)
-                return aimsun_function()
-                # return __wrap_object(aimsun_function())
+                aimsun_function = object.__getattribute__(self, 'get' + aimsun_name)
             except AttributeError:
-                raise AttributeError('\'{}\' has no attribute \'{}\''.format(
-                                     self.__class__.__name__, name))
-        obj.__getattr__ = custom_getattr
+                try:
+                    aimsun_function = object.__getattribute__(self, aimsun_name)
+                except AttributeError:
+                    raise no_attr_err
+
+
+            try:
+                result = aimsun_function()
+            except TypeError:
+                result = aimsun_function
+            
+            try:
+                self_tmp.__wrap_object(result)
+            except TypeError:
+                pass
+            
+            return result
+                
+        obj.__class__.__getattr__ = custom_getattr
 
     def __wrap_objects(self, objects):
         """See __wrap_object"""
-        return [__wrap_object(obj) for obj in objects]
+        map(self.__wrap_object, objects)
 
     def __get_objects_by_type(self, type_name):
         """Return all Aimsun objects whose type is type_name
@@ -120,20 +148,26 @@ class AimsunTemplate:
         """
         type_obj = self.model.getType(type_name)
         objects = self.model.getCatalog().getObjectsByType(type_obj).values()
-        return __wrap_objects(objects)
+        self.__wrap_objects(objects)
+        return objects
 
     @property
     def sections(self):
-        return __get_objects_by_type("GKSection")
+        return self.__get_objects_by_type("GKSection")
 
     @property
     def nodes(self):
-        return __get_objects_by_type("GKNode")
+        return self.__get_objects_by_type("GKNode")
 
     @property
     def turnings(self):
-        return __get_objects_by_type("GKTurning")
+        return self.__get_objects_by_type("GKTurning")
 
     @property
     def centroid_connections(self):
-        return __get_objects_by_type("GKCenConnection")
+        return self.__get_objects_by_type("GKCenConnection")
+
+
+model = AimsunTemplate()
+for s in model.turnings:
+    print(s.name, s.destination.name)
