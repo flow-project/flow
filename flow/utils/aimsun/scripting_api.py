@@ -20,7 +20,7 @@ class AimsunTemplate(object):
     ones. It provides a pythonic interface to manipulate the different objects
     accessible via scripting.
     """
-    def __init__(self, GKGUISystem):
+    def __init__(self, GKSystem, GKGUISystem):
         """Initialize the template.
 
         This assumes that Aimsun is open, as it will try to access the
@@ -35,9 +35,15 @@ class AimsunTemplate(object):
         (4) if the template you want to use is already open in the Aimsun
             window, then you don't have to do annything
         """
-        self.gui = GKGUISystem.getGUISystem().getActiveGui()
+        self.GKSystem = GKSystem
+        self.GKGUISystem = GKGUISystem
+
+        self.gui = self.GKGUISystem.getGUISystem().getActiveGui()
         self.model = self.gui.getActiveModel()
 
+
+    def __getattr__(self, name):
+        return getattr(self.model, name)
 
 
     def load(self, path):
@@ -60,6 +66,8 @@ class AimsunTemplate(object):
         """
         self.gui.loadNetwork(path)
         self.model = self.gui.getActiveModel()
+        self.__wrap_object(self.model)
+
 
     def new_duplicate(self, path):
         """Create a new template by duplicating an existing one
@@ -81,11 +89,15 @@ class AimsunTemplate(object):
         """
         self.gui.newDoc(path)
         self.model = self.gui.getActiveModel()
+        self.__wrap_object(self.model)
+
 
     def new_empty(self):
         """Create a new empty template"""   
         self.gui.newSimpleDoc()
         self.model = self.gui.getActiveModel()
+        self.__wrap_object(self.model)
+
 
     # TODO add comments about saving the template
     # TODO add checks that gui is active
@@ -112,8 +124,8 @@ class AimsunTemplate(object):
             no_attr_err = AttributeError('\'{}\' has no attribute \'{}\''.format(
                                          self.__class__.__name__, name))
 
-            if name.startswith('get'): # FIXME necessary?
-                raise no_attr_err 
+            # if name.startswith('get'): # FIXME necessary?
+            #     raise no_attr_err 
 
             # transform name from attr_name to getAttrName
             aimsun_name = \
@@ -179,12 +191,16 @@ class AimsunTemplate(object):
         return self.__get_objects_by_type("GKTurning")
 
     @property
-    def centroid_connections(self):
+    def cen_connections(self):
         return self.__get_objects_by_type("GKCenConnection")
 
     @property
     def replications(self):
         return self.__get_objects_by_type("GKReplication")
+
+    @property
+    def problem_nets(self):
+        return self.__get_objects_by_type("GKProblemNet")
 
     def find_by_name(self, objects, name):
         matches = (obj for obj in objects if obj.name == name)
@@ -193,3 +209,7 @@ class AimsunTemplate(object):
     def find_all_by_type(self, objects, type_name):
         matches = [obj for obj in objects if obj.type_name == type_name]
         return matches
+
+    def run_replication(self, replication, render=True):
+        mode = 'play' if render else 'execute'
+        self.GKSystem.getSystem().executeAction(mode, replication, [], "")

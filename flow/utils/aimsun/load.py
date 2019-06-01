@@ -138,12 +138,8 @@ os.remove(file_path)
 
 # open template in Aimsun
 print("[load.py] Loading template " + template_path)
-# gui = GKGUISystem.getGUISystem().getActiveGui()
-# gui.loadNetwork(template_path)
-# model = gui.getActiveModel()
-model_tmp = AimsunTemplate(GKGUISystem)
-model_tmp.load(template_path)
-model = model_tmp.model
+model = AimsunTemplate(GKSystem, GKGUISystem)
+model.load(template_path)
 
 # collect the simulation parameters
 params_file = 'flow/core/kernel/scenario/data.json'
@@ -153,9 +149,7 @@ with open(params_path) as f:
 
 # retrieve replication by name
 replication_name = data["replication_name"]
-replication = model_tmp.find_by_name(model_tmp.replications, replication_name)
-# replication = model.getCatalog().findByName(
-#     replication_name, model.getType("GKReplication"))
+replication = model.find_by_name(model.replications, replication_name)
 
 if replication is None:
     print("[load.py] ERROR: Replication " + replication_name + " does not exist.")
@@ -172,8 +166,7 @@ scenario_data.add_extension(os.path.join(
 # subnetwork is not found, load the whole network
 subnetwork_name = data['subnetwork_name']
 if subnetwork_name is not None:
-    subnetwork = model.getCatalog().findByName(
-        subnetwork_name, model.getType("GKProblemNet"))
+    subnetwork = model.find_by_name(model.problem_nets, subnetwork_name)
     if subnetwork:
         scenario_data = load_subnetwork(subnetwork, scenario)
     else:
@@ -198,10 +191,9 @@ check_file_path = os.path.join(config.PROJECT_PATH, check_file)
 open(check_file_path, 'a').close()
 
 # get simulation step attribute column
-col_sim = model.getColumn('GKExperiment::simStepAtt')
+col_sim = model.get_column('GKExperiment::simStepAtt')
 # set new simulation step value
-experiment.setDataValue(col_sim, data["sim_step"])
+experiment.set_data_value(col_sim, data["sim_step"])
 # run the simulation
 # execute, "play": run with GUI, "execute": run in batch mode
-mode = 'play' if data['render'] is True else 'execute'
-GKSystem.getSystem().executeAction(mode, replication, [], "")
+model.run_replication(replication=replication, render=data['render'])
