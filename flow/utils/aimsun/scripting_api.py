@@ -123,7 +123,7 @@ class AimsunTemplate(object):
                 aimsun_function = object.__getattribute__(self, 'get' + aimsun_name)
             except AttributeError:
                 try:
-                    aimsun_function = object.__getattribute__(self, aimsun_name)
+                    aimsun_function = object.__getattribute__(self, aimsun_name[0].lower() + aimsun_name[1:])
                 except AttributeError:
                     raise no_attr_err
 
@@ -182,3 +182,14 @@ class AimsunTemplate(object):
     def centroid_connections(self):
         return self.__get_objects_by_type("GKCenConnection")
 
+    @property
+    def replications(self):
+        return self.__get_objects_by_type("GKReplication")
+
+    def find_by_name(self, objects, name):
+        matches = (obj for obj in objects if obj.name == name)
+        return next(matches, None)
+
+    def find_all_by_type(self, objects, type_name):
+        matches = [obj for obj in objects if obj.type_name == type_name]
+        return matches

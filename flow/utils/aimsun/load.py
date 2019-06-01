@@ -141,9 +141,9 @@ print("[load.py] Loading template " + template_path)
 # gui = GKGUISystem.getGUISystem().getActiveGui()
 # gui.loadNetwork(template_path)
 # model = gui.getActiveModel()
-model = AimsunTemplate(GKGUISystem)
-model.load(template_path)
-model = model.model
+model_tmp = AimsunTemplate(GKGUISystem)
+model_tmp.load(template_path)
+model = model_tmp.model
 
 # collect the simulation parameters
 params_file = 'flow/core/kernel/scenario/data.json'
@@ -153,17 +153,18 @@ with open(params_path) as f:
 
 # retrieve replication by name
 replication_name = data["replication_name"]
-replication = model.getCatalog().findByName(
-    replication_name, model.getType("GKReplication"))
+replication = model_tmp.find_by_name(model_tmp.replications, replication_name)
+# replication = model.getCatalog().findByName(
+#     replication_name, model.getType("GKReplication"))
 
-if not replication:
+if replication is None:
     print("[load.py] ERROR: Replication " + replication_name + " does not exist.")
 
 # retrieve experiment and scenario
-experiment = replication.getExperiment()
-scenario = experiment.getScenario()
-scenario_data = scenario.getInputData()
-scenario_data.addExtension(os.path.join(
+experiment = replication.experiment
+scenario = experiment.scenario
+scenario_data = scenario.input_data
+scenario_data.add_extension(os.path.join(
     config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
 
 # if subnetwork_name was specified in the Aimsun params,
