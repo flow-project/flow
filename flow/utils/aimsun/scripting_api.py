@@ -138,6 +138,17 @@ class AimsunTemplate:
                 
         obj.__class__.__getattr__ = custom_getattr
 
+        def custom_setattr(self, name, value):
+            try:
+                new_name ='set' + ''.join(map(lambda x: x.capitalize(), name.split('_')))
+                fct = object.__getattribute__(self, new_name)
+                fct(value)
+            except AttributeError:
+                object.__setattr__(self, name, value)
+            return value
+
+        obj.__class__.__setattr__ = custom_setattr
+
     def __wrap_objects(self, objects):
         """See __wrap_object"""
         map(self.__wrap_object, objects)
