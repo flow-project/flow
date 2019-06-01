@@ -2,23 +2,25 @@ import sys
 import os
 import types
 
-# import flow.config as config
-# SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
-#                             "lib/python2.7/site-packages")
-# sys.path.append(SITEPACKAGES)
+import flow.config as config
 
-# sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
-#                              'programming/Aimsun Next API/AAPIPython/Micro'))
+SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
+                            "lib/python2.7/site-packages")
+sys.path.append(SITEPACKAGES)
+
+sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
+                            'programming/Aimsun Next API/AAPIPython/Micro'))
 
 
-class AimsunTemplate:
+
+class AimsunTemplate(object):
     """Interface to do scripting with Aimsun.
 
     This can be used to create Aimsun templates or to load and modify existing 
     ones. It provides a pythonic interface to manipulate the different objects
     accessible via scripting.
     """
-    def __init__(self):
+    def __init__(self, GKGUISystem):
         """Initialize the template.
 
         This assumes that Aimsun is open, as it will try to access the
@@ -35,6 +37,8 @@ class AimsunTemplate:
         """
         self.gui = GKGUISystem.getGUISystem().getActiveGui()
         self.model = self.gui.getActiveModel()
+
+
 
     def load(self, path):
         """Load an existing template into Aimsun
@@ -108,8 +112,8 @@ class AimsunTemplate:
             no_attr_err = AttributeError('\'{}\' has no attribute \'{}\''.format(
                                          self.__class__.__name__, name))
 
-            if name.startswith('get'):
-                raise no_attr_err
+            if name.startswith('get'): # FIXME necessary?
+                raise no_attr_err 
 
             # transform name from attr_name to getAttrName
             aimsun_name = \
@@ -178,7 +182,3 @@ class AimsunTemplate:
     def centroid_connections(self):
         return self.__get_objects_by_type("GKCenConnection")
 
-
-model = AimsunTemplate()
-for s in model.turnings:
-    print(s.name, s.destination.name)
