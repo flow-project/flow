@@ -16,15 +16,10 @@ from flow.utils.aimsun.scripting_api import AimsunTemplate
 # Loads the whole network into a dictionary and returns it
 def load_network():
     # get all relevant objects in network
-    section_type = model.getType("GKSection")
-    node_type = model.getType("GKNode")
-    turning_type = model.getType("GKTurning")
-    cen_connection_type = model.getType("GKCenConnection")
-
-    sections = model.getCatalog().getObjectsByType(section_type).values()
-    nodes = model.getCatalog().getObjectsByType(node_type).values()
-    turnings = model.getCatalog().getObjectsByType(turning_type).values()
-    cen_connections = model.getCatalog().getObjectsByType(cen_connection_type).values()
+    sections = model.sections
+    nodes = model.nodes
+    turnings = model.turnings
+    cen_connections = model.cen_connections
 
     scenario_data = get_dict_from_objects(sections, nodes, turnings, cen_connections)
     return scenario_data
@@ -33,13 +28,13 @@ def load_network():
 # Loads subnetwork into a dictionary and returns it
 def load_subnetwork(subnetwork, scenario):
     # get all objects in subnetwork
-    objs = list(subnetwork.classifyObjects(scenario.getId()))
+    objs = list(subnetwork.classify_objects(scenario.id))
 
-    sections = [o for o in objs if o.getTypeName() == 'GKSection']
-    nodes = [o for o in objs if o.getTypeName() == 'GKNode']
-    turnings = [o for o in objs if o.getTypeName() == 'GKTurning']
-    cen_connections = [o for o in objs if o.getTypeName() == 'GKCenConnection']
-
+    sections = model.find_all_by_type(objs, 'GKSection')
+    nodes = model.find_all_by_type(objs, 'GKNode')
+    turnings = model.find_all_by_type(objs, 'GKTurning')
+    cen_connections = model.find_all_by_type(objs, 'GKCenConnection')
+    
     scenario_data = get_dict_from_objects(sections, nodes, turnings, cen_connections)
     return scenario_data
 
@@ -61,65 +56,66 @@ def get_dict_from_objects(sections, nodes, turnings, cen_connections):
     # maybe no need to distinguish them since it is done
     # later with centroid connections
     centroid_config_name = data['centroid_config_name']
-    centroid_config = model.getCatalog().findByName(
-        centroid_config_name, model.getType("GKCentroidConfiguration"))
+    centroid_config = model.find_by_name(model.centroid_configurations, centroid_config_name)
+    # centroid_config = model.getCatalog().findByName(
+    #     centroid_config_name, model.getType("GKCentroidConfiguration"))
     if not centroid_config:
         print("[load.py] ERROR: Centroid configuration "
               + centroid_config_name + " does not exist.")
-    for c in centroid_config.getOriginCentroids():
-        scenario_data['centroids'][c.getId()] = {'type': 'in'}
-    for c in centroid_config.getDestinationCentroids():
-        scenario_data['centroids'][c.getId()] = {'type': 'out'}
+    for c in centroid_config.origin_centroids:
+        scenario_data['centroids'][c.id] = {'type': 'in'}
+    for c in centroid_config.destination_centroids:
+        scenario_data['centroids'][c.id] = {'type': 'out'}
 
     # load sections
     for s in sections:
-        scenario_data['sections'][s.getId()] = {
-            'name': s.getName(),
-            'numLanes': s.getNbFullLanes(),
+        scenario_data['sections'][s.id] = {
+            'name': s.name,
+            'numLanes': s.nb_full_lanes,
             # FIXME this is a mean of the lanes lengths 
             # (bc they don't have to be all of the same size)
             # it may not be 100% accurate
-            'length': s.getLanesLength2D() / s.getNbFullLanes(),
-            'max_speed': s.getSpeed()
+            'length': s.lanes_length_2D / s.nb_full_lanes,
+            'max_speed': s.speed
         }
 
     # load nodes
     for n in nodes:
-        scenario_data['nodes'][n.getId()] = {
-            'name': n.getName(),
-            'nb_turnings': len(n.getTurnings())
+        scenario_data['nodes'][n.id] = {
+            'name': n.name,
+            'nb_turnings': len(n.turnings)
         }
 
     # load turnings
     for t in turnings:
-        scenario_data['turnings'][t.getId()] = {
-            'name': t.getName(),
-            'length': t.getPolygon().length2D() / 2, # FIXME not totally accurate
-            'origin_section_name': t.getOrigin().getName(),
-            'origin_section_id': t.getOrigin().getId(),
-            'dest_section_name': t.getDestination().getName(),
-            'dest_section_id': t.getDestination().getId(),
-            'node_id': t.getNode().getId(),
-            'max_speed': t.getSpeed(),
-            'origin_from_lane': t.getOriginFromLane(),
-            'origin_to_lane': t.getOriginToLane(),
-            'dest_from_lane': t.getDestinationFromLane(),
-            'dest_to_lane': t.getDestinationToLane()
+        scenario_data['turnings'][t.id] = {
+            'name': t.name,
+            'length': t.polygon.length2D() / 2, # FIXME not totally accurate
+            'origin_section_name': t.origin.name,
+            'origin_section_id': t.origin.id,
+            'dest_section_name': t.destination.name,
+            'dest_section_id': t.destination.id,
+            'node_id': t.node.id,
+            'max_speed': t.speed,
+            'origin_from_lane': t.origin_from_lane,
+            'origin_to_lane': t.origin_to_lane,
+            'dest_from_lane': t.destination_from_lane,
+            'dest_to_lane': t.destination_to_lane
         }
 
     # load centroid connections
     for c in cen_connections:
-        from_id = c.getOwner().getId()
-        from_name = c.getOwner().getName()
-        to_id = c.getConnectionObject().getId()
-        to_name = c.getConnectionObject().getName()
+        from_id = c.owner.id
+        from_name = c.owner.name
+        to_id = c.connection_object.id
+        to_name = c.connection_object.name
 
         # invert from and to if connection is reversed
-        if c.getConnectionType() == 1:  # TODO verify this
+        if c.connection_type == 1:  # TODO verify this
             from_id, to_id = to_id, from_id
             from_name, to_name = to_name, from_name
 
-        scenario_data['connections'][c.getId()] = {
+        scenario_data['connections'][c.id] = {
             'from_id': from_id,
             'from_name': from_name,
             'to_id': to_id,

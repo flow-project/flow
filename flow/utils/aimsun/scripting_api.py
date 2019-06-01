@@ -129,7 +129,7 @@ class AimsunTemplate(object):
 
             # transform name from attr_name to getAttrName
             aimsun_name = \
-                ''.join(map(lambda x: x.capitalize(), name.split('_')))
+                ''.join(map(lambda x: x[0].upper() + x[1:], name.split('_')))
             
             try:
                 aimsun_function = object.__getattribute__(self, 'get' + aimsun_name)
@@ -146,7 +146,10 @@ class AimsunTemplate(object):
                 result = aimsun_function
             
             try:
-                self_tmp.__wrap_object(result)
+                if type(result) is list:
+                    map(self_tmp.__wrap_object, result)
+                else:
+                    self_tmp.__wrap_object(result)
             except TypeError:
                 pass
             
@@ -197,6 +200,10 @@ class AimsunTemplate(object):
     @property
     def replications(self):
         return self.__get_objects_by_type("GKReplication")
+    @property
+
+    def centroid_configurations(self):
+        return self.__get_objects_by_type("GKCentroidConfiguration")
 
     @property
     def problem_nets(self):
