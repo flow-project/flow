@@ -59,7 +59,7 @@ def get_dict_from_objects(sections, nodes, turnings, cen_connections):
                                          centroid_config_name)
     if not centroid_config:
         print('[load.py] ERROR: Centroid configuration ' +
-              centroid_config_name + '' does not exist.')
+              centroid_config_name + ' does not exist.')
     for c in centroid_config.origin_centroids:
         scenario_data['centroids'][c.id] = {'type': 'in'}
     for c in centroid_config.destination_centroids:
