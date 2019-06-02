@@ -141,6 +141,7 @@ class AimsunTemplate(object):
             return str[0].upper() + str[1:]
 
         outer_self = self
+        
         def custom_getattr(self, name):
             # transform name from attr_name to AttrName
             name = ''.join(map(capitalize, name.split('_')))
