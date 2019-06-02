@@ -9,14 +9,13 @@ SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
 sys.path.append(SITEPACKAGES)
 
 sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
-                            'programming/Aimsun Next API/AAPIPython/Micro'))
-
+                             'programming/Aimsun Next API/AAPIPython/Micro'))
 
 
 class AimsunTemplate(object):
     """Interface to do scripting with Aimsun.
 
-    This can be used to create Aimsun templates or to load and modify existing 
+    This can be used to create Aimsun templates or to load and modify existing
     ones. It provides a pythonic interface to manipulate the different objects
     accessible via scripting.
     """
@@ -26,7 +25,7 @@ class AimsunTemplate(object):
         This assumes that Aimsun is open, as it will try to access the
         current active Aimsun window.
 
-        After that, this call provides different methods to manipulate
+        After that, this class provides different methods to manipulate
         templates in this Aimsun window:
         (1) to load a template, see 'load_template'
         (2) to create a new template by duplicating an existing one, see
@@ -34,6 +33,15 @@ class AimsunTemplate(object):
         (3) to create a new blank template, see 'new_template'
         (4) if the template you want to use is already open in the Aimsun
             window, then you don't have to do annything
+
+        In cases (2) and (3), see 'save' to then save the template.
+
+        This class takes as parameter the two high-level objects provided
+        when interfacing with Aimsun: GKSystem and GKGUISystem. After having
+        imported this class, you should be able to create an AimsunTemplate
+        object as follows:
+
+            model = AimsunTemplate(GKSystem, GKGUISystem)
         """
         self.GKSystem = GKSystem
         self.GKGUISystem = GKGUISystem
@@ -41,131 +49,158 @@ class AimsunTemplate(object):
         self.gui = self.GKGUISystem.getGUISystem().getActiveGui()
         self.model = self.gui.getActiveModel()
 
-
-    def __getattr__(self, name):
-        return getattr(self.model, name)
-
-
     def load(self, path):
         """Load an existing template into Aimsun
-        
+
         Parameters
         ----------
         path : str
             the path of the template to load
-
-        Raises
-        ------
-        ValueError
-            if path is None
-        FileNotFoundError
-            if path is provided but does not exist
-        RuntimeError
-            if path exists but Aimsun couldn't open the template
-            for some reason        
         """
         self.gui.loadNetwork(path)
         self.model = self.gui.getActiveModel()
         self.__wrap_object(self.model)
 
-
     def new_duplicate(self, path):
         """Create a new template by duplicating an existing one
-        
+
         Parameters
         ----------
         path : str
             the path of the template to be duplicated
-
-        Raises
-        ------
-        ValueError
-            if path is None
-        FileNotFoundError
-            if path is provided but does not exist
-        RuntimeError
-            if path exists but Aimsun couldn't open the template
-            for some reason       
         """
         self.gui.newDoc(path)
         self.model = self.gui.getActiveModel()
         self.__wrap_object(self.model)
 
-
     def new_empty(self):
-        """Create a new empty template"""   
+        """Create a new empty template"""
         self.gui.newSimpleDoc()
         self.model = self.gui.getActiveModel()
         self.__wrap_object(self.model)
 
+    def save(self, path):
+        """Save the current template
 
-    # TODO add comments about saving the template
-    # TODO add checks that gui is active
+        Parameters
+        ----------
+        path : str
+            the path where the current active template should be saved
+        """
+        self.gui.saveAs(path)
+
+    def run_replication(self, replication, render=True):
+        """Run a replication in Aimsun
+
+        Parameters
+        ----------
+        replication : GKReplication
+            the replication to be run; you can access the list of all available
+            GKReplication objects by doing model.replications where
+            model is an instance of the AimsunTemplate class.
+        render : bool (default: True)
+            whether or not the simulation should be rendered
+        """
+        # "play": run with GUI; "execute": run in batch mode
+        mode = 'play' if render else 'execute'
+        self.GKSystem.getSystem().executeAction(mode, replication, [], "")
 
     ####################################################################
     #                Methods to retrieve Aimsun objects                #
     ####################################################################
 
-    # TODO add checks that self.model is not None
+    def __getattr__(self, name):
+        """If trying to access an attribute in this AimsunTemplate object
+        fails, try to access it into the Aimsun model object
+        """
+        return getattr(self.model, name)
 
     def __wrap_object(self, obj):
-        # TODO clean this function
-        """Wrap Aimsun objects to provide more pythonic attribute access.
+        """Wrap Aimsun objects with custom __getattr__ and __setattr__
+        functions in order to provide more pythonic attribute access
+        and attribute modification.
 
-        For instance, if s is a GKSection object wrapped by this function:
+        For instance:
         - s.getSpeed() becomes s.speed
-        - s.getName() becomes s.name
-        - s.getNbFullLanes() becomes s.nb_full_lanes
+        - t.getDestination().getName() becomes t.destination.name
+        - t.getPolygon().length2D() becomes t.polygon.length2D()
+        - exp.setDataValue(model.getColumn(...), ...) becomes
+          exp.set_data_value(model.get_column(...), ...)
+        - s.setName(new_name) becomes s.name = new_name
         etc.
+
+        This method directly modifies the object and does not return anything.
+
+        For back-compatibility, it is still possible to call the original
+        Aimsun methods.
         """
-        self_tmp = self
+        if obj = None:
+            return
+
+        # custom capitalize function that doesn't lowercase the suffix
+        def capitalize(str):
+            return str[0].upper() + str[1:]
+
         def custom_getattr(self, name):
+            # transform name from attr_name to AttrName
+            name = ''.join(map(capitalize, name.split('_')))
 
-            no_attr_err = AttributeError('\'{}\' has no attribute \'{}\''.format(
-                                         self.__class__.__name__, name))
-
-            # if name.startswith('get'): # FIXME necessary?
-            #     raise no_attr_err 
-
-            # transform name from attr_name to getAttrName
-            aimsun_name = \
-                ''.join(map(lambda x: x[0].upper() + x[1:], name.split('_')))
-            
+            # attempt to retrieve getAttrName, or attrName if the first fails
+            name1 = 'get' + name
+            name2 = name[0].lower() + name[1:]
             try:
-                aimsun_function = object.__getattribute__(self, 'get' + aimsun_name)
+                aimsun_fct = object.__getattribute__(self, name1)
             except AttributeError:
                 try:
-                    aimsun_function = object.__getattribute__(self, aimsun_name[0].lower() + aimsun_name[1:])
+                    aimsun_fct = object.__getattribute__(self, name2)
                 except AttributeError:
-                    raise no_attr_err
+                    # if both attempts fail, raise an AttributeError with
+                    # the original attribute name (instead of name1 or name2)
+                    raise AttributeError(
+                        '\'{}\' has no attribute \'{}\''.format(
+                            self.__class__.__name__, name))
 
-
+            # call the Aimsun function (which most likely is a getter)
             try:
-                result = aimsun_function()
+                result = aimsun_fct()
             except TypeError:
-                result = aimsun_function
-            
+                # if it is not a function, just return the attribute
+                result = aimsun_fct
+
+            # wrap whatever object the getter returns, so that we can access
+            # deeper attributes (e.g. turning.destination.name)
             try:
                 if type(result) is list:
                     map(self_tmp.__wrap_object, result)
                 else:
                     self_tmp.__wrap_object(result)
             except TypeError:
+                # we can't wrap a basic type like int; ignore the exception
                 pass
-            
+
             return result
-                
+
+        # assign this custom __getattr__ function to the object
+        # note that it will only be called if __getattribute__ fails,
+        # so we can still call the original Aimsun functions like s.getName()
         obj.__class__.__getattr__ = custom_getattr
 
         def custom_setattr(self, name, value):
             try:
-                new_name ='set' + ''.join(map(lambda x: x.capitalize(), name.split('_')))
-                fct = object.__getattribute__(self, new_name)
-                fct(value)
+                # transform name from attr_name to setAttrName
+                name = 'set' + ''.join(map(capitalize, name.split('_')))
+                # retrieve the Aimsun setter
+                aimsun_setter = object.__getattribute__(self, new_name)
+                # call the setter to set the new value to attribute 'name'
+                aimsun_setter(value)
             except AttributeError:
+                # if we couldn't retrieve an Aimsun setter, we set the
+                # attribute manually
+                # FIXME we might want this to raise an error instead
                 object.__setattr__(self, name, value)
             return value
 
+        # assign this custom __setattr__ function to the object
         obj.__class__.__setattr__ = custom_setattr
 
     def __wrap_objects(self, objects):
@@ -180,6 +215,20 @@ class AimsunTemplate(object):
         objects = self.model.getCatalog().getObjectsByType(type_obj).values()
         self.__wrap_objects(objects)
         return objects
+
+    def find_by_name(self, objects, name):
+        """Return the first object in the list 'objects' of Aimsun objects
+        whose name is 'name'
+        """
+        matches = (obj for obj in objects if obj.getName() == name)
+        return __wrap_object(next(matches, None))
+
+    def find_all_by_type(self, objects, type_name):
+        """Return all objects in the list 'objects' of Aimsun objects
+        whose type is 'type_name'
+        """
+        matches = [obj for obj in objects if obj.getTypeName() == type_name]
+        return __wrap_objects(matches)
 
     @property
     def sections(self):
@@ -200,23 +249,11 @@ class AimsunTemplate(object):
     @property
     def replications(self):
         return self.__get_objects_by_type("GKReplication")
-    @property
 
+    @property
     def centroid_configurations(self):
         return self.__get_objects_by_type("GKCentroidConfiguration")
 
     @property
     def problem_nets(self):
         return self.__get_objects_by_type("GKProblemNet")
-
-    def find_by_name(self, objects, name):
-        matches = (obj for obj in objects if obj.name == name)
-        return next(matches, None)
-
-    def find_all_by_type(self, objects, type_name):
-        matches = [obj for obj in objects if obj.type_name == type_name]
-        return matches
-
-    def run_replication(self, replication, render=True):
-        mode = 'play' if render else 'execute'
-        self.GKSystem.getSystem().executeAction(mode, replication, [], "")
