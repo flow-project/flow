@@ -128,7 +128,7 @@ class AimsunKernelVehicle(KernelVehicle):
             self.num_type[tracked_type] = 0
             self.total_num_type[tracked_type] = 0
             self.type_parameters[tracked_type] = {}
-            
+
         self.__vehicles.clear()
         for typ in vehicles.initial:
             for i in range(typ['num_vehicles']):
