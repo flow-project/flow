@@ -134,7 +134,7 @@ class AimsunTemplate(object):
         For back-compatibility, it is still possible to call the original
         Aimsun methods.
         """
-        if obj = None:
+        if obj == None:
             return
 
         # custom capitalize function that doesn't lowercase the suffix
