@@ -1,6 +1,5 @@
 import sys
 import os
-import types
 
 import flow.config as config
 
@@ -134,13 +133,14 @@ class AimsunTemplate(object):
         For back-compatibility, it is still possible to call the original
         Aimsun methods.
         """
-        if obj == None:
+        if obj is None:
             return
 
         # custom capitalize function that doesn't lowercase the suffix
         def capitalize(str):
             return str[0].upper() + str[1:]
 
+        outer_self = self
         def custom_getattr(self, name):
             # transform name from attr_name to AttrName
             name = ''.join(map(capitalize, name.split('_')))
@@ -171,9 +171,9 @@ class AimsunTemplate(object):
             # deeper attributes (e.g. turning.destination.name)
             try:
                 if type(result) is list:
-                    map(self_tmp.__wrap_object, result)
+                    map(outer_self.__wrap_object, result)
                 else:
-                    self_tmp.__wrap_object(result)
+                    outer_self.__wrap_object(result)
             except TypeError:
                 # we can't wrap a basic type like int; ignore the exception
                 pass
@@ -190,7 +190,7 @@ class AimsunTemplate(object):
                 # transform name from attr_name to setAttrName
                 name = 'set' + ''.join(map(capitalize, name.split('_')))
                 # retrieve the Aimsun setter
-                aimsun_setter = object.__getattribute__(self, new_name)
+                aimsun_setter = object.__getattribute__(self, name)
                 # call the setter to set the new value to attribute 'name'
                 aimsun_setter(value)
             except AttributeError:
@@ -221,14 +221,14 @@ class AimsunTemplate(object):
         whose name is 'name'
         """
         matches = (obj for obj in objects if obj.getName() == name)
-        return __wrap_object(next(matches, None))
+        return self.__wrap_object(next(matches, None))
 
     def find_all_by_type(self, objects, type_name):
         """Return all objects in the list 'objects' of Aimsun objects
         whose type is 'type_name'
         """
         matches = [obj for obj in objects if obj.getTypeName() == type_name]
-        return __wrap_objects(matches)
+        return self.__wrap_objects(matches)
 
     @property
     def sections(self):
