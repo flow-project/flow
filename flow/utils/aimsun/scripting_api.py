@@ -6,7 +6,6 @@ import flow.config as config
 SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
                             "lib/python2.7/site-packages")
 sys.path.append(SITEPACKAGES)
-
 sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
                              'programming/Aimsun Next API/AAPIPython/Micro'))
 
