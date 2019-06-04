@@ -68,9 +68,11 @@ class TestPlotters(unittest.TestCase):
 
     def test_capacity_diagram_generator(self):
         # import the csv file
+        parser = cdg.create_parser()
+        args = parser.parse_args(['test_files/inflows_outflows.csv'])
         dir_path = os.path.dirname(os.path.realpath(__file__))
         data = cdg.import_data_from_csv(
-            os.path.join(dir_path, 'test_files/inflows_outflows.csv'))
+            os.path.join(dir_path, args.file))
 
         # compute the mean and std of the outflows for all unique inflows
         unique_inflows, mean_outflows, std_outflows = cdg.get_capacity_data(
