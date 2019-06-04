@@ -6,6 +6,7 @@ import flow.config as config
 SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
                             "lib/python2.7/site-packages")
 sys.path.append(SITEPACKAGES)
+
 sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
                              'programming/Aimsun Next API/AAPIPython/Micro'))
 
@@ -188,15 +189,14 @@ class AimsunTemplate(object):
         def custom_setattr(self, name, value):
             try:
                 # transform name from attr_name to setAttrName
-                name = 'set' + ''.join(map(capitalize, name.split('_')))
+                aimsun_name = 'set' + ''.join(map(capitalize, name.split('_')))
                 # retrieve the Aimsun setter
-                aimsun_setter = object.__getattribute__(self, name)
+                aimsun_setter = object.__getattribute__(self, aimsun_name)
                 # call the setter to set the new value to attribute 'name'
                 aimsun_setter(value)
             except AttributeError:
                 # if we couldn't retrieve an Aimsun setter, we set the
                 # attribute manually
-                # FIXME we might want this to raise an error instead
                 object.__setattr__(self, name, value)
             return value
 
