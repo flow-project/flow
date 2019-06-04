@@ -221,39 +221,42 @@ class AimsunTemplate(object):
         whose name is 'name'
         """
         matches = (obj for obj in objects if obj.getName() == name)
-        return self.__wrap_object(next(matches, None))
+        ret = next(matches, None)
+        self.__wrap_object(ret)
+        return ret
 
     def find_all_by_type(self, objects, type_name):
         """Return all objects in the list 'objects' of Aimsun objects
         whose type is 'type_name'
         """
         matches = [obj for obj in objects if obj.getTypeName() == type_name]
-        return self.__wrap_objects(matches)
+        self.__wrap_objects(matches)
+        return matches
 
     @property
     def sections(self):
-        return self.__get_objects_by_type("GKSection")
+        return self.__get_objects_by_type('GKSection')
 
     @property
     def nodes(self):
-        return self.__get_objects_by_type("GKNode")
+        return self.__get_objects_by_type('GKNode')
 
     @property
     def turnings(self):
-        return self.__get_objects_by_type("GKTurning")
+        return self.__get_objects_by_type('GKTurning')
 
     @property
     def cen_connections(self):
-        return self.__get_objects_by_type("GKCenConnection")
+        return self.__get_objects_by_type('GKCenConnection')
 
     @property
     def replications(self):
-        return self.__get_objects_by_type("GKReplication")
+        return self.__get_objects_by_type('GKReplication')
 
     @property
     def centroid_configurations(self):
-        return self.__get_objects_by_type("GKCentroidConfiguration")
+        return self.__get_objects_by_type('GKCentroidConfiguration')
 
     @property
     def problem_nets(self):
-        return self.__get_objects_by_type("GKProblemNet")
+        return self.__get_objects_by_type('GKProblemNet')
