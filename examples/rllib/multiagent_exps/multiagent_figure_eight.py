@@ -81,6 +81,7 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
+        warmup_steps=750,
         additional_params={
             'target_velocity': 20,
             'max_accel': 3,
