@@ -193,6 +193,27 @@ class TestAimsunScriptingAPI(unittest.TestCase):
         exp.set_column('A', 67)
         self.assertEqual(exp.get_column('A'), 67)
 
+        with self.assertRaises(AttributeError):
+            exp.setHeight(12)
+
+        class Polygon(object):
+            def __init__(self, perim):
+                self.perim = perim
+
+            def getPerimeter(self):
+                return self.perim
+
+        class TestWrappedObject(object):
+            def getPolygons(self):
+                return [
+                    Polygon(12),
+                    Polygon(42)
+                ]
+
+        wrapper_object = TestWrappedObject()
+        model._AimsunTemplate__wrap_object(wrapper_object)
+        self.assertEqual(wrapper_object.polygons[1].perim, 42)
+
     def test_find(self):
         """Tests the find_by_name and find_all_by_type functions"""
         class TestGUISystem(TestGUISystemBase):
@@ -229,7 +250,11 @@ class TestAimsunScriptingAPI(unittest.TestCase):
                     TestObject('n1', '_GKNode'),
                     TestObject('n2', '_GKNode'),
                     TestObject('t1', '_GKTurning'),
-                    TestObject('t2', '_GKTurning')
+                    TestObject('t2', '_GKTurning'),
+                    TestObject('c1', '_GKCenConnection'),
+                    TestObject('r1', '_GKReplication'),
+                    TestObject('c1', '_GKCentroidConfiguration'),
+                    TestObject('p1', '_GKProblemNet')
                 ]
 
             def getType(self, name):
@@ -262,6 +287,26 @@ class TestAimsunScriptingAPI(unittest.TestCase):
         turning_types = [x.type_name for x in model.turnings]
         self.assertEqual(sorted(turning_names), ['t1', 't2'])
         self.assertEqual(set(turning_types), {'_GKTurning'})
+
+        cen_connection_names = [x.name for x in model.cen_connections]
+        cen_connection_types = [x.type_name for x in model.cen_connections]
+        self.assertEqual(sorted(cen_connection_names), ['c1'])
+        self.assertEqual(set(cen_connection_types), {'_GKCenConnection'})
+
+        replication_names = [x.name for x in model.replications]
+        replication_types = [x.type_name for x in model.replications]
+        self.assertEqual(sorted(replication_names), ['r1'])
+        self.assertEqual(set(replication_types), {'_GKReplication'})
+
+        cen_config_names = [x.name for x in model.centroid_configurations]
+        cen_config_types = [x.type_name for x in model.centroid_configurations]
+        self.assertEqual(sorted(cen_config_names), ['c1'])
+        self.assertEqual(set(cen_config_types), {'_GKCentroidConfiguration'})
+
+        problem_net_names = [x.name for x in model.problem_nets]
+        problem_net_types = [x.type_name for x in model.problem_nets]
+        self.assertEqual(sorted(problem_net_names), ['p1'])
+        self.assertEqual(set(problem_net_types), {'_GKProblemNet'})
 
 
 if __name__ == '__main__':
