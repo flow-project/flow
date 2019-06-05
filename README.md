@@ -17,12 +17,16 @@ See [our website](https://flow-project.github.io/) for more information on the a
 - [Installation instructions](http://flow.readthedocs.io/en/latest/flow_setup.html)
 - [Tutorials](https://github.com/flow-project/flow/tree/master/tutorials)
 
+# Technical questions
+
+Please direct your techincal questions to [Stack Overflow](https://stackoverflow.com) using the [flow-project](https://stackoverflow.com/questions/tagged/flow-project) tag.
+
 # Getting involved
 
 We welcome your contributions.
 
-- Please report bugs or ask questions by submitting a [GitHub issue](https://github.com/flow-project/flow/issues).
-- Submit contributions using [pull requests](https://github.com/flow-project/flow/pulls).
+- Please report bugs and improvements by submitting [GitHub issue](https://github.com/flow-project/flow/issues).
+- Submit your contributions using [pull requests](https://github.com/flow-project/flow/pulls). Please use [this template](https://github.com/flow-project/flow/blob/master/.github/PULL_REQUEST_TEMPLATE.md) for your pull requests.
 
 # Citing Flow
 
