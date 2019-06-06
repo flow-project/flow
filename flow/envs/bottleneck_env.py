@@ -111,7 +111,7 @@ class BottleneckEnv(Env):
         super().__init__(env_params, sim_params, scenario, simulator)
         env_add_params = self.env_params.additional_params
         # tells how scaled the number of lanes are
-        self.scaling = scenario.net_params.additional_params.get("scaling")
+        self.scaling = scenario.net_params.additional_params.get("scaling", 1)
         self.edge_dict = defaultdict(list)
         self.cars_waiting_for_toll = dict()
         self.cars_before_ramp = dict()
