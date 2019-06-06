@@ -11,6 +11,7 @@ from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
 from bisect import bisect_left
 import itertools
+from copy import deepcopy
 
 # colors for vehicles
 WHITE = (255, 255, 255)
@@ -68,15 +69,32 @@ class TraCIVehicle(KernelVehicle):
         self._arrived_ids = []
 
     def initialize(self, vehicles):
-        """
+        """Initialize vehicle state information.
 
-        :param vehicles:
-        :return:
+        This is responsible for collecting vehicle type information from the
+        VehicleParams object and placing them within the Vehicles kernel.
+
+        Parameters
+        ----------
+        vehicles : flow.core.params.VehicleParams
+            initial vehicle parameter information, including the types of
+            individual vehicles and their initial speeds
         """
         self.type_parameters = vehicles.type_parameters
         self.minGap = vehicles.minGap
         self.num_vehicles = 0
         self.num_rl_vehicles = 0
+
+        self.__vehicles.clear()
+        for typ in vehicles.initial:
+            for i in range(typ['num_vehicles']):
+                veh_id = '{}_{}'.format(typ['veh_id'], i)
+                self.__vehicles[veh_id] = dict()
+                self.__vehicles[veh_id]['type'] = typ['veh_id']
+                self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
+                self.num_vehicles += 1
+                if typ['acceleration_controller'][0] == RLController:
+                    self.num_rl_vehicles += 1
 
     def update(self, reset):
         """See parent class.
@@ -141,6 +159,20 @@ class TraCIVehicle(KernelVehicle):
             self._num_arrived.clear()
             self._departed_ids.clear()
             self._arrived_ids.clear()
+
+            # add vehicles from a network template, if applicable
+            if hasattr(self.master_kernel.scenario.network,
+                       "template_vehicles"):
+                for veh_id in self.master_kernel.scenario.network.\
+                        template_vehicles:
+                    vals = deepcopy(self.master_kernel.scenario.network.
+                                    template_vehicles[veh_id])
+                    # a step is executed during initialization, so add this sim
+                    # step to the departure time of vehicles
+                    vals['depart'] = str(
+                        float(vals['depart']) + 2 * self.sim_step)
+                    self.kernel_api.vehicle.addFull(
+                        veh_id, 'route{}'.format(veh_id), **vals)
         else:
             self.time_counter += 1
             # update the "last_lc" variable
@@ -212,9 +244,10 @@ class TraCIVehicle(KernelVehicle):
         if veh_type not in self.type_parameters:
             raise KeyError("Entering vehicle is not a valid type.")
 
-        self.num_vehicles += 1
         self.__ids.append(veh_id)
-        self.__vehicles[veh_id] = dict()
+        if veh_id not in self.__vehicles:
+            self.num_vehicles += 1
+            self.__vehicles[veh_id] = dict()
 
         # specify the type
         self.__vehicles[veh_id]["type"] = veh_type
@@ -366,6 +399,9 @@ class TraCIVehicle(KernelVehicle):
     def get_type(self, veh_id):
         """Return the type of the vehicle of veh_id."""
         return self.__vehicles[veh_id]["type"]
+
+    def get_initial_speed(self, veh_id):
+        return self.__vehicles[veh_id]["initial_speed"]
 
     def get_ids(self):
         """See parent class."""
@@ -942,9 +978,16 @@ class TraCIVehicle(KernelVehicle):
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
+        # If the vehicle has its own route, use that route. This is used in the
+        # case of network templates.
+        if veh_id in self.master_kernel.scenario.rts:
+            route_id = 'route{}'.format(veh_id)
+        else:
+            route_id = 'route{}'.format(edge)
+
         self.kernel_api.vehicle.addFull(
             veh_id,
-            'route{}'.format(edge),
+            route_id,
             typeID=str(type_id),
             departLane=str(lane),
             departPos=str(pos),

@@ -214,7 +214,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         ids = self.env.k.vehicle.get_ids()
         lane0 = np.array(
             [self.env.k.vehicle.get_lane(veh_id) for veh_id in ids])
-        max_lanes = self.env.scenario.net_params.additional_params['lanes']
+        max_lanes = self.env.net_params.additional_params['lanes']
 
         # perform lane-changing actions using the direction method
         direction0 = np.array([0, 1, 0, 1, -1])
@@ -324,20 +324,6 @@ class TestAbstractMethods(unittest.TestCase):
     def test_get_state(self):
         """Checks that get_state raises an error."""
         self.assertRaises(NotImplementedError, self.env.get_state)
-
-    def test_action_space(self):
-        try:
-            self.env.action_space
-            raise AssertionError
-        except NotImplementedError:
-            return
-
-    def test_observation_space(self):
-        try:
-            self.env.observation_space
-            raise AssertionError
-        except NotImplementedError:
-            return
 
     def test_compute_reward(self):
         """Checks that compute_reward returns 0."""
