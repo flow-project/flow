@@ -100,23 +100,6 @@ class TestUtils(unittest.TestCase):
         for veh_id in junction_veh:
             self.assertEqual(0, self.env.get_distance_to_intersection(veh_id))
 
-    def test_sort_by_intersection_dist(self):
-        self.env.reset()
-        # Get the veh_ids by entrance edges.
-        veh_ids = [
-            self.env.k.vehicle.get_ids_by_edge(e) for e in self.gen_edges(1, 1)
-        ]
-
-        # Each list in veh_ids is inherently sorted from
-        # farthest to closest. We zip the lists together
-        # to obtain the first 4 closeset, then second 4...
-        dists = list(zip(*[v for v in veh_ids]))
-        sort = self.env.sort_by_intersection_dist()
-
-        # Compare dists from farthest to closest.
-        for i, veh_id in enumerate(sort[::-1]):
-            self.assertTrue(veh_id in dists[i // 4])
-
     def tearDown(self):
         # terminate the traci instance
         self.env.terminate()
