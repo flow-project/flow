@@ -415,13 +415,8 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
         super().__init__(env_params, sim_params, scenario, simulator)
         self.add_rl_if_exit = env_params.get_additional_param("add_rl_if_exit")
-        self.num_rl = deepcopy(self.scenario.vehicles.num_rl_vehicles)
-        self.rl_id_list = deepcopy(
-            [veh_id for veh_id in self.scenario.vehicles.ids
-             if self.scenario.vehicles.type_parameters[
-                 self.scenario.vehicles.get_type(veh_id)][
-                 'acceleration_controller'][0] == RLController]
-        )
+        self.num_rl = deepcopy(self.initial_vehicles.num_rl_vehicles)
+        self.rl_id_list = deepcopy(self.initial_vehicles.get_rl_ids())
         self.max_speed = self.k.scenario.max_speed()
 
     @property
@@ -552,8 +547,8 @@ class BottleNeckAccelEnv(BottleneckEnv):
         max_decel = self.env_params.additional_params["max_decel"]
         max_accel = self.env_params.additional_params["max_accel"]
 
-        lb = [-abs(max_decel), -1] * self.scenario.vehicles.num_rl_vehicles
-        ub = [max_accel, 1] * self.scenario.vehicles.num_rl_vehicles
+        lb = [-abs(max_decel), -1] * self.num_rl
+        ub = [max_accel, 1] * self.num_rl
 
         return Box(np.array(lb), np.array(ub), dtype=np.float32)
 
@@ -915,7 +910,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                     # environment (we only want to change the inflow)
                     additional_net_params = {
                         "scaling": self.scaling,
-                        "speed_limit": self.scenario.net_params.
+                        "speed_limit": self.net_params.
                         additional_params['speed_limit']
                     }
                     net_params = NetParams(
@@ -953,7 +948,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                         name=self.scenario.orig_name,
                         vehicles=vehicles,
                         net_params=net_params,
-                        initial_config=self.scenario.initial_config,
+                        initial_config=self.initial_config,
                         traffic_lights=self.scenario.traffic_lights)
                     observation = super().reset()
 

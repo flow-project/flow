@@ -51,7 +51,7 @@ class TestCollisions(unittest.TestCase):
         net_params = NetParams(
             no_internal_links=False, additional_params=additional_net_params)
 
-        self.env, self.scenario = grid_mxn_exp_setup(
+        env, _ = grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
             sim_params=sim_params,
@@ -59,14 +59,14 @@ class TestCollisions(unittest.TestCase):
             net_params=net_params)
 
         # go through the env and set all the lights to green
-        for i in range(self.env.rows * self.env.cols):
-            self.env.k.traffic_light.set_state(
+        for i in range(env.rows * env.cols):
+            env.k.traffic_light.set_state(
                 node_id='center' + str(i), state="gggggggggggg")
 
         # instantiate an experiment class
-        self.exp = Experiment(self.env)
+        exp = Experiment(env)
 
-        self.exp.run(50, 50)
+        exp.run(50, 50)
 
     def test_collide_inflows(self):
         """Tests collisions in the presence of inflows."""
@@ -113,7 +113,7 @@ class TestCollisions(unittest.TestCase):
             inflows=inflows,
             additional_params=additional_net_params)
 
-        self.env, self.scenario = grid_mxn_exp_setup(
+        env, _ = grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
             sim_params=sim_params,
@@ -121,14 +121,14 @@ class TestCollisions(unittest.TestCase):
             net_params=net_params)
 
         # go through the env and set all the lights to green
-        for i in range(self.env.rows * self.env.cols):
-            self.env.k.traffic_light.set_state(
+        for i in range(env.rows * env.cols):
+            env.k.traffic_light.set_state(
                 node_id='center' + str(i), state="gggggggggggg")
 
         # instantiate an experiment class
-        self.exp = Experiment(self.env)
+        exp = Experiment(env)
 
-        self.exp.run(50, 50)
+        exp.run(50, 50)
 
 
 if __name__ == '__main__':

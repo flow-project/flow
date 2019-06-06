@@ -22,15 +22,15 @@ USE_INFLOWS = False
 EDGE_INFLOW = 300
 
 
-def gen_edges(row_num, col_num):
+def gen_edges(col_num, row_num):
     """Define the names of all edges in the network.
 
     Parameters
     ----------
-    row_num : int
-        number of rows of edges in the grid
     col_num : int
         number of columns of edges in the grid
+    row_num : int
+        number of rows of edges in the grid
 
     Returns
     -------

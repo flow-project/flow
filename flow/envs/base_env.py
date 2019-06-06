@@ -37,10 +37,10 @@ else:
 class Env(*classdef):
     """Base environment class.
 
-    Provides the interface for controlling a SUMO simulation. Using this
-    class, you can start sumo, provide a scenario to specify a
-    configuration and controllers, perform simulation steps, and reset the
-    simulation to an initial configuration.
+    Provides the interface for interacting with various aspects of a traffic
+    simulation. Using this class, you can start a simulation instance, provide
+    a scenario to specify a configuration and controllers, perform simulation
+    steps, and reset the simulation to an initial configuration.
 
     Env is Serializable to allow for pickling and replaying of the policy.
 
@@ -64,7 +64,37 @@ class Env(*classdef):
     scenario : flow.scenarios.Scenario
         see flow/scenarios/base_scenario.py
     simulator : str
-        the simulator used, one of {'traci', 'aimsun'}. Defaults to 'traci'
+        the simulator used, one of {'traci', 'aimsun'}
+    k : flow.core.kernel.Kernel
+        Flow kernel object, using for state acquisition and issuing commands to
+        the certain components of the simulator. For more information, see:
+        flow/core/kernel/kernel.py
+    time_counter : int
+        number of steps taken since the start of a rollout
+    step_counter : int
+        number of steps taken since the environment was initialized, or since
+        `restart_simulation` was called
+    initial_state : dict
+        initial state information for all vehicles. The network is always
+        initialized with the number of vehicles originally specified in
+        VehicleParams
+
+        * Key = Vehicle ID,
+        * Entry = (vehicle type, starting edge, starting lane index, starting
+          position on edge, starting speed)
+
+    initial_ids : list of str
+        name of the vehicles that will originally available in the network at
+        the start of a rollout (i.e. after `env.reset()` is called). This also
+        corresponds to `self.initial_state.keys()`.
+    available_routes : dict
+        the available_routes variable contains a dictionary of routes vehicles
+        can traverse; to be used when routes need to be chosen dynamically.
+        Equivalent to `scenario.rts`.
+    renderer : flow.renderer.pyglet_renderer.PygletRenderer or None
+        renderer class, used to collect image-based representations of the
+        traffic network. This attribute is set to None if `sim_params.render`
+        is set to True or False.
     """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
@@ -92,6 +122,8 @@ class Env(*classdef):
 
         self.env_params = env_params
         self.scenario = scenario
+        self.net_params = scenario.net_params
+        self.initial_config = scenario.initial_config
         self.sim_params = sim_params
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
@@ -104,8 +136,6 @@ class Env(*classdef):
         # step_counter: number of total steps taken
         self.step_counter = 0
         # initial_state:
-        #   Key = Vehicle ID,
-        #   Entry = (type_id, route_id, lane_index, lane_pos, speed, pos)
         self.initial_state = {}
         self.state = None
         self.obs_var_labels = []
@@ -232,20 +262,20 @@ class Env(*classdef):
         sumo to collect state information each step.
         """
         # determine whether to shuffle the vehicles
-        if self.scenario.initial_config.shuffle:
+        if self.initial_config.shuffle:
             random.shuffle(self.initial_ids)
 
         # generate starting position for vehicles in the network
         start_pos, start_lanes = self.k.scenario.generate_starting_positions(
-            initial_config=self.scenario.initial_config,
+            initial_config=self.initial_config,
             num_vehicles=len(self.initial_ids))
 
         # save the initial state. This is used in the _reset function
         for i, veh_id in enumerate(self.initial_ids):
-            type_id = self.scenario.vehicles.get_type(veh_id)
+            type_id = self.k.vehicle.get_type(veh_id)
             pos = start_pos[i][1]
             lane = start_lanes[i]
-            speed = self.scenario.vehicles.get_initial_speed(veh_id)
+            speed = self.k.vehicle.get_initial_speed(veh_id)
             edge = start_pos[i][0]
 
             self.initial_state[veh_id] = (type_id, edge, lane, pos, speed)
@@ -389,7 +419,7 @@ class Env(*classdef):
         self.time_counter = 0
 
         # warn about not using restart_instance when using inflows
-        if len(self.scenario.net_params.inflows.get()) > 0 and \
+        if len(self.net_params.inflows.get()) > 0 and \
                 not self.sim_params.restart_instance:
             print(
                 "**********************************************************\n"
@@ -415,7 +445,7 @@ class Env(*classdef):
             self.restart_simulation(self.sim_params)
 
         # perform shuffling (if requested)
-        elif self.scenario.initial_config.shuffle:
+        elif self.initial_config.shuffle:
             self.setup_initial_state()
 
         # clear all vehicles from the network and the vehicles class
@@ -475,10 +505,14 @@ class Env(*classdef):
         if self.sim_params.render:
             self.k.vehicle.update_vehicle_colors()
 
+        if self.simulator == 'traci':
+            initial_ids = self.k.kernel_api.vehicle.getIDList()
+        else:
+            initial_ids = self.initial_ids
+
         # check to make sure all vehicles have been spawned
-        if len(self.initial_ids) > self.k.vehicle.num_vehicles:
-            missing_vehicles = list(
-                set(self.initial_ids) - set(self.k.vehicle.get_ids()))
+        if len(self.initial_ids) > len(initial_ids):
+            missing_vehicles = list(set(self.initial_ids) - set(initial_ids))
             msg = '\nNot enough vehicles have spawned! Bad start?\n' \
                   'Missing vehicles / initial state:\n'
             for veh_id in missing_vehicles:

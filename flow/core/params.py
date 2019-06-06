@@ -333,9 +333,6 @@ class VehicleParams:
             # specify the type
             self.__vehicles[v_id]["type"] = veh_id
 
-            # specify the speed of vehicles at the start of a rollout
-            self.__vehicles[v_id]["initial_speed"] = initial_speed
-
             # update the number of vehicles
             self.num_vehicles += 1
             if acceleration_controller[0] == RLController:
@@ -348,9 +345,6 @@ class VehicleParams:
 
     def get_type(self, veh_id):
         return self.__vehicles[veh_id]["type"]
-
-    def get_initial_speed(self, veh_id):
-        return self.__vehicles[veh_id]["initial_speed"]
 
 
 class SimParams(object):
@@ -573,8 +567,7 @@ class SumoParams(SimParams):
                  restart_instance=False,
                  print_warnings=True,
                  teleport_time=-1,
-                 num_clients=1,
-                 sumo_binary=None):
+                 num_clients=1):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
@@ -680,7 +673,6 @@ class NetParams:
     def __init__(self,
                  no_internal_links=True,
                  inflows=None,
-                 in_flows=None,
                  osm_path=None,
                  template=None,
                  additional_params=None):
