@@ -200,7 +200,7 @@ class BottleneckEnv(Env):
                     if veh_id not in self.cars_waiting_for_toll:
                         if self.simulator == 'traci':
                             # Disable lane changes inside Toll Area
-                            lane_change_mode = 
+                            lane_change_mode = \
                                 self.k.kernel_api.vehicle.getLaneChangeMode(
                                     veh_id)
                             self.k.kernel_api.vehicle.setLaneChangeMode(
