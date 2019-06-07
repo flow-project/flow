@@ -79,7 +79,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
         # check the observation space
         self.assertTrue(test_space(
             env.observation_space,
-            expected_size=3 * env.scenario.vehicles.num_vehicles,
+            expected_size=3 * env.initial_vehicles.num_vehicles,
             expected_min=0,
             expected_max=1)
         )
@@ -87,7 +87,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
         # check the action space
         self.assertTrue(test_space(
             env.action_space,
-            expected_size=2 * env.scenario.vehicles.num_rl_vehicles,
+            expected_size=2 * env.initial_vehicles.num_rl_vehicles,
             expected_min=np.array([
                 -env.env_params.additional_params["max_decel"], -1]),
             expected_max=np.array([
@@ -245,13 +245,13 @@ class TestAccelEnv(unittest.TestCase):
         # check the observation space
         self.assertTrue(test_space(
             env.observation_space,
-            expected_size=2 * env.scenario.vehicles.num_vehicles,
+            expected_size=2 * env.initial_vehicles.num_vehicles,
             expected_min=0, expected_max=1))
 
         # check the action space
         self.assertTrue(test_space(
             env.action_space,
-            expected_size=env.scenario.vehicles.num_rl_vehicles,
+            expected_size=env.initial_vehicles.num_rl_vehicles,
             expected_min=-abs(env.env_params.additional_params["max_decel"]),
             expected_max=env.env_params.additional_params["max_accel"])
         )
@@ -387,7 +387,7 @@ class TestTwoLoopsMergeEnv(unittest.TestCase):
         # check the action space
         self.assertTrue(test_space(
             env.action_space,
-            expected_size=env.scenario.vehicles.num_rl_vehicles,
+            expected_size=env.initial_vehicles.num_rl_vehicles,
             expected_min=-abs(env.env_params.additional_params["max_decel"]),
             expected_max=env.env_params.additional_params["max_accel"])
         )
@@ -448,13 +448,13 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         # check the observation space
         self.assertTrue(test_space(
             env.observation_space,
-            expected_size=2 * env.scenario.vehicles.num_vehicles,
+            expected_size=2 * env.initial_vehicles.num_vehicles,
             expected_min=0, expected_max=1))
 
         # check the action space
         self.assertTrue(test_space(
             env.action_space,
-            expected_size=env.scenario.vehicles.num_rl_vehicles,
+            expected_size=env.initial_vehicles.num_rl_vehicles,
             expected_min=-abs(env.env_params.additional_params["max_decel"]),
             expected_max=env.env_params.additional_params["max_accel"])
         )
@@ -494,7 +494,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         env.reset()
         self.assertEqual(env.k.scenario.length(), 239)
         env.reset()
-        self.assertEqual(env.k.scenario.length(), 224)
+        self.assertEqual(env.k.scenario.length(), 256)
 
     def test_v_eq_max_function(self):
         """
@@ -849,16 +849,8 @@ class TestBottleneckEnv(unittest.TestCase):
             )
         )
 
-    def test_distance_to_bottleneck(self):
-        self.assertEqual(self.env.distance_to_bottleneck('human_0'), 545.0)
-        self.assertEqual(self.env.distance_to_bottleneck('human_9'), -1)
-
     def test_get_bottleneck_density(self):
         self.assertEqual(self.env.get_bottleneck_density(), 0)
-
-    def test_get_avg_bottleneck_velocity(self):
-        self.env.step(None)
-        self.assertAlmostEqual(self.env.get_avg_bottleneck_velocity(), 0.5, 1)
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""

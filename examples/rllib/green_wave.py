@@ -25,7 +25,21 @@ N_ROLLOUTS = 20
 N_CPUS = 2
 
 
-def gen_edges(row_num, col_num):
+def gen_edges(col_num, row_num):
+    """Generate the names of the outer edges in the grid network.
+
+    Parameters
+    ----------
+    col_num : int
+        number of columns in the grid
+    row_num : int
+        number of rows in the grid
+
+    Returns
+    -------
+    list of str
+        names of all the outer edges
+    """
     edges = []
     for i in range(col_num):
         edges += ['left' + str(row_num) + '_' + str(i)]
@@ -40,7 +54,26 @@ def gen_edges(row_num, col_num):
 
 
 def get_flow_params(col_num, row_num, additional_net_params):
-    initial_config = InitialConfig(
+    """Define the network and initial params in the presence of inflows.
+
+    Parameters
+    ----------
+    col_num : int
+        number of columns in the grid
+    row_num : int
+        number of rows in the grid
+    additional_net_params : dict
+        network-specific parameters that are unique to the grid
+
+    Returns
+    -------
+    flow.core.params.InitialConfig
+        parameters specifying the initial configuration of vehicles in the
+        network
+    flow.core.params.NetParams
+        network-specific parameters used to generate the scenario
+    """
+    initial = InitialConfig(
         spacing='custom', lanes_distribution=float('inf'), shuffle=True)
 
     inflow = InFlows()
@@ -53,12 +86,12 @@ def get_flow_params(col_num, row_num, additional_net_params):
             departLane='free',
             departSpeed=20)
 
-    net_params = NetParams(
+    net = NetParams(
         inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params)
 
-    return initial_config, net_params
+    return initial, net
 
 
 def get_non_flow_params(enter_speed, add_net_params):
@@ -84,12 +117,12 @@ def get_non_flow_params(enter_speed, add_net_params):
         network-specific parameters used to generate the scenario
     """
     additional_init_params = {'enter_speed': enter_speed}
-    initial_config = InitialConfig(
+    initial = InitialConfig(
         spacing='custom', additional_params=additional_init_params)
-    net_params = NetParams(
+    net = NetParams(
         no_internal_links=False, additional_params=add_net_params)
 
-    return initial_config, net_params
+    return initial, net
 
 
 V_ENTER = 30
@@ -144,9 +177,6 @@ vehicles.add(
     routing_controller=(GridRouter, {}),
     num_vehicles=tot_cars)
 
-initial_config, net_params = \
-    get_non_flow_params(V_ENTER, additional_net_params)
-
 flow_params = dict(
     # name of the experiment
     exp_tag='green_wave',
@@ -173,20 +203,54 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
-    net=net_params,
+    # scenario's documentation or ADDITIONAL_NET_PARAMS component). This is
+    # filled in by the setup_exps method below.
+    net=None,
 
     # vehicles to be placed in the network at the start of a rollout (see
     # flow.core.vehicles.Vehicles)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/
-    # reset (see flow.core.params.InitialConfig)
-    initial=initial_config,
+    # reset (see flow.core.params.InitialConfig). This is filled in by the
+    # setup_exps method below.
+    initial=None,
 )
 
 
-def setup_exps():
+def setup_exps(use_inflows=False):
+    """Return the relevant components of an RLlib experiment.
+
+    Parameters
+    ----------
+    use_inflows : bool, optional
+        set to True if you would like to run the experiment with inflows of
+        vehicles from the edges, and False otherwise
+
+    Returns
+    -------
+    str
+        name of the training algorithm
+    str
+        name of the gym environment to be trained
+    dict
+        training configuration parameters
+    """
+    # collect the initialization and network-specific parameters based on the
+    # choice to use inflows or not
+    if use_inflows:
+        initial_config, net_params = get_flow_params(
+            col_num=N_COLUMNS,
+            row_num=N_ROWS,
+            additional_net_params=additional_net_params)
+    else:
+        initial_config, net_params = get_non_flow_params(
+            enter_speed=V_ENTER,
+            add_net_params=additional_net_params)
+
+    # add the new parameters to flow_params
+    flow_params['initial'] = initial_config
+    flow_params['net'] = net_params
 
     alg_run = 'PPO'
 
