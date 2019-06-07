@@ -43,7 +43,7 @@ def desired_velocity(env, fail=False, edge_list=None):
     vel = np.array(env.k.vehicle.get_speed(veh_ids))
     num_vehicles = len(veh_ids)
 
-    if any(vel < -100) or fail:
+    if any(vel < -100) or fail or num_vehicles == 0:
         return 0.
 
     target_vel = env.env_params.additional_params['target_velocity']
@@ -53,7 +53,10 @@ def desired_velocity(env, fail=False, edge_list=None):
     cost = vel - target_vel
     cost = np.linalg.norm(cost)
 
-    return max(max_cost - cost, 0) / max_cost
+    # epsilon term (to deal with ZeroDivisionError exceptions)
+    eps = np.finfo(np.float32).eps
+
+    return max(max_cost - cost, 0) / (max_cost + eps)
 
 
 def average_velocity(env, fail=False):
@@ -76,19 +79,15 @@ def total_velocity(env, fail=False):
         return sum(vel)
 
 
-def reward_density(env):
-    return env.k.vehicle.get_num_arrived() / env.sim_step
-
-
 def rl_forward_progress(env, gain=0.1):
     """A reward function used to reward the RL vehicles travelling forward.
 
     Parameters
     ----------
-    env: flow.envs.Env
+    env : flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
-    gain: float
+    gain : float
         specifies how much to reward the RL vehicles
 
     Returns
@@ -114,7 +113,7 @@ def min_delay(env):
 
     Parameters
     ----------
-    env: flow.envs.Env
+    env : flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
 
@@ -132,11 +131,12 @@ def min_delay(env):
     time_step = env.sim_step
 
     max_cost = time_step * sum(vel.shape)
-    try:
-        cost = time_step * sum((v_top - vel) / v_top)
-        return max((max_cost - cost) / max_cost, 0)
-    except ZeroDivisionError:
-        return 0
+
+    # epsilon term (to deal with ZeroDivisionError exceptions)
+    eps = np.finfo(np.float32).eps
+
+    cost = time_step * sum((v_top - vel) / v_top)
+    return max((max_cost - cost) / (max_cost + eps), 0)
 
 
 def min_delay_unscaled(env):
@@ -144,7 +144,7 @@ def min_delay_unscaled(env):
 
     Parameters
     ----------
-    env: flow.envs.Env
+    env : flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
 
@@ -153,7 +153,6 @@ def min_delay_unscaled(env):
     float
         reward value
     """
-
     vel = np.array(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
 
     vel = vel[vel >= -1e-6]
@@ -162,8 +161,11 @@ def min_delay_unscaled(env):
         for edge in env.k.scenario.get_edge_list())
     time_step = env.sim_step
 
+    # epsilon term (to deal with ZeroDivisionError exceptions)
+    eps = np.finfo(np.float32).eps
+
     cost = time_step * sum((v_top - vel) / v_top)
-    return cost / len(env.k.vehicle.get_ids())
+    return cost / (env.k.vehicle.num_vehicles + eps)
 
 
 def penalize_standstill(env, gain=1):
@@ -175,7 +177,7 @@ def penalize_standstill(env, gain=1):
 
     Parameters
     ----------
-    env: flow.envs.Env
+    env : flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
     gain : float
@@ -210,16 +212,16 @@ def penalize_headway_variance(vehicles,
 
     Parameters
     ----------
-    vehicles: flow.core.kernel.vehicle.KernelVehicle
+    vehicles : flow.core.kernel.vehicle.KernelVehicle
         contains the state of all vehicles in the network (generally
         self.vehicles)
-    vids: list of str
+    vids : list of str
         list of ids for vehicles
-    normalization: float, optional
+    normalization : float, optional
         constant for scaling (down) the headways
-    penalty_gain: float, optional
+    penalty_gain : float, optional
         sets the penalty for each vehicle between 0 and this value
-    penalty_exponent: float, optional
+    penalty_exponent : float, optional
         used to allow exponential punishing of smaller headways
     """
     headways = penalty_gain * np.power(
@@ -240,14 +242,14 @@ def punish_small_rl_headways(env,
 
     Parameters
     ----------
-    env: flow.envs.Env
+    env : flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
-    headway_threshold: float
+    headway_threshold : float
         the maximum headway allowed for rl vehicles before being penalized
-    penalty_gain: float, optional
+    penalty_gain : float, optional
         sets the penalty for each rl vehicle between 0 and this value
-    penalty_exponent: float, optional
+    penalty_exponent : float, optional
         used to allow exponential punishing of smaller headways
     """
     headway_penalty = 0
@@ -268,7 +270,7 @@ def punish_rl_lane_changes(env, penalty=1):
 
     Parameters
     ----------
-    env: flow.envs.Env
+    env : flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
     penalty : float, optional

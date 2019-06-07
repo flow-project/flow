@@ -22,11 +22,11 @@ class InfVeh(object):
     zCurrentPos : float
         z coordinates of the middle point of the front bumper of the vehicle
     xCurrentPosBack : float
-        x coordinates of the midle point of the rear bumper of the vehicle
+        x coordinates of the middle point of the rear bumper of the vehicle
     yCurrentPosBack : float
-        y coordinates of the midle point of the rear bumper of the vehicle
+        y coordinates of the middle point of the rear bumper of the vehicle
     zCurrentPosBack : float
-        z coordinates of the midle point of the rear bumper of the vehicle
+        z coordinates of the middle point of the rear bumper of the vehicle
     CurrentSpeed : float
         Current speed (in km/h or mph, depending on the units defined in the
         network)
@@ -51,13 +51,13 @@ class InfVeh(object):
     idSectionFrom : int
         Origin section identifier when the vehicle is in a node
     idLaneFrom : int
-        Origin section´s lane where the vehicle enters the junction from. 1
+        Origin sections lane where the vehicle enters the junction from. 1
         being the rightmost lane and N the leftmost lane, being N the number of
         lanes in the origin section
     idSectionTo : int
         Destination section identifier when the vehicle is in a node
     idLaneTo : int
-        Destination section´s lane where the vehicle exits the junction to. 1
+        Destination sections lane where the vehicle exits the junction to. 1
         being the rightmost lane and N the leftmost lane, being N the number of
         lanes in the destination section
     """

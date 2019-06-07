@@ -4,6 +4,7 @@ import unittest
 from examples.sumo.bay_bridge import bay_bridge_example
 from examples.sumo.bay_bridge_toll import bay_bridge_toll_example
 from examples.sumo.bottlenecks import bottleneck_example
+from examples.sumo.density_exp import run_bottleneck
 from examples.sumo.figure_eight import figure_eight_example
 from examples.sumo.grid import grid_example
 from examples.sumo.highway import highway_example
@@ -18,8 +19,8 @@ from examples.rllib.green_wave import setup_exps as green_wave_setup
 from examples.rllib.stabilizing_highway import setup_exps as highway_setup
 from examples.rllib.stabilizing_the_ring import setup_exps as ring_setup
 from examples.rllib.velocity_bottleneck import setup_exps as bottleneck_setup
-# from examples.rllib.multiagent_exps.multiagent_figure_eight \
-#    import setup_exps as multi_figure_eight_setup
+from examples.rllib.multiagent_exps.multiagent_figure_eight \
+   import setup_exps as multi_figure_eight_setup
 from examples.rllib.multiagent_exps.multiagent_stabilizing_the_ring \
     import setup_exps as multi_ring_setup
 
@@ -55,10 +56,12 @@ class TestSumoExamples(unittest.TestCase):
 
     def test_grid(self):
         """Verifies that examples/sumo/grid.py is working."""
-        # import the experiment variable from the example
-        exp = grid_example(render=False)
+        # test the example in the absence of inflows
+        exp = grid_example(render=False, use_inflows=False)
+        exp.run(1, 5)
 
-        # run the experiment for a few time steps to ensure it doesn't fail
+        # test the example in the presence of inflows
+        exp = grid_example(render=False, use_inflows=True)
         exp.run(1, 5)
 
     def test_highway(self):
@@ -129,6 +132,10 @@ class TestSumoExamples(unittest.TestCase):
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
 
+    def test_density_exp(self):
+        """Verifies that examples/sumo/density_exp.py is working."""
+        _ = run_bottleneck.remote(100, 1, 10, render=False)
+
 
 class TestRllibExamples(unittest.TestCase):
     """Tests the example scripts in examples/sumo.
@@ -150,7 +157,12 @@ class TestRllibExamples(unittest.TestCase):
         self.run_exp(alg_run, env_name, config)
 
     def test_green_wave(self):
-        alg_run, env_name, config = green_wave_setup()
+        # test the example in the absence of inflows
+        alg_run, env_name, config = green_wave_setup(use_inflows=False)
+        self.run_exp(alg_run, env_name, config)
+
+        # test the example in the presence of inflows
+        alg_run, env_name, config = green_wave_setup(use_inflows=True)
         self.run_exp(alg_run, env_name, config)
 
     def test_stabilizing_highway(self):
@@ -165,16 +177,16 @@ class TestRllibExamples(unittest.TestCase):
         alg_run, env_name, config = bottleneck_setup()
         self.run_exp(alg_run, env_name, config)
 
-    # TODO(ev) re-enable this test
-    # def test_multi_figure_eight(self):
-    #     alg_run, env_name, config = multi_figure_eight_setup()
-    #     self.run_exp(alg_run, env_name, config)
+    def test_multi_figure_eight(self):
+        alg_run, env_name, config = multi_figure_eight_setup()
+        self.run_exp(alg_run, env_name, config)
 
     def test_multi_ring(self):
         alg_run, env_name, config = multi_ring_setup()
         self.run_exp(alg_run, env_name, config)
 
-    def run_exp(self, alg_run, env_name, config):
+    @staticmethod
+    def run_exp(alg_run, env_name, config):
         try:
             ray.init(num_cpus=1)
         except Exception:

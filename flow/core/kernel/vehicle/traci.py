@@ -11,6 +11,7 @@ from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
 from bisect import bisect_left
 import itertools
+from copy import deepcopy
 
 # colors for vehicles
 WHITE = (255, 255, 255)
@@ -68,15 +69,32 @@ class TraCIVehicle(KernelVehicle):
         self._arrived_ids = []
 
     def initialize(self, vehicles):
-        """
+        """Initialize vehicle state information.
 
-        :param vehicles:
-        :return:
+        This is responsible for collecting vehicle type information from the
+        VehicleParams object and placing them within the Vehicles kernel.
+
+        Parameters
+        ----------
+        vehicles : flow.core.params.VehicleParams
+            initial vehicle parameter information, including the types of
+            individual vehicles and their initial speeds
         """
         self.type_parameters = vehicles.type_parameters
         self.minGap = vehicles.minGap
         self.num_vehicles = 0
         self.num_rl_vehicles = 0
+
+        self.__vehicles.clear()
+        for typ in vehicles.initial:
+            for i in range(typ['num_vehicles']):
+                veh_id = '{}_{}'.format(typ['veh_id'], i)
+                self.__vehicles[veh_id] = dict()
+                self.__vehicles[veh_id]['type'] = typ['veh_id']
+                self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
+                self.num_vehicles += 1
+                if typ['acceleration_controller'][0] == RLController:
+                    self.num_rl_vehicles += 1
 
     def update(self, reset):
         """See parent class.
@@ -132,6 +150,20 @@ class TraCIVehicle(KernelVehicle):
             self._num_arrived.clear()
             self._departed_ids.clear()
             self._arrived_ids.clear()
+
+            # add vehicles from a network template, if applicable
+            if hasattr(self.master_kernel.scenario.network,
+                       "template_vehicles"):
+                for veh_id in self.master_kernel.scenario.network.\
+                        template_vehicles:
+                    vals = deepcopy(self.master_kernel.scenario.network.
+                                    template_vehicles[veh_id])
+                    # a step is executed during initialization, so add this sim
+                    # step to the departure time of vehicles
+                    vals['depart'] = str(
+                        float(vals['depart']) + 2 * self.sim_step)
+                    self.kernel_api.vehicle.addFull(
+                        veh_id, 'route{}'.format(veh_id), **vals)
         else:
             self.time_counter += 1
             # update the "last_lc" variable
@@ -199,9 +231,10 @@ class TraCIVehicle(KernelVehicle):
         if veh_type not in self.type_parameters:
             raise KeyError("Entering vehicle is not a valid type.")
 
-        self.num_vehicles += 1
         self.__ids.append(veh_id)
-        self.__vehicles[veh_id] = dict()
+        if veh_id not in self.__vehicles:
+            self.num_vehicles += 1
+            self.__vehicles[veh_id] = dict()
 
         # specify the type
         self.__vehicles[veh_id]["type"] = veh_type
@@ -299,7 +332,6 @@ class TraCIVehicle(KernelVehicle):
             del self.__vehicles[veh_id]
             del self.__sumo_obs[veh_id]
             self.__ids.remove(veh_id)
-            self.num_vehicles -= 1
 
             # remove it from all other ids (if it is there)
             if veh_id in self.__human_ids:
@@ -310,16 +342,23 @@ class TraCIVehicle(KernelVehicle):
                     self.__controlled_lc_ids.remove(veh_id)
             else:
                 self.__rl_ids.remove(veh_id)
-                self.num_rl_vehicles -= 1
 
             # make sure that the rl ids remain sorted
             self.__rl_ids.sort()
         except KeyError:
             pass
 
+        # modify the number of vehicles and RL vehicles
+        self.num_vehicles = len(self.get_ids())
+        self.num_rl_vehicles = len(self.get_rl_ids())
+
     def test_set_speed(self, veh_id, speed):
         """Set the speed of the specified vehicle."""
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = speed
+
+    def test_set_edge(self, veh_id, edge):
+        """Set the speed of the specified vehicle."""
+        self.__sumo_obs[veh_id][tc.VAR_ROAD_ID] = edge
 
     def set_follower(self, veh_id, follower):
         """Set the follower of the specified vehicle."""
@@ -344,6 +383,9 @@ class TraCIVehicle(KernelVehicle):
     def get_type(self, veh_id):
         """Return the type of the vehicle of veh_id."""
         return self.__vehicles[veh_id]["type"]
+
+    def get_initial_speed(self, veh_id):
+        return self.__vehicles[veh_id]["initial_speed"]
 
     def get_ids(self):
         """See parent class."""
@@ -810,6 +852,11 @@ class TraCIVehicle(KernelVehicle):
 
     def apply_acceleration(self, veh_ids, acc):
         """See parent class."""
+        # to hand the case of a single vehicle
+        if type(veh_ids) == str:
+            veh_ids = [veh_ids]
+            acc = [acc]
+
         for i, vid in enumerate(veh_ids):
             if acc[i] is not None and vid in self.get_ids():
                 this_vel = self.get_speed(vid)
@@ -818,6 +865,11 @@ class TraCIVehicle(KernelVehicle):
 
     def apply_lane_change(self, veh_ids, direction):
         """See parent class."""
+        # to hand the case of a single vehicle
+        if type(veh_ids) == str:
+            veh_ids = [veh_ids]
+            direction = [direction]
+
         # if any of the directions are not -1, 0, or 1, raise a ValueError
         if any(d not in [-1, 0, 1] for d in direction):
             raise ValueError(
@@ -847,6 +899,11 @@ class TraCIVehicle(KernelVehicle):
 
     def choose_routes(self, veh_ids, route_choices):
         """See parent class."""
+        # to hand the case of a single vehicle
+        if type(veh_ids) == str:
+            veh_ids = [veh_ids]
+            route_choices = [route_choices]
+
         for i, veh_id in enumerate(veh_ids):
             if route_choices[i] is not None:
                 self.kernel_api.vehicle.setRoute(
@@ -905,9 +962,16 @@ class TraCIVehicle(KernelVehicle):
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
+        # If the vehicle has its own route, use that route. This is used in the
+        # case of network templates.
+        if veh_id in self.master_kernel.scenario.rts:
+            route_id = 'route{}'.format(veh_id)
+        else:
+            route_id = 'route{}'.format(edge)
+
         self.kernel_api.vehicle.addFull(
             veh_id,
-            'route{}'.format(edge),
+            route_id,
             typeID=str(type_id),
             departLane=str(lane),
             departPos=str(pos),

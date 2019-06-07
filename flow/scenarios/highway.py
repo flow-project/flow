@@ -20,13 +20,36 @@ ADDITIONAL_NET_PARAMS = {
 class HighwayScenario(Scenario):
     """Highway scenario class.
 
+    This network consists of `num_edges` different straight highway sections
+    with a total characteristic length and number of lanes.
+
     Requires from net_params:
 
     * **length** : length of the highway
     * **lanes** : number of lanes in the highway
     * **speed_limit** : max speed limit of the highway
+    * **num_edges** : number of edges to divide the highway into
 
-    See flow/scenarios/base_scenario.py for description of params.
+    Usage
+    -----
+    >>> from flow.core.params import NetParams
+    >>> from flow.core.params import VehicleParams
+    >>> from flow.core.params import InitialConfig
+    >>> from flow.scenarios import HighwayScenario
+    >>>
+    >>> scenario = HighwayScenario(
+    >>>     name='highway',
+    >>>     vehicles=VehicleParams(),
+    >>>     net_params=NetParams(
+    >>>         additional_params={
+    >>>             'length': 230,
+    >>>             'lanes': 1,
+    >>>             'speed_limit': 30,
+    >>>             'num_edges': 1
+    >>>         },
+    >>>         no_internal_links=True  # we do not want junctions
+    >>>     )
+    >>> )
     """
 
     def __init__(self,
@@ -111,7 +134,7 @@ class HighwayScenario(Scenario):
         return edgestarts
 
     @staticmethod
-    def gen_custom_start_pos(cls, initial_config, num_vehicles):
+    def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
         """Generate a user defined set of starting positions.
 
         This method is just used for testing.
