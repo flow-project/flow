@@ -35,7 +35,14 @@ class AimsunTemplate(object):
 
         In cases (2) and (3), see 'save' to then save the template.
 
-        This class takes as parameter the two high-level objects provided
+        Parameters
+        ----------
+        GKSystem : GKSystem (Aimsun singleton class)
+            Aimsun's GKSystem object
+        GKGUISystem : GKGUISystem (Aimsun singleton class)
+            Aimsun's GKGUISystem object
+
+        Note: This class takes as parameter the two high-level objects provided
         when interfacing with Aimsun: GKSystem and GKGUISystem. After having
         imported this class, you should be able to create an AimsunTemplate
         object as follows:
@@ -111,6 +118,11 @@ class AimsunTemplate(object):
     def __getattr__(self, name):
         """If trying to access an attribute in this AimsunTemplate object
         fails, try to access it into the Aimsun model object
+
+        Parameters
+        ----------
+        name : str
+            name of the attribute to be retrieved
         """
         return getattr(self.model, name)
 
@@ -119,7 +131,12 @@ class AimsunTemplate(object):
         functions in order to provide more pythonic attribute access
         and attribute modification.
 
-        For instance:
+        Parameters
+        ----------
+        obj : GKObject (Aimsun class)
+            the object to wrap
+
+        Examples of what this method does:
         - s.getSpeed() becomes s.speed
         - t.getDestination().getName() becomes t.destination.name
         - t.getPolygon().length2D() becomes t.polygon.length2D()
@@ -128,10 +145,10 @@ class AimsunTemplate(object):
         - s.setName(new_name) becomes s.name = new_name
         etc.
 
-        This method directly modifies the object and does not return anything.
-
-        For back-compatibility, it is still possible to call the original
-        Aimsun methods.
+        Notes:
+        - This method directly modifies the object and does not return anything
+        - For back-compatibility, it is still possible to call the original
+        Aimsun methods
         """
         if obj is None:
             return
@@ -204,12 +221,27 @@ class AimsunTemplate(object):
         obj.__class__.__setattr__ = custom_setattr
 
     def __wrap_objects(self, objects):
-        """See __wrap_object"""
+        """See __wrap_object
+
+        Parameters
+        ----------
+        objects : GKObject (Aimsun class) list
+            list of objects to wrap (IMPORTANT: all the objects in the list
+            must be of the same type)
+        """
         map(self.__wrap_object, objects)
 
     def __get_objects_by_type(self, type_name):
-        """Return all Aimsun objects whose type is type_name
-        The returned objects are wrapped by __wrap_objects
+        """Simplified getter for Aimsun objects
+
+        Parameters
+        ----------
+        type_name : str
+
+        Returns
+        -------
+        GKObject (Aimsun class) list
+            list of all Aimsun objects whose type is type_name
         """
         type_obj = self.model.getType(type_name)
         objects = self.model.getCatalog().getObjectsByType(type_obj).values()
@@ -217,8 +249,18 @@ class AimsunTemplate(object):
         return objects
 
     def find_by_name(self, objects, name):
-        """Return the first object in the list 'objects' of Aimsun objects
-        whose name is 'name'
+        """Find an Aimsun object by its name
+
+        Parameters
+        ----------
+        objects : GKObject (Aimsun type) list
+            list of objects to search into
+        name : str
+            name of the object to look for
+
+        Returns
+        -------
+        the first object in the list 'objects' whose name is 'name'
         """
         matches = (obj for obj in objects if obj.getName() == name)
         ret = next(matches, None)
@@ -226,8 +268,18 @@ class AimsunTemplate(object):
         return ret
 
     def find_all_by_type(self, objects, type_name):
-        """Return all objects in the list 'objects' of Aimsun objects
-        whose type is 'type_name'
+        """Find Aimsun objects by their type
+
+        Parameters
+        ----------
+        objects : GKObject (Aimsun type) list
+            list of objects to search into
+        type_name : str
+            name of the type to look for
+
+        Returns
+        -------
+        all objects in the list 'objects' whose type's name is 'type_name'
         """
         matches = [obj for obj in objects if obj.getTypeName() == type_name]
         self.__wrap_objects(matches)
