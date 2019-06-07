@@ -60,7 +60,11 @@ def two_loops_one_merging_exp_setup(vehicles=None):
     initial_config = InitialConfig(
         spacing="custom",
         lanes_distribution=1,
-        additional_params={"merge_bunching": 0})
+        additional_params={
+            "merge_bunching": 0,
+            'num_merge_vehicles': 5,
+        }
+    )
 
     scenario = TwoLoopsOneMergingScenario(
         "loop-merges",
@@ -87,10 +91,7 @@ class TestLoopMerges(unittest.TestCase):
 
     def tearDown(self):
         # terminate the traci instance
-        try:
-            self.env.terminate()
-        except FileNotFoundError:
-            pass
+        self.env.terminate()
 
         # free up used memory
         self.env = None

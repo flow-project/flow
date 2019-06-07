@@ -333,9 +333,6 @@ class VehicleParams:
             # specify the type
             self.__vehicles[v_id]["type"] = veh_id
 
-            # specify the speed of vehicles at the start of a rollout
-            self.__vehicles[v_id]["initial_speed"] = initial_speed
-
             # update the number of vehicles
             self.num_vehicles += 1
             if acceleration_controller[0] == RLController:
@@ -348,9 +345,6 @@ class VehicleParams:
 
     def get_type(self, veh_id):
         return self.__vehicles[veh_id]["type"]
-
-    def get_initial_speed(self, veh_id):
-        return self.__vehicles[veh_id]["initial_speed"]
 
 
 class SimParams(object):
@@ -445,6 +439,26 @@ class AimsunParams(SimParams):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
+    scenario_name : str, optional
+        name of the scenario generated in Aimsun.
+    experiment_name : str, optional
+        name of the experiment generated in Aimsun
+    replication_name : str, optional
+        name of the replication generated in Aimsun. When loading
+        an Aimsun template, this parameter must be set to the name
+        of the replication to be run by the simulation; in this case,
+        the scenario_name and experiment_name parameters are not
+        necessary as they will be obtained from the replication name.
+    centroid_config_name : str, optional
+        name of the centroid configuration to load in Aimsun. This
+        parameter is only used when loading an Aimsun template,
+        not when generating one.
+    subnetwork_name : str, optional
+        name of the subnetwork to load in Aimsun. This parameter is not
+        used when generating a network; it can be used when loading an
+        Aimsun template containing a subnetwork in order to only load
+        the objects contained in this subnetwork. If set to None or if the
+        specified subnetwork does not exist, the whole network will be loaded.
     """
     def __init__(self,
                  sim_step=0.1,
@@ -454,11 +468,24 @@ class AimsunParams(SimParams):
                  save_render=False,
                  sight_radius=25,
                  show_radius=False,
-                 pxpm=2):
+                 pxpm=2,
+                 # set to match Flow_Aimsun.ang's scenario name
+                 scenario_name="Dynamic Scenario 866",
+                 # set to match Flow_Aimsun.ang's experiment name
+                 experiment_name="Micro SRC Experiment 867",
+                 # set to match Flow_Aimsun.ang's replication name
+                 replication_name="Replication 870",
+                 centroid_config_name=None,
+                 subnetwork_name=None):
         """Instantiate AimsunParams."""
         super(AimsunParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
             sight_radius, show_radius, pxpm)
+        self.scenario_name = scenario_name
+        self.experiment_name = experiment_name
+        self.replication_name = replication_name
+        self.centroid_config_name = centroid_config_name
+        self.subnetwork_name = subnetwork_name
 
 
 class SumoParams(SimParams):
@@ -540,8 +567,7 @@ class SumoParams(SimParams):
                  restart_instance=False,
                  print_warnings=True,
                  teleport_time=-1,
-                 num_clients=1,
-                 sumo_binary=None):
+                 num_clients=1):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
@@ -583,14 +609,19 @@ class EnvParams:
         flag indicating that the evaluation reward should be used
         so the evaluation reward should be used rather than the
         normal reward
+    clip_actions : bool, optional
+        specifies whether to clip actions from the policy by their range when
+        they are inputted to the reward function. Note that the actions are
+        still clipped before they are provided to `apply_rl_actions`.
     """
 
     def __init__(self,
                  additional_params=None,
-                 horizon=500,
+                 horizon=float('inf'),
                  warmup_steps=0,
                  sims_per_step=1,
-                 evaluate=False):
+                 evaluate=False,
+                 clip_actions=True):
         """Instantiate EnvParams."""
         self.additional_params = \
             additional_params if additional_params is not None else {}
@@ -598,6 +629,7 @@ class EnvParams:
         self.warmup_steps = warmup_steps
         self.sims_per_step = sims_per_step
         self.evaluate = evaluate
+        self.clip_actions = clip_actions
 
     def get_additional_param(self, key):
         """Return a variable from additional_params."""
@@ -628,7 +660,7 @@ class NetParams:
         path to the .osm file that should be used to generate the network
         configuration files. This parameter is only needed / used if the
         OpenStreetMapScenario class is used.
-    netfile : str, optional
+    template : str, optional
         path to the .net.xml file that should be passed to SUMO. This is
         only needed / used if the NetFileScenario class is used, such as
         in the case of Bay Bridge experiments (which use a custom net.xml
@@ -641,9 +673,8 @@ class NetParams:
     def __init__(self,
                  no_internal_links=True,
                  inflows=None,
-                 in_flows=None,
                  osm_path=None,
-                 netfile=None,
+                 template=None,
                  additional_params=None):
         """Instantiate NetParams."""
         self.no_internal_links = no_internal_links
@@ -652,7 +683,7 @@ class NetParams:
         else:
             self.inflows = inflows
         self.osm_path = osm_path
-        self.netfile = netfile
+        self.template = template
         self.additional_params = additional_params or {}
 
 
@@ -665,17 +696,17 @@ class InitialConfig:
 
     Parameters
     ----------
-    shuffle : bool, optional
+    shuffle : bool, optional  # TODO: remove
         specifies whether the ordering of vehicles in the Vehicles class
         should be shuffled upon initialization.
     spacing : str, optional
         specifies the positioning of vehicles in the network relative to
         one another. May be one of: "uniform", "random", or "custom".
         Default is "uniform".
-    min_gap : float, optional
+    min_gap : float, optional  # TODO: remove
         minimum gap between two vehicles upon initialization, in meters.
         Default is 0 m.
-    x0 : float, optional
+    x0 : float, optional  # TODO: remove
         position of the first vehicle to be placed in the network
     perturbation : float, optional
         standard deviation used to perturb vehicles from their uniform
@@ -687,9 +718,15 @@ class InitialConfig:
         number of lanes vehicles should be dispersed into. If the value is
         greater than the total number of lanes on an edge, vehicles are
         spread across all lanes.
-    edges_distribution : list of str, optional
-        list of edges vehicles may be placed on initialization, default is
-        all lanes (stated as "all")
+    edges_distribution : str or list of str or dict, optional
+        edges vehicles may be placed on during initialization, may be one
+        of:
+
+        * "all": vehicles are distributed over all edges
+        * list of edges: list of edges vehicles can be distributed over
+        * dict of edges: where the key is the name of the edge to be
+          utilized, and the elements are the number of cars to place on
+          each edge
     additional_params : dict, optional
         some other network-specific params
     """

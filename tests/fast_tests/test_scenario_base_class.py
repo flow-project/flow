@@ -2,8 +2,15 @@ import unittest
 import os
 import numpy as np
 
-from flow.core.params import InitialConfig, NetParams
+from flow.config import PROJECT_PATH
+from flow.core.params import InitialConfig
+from flow.core.params import NetParams
 from flow.core.params import VehicleParams
+from flow.core.params import EnvParams
+from flow.core.params import SumoParams
+from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
+from flow.envs import TestEnv
+from flow.scenarios import Scenario
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
@@ -13,6 +20,16 @@ from tests.setup_scripts import ring_road_exp_setup, figure_eight_exp_setup, \
 from tests.setup_scripts import variable_lanes_exp_setup
 
 os.environ["TEST_FLAG"] = "True"
+
+
+class NoRouteNetwork(LoopScenario):
+    """A network with no routes.
+
+    Used to check for default route assignment.
+    """
+
+    def specify_routes(self, net_params):
+        return None
 
 
 class TestGetX(unittest.TestCase):
@@ -98,7 +115,7 @@ class TestEvenStartPos(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        # place 5 vehicles in the network (we need at least more than 1)
+        # place 15 vehicles in the network (we need at least more than 1)
         vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
@@ -107,7 +124,7 @@ class TestEvenStartPos(unittest.TestCase):
             num_vehicles=15)
 
         # create the environment and scenario classes for a ring road
-        self.env, self.scenario = ring_road_exp_setup(
+        self.env, _ = ring_road_exp_setup(
             net_params=net_params,
             initial_config=initial_config,
             vehicles=vehicles)
@@ -261,7 +278,7 @@ class TestEvenStartPos(unittest.TestCase):
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
-        lanes = self.env.scenario.net_params.additional_params['lanes']
+        lanes = self.env.net_params.additional_params['lanes']
 
         # get the positions of all vehicles
         ids = self.env.k.vehicle.get_ids()
@@ -322,7 +339,7 @@ class TestEvenStartPos(unittest.TestCase):
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
-        lanes = self.env.scenario.net_params.additional_params['lanes']
+        lanes = self.env.net_params.additional_params['lanes']
 
         # get the positions of all vehicles
         ids = self.env.k.vehicle.get_ids()
@@ -364,6 +381,27 @@ class TestEvenStartPos(unittest.TestCase):
         # edges_distribution term
         for veh_id in self.env.k.vehicle.get_ids():
             self.assertTrue(self.env.k.vehicle.get_edge(veh_id) in edges)
+
+    def test_edges_distribution_dict(self):
+        """
+        Tests that vehicles of the correct quantity are placed on each edge
+        when edges_distribution is a dict.
+        """
+        # test that when the number of vehicles don't match an AssertionError
+        # is raised
+        edges = {"top": 2, "bottom": 1}
+        initial_config = InitialConfig(edges_distribution=edges)
+        self.assertRaises(AssertionError, self.setUp_gen_start_pos,
+                          initial_config=initial_config)
+
+        # verify that the correct number of vehicles are placed in each edge
+        edges = {"top": 5, "bottom": 6, "left": 4}
+        initial_config = InitialConfig(edges_distribution=edges)
+        self.setUp_gen_start_pos(initial_config)
+
+        for edge in edges:
+            self.assertEqual(len(self.env.k.vehicle.get_ids_by_edge(edge)),
+                             edges[edge])
 
     def test_num_vehicles(self):
         """
@@ -484,7 +522,7 @@ class TestRandomStartPos(unittest.TestCase):
             initial_config=initial_config,
             vehicles=vehicles)
 
-    def tearDown_gen_start_pos(self):
+    def tearDown(self):
         # terminate the traci instance
         self.env.terminate()
 
@@ -521,6 +559,27 @@ class TestRandomStartPos(unittest.TestCase):
         # edges_distribution term
         for veh_id in self.env.k.vehicle.get_ids():
             self.assertTrue(self.env.k.vehicle.get_edge(veh_id) in edges)
+
+    def test_edges_distribution_dict(self):
+        """
+        Tests that vehicles of the correct quantity are placed on each edge
+        when edges_distribution is a dict.
+        """
+        # test that when the number of vehicles don't match an AssertionError
+        # is raised
+        edges = {"top": 2, "bottom": 1}
+        initial_config = InitialConfig(edges_distribution=edges)
+        self.assertRaises(AssertionError, self.setUp_gen_start_pos,
+                          initial_config=initial_config)
+
+        # verify that the correct number of vehicles are placed in each edge
+        edges = {"top": 2, "bottom": 3, "left": 0}
+        initial_config = InitialConfig(edges_distribution=edges)
+        self.setUp_gen_start_pos(initial_config)
+
+        for edge in edges:
+            self.assertEqual(len(self.env.k.vehicle.get_ids_by_edge(edge)),
+                             edges[edge])
 
 
 class TestEvenStartPosVariableLanes(unittest.TestCase):
@@ -823,6 +882,181 @@ class TestNextPrevEdge(unittest.TestCase):
         prev_edge = env.k.scenario.prev_edge(
             env.k.scenario.get_edge_list()[0], 0)
         self.assertTrue(len(prev_edge) == 0)
+
+
+class TestDefaultRoutes(unittest.TestCase):
+
+    def test_default_routes(self):
+        env_params = EnvParams()
+        sim_params = SumoParams(render=False)
+        initial_config = InitialConfig()
+        vehicles = VehicleParams()
+        vehicles.add('human', num_vehicles=1)
+        net_params = NetParams(additional_params=ADDITIONAL_NET_PARAMS)
+
+        # create the scenario
+        scenario = NoRouteNetwork(
+            name='bay_bridge',
+            net_params=net_params,
+            initial_config=initial_config,
+            vehicles=vehicles
+        )
+
+        # create the environment
+        env = TestEnv(
+            env_params=env_params,
+            sim_params=sim_params,
+            scenario=scenario
+        )
+
+        # check the routes
+        self.assertDictEqual(
+            env.k.scenario.rts,
+            {"top": ["top"],
+             "bottom": ["bottom"],
+             "left": ["left"],
+             "right": ["right"]}
+        )
+
+
+class TestOpenStreetMap(unittest.TestCase):
+    """Tests the formation of osm files with Flow. This is done on a section of
+    Northside UC Berkeley."""
+
+    def test_sumo(self):
+        sim_params = SumoParams()
+        vehicles = VehicleParams()
+        vehicles.add(veh_id="test")
+        env_params = EnvParams()
+        net_params = NetParams(
+            no_internal_links=False,
+            osm_path=os.path.join(PROJECT_PATH, 'tests/data/euclid.osm'))
+
+        scenario = Scenario(
+            name="UC-Berkeley-Northside",
+            vehicles=vehicles,
+            net_params=net_params)
+
+        env = TestEnv(env_params, sim_params, scenario)
+
+        # check that all the edges were generated
+        self.assertEqual(len(env.k.scenario.get_edge_list()), 29)
+
+
+class TestNetworkTemplateGenerator(unittest.TestCase):
+
+    def test_network_template(self):
+        """Test generate data from network templates.
+
+        This methods tests that routes, vehicle types, and network parameters
+        generated from sumo network templates match the expected values. This
+        is done on a variant of the figure eight scenario.
+        """
+        # generate the network parameters for the figure eight net.xml,
+        # rou.xml, and add.xml files
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        net_params = NetParams(
+            template={
+                # network geometry features
+                "net": os.path.join(dir_path, "test_files/fig8_test.net.xml"),
+                # features associated with the routes vehicles take
+                "rou": os.path.join(dir_path, "test_files/fig8_test.rou.xml"),
+                # features associated with the properties of drivers
+                "vtype": os.path.join(dir_path, "test_files/fig8_test.add.xml")
+            },
+            no_internal_links=False
+        )
+
+        # create the scenario object from the network template files
+        scenario = Scenario(
+            name="template",
+            net_params=net_params,
+            vehicles=VehicleParams()
+        )
+
+        expected_routes = {
+            'routetop':
+                ['top', 'upper_ring', 'right', 'left', 'lower_ring', 'bottom'],
+            'routeupper_ring':
+                ['upper_ring', 'right', 'left', 'lower_ring', 'bottom', 'top'],
+            'routeleft':
+                ['left', 'lower_ring', 'bottom', 'top', 'upper_ring', 'right'],
+            'routebottom':
+                ['bottom', 'top', 'upper_ring', 'right', 'left', 'lower_ring'],
+            'routeright':
+                ['right', 'left', 'lower_ring', 'bottom', 'top', 'upper_ring'],
+            'routelower_ring':
+                ['lower_ring', 'bottom', 'top', 'upper_ring', 'right', 'left']
+        }
+
+        expected_cf_params = {
+            'controller_params': {
+                'speedFactor': 1.0,
+                'speedDev': 0.1,
+                'carFollowModel': 'IDM',
+                'decel': 1.5,
+                'impatience': 0.5,
+                'maxSpeed': 30.0,
+                'accel': 1.0,
+                'sigma': 0.5,
+                'tau': 1.0,
+                'minGap': 0.0
+            },
+            'speed_mode': 31
+        }
+
+        expected_lc_params = {
+            'controller_params': {
+                'lcCooperative': '1.0',
+                'lcKeepRight': '1.0',
+                'laneChangeModel': 'LC2013',
+                'lcStrategic': '1.0',
+                'lcSpeedGain': '1.0'
+            },
+            'lane_change_mode': 1621
+        }
+
+        # test the validity of the outputted results
+        self.assertDictEqual(scenario.routes, expected_routes)
+        self.assertDictEqual(scenario.vehicles.type_parameters['idm']
+                             ['car_following_params'].__dict__,
+                             expected_cf_params)
+        self.assertDictEqual(scenario.vehicles.type_parameters['idm']
+                             ['lane_change_params'].__dict__,
+                             expected_lc_params)
+
+        # test for the case of vehicles in rou.xml
+        net_params = NetParams(
+            template={
+                # network geometry features
+                "net": os.path.join(dir_path, "test_files/fig8_test.net.xml"),
+                # features associated with the routes vehicles take
+                "rou": os.path.join(dir_path, "test_files/lust_test.rou.xml"),
+                # features associated with the properties of drivers
+                "vtype": os.path.join(dir_path, "test_files/fig8_test.add.xml")
+            },
+            no_internal_links=False
+        )
+
+        scenario = Scenario(
+            name="template",
+            net_params=net_params,
+            vehicles=VehicleParams()
+        )
+
+        expected_routes = {
+            'h21652c2:1': [
+                '--31878#3', '--31878#2', '--31878#1', '--31878#0', '-30872#0',
+                '-30872#1', '-30872#2', '-30872#3', '-32750#2', '-32750#3',
+                '-32750#4', '-32750#5', '-32750#6', '-32750#7', '-32750#8',
+                '-32750#9', '-32750#10', '-32750#11', '-32750#12',
+                '--30528#4', '--30528#3', '--30528#2', '--30528#1',
+                '--30528#0', '-31492#2', '--32674#9', '--32674#8',
+                '--32674#7', '--32674#6', '--32674#5', '--32674#4'
+            ]
+        }
+
+        self.assertDictEqual(scenario.routes, expected_routes)
 
 
 if __name__ == '__main__':

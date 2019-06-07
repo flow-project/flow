@@ -12,7 +12,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from rllab.envs.gym_env import GymEnv
 
-HORIZON = 1500
+HORIZON = 3000
 
 
 def run_task(*_):
@@ -32,7 +32,6 @@ def run_task(*_):
         num_vehicles=21)
 
     additional_env_params = {
-        "target_velocity": 8,
         "ring_length": [220, 270],
         "max_accel": 1,
         "max_decel": 1
@@ -40,7 +39,9 @@ def run_task(*_):
     env_params = EnvParams(
         horizon=HORIZON,
         additional_params=additional_env_params,
-        warmup_steps=750)
+        warmup_steps=750,
+        clip_actions=False
+    )
 
     additional_net_params = {
         "length": 260,
@@ -78,9 +79,9 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=3600 * 72 * 2,
+        batch_size=60000,
         max_path_length=horizon,
-        n_itr=5,
+        n_itr=500,
         # whole_paths=True,
         discount=0.999,
         # step_size=v["step_size"],

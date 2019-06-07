@@ -1,3 +1,5 @@
+<img src="docs/img/square_logo.png" align="right" width="25%"/>
+
 [![Build Status](https://travis-ci.com/flow-project/flow.svg?branch=master)](https://travis-ci.com/flow-project/flow)
 [![Docs](https://readthedocs.org/projects/flow/badge)](http://flow.readthedocs.org/en/latest/)
 [![Coverage Status](https://coveralls.io/repos/github/flow-project/flow/badge.svg?branch=master)](https://coveralls.io/github/flow-project/flow?branch=master)
@@ -15,12 +17,16 @@ See [our website](https://flow-project.github.io/) for more information on the a
 - [Installation instructions](http://flow.readthedocs.io/en/latest/flow_setup.html)
 - [Tutorials](https://github.com/flow-project/flow/tree/master/tutorials)
 
+# Technical questions
+
+Please direct your techincal questions to [Stack Overflow](https://stackoverflow.com) using the [flow-project](https://stackoverflow.com/questions/tagged/flow-project) tag.
+
 # Getting involved
 
 We welcome your contributions.
 
-- Please report bugs or ask questions by submitting a [GitHub issue](https://github.com/flow-project/flow/issues).
-- Submit contributions using [pull requests](https://github.com/flow-project/flow/pulls).
+- Please report bugs and improvements by submitting [GitHub issue](https://github.com/flow-project/flow/issues).
+- Submit your contributions using [pull requests](https://github.com/flow-project/flow/pulls). Please use [this template](https://github.com/flow-project/flow/blob/master/.github/PULL_REQUEST_TEMPLATE.md) for your pull requests.
 
 # Citing Flow
 
@@ -34,7 +40,7 @@ Vinitsky, E., Kreidieh, A., Le Flem, L., Kheterpal, N., Jang, K., Wu, F., ... & 
 
 # Contributors
 
-Cathy Wu, Eugene Vinitsky, Aboudy Kreidieh, Kanaad Parvate, Nishant Kheterpal, Kathy Jang, Fangyu Wu, Mahesh Murag, Kevin Chien, and Jonathan Lin. Alumni contributors include Leah Dickstein, Ananth Kuchibhotla, and Nathan Mandi. Flow is supported by the [Mobile Sensing Lab](http://bayen.eecs.berkeley.edu/) at UC Berkeley and Amazon AWS Machine Learning research grants.
+Flow is supported by the [Mobile Sensing Lab](http://bayen.eecs.berkeley.edu/) at UC Berkeley and Amazon AWS Machine Learning research grants. The contributors are listed in [Flow Team Page](https://flow-project.github.io/team.html).
 
 
 <!-- ## Getting Started
