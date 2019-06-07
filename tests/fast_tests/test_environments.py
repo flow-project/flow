@@ -849,16 +849,8 @@ class TestBottleneckEnv(unittest.TestCase):
             )
         )
 
-    def test_distance_to_bottleneck(self):
-        self.assertEqual(self.env.distance_to_bottleneck('human_0'), 545.0)
-        self.assertEqual(self.env.distance_to_bottleneck('human_9'), -1)
-
     def test_get_bottleneck_density(self):
         self.assertEqual(self.env.get_bottleneck_density(), 0)
-
-    def test_get_avg_bottleneck_velocity(self):
-        self.env.step(None)
-        self.assertAlmostEqual(self.env.get_avg_bottleneck_velocity(), 0.5, 1)
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""

@@ -312,21 +312,6 @@ class BottleneckEnv(Env):
             self.k.traffic_light.set_state(
                 node_id=TB_TL_ID, state=new_tl_state)
 
-    def distance_to_bottleneck(self, veh_id):
-        pre_bottleneck_edges = {
-            str(i): self.k.scenario.edge_length(str(i))
-            for i in [1, 2, 3]
-        }
-        edge_pos = self.k.vehicle.get_position(veh_id)
-        edge = self.k.vehicle.get_edge(veh_id)
-        if edge in pre_bottleneck_edges:
-            total_length = pre_bottleneck_edges[edge] - edge_pos
-            for next_edge in range(int(edge) + 1, 4):
-                total_length += pre_bottleneck_edges[str(next_edge)]
-            return total_length
-        else:
-            return -1
-
     def get_bottleneck_density(self, lanes=None):
         bottleneck_ids = self.k.vehicle.get_ids_by_edge(['3', '4'])
         if lanes:
@@ -338,11 +323,6 @@ class BottleneckEnv(Env):
         else:
             veh_ids = self.k.vehicle.get_ids_by_edge(['3', '4'])
         return len(veh_ids) / BOTTLE_NECK_LEN
-
-    def get_avg_bottleneck_velocity(self):
-        veh_ids = self.k.vehicle.get_ids_by_edge(['3', '4', '5'])
-        return sum(self.k.vehicle.get_speed(veh_ids)) / len(veh_ids) \
-            if len(veh_ids) != 0 else 0
 
     # Dummy action and observation spaces
     @property
