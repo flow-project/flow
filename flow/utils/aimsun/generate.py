@@ -206,8 +206,6 @@ def generate_net(nodes, edges, connections, inflows, veh_types,
             veh_type["veh_id"], model.getType("GKVehicle"))
         # set state vehicles
         new_state.setVehicle(veh_type)
-        # set_state_vehicle(model, new_state, veh_type["veh_id"])
-        # set_state_vehicle(model, veh_type["veh_id"], veh_type["veh_id"])
 
     # add traffic inflows to traffic states
     for inflow in inflows:
@@ -217,18 +215,6 @@ def generate_net(nodes, edges, connections, inflows, veh_types,
             inflow['edge'], type_section)
         traffic_state_aimsun.setEntranceFlow(
             edge_aimsun, None, inflow['vehsPerHour'])
-
-    # for centroid in centroids:
-    #     cmd = model.createNewCmd(model.getType("GKCentroid"))
-    #     pos = GKPoint(centroid['x'], centroid['y'], 0)
-    #     conf = model.getCatalog().findByName("Centroid Configuration 905",
-    #                                          model.getType(
-    #                                              "GKCentroidConfiguration"))
-    #     cmd.setData(pos, conf);
-    #     model.getCommander().addCommand(cmd);
-    #     res = cmd.createdObject();
-    #     res.setName(centroid["id"])
-    #     print("done", res.getName())
 
     # get traffic demand
     demand = model.getCatalog().findByName(
@@ -436,10 +422,6 @@ def set_state_vehicle(model, state, veh_type_name):
         veh_type_name, model.getType("GKVehicle"))
     # set state vehicles
     state.setVehicle(veh_type)
-    # find the state object
-    # state_car = model.getCatalog().findByName(
-    #     state_name, model.getType("GKTrafficState"))
-    # state_car.setVehicle(veh_type)
 
 
 def set_vehicles_color(model):
