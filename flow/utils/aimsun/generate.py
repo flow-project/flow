@@ -495,24 +495,6 @@ def create_control_plan(model, name):
     return control_plan
 
 
-# Finds an object using its identifier and checks if it is really a node
-def find_node(model, entry):
-    node = model.getCatalog().find(int(entry))
-    if node is not None:
-        if not node.isA("GKNode"):
-            node = None
-    return node
-
-
-# Finds an object using its identifier and checks if it is really a turn
-def find_turn(model, entry):
-    turn = model.getCatalog().find(int(entry))
-    if turn is not None:
-        if not turn.isA("GKTurning"):
-            turn = None
-    return turn
-
-
 def create_meter(model, edge):
     section = model.getCatalog().findByName(edge, model.getType("GKSection"))
     meter_length = 2
