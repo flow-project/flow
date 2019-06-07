@@ -513,52 +513,6 @@ def find_turn(model, entry):
     return turn
 
 
-# Returns (and creates if needed) the signals list.
-def create_signal_groups(model, node):  # TODO generalize
-    signals = []
-
-    if len(node.getSignals()) == 0:
-        signal = GKSystem.getSystem().newObject("GKControlPlanSignal", model)
-        signal.addTurning(findTurn(model, 970))
-        signal.addTurning(findTurn(model, 979))
-        node.addSignal(signal)
-        signals.append(signal)
-
-        signal = GKSystem.getSystem().newObject("GKControlPlanSignal", model)
-        signal.addTurning(findTurn(model, 973))
-        signal.addTurning(findTurn(model, 976))
-        node.addSignal(signal)
-        signals.append(signal)
-    else:
-        for signal in node.getSignals():
-            signals.append(signal)
-
-    return signals
-
-
-# Creates the phases, set the cycle time and sets the phases times
-def set_signal_times(cp, node, signal_groups):  # TODO generalize
-    cp_node = cp.createControlJunction(node)
-    cp_node.setCycle(40)
-    cp_node.setControlJunctionType(GKControlJunction.eFixedControl)
-
-    from_time = 0
-
-    # add phases
-    for signal in signal_groups:
-        phase1 = cp_node.createPhase()
-        phase1.setFrom(from_time)
-        phase1.setDuration(15)
-        phase1.addSignal(signal.getId())
-
-        phase2 = cp_node.createPhase()
-        phase2.setFrom(from_time + 15)
-        phase2.setDuration(5)
-        phase2.setInterphase(True)
-
-        from_time = from_time + 20
-
-
 def create_meter(model, edge):
     section = model.getCatalog().findByName(edge, model.getType("GKSection"))
     meter_length = 2
