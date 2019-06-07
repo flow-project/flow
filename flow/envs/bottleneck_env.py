@@ -15,7 +15,6 @@ from flow.core.params import InFlows, NetParams
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
 
-from collections import defaultdict
 from copy import deepcopy
 
 import numpy as np
