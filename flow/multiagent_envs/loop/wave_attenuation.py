@@ -54,12 +54,12 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
     @property
     def action_space(self):
         """See class definition."""
-        add_params = self.scenario.net_params.additional_params
+        add_params = self.net_params.additional_params
         num_rings = add_params['num_rings']
         return Box(
             low=-np.abs(self.env_params.additional_params['max_decel']),
             high=self.env_params.additional_params['max_accel'],
-            shape=(int(self.scenario.vehicles.num_rl_vehicles / num_rings), ),
+            shape=(int(self.initial_vehicles.num_rl_vehicles / num_rings), ),
             dtype=np.float32)
 
     def get_state(self):
