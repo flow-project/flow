@@ -57,6 +57,7 @@ install:
   - pip install -U ray
   - pip install -U pyglet
   - pip install git+https://github.com/hartikainen/serializable.git
+  - pip install flatten-dict
   - pip install -e ~/softlearning
 
 before_script:
