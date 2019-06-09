@@ -9,6 +9,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import InFlows
 from flow.controllers.routing_controllers import GridRouter
+from flow.core import rewards
 
 import csv
 import datetime
@@ -183,30 +184,6 @@ def create_grid_env(render=None):
     env_params = EnvParams(horizon=200, additional_params=ADDITIONAL_ENV_PARAMS)
 
     tl_logic = TrafficLightParams(baseline=False)
-    phases = [{
-        "duration": "31",
-        "minDur": "8",
-        "maxDur": "45",
-        "state": "GGGrrrGGGrrr"
-    }, {
-        "duration": "6",
-        "minDur": "3",
-        "maxDur": "6",
-        "state": "yyyrrryyyrrr"
-    }, {
-        "duration": "31",
-        "minDur": "8",
-        "maxDur": "45",
-        "state": "rrrGGGrrrGGG"
-    }, {
-        "duration": "6",
-        "minDur": "3",
-        "maxDur": "6",
-        "state": "rrryyyrrryyy"
-    }]
-    tl_logic.add("center0", phases=phases, programID=1)
-    tl_logic.add("center1", phases=phases, programID=1)
-    tl_logic.add("center2", tls_type="actuated", phases=phases, programID=1)
 
     additional_net_params = {
         "grid_array": grid_array,
@@ -248,6 +225,7 @@ def run_grid(writer, file):
             for agent_id in observation.keys():
                 # RL choose action based on observation
                 action[agent_id] = RL[agent_id].choose_action(observation[agent_id])
+            
         
             # RL take action and get next observation and reward
         observation_, reward, done, _ = env.step(action)
