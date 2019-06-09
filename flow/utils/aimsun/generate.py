@@ -1,14 +1,9 @@
 # flake8: noqa
+# TODO adapt this file with respect to scripting_api.py
+
 import sys
 import os
 import flow.config as config
-
-SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
-                            "lib/python2.7/site-packages")
-sys.path.append(SITEPACKAGES)
-
-sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
-                             'programming/Aimsun Next API/AAPIPython/Micro'))
 
 from flow.core.params import InFlows
 from flow.core.params import TrafficLightParams
@@ -16,6 +11,13 @@ from flow.core.params import TrafficLightParams
 from copy import deepcopy
 import json
 import numpy as np
+
+SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
+                            "lib/python2.7/site-packages")
+sys.path.append(SITEPACKAGES)
+
+sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
+                             'programming/Aimsun Next API/AAPIPython/Micro'))
 
 
 # Load an empty template
@@ -26,7 +28,8 @@ gui.newDoc(os.path.join(config.PROJECT_PATH,
 model = gui.getActiveModel()
 
 
-def generate_net(nodes, edges, connections, inflows, veh_types, traffic_lights):
+def generate_net(nodes, edges, connections, inflows, veh_types,
+                 traffic_lights):
     inflows = inflows.get()
     lane_width = 3.6  # TODO additional params??
     type_section = model.getType("GKSection")
@@ -74,8 +77,8 @@ def generate_net(nodes, edges, connections, inflows, veh_types, traffic_lights):
             # offset edge ends if there are multiple edges between nodes
             # find the edges that share the first node
             edges_shared_node = [edg for edg in edges
-                                 if first_node["id"] == edg["to"]
-                                 or last_node["id"] == edg["from"]]
+                                 if first_node["id"] == edg["to"] or
+                                 last_node["id"] == edg["from"]]
             for new_edge in edges_shared_node:
                 new_first_node, new_last_node = get_edge_nodes(new_edge, nodes)
                 new_theta = get_edge_angle(new_first_node, new_last_node)
@@ -226,7 +229,6 @@ def generate_net(nodes, edges, connections, inflows, veh_types, traffic_lights):
     #     res = cmd.createdObject();
     #     res.setName(centroid["id"])
     #     print("done", res.getName())
-
 
     # get traffic demand
     demand = model.getCatalog().findByName(
@@ -459,7 +461,7 @@ def set_vehicles_color(model):
         view_style.setVariableType(GKViewModeStyle.eDiscrete)
         sim_type = model.getType("GKSimVehicle")
         type_col = sim_type.getColumn("GKSimVehicle::vehicleTypeAtt",
-                                       GKType.eSearchOnlyThisType)
+                                      GKType.eSearchOnlyThisType)
         view_style.setColumn(sim_type, type_col)
         ramp = GKColorRamp()
         ramp.setType(GKColorRamp.eRGB)
