@@ -70,16 +70,7 @@ def IBVP(u, u_r, u_l):
     # P.Goatin, June 2017
     # clf
     # """"parameters"""
-    L = 30  # length of road
-    N = 0.5  # (N = L/dx)reduce spacial grid resolution
-    dx = L / N
 
-    x = np.array([1.5, 4.5, 7.5, 10.5, 13.5, 16.5, 19.5, 22.5, 25.5, 28.5])
-
-    V = 1
-    R = 4
-
-    CFL = 0.95
     dt = CFL * dx / V
     lam = dt / dx
 
@@ -176,9 +167,19 @@ if __name__ == "__main__":
     #
     # Length of road and spacial grid resolution --> this will be important
     # when calibrating
+    global L, N, dx, x, V, R, CFL
+    L = 30  # length of road
+    N = 100  # (N = L/dx)reduce spacial grid resolution
+    dx = L / N
+
+    x = np.arange(0.5 * dx, (L - 0.5 * dx), dx)
+
+    V = 1
+    R = 4
+
+    CFL = 0.95
 
     # points on x axis to plot
-    x = np.array([1.5, 4.5, 7.5, 10.5, 13.5, 16.5, 19.5, 22.5, 25.5, 28.5])
 
     # compute initial points
     U = initial(x)
@@ -196,11 +197,11 @@ if __name__ == "__main__":
         obs, rew, done, _ = env.step(action)
         # plot current profile during execution
         plt.plot(x, env.obs, 'b-')
-        plt.axis([0, 30, -0.1, 4.1]) # must be preset (0, length of street(x_axis), y_axis)
+        plt.axis([0, L, -0.1, 4.1]) # must be preset (0, length of street(x_axis), y_axis)
         plt.draw()
         plt.pause(0.00001)
         plt.clf()
     #plot final plot
     plt.plot(x, env.obs, 'b-')
-    plt.axis([0, 30, -0.1, 4.1])  # must be preset (0, length of street(x_axis), y_axis)
+    plt.axis([0, L, -0.1, 4.1])  # must be preset (0, length of street(x_axis), y_axis)
     plt.show()
