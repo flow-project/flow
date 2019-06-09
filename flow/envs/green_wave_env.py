@@ -1,6 +1,5 @@
 import numpy as np
 import re
-import ipdb
 
 from gym.spaces.discrete import Discrete
 from gym.spaces.box import Box
@@ -143,17 +142,17 @@ class TrafficLightGridEnv(Env):
         speed = Box(
             low=0,
             high=1,
-            shape=(self.scenario.vehicles.num_vehicles,),
+            shape=(self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
         dist_to_intersec = Box(
             low=0.,
             high=np.inf,
-            shape=(self.scenario.vehicles.num_vehicles,),
+            shape=(self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
         edge_num = Box(
             low=0.,
             high=1,
-            shape=(self.scenario.vehicles.num_vehicles,),
+            shape=(self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
         traffic_lights = Box(
             low=0.,
@@ -165,9 +164,10 @@ class TrafficLightGridEnv(Env):
     def get_state(self):
         """See class definition."""
         # compute the normalizers
-        max_dist = max(self.k.scenario.network.short_length,
-                       self.k.scenario.network.long_length,
-                       self.k.scenario.network.inner_length)
+        grid_array = self.net_params.additional_params["grid_array"]
+        max_dist = max(grid_array["short_length"],
+                       grid_array["long_length"],
+                       grid_array["inner_length"])
 
         # get the state arrays
         speeds = [
@@ -195,9 +195,8 @@ class TrafficLightGridEnv(Env):
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         # check if the action space is discrete
-        
         if self.discrete:
-            # convert single value (Discrete) to list of 0's and 1's
+            # convert single value to list of 0's and 1's
             rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
             rl_mask = [0] * (self.num_traffic_lights - len(rl_mask)) + rl_mask
         else:
@@ -208,8 +207,9 @@ class TrafficLightGridEnv(Env):
         for i, action in enumerate(rl_mask):
             if self.currently_yellow[i] == 1:  # currently yellow
                 self.last_change[i] += self.sim_step
-                if self.last_change[i] >= self.min_switch_time: # check if our timer has exceeded the yellow phase, meaning it
+                # Check if our timer has exceeded the yellow phase, meaning it
                 # should switch to red
+                if self.last_change[i] >= self.min_switch_time:
                     if self.direction[i] == 0:
                         self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
@@ -241,21 +241,6 @@ class TrafficLightGridEnv(Env):
     # ===============================
     # ============ UTILS ============
     # ===============================
-
-    def record_obs_var(self):
-        """
-        Records velocities and edges in self.obs_var_labels at each time
-        step. This is used for plotting.
-        """
-        for i, veh_id in enumerate(self.k.vehicle.get_ids()):
-            self.obs_var_labels['velocities'][
-                self.time_counter - 1, i] = self.k.vehicle.get_speed(veh_id)
-            self.obs_var_labels['edges'][self.time_counter - 1, i] = \
-                self._convert_edge(self.k.vehicle.get_edge(veh_id))
-            x = self.k.vehicle.get_x_by_id(veh_id)
-            if x > 2000:  # hardcode
-                x = 0
-            self.obs_var_labels['positions'][self.time_counter - 1, i] = x
 
     def get_distance_to_intersection(self, veh_ids):
         """Determines the smallest distance from the current vehicle's position
@@ -291,24 +276,6 @@ class TrafficLightGridEnv(Env):
         relative_pos = self.k.vehicle.get_position(veh_id)
         dist = edge_len - relative_pos
         return dist
-
-    def sort_by_intersection_dist(self):
-        """Sorts the vehicle ids of vehicles in the network by their distance
-        to the intersection.
-
-        Returns
-        -------
-        sorted_ids : list
-            a list of all vehicle IDs sorted by position
-        sorted_extra_data : list or tuple
-            an extra component (list, tuple, etc...) containing extra sorted
-            data, such as positions. If no extra component is needed, a value
-            of None should be returned
-        """
-        ids = self.k.vehicle.get_ids()
-        sorted_indx = np.argsort(self.get_distance_to_intersection(ids))
-        sorted_ids = np.array(ids)[sorted_indx]
-        return sorted_ids
 
     def _convert_edge(self, edges):
         """Converts the string edge to a number.
@@ -412,7 +379,7 @@ class TrafficLightGridEnv(Env):
         """
         Return the veh_id of the k closest vehicles to an intersection for
         each edge. Performs no check on whether or not edge is going toward an
-        intersection or not. Pads if necessary.
+        intersection or not. Does no padding
         """
         if k < 0:
             raise IndexError("k must be greater than 0")
@@ -428,8 +395,7 @@ class TrafficLightGridEnv(Env):
                     vehicles,
                     key=sort_lambda
                 )
-                # padding. Added by Ashkan
-                dists += dist[:k] + ([0] * max(k - len(dist), 0))
+                dists += dist[:k]
         else:
             vehicles = self.k.vehicle.get_ids_by_edge(edges)
             dist = sorted(
@@ -520,8 +486,9 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         max_speed = max(
             self.k.scenario.speed_limit(edge)
             for edge in self.k.scenario.get_edge_list())
-        max_dist = max(self.scenario.short_length, self.scenario.long_length,
-                       self.scenario.inner_length)
+        grid_array = self.net_params.additional_params["grid_array"]
+        max_dist = max(grid_array["short_length"], grid_array["long_length"],
+                       grid_array["inner_length"])
         all_observed_ids = []
 
         for node, edges in self.scenario.get_node_mapping():
