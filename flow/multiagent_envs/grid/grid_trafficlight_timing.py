@@ -56,17 +56,17 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
 
         Velocities, distance to intersections, and traffic light state.
         """
-        self.num_closest_vehicles = 3
+        self.num_closest_vehicles_onbound = 3 # number of observed vehicles per bound
         self.num_inbounds = 4
         speed = Box(
             low=0,
             high=1,
-            shape=(self.num_inbounds * self.num_closest_vehicles,),
+            shape=(self.num_inbounds * self.num_closest_vehicles_onbound,),
             dtype=np.float32)
         dist_to_intersec = Box(
             low=0,
             high=1,
-            shape=(self.num_inbounds * self.num_closest_vehicles,),
+            shape=(self.num_inbounds * self.num_closest_vehicles_onbound,),
             dtype=np.float32)
         traffic_lights = Box(
             low=0,
@@ -77,9 +77,9 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
 
     def get_state(self):
         """
-        Returns self.num_closest_vehicles number of vehicles on each bound, closest to each traffic
-        light and for each vehicle its velocity, distance to intersection. At also returns the state 
-        of the 4 traffic lights in the intersection This is partially observed
+        Returns for the self.num_closest_vehicles_onbound number of vehicles on each bound, 
+        closest to each traffic light, its velocity, distance to intersection. And also 
+        returns the state of the 4 traffic lights in the intersection. This is partially observed
         """
 
         max_speed = max(
@@ -93,25 +93,24 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         for intersection, edges in self.scenario.get_node_mapping():
             i = i + 1
             agent_id = self.agent_name_prefix + str(i) 
-            observed_vehicle_ids = self.k_closest_to_intersection(edges, self.num_closest_vehicles)
+            observed_vehicle_ids = self.k_closest_to_intersection_edge(edges, self.num_closest_vehicles_onbound)
 
             speeds = []
             dist_to_intersec = []
             traffic_light_states = []
 
-            speeds = [
-                self.k.vehicle.get_speed(veh_id) / max_speed
-                for veh_id in observed_vehicle_ids
-            ]
-
             for veh_id in observed_vehicle_ids:
                 if veh_id == 0:
                     dist_to_intersec.append(-1)
+                    speeds.append(-1)
                 else:
                     dist_to_intersec.append(
                         (self.k.scenario.edge_length(
                             self.k.vehicle.get_edge(veh_id))
                             - self.k.vehicle.get_position(veh_id)) / max_dist
+                    )
+                    speeds.append(
+                        self.k.vehicle.get_speed(veh_id) / max_speed
                     )
 
             traffic_light_states_chars = self.k.traffic_light.get_state(intersection) 
@@ -198,7 +197,7 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
             i = i + 1
             agent_id = self.agent_name_prefix + str(i)
 
-            observed_vehicle_ids = self.k_closest_to_intersection(edges, self.num_closest_vehicles)
+            observed_vehicle_ids = self.k_closest_to_intersection_edge(edges, self.num_closest_vehicles_onbound)
             # construct the reward for each agent
             reward = np.mean(self.k.vehicle.get_speed(observed_vehicle_ids))    # or:      reward = - rewards.avg_delay_specified_vehicles(self, observed_vehicle_ids)
             # each intersection is an agent, so we will make a dictionary that maps form "self.agent_name_prefix+'i'" to the reward of that agent.
@@ -212,3 +211,29 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
 
     def additional_command(self):
         pass
+
+    def k_closest_to_intersection_edge(self, edges, k):
+        """
+        Return the veh_id of the 4*k closest vehicles to an intersection for
+        each edge (k closest vehicles on each edge). 
+        """
+        if k < 0:
+            raise IndexError("k must be greater than 0")
+        dists = []
+
+        def sort_lambda(veh_id):
+            return self.get_distance_to_intersection(veh_id)
+
+        for edge in edges:
+            vehicles = self.k.vehicle.get_ids_by_edge(edge)
+            dist = sorted(
+                vehicles,
+                key=sort_lambda
+            )
+            if len(dist) >= k: # we have more than k vehicles, and we need to cut
+                dists += dist[:k]
+            else: # we have less than k vehicles, and we need to pad
+                padding = k - len(dist)
+                dists += (dist + [0]*padding)
+
+        return dists
