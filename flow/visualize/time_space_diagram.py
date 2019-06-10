@@ -105,6 +105,9 @@ def get_time_space_data(data, params):
         n_steps x n_veh matrix specifying the speed of every vehicle at every
         time step. Set to zero if the vehicle is not present in the network at
         that time step.
+    as_array
+        a (n_steps,) vector representing the unique time steps in the
+        simulation
 
     Raises
     ------
@@ -122,22 +125,22 @@ def get_time_space_data(data, params):
         'Figure8Scenario': _figure_eight
     }
 
-    # simulation step size
-    dt = params['sim'].sim_step
-
-    # number of simulation steps
-    max_time = max(max(data[veh_id]['time']) for veh_id in data.keys())
-    min_time = min(min(data[veh_id]['time']) for veh_id in data.keys())
-    num_steps = int((max_time - min_time)/dt)
+    # Collect a list of all the unique times.
+    all_time = []
+    for veh_id in data.keys():
+        all_time.extend(data[veh_id]['time'])
+    all_time = np.sort(np.unique(all_time))
 
     # Get the function from switcher dictionary
     func = switcher[params['scenario']]
 
     # Execute the function
-    return func(data, params, dt, num_steps)
+    pos, speed = func(data, params, all_time)
+
+    return pos, speed, all_time
 
 
-def _merge(data, params, dt, num_steps):
+def _merge(data, params, all_time):
     """Generate position and speed data for the merge.
 
     This only include vehicles on the main highway, and not on the adjacent
@@ -154,10 +157,9 @@ def _merge(data, params, dt, num_steps):
         * "vel": speed at every sample
     params : dict
         flow-specific parameters
-    dt : float
-        simulation step size
-    num_steps : int
-        number of simulation steps
+    all_time : array_like
+        a (n_steps,) vector representing the unique time steps in the
+        simulation
 
     Returns
     -------
@@ -195,24 +197,24 @@ def _merge(data, params, dt, num_steps):
 
     # prepare the speed and absolute position in a way that is compatible with
     # the space-time diagram, and compute the number of vehicles at each step
-    pos = np.zeros((num_steps, len(data.keys())))
-    speed = np.zeros((num_steps, len(data.keys())))
+    pos = np.zeros((all_time.shape[0], len(data.keys())))
+    speed = np.zeros((all_time.shape[0], len(data.keys())))
     for i, veh_id in enumerate(sorted(data.keys())):
         for spd, abs_pos, ti, edge in zip(data[veh_id]['vel'],
                                           data[veh_id]['abs_pos'],
                                           data[veh_id]['time'],
                                           data[veh_id]['edge']):
             # avoid vehicles outside the main highway
-            if int(ti/dt)-1 >= num_steps or \
-                    edge in ['inflow_merge', 'bottom', ':bottom_0']:
+            if edge in ['inflow_merge', 'bottom', ':bottom_0']:
                 continue
-            pos[int(ti/dt)-1, i] = abs_pos
-            speed[int(ti/dt)-1, i] = spd
+            ind = np.where(ti == all_time)[0]
+            pos[ind, i] = abs_pos
+            speed[ind, i] = spd
 
     return pos, speed
 
 
-def _ring_road(data, params, dt, num_steps):
+def _ring_road(data, params, all_time):
     """Generate position and speed data for the ring road.
 
     Vehicles that reach the top of the plot simply return to the bottom and
@@ -229,10 +231,9 @@ def _ring_road(data, params, dt, num_steps):
         * "vel": speed at every sample
     params : dict
         flow-specific parameters
-    dt : float
-        simulation step size
-    num_steps : int
-        number of simulation steps
+    all_time : array_like
+        a (n_steps,) vector representing the unique time steps in the
+        simulation
 
     Returns
     -------
@@ -262,21 +263,20 @@ def _ring_road(data, params, dt, num_steps):
                                                data[veh_id]['pos'], edgestarts)
 
     # create the output variables
-    pos = np.zeros((num_steps, len(data.keys())))
-    speed = np.zeros((num_steps, len(data.keys())))
+    pos = np.zeros((all_time.shape[0], len(data.keys())))
+    speed = np.zeros((all_time.shape[0], len(data.keys())))
     for i, veh_id in enumerate(sorted(data.keys())):
         for spd, abs_pos, ti in zip(data[veh_id]['vel'],
                                     data[veh_id]['abs_pos'],
                                     data[veh_id]['time']):
-            if int(ti/dt)-1 >= num_steps:
-                continue
-            pos[int(ti/dt)-1, i] = abs_pos
-            speed[int(ti/dt)-1, i] = spd
+            ind = np.where(ti == all_time)[0]
+            pos[ind, i] = abs_pos
+            speed[ind, i] = spd
 
     return pos, speed
 
 
-def _figure_eight(data, params, dt, num_steps):
+def _figure_eight(data, params, all_time):
     """Generate position and speed data for the figure eight.
 
     The vehicles traveling towards the intersection from one side will be
@@ -294,10 +294,9 @@ def _figure_eight(data, params, dt, num_steps):
         * "vel": speed at every sample
     params : dict
         flow-specific parameters
-    dt : float
-        simulation step size
-    num_steps : int
-        number of simulation steps
+    all_time : array_like
+        a (n_steps,) vector representing the unique time steps in the
+        simulation
 
     Returns
     -------
@@ -343,16 +342,15 @@ def _figure_eight(data, params, dt, num_steps):
                                                data[veh_id]['pos'], edgestarts)
 
     # create the output variables
-    pos = np.zeros((num_steps, len(data.keys())))
-    speed = np.zeros((num_steps, len(data.keys())))
+    pos = np.zeros((all_time.shape[0], len(data.keys())))
+    speed = np.zeros((all_time.shape[0], len(data.keys())))
     for i, veh_id in enumerate(sorted(data.keys())):
         for spd, abs_pos, ti in zip(data[veh_id]['vel'],
                                     data[veh_id]['abs_pos'],
                                     data[veh_id]['time']):
-            if int(ti/dt)-1 >= num_steps:
-                continue
-            pos[int(ti/dt)-1, i] = abs_pos
-            speed[int(ti/dt)-1, i] = spd
+            ind = np.where(ti == all_time)[0]
+            pos[ind, i] = abs_pos
+            speed[ind, i] = spd
 
     # reorganize data for space-time plot
     figure8_len = 6*ring_edgelen + 2*intersection + 2*junction + 10*inner
@@ -427,13 +425,7 @@ if __name__ == '__main__':
     emission_data = import_data_from_emission(args.emission_path)
 
     # compute the position and speed for all vehicles at all times
-    pos, speed = get_time_space_data(emission_data, flow_params)
-
-    # simulation step size
-    sim_step = flow_params['sim'].sim_step
-
-    # total time period
-    total_time = pos.shape[0] * sim_step
+    pos, speed, time = get_time_space_data(emission_data, flow_params)
 
     # some plotting parameters
     cdict = {
@@ -449,16 +441,14 @@ if __name__ == '__main__':
     norm = plt.Normalize(0, args.max_speed)
     cols = []
 
-    xmin = max(sim_step, args.start)
-    xmax = min(total_time, args.stop)
+    xmin = max(time[0], args.start)
+    xmax = min(time[-1], args.stop)
     xbuffer = (xmax - xmin) * 0.025  # 2.5% of range
     ymin, ymax = np.amin(pos), np.amax(pos)
     ybuffer = (ymax - ymin) * 0.025  # 2.5% of range
 
     ax.set_xlim(xmin - xbuffer, xmax + xbuffer)
     ax.set_ylim(ymin - ybuffer, ymax + ybuffer)
-
-    time = np.arange(xmin, xmax, sim_step)
 
     for indx_car in range(pos.shape[1]):
         unique_car_pos = pos[:, indx_car]
