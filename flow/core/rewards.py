@@ -70,15 +70,6 @@ def average_velocity(env, fail=False):
     return np.mean(vel)
 
 
-def total_velocity(env, fail=False):
-    vel = np.array(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
-
-    if any(vel < -100) or fail:
-        return 0.
-    if len(vel) != 0:
-        return sum(vel)
-
-
 def rl_forward_progress(env, gain=0.1):
     """A reward function used to reward the RL vehicles travelling forward.
 
@@ -231,37 +222,6 @@ def penalize_headway_variance(vehicles,
     return -np.var(headways)
 
 
-def punish_small_rl_headways(env,
-                             headway_threshold=5,
-                             penalty_gain=1,
-                             penalty_exponent=1):
-    """A reward function used to train rl vehicles to avoid small headways.
-
-    A penalty is issued whenever rl vehicles are below a pre-defined desired
-    headway.
-
-    Parameters
-    ----------
-    env : flow.envs.Env
-        the environment variable, which contains information on the current
-        state of the system.
-    headway_threshold : float
-        the maximum headway allowed for rl vehicles before being penalized
-    penalty_gain : float, optional
-        sets the penalty for each rl vehicle between 0 and this value
-    penalty_exponent : float, optional
-        used to allow exponential punishing of smaller headways
-    """
-    headway_penalty = 0
-    for veh_id in env.k.vehicle.get_rl_ids():
-        if env.k.vehicle.get_headway(veh_id) < headway_threshold:
-            headway_penalty += \
-                (((headway_threshold - env.k.vehicle.get_headway(veh_id)) /
-                  headway_threshold) ** penalty_exponent) * penalty_gain
-
-    return -np.abs(headway_penalty)
-
-
 def punish_rl_lane_changes(env, penalty=1):
     """Penalize an RL vehicle performing lane changes.
 
@@ -282,66 +242,3 @@ def punish_rl_lane_changes(env, penalty=1):
             total_lane_change_penalty -= penalty
 
     return total_lane_change_penalty
-
-
-def punish_queues_in_lane(env, edge, lane, penalty_gain=1, penalty_exponent=1):
-    """Punish queues in certain lanes of edge '3'.
-
-    TODO: specify what scenario this is used by
-
-    Parameters
-    ----------
-    env : flow.envs.Env
-        contains the state of the environment at a time-step
-    edge: str
-        The edge on which to penalize queues
-    lane : int
-        The lane in which to penalize queues
-    penalty_gain : int, optional
-        Multiplier on number of cars in the lane
-    penalty_exponent : int, optional
-        Exponent on number of cars in the lane
-
-    Returns
-    -------
-    float
-        total reward (in this case a negative cost) corresponding to the queues
-        in the lane in question
-    """
-    # IDs of all vehicles in passed-in lane
-    lane_ids = [
-        veh_id for veh_id in env.k.vehicle.get_ids_by_edge(edge)
-        if env.k.vehicle.get_lane(veh_id) == lane
-    ]
-
-    return -1 * (len(lane_ids) ** penalty_exponent) * penalty_gain
-
-
-def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
-    """Reward RL vehicles opening large headways.
-
-    Parameters
-    ----------
-    env : flow.envs.Env
-        contains the state of the environment at a time-step
-    reward_gain : int, optional
-        Multiplicative gain on reward
-    reward_exponent : int, optional
-        Exponent gain on reward
-
-    Returns
-    -------
-    float
-        Reward value
-    """
-    total_reward = 0
-    for rl_id in env.k.vehicle.get_rl_ids():
-        follower_id = env.k.vehicle.get_follower(rl_id)
-        if not follower_id:
-            continue
-        follower_headway = env.k.vehicle.get_headway(follower_id)
-        if follower_headway < 0:
-            continue
-        total_reward += follower_headway ** reward_exponent
-
-    return total_reward * reward_gain
