@@ -181,13 +181,13 @@ def _merge(data, params, all_time):
     edgestarts = {
         'inflow_highway': 0,
         'left': inflow_edge_len + 0.1,
-        'center': inflow_edge_len + premerge + 8.1,
-        'inflow_merge': inflow_edge_len + premerge + postmerge + 8.1,
-        'bottom': 2 * inflow_edge_len + premerge + postmerge + 8.2,
+        'center': inflow_edge_len + premerge + 22.6,
+        'inflow_merge': inflow_edge_len + premerge + postmerge + 22.6,
+        'bottom': 2 * inflow_edge_len + premerge + postmerge + 22.7,
         ':left_0': inflow_edge_len,
         ':center_0': inflow_edge_len + premerge + 0.1,
         ':center_1': inflow_edge_len + premerge + 0.1,
-        ':bottom_0': 2 * inflow_edge_len + premerge + postmerge + 8.1
+        ':bottom_0': 2 * inflow_edge_len + premerge + postmerge + 22.6
     }
 
     # compute the absolute position
