@@ -9,10 +9,6 @@ from flow.core.params import InFlows
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.grid import SimpleGridScenario
 
-# set to true if you would like to run the experiment with inflows of vehicles
-# from the edges, and false otherwise
-USE_INFLOWS = False
-
 
 def gen_edges(col_num, row_num):
     """Generate the names of the outer edges in the grid network.
@@ -116,7 +112,7 @@ def get_non_flow_params(enter_speed, add_net_params):
     return initial, net
 
 
-def grid_example(render=None):
+def grid_example(render=None, use_inflows=False):
     """
     Perform a simulation of vehicles on a grid.
 
@@ -124,6 +120,9 @@ def grid_example(render=None):
     ----------
     render: bool, optional
         specifies whether to use the gui during execution
+    use_inflows : bool, optional
+        set to True if you would like to run the experiment with inflows of
+        vehicles from the edges, and False otherwise
 
     Returns
     -------
@@ -206,7 +205,7 @@ def grid_example(render=None):
         "vertical_lanes": 1
     }
 
-    if USE_INFLOWS:
+    if use_inflows:
         initial_config, net_params = get_flow_params(
             col_num=n_columns,
             row_num=n_rows,

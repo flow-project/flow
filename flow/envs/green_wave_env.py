@@ -242,21 +242,6 @@ class TrafficLightGridEnv(Env):
     # ============ UTILS ============
     # ===============================
 
-    def record_obs_var(self):
-        """
-        Records velocities and edges in self.obs_var_labels at each time
-        step. This is used for plotting.
-        """
-        for i, veh_id in enumerate(self.k.vehicle.get_ids()):
-            self.obs_var_labels['velocities'][
-                self.time_counter - 1, i] = self.k.vehicle.get_speed(veh_id)
-            self.obs_var_labels['edges'][self.time_counter - 1, i] = \
-                self._convert_edge(self.k.vehicle.get_edge(veh_id))
-            x = self.k.vehicle.get_x_by_id(veh_id)
-            if x > 2000:  # hardcode
-                x = 0
-            self.obs_var_labels['positions'][self.time_counter - 1, i] = x
-
     def get_distance_to_intersection(self, veh_ids):
         """Determines the smallest distance from the current vehicle's position
         to any of the intersections.
@@ -291,24 +276,6 @@ class TrafficLightGridEnv(Env):
         relative_pos = self.k.vehicle.get_position(veh_id)
         dist = edge_len - relative_pos
         return dist
-
-    def sort_by_intersection_dist(self):
-        """Sorts the vehicle ids of vehicles in the network by their distance
-        to the intersection.
-
-        Returns
-        -------
-        sorted_ids : list
-            a list of all vehicle IDs sorted by position
-        sorted_extra_data : list or tuple
-            an extra component (list, tuple, etc...) containing extra sorted
-            data, such as positions. If no extra component is needed, a value
-            of None should be returned
-        """
-        ids = self.k.vehicle.get_ids()
-        sorted_indx = np.argsort(self.get_distance_to_intersection(ids))
-        sorted_ids = np.array(ids)[sorted_indx]
-        return sorted_ids
 
     def _convert_edge(self, edges):
         """Converts the string edge to a number.
