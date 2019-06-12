@@ -193,7 +193,7 @@ def figure_eight_exp_setup(sim_params=None,
 
     # create the scenario
     scenario = Figure8Scenario(
-        name="RingRoadTest",
+        name="FigureEightTest",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
