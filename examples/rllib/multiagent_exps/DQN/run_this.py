@@ -49,8 +49,8 @@ def create_grid_env(render=None):
     inner_length = 300
     long_length = 500
     short_length = 300
-    N_ROWS = 2
-    N_COLUMNS = 3
+    N_ROWS = 1
+    N_COLUMNS = 1
     num_agents = N_ROWS * N_COLUMNS
     num_cars_left = 20
     num_cars_right = 20
@@ -133,7 +133,7 @@ def run_grid(writer, file):
         observation_, reward, done, _ = env.step(action)
         action = action.fromkeys(action, 0)
 
-        if episode % 10 == 0:
+        if episode % 100 == 0:
             writer.writerow(reward.values())
             file.flush()
 
