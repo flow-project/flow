@@ -52,7 +52,7 @@ def bottleneck1_baseline(num_runs, render=True):
                  num_vehicles=1 * SCALING)
 
     # only include human vehicles in inflows
-    flow_rate = 1900 * SCALING
+    flow_rate = 2300 * SCALING
     inflow = InFlows()
     inflow.add(veh_type='human', edge='1',
                vehs_per_hour=flow_rate,

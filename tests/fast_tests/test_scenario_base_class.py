@@ -649,7 +649,7 @@ class TestEdgeLength(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        # create the environment and scenario classes for a figure eight
+        # create the environment and scenario classes for a ring road
         env, scenario = ring_road_exp_setup(net_params=net_params)
 
         self.assertEqual(env.k.scenario.edge_length("top"), 250)

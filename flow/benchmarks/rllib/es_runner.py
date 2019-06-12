@@ -38,7 +38,10 @@ parser.add_argument(
 
 # required input parameters
 parser.add_argument(
-    "--upload_dir", type=str, help="S3 Bucket to upload to.")
+    "--upload_dir",
+    default=None,
+    type=str,
+    help="S3 Bucket to upload to.")
 
 # optional input parameters
 parser.add_argument(
