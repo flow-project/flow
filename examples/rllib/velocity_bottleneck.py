@@ -78,7 +78,7 @@ additional_env_params = {
 }
 
 # flow rate
-flow_rate = 1900 * SCALING
+flow_rate = 2300 * SCALING
 
 # percentage of flow coming out of each lane
 inflow = InFlows()
@@ -145,7 +145,7 @@ flow_params = dict(
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/

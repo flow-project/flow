@@ -206,8 +206,6 @@ def generate_net(nodes, edges, connections, inflows, veh_types,
             veh_type["veh_id"], model.getType("GKVehicle"))
         # set state vehicles
         new_state.setVehicle(veh_type)
-        # set_state_vehicle(model, new_state, veh_type["veh_id"])
-        # set_state_vehicle(model, veh_type["veh_id"], veh_type["veh_id"])
 
     # add traffic inflows to traffic states
     for inflow in inflows:
@@ -217,18 +215,6 @@ def generate_net(nodes, edges, connections, inflows, veh_types,
             inflow['edge'], type_section)
         traffic_state_aimsun.setEntranceFlow(
             edge_aimsun, None, inflow['vehsPerHour'])
-
-    # for centroid in centroids:
-    #     cmd = model.createNewCmd(model.getType("GKCentroid"))
-    #     pos = GKPoint(centroid['x'], centroid['y'], 0)
-    #     conf = model.getCatalog().findByName("Centroid Configuration 905",
-    #                                          model.getType(
-    #                                              "GKCentroidConfiguration"))
-    #     cmd.setData(pos, conf);
-    #     model.getCommander().addCommand(cmd);
-    #     res = cmd.createdObject();
-    #     res.setName(centroid["id"])
-    #     print("done", res.getName())
 
     # get traffic demand
     demand = model.getCatalog().findByName(
@@ -436,10 +422,6 @@ def set_state_vehicle(model, state, veh_type_name):
         veh_type_name, model.getType("GKVehicle"))
     # set state vehicles
     state.setVehicle(veh_type)
-    # find the state object
-    # state_car = model.getCatalog().findByName(
-    #     state_name, model.getType("GKTrafficState"))
-    # state_car.setVehicle(veh_type)
 
 
 def set_vehicles_color(model):
@@ -493,70 +475,6 @@ def create_control_plan(model, name):
     folder = get_control_plan_folder(model)
     folder.append(control_plan)
     return control_plan
-
-
-# Finds an object using its identifier and checks if it is really a node
-def find_node(model, entry):
-    node = model.getCatalog().find(int(entry))
-    if node is not None:
-        if not node.isA("GKNode"):
-            node = None
-    return node
-
-
-# Finds an object using its identifier and checks if it is really a turn
-def find_turn(model, entry):
-    turn = model.getCatalog().find(int(entry))
-    if turn is not None:
-        if not turn.isA("GKTurning"):
-            turn = None
-    return turn
-
-
-# Returns (and creates if needed) the signals list.
-def create_signal_groups(model, node):  # TODO generalize
-    signals = []
-
-    if len(node.getSignals()) == 0:
-        signal = GKSystem.getSystem().newObject("GKControlPlanSignal", model)
-        signal.addTurning(findTurn(model, 970))
-        signal.addTurning(findTurn(model, 979))
-        node.addSignal(signal)
-        signals.append(signal)
-
-        signal = GKSystem.getSystem().newObject("GKControlPlanSignal", model)
-        signal.addTurning(findTurn(model, 973))
-        signal.addTurning(findTurn(model, 976))
-        node.addSignal(signal)
-        signals.append(signal)
-    else:
-        for signal in node.getSignals():
-            signals.append(signal)
-
-    return signals
-
-
-# Creates the phases, set the cycle time and sets the phases times
-def set_signal_times(cp, node, signal_groups):  # TODO generalize
-    cp_node = cp.createControlJunction(node)
-    cp_node.setCycle(40)
-    cp_node.setControlJunctionType(GKControlJunction.eFixedControl)
-
-    from_time = 0
-
-    # add phases
-    for signal in signal_groups:
-        phase1 = cp_node.createPhase()
-        phase1.setFrom(from_time)
-        phase1.setDuration(15)
-        phase1.addSignal(signal.getId())
-
-        phase2 = cp_node.createPhase()
-        phase2.setFrom(from_time + 15)
-        phase2.setDuration(5)
-        phase2.setInterphase(True)
-
-        from_time = from_time + 20
 
 
 def create_meter(model, edge):

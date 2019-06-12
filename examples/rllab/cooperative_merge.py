@@ -70,12 +70,10 @@ def run_task(*_):
     env_params = EnvParams(
         horizon=HORIZON,
         additional_params={
+            "target_velocity": 10,
             "max_accel": 3,
             "max_decel": 3,
-            "target_velocity": 10,
-            "n_preceding": 2,
-            "n_following": 2,
-            "n_merging_in": 2,
+            "sort_vehicles": False
         })
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
@@ -86,8 +84,7 @@ def run_task(*_):
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
-    initial_config = InitialConfig(
-        x0=50, spacing="uniform", additional_params={"merge_bunching": 0})
+    initial_config = InitialConfig(x0=50, spacing="uniform")
 
     scenario = TwoLoopsOneMergingScenario(
         name=exp_tag,
@@ -95,7 +92,7 @@ def run_task(*_):
         net_params=net_params,
         initial_config=initial_config)
 
-    env_name = "TwoLoopsMergePOEnv"
+    env_name = "AccelEnv"
     pass_params = (env_name, sim_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 

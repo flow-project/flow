@@ -86,7 +86,7 @@ flow_params = dict(
     exp_tag='cooperative_merge',
 
     # name of the flow environment the experiment is running on
-    env_name='TwoLoopsMergePOEnv',
+    env_name='AccelEnv',
 
     # name of the scenario class the experiment is running on
     scenario='TwoLoopsOneMergingScenario',
@@ -104,12 +104,10 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         additional_params={
-            'max_accel': 3,
-            'max_decel': 3,
-            'target_velocity': 10,
-            'n_preceding': 2,
-            'n_following': 2,
-            'n_merging_in': 2,
+            "target_velocity": 10,
+            "max_accel": 3,
+            "max_decel": 3,
+            "sort_vehicles": False
         },
     ),
 
@@ -128,7 +126,7 @@ flow_params = dict(
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/
