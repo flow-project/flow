@@ -30,6 +30,7 @@ for i in range(7):
         routing_controller=(ContinuousRouter, {}),
         car_following_params=SumoCarFollowingParams(
             speed_mode="obey_safe_speed",
+            decel=1.5,
         ),
         num_vehicles=1)
     vehicles.add(

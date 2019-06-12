@@ -29,6 +29,7 @@ vehicles.add(
     routing_controller=(ContinuousRouter, {}),
     car_following_params=SumoCarFollowingParams(
         speed_mode="obey_safe_speed",
+        decel=1.5,
     ),
     num_vehicles=13)
 vehicles.add(
