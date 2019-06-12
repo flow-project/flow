@@ -160,7 +160,12 @@ def run_task(*_):
         veh_id="idm",
         acceleration_controller=(SimCarFollowingController, {}),
         car_following_params=SumoCarFollowingParams(
-            min_gap=2.5, tau=1.1, max_speed=V_ENTER, speed_mode="all_checks"),
+            min_gap=2.5,
+            tau=1.1,
+            max_speed=V_ENTER,
+            decel=7.5,  # avoid collisions at emergency stops
+            speed_mode="all_checks"
+        ),
         routing_controller=(GridRouter, {}),
         num_vehicles=tot_cars)
 

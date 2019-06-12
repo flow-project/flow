@@ -38,7 +38,7 @@ def make_create_env(params, version=0, render=None):
          - net: network-related parameters (see flow.core.params.NetParams and
            the scenario's documentation or ADDITIONAL_NET_PARAMS component)
          - veh: vehicles to be placed in the network at the start of a rollout
-           (see flow.core.vehicles.Vehicles)
+           (see flow.core.params.VehicleParams)
          - initial (optional): parameters affecting the positioning of vehicles
            upon initialization/reset (see flow.core.params.InitialConfig)
          - tls (optional): traffic lights to be introduced to specific nodes
