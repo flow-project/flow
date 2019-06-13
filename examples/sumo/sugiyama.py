@@ -62,4 +62,4 @@ if __name__ == "__main__":
     exp = sugiyama_example()
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 1500)
+    exp.run(1, 1500, convert_to_csv=True)

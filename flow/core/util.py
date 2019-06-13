@@ -98,3 +98,81 @@ def emission_to_csv(emission_path, output_path=None):
         dict_writer = csv.DictWriter(output_file, keys)
         dict_writer.writeheader()
         dict_writer.writerows(out_data)
+'''
+--------
+'''
+def new_emission_to_csv(emission_path, sorted_out_data, output_path=None):
+
+    # default output path
+    if output_path is None:
+        output_path = emission_path[:-3] + 'csv'
+
+    # output the dict data into a csv file
+    keys = sorted_out_data[0].keys()
+    with open(output_path, 'w') as output_file:
+        dict_writer = csv.DictWriter(output_file, keys)
+        dict_writer.writeheader()
+        dict_writer.writerows(sorted_out_data)
+
+'''
+Proposing the following function:
+---------------------------------
+
+def generic_observations(attr_list, emission_to_csv=False): 
+    """
+    Immitates the existing 'emission_to_csv' function but only registers specific user defined observations.
+
+    Paramters:
+    ----------
+   + attr_list: list of strings
+            list of user specified attributes to watch over simulation time steps.
+   + emission_path : str
+        path to the emission file that should be converted
+   + create_csv : boolean
+        whether or not to call the 'emission_to_csv' helper function on user specified attributes.
+    Returns: 
+    --------
+    out_data: dictionary
+            dictionary of user specified attributes located in the 'output_path' directory
+    """
+'''
+def generic_observations(emission_path, 
+                        attr_list=['CO','y','CO2','electricity','type', 'id', 'eclass', 'waiting','NOx','fuel','HC',
+                                                    'x', 'route','relative_position','noise','angle','PMx','speed','edge_id','lane_number'], 
+                        create_csv=False): 
+
+    if(all(type(n) is not str for n in attr_list)):
+        raise TypeError
+
+    parser = etree.XMLParser(recover=True)
+    tree = ElementTree.parse(emission_path, parser=parser)
+    root = tree.getroot()
+
+    # parse the xml data into a dict
+    out_data = []
+    for time in root.findall('timestep'):
+        t = float(time.attrib['time'])
+
+        for car in time:
+            out_data.append(dict())
+            try:
+
+                for elem in attr_list:
+                    out_data[-1]['time'] = t    
+                    if elem in ['type', 'id', 'eclass', 'route']:
+                        out_data[-1][elem] = car.attrib[elem]
+                    elif elem == 'edge_id':
+                        out_data[-1]['edge_id'] = car.attrib['lane'].rpartition('_')[0]
+                    elif elem == 'lane_number':
+                        out_data[-1]['lane_number'] = car.attrib['lane'].\
+                    rpartition('_')[-1]
+ 
+                    else: out_data[-1][elem] = float(car.attrib[elem])
+            except KeyError:
+                del out_data[-1]
+
+    if create_csv:
+        new_emission_to_csv(emission_path, sorted(out_data, key=lambda k: k['id']))
+        return sorted(out_data, key=lambda k: k['id'])
+
+    else: return sorted(out_data, key=lambda k: k['id'])

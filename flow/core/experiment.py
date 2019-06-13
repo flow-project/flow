@@ -6,7 +6,7 @@ import numpy as np
 import time
 import os
 
-from flow.core.util import emission_to_csv
+from flow.core.util import emission_to_csv, generic_observations
 
 
 class Experiment:
@@ -141,5 +141,6 @@ class Experiment:
 
             # convert the emission file into a csv
             emission_to_csv(emission_path)
+            generic_observations(emission_path,create_csv=True)
 
         return info_dict
