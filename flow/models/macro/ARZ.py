@@ -15,8 +15,7 @@ def boundary_right(data):
     data : tuple -> (density, relative flow)
         density: array_like
             density data points on the road length
-
-        relative flow: array_ike
+       relative flow: array_ike
            relative flow data points on the road length
 
     Returns
@@ -38,7 +37,6 @@ def boundary_left(data):
     data : tuple -> (density, relative flow)
         density: array_like
             density data points on the road length
-
         relative flow: array_ike
            relative flow data points on the road length
 
@@ -53,7 +51,7 @@ def boundary_left(data):
     return data[0][0], data[1][0]
 
 
-def ARZ_Solve(u_full, u_right, u_left):
+def arz_solve(u_full, u_right, u_left):
     """Implement Godunov Semi-Implicit scheme for multi-populations.
 
     Fan, Shimao et al. “Comparative model accuracy of a data-fitted generalized Aw-Rascle-Zhang model.”
@@ -64,10 +62,8 @@ def ARZ_Solve(u_full, u_right, u_left):
     u_full: tuple -> (density, relative flow)
         density: array_like
             density data points on the road length
-
         relative flow: array_ike
            relative flow data points on the road length
-
         Note: at time = 0, u_full = initial density data
 
     u_right:  tuple --> (double, double)
@@ -79,8 +75,7 @@ def ARZ_Solve(u_full, u_right, u_left):
     new_points: tuple -> (density, relative flow)
         density: array_like
             next density data points as calculated by the Semi-Implicit Godunov scheme
-
-        relative flow: array_ike
+       relative flow: array_ike
            next relative flow data points as calculated by the Semi-Implicit Godunov scheme
 
     """
@@ -88,23 +83,21 @@ def ARZ_Solve(u_full, u_right, u_left):
     u_left = boundary_left(u_full)
     u_right = boundary_right(u_full)
 
-    # time and cell step
-    step = dt / dx
-
     # full arrray with boundary conditions
     u_all = np.insert(np.append(u_full[0], u_right[0]), 0, u_left[0]), np.insert(
         np.append(u_full[1], u_right[1]), 0, u_left[1])
 
     # compute flux
-    Fp_higher_half, Fp_lower_half, Fy_higher_half, Fy_lower_half, rho_init, y_init = Compute_Flux(u_all,dt, dx)
+    fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, rho_init, y_init = compute_flux(u_all)
 
     # update new points
-    new_points = ARZ_update_points(Fp_higher_half, Fp_lower_half, Fy_higher_half, Fy_lower_half, rho_init, y_init, Ve, tau, dt, step)
+    new_points = arz_update_points(fp_higher_half, fp_lower_half,
+                                   fy_higher_half, fy_lower_half, rho_init, y_init)
 
     return new_points
 
 
-def Function_rho(density, y_value):
+def function_rho(density, y_value):
     """ Calculate flux associated with density using density Flux function
 
     Fan, Shimao et al. “Comparative model accuracy of a data-fitted generalized Aw-Rascle-Zhang model.”
@@ -114,7 +107,6 @@ def Function_rho(density, y_value):
     ------------
     density: array_like
         density data points at every specified point on the road
-
     y_value: array_like
         relative flow data points at every specified point on the road
 
@@ -124,11 +116,11 @@ def Function_rho(density, y_value):
         density flux values
 
     """
-    #Flux equation for density (rho)
-    return y_value + (density * Ve(density))
+    # Flux equation for density (rho)
+    return y_value + (density * ve(density))
 
 
-def Function_y(density, y_value):
+def function_y(density, y_value):
     """ Calculate flux associated with relative flow using Relative Flow Flux function
 
     Fan, Shimao et al. “Comparative model accuracy of a data-fitted generalized Aw-Rascle-Zhang model.”
@@ -138,7 +130,6 @@ def Function_y(density, y_value):
     ------------
     density: array_like
         density data points at every specified point on the road
-
     y_value: array_like
         relative flow data points at every specified point on the road
 
@@ -148,55 +139,43 @@ def Function_y(density, y_value):
         relative flow flux values
     """
 
-    return ((y_value ** 2) / density) + (y_value * Ve(density))
+    return ((y_value ** 2) / density) + (y_value * ve(density))
 
 
-def Compute_Flux(U_all,dt, dx):
+def compute_flux(u_all):
     """ Implement the 'The Lax-Friedrichs Method' for Flux calculations for each cell
 
     "Finite-Volume Methods for Hyperbolic Problems", Chapter 4 (p71), Randal J. Leveque.
 
     Parameters
     ------------
-    U_all: tuple -> (density, relative flow)
+    u_all: tuple -> (density, relative flow)
         density: array_like
             density data points on the road length with boundary conditions
-
         relative flow: array_ike
            relative flow data points on the road length with boundary conditions
 
         Note: at time = 0, U_all = initial density data
-
-    dt: double
-        change in time
-
-    dx: double
-        change in length
 
     Returns
     -----------
     tuple -> (fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, rho_init, y_init)
         fp_higher_half: array_like
             density flux at right boundary of each cell
-
         fp_lower_half: array_like
             density flux at left boundary of each cell
-
         fy_higher_half: array_like
             relative flow flux at right boundary of each cell
-
         fy_lower_half: array_like
             relative flow flux at left boundary of each cell
-
         rho_init: array_like
             current values for density at each point on the road (midpoint of cell)
-
         y_init: array_like
             current values for relative flow at each point on the road (midpoint of cell)
 
 """
-    rho_full = U_all[0]
-    y_full = U_all[1]
+    rho_full = u_all[0]
+    y_full = u_all[1]
 
     # left cell boundary data to be considered -> entire row except last two
     rho_l = rho_full[:-2]
@@ -211,39 +190,33 @@ def Compute_Flux(U_all,dt, dx):
     y_r = y_full[2:]
 
     # left fluxes
-    fp_lower_half = 0.5 * (Function_rho(rho_l, y_l) + Function_rho(rho_init, y_init)) - (
+    fp_lower_half = 0.5 * (function_rho(rho_l, y_l) + function_rho(rho_init, y_init)) - (
             (0.5 * dt / dx) * (rho_init - rho_l))
-    fy_lower_half = 0.5 * (Function_y(rho_l, y_l) + Function_y(rho_init, y_init)) - ((0.5 * dt / dx) * (y_init - y_l))
+    fy_lower_half = 0.5 * (function_y(rho_l, y_l) + function_y(rho_init, y_init)) - ((0.5 * dt / dx) * (y_init - y_l))
 
     # right fluxes
-    fp_higher_half = 0.5 * (Function_rho(rho_r, y_r) + Function_rho(rho_init, y_init)) - (
+    fp_higher_half = 0.5 * (function_rho(rho_r, y_r) + function_rho(rho_init, y_init)) - (
             (0.5 * dt / dx) * (rho_r - rho_init))
-    fy_higher_half = 0.5 * (Function_y(rho_r, y_r) + Function_y(rho_init, y_init)) - ((0.5 * dt / dx) * (y_r - y_init))
+    fy_higher_half = 0.5 * (function_y(rho_r, y_r) + function_y(rho_init, y_init)) - ((0.5 * dt / dx) * (y_r - y_init))
 
     return fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, rho_init, y_init
 
 
-
-def ARZ_update_points (fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, rho_init, y_init, Ve, tau, dt,step):
+def arz_update_points(fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, rho_init, y_init):
     """ Update our current density and relative flow values
 
     Parameters
     ------------
     fp_higher_half: array_like
         density flux at right boundary of each cell
-
     fp_lower_half: array_like
         density flux at left boundary of each cell
-
     fy_higher_half: array_like
         relative flow flux at right boundary of each cell
-
     fy_lower_half: array_like
         relative flow flux at left boundary of each cell
-
     rho_init: array_like
         current values for density at each point on the road (midpoint of cell)
-
     y_init: array_like
         current values for relative flow at each point on the road (midpoint of cell)
 
@@ -255,6 +228,9 @@ def ARZ_update_points (fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_h
         y_next: array_like
             next relative flow values at each point on the road
     """
+    # time and cell step
+    step = dt / dx
+
     # updating density
     global rho_next
     rho_next = rho_init + (step * (fp_lower_half - fp_higher_half))
@@ -262,7 +238,7 @@ def ARZ_update_points (fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_h
     # updating relative flow
     # right hand side constant -> we use fsolve to find our roots
     global rhs
-    rhs = y_init + (step * (fy_lower_half - fy_higher_half)) + ((dt / tau) * ((rho_next * Ve(rho_next))))
+    rhs = y_init + (step * (fy_lower_half - fy_higher_half)) + ((dt / tau) * (rho_next * ve(rho_next)))
     x0 = y_init
     y_next = fsolve(myfun, x0)
 
@@ -287,7 +263,7 @@ def myfun(y_next):
     return func
 
 
-def Ve(density):
+def ve(density):
     """ Implement the 'Greenshields model for the equilibrium velocity'
 
     Fan, Shimao et al. “Comparative model accuracy of a data-fitted generalized Aw-Rascle-Zhang model.”
@@ -323,7 +299,7 @@ def u(density, y_value):
         velocity at every specified point on road
     """
 
-    return (y_value / density) + Ve(density)  # velocity function
+    return (y_value / density) + ve(density)  # velocity function
 
 
 class ARZ(gym.Env):
@@ -334,10 +310,8 @@ class ARZ(gym.Env):
     init : tuple -> (density, relative flow)
         density: array_like
             density data points on the road length with boundary conditions
-
         relative flow: array_ike
            relative flow data points on the road length with boundary conditions
-
         Note: at time = 0, init = initial density data
     boundary : tuple -> (double, double)
         left boundary condition
@@ -347,6 +321,7 @@ class ARZ(gym.Env):
 
     def __init__(self, initial_conditions, boundary_left):
         """Initialize the LWR model.
+
            Parameters
            ----------
            initial_conditions : tuple -> (density, relative flow)
@@ -361,10 +336,12 @@ class ARZ(gym.Env):
 
     def step(self, rl_actions):
         """Advance the simulation by a single step.
+
         Parameters
         ----------
         rl_actions : int or array_like
             actions to be performed by the agent
+
         Returns
         -------
         array_like
@@ -383,12 +360,13 @@ class ARZ(gym.Env):
         info_dict = {}
 
         # advance the state of the simulation by one step
-        self.obs = ARZ_Solve(self.obs, rl_actions, self.boundary)
+        self.obs = arz_solve(self.obs, rl_actions, self.boundary)
 
         return obs, rew, done, info_dict
 
     def reset(self):
         """Reset the environment.
+
         Returns
         -------
         tuple -> (array_like, array_like)
@@ -402,55 +380,88 @@ class ARZ(gym.Env):
 
 
 if __name__ == '__main__':
+    """ Run our environment.
 
-    global L, N, dx, CFL, dt, x, tau, rho_max, u_max, u_r, u_l
-    # define variables, parameters and functions
-    # PARAMETERS
-    rho_max = 1  # maximum_density
-    u_max = 1  # maximum velocity
-    #  length of road
+    Parameters to be set are:
+    -------------------------
+    L : double
+        Length of Road    
+    N : double
+        Spacial Grid Resolution (number of points we need on street)
+    CFL: double
+        CFL Condition (dictates the speed of information travel)
+        Note: must be between 0 and 1
+    u_max: double
+        maximum velocity
+    rho_max: double
+        maximum density
+    U: (array_like, array_like)
+        initial data
+    u_r: (double, double)
+        right boundary data
+    u_l: (double, double)
+        left boundary condition
+    tau: double
+        time needed to adjust velocity from u to Ve (equilibrium Velocity)
+
+    """
+
+    # maximum_density
+    rho_max = 1
+
+    # maximum velocity
+    u_max = 1
+
+    # length of road
     L = 1
-    N = 100  # spacial grid resolution /  cell space should be atleast n = 300
-    dx = L / N
-    # CFL condition--must becloser to or equal to 1 (dictactes the speed of information travel)
+
+    # spacial grid resolution /  cell space should be atleast n = 300
+    N = 100
+
+    # CFL condition
     CFL = 0.99
-    dt = CFL * dx / u_max
-    # scaling -- points on street we are plotting against
+
+    # change in length and points on road we are plotting against
+    dx = L / N
     x = np.arange(0.5 * dx, (L - 0.5 * dx), dx)
+
+    # dt = change in time
+    dt = CFL * dx / u_max
+
     # time needed to adjust velocity from u to Ve
     tau = 0.1
 
-    ########
-    # initial_data
-    # Density
+    # density initial_data
     rho_L_side = 0.5 * (x < max(x) / 2)
     rho_R_side = 0.5 * (x > max(x) / 2)
 
-    # Velocity
+    # velocity initial_data
     u_L_side = 0.7 * (x < max(x) / 2)
     u_R_side = 0.1 * (x > max(x) / 2)
 
-    u_data_rho_rho = rho_L_side + rho_R_side  # density
-    u_data_rho_velocity = u_L_side + u_R_side  # velocity
-    # Calculate relative flow
-    y_vector = (u_data_rho_rho * (u_data_rho_velocity - Ve(u_data_rho_rho)))
+    u_data_rho_rho = rho_L_side + rho_R_side
+    u_data_rho_velocity = u_L_side + u_R_side
 
+    # calculate relative flow (transform u to y)
+    y_vector = (u_data_rho_rho * (u_data_rho_velocity - ve(u_data_rho_rho)))
 
-
+    # full initial data
     initial_data = u_data_rho_rho, y_vector
-    # Boundary conditions
+
+    # right and left boundary conditions
     u_l = boundary_left(initial_data)
     u_r = boundary_right(initial_data)
 
     env = ARZ(initial_data, u_l)
 
+    # run a single roll out of the environment
     obs = env.reset()
 
     for _ in range(50):
-        action = u_r
+        action = u_r  # agent.compute(obs)
         obs, rew, done, _ = env.step(action)
-        # density plot
-        # our initial data vector = [density ; relative flow]
+
+        # plot current profile during execution
         plt.plot(x, env.obs[0], 'b-')
         plt.axis([0, L, 0.4, 0.8])
         plt.draw()
