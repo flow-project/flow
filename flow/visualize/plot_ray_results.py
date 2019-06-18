@@ -9,7 +9,7 @@ If no column is specified, all existing columns will be printed.
 Example usage
 -----
 ::
-    python ray_plot_progress.py </path/to/file>.csv mean_reward max_reward
+    python plot_ray_results.py </path/to/file>.csv mean_reward max_reward
 """
 
 import csv
@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 
 
-EXAMPLE_USAGE = 'ray_plot_progress.py ' + \
+EXAMPLE_USAGE = 'plot_ray_results.py ' + \
     '~/ray_results/experiment-tag/experiment-name/seed-id/progress.csv ' + \
     'evaluation/return-average training/return-average'
 
