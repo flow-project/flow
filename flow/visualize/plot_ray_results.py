@@ -43,14 +43,15 @@ def plot_progress(filepath, columns):
                 for col in columns:
                     data[col].append(float(row[col]))
         except KeyError:
-            print(f'Error: {__file__} was called with an unknown column name '
-                  f'"{col}". Run `python {__file__} {filepath}` to get a list '
-                  f'of all the existing columns.')
+            print('Error: {} was called with an unknown '.format(__file__)
+                  'column name "{}". Run `python '.format(col)
+                  '{} {}`to get a list'.format(__file__, filepath)
+                  'of all the existing columns.')
             raise
         except ValueError:
-            print(f'Error: {__file__} was called with an invalid column name '
-                  f'"{col}". This column contains values that are not '
-                  f'convertible to floats.')
+            print('Error: {} was called with an invalid '.format(__file__)
+                  'column name "{}". This column contains values '.format(col)
+                  'that are not convertible to floats.')
             raise
 
     for col_name, values in data.items():
