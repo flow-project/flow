@@ -78,11 +78,11 @@ def get_flow_params(col_num, row_num, additional_net_params):
 
     inflow = InFlows()
     outer_edges = gen_edges(col_num, row_num)
-    for i in range(len(outer_edges)):
+    for i in range(len(outer_edges)-2):
         inflow.add(
             veh_type='idm',
             edge=outer_edges[i],
-            probability=0.005,
+            probability=0.25,
             departLane='free',
             departSpeed=20)
 

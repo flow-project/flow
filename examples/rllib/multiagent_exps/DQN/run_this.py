@@ -54,8 +54,8 @@ def create_grid_env(render=None):
     num_agents = N_ROWS * N_COLUMNS
     num_cars_left = 20
     num_cars_right = 20
-    num_cars_top = 20
-    num_cars_bot = 20
+    num_cars_top = 0
+    num_cars_bot = 0
     
     tot_cars = (num_cars_left + num_cars_right) * N_COLUMNS \
         + (num_cars_top + num_cars_bot) * N_ROWS
@@ -136,6 +136,7 @@ def run_grid(writer, file):
         if episode % 100 == 0:
             writer.writerow(reward.values())
             file.flush()
+            print(reward)
 
         for agent_id in observation.keys():
             RL[agent_id].store_transition(observation[agent_id], action[agent_id], reward[agent_id], observation_[agent_id])
