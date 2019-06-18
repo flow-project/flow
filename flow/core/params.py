@@ -167,22 +167,22 @@ class TrafficLightParams:
             "duration": "31",
             "minDur": "8",
             "maxDur": "45",
-            "state": "GGGrrrGGGrrr"
+            "state": "GrGr"
         }, {
             "duration": "6",
             "minDur": "3",
             "maxDur": "6",
-            "state": "yyyrrryyyrrr"
+            "state": "yryr"
         }, {
             "duration": "31",
             "minDur": "8",
             "maxDur": "45",
-            "state": "rrrGGGrrrGGG"
+            "state": "rGrG"
         }, {
             "duration": "6",
             "minDur": "3",
             "maxDur": "6",
-            "state": "rrryyyrrryyy"
+            "state": "ryry"
         }]
 
         return {
@@ -333,9 +333,6 @@ class VehicleParams:
             # specify the type
             self.__vehicles[v_id]["type"] = veh_id
 
-            # specify the speed of vehicles at the start of a rollout
-            self.__vehicles[v_id]["initial_speed"] = initial_speed
-
             # update the number of vehicles
             self.num_vehicles += 1
             if acceleration_controller[0] == RLController:
@@ -348,9 +345,6 @@ class VehicleParams:
 
     def get_type(self, veh_id):
         return self.__vehicles[veh_id]["type"]
-
-    def get_initial_speed(self, veh_id):
-        return self.__vehicles[veh_id]["initial_speed"]
 
 
 class SimParams(object):
@@ -821,8 +815,8 @@ class SumoCarFollowingParams:
     def __init__(
             self,
             speed_mode='right_of_way',
-            accel=1.0,
-            decel=1.5,
+            accel=2.6,
+            decel=4.5,
             sigma=0.5,
             tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
             min_gap=2.5,

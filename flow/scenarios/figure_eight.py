@@ -77,15 +77,10 @@ class Figure8Scenario(Scenario):
         self.junction_len = 2.9 + 3.3 * net_params.additional_params["lanes"]
         self.inner_space_len = 0.28
 
-        # instantiate "length" in net params
-        net_params.additional_params["length"] = \
-            6 * self.ring_edgelen + 2 * self.intersection_len + \
-            2 * self.junction_len + 10 * self.inner_space_len
-
-        self.radius_ring = net_params.additional_params["radius_ring"]
-        self.length = net_params.additional_params["length"]
-        self.lanes = net_params.additional_params["lanes"]
-        self.resolution = net_params.additional_params["resolution"]
+        # # instantiate "length" in net params
+        # net_params.additional_params["length"] = \
+        #     6 * self.ring_edgelen + 2 * self.intersection_len + \
+        #     2 * self.junction_len + 10 * self.inner_space_len
 
         super().__init__(name, vehicles, net_params, initial_config,
                          traffic_lights)
@@ -252,7 +247,7 @@ class Figure8Scenario(Scenario):
         """See base class."""
         internal_edgestarts = [
             (":bottom", 0),
-            (":center_{}".format(self.lanes),
+            (":center_{}".format(self.net_params.additional_params['lanes']),
              self.intersection_len / 2 + self.inner_space_len),
             (":top", self.intersection_len + self.junction_len +
              self.inner_space_len),
