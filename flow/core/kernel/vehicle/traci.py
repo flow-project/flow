@@ -401,6 +401,7 @@ class TraCIVehicle(KernelVehicle):
         return self.__vehicles[veh_id]["type"]
 
     def get_initial_speed(self, veh_id):
+        """Return the intiial speed of the vehicle of veh_id."""
         return self.__vehicles[veh_id]["initial_speed"]
 
     def get_ids(self):

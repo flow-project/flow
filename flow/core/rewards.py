@@ -1,10 +1,10 @@
-"""This script contains of series of reward functions."""
+"""A series of reward functions."""
 
 import numpy as np
 
 
 def desired_velocity(env, fail=False, edge_list=None):
-    """Encourage proximity to a desired velocity.
+    r"""Encourage proximity to a desired velocity.
 
     This function measures the deviation of a system of vehicles from a
     user-specified desired velocity peaking when all vehicles in the ring
@@ -60,6 +60,24 @@ def desired_velocity(env, fail=False, edge_list=None):
 
 
 def average_velocity(env, fail=False):
+    """Encourage proximity to an average velocity.
+
+    This reward function returns the average velocity of all
+    vehicles in the system.
+
+    Parameters
+    ----------
+    env : flow.envs.Env
+        the environment variable, which contains information on the current
+        state of the system.
+    fail : bool, optional
+        specifies if any crash or other failure occurred in the system
+
+    Returns
+    -------
+    float
+        reward value
+    """
     vel = np.array(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
 
     if any(vel < -100) or fail:
@@ -71,7 +89,7 @@ def average_velocity(env, fail=False):
 
 
 def rl_forward_progress(env, gain=0.1):
-    """A reward function used to reward the RL vehicles travelling forward.
+    """Rewared function used to reward the RL vehicles for travelling forward.
 
     Parameters
     ----------
@@ -92,12 +110,12 @@ def rl_forward_progress(env, gain=0.1):
 
 
 def boolean_action_penalty(discrete_actions, gain=1.0):
-    """Penalize boolean actions that indicate a switch"""
+    """Penalize boolean actions that indicate a switch."""
     return gain * np.sum(discrete_actions)
 
 
 def min_delay(env):
-    """A reward function used to encourage minimization of total delay.
+    """Reward function used to encourage minimization of total delay.
 
     This function measures the deviation of a system of vehicles from all the
     vehicles smoothly travelling at a fixed speed to their destinations.
@@ -131,7 +149,7 @@ def min_delay(env):
 
 
 def min_delay_unscaled(env):
-    """The average delay for all vehicles in the system
+    """Return the average delay for all vehicles in the system.
 
     Parameters
     ----------
@@ -160,7 +178,7 @@ def min_delay_unscaled(env):
 
 
 def penalize_standstill(env, gain=1):
-    """A reward function that penalizes vehicle standstill
+    """Reward function that penalizes vehicle standstill.
 
     Is it better for this to be:
         a) penalize standstill in general?
@@ -187,6 +205,22 @@ def penalize_standstill(env, gain=1):
 
 
 def penalize_near_standstill(env, thresh=0.3, gain=1):
+    """Reward function which penalizes vehicles at a low velocity.
+
+    This reward function is used to penalize vehicles below a
+    specified threshold. This assists with discouraging RL from
+    gamifying a scenario, which can result in standstill behavior
+    or similarly bad, near-zero velocities.
+
+    Parameters
+    ----------
+    env : flow.envs.Env
+        the environment variable, which contains information on the current
+    thresh : float
+        the velocity threshold below which penalties are applied
+    gain : float
+        multiplicative factor on the action penalty
+    """
     veh_ids = env.k.vehicle.get_ids()
     vel = np.array(env.k.vehicle.get_speed(veh_ids))
     penalize = len(vel[vel < thresh])
@@ -199,7 +233,7 @@ def penalize_headway_variance(vehicles,
                               normalization=1,
                               penalty_gain=1,
                               penalty_exponent=1):
-    """A reward function used to train rl vehicles to encourage large headways
+    """Reward function used to train rl vehicles to encourage large headways.
 
     Parameters
     ----------
