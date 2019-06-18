@@ -149,9 +149,10 @@ class TrafficLightParams:
         return self.__tls_properties
 
     def actuated_default(self):
-        """
-        Return the default values to be used for the scenario
-        for a system where all junctions are actuated traffic lights.
+        """Return the default values for an actuated scenario.
+
+        An actuated scenario is a scenario for a system where
+        all junctions are actuated traffic lights.
 
         Returns
         -------
@@ -344,6 +345,13 @@ class VehicleParams:
         self.types.append({"veh_id": veh_id, "type_params": type_params})
 
     def get_type(self, veh_id):
+        """Return the type of a specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str
+            vehicle ID whose type the user is querying
+        """
         return self.__vehicles[veh_id]["type"]
 
 
@@ -404,9 +412,9 @@ class SimParams(object):
         self.show_radius = show_radius
 
 
-class AimsunParams(SimParams):
+class AimsunParams(SimParams):    
     """Aimsun-specific simulation parameters.
-
+    
     Extends SimParams.
 
     Parameters
@@ -460,6 +468,7 @@ class AimsunParams(SimParams):
         the objects contained in this subnetwork. If set to None or if the
         specified subnetwork does not exist, the whole network will be loaded.
     """
+    
     def __init__(self,
                  sim_step=0.1,
                  render=False,
