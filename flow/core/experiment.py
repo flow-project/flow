@@ -85,6 +85,19 @@ class Experiment:
         info_dict : dict
             contains returns, average speed per step
         """
+        # raise an error if convert_to_csv is set to True but no emission
+        # file will be generated, to avoid getting an error at the end of the
+        # simulation
+        if convert_to_csv and self.env.sim_params.emission_path is None:
+            raise ValueError(
+                'The experiment was run with convert_to_csv set '
+                'to True, but no emission file will be generated. If you wish '
+                'to generate an emission file, you should set the parameter '
+                'emission_path in the simulation parameters (SumoParams or '
+                'AimsunParams) to the path of the folder where emissions '
+                'output should be generated. If you do not wish to generate '
+                'emissions, set the convert_to_csv parameter to False.')
+
         info_dict = {}
         if rl_actions is None:
             def rl_actions(*_):
