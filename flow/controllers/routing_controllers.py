@@ -21,7 +21,11 @@ class ContinuousRouter(BaseRouter):
         edge = env.k.vehicle.get_edge(self.veh_id)
         current_route = env.k.vehicle.get_route(self.veh_id)
 
-        if edge == current_route[-1]:
+        if len(current_route) == 0:
+            # this occurs to inflowing vehicles, whose information is not added
+            # to the subscriptions in the first step that they departed
+            return None
+        elif edge == current_route[-1]:
             # choose one of the available routes based on the fraction of times
             # the given route can be chosen
             num_routes = len(env.available_routes[edge])
@@ -74,13 +78,15 @@ class GridRouter(BaseRouter):
     """A router used to re-route a vehicle within a grid environment."""
 
     def choose_route(self, env):
-        if env.k.vehicle.get_edge(self.veh_id) == \
+        if len(env.k.vehicle.get_route(self.veh_id)) == 0:
+            # this occurs to inflowing vehicles, whose information is not added
+            # to the subscriptions in the first step that they departed
+            return None
+        elif env.k.vehicle.get_edge(self.veh_id) == \
                 env.k.vehicle.get_route(self.veh_id)[-1]:
-            new_route = [env.k.vehicle.get_edge(self.veh_id)]
+            return [env.k.vehicle.get_edge(self.veh_id)]
         else:
-            new_route = None
-
-        return new_route
+            return None
 
 
 class BayBridgeRouter(ContinuousRouter):

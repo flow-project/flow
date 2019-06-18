@@ -22,15 +22,15 @@ USE_INFLOWS = False
 EDGE_INFLOW = 300
 
 
-def gen_edges(row_num, col_num):
+def gen_edges(col_num, row_num):
     """Define the names of all edges in the network.
 
     Parameters
     ----------
-    row_num : int
-        number of rows of edges in the grid
     col_num : int
         number of columns of edges in the grid
+    row_num : int
+        number of rows of edges in the grid
 
     Returns
     -------
@@ -160,7 +160,12 @@ def run_task(*_):
         veh_id="idm",
         acceleration_controller=(SimCarFollowingController, {}),
         car_following_params=SumoCarFollowingParams(
-            min_gap=2.5, tau=1.1, max_speed=V_ENTER, speed_mode="all_checks"),
+            min_gap=2.5,
+            tau=1.1,
+            max_speed=V_ENTER,
+            decel=7.5,  # avoid collisions at emergency stops
+            speed_mode="all_checks"
+        ),
         routing_controller=(GridRouter, {}),
         num_vehicles=tot_cars)
 
