@@ -574,23 +574,30 @@ class Scenario(Serializable):
           that vehicles will choose that route. Note that, in this case, the
           sum of probability values for each dictionary key must sum up to one.
 
-          For example, modifying the code snippet we presented above, another
-          valid way of representing the route in a more probabilistic setting
-          is:
+          For example, if we were to imagine the edge "right" in the ring road
+          examples where split into two edges, "right_0" and "right_1", the
+          routes for vehicles in this network in the probabilistic setting can
+          be:
 
           >>> def specify_routes(self, net_params):
           >>>     return {
           >>>         "top": [
-          >>>             (["top", "left", "bottom", "right"], 1)
+          >>>             (["top", "left", "bottom", "right_0"], 0.9),
+          >>>             (["top", "left", "bottom", "right_1"], 0.1)
           >>>         ],
           >>>         "left": [
-          >>>             (["left", "bottom", "right", "top"], 1)
+          >>>             (["left", "bottom", "right_0", "top"], 0.3),
+          >>>             (["left", "bottom", "right_1", "top"], 0.7)
           >>>         ],
           >>>         "bottom": [
-          >>>             (["bottom", "right", "top", "left"], 1)
+          >>>             (["bottom", "right_0", "top", "left"], 0.5),
+          >>>             (["bottom", "right_1", "top", "left"], 0.5)
           >>>         ],
-          >>>         "right": [
-          >>>             (["right", "top", "left", "bottom"], 1)
+          >>>         "right_0": [
+          >>>             (["right_0", "top", "left", "bottom"], 1)
+          >>>         ],
+          >>>         "right_1": [
+          >>>             (["right_1", "top", "left", "bottom"], 1)
           >>>         ]
           >>>     }
 
@@ -601,8 +608,8 @@ class Scenario(Serializable):
           as soon as it is introduced to the network.
 
           As an example, assume we have 4 vehicles named 'human_0', 'human_1',
-          'human_2', and 'human_3'. Then, an appropriate definition of the
-          routes may look something like:
+          'human_2', and 'human_3' in the original ring road. Then, an
+          appropriate definition of the routes may look something like:
 
           >>> def specify_routes(self, net_params):
           >>>     return {
