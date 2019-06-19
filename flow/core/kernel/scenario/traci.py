@@ -7,6 +7,7 @@ import os
 import subprocess
 import xml.etree.ElementTree as ElementTree
 from lxml import etree
+from copy import deepcopy
 
 E = etree.Element
 
@@ -746,23 +747,54 @@ class TraCIScenario(KernelScenario):
                               'http://sumo.dlr.de/xsd/routes_file.xsd')
 
         # add the routes to the .add.xml file
-        for (edge, rt) in routes.items():
-            routes_data.append(E(
-                'route',
-                id='route{}'.format(edge),
-                edges=' '.join(rt)))
+        for route_id in routes.keys():
+            # in this case, we only have one route, convert into into a
+            # list of routes with one element
+            if isinstance(routes[route_id][0], str):
+                routes[route_id] = [(routes[route_id], 1)]
+
+            # add each route incrementally, and add a second term to denote
+            # the route number of the given route at the given edge
+            for i in range(len(routes[route_id])):
+                r, _ = routes[route_id][i]
+                routes_data.append(E(
+                    'route',
+                    id='route{}_{}'.format(route_id, i),
+                    edges=' '.join(r)
+                ))
 
         # add the inflows from various edges to the xml file
         if self.network.net_params.inflows is not None:
             total_inflows = self.network.net_params.inflows.get()
-            for inflow in total_inflows:
+            for next_inflow in total_inflows:
+                # do not want to affect the original values
+                inflow = deepcopy(next_inflow)
+
+                # convert any non-string element in the inflow dict to a string
                 for key in inflow:
                     if not isinstance(inflow[key], str):
                         inflow[key] = repr(inflow[key])
-                    if key == 'edge':
-                        inflow['route'] = 'route{}'.format(inflow['edge'])
-                        del inflow['edge']
-                routes_data.append(_flow(**inflow))
+
+                # get the name of the edge the inflows correspond to, and the
+                # total inflow rate of the specific inflow
+                edge = deepcopy(inflow['edge'])
+                if 'vehsPerHour' in inflow:
+                    flag, rate = 0, float(inflow['vehsPerHour'])
+                else:
+                    flag, rate = 1, float(inflow['probability'])
+                del inflow['edge']
+
+                # distribute the inflow rates across all routes from a given
+                # edge on the basis of the provided fractions for each route
+                for i in range(len(routes[edge])):
+                    _, frac = routes[edge][i]
+                    inflow['route'] = 'route{}_{}'.format(edge, i)
+                    if flag:
+                        inflow['probability'] = str(rate * frac)
+                    else:
+                        inflow['vehsPerHour'] = str(rate * frac)
+
+                    routes_data.append(_flow(**inflow))
 
         printxml(routes_data, self.cfg_path + self.roufn)
 
