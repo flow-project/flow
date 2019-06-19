@@ -1,7 +1,6 @@
-import random
-
 """Contains a list of custom routing controllers."""
 
+import random
 from flow.controllers.base_routing_controller import BaseRouter
 
 
@@ -64,6 +63,7 @@ class GridRouter(BaseRouter):
     """A router used to re-route a vehicle within a grid environment."""
 
     def choose_route(self, env):
+        """See parent class."""
         if len(env.k.vehicle.get_route(self.veh_id)) == 0:
             # this occurs to inflowing vehicles, whose information is not added
             # to the subscriptions in the first step that they departed

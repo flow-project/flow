@@ -90,7 +90,7 @@ PERIOD = 10.0
 
 
 class BottleneckEnv(Env):
-    """Abstract bottleneck environment
+    """Abstract bottleneck environment.
 
     This environment is used as a simplified representation of the toll booth
     portion of the bay bridge. Contains ramp meters, and a toll both.
@@ -312,6 +312,7 @@ class BottleneckEnv(Env):
                 node_id=TB_TL_ID, state=new_tl_state)
 
     def get_bottleneck_density(self, lanes=None):
+        """Return the density of the bottleneck."""
         bottleneck_ids = self.k.vehicle.get_ids_by_edge(['3', '4'])
         if lanes:
             veh_ids = [
@@ -343,7 +344,7 @@ class BottleneckEnv(Env):
             dtype=np.float32)
 
     def compute_reward(self, rl_actions, **kwargs):
-        """ Outflow rate over last ten seconds normalized to max of 1 """
+        """Outflow rate over last ten seconds normalized to max of 1."""
         reward = self.k.vehicle.get_outflow_rate(10 * self.sim_step) / \
             (2000.0 * self.scaling)
         return reward
@@ -354,8 +355,7 @@ class BottleneckEnv(Env):
 
 
 class BottleNeckAccelEnv(BottleneckEnv):
-    """Environment used to train vehicles to effectively pass through a
-    bottleneck.
+    """Environment used to train vehicles to pass through a bottleneck.
 
     States
         An observation is the edge position, speed, lane, and edge number of
@@ -379,7 +379,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
     Termination
         A rollout is terminated once the time horizon is reached.
-   """
+    """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         for p in ADDITIONAL_RL_ENV_PARAMS.keys():
@@ -581,7 +581,9 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
 
 class DesiredVelocityEnv(BottleneckEnv):
-    """Environment used to train vehicles to effectively pass through a
+    """DesiredVelocityEnv.
+    
+    Environment used to train vehicles to effectively pass through a
     bottleneck by specifying the velocity that RL vehicles should attempt to
     travel in certain regions of space
 
