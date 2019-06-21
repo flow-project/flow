@@ -6,7 +6,7 @@ import numpy as np
 import time
 import os
 
-from flow.core.util import emission_to_csv, generic_observations
+from flow.core.util import generic_observations
 
 
 class Experiment:
@@ -64,7 +64,12 @@ class Experiment:
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, num_steps, *args,rl_actions=None, convert_to_csv=False):
+    def run(self,
+            num_runs,
+            num_steps,
+            *args,
+            rl_actions=None,
+            convert_to_csv=False):
         """Run the given scenario for a set number of runs and steps per run.
 
         Parameters
@@ -145,10 +150,12 @@ class Experiment:
             attributes_for_observation = []
             if 'id' not in args:
                 attributes_for_observation.append('id')
-            else :
+            else:
                 for attr in args:
                     attributes_for_observation.append(attr)
 
-            generic_observations(emission_path, attr_list=attributes_for_observation,create_csv=True)
+            generic_observations(emission_path,
+                                 attr_list=attributes_for_observation,
+                                 create_csv=True)
 
         return info_dict

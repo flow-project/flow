@@ -7,10 +7,27 @@ import os
 from lxml import etree
 from xml.etree import ElementTree
 
-DEFAULT_ATTRIBUTE_LIST = ['CO', 'y', 'CO2', 'electricity', 'type', 'id', 
-                        'eclass', 'waiting', 'NOx', 'fuel', 'HC',
-                        'x', 'route', 'relative_position', 'noise',
-                        'angle', 'PMx', 'speed', 'edge_id', 'lane_number']
+DEFAULT_ATTRIBUTE_LIST = ['CO',
+                          'y',
+                          'CO2',
+                          'electricity',
+                          'type',
+                          'id',
+                          'eclass',
+                          'waiting',
+                          'NOx',
+                          'fuel',
+                          'HC',
+                          'x',
+                          'route',
+                          'relative_position',
+                          'noise',
+                          'angle',
+                          'PMx',
+                          'speed',
+                          'edge_id',
+                          'lane_number']
+
 
 def makexml(name, nsl):
     """Create an xml file."""
@@ -118,9 +135,11 @@ def new_emission_to_csv(emission_path, sorted_out_data, output_path=None):
         dict_writer.writerows(sorted_out_data)
 
 
-def generic_observations(emission_path, attr_list=DEFAULT_ATTRIBUTE_LIST, create_csv=False):
+def generic_observations(emission_path,
+                         attr_list=DEFAULT_ATTRIBUTE_LIST,
+                         create_csv=False):
     """
-    Immitates the existing 'emission_to_csv' function but only 
+    Immitates the existing 'emission_to_csv' function but only
     registers specific user defined observations.
 
     Paramters:
@@ -130,12 +149,12 @@ def generic_observations(emission_path, attr_list=DEFAULT_ATTRIBUTE_LIST, create
    + emission_path : str
         path to the emission file that should be converted
    + create_csv : boolean
-        whether or not to call the 'emission_to_csv' helper 
+        whether or not to call the 'emission_to_csv' helper
         function on user specified attributes.
-    Returns: 
+    Returns:
     --------
     out_data: dictionary
-            dictionary of user specified attributes located 
+            dictionary of user specified attributes located
             in the 'output_path' directory
     """
 
@@ -156,21 +175,25 @@ def generic_observations(emission_path, attr_list=DEFAULT_ATTRIBUTE_LIST, create
             try:
 
                 for elem in attr_list:
-                    out_data[-1]['time'] = t    
+                    out_data[-1]['time'] = t
                     if elem in ['type', 'id', 'eclass', 'route']:
                         out_data[-1][elem] = car.attrib[elem]
                     elif elem == 'edge_id':
-                        out_data[-1]['edge_id'] = car.attrib['lane'].rpartition('_')[0]
+                        out_data[-1]['edge_id'] =\
+                            car.attrib['lane'].rpartition('_')[0]
                     elif elem == 'lane_number':
                         out_data[-1]['lane_number'] = car.attrib['lane'].\
-                    rpartition('_')[-1]
- 
-                    else: out_data[-1][elem] = float(car.attrib[elem])
+                            rpartition('_')[-1]
+                    else:
+                        out_data[-1][elem] = float(car.attrib[elem])
             except KeyError:
                 del out_data[-1]
 
     if create_csv:
-        new_emission_to_csv(emission_path, sorted(out_data, key=lambda k: k['id']))
+        new_emission_to_csv(emission_path,
+                            sorted(out_data,
+                                   key=lambda k: k['id']))
         return sorted(out_data, key=lambda k: k['id'])
 
-    else: return sorted(out_data, key=lambda k: k['id'])
+    else:
+        return sorted(out_data, key=lambda k: k['id'])
