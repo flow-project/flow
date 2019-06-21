@@ -48,6 +48,7 @@ def emission_to_csv(emission_path, output_path=None):
         path to the csv file that will be generated, default is the same
         directory as the emission file, with the same name
     """
+
     parser = etree.XMLParser(recover=True)
     tree = ElementTree.parse(emission_path, parser=parser)
     root = tree.getroot()
@@ -102,7 +103,6 @@ def emission_to_csv(emission_path, output_path=None):
 --------
 '''
 def new_emission_to_csv(emission_path, sorted_out_data, output_path=None):
-
     # default output path
     if output_path is None:
         output_path = emission_path[:-3] + 'csv'
@@ -139,7 +139,7 @@ def generic_observations(attr_list, emission_to_csv=False):
 def generic_observations(emission_path, 
                         attr_list=['CO','y','CO2','electricity','type', 'id', 'eclass', 'waiting','NOx','fuel','HC',
                                                     'x', 'route','relative_position','noise','angle','PMx','speed','edge_id','lane_number'], 
-                        create_csv=False): 
+                        create_csv=False):
 
     if(all(type(n) is not str for n in attr_list)):
         raise TypeError
