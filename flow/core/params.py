@@ -1086,22 +1086,22 @@ class InFlows:
 
         Parameters
         ----------
-        veh_type: str
+        veh_type : str
             type of vehicles entering the edge, must match one of the types set
             in the Vehicles class.
-        edge: str
+        edge : str
             starting edge for vehicles in this inflow.
         name : str, optional
             prefix for inflow vehicles
-        begin: float, optional
+        begin : float, optional
             see Note
-        end: float, optional
+        end : float, optional
             see Note
-        vehs_per_hour: float, optional
+        vehs_per_hour : float, optional
             see vehsPerHour in Note
-        probability: float, optional
+        probability : float, optional
             see Note
-        kwargs: dict, optional
+        kwargs : dict, optional
             see Note
 
         Note
@@ -1110,7 +1110,6 @@ class InFlows:
         probability, number, as well as other vehicle type and routing
         parameters that may be added via \*\*kwargs, refer to:
         http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
-
         """
         # check for deprecations (vehsPerHour)
         if "vehsPerHour" in kwargs:

@@ -921,19 +921,10 @@ class TestDesiredVelocityEnv(unittest.TestCase):
 
         # reset the environment and get a new inflow rate
         env.reset()
-        expected_inflow = 1343.178  # just from checking the new inflow
+        expected_inflow = 1353.6  # just from checking the new inflow
 
-        # check that the first inflow rate is approximately 1500
-        for _ in range(500):
-            env.step(rl_actions=None)
-        self.assertAlmostEqual(
-            env.k.vehicle.get_inflow_rate(250)/expected_inflow, 1, 1)
-
-        # reset the environment and get a new inflow rate
-        env.reset()
-        expected_inflow = 1729.050  # just from checking the new inflow
-
-        # check that the new inflow rate is approximately as expected
+        # check that the first inflow rate is approximately what the seeded
+        # value expects it to be
         for _ in range(500):
             env.step(rl_actions=None)
         self.assertAlmostEqual(

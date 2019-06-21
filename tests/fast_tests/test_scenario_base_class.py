@@ -912,10 +912,10 @@ class TestDefaultRoutes(unittest.TestCase):
         # check the routes
         self.assertDictEqual(
             env.k.scenario.rts,
-            {"top": ["top"],
-             "bottom": ["bottom"],
-             "left": ["left"],
-             "right": ["right"]}
+            {"top": [(["top"], 1)],
+             "bottom": [(["bottom"], 1)],
+             "left": [(["left"], 1)],
+             "right": [(["right"], 1)]}
         )
 
 
