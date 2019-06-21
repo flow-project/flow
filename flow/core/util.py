@@ -7,6 +7,10 @@ import os
 from lxml import etree
 from xml.etree import ElementTree
 
+DEFAULT_ATTRIBUTE_LIST = ['CO', 'y', 'CO2', 'electricity', 'type', 'id', 
+                        'eclass', 'waiting', 'NOx', 'fuel', 'HC',
+                        'x', 'route', 'relative_position', 'noise',
+                        'angle', 'PMx', 'speed', 'edge_id', 'lane_number']
 
 def makexml(name, nsl):
     """Create an xml file."""
@@ -99,9 +103,8 @@ def emission_to_csv(emission_path, output_path=None):
         dict_writer = csv.DictWriter(output_file, keys)
         dict_writer.writeheader()
         dict_writer.writerows(out_data)
-'''
---------
-'''
+
+
 def new_emission_to_csv(emission_path, sorted_out_data, output_path=None):
     # default output path
     if output_path is None:
@@ -114,32 +117,27 @@ def new_emission_to_csv(emission_path, sorted_out_data, output_path=None):
         dict_writer.writeheader()
         dict_writer.writerows(sorted_out_data)
 
-'''
-Proposing the following function:
----------------------------------
 
-def generic_observations(attr_list, emission_to_csv=False): 
+def generic_observations(emission_path, attr_list=DEFAULT_ATTRIBUTE_LIST, create_csv=False):
     """
-    Immitates the existing 'emission_to_csv' function but only registers specific user defined observations.
+    Immitates the existing 'emission_to_csv' function but only 
+    registers specific user defined observations.
 
     Paramters:
     ----------
    + attr_list: list of strings
-            list of user specified attributes to watch over simulation time steps.
+        list of specified attributes to watch over simulation time steps.
    + emission_path : str
         path to the emission file that should be converted
    + create_csv : boolean
-        whether or not to call the 'emission_to_csv' helper function on user specified attributes.
+        whether or not to call the 'emission_to_csv' helper 
+        function on user specified attributes.
     Returns: 
     --------
     out_data: dictionary
-            dictionary of user specified attributes located in the 'output_path' directory
+            dictionary of user specified attributes located 
+            in the 'output_path' directory
     """
-'''
-def generic_observations(emission_path, 
-                        attr_list=['CO','y','CO2','electricity','type', 'id', 'eclass', 'waiting','NOx','fuel','HC',
-                                                    'x', 'route','relative_position','noise','angle','PMx','speed','edge_id','lane_number'], 
-                        create_csv=False):
 
     if(all(type(n) is not str for n in attr_list)):
         raise TypeError
