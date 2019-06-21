@@ -37,7 +37,12 @@ def sugiyama_example(render=None):
         veh_id="idm",
         acceleration_controller=(IDMController, {}),
         routing_controller=(ContinuousRouter, {}),
-        num_vehicles=22)
+        num_vehicles=1)
+    vehicles.add(
+        veh_id="rl",
+        acceleration_controller=(IDMController, {}),
+        routing_controller=(ContinuousRouter, {}),
+        num_vehicles=21)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
@@ -62,4 +67,4 @@ if __name__ == "__main__":
     exp = sugiyama_example()
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 1500)
+    exp.run(1, 20000)
