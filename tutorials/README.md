@@ -28,7 +28,7 @@ exercises, you may find the
 
 > **Note:** if, when running a notebook, you run into an error of the form
 > `ImportError: No module named flow.something`, this probably means that the
-> `flow` Conda environment is not active in the notebook. Go into the
+> `flow` Conda environment is not active in your notebook. Go into the
 > [Conda tab](https://stackoverflow.com/questions/38984238/how-to-set-a-default-environment-for-anaconda-jupyter)
 > and make sure that `flow` is selected. In case you don't have this Conda tab,
 > try running `conda install nb_conda` just after `source activate flow`,
