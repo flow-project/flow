@@ -199,6 +199,7 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
 
             observed_vehicle_ids = self.k_closest_to_intersection_edge(edges, self.num_closest_vehicles_onbound)
             # construct the reward for each agent
+            observed_vehicle_ids = [id for id in observed_vehicle_ids if id]
             reward = np.mean(self.k.vehicle.get_speed(observed_vehicle_ids))    # or:      reward = - rewards.avg_delay_specified_vehicles(self, observed_vehicle_ids)
             # each intersection is an agent, so we will make a dictionary that maps form "self.agent_name_prefix+'i'" to the reward of that agent.
             agent_reward_dict.update({agent_id: reward})
@@ -219,21 +220,21 @@ class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
         """
         if k < 0:
             raise IndexError("k must be greater than 0")
-        dists = []
+        ids = []
 
         def sort_lambda(veh_id):
             return self.get_distance_to_intersection(veh_id)
 
         for edge in edges:
             vehicles = self.k.vehicle.get_ids_by_edge(edge)
-            dist = sorted(
+            veh_ids_per_bound = sorted(
                 vehicles,
                 key=sort_lambda
             )
-            if len(dist) >= k: # we have more than k vehicles, and we need to cut
-                dists += dist[:k]
+            if len(veh_ids_per_bound) >= k: # we have more than k vehicles, and we need to cut
+                ids += veh_ids_per_bound[:k]
             else: # we have less than k vehicles, and we need to pad
-                padding = k - len(dist)
-                dists += (dist + [0]*padding)
+                padding = k - len(veh_ids_per_bound)
+                ids += (veh_ids_per_bound + [0]*padding)
 
-        return dists
+        return ids

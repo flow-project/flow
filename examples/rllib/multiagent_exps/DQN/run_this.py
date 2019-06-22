@@ -123,10 +123,11 @@ def run_grid(writer, file):
         # fresh env
         env.render()
         # add_travel_time_if_vehicle_departed()
-        if episode % 100 == 0:
+        if episode % 1 == 0:
             for agent_id in observation.keys():
                 # RL choose action based on observation
                 action[agent_id] = RL[agent_id].choose_action(observation[agent_id])
+
             
         
             # RL take action and get next observation and reward
