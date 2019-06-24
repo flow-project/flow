@@ -369,7 +369,7 @@ To install a containerized Flow stack, run:
 
 To access the docker container, go to the following URL and enter the default password `password`:
 ::
-    http://localhost:6901/vnc.html`
+    http://localhost:6901/vnc.html
 
 To use the Jupyter Notebook inside the container, run:
 ::
