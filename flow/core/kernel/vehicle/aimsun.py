@@ -7,7 +7,7 @@ from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
 
-import time
+# import time
 
 # colors for vehicles
 WHITE = (255, 255, 255)
@@ -119,7 +119,7 @@ class AimsunKernelVehicle(KernelVehicle):
                 veh_id = '{}_{}'.format(typ['veh_id'], i)
                 self.__vehicles[veh_id] = dict()
                 self.__vehicles[veh_id]['type'] = typ['veh_id']
-                self.__vehicles[veh_id]['type_name'] = typ['veh_id']  #FIXME
+                self.__vehicles[veh_id]['type_name'] = typ['veh_id']  # FIXME
                 self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
                 self.num_vehicles += 1
                 if typ['acceleration_controller'][0] == RLController:
