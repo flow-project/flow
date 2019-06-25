@@ -178,7 +178,7 @@ class AimsunKernelVehicle(KernelVehicle):
                 if aimsun_id in self._id_aimsun2flow:
                     self.remove(aimsun_id)
 
-        start = time.time()
+        # start = time.time()
 
         for veh_id in self.__ids:
             aimsun_id = self._id_flow2aimsun[veh_id]
@@ -271,7 +271,7 @@ class AimsunKernelVehicle(KernelVehicle):
 
                 self.__vehicles[veh_id]['headway'] = gap
 
-        end = time.time()
+        # end = time.time()
         # if len(self.__ids) > 0:
         #     print("update time per tracked vehicle (ms):",
         #           1000 * (end - start) / len(self.__ids))
