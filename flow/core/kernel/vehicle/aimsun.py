@@ -170,7 +170,7 @@ class AimsunKernelVehicle(KernelVehicle):
         for aimsun_id in added_vehicles:
             veh_type = self.kernel_api.get_vehicle_type_name(aimsun_id)
             if veh_type in self.tracked_vehicle_types:
-                self._add_departed(aimsun_id,veh_type)
+                self._add_departed(aimsun_id)
 
         # remove the exited vehicles if they were tracked
         if not reset:
@@ -276,10 +276,8 @@ class AimsunKernelVehicle(KernelVehicle):
         #     print("update time per tracked vehicle (ms):",
         #           1000 * (end - start) / len(self.__ids))
 
-    def _add_departed(self, aimsun_id, veh_type):
+    def _add_departed(self, aimsun_id):
         """See parent class."""
-        if veh_type not in self.type_parameters:
-            raise KeyError("Entering vehicle is not a valid type.")
         # get vehicle information from API
         static_inf_veh = self.kernel_api.get_vehicle_static_info(aimsun_id)
 
