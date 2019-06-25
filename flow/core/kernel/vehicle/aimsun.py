@@ -119,6 +119,7 @@ class AimsunKernelVehicle(KernelVehicle):
                 veh_id = '{}_{}'.format(typ['veh_id'], i)
                 self.__vehicles[veh_id] = dict()
                 self.__vehicles[veh_id]['type'] = typ['veh_id']
+                self.__vehicles[veh_id]['type_name'] = typ['veh_id']  #FIXME
                 self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
                 self.num_vehicles += 1
                 if typ['acceleration_controller'][0] == RLController:
@@ -600,6 +601,9 @@ class AimsunKernelVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_type(veh) for veh in veh_id]
         return self.__vehicles[veh_id]['type_name']
+
+    def get_initial_speed(self, veh_id):
+        return self.__vehicles[veh_id]["initial_speed"]
 
     def get_speed(self, veh_id, error=-1001):
         """See parent class."""
