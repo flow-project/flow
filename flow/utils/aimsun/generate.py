@@ -17,7 +17,6 @@ import json
 import numpy as np
 
 
-
 sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
                              'programming/Aimsun Next API/AAPIPython/Micro'))
 

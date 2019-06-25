@@ -25,7 +25,7 @@ def sugiyama_example(render=None):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a ring road.
     """
-    sim_params = AimsunParams(sim_step=0.1, render=True, emission_path='data')
+    sim_params = AimsunParams(sim_step=0.5, render=True, emission_path='data')
 
     if render is not None:
         sim_params.render = render
