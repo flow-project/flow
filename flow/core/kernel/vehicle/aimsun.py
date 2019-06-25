@@ -3,9 +3,9 @@ from flow.core.kernel.vehicle.base import KernelVehicle
 import collections
 import numpy as np
 from flow.utils.aimsun.struct import InfVeh
-# from flow.controllers.car_following_models import SimCarFollowingController
+from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
-# from flow.controllers.lane_change_controllers import SimLaneChangeController
+from flow.controllers.lane_change_controllers import SimLaneChangeController
 
 import time
 
@@ -79,7 +79,7 @@ class AimsunKernelVehicle(KernelVehicle):
         # note: vehicles added via the scenario (ie by calling the
         # add_vehicle function) will also be tracked, even if their
         # type is not specified here
-        self.tracked_vehicle_types = {"rl", "Car"}
+        self.tracked_vehicle_types = {"rl", "idm"}  # TODO maybe generic
 
         # all the vehicle tracking information that should be stored
         # for the tracked vehicles info that can be tracked:
@@ -125,10 +125,10 @@ class AimsunKernelVehicle(KernelVehicle):
                 if typ['acceleration_controller'][0] == RLController:
                     self.num_rl_vehicles += 1
 
-        for tracked_type in self.tracked_vehicle_types:
-            self.num_type[tracked_type] = 0
-            self.total_num_type[tracked_type] = 0
-            self.type_parameters[tracked_type] = {}
+        # for tracked_type in self.tracked_vehicle_types:
+        #     self.num_type[tracked_type] = 0
+        #     self.total_num_type[tracked_type] = 0
+        #     self.type_parameters[tracked_type] = {}
 
     def pass_api(self, kernel_api):
         """See parent class."""
@@ -157,10 +157,10 @@ class AimsunKernelVehicle(KernelVehicle):
 
         This is used to store an updated vehicle information object.
         """
-        for veh_type in self.tracked_vehicle_types:
-            print("- Type:", veh_type, ", count:",
-                  self.num_type[veh_type], ", total since start:",
-                  self.total_num_type[veh_type])
+        # for veh_type in self.tracked_vehicle_types:
+        #     print("- Type:", veh_type, ", count:",
+        #           self.num_type[veh_type], ", total since start:",
+        #           self.total_num_type[veh_type])
 
         # collect the entered and exited vehicle_ids
         added_vehicles = self.kernel_api.get_entered_ids()
@@ -170,7 +170,7 @@ class AimsunKernelVehicle(KernelVehicle):
         for aimsun_id in added_vehicles:
             veh_type = self.kernel_api.get_vehicle_type_name(aimsun_id)
             if veh_type in self.tracked_vehicle_types:
-                self._add_departed(aimsun_id)
+                self._add_departed(aimsun_id,veh_type)
 
         # remove the exited vehicles if they were tracked
         if not reset:
@@ -272,12 +272,14 @@ class AimsunKernelVehicle(KernelVehicle):
                 self.__vehicles[veh_id]['headway'] = gap
 
         end = time.time()
-        if len(self.__ids) > 0:
-            print("update time per tracked vehicle (ms):",
-                  1000 * (end - start) / len(self.__ids))
+        # if len(self.__ids) > 0:
+        #     print("update time per tracked vehicle (ms):",
+        #           1000 * (end - start) / len(self.__ids))
 
-    def _add_departed(self, aimsun_id):
+    def _add_departed(self, aimsun_id, veh_type):
         """See parent class."""
+        if veh_type not in self.type_parameters:
+            raise KeyError("Entering vehicle is not a valid type.")
         # get vehicle information from API
         static_inf_veh = self.kernel_api.get_vehicle_static_info(aimsun_id)
 
@@ -311,8 +313,7 @@ class AimsunKernelVehicle(KernelVehicle):
         # store an empty tracking info object
         self.__vehicles[veh_id]['tracking_info'] = InfVeh()
 
-        """
-        TODO
+        # TODO Nathan
         # specify the acceleration controller class
         accel_controller = \
             self.type_parameters[type_id]["acceleration_controller"]
@@ -350,7 +351,7 @@ class AimsunKernelVehicle(KernelVehicle):
 
         # set the "last_lc" parameter of the vehicle
         self.__vehicles[veh_id]["last_lc"] = -float("inf")
-        """
+
         self.__human_ids.append(veh_id)  # FIXME
 
         # make sure that the order of rl_ids is kept sorted
