@@ -28,7 +28,7 @@ class TraCIVehicle(KernelVehicle):
     def __init__(self,
                  master_kernel,
                  sim_params,
-                 *args,
+                 observation_list=None,
                  monitor_rl=False):
         """See parent class."""
         KernelVehicle.__init__(self, master_kernel, sim_params)
@@ -72,8 +72,8 @@ class TraCIVehicle(KernelVehicle):
 
         # list of observations to monitor
         self.monitored_observations = []
-        if args:
-            for _ in args:
+        if observation_list:
+            for _ in observation_list:
                 self.monitored_observations.append(_)
 
         # Monitor RL vehicles only or not
@@ -325,6 +325,7 @@ class TraCIVehicle(KernelVehicle):
                     This is the case of C + R' = Monitor
                     custom observations but for all cars
                 '''
+                print("list content: " + str(self.monitored_observations))
                 self.kernel_api.vehicle.subscribe(veh_id,
                                                   self.monitored_observations)
         else:

@@ -47,7 +47,7 @@ class Kernel(object):
     def __init__(self,
                  simulator,
                  sim_params,
-                 *args,
+                 observation_list=None,
                  monitor_rl=False):
         """Instantiate a Flow kernel object.
 
@@ -57,7 +57,7 @@ class Kernel(object):
             simulator type, must be one of {"traci"}
         sim_params : flow.core.params.SimParams
             simulation-specific parameters
-        *args : list
+        observation_list : list
             optional arguments to be specified when
             certain observations wish to be monitored
         monitor_rl : bool
@@ -73,10 +73,16 @@ class Kernel(object):
         if simulator == "traci":
             self.simulation = TraCISimulation(self)
             self.scenario = TraCIScenario(self, sim_params)
-            if args:
-                self.vehicle = TraCIVehicle(self, sim_params, args)
+            if observation_list:
+                self.vehicle = TraCIVehicle(self,
+                                            sim_params=sim_params,
+                                            observation_list=observation_list,
+                                            monitor_rl=monitor_rl)
             else:
-                self.vehicle = TraCIVehicle(self, sim_params)
+                self.vehicle = TraCIVehicle(self,
+                                            sim_params=sim_params,
+                                            monitor_rl=monitor_rl)
+
             self.traffic_light = TraCITrafficLight(self)
         elif simulator == 'aimsun':
             self.simulation = AimsunKernelSimulation(self)

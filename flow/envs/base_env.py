@@ -101,7 +101,7 @@ class Env(*classdef):
                  env_params,
                  sim_params,
                  scenario,
-                 *args,
+                 observation_list=None,
                  simulator='traci',
                  monitor_rl=False):
         """Initialize the environment class.
@@ -114,7 +114,7 @@ class Env(*classdef):
            see flow/core/params.py
         scenario : flow.scenarios.Scenario
             see flow/scenarios/base_scenario.py
-        *args : list
+        observation_list : list
             optional arguments to be specified when
             certain observations wish to be monitored
         simulator : str
@@ -158,10 +158,10 @@ class Env(*classdef):
         self.simulator = simulator
 
         # create the Flow kernel
-        if args:
-            self.k = Kernel(args,
-                            simulator=self.simulator,
-                            sim_params=sim_params)
+        if observation_list:
+            self.k = Kernel(simulator=self.simulator,
+                            sim_params=sim_params,
+                            observation_list=observation_list)
         else:
             self.k = Kernel(simulator=self.simulator,
                             sim_params=sim_params)
