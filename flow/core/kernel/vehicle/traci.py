@@ -27,7 +27,9 @@ class TraCIVehicle(KernelVehicle):
 
     def __init__(self,
                  master_kernel,
-                 sim_params):
+                 sim_params,
+                 *args,
+                 monitor_rl=False):
         """See parent class."""
         KernelVehicle.__init__(self, master_kernel, sim_params)
 
@@ -67,6 +69,15 @@ class TraCIVehicle(KernelVehicle):
         # number of vehicles to exit the network for every time-step
         self._num_arrived = []
         self._arrived_ids = []
+
+        # list of observations to monitor
+        self.monitored_observations = []
+        if args:
+            for _ in args:
+                self.monitored_observations.append(_)
+
+        # Monitor RL vehicles only or not
+        self.monitor_rl_vehicles = monitor_rl
 
     def initialize(self, vehicles):
         """Initialize vehicle state information.
@@ -276,12 +287,74 @@ class TraCIVehicle(KernelVehicle):
                 self.__controlled_lc_ids.append(veh_id)
 
         # subscribe the new vehicle
-        self.kernel_api.vehicle.subscribe(veh_id, [
-            tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
-            tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
-            tc.VAR_SPEED_WITHOUT_TRACI
-        ])
+        # OLD WAY
+        # ----
+        # if not self.monitored_observations:
+        #     # default case
+        #     self.kernel_api.vehicle.subscribe(veh_id, [
+        #         tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
+        #         tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
+        #         tc.VAR_SPEED_WITHOUT_TRACI
+        #     ])
+        # else:
+        #     # custom subscriptions
+        #     self.kernel_api.vehicle.subscribe(veh_id,
+        #                                       self.monitored_observations)
+
+        # subscribe the new vehicle
+        # NEW WAY
+        '''
+            Since we care about either specifying a custom list
+            of observations and/or monitoring RL vehicles only
+            we have 2**2 = 4 possible cases to tackle.
+            Let C = custom observations ; C' = regular observations
+            Let R = monitor only RL ; R' = monitor all cars
+        '''
+        if self.monitored_observations:
+            if self.monitor_rl_vehicles:
+                '''
+                    This is the case of C + R = Monitor custom
+                    RL observations
+                '''
+                if veh_id in self.get_rl_ids():
+                    self.kernel_api.vehicle.subscribe(
+                        veh_id,
+                        self.monitored_observations)
+            else:
+                '''
+                    This is the case of C + R' = Monitor
+                    custom observations but for all cars
+                '''
+                self.kernel_api.vehicle.subscribe(veh_id,
+                                                  self.monitored_observations)
+        else:
+            if self.monitor_rl_vehicles:
+                '''
+                    This is the case of C' + R = Monitor
+                    all observations but for RL cars only
+                '''
+                if veh_id in self.get_rl_ids():
+                    self.kernel_api.vehicle.subscribe(
+                        veh_id,
+                        [tc.VAR_LANE_INDEX,
+                         tc.VAR_LANEPOSITION,
+                         tc.VAR_ROAD_ID,
+                         tc.VAR_SPEED,
+                         tc.VAR_EDGES,
+                         tc.VAR_POSITION,
+                         tc.VAR_ANGLE,
+                         tc.VAR_SPEED_WITHOUT_TRACI])
+            '''
+                This is the case of C' + R' = Monitor
+                all observations for all cars (OLD WAY).
+            '''
+            self.kernel_api.vehicle.subscribe(veh_id, [
+                tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
+                tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
+                tc.VAR_SPEED_WITHOUT_TRACI
+            ])
         self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
+        # --
 
         # some constant vehicle parameters to the vehicles class
         self.__vehicles[veh_id]["length"] = self.kernel_api.vehicle.getLength(
@@ -306,14 +379,31 @@ class TraCIVehicle(KernelVehicle):
 
         # get initial state info
         self.__sumo_obs[veh_id] = dict()
-        self.__sumo_obs[veh_id][tc.VAR_ROAD_ID] = \
-            self.kernel_api.vehicle.getRoadID(veh_id)
-        self.__sumo_obs[veh_id][tc.VAR_LANEPOSITION] = \
-            self.kernel_api.vehicle.getLanePosition(veh_id)
-        self.__sumo_obs[veh_id][tc.VAR_LANE_INDEX] = \
-            self.kernel_api.vehicle.getLaneIndex(veh_id)
-        self.__sumo_obs[veh_id][tc.VAR_SPEED] = \
-            self.kernel_api.vehicle.getSpeed(veh_id)
+
+        try:
+            self.__sumo_obs[veh_id][tc.VAR_ROAD_ID] = \
+                self.kernel_api.vehicle.getRoadID(veh_id)
+            self.__sumo_obs[veh_id][tc.VAR_LANEPOSITION] = \
+                self.kernel_api.vehicle.getLanePosition(veh_id)
+            self.__sumo_obs[veh_id][tc.VAR_LANE_INDEX] = \
+                self.kernel_api.vehicle.getLaneIndex(veh_id)
+            self.__sumo_obs[veh_id][tc.VAR_SPEED] = \
+                self.kernel_api.vehicle.getSpeed(veh_id)
+        except KeyError:
+            '''
+                TODO :  This might not work because
+                        because Fangyu told me you can only
+                        subscribe once so must double check
+                        that this can be done.
+                        One way which would be a burden is to
+                        unsubscribe then resubscribe with default
+                        list of observations.
+            '''
+            self.kernel_api.vehicle.subscribe(veh_id, [
+                tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
+                tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
+                tc.VAR_SPEED_WITHOUT_TRACI
+            ])
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
@@ -352,6 +442,11 @@ class TraCIVehicle(KernelVehicle):
         self.num_vehicles = len(self.get_ids())
         self.num_rl_vehicles = len(self.get_rl_ids())
 
+    '''
+        TODO :  Make sure resubscribing methodology
+                works that way the below values should
+                be backwards compatible.
+    '''
     def test_set_speed(self, veh_id, speed):
         """Set the speed of the specified vehicle."""
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = speed
@@ -740,15 +835,15 @@ class TraCIVehicle(KernelVehicle):
                                          self.get_length(leader[lane]))
                     else:
                         leader[lane] = ids[index]
-                        headway[lane] = (positions[index] - this_pos
-                                         - self.get_length(leader[lane]))
+                        headway[lane] = (positions[index] - this_pos -
+                                         self.get_length(leader[lane]))
 
                 # you are in the back of the queue, the lane follower is in the
                 # edges behind you
                 if index > 0:
                     follower[lane] = ids[index - 1]
-                    tailway[lane] = (this_pos - positions[index - 1]
-                                     - self.get_length(veh_id))
+                    tailway[lane] = (this_pos - positions[index - 1] -
+                                     self.get_length(veh_id))
 
             # if lane leader not found, check next edges
             if leader[lane] == "":
