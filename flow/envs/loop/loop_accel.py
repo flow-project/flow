@@ -62,6 +62,7 @@ class AccelEnv(Env):
                  scenario,
                  simulator='traci',
                  observation_list=None):
+
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(

@@ -60,7 +60,13 @@ class TwoLoopsMergePOEnv(Env):
         vehicles.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self,
+                 env_params,
+                 sim_params,
+                 scenario,
+                 simulator='traci',
+                 observation_list=None):
+
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -75,7 +81,11 @@ class TwoLoopsMergePOEnv(Env):
         self.obs_var_labels = \
             ["speed", "pos", "queue_length", "velocity_stats"]
 
-        super().__init__(env_params, sim_params, scenario, simulator)
+        super().__init__(env_params=env_params,
+                         sim_params=sim_params,
+                         scenario=scenario,
+                         simulator=simulator,
+                         observation_list=observation_list)
 
     @property
     def observation_space(self):
