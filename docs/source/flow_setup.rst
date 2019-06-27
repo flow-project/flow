@@ -127,7 +127,7 @@ few seconds, a la (Sugiyama et al, 2008). This means that you have Flow
 properly configured with SUMO and Flow!
 
 
-Installing Aimsun
+(Optional) Installing Aimsun
 -----------------
 
 In addition to SUMO, Flow supports the use of the traffic simulator "Aimsun".
