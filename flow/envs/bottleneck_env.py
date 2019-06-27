@@ -101,13 +101,24 @@ class BottleneckEnv(Env):
         number of vehicles.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self,
+                 env_params,
+                 sim_params,
+                 scenario,
+                 simulator='traci',
+                 observation_list=None):
+
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter "{}" not supplied'.format(p))
 
-        super().__init__(env_params, sim_params, scenario, simulator)
+        super().__init__(env_params=env_params,
+                         sim_params=sim_params,
+                         scenario=scenario,
+                         simulator=simulator,
+                         observation_list=observation_list)
+
         env_add_params = self.env_params.additional_params
         # tells how scaled the number of lanes are
         self.scaling = scenario.net_params.additional_params.get("scaling", 1)
