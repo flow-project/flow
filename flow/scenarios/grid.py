@@ -164,14 +164,11 @@ class SimpleGridScenario(Scenario):
 
     def specify_nodes(self, net_params):
         """See parent class."""
-        nodes = []
-        nodes += self._build_inner_nodes()
-        nodes += self._build_outer_nodes()
-        return nodes
+        return self._inner_nodes + self._outer_nodes
 
     def specify_tll(self, net_params):
         """See parent class."""
-        return self._build_inner_nodes()
+        return self._inner_nodes
 
     def specify_edges(self, net_params):
         """See parent class."""
@@ -237,7 +234,8 @@ class SimpleGridScenario(Scenario):
     # ============ UTILS ============
     # ===============================
 
-    def _build_inner_nodes(self):
+    @property
+    def _inner_nodes(self):
         """Build out the inner nodes of the scenario.
 
         The inner nodes correspond to the intersections between the roads. They
@@ -276,7 +274,8 @@ class SimpleGridScenario(Scenario):
 
         return nodes
 
-    def _build_outer_nodes(self):
+    @property
+    def _outer_nodes(self):
         """Build out the outer nodes of the scenario.
 
         The outer nodes correspond to the extremities of the roads. There are
