@@ -114,7 +114,7 @@ class SimpleGridScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize an nxm grid scenario."""
+        """Initialize an n*m grid scenario."""
         optional = ["tl_logic"]
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params and p not in optional:
@@ -129,22 +129,32 @@ class SimpleGridScenario(Scenario):
         # the third dimension is vertical length, horizontal length
         self.grid_array = net_params.additional_params["grid_array"]
 
-        vertical_lanes = net_params.additional_params["vertical_lanes"]
-        horizontal_lanes = net_params.additional_params["horizontal_lanes"]
+        self.vertical_lanes = net_params.additional_params["vertical_lanes"]
+        self.horizontal_lanes = net_params.additional_params[
+            "horizontal_lanes"]
 
-        self.horizontal_junction_len = 2.9 + 3.3 * vertical_lanes
-        self.vertical_junction_len = 2.9 + 3.3 * horizontal_lanes
+        # radius of the inner nodes
+        self.inner_nodes_radius = 2.9 + 3.3 * max(self.vertical_lanes,
+                                                  self.horizontal_lanes)
+
         self.row_num = self.grid_array["row_num"]
         self.col_num = self.grid_array["col_num"]
         self.num_edges = (self.col_num+1) * self.row_num * 2 \
             + (self.row_num+1) * self.col_num * 2 + self.row_num * self.col_num
         self.inner_length = self.grid_array["inner_length"]
+
+        # vehicles spawn on short edge and exit on long edge
         self.short_length = self.grid_array["short_length"]
         self.long_length = self.grid_array["long_length"]
 
         # this is a dictionary containing inner length, long outer length,
         # short outer length, and number of rows and columns
         self.grid_array = net_params.additional_params["grid_array"]
+
+        # specifies whether or not there will be traffic lights at the
+        # intersections (True by default)
+        self.use_traffic_lights = net_params.additional_params.get(
+            "traffic_lights", True)
 
         self.node_mapping = defaultdict(list)
         self.name = "BobLoblawsLawBlog"  # DO NOT CHANGE
@@ -228,113 +238,112 @@ class SimpleGridScenario(Scenario):
     # ===============================
 
     def _build_inner_nodes(self):
-        """Build out the inner nodes of the system.
+        """Build out the inner nodes of the scenario.
 
-        The nodes are numbered from bottom left and increasing first across the
-        columns and then across the rows. For example, in a 3x3 grid, we will
-        have four inner nodes with the bottom left being 0, the bottom right
-        being 1, the top left being 2, the top right being 3. The coordinate of
-        the bottom left inner node is (0, 0).
+        The inner nodes correspond to the intersections between the roads. They
+        are numbered from bottom left, increasing first across the columns and
+        then across the rows.
 
-        Yields
+        For example, the nodes in a grid with 2 rows and 3 columns would be
+        indexed as follows:
+
+            |     |     |
+        --- 3 --- 4 --- 5 ---
+            |     |     |
+        --- 0 --- 1 --- 2 ---
+            |     |     |
+
+        The id of a node is then "center{index}", for instance "center0" for
+        node 0, "center1" for node 1 etc.
+
+        Returns
         ------
         list <dict>
             List of inner nodes
         """
-        lanes = max(self.net_params.additional_params["horizontal_lanes"],
-                    self.net_params.additional_params["vertical_lanes"])
-        tls = self.net_params.additional_params.get("traffic_lights", True)
-        node_type = "traffic_light" if tls else "priority"
-        row_num = self.grid_array["row_num"]
-        col_num = self.grid_array["col_num"]
-        inner_length = self.grid_array["inner_length"]
+        node_type = "traffic_light" if self.use_traffic_lights else "priority"
+
         nodes = []
-        # sweep up across columns
-        for i in range(row_num):
-            # sweep across rows
-            for j in range(col_num):
-                index = i * col_num + j
-                x_center = j * inner_length
-                y_center = i * inner_length
+        for row in range(self.row_num):
+            for col in range(self.col_num):
                 nodes.append({
-                    "id": "center" + str(index),
-                    "x": x_center,
-                    "y": y_center,
+                    "id": "center{}".format(row * self.col_num + col),
+                    "x": col * self.inner_length,
+                    "y": row * self.inner_length,
                     "type": node_type,
-                    "radius": (2.9 + 3.3 * lanes)/2,
+                    "radius": self.inner_nodes_radius
                 })
+
         return nodes
 
     def _build_outer_nodes(self):
-        """Build out the column nodes.
+        """Build out the outer nodes of the scenario.
 
-        There are two in each column below the bottom row, and two in each
-        column above the top row. They are numbered with regards to the column
-        they are in. The bottom are labeled "bot_col_short" and "bot_col_long".
-        Top are named similarly. We then repeat the same process for the outer
-        row nodes
+        The outer nodes correspond to the extremities of the roads. There are
+        two at each extremity, one where the vehicles enter the scenario
+        (inflow) and one where the vehicles exit the scenario (outflow).
 
-        Yields
+        Consider the following scenario with 2 rows and 3 columns, where the
+        extremities are marked by 'x', the rows are labeled from 0 to 1 and the
+        columns are labeled from 0 to 2:
+
+                     x         x         x
+                     |         |         |
+                     |         |         |
+        Row 1  x-----|---------|---------|-----x (*)
+                     |         |         |
+                     |         |         |
+                     |         |         |
+        Row 0  x-----|---------|---------|-----x
+                     |         |         |
+                     |         |         |
+                     x         x         x
+
+                  Column 0  Column 1  Column 2
+
+        On row i, there are two nodes at the left extremity of the row, labeled
+        "left_row_short{i}" and "left_row_long{i}", as well as two nodes at the
+        right extremity labeled "right_row_short{i}" and "right_row_long{i}".
+
+        On column j, there are two nodes at the bottom extremity of the column,
+        labeled "bot_col_short{j}" and "bot_col_long{j}", as well as two nodes
+        at the top extremity labeled "top_col_short{j}" and "top_col_long{j}".
+
+        The "short" nodes correspond to where vehicles enter the network while
+        the "long" nodes correspond to where vehicles exit the network.
+
+        For example, at extremity (*):
+        - the id of the input node is "right_row_short1"
+        - the id of the output node is "right_row_long1"
+
+        Returns
         ------
         list <dict>
-            List of column, row nodes
+            List of outer nodes
         """
-        col_num = self.grid_array["col_num"]
-        row_num = self.grid_array["row_num"]
-        inner_length = self.grid_array["inner_length"]
-        short_length = self.grid_array["short_length"]
-        long_length = self.grid_array["long_length"]
         nodes = []
-        for i in range(col_num):
-            # build the bottom nodes
-            nodes += [{
-                "id": "bot_col_short" + str(i),
-                "x": i * inner_length,
-                "y": -short_length,
-                "type": "priority"
-            }, {
-                "id": "bot_col_long" + str(i),
-                "x": i * inner_length,
-                "y": -long_length,
-                "type": "priority"
-            }]
-            # build the top nodes
-            nodes += [{
-                "id": "top_col_short" + str(i),
-                "x": i * inner_length,
-                "y": (row_num - 1) * inner_length + short_length,
-                "type": "priority"
-            }, {
-                "id": "top_col_long" + str(i),
-                "x": i * inner_length,
-                "y": (row_num - 1) * inner_length + long_length,
-                "type": "priority"
-            }]
-        for i in range(row_num):
-            # build the left nodes
-            nodes += [{
-                "id": "left_row_short" + str(i),
-                "x": -short_length,
-                "y": i * inner_length,
-                "type": "priority"
-            }, {
-                "id": "left_row_long" + str(i),
-                "x": -long_length,
-                "y": i * inner_length,
-                "type": "priority"
-            }]
-            # build the right nodes
-            nodes += [{
-                "id": "right_row_short" + str(i),
-                "x": (col_num - 1) * inner_length + short_length,
-                "y": i * inner_length,
-                "type": "priority"
-            }, {
-                "id": "right_row_long" + str(i),
-                "x": (col_num - 1) * inner_length + long_length,
-                "y": i * inner_length,
-                "type": "priority"
-            }]
+
+        def create_node(x, y, name, i):
+            return [{"id": name + str(i), "x": x, "y": y, "type": "priority"}]
+
+        # build nodes at the extremities of columns
+        for i in range(self.col_num):
+            x = i * self.inner_length
+            y = (self.row_num - 1) * self.inner_length
+            nodes += create_node(x, - self.short_length, "bot_col_short", i)
+            nodes += create_node(x, - self.long_length, "bot_col_long", i)
+            nodes += create_node(x, y + self.short_length, "top_col_short", i)
+            nodes += create_node(x, y + self.long_length, "top_col_long", i)
+
+        # build nodes at the extremity of rows
+        for i in range(self.row_num):
+            x = (self.col_num - 1) * self.inner_length
+            y = i * self.inner_length
+            nodes += create_node(- self.short_length, y, "left_row_short", i)
+            nodes += create_node(- self.long_length, y, "left_row_long", i)
+            nodes += create_node(x + self.short_length, y, "right_row_short", i)
+            nodes += create_node(x + self.long_length, y, "right_row_long", i)
+
         return nodes
 
     def _build_inner_edges(self):
