@@ -14,9 +14,9 @@ ADDITIONAL_NET_PARAMS = {
         "col_num": 2,
         # length of inner edges in the grid network
         "inner_length": None,
-        # length of edges that vehicles start on
+        # length of edges where vehicles enter the network
         "short_length": None,
-        # length of final edge in route
+        # length of edges where vehicles exit the network
         "long_length": None,
         # number of cars starting at the edges heading to the top
         "cars_top": 20,
@@ -34,9 +34,9 @@ ADDITIONAL_NET_PARAMS = {
     # speed limit for all edges, may be represented as a float value, or a
     # dictionary with separate values for vertical and horizontal lanes
     "speed_limit": {
-        "vertical": 35,
-        "horizontal": 35
-    },
+        "horizontal": 35,
+        "vertical": 35
+}
 }
 
 
@@ -130,6 +130,12 @@ class SimpleGridScenario(Scenario):
         self.v_lanes = net_params.additional_params["vertical_lanes"]
         self.h_lanes = net_params.additional_params["horizontal_lanes"]
         self.speed_limit = net_params.additional_params["speed_limit"]
+        if not isintance(self.speed_limit, dict):
+            self.speed_limit = {
+                "horizontal": self.speed_limit,
+                "vertical": self.speed_limit
+            }
+
         self.grid_array = net_params.additional_params["grid_array"]
         self.row_num = self.grid_array["row_num"]
         self.col_num = self.grid_array["col_num"]
@@ -190,26 +196,14 @@ class SimpleGridScenario(Scenario):
 
     def specify_types(self, net_params):
         """See parent class."""
-        add_params = net_params.additional_params
-        horizontal_lanes = add_params["horizontal_lanes"]
-        vertical_lanes = add_params["vertical_lanes"]
-        if isinstance(add_params["speed_limit"], int) or \
-                isinstance(add_params["speed_limit"], float):
-            speed_limit = {
-                "horizontal": add_params["speed_limit"],
-                "vertical": add_params["speed_limit"]
-            }
-        else:
-            speed_limit = add_params["speed_limit"]
-
         types = [{
             "id": "horizontal",
-            "numLanes": horizontal_lanes,
-            "speed": speed_limit["horizontal"]
+            "numLanes": self.horizontal_lanes,
+            "speed": self.speed_limit["horizontal"]
         }, {
             "id": "vertical",
-            "numLanes": vertical_lanes,
-            "speed": speed_limit["vertical"]
+            "numLanes": self.vertical_lanes,
+            "speed": self.speed_limit["vertical"]
         }]
 
         return types
