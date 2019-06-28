@@ -36,7 +36,7 @@ ADDITIONAL_NET_PARAMS = {
     "speed_limit": {
         "horizontal": 35,
         "vertical": 35
-}
+    }
 }
 
 
@@ -511,10 +511,10 @@ class SimpleGridScenario(Scenario):
                 top_node_id = "{}_{}".format(i + 1, j)
 
                 conn = []
-                for lane in range(self.vertical_lanes):
+                for lane in range(self.v_lanes):
                     conn += new_con("bot", node_id, right_node_id, lane, 1)
                     conn += new_con("top", right_node_id, node_id, lane, 1)
-                for lane in range(self.horizontal_lanes):
+                for lane in range(self.h_lanes):
                     conn += new_con("right", node_id, top_node_id, lane, 2)
                     conn += new_con("left", top_node_id, node_id, lane, 2)
 
@@ -523,9 +523,7 @@ class SimpleGridScenario(Scenario):
 
         return con_dict
 
-    # TODO this method doesn't seem to be used anywhere
-    # also true for all other scenarios where it is implemented
-    # TODO make this make any sense at all
+    # TODO necessary?
     def specify_edge_starts(self):
         """See parent class.
 
@@ -535,7 +533,7 @@ class SimpleGridScenario(Scenario):
         edgestarts = []
         for i in range(self.col_num + 1):
             for j in range(self.row_num + 1):
-                index = str(j) + '_' + str(i)
+                index = "{}_{}".format(j, i)
                 edgestarts += [("left" + index, 0 + i * 50 + j * 5000),
                                ("right" + index, 10 + i * 50 + j * 5000),
                                ("top" + index, 15 + i * 50 + j * 5000),
@@ -543,6 +541,7 @@ class SimpleGridScenario(Scenario):
 
         return edgestarts
 
+    # TODO necessary?
     @staticmethod
     def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
         """See parent class."""
