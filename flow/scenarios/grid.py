@@ -249,7 +249,7 @@ class SimpleGridScenario(Scenario):
         node 0, "center1" for node 1 etc.
 
         Returns
-        ------
+        -------
         list <dict>
             List of inner nodes
         """
@@ -280,19 +280,14 @@ class SimpleGridScenario(Scenario):
         extremities are marked by 'x', the rows are labeled from 0 to 1 and the
         columns are labeled from 0 to 2:
 
-                     x         x         x
-                     |         |         |
-                     |         |         |
-        Row 1  x-----|---------|---------|-----x (*)
-                     |         |         |
-                     |         |         |
-                     |         |         |
-        Row 0  x-----|---------|---------|-----x
-                     |         |         |
-                     |         |         |
-                     x         x         x
-
-                  Column 0  Column 1  Column 2
+                 x     x     x
+                 |     |     |
+        (1) x----|-----|-----|----x (*)
+                 |     |     |
+        (0) x----|-----|-----|----x
+                 |     |     |
+                 x     x     x
+                (0)   (1)   (2)
 
         On row i, there are two nodes at the left extremity of the row, labeled
         "left_row_short{i}" and "left_row_long{i}", as well as two nodes at the
@@ -305,240 +300,206 @@ class SimpleGridScenario(Scenario):
         The "short" nodes correspond to where vehicles enter the network while
         the "long" nodes correspond to where vehicles exit the network.
 
-        For example, at extremity (*):
+        For example, at extremity (*) on row (1):
         - the id of the input node is "right_row_short1"
         - the id of the output node is "right_row_long1"
 
         Returns
-        ------
+        -------
         list <dict>
             List of outer nodes
         """
         nodes = []
 
-        def create_node(x, y, name, i):
+        def new_node(x, y, name, i):
             return [{"id": name + str(i), "x": x, "y": y, "type": "priority"}]
 
         # build nodes at the extremities of columns
-        for i in range(self.col_num):
-            x = i * self.inner_length
+        for col in range(self.col_num):
+            x = col * self.inner_length
             y = (self.row_num - 1) * self.inner_length
-            nodes += create_node(x, - self.short_length, "bot_col_short", i)
-            nodes += create_node(x, - self.long_length, "bot_col_long", i)
-            nodes += create_node(x, y + self.short_length, "top_col_short", i)
-            nodes += create_node(x, y + self.long_length, "top_col_long", i)
+            nodes += new_node(x, - self.short_length, "bot_col_short", col)
+            nodes += new_node(x, - self.long_length, "bot_col_long", col)
+            nodes += new_node(x, y + self.short_length, "top_col_short", col)
+            nodes += new_node(x, y + self.long_length, "top_col_long", col)
 
-        # build nodes at the extremity of rows
-        for i in range(self.row_num):
+        # build nodes at the extremities of rows
+        for row in range(self.row_num):
             x = (self.col_num - 1) * self.inner_length
-            y = i * self.inner_length
-            nodes += create_node(- self.short_length, y, "left_row_short", i)
-            nodes += create_node(- self.long_length, y, "left_row_long", i)
-            nodes += create_node(x + self.short_length, y, "right_row_short", i)
-            nodes += create_node(x + self.long_length, y, "right_row_long", i)
+            y = row * self.inner_length
+            nodes += new_node(- self.short_length, y, "left_row_short", row)
+            nodes += new_node(- self.long_length, y, "left_row_long", row)
+            nodes += new_node(x + self.short_length, y, "right_row_short", row)
+            nodes += new_node(x + self.long_length, y, "right_row_long", row)
 
         return nodes
 
     @property
     def _inner_edges(self):
+        """Build out the inner edges of the scenario.
 
-        First we build all of the column edges. For the upper edge, it would be
-        called right_i_j or left_i_j where i is the row number and j is the
-        column to the right of it.
+        The inner edges are the edges joining the inner nodes to each other.
 
-        For the vertical edges the notation would be bot_i_j or top_i_j where
-        i is the row above it, and j is the column number.
+        Consider the following scenario with n = 2 rows and m = 3 columns,
+        where the rows are indexed from 0 to 1 and the columns from 0 to 2, and
+        the inner nodes are marked by 'x':
 
-        INDEXED FROM ZERO.
+                |     |     |
+        (1) ----x-----x-----x----
+                |     |     |
+        (0) ----x-----x-(*)-x----
+                |     |     |
+               (0)   (1)   (2)
+
+        There are n * (m - 1) = 4 horizontal inner edges and (n - 1) * m = 3
+        vertical inner edges, all that multiplied by two because each edge
+        consists of two roads going in opposite directions traffic-wise.
+
+        On an horizontal edge, the id of the top road is "top{i}_{j}" and the
+        id of the bottom road is "bot{i}_{j}", where i is the index of the row
+        where the edge is and j is the index of the column to the right of it.
+
+        On a vertical edge, the id of the right road is "right{i}_{j}" and the
+        id of the left road is "left{i}_{j}", where i is the index of the row
+        above the edge and j is the index of the column where the edge is.
+
+        For example, on edge (*) on row (0): the id of the bottom road (traffic
+        going from left to right) is "bot0_2" and the id of the top road
+        (traffic going from right to left) is "top0_2".
+
+        Returns
+        -------
+        list <dict>
+            List of inner edges
         """
-        row_num = self.grid_array["row_num"]
-        col_num = self.grid_array["col_num"]
-        inner_length = self.grid_array["inner_length"]
         edges = []
 
-        # Build the horizontal edges
-        for i in range(row_num):
-            for j in range(col_num - 1):
-                node_index = i * col_num + j
+        def new_edge(index, from_node, to_node, orientation, lane):
+            return [{
+                "id": lane + index,
+                "type": orientation,
+                "priority": 78,
+                "from": "center" + str(from_node),
+                "to": "center" + str(to_node),
+                "length": self.inner_length
+            }]
+
+        # Build the horizontal inner edges
+        for i in range(self.row_num):
+            for j in range(self.col_num - 1):
+                node_index = i * self.col_num + j
                 index = "{}_{}".format(i, j + 1)
-                self.node_mapping["center{}".format(node_index +
-                                                    1)].append("bot" + index)
-                self.node_mapping["center{}".format(node_index)].append("top" +
-                                                                        index)
+                edges += new_edge(index, node_index + 1, node_index,
+                                  "horizontal", "top")
+                edges += new_edge(index, node_index, node_index + 1,
+                                  "horizontal", "bot")
 
-                edges += [{
-                    "id": "top" + index,
-                    "type": "horizontal",
-                    "priority": 78,
-                    "from": "center" + str(node_index + 1),
-                    "to": "center" + str(node_index),
-                    "length": inner_length
-                }, {
-                    "id": "bot" + index,
-                    "type": "horizontal",
-                    "priority": 78,
-                    "from": "center" + str(node_index),
-                    "to": "center" + str(node_index + 1),
-                    "length": inner_length
-                }]
-
-        # Build the vertical edges
-        for i in range(row_num - 1):
-            for j in range(col_num):
-                node_index_bot = i * col_num + j
-                node_index_top = (i + 1) * col_num + j
-                index = str(i + 1) + '_' + str(j)
-                self.node_mapping["center{}".format(node_index_top)].append(
-                    "right" + index)
-                self.node_mapping["center{}".format(node_index_bot)].append(
-                    "left" + index)
-
-                edges += [{
-                    "id": "right" + index,
-                    "type": "vertical",
-                    "priority": 78,
-                    "from": "center" + str(node_index_bot),
-                    "to": "center" + str(node_index_top),
-                    "length": inner_length
-                }, {
-                    "id": "left" + index,
-                    "type": "vertical",
-                    "priority": 78,
-                    "from": "center" + str(node_index_top),
-                    "to": "center" + str(node_index_bot),
-                    "length": inner_length
-                }]
+        # Build the vertical inner edges
+        for i in range(self.row_num - 1):
+            for j in range(self.col_num):
+                node_index = i * self.col_num + j
+                index = "{}_{}".format(i + 1, j)
+                edges += new_edge(index, node_index, node_index + self.col_num,
+                                  "vertical", "right")
+                edges += new_edge(index, node_index + self.col_num, node_index,
+                                  "vertical", "left")
 
         return edges
 
     @property
     def _outer_edges(self):
+        """Build out the outer edges of the scenario.
 
-        row_num = self.grid_array["row_num"]
-        col_num = self.grid_array["col_num"]
-        con_dict = {}
+        The outer edges are the edges joining the inner nodes to the outer
+        nodes.
 
-        # build connections
-        for i in range(row_num):
-            for j in range(col_num):
-                conn = []
-                node_index = i * col_num + j
-                node_id = "center{}".format(node_index)
-                index = "{}_{}".format(i, j)
-                for l in range(lanes_vertical):
-                    conn += [
-                        {"from": "bot" + index,
-                         "to": "bot" + "{}_{}".format(i, j + 1),
-                         "fromLane": str(l),
-                         "toLane": str(l),
-                         "signal_group": 1}
-                    ]
-                    conn += [
-                        {"from": "top" + "{}_{}".format(i, j + 1),
-                         "to": "top" + index,
-                         "fromLane": str(l),
-                         "toLane": str(l),
-                         "signal_group": 1}
-                        ]
-                for l_h in range(lanes_horizontal):
-                    conn += [
-                        {"from": "right" + index,
-                         "to": "right" + "{}_{}".format(i + 1, j),
-                         "fromLane": str(l_h),
-                         "toLane": str(l_h),
-                         "signal_group": 2}
-                    ]
-                    conn += [
-                        {"from": "left" + "{}_{}".format(i + 1, j),
-                         "to": "left" + index,
-                         "fromLane": str(l_h),
-                         "toLane": str(l_h),
-                         "signal_group": 2}
-                    ]
-                con_dict[node_id] = conn
+        Consider the following scenario with n = 2 rows and m = 3 columns,
+        where the rows are indexed from 0 to 1 and the columns from 0 to 2, the
+        inner nodes are marked by 'x' and the outer nodes by 'o':
 
-        return con_dict
+                o    o    o
+                |    |    |
+        (1) o---x----x----x-(*)-o
+                |    |    |
+        (0) o---x----x----x-----o
+                |    |    |
+                o    o    o
+               (0)  (1)  (2)
 
-    def _build_outer_edges(self):
-        """Build the outer edges.
+        There are n * 2 = 4 horizontal outer edges and m * 2 = 6 vertical outer
+        edges, all that multiplied by two because each edge consists of two
+        roads going in opposite directions traffic-wise.
 
-        Starts with the bottom edges, then the top edges, then the left edges,
-        then the right.
+        On row i, there are four horizontal edges: the left ones labeled
+        "bot{i}_0" (in) and "top{i}_0" (out) and the right ones labeled
+        "bot{i}_{m}" (out) and "top{i}_{m}" (in).
+
+        On column j, there are four vertical edges: the bottom ones labeled
+        "left0_{j}" (out) and "right0_{j}" (in) and the top ones labeled
+        "left{n}_{j}" (in) and "right{n}_{j}" (out).
+
+        For example, on edge (*) on row (1): the id of the bottom road (out)
+        is "bot1_3" and the id of the top road is "top1_3".
+
+        Edges labeled by "in" are edges where vehicles enter the network while
+        edges labeled by "out" are edges where vehicles exit the network.
 
         Returns
         -------
-        list of dict
+        list <dict>
             List of outer edges
         """
-        row_num = self.grid_array["row_num"]
-        col_num = self.grid_array["col_num"]
-        short_length = self.grid_array["short_length"]
-        long_length = self.grid_array["long_length"]
         edges = []
 
-        # create dictionary of node to edges that go to it
-        for i in range(col_num):
-            index = '0_' + str(i)
-            # bottom edges
-            self.node_mapping["center" + str(i)].append("right" + index)
-            edges += [{
-                "id": "right" + index,
-                "type": "vertical",
+        def new_edge(index, from_node, to_node, orientation, length):
+            return [{
+                "id": index,
+                "type": {"v": "vertical", "h": "horizontal"}[orientation],
                 "priority": 78,
-                "from": "bot_col_short" + str(i),
-                "to": "center" + str(i),
-                "length": short_length
-            }, {
-                "id": "left" + index,
-                "type": "vertical",
-                "priority": 78,
-                "from": "center" + str(i),
-                "to": "bot_col_long" + str(i),
-                "length": long_length
-            }]
-            # top edges
-            index = str(row_num) + '_' + str(i)
-            center_start = (row_num - 1) * col_num
-            self.node_mapping["center" + str(center_start + i)].append("left" +
-                                                                       index)
-            edges += [{
-                "id": "left" + index,
-                "type": "vertical",
-                "priority": 78,
-                "from": "top_col_short" + str(i),
-                "to": "center" + str(center_start + i),
-                "length": short_length
-            }, {
-                "id": "right" + index,
-                "type": "vertical",
-                "priority": 78,
-                "from": "center" + str(center_start + i),
-                "to": "top_col_long" + str(i),
-                "length": long_length
+                "from": from_node,
+                "to": to_node,
+                "length": length
             }]
 
-        # build the left and then the right edges
-        for j in range(row_num):
-            index = str(j) + '_0'
+        for i in range(self.col_num):
+            # bottom edges
+            id1 = "right0_{}".format(i)
+            id2 = "left0_{}".format(i)
+            node1 = "bot_col_short{}".format(i)
+            node2 = "center{}".format(i)
+            node3 = "bot_col_long{}".format(i)
+            edges += new_edge(id1, node1, node2, "v", self.short_length)
+            edges += new_edge(id2, node2, node3, "v", self.long_length)
+
+            # top edges
+            id1 = "left{}_{}".format(self.row_num, i)
+            id2 = "right{}_{}".format(self.row_num, i)
+            node1 = "top_col_short{}".format(i)
+            node2 = "center{}".format((self.row_num - 1) * self.col_num + i)
+            node3 = "top_col_long{}".format(i)
+            edges += new_edge(id1, node1, node2, "v", self.short_length)
+            edges += new_edge(id2, node2, node3, "v", self.long_length)
+
+        for j in range(self.row_num):
             # left edges
-            self.node_mapping["center" + str(j * col_num)].append("bot" +
-                                                                  index)
-            edges += [{
-                "id": "bot" + index,
-                "type": "horizontal",
-                "priority": 78,
-                "from": "left_row_short" + str(j),
-                "to": "center" + str(j * col_num),
-                "length": short_length
-            }, {
-                "id": "top" + index,
-                "type": "horizontal",
-                "priority": 78,
-                "from": "center" + str(j * col_num),
-                "to": "left_row_long" + str(j),
-                "length": long_length
-            }]
+            id1 = "bot{}_0".format(j)
+            id2 = "top{}_0".format(j)
+            node1 = "left_row_short{}".format(j)
+            node2 = "center{}".format(j * self.col_num)
+            node3 = "left_row_long{}".format(j)
+            edges += new_edge(id1, node1, node2, "h", self.short_length)
+            edges += new_edge(id2, node2, node3, "h", self.long_length)
+            
             # right edges
+            id1 = "top{}_{}".format(j, self.col_num)
+            id2 = "bot{}_{}".format(j, self.col_num)
+            node1 = "right_row_short{}".format(j)
+            node2 = "center{}".format((j + 1) * self.col_num - 1)
+            node3 = "right_row_long{}".format(j)
+            edges += new_edge(id1, node1, node2, "h", self.short_length)
+            edges += new_edge(id2, node2, node3, "h", self.long_length)
+
+        return edges
 
     def specify_connections(self, net_params):
         """Build out connections at each inner node.
@@ -662,3 +623,4 @@ class SimpleGridScenario(Scenario):
                                     top_edge_id, left_edge_id]
             
         return sorted(mapping.items(), key=lambda x: x[0])
+                
