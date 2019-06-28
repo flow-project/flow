@@ -162,10 +162,6 @@ class SimpleGridScenario(Scenario):
         """See parent class."""
         return self._inner_nodes + self._outer_nodes
 
-    def specify_tll(self, net_params):
-        """See parent class."""
-        return self._inner_nodes
-
     def specify_edges(self, net_params):
         """See parent class."""
         return self._inner_edges + self._outer_edges
