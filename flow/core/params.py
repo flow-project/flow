@@ -412,9 +412,9 @@ class SimParams(object):
         self.show_radius = show_radius
 
 
-class AimsunParams(SimParams):    
+class AimsunParams(SimParams):
     """Aimsun-specific simulation parameters.
-    
+
     Extends SimParams.
 
     Parameters
@@ -468,7 +468,7 @@ class AimsunParams(SimParams):
         the objects contained in this subnetwork. If set to None or if the
         specified subnetwork does not exist, the whole network will be loaded.
     """
-    
+
     def __init__(self,
                  sim_step=0.1,
                  render=False,

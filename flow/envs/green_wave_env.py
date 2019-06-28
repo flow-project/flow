@@ -249,7 +249,7 @@ class TrafficLightGridEnv(Env):
 
     def get_distance_to_intersection(self, veh_ids):
         """Return the distance from vehicle(s) to the next intersection.
-         
+
         Determines the smallest distance from the current vehicle's position
         to any of the intersections.
 
@@ -272,7 +272,7 @@ class TrafficLightGridEnv(Env):
 
     def find_intersection_dist(self, veh_id):
         """Return distance from intersection.
-        
+
         Return the distance from the vehicle's current position to the position
         of the node it is heading toward.
         """
@@ -577,7 +577,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
 class GreenWaveTestEnv(TrafficLightGridEnv):
     """
     Class for use in testing.
-    
+
     This class overrides RL methods of green wave so we can test
     construction without needing to specify RL methods
     """

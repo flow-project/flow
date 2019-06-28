@@ -12,7 +12,7 @@ from rllab.sampler.utils import rollout
 
 def visualizer_rllab(args):
     """Visualizer for rllab experiments.
-    
+
     This function takes args (see function create_parser below for
     more detailed information on what information can be fed to this
     visualizer), and renders the experiment associated with it.

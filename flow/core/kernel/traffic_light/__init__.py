@@ -1,4 +1,4 @@
-"""Empty init file to ensure documentation for the traffic lights is created."""
+"""Empty init file to ensure documentation for traffic lights is created."""
 
 from flow.core.kernel.traffic_light.base import KernelTrafficLight
 from flow.core.kernel.traffic_light.traci import TraCITrafficLight
