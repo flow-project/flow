@@ -539,27 +539,42 @@ class SimpleGridScenario(Scenario):
                 "length": long_length
             }]
             # right edges
-            index = str(j) + '_' + str(col_num)
-            center_index = (j * col_num) + col_num - 1
-            self.node_mapping["center" + str(center_index)].append("top" +
-                                                                   index)
-            edges += [{
-                "id": "top" + index,
-                "type": "horizontal",
-                "priority": 78,
-                "from": "right_row_short" + str(j),
-                "to": "center" + str(center_index),
-                "length": short_length
-            }, {
-                "id": "bot" + index,
-                "type": "horizontal",
-                "priority": 78,
-                "from": "center" + str(center_index),
-                "to": "right_row_long" + str(j),
-                "length": long_length
+
+    def specify_connections(self, net_params):
+        """Build out connections at each inner node.
+
+        Connections describe what happens at the intersections. Here we link
+        lanes in straight line, which means vehicles cannot turn at
+        intersections, they can only continue in a straight line.
+        """
+        con_dict = {}
+
+        def new_con(side, from_id, to_id, lane, signal_group):
+            return [{
+                "from": side + from_id,
+                "to": side + to_id,
+                "fromLane": str(lane),
+                "toLane": str(lane),
+                "signal_group": signal_group
             }]
 
-        return edges
+        # build connections at each inner node
+        for i in range(self.row_num):
+            for j in range(self.col_num):
+                index = "{}_{}".format(i, j)
+                index_right = "{}_{}".format(i, j + 1)
+                index_top = "{}_{}".format(i + 1, j)
+
+                conn = []
+                for lane in range(self.vertical_lanes):
+                    conn += new_con("bot", index, index_right, lane, 1)
+                    conn += new_con("top", index_right, index, lane, 1)
+                for lane in range(self.horizontal_lanes):
+                    conn += new_con("right", index, index_top, lane, 2)
+                    conn += new_con("left", index_top, index, lane, 2)
+
+                node_id = "center{}".format(i * self.col_num + j)
+                con_dict[node_id] = conn
 
         return con_dict
 
