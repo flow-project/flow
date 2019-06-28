@@ -125,38 +125,35 @@ class SimpleGridScenario(Scenario):
                 raise KeyError(
                     'Grid array parameter "{}" not supplied'.format(p))
 
-        # this is a (mx1)x(nx1)x2 array
-        # the third dimension is vertical length, horizontal length
+        # retrieve all additional parameters
+        # refer to the ADDITIONAL_NET_PARAMS dict for more documentation
+        self.v_lanes = net_params.additional_params["vertical_lanes"]
+        self.h_lanes = net_params.additional_params["horizontal_lanes"]
+        self.speed_limit = net_params.additional_params["speed_limit"]
         self.grid_array = net_params.additional_params["grid_array"]
-
-        self.vertical_lanes = net_params.additional_params["vertical_lanes"]
-        self.horizontal_lanes = net_params.additional_params[
-            "horizontal_lanes"]
-
-        # radius of the inner nodes
-        self.inner_nodes_radius = 2.9 + 3.3 * max(self.vertical_lanes,
-                                                  self.horizontal_lanes)
-
         self.row_num = self.grid_array["row_num"]
         self.col_num = self.grid_array["col_num"]
-        self.num_edges = (self.col_num+1) * self.row_num * 2 \
-            + (self.row_num+1) * self.col_num * 2 + self.row_num * self.col_num
         self.inner_length = self.grid_array["inner_length"]
-
-        # vehicles spawn on short edge and exit on long edge
         self.short_length = self.grid_array["short_length"]
         self.long_length = self.grid_array["long_length"]
-
-        # this is a dictionary containing inner length, long outer length,
-        # short outer length, and number of rows and columns
-        self.grid_array = net_params.additional_params["grid_array"]
+        self.cars_heading_top = self.grid_array["cars_top"]
+        self.cars_heading_bot = self.grid_array["cars_bot"]
+        self.cars_heading_left = self.grid_array["cars_left"]
+        self.cars_heading_right = self.grid_array["cars_right"]
 
         # specifies whether or not there will be traffic lights at the
         # intersections (True by default)
         self.use_traffic_lights = net_params.additional_params.get(
             "traffic_lights", True)
 
-        self.name = "BobLoblawsLawBlog"  # DO NOT CHANGE
+        # radius of the inner nodes (ie of the intersections)
+        self.inner_nodes_radius = 2.9 + 3.3 * max(self.v_lanes, self.h_lanes)
+
+        # total number of edges in the scenario
+        self.num_edges = 4 * ((self.col_num + 1) * self.row_num + self.col_num)
+
+        # name of the scenario (DO NOT CHANGE)
+        self.name = "BobLoblawsLawBlog"
 
         super().__init__(name, vehicles, net_params, initial_config,
                          traffic_lights)
