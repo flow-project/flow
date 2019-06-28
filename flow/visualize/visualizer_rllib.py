@@ -36,10 +36,11 @@ from flow.utils.rllib import get_rllib_pkl
 
 EXAMPLE_USAGE = """
 example usage:
-    python ./visualizer_rllib.py /tmp/ray/result_dir 1
+    python ./visualizer_rllib.py /ray_results/experiment_dir/result_dir 1
 
 Here the arguments are:
-1 - the number of the checkpoint
+1 - the path to the simulation results
+2 - the number of the checkpoint
 """
 
 
