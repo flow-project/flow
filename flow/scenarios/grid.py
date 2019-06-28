@@ -505,7 +505,7 @@ class SimpleGridScenario(Scenario):
         """Build out connections at each inner node.
 
         Connections describe what happens at the intersections. Here we link
-        lanes in straight line, which means vehicles cannot turn at
+        lanes in straight lines, which means vehicles cannot turn at
         intersections, they can only continue in a straight line.
         """
         con_dict = {}
@@ -522,17 +522,17 @@ class SimpleGridScenario(Scenario):
         # build connections at each inner node
         for i in range(self.row_num):
             for j in range(self.col_num):
-                index = "{}_{}".format(i, j)
-                index_right = "{}_{}".format(i, j + 1)
-                index_top = "{}_{}".format(i + 1, j)
+                node_id = "{}_{}".format(i, j)
+                right_node_id = "{}_{}".format(i, j + 1)
+                top_node_id = "{}_{}".format(i + 1, j)
 
                 conn = []
                 for lane in range(self.vertical_lanes):
-                    conn += new_con("bot", index, index_right, lane, 1)
-                    conn += new_con("top", index_right, index, lane, 1)
+                    conn += new_con("bot", node_id, right_node_id, lane, 1)
+                    conn += new_con("top", right_node_id, node_id, lane, 1)
                 for lane in range(self.horizontal_lanes):
-                    conn += new_con("right", index, index_top, lane, 2)
-                    conn += new_con("left", index_top, index, lane, 2)
+                    conn += new_con("right", node_id, top_node_id, lane, 2)
+                    conn += new_con("left", top_node_id, node_id, lane, 2)
 
                 node_id = "center{}".format(i * self.col_num + j)
                 con_dict[node_id] = conn
