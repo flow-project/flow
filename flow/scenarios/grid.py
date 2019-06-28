@@ -168,28 +168,25 @@ class SimpleGridScenario(Scenario):
 
     def specify_routes(self, net_params):
         """See parent class."""
-        rts = {}
-        row_num = self.grid_array["row_num"]
-        col_num = self.grid_array["col_num"]
-        for i in range(row_num):
-            route_arr_bot = []
-            route_arr_top = []
-            for j in range(col_num + 1):
-                route_arr_bot += ["bot" + str(i) + '_' + str(j)]
-                route_arr_top += ["top" + str(i) + '_' + str(col_num - j)]
-            rts.update({"bot" + str(i) + '_' + '0': route_arr_bot})
-            rts.update({"top" + str(i) + '_' + str(col_num): route_arr_top})
+        routes = defaultdict(list)
 
-        for i in range(col_num):
-            route_arr_left = []
-            route_arr_right = []
-            for j in range(row_num + 1):
-                route_arr_right += ["right" + str(j) + '_' + str(i)]
-                route_arr_left += ["left" + str(row_num - j) + '_' + str(i)]
-            rts.update({"left" + str(row_num) + '_' + str(i): route_arr_left})
-            rts.update({"right" + '0' + '_' + str(i): route_arr_right})
+        # build row routes (vehicles go from left to right and vice versa)
+        for i in range(self.row_num):
+            bot_id = "bot{}_0".format(i)
+            top_id = "top{}_{}".format(i, self.col_num)
+            for j in range(self.col_num + 1):
+                routes[bot_id] += ["bot{}_{}".format(i, j)]
+                routes[top_id] += ["top{}_{}".format(i, self.col_num - j)]
 
-        return rts
+        # build column routes (vehicles go from top to bottom and vice versa)
+        for j in range(self.col_num):
+            left_id = "left{}_{}".format(self.row_num, j)
+            right_id = "right0_{}".format(j)
+            for i in range(self.row_num + 1):
+                routes[left_id] += ["left{}_{}".format(self.row_num - i, j)]
+                routes[right_id] += ["right{}_{}".format(i, j)]
+
+        return routes
 
     def specify_types(self, net_params):
         """See parent class."""
