@@ -30,6 +30,7 @@ class TraCIVehicle(KernelVehicle):
                  sim_params,
                  observation_list=None,
                  monitor_rl=False):
+
         """See parent class."""
         KernelVehicle.__init__(self, master_kernel, sim_params)
 
@@ -77,6 +78,7 @@ class TraCIVehicle(KernelVehicle):
                 self.monitored_observations.append(_)
 
         # Monitor RL vehicles only or not
+        # TODO Check if there are RL vehicles to begin with
         self.monitor_rl_vehicles = monitor_rl
 
     def initialize(self, vehicles):
@@ -165,7 +167,7 @@ class TraCIVehicle(KernelVehicle):
             # add vehicles from a network template, if applicable
             if hasattr(self.master_kernel.scenario.network,
                        "template_vehicles"):
-                for veh_id in self.master_kernel.scenario.network.\
+                for veh_id in self.master_kernel.scenario.network. \
                         template_vehicles:
                     vals = deepcopy(self.master_kernel.scenario.network.
                                     template_vehicles[veh_id])
@@ -218,7 +220,8 @@ class TraCIVehicle(KernelVehicle):
                 try:
                     self.__vehicles[headway[0]]["follower"] = veh_id
                 except KeyError:
-                    pass
+                    _position = self.kernel_api.vehicle.getPosition(veh_id)
+                    _angle = self.kernel_api.vehicle.getAngle(veh_id)
 
         # update the sumo observations variable
         self.__sumo_obs = vehicle_obs.copy()
@@ -391,15 +394,15 @@ class TraCIVehicle(KernelVehicle):
             self.__sumo_obs[veh_id][tc.VAR_SPEED] = \
                 self.kernel_api.vehicle.getSpeed(veh_id)
         except KeyError:
-            '''
-                TODO :  This might not work because
-                        because Fangyu told me you can only
-                        subscribe once so must double check
-                        that this can be done.
-                        One way which would be a burden is to
-                        unsubscribe then resubscribe with default
-                        list of observations.
-            '''
+
+                # TODO :  This might not work because
+                #         because Fangyu told me you can only
+                #         subscribe once so must double check
+                #         that this can be done.
+                #         One way which would be a burden is to
+                #         unsubscribe then resubscribe with default
+                #         list of observations.
+
             self.kernel_api.vehicle.subscribe(veh_id, [
                 tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
                 tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
@@ -443,11 +446,6 @@ class TraCIVehicle(KernelVehicle):
         self.num_vehicles = len(self.get_ids())
         self.num_rl_vehicles = len(self.get_rl_ids())
 
-    '''
-        TODO :  Make sure resubscribing methodology
-                works that way the below values should
-                be backwards compatible.
-    '''
     def test_set_speed(self, veh_id, speed):
         """Set the speed of the specified vehicle."""
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = speed
@@ -464,6 +462,9 @@ class TraCIVehicle(KernelVehicle):
         """Set the headway of the specified vehicle."""
         self.__vehicles[veh_id]["headway"] = headway
 
+    # TODO :  Make sure resubscribing methodology
+    #         works that way the below values should
+    #         be backwards compatible.
     def get_orientation(self, veh_id):
         """See parent class."""
         return self.__vehicles[veh_id]["orientation"]
@@ -562,38 +563,56 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed(vehID, error) for vehID in veh_id]
-        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
+        try:
+            return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
+        except KeyError:
+            return self.kernel_api.vehicle.getSpeed(veh_id)
 
     def get_default_speed(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_default_speed(vehID, error) for vehID in veh_id]
-        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED_WITHOUT_TRACI,
-                                                   error)
+        try:
+            return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED_WITHOUT_TRACI,
+                                                       error)
+        except KeyError:
+            return self.kernel_api.vehicle.getSpeedWithoutTraCI(veh_id)
 
     def get_position(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_position(vehID, error) for vehID in veh_id]
-        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_LANEPOSITION, error)
+        try:
+            return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_LANEPOSITION, error)
+        except KeyError:
+            return self.kernel_api.vehicle.getLanePosition(veh_id)
 
     def get_edge(self, veh_id, error=""):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_edge(vehID, error) for vehID in veh_id]
-        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_ROAD_ID, error)
+        try:
+            return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_ROAD_ID, error)
+        except KeyError:
+            return self.kernel_api.vehicle.getRoadID(veh_id)
 
     def get_lane(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane(vehID, error) for vehID in veh_id]
-        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_LANE_INDEX, error)
+        try:
+            return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_LANE_INDEX, error)
+        except KeyError:
+            return self.kernel_api.vehicle.getLaneIndex(veh_id)
 
     def get_route(self, veh_id, error=list()):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_route(vehID, error) for vehID in veh_id]
-        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_EDGES, error)
+        try:
+            return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_EDGES, error)
+        except KeyError:
+            return self.kernel_api.vehicle.getRoute(veh_id)
 
     def get_length(self, veh_id, error=-1001):
         """See parent class."""
@@ -891,7 +910,7 @@ class TraCIVehicle(KernelVehicle):
                 if len(edge_dict[edge][lane]) > 0:
                     leader = edge_dict[edge][lane][0][0]
                     headway = edge_dict[edge][lane][0][1] - pos + add_length \
-                        - self.get_length(leader)
+                              - self.get_length(leader)
             except KeyError:
                 # current edge has no vehicles, so move on
                 continue
