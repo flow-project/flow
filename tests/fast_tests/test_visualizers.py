@@ -4,11 +4,14 @@ from flow.visualize import visualizer_rllib as vs_rllib
 from flow.visualize.visualizer_rllib import visualizer_rllib
 import flow.visualize.capacity_diagram_generator as cdg
 import flow.visualize.time_space_diagram as tsd
+import flow.visualize.plot_ray_results as prr
 
 import os
 import unittest
 import ray
 import numpy as np
+import contextlib
+from io import StringIO
 
 os.environ['TEST_FLAG'] = 'True'
 
@@ -290,6 +293,72 @@ class TestPlotters(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(pos, expected_pos)
         np.testing.assert_array_almost_equal(speed, expected_speed)
+
+    def test_plot_ray_results(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        file_path = os.path.join(dir_path, 'test_files/progress.csv')
+
+        parser = prr.create_parser()
+
+        # test with one column
+        args = parser.parse_args([file_path, 'episode_reward_mean'])
+        prr.plot_progress(args.file, args.columns)
+
+        # test with several columns
+        args = parser.parse_args([file_path, 'episode_reward_mean',
+                                  'episode_reward_min', 'episode_reward_max'])
+        prr.plot_progress(args.file, args.columns)
+
+        # test with non-existing column name
+        with self.assertRaises(KeyError):
+            args = parser.parse_args([file_path, 'episode_reward'])
+            prr.plot_progress(args.file, args.columns)
+
+        # test with column containing non-float values
+        with self.assertRaises(ValueError):
+            args = parser.parse_args([file_path, 'info'])
+            prr.plot_progress(args.file, args.columns)
+
+        # test that script outputs available column names if none is given
+        column_names = [
+            'episode_reward_max',
+            'episode_reward_min',
+            'episode_reward_mean',
+            'episode_len_mean',
+            'episodes_this_iter',
+            'policy_reward_mean',
+            'custom_metrics',
+            'sampler_perf',
+            'off_policy_estimator',
+            'num_metric_batches_dropped',
+            'info',
+            'timesteps_this_iter',
+            'done',
+            'timesteps_total',
+            'episodes_total',
+            'training_iteration',
+            'experiment_id',
+            'date',
+            'timestamp',
+            'time_this_iter_s',
+            'time_total_s',
+            'pid',
+            'hostname',
+            'node_ip',
+            'config',
+            'time_since_restore',
+            'timesteps_since_restore',
+            'iterations_since_restore'
+        ]
+
+        temp_stdout = StringIO()
+        with contextlib.redirect_stdout(temp_stdout):
+            args = parser.parse_args([file_path])
+            prr.plot_progress(args.file, args.columns)
+        output = temp_stdout.getvalue()
+
+        for column in column_names:
+            self.assertTrue(column in output)
 
 
 if __name__ == '__main__':
