@@ -596,10 +596,6 @@ class SimpleGridScenario(Scenario):
 
         return start_positions, start_lanes
 
-    def get_edge_names(self):
-        """Return a the edge IDs attribute for a list of edge objects."""
-        return [edge['id'] for edge in self.edges]
-
     @property
     def node_mapping(self):
         """Map nodes to edges.
@@ -623,6 +619,5 @@ class SimpleGridScenario(Scenario):
 
                 mapping[node_id] = [bot_edge_id, right_edge_id,
                                     top_edge_id, left_edge_id]
-            
+
         return sorted(mapping.items(), key=lambda x: x[0])
-                
