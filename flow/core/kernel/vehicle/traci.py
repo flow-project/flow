@@ -72,8 +72,8 @@ class TraCIVehicle(KernelVehicle):
         self._arrived_ids = []
 
         # list of observations to monitor
+        self.monitored_observations = []
         if observation_list:
-            self.monitored_observations = []
             for _ in observation_list:
                 self.monitored_observations.append(_)
 

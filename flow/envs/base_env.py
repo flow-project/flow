@@ -163,28 +163,28 @@ class Env(*classdef):
         replace all readable equivalent tags
         with Traci equivalent parameters
         """
-        observation_list = [x.lower() for x in observation_list]
+        if observation_list:
+            observation_list = [x.lower() for x in observation_list]
 
-        for index, elem in enumerate(observation_list):
-            if "lane index" in elem:
-                observation_list[index] = tc.VAR_LANE_INDEX
-            elif "lane position" in elem:
-                observation_list[index] = tc.VAR_LANEPOSITION
-            elif "road id" in elem:
-                observation_list[index] = tc.VAR_ROAD_ID
-            elif "speed" in elem:
-                observation_list[index] = tc.VAR_SPEED
-            elif "edges" in elem:
-                observation_list[index] = tc.VAR_EDGES
-            elif "position" in elem:
-                observation_list[index] = tc.VAR_POSITION
-            elif "angle" in elem:
-                observation_list[index] = tc.VAR_ANGLE
-            elif "speed without traci" in elem:
-                observation_list[index] = tc.VAR_SPEED_WITHOUT_TRACI
+            for index, elem in enumerate(observation_list):
+                if "lane index" in elem:
+                    observation_list[index] = tc.VAR_LANE_INDEX
+                elif "lane position" in elem:
+                    observation_list[index] = tc.VAR_LANEPOSITION
+                elif "road id" in elem:
+                    observation_list[index] = tc.VAR_ROAD_ID
+                elif "speed" in elem:
+                    observation_list[index] = tc.VAR_SPEED
+                elif "edges" in elem:
+                    observation_list[index] = tc.VAR_EDGES
+                elif "position" in elem:
+                    observation_list[index] = tc.VAR_POSITION
+                elif "angle" in elem:
+                    observation_list[index] = tc.VAR_ANGLE
+                elif "speed without traci" in elem:
+                    observation_list[index] = tc.VAR_SPEED_WITHOUT_TRACI
 
         # create the Flow kernel
-        if observation_list:
             self.k = Kernel(simulator=self.simulator,
                             sim_params=sim_params,
                             observation_list=observation_list)
