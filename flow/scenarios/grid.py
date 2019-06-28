@@ -489,7 +489,7 @@ class SimpleGridScenario(Scenario):
             node3 = "left_row_long{}".format(j)
             edges += new_edge(id1, node1, node2, "h", self.short_length)
             edges += new_edge(id2, node2, node3, "h", self.long_length)
-            
+
             # right edges
             id1 = "top{}_{}".format(j, self.col_num)
             id2 = "bot{}_{}".format(j, self.col_num)
@@ -539,7 +539,9 @@ class SimpleGridScenario(Scenario):
 
         return con_dict
 
-    # TODO, make this make any sense at all
+    # TODO this method doesn't seem to be used anywhere
+    # also true for all other scenarios where it is implemented
+    # TODO make this make any sense at all
     def specify_edge_starts(self):
         """See parent class.
 
