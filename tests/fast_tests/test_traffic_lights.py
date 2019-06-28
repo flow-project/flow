@@ -169,8 +169,8 @@ class TestPOEnv(unittest.TestCase):
         # print(ordering)
         for x in ordering:
             # print(x)
-            if not (x[0].startswith("bot") and x[1].startswith("right")
-                    and x[2].startswith("top") and x[3].startswith("left")):
+            if not (x[0].startswith("bot") and x[1].startswith("right") and
+                    x[2].startswith("top") and x[3].startswith("left")):
                 return False
         return True
 
@@ -178,7 +178,7 @@ class TestPOEnv(unittest.TestCase):
         # reset the environment
         self.env.reset()
 
-        node_mapping = self.env.scenario.get_node_mapping()
+        node_mapping = self.env.scenario.node_mapping
         nodes = [elem[0] for elem in node_mapping]
         ordering = [elem[1] for elem in node_mapping]
 
@@ -187,7 +187,7 @@ class TestPOEnv(unittest.TestCase):
 
     def test_k_closest(self):
         self.env.step(None)
-        node_mapping = self.env.scenario.get_node_mapping()
+        node_mapping = self.env.scenario.node_mapping
 
         # get the node mapping for node center0
         c0_edges = node_mapping[0][1]

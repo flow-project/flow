@@ -156,7 +156,6 @@ class SimpleGridScenario(Scenario):
         self.use_traffic_lights = net_params.additional_params.get(
             "traffic_lights", True)
 
-        self.node_mapping = defaultdict(list)
         self.name = "BobLoblawsLawBlog"  # DO NOT CHANGE
 
         super().__init__(name, vehicles, net_params, initial_config,
@@ -172,12 +171,7 @@ class SimpleGridScenario(Scenario):
 
     def specify_edges(self, net_params):
         """See parent class."""
-        edges = []
-        edges += self._build_inner_edges()
-        edges += self._build_outer_edges()
-        # Sort node_mapping in counterclockwise order
-        self._order_nodes()
-        return edges
+        return self._inner_edges + self._outer_edges
 
     def specify_routes(self, net_params):
         """See parent class."""
@@ -345,8 +339,8 @@ class SimpleGridScenario(Scenario):
 
         return nodes
 
-    def _build_inner_edges(self):
-        """Build the inner edges.
+    @property
+    def _inner_edges(self):
 
         First we build all of the column edges. For the upper edge, it would be
         called right_i_j or left_i_j where i is the row number and j is the
@@ -417,10 +411,8 @@ class SimpleGridScenario(Scenario):
 
         return edges
 
-    def specify_connections(self, net_params):
-        """See parent class."""
-        lanes_horizontal = net_params.additional_params["horizontal_lanes"]
-        lanes_vertical = net_params.additional_params["vertical_lanes"]
+    @property
+    def _outer_edges(self):
 
         row_num = self.grid_array["row_num"]
         col_num = self.grid_array["col_num"]
@@ -569,19 +561,7 @@ class SimpleGridScenario(Scenario):
 
         return edges
 
-    def _order_nodes(self):
-        for node in self.node_mapping:
-            adj_edges = ["" for _ in range(4)]
-            for e in self.node_mapping[node]:
-                if 'bot' in e:
-                    adj_edges[0] = e
-                elif 'right' in e:
-                    adj_edges[1] = e
-                elif 'top' in e:
-                    adj_edges[2] = e
-                elif 'left' in e:
-                    adj_edges[3] = e
-            self.node_mapping[node] = adj_edges
+        return con_dict
 
     # TODO, make this make any sense at all
     def specify_edge_starts(self):
@@ -642,11 +622,28 @@ class SimpleGridScenario(Scenario):
         """Return a the edge IDs attribute for a list of edge objects."""
         return [edge['id'] for edge in self.edges]
 
-    def get_node_mapping(self):
+    @property
+    def node_mapping(self):
         """Map nodes to edges.
 
-        Returns a list of a dictionary of nodes mapped to a list of edges
-        that head toward the node. Nodes are listed in alphabetical order
-        and within that, edges are listed in order: [bot, right, top, left].
+        Returns a list of pairs (node, connected edges) of all inner nodes
+        and for each of them, the 4 edges that start from this node.
+
+        The nodes are listed in alphabetical order, and within that, edges are
+        listed in order: [bot, right, top, left].
         """
-        return sorted(self.node_mapping.items(), key=lambda k: k[1])
+        mapping = {}
+
+        for row in range(self.row_num):
+            for col in range(self.col_num):
+                node_id = "center{}".format(row * self.col_num + col)
+
+                top_edge_id = "right{}_{}".format(row + 1, col)
+                bot_edge_id = "left{}_{}".format(row, col)
+                right_edge_id = "bot{}_{}".format(row, col + 1)
+                left_edge_id = "top{}_{}".format(row, col)
+
+                mapping[node_id] = [bot_edge_id, right_edge_id,
+                                    top_edge_id, left_edge_id]
+            
+        return sorted(mapping.items(), key=lambda x: x[0])

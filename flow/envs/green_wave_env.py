@@ -86,7 +86,6 @@ class TrafficLightGridEnv(Env):
             'velocities': np.zeros((self.steps, self.k.vehicle.num_vehicles)),
             'positions': np.zeros((self.steps, self.k.vehicle.num_vehicles))
         }
-        self.node_mapping = scenario.get_node_mapping()
 
         # Keeps track of the last time the traffic lights in an intersection
         # were allowed to change (the last time the lights were allowed to
@@ -491,7 +490,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
                        grid_array["inner_length"])
         all_observed_ids = []
 
-        for node, edges in self.scenario.get_node_mapping():
+        for _, edges in self.scenario.node_mapping:
             for edge in edges:
                 observed_ids = \
                     self.k_closest_to_intersection(edge, self.num_observed)
@@ -505,13 +504,13 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
                 ]
                 dist_to_intersec += [
                     (self.k.scenario.edge_length(
-                        self.k.vehicle.get_edge(veh_id))
-                     - self.k.vehicle.get_position(veh_id)) / max_dist
+                        self.k.vehicle.get_edge(veh_id)) -
+                        self.k.vehicle.get_position(veh_id)) / max_dist
                     for veh_id in observed_ids
                 ]
                 edge_number += \
-                    [self._convert_edge(self.k.vehicle.get_edge(veh_id))
-                     / (self.k.scenario.network.num_edges - 1)
+                    [self._convert_edge(self.k.vehicle.get_edge(veh_id)) /
+                     (self.k.scenario.network.num_edges - 1)
                      for veh_id in observed_ids]
 
                 if len(observed_ids) < self.num_observed:
