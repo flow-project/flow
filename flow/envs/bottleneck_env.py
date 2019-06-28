@@ -258,12 +258,7 @@ class BottleneckEnv(Env):
         self.k.traffic_light.set_state('3', ''.join(colors))
 
     def apply_toll_bridge_control(self):
-        """Control the lane changing behavior.
-
-        Specify/Toggle the lane changing behavior of the vehicles
-        depending on factors like whether or not they have
-        passed the toll.
-        """
+        """Apply control to the toll bridge."""
         cars_that_have_left = []
         for veh_id in self.cars_waiting_for_toll:
             if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_TOLL:
