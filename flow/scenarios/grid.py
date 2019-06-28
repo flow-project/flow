@@ -546,39 +546,26 @@ class SimpleGridScenario(Scenario):
     @staticmethod
     def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
         """See parent class."""
-        grid_array = net_params.additional_params["grid_array"]
-        row_num = grid_array["row_num"]
-        col_num = grid_array["col_num"]
-        cars_left = grid_array["cars_left"]
-        cars_right = grid_array["cars_right"]
-        cars_top = grid_array["cars_top"]
-        cars_bot = grid_array["cars_bot"]
+        start_pos = []
 
-        start_positions = []
-        d_inc = 10
-        for i in range(col_num):
-            x = 6
-            for k in range(cars_right):
-                start_positions.append(("right0_{}".format(i), x))
-                x += d_inc
-            x = 6
-            for k in range(cars_left):
-                start_positions.append(("left{}_{}".format(row_num, i), x))
-                x += d_inc
+        x0 = 6  # position of the first car
+        dx = 10  # distance between each car
 
-        for i in range(row_num):
-            x = 6
-            for k in range(cars_top):
-                start_positions.append(("top{}_{}".format(i, col_num), x))
-                x += d_inc
-            x = 6
-            for k in range(cars_bot):
-                start_positions.append(("bot{}_0".format(i), x))
-                x += d_inc
+        for i in range(self.col_num):
+            start_pos += [("right0_{}".format(i), x0 + k * dx)
+                          for k in range(self.cars_heading_right)]
+            start_pos += [("left{}_{}".format(self.row_num, i), x0 + k * dx)
+                          for k in range(self.cars_heading_left)]
 
-        start_lanes = [0] * len(start_positions)
+        for i in range(self.row_num):
+            start_pos += [("top{}_{}".format(i, self.col_num), x0 + k * dx)
+                          for k in range(self.cars_heading_top)]
+            start_pos += [("bot{}_0".format(i), x0 + k * dx)
+                          for k in range(self.cars_heading_bot)]
 
-        return start_positions, start_lanes
+        start_lanes = [0] * len(start_pos)
+
+        return start_pos, start_lanes
 
     @property
     def node_mapping(self):
