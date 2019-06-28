@@ -25,24 +25,24 @@ from flow.envs.base_env import Env
 
 MAX_LANES = 4  # base number of largest number of lanes in the network
 EDGE_LIST = ["1", "2", "3", "4", "5"]  # Edge 1 is before the toll booth
-EDGE_BEFORE_TOLL = "1"
+EDGE_BEFORE_TOLL = "1"  # Specifies which edge number is before toll booth
 TB_TL_ID = "2"
-EDGE_AFTER_TOLL = "2"
+EDGE_AFTER_TOLL = "2"  # Specifies which edge number is after toll booth
 NUM_TOLL_LANES = MAX_LANES
 
 TOLL_BOOTH_AREA = 10  # how far into the edge lane changing is disabled
 RED_LIGHT_DIST = 50  # how close for the ramp meter to start going off
 
-EDGE_BEFORE_RAMP_METER = "2"
-EDGE_AFTER_RAMP_METER = "3"
+EDGE_BEFORE_RAMP_METER = "2"  # Specifies which edge number is before ramp meter
+EDGE_AFTER_RAMP_METER = "3"  # Specifies which edge number is after ramp meter
 NUM_RAMP_METERS = MAX_LANES
 
-RAMP_METER_AREA = 80
+RAMP_METER_AREA = 80  # Area occupied by ramp meter
 
-MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3
-MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15
+MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3  # Average waiting time at fast track
+MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15  # Average waiting time at toll
 
-BOTTLE_NECK_LEN = 280
+BOTTLE_NECK_LEN = 280  # Length of bottleneck
 NUM_VEHICLE_NORM = 20
 
 ADDITIONAL_ENV_PARAMS = {
@@ -85,7 +85,7 @@ ADDITIONAL_VSL_ENV_PARAMS = {
     "inflow_range": [1000, 2000]
 }
 
-START_RECORD_TIME = 0.0
+START_RECORD_TIME = 0.0  # Time to start recording
 PERIOD = 10.0
 
 
@@ -182,6 +182,12 @@ class BottleneckEnv(Env):
             self.next_period += PERIOD / self.sim_step
 
     def ramp_meter_lane_change_control(self):
+        """Control the lane changing behavior.
+
+        Specify/Toggle the lane changing behavior of the vehicles
+        depending on factors like whether or not they are before
+        the toll.
+        """
         cars_that_have_left = []
         for veh_id in self.cars_before_ramp:
             if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_RAMP_METER:
@@ -252,6 +258,12 @@ class BottleneckEnv(Env):
         self.k.traffic_light.set_state('3', ''.join(colors))
 
     def apply_toll_bridge_control(self):
+        """Control the lane changing behavior.
+
+        Specify/Toggle the lane changing behavior of the vehicles
+        depending on factors like whether or not they have
+        passed the toll.
+        """
         cars_that_have_left = []
         for veh_id in self.cars_waiting_for_toll:
             if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_TOLL:
