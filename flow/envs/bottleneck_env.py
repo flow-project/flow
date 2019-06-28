@@ -582,7 +582,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
 class DesiredVelocityEnv(BottleneckEnv):
     """DesiredVelocityEnv.
-    
+
     Environment used to train vehicles to effectively pass through a
     bottleneck by specifying the velocity that RL vehicles should attempt to
     travel in certain regions of space

@@ -625,7 +625,7 @@ class FlowAimsunAPI(object):
 
     def set_vehicle_tracked(self, veh_id):
         """Set a vehicle as tracked in Aimsun.
-        
+
         This thus allows for faster tracking information retrieval.
 
         Parameters
