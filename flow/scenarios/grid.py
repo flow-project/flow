@@ -130,7 +130,7 @@ class SimpleGridScenario(Scenario):
         self.v_lanes = net_params.additional_params["vertical_lanes"]
         self.h_lanes = net_params.additional_params["horizontal_lanes"]
         self.speed_limit = net_params.additional_params["speed_limit"]
-        if not isintance(self.speed_limit, dict):
+        if not isinstance(self.speed_limit, dict):
             self.speed_limit = {
                 "horizontal": self.speed_limit,
                 "vertical": self.speed_limit
@@ -545,22 +545,30 @@ class SimpleGridScenario(Scenario):
     @staticmethod
     def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
         """See parent class."""
+        grid_array = net_params.additional_params["grid_array"]
+        row_num = grid_array["row_num"]
+        col_num = grid_array["col_num"]
+        cars_heading_left = grid_array["cars_left"]
+        cars_heading_right = grid_array["cars_right"]
+        cars_heading_top = grid_array["cars_top"]
+        cars_heading_bot = grid_array["cars_bot"]
+
         start_pos = []
 
         x0 = 6  # position of the first car
         dx = 10  # distance between each car
 
-        for i in range(self.col_num):
+        for i in range(col_num):
             start_pos += [("right0_{}".format(i), x0 + k * dx)
-                          for k in range(self.cars_heading_right)]
-            start_pos += [("left{}_{}".format(self.row_num, i), x0 + k * dx)
-                          for k in range(self.cars_heading_left)]
+                          for k in range(cars_heading_right)]
+            start_pos += [("left{}_{}".format(row_num, i), x0 + k * dx)
+                          for k in range(cars_heading_left)]
 
-        for i in range(self.row_num):
-            start_pos += [("top{}_{}".format(i, self.col_num), x0 + k * dx)
-                          for k in range(self.cars_heading_top)]
+        for i in range(row_num):
+            start_pos += [("top{}_{}".format(i, col_num), x0 + k * dx)
+                          for k in range(cars_heading_top)]
             start_pos += [("bot{}_0".format(i), x0 + k * dx)
-                          for k in range(self.cars_heading_bot)]
+                          for k in range(cars_heading_bot)]
 
         start_lanes = [0] * len(start_pos)
 
