@@ -4,6 +4,8 @@ See:
 https://packaging.python.org/en/latest/distributing.html
 https://github.com/pypa/sampleproject
 """
+from setuptools import setup, find_packages
+from os import path
 
 here = path.abspath(path.dirname(__file__))
 

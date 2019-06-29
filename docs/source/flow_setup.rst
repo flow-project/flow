@@ -127,7 +127,7 @@ few seconds, a la (Sugiyama et al, 2008). This means that you have Flow
 properly configured with SUMO and Flow!
 
 
-Installing Aimsun
+(Optional) Installing Aimsun
 -----------------
 
 In addition to SUMO, Flow supports the use of the traffic simulator "Aimsun".
@@ -320,7 +320,7 @@ We begin by downloading SUMO's github directory:
     cd ~
     git clone https://github.com/eclipse/sumo.git
     cd sumo
-    git checkout 1d4338ab80
+    git checkout 2147d155b1
     make -f Makefile.cvs
 
 If you have OSX, run the following commands. If you don't have brew

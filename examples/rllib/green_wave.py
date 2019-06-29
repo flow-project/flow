@@ -171,6 +171,7 @@ vehicles.add(
     acceleration_controller=(SimCarFollowingController, {}),
     car_following_params=SumoCarFollowingParams(
         minGap=2.5,
+        decel=7.5,  # avoid collisions at emergency stops
         max_speed=V_ENTER,
         speed_mode="all_checks",
     ),
@@ -208,7 +209,7 @@ flow_params = dict(
     net=None,
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/
