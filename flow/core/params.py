@@ -650,9 +650,6 @@ class NetParams:
 
     Parameters
     ----------
-    no_internal_links : bool, optional
-        determines whether the space between edges is finite. Important
-        when using networks with intersections; default is False
     inflows : InFlows type, optional
         specifies the inflows of specific edges and the types of vehicles
         entering the network from these edges
@@ -671,17 +668,12 @@ class NetParams:
     """
 
     def __init__(self,
-                 no_internal_links=True,
                  inflows=None,
                  osm_path=None,
                  template=None,
                  additional_params=None):
         """Instantiate NetParams."""
-        self.no_internal_links = no_internal_links
-        if inflows is None:
-            self.inflows = InFlows()
-        else:
-            self.inflows = inflows
+        self.inflows = inflows or InFlows()
         self.osm_path = osm_path
         self.template = template
         self.additional_params = additional_params or {}
