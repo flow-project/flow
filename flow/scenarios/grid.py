@@ -597,7 +597,7 @@ class SimpleGridScenario(Scenario):
                 right_edge_id = "bot{}_{}".format(row, col + 1)
                 left_edge_id = "top{}_{}".format(row, col)
 
-                mapping[node_id] = [bot_edge_id, right_edge_id,
-                                    top_edge_id, left_edge_id]
+                mapping[node_id] = [right_edge_id, top_edge_id,
+                                    left_edge_id, bot_edge_id]
 
         return sorted(mapping.items(), key=lambda x: x[0])
