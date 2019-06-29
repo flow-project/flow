@@ -154,7 +154,7 @@ class SimpleGridScenario(Scenario):
             "traffic_lights", True)
 
         # radius of the inner nodes (ie of the intersections)
-        self.inner_nodes_radius = 2.9 + 3.3 * max(self.vertical_lanes, 
+        self.inner_nodes_radius = 2.9 + 3.3 * max(self.vertical_lanes,
                                                   self.horizontal_lanes)
 
         # total number of edges in the scenario
