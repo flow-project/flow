@@ -581,7 +581,7 @@ class SimpleGridScenario(Scenario):
         """Map nodes to edges.
 
         Returns a list of pairs (node, connected edges) of all inner nodes
-        and for each of them, the 4 edges that start from this node.
+        and for each of them, the 4 edges that leave this node.
 
         The nodes are listed in alphabetical order, and within that, edges are
         listed in order: [bot, right, top, left].
@@ -592,12 +592,12 @@ class SimpleGridScenario(Scenario):
             for col in range(self.col_num):
                 node_id = "center{}".format(row * self.col_num + col)
 
-                top_edge_id = "right{}_{}".format(row + 1, col)
-                bot_edge_id = "left{}_{}".format(row, col)
-                right_edge_id = "bot{}_{}".format(row, col + 1)
-                left_edge_id = "top{}_{}".format(row, col)
+                top_edge_id = "left{}_{}".format(row + 1, col)
+                bot_edge_id = "right{}_{}".format(row, col)
+                right_edge_id = "top{}_{}".format(row, col + 1)
+                left_edge_id = "bot{}_{}".format(row, col)
 
-                mapping[node_id] = [right_edge_id, top_edge_id,
-                                    left_edge_id, bot_edge_id]
+                mapping[node_id] = [left_edge_id, bot_edge_id,
+                                    right_edge_id, top_edge_id]
 
         return sorted(mapping.items(), key=lambda x: x[0])
