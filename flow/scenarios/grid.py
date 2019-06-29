@@ -127,8 +127,9 @@ class SimpleGridScenario(Scenario):
 
         # retrieve all additional parameters
         # refer to the ADDITIONAL_NET_PARAMS dict for more documentation
-        self.v_lanes = net_params.additional_params["vertical_lanes"]
-        self.h_lanes = net_params.additional_params["horizontal_lanes"]
+        self.vertical_lanes = net_params.additional_params["vertical_lanes"]
+        self.horizontal_lanes = net_params.additional_params[
+            "horizontal_lanes"]
         self.speed_limit = net_params.additional_params["speed_limit"]
         if not isinstance(self.speed_limit, dict):
             self.speed_limit = {
@@ -153,7 +154,8 @@ class SimpleGridScenario(Scenario):
             "traffic_lights", True)
 
         # radius of the inner nodes (ie of the intersections)
-        self.inner_nodes_radius = 2.9 + 3.3 * max(self.v_lanes, self.h_lanes)
+        self.inner_nodes_radius = 2.9 + 3.3 * max(self.vertical_lanes, 
+                                                  self.horizontal_lanes)
 
         # total number of edges in the scenario
         self.num_edges = 4 * ((self.col_num + 1) * self.row_num + self.col_num)
@@ -511,10 +513,10 @@ class SimpleGridScenario(Scenario):
                 top_node_id = "{}_{}".format(i + 1, j)
 
                 conn = []
-                for lane in range(self.v_lanes):
+                for lane in range(self.vertical_lanes):
                     conn += new_con("bot", node_id, right_node_id, lane, 1)
                     conn += new_con("top", right_node_id, node_id, lane, 1)
-                for lane in range(self.h_lanes):
+                for lane in range(self.horizontal_lanes):
                     conn += new_con("right", node_id, top_node_id, lane, 2)
                     conn += new_con("left", top_node_id, node_id, lane, 2)
 
