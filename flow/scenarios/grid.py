@@ -70,9 +70,6 @@ class SimpleGridScenario(Scenario):
       float value, or a dictionary with separate values for vertical and
       horizontal lanes.
 
-    In order for right-of-way dynamics to take place at the intersections,
-    set *no_internal_links* in net_params to False.
-
     Usage
     -----
     >>> from flow.core.params import NetParams
@@ -103,7 +100,6 @@ class SimpleGridScenario(Scenario):
     >>>                 'horizontal': 35
     >>>             }
     >>>         },
-    >>>         no_internal_links=False  # we want junctions
     >>>     )
     >>> )
     """

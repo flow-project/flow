@@ -49,7 +49,6 @@ class LoopScenario(Scenario):
     >>>             'speed_limit': 30,
     >>>             'resolution': 40
     >>>         },
-    >>>         no_internal_links=True  # we do not want junctions
     >>>     )
     >>> )
     """

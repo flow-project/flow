@@ -26,9 +26,6 @@ class BottleneckScenario(Scenario):
     * **scaling** : the factor multiplying number of lanes
     * **speed_limit** : edge speed limit
 
-    In order for right-of-way dynamics to take place at the intersection,
-    set *no_internal_links* in net_params to False.
-
     Usage
     -----
     >>> from flow.core.params import NetParams
@@ -44,7 +41,6 @@ class BottleneckScenario(Scenario):
     >>>             'scaling': 1,
     >>>             'speed_limit': 1,
     >>>         },
-    >>>         no_internal_links=False  # we want junctions
     >>>     )
     >>> )
     """

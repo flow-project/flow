@@ -185,10 +185,7 @@ class TraCIScenario(KernelScenario):
 
         # total_edgestarts and total_edgestarts_dict contain all of the above
         # edges, with the former being ordered by position
-        if self.network.net_params.no_internal_links:
-            self.total_edgestarts = self.edgestarts
-        else:
-            self.total_edgestarts = self.edgestarts + self.internal_edgestarts
+        self.total_edgestarts = self.edgestarts + self.internal_edgestarts
         self.total_edgestarts.sort(key=lambda tup: tup[1])
 
         self.total_edgestarts_dict = dict(self.total_edgestarts)
@@ -480,12 +477,6 @@ class TraCIScenario(KernelScenario):
                 x.append(E('connection', **connection_attributes))
             printxml(x, self.net_path + self.confn)
 
-        # check whether the user requested no-internal-links (default="true")
-        if net_params.no_internal_links:
-            no_internal_links = 'true'
-        else:
-            no_internal_links = 'false'
-
         # xml file for configuration, which specifies:
         # - the location of all files of interest for sumo
         # - output net file
@@ -504,7 +495,7 @@ class TraCIScenario(KernelScenario):
         t.append(E('output-file', value=self.netfn))
         x.append(t)
         t = E('processing')
-        t.append(E('no-internal-links', value='%s' % no_internal_links))
+        t.append(E('no-internal-links', value='false'))
         t.append(E('no-turnarounds', value='true'))
         x.append(t)
         printxml(x, self.net_path + self.cfgfn)
@@ -513,7 +504,7 @@ class TraCIScenario(KernelScenario):
             [
                 'netconvert -c ' + self.net_path + self.cfgfn +
                 ' --output-file=' + self.cfg_path + self.netfn +
-                ' --no-internal-links="%s"' % no_internal_links
+                ' --no-internal-links="false"'
             ],
             shell=True)
 
@@ -568,11 +559,6 @@ class TraCIScenario(KernelScenario):
 
         # this removes edges that are not connected to a network (isolated)
         net_cmd += " --remove-edges.isolated"
-
-        # this removes internal links from the network (useful when the network
-        # becomes very large)
-        if net_params.no_internal_links:
-            net_cmd += " --no_internal_links"
 
         subprocess.call(net_cmd, shell=True)
 
@@ -911,11 +897,9 @@ class TraCIScenario(KernelScenario):
             from_edge = connection.attrib['from']
             from_lane = int(connection.attrib['fromLane'])
 
-            no_internal_links = self.network.net_params.no_internal_links
-            if from_edge[0] != ":" and not no_internal_links:
-                # if the edge is not an internal links and the network is
-                # allowed to have internal links, then get the next edge/lane
-                # pair from the "via" element
+            if from_edge[0] != ":":
+                # if the edge is not an internal link, then get the next
+                # edge/lane pair from the "via" element
                 via = connection.attrib['via'].rsplit('_', 1)
                 to_edge = via[0]
                 to_lane = int(via[1])
