@@ -195,7 +195,20 @@ class LoopScenario(Scenario):
         """See parent class."""
         edgelen = self.net_params.additional_params["length"] / 4
 
-        edgestarts = [("bottom", 0), ("right", edgelen), ("top", 2 * edgelen),
-                      ("left", 3 * edgelen)]
+        edgestarts = [("bottom", 0),
+                      ("right", edgelen + 0.1),
+                      ("top", 2 * edgelen + 0.2),
+                      ("left", 3 * edgelen + 0.3)]
+
+        return edgestarts
+
+    def specify_internal_edge_starts(self):
+        """See parent class."""
+        edgelen = self.net_params.additional_params["length"] / 4
+
+        edgestarts = [(":right_0", edgelen),
+                      (":top_0", 2 * edgelen + 0.1),
+                      (":left_0", 3 * edgelen + 0.2),
+                      (":bottom_0", 4 * edgelen + 0.3)]
 
         return edgestarts

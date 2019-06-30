@@ -841,11 +841,11 @@ class TestNextPrevEdge(unittest.TestCase):
         env, scenario = ring_road_exp_setup()
 
         next_edge = env.k.scenario.next_edge("top", 0)
-        expected_next_edge = [("left", 0)]
+        expected_next_edge = [(":left_0", 0)]
         self.assertCountEqual(next_edge, expected_next_edge)
 
         prev_edge = env.k.scenario.prev_edge("top", 0)
-        expected_prev_edge = [("right", 0)]
+        expected_prev_edge = [(":top_0", 0)]
         self.assertCountEqual(prev_edge, expected_prev_edge)
 
     def test_no_edge_ahead(self):
