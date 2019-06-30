@@ -1,7 +1,7 @@
 ..    include:: <isonum.txt>
 .. contents:: Table of contents
 
-Local Installation
+Local Installation of Flow
 ==================
 
 To get Flow running, you need three things: Flow,
@@ -360,7 +360,7 @@ If you have Ubuntu 14.04+, run the following command
     source ~/.bashrc
 
 
-Remote installation using docker
+Virtual installation of Flow (using docker containers)
 ================================
 
 To install a containerized Flow stack, run:
