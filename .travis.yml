@@ -54,7 +54,7 @@ install:
   - conda install -y patchelf=0.9
   - pip install tensorflow-probability
   - pip install gtimer
-  - pip install -U ray
+  - pip install ray==0.6.1
   - pip install -U pyglet
   - pip install git+https://github.com/hartikainen/serializable.git
   - pip install flatten-dict
