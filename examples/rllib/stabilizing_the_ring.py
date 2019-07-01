@@ -134,6 +134,7 @@ if __name__ == "__main__":
                 **config
             },
             "checkpoint_freq": 20,
+            "checkpoint_at_end": True,
             "max_failures": 999,
             "stop": {
                 "training_iteration": 200,
