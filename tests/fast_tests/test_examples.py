@@ -28,6 +28,7 @@ import ray
 from ray.tune import run_experiments
 
 os.environ['TEST_FLAG'] = 'True'
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 
 class TestSumoExamples(unittest.TestCase):
