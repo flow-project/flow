@@ -391,7 +391,9 @@ class TrafficLightGridEnv(Env):
                              .format(k))
 
         if isinstance(edges, list):
-            return [self.k_closest_to_intersection(edge, k) for edge in edges]
+            ids = [self.k_closest_to_intersection(edge, k) for edge in edges]
+            # flatten the list before returning it
+            return [veh_id for sublist in ids for veh_id in sublist]
 
         # get the ids of all the vehicles on the edge 'edges' order by
         # increasing distance to intersection
