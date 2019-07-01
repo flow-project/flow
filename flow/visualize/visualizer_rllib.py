@@ -36,14 +36,21 @@ from flow.utils.rllib import get_rllib_pkl
 
 EXAMPLE_USAGE = """
 example usage:
-    python ./visualizer_rllib.py /tmp/ray/result_dir 1
+    python ./visualizer_rllib.py /ray_results/experiment_dir/result_dir 1
 
 Here the arguments are:
-1 - the number of the checkpoint
+1 - the path to the simulation results
+2 - the number of the checkpoint
 """
 
 
 def visualizer_rllib(args):
+    """Visualizer for RLlib experiments.
+
+    This function takes args (see function create_parser below for
+    more detailed information on what information can be fed to this
+    visualizer), and renders the experiment associated with it.
+    """
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
         else args.result_dir[:-1]
 
@@ -279,6 +286,7 @@ def visualizer_rllib(args):
 
 
 def create_parser():
+    """Create the parser to capture CLI arguments."""
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description='[Flow] Evaluates a reinforcement learning agent '
