@@ -53,6 +53,7 @@ def plot_progress(filepath, columns):
                   'floats.'.format(__file__, col))
             raise
 
+    plt.ion()
     for col_name, values in data.items():
         plt.plot(values, label=col_name)
     plt.legend()
