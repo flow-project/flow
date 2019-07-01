@@ -1,3 +1,5 @@
+"""Environment for training multi-agent experiments."""
+
 from copy import deepcopy
 import numpy as np
 import random
@@ -14,7 +16,7 @@ from flow.utils.exceptions import FatalFlowError
 
 
 class MultiEnv(MultiAgentEnv, Env):
-    """Multi-agent version of base env. See parent class for info"""
+    """Multi-agent version of base env. See parent class for info."""
 
     def step(self, rl_actions):
         """Advance the environment by one step.
@@ -247,7 +249,7 @@ class MultiEnv(MultiAgentEnv, Env):
         return self.get_state()
 
     def clip_actions(self, rl_actions=None):
-        """Clip the actions passed from the RL agent
+        """Clip the actions passed from the RL agent.
 
         If no actions are provided at any given step, the rl agents default to
         performing actions specified by sumo.
