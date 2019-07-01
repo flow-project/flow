@@ -242,25 +242,22 @@ class TrafficLightGridEnv(Env):
     # ===============================
 
     def get_distance_to_intersection(self, veh_ids):
-        """Determines the smallest distance from the current vehicle's position
-        to any of the intersections.
+        """Determines the distance from the vehicle to the intersection
+        it is heading towards.
 
         Parameters
         ----------
-        veh_ids : str
-            vehicle identifier
+        veh_ids : str or str list
+            vehicle(s) identifier(s)
 
         Returns
         -------
-        tup
-            1st element: distance to closest intersection
-            2nd element: intersection ID (which also specifies which side of
-            the intersection the vehicle will be arriving at)
+        float (or float list)
+            distance to closest intersection
         """
         if isinstance(veh_ids, list):
-            return [self.find_intersection_dist(veh_id) for veh_id in veh_ids]
-        else:
-            return self.find_intersection_dist(veh_ids)
+            return [get_distance_to_intersection(veh_id) for veh_id in veh_ids]
+        return self.find_intersection_dist(veh_ids)
 
     def find_intersection_dist(self, veh_id):
         """Return distance from the vehicle's current position to the position
@@ -376,32 +373,33 @@ class TrafficLightGridEnv(Env):
 
     def k_closest_to_intersection(self, edges, k):
         """
-        Return the veh_id of the k closest vehicles to an intersection for
-        each edge. Performs no check on whether or not edge is going toward an
-        intersection or not. Does no padding
+        Get the ids of the k vehicles closest to an intersection for
+        a given edge, or for several edges.
+
+        For each edge in edges, return the ids (veh_id) of the k vehicles
+        in edge that are closest to an intersection (the intersection they
+        are heading towards).
+
+        - Performs no check on whether or not edge is going towards an
+        intersection or not.
+        - Does no padding if there are less than k vehicles on an edge.
         """
         if k < 0:
-            raise IndexError("k must be greater than 0")
-        dists = []
-
-        def sort_lambda(veh_id):
-            return self.get_distance_to_intersection(veh_id)
+            raise ValueError("Function k_closest_to_intersection called with"
+                             "parameter k={}, but k should be non-negative"
+                             .format(k))
 
         if isinstance(edges, list):
-            for edge in edges:
-                vehicles = self.k.vehicle.get_ids_by_edge(edge)
-                dist = sorted(
-                    vehicles,
-                    key=sort_lambda
-                )
-                dists += dist[:k]
-        else:
-            vehicles = self.k.vehicle.get_ids_by_edge(edges)
-            dist = sorted(
-                vehicles,
-                key=lambda veh_id: self.get_distance_to_intersection(veh_id))
-            dists += dist[:k]
-        return dists
+            return [k_closest_to_intersection(edge, k) for edge in edges]
+
+        # get the ids of all the vehicles on the edge 'edges' order by
+        # increasing distance to intersection
+        veh_ids_ordered = sorted(
+            self.k.vehicle.get_ids_by_edge(edges),
+            key=self.get_distance_to_intersection)
+
+        # return the ids of the k vehicles closest to the intersection
+        return veh_ids_ordered[:k]
 
 
 class PO_TrafficLightGridEnv(TrafficLightGridEnv):
