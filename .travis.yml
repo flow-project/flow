@@ -53,7 +53,7 @@ before_script:
 
 script:
   - python setup.py install
-  - xvfb-run nose2 --with-coverage
+  - xvfb-run --server-args="-screen 0 1024x768x24"  nose2 --with-coverage
 
 after_success:
   - coveralls
