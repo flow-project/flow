@@ -167,13 +167,6 @@ class Scenario(Serializable):
         the edge/intersection/internal_link, and the second value is the
         distance of the link from some global reference, i.e. [(link_0, pos_0),
         (link_1, pos_1), ...]
-    internal_edge_starts : list of (str, float)
-        A variable similar to `edge_starts` but for junctions within the
-        network. If no junctions are available, this variable will return the
-        default variable: `[(':', -1)]` needed by sumo simulations.
-    intersection_edge_starts : list of (str, float)
-        A variable similar to `edge_starts` but for intersections within
-        the network. This variable will be deprecated in future releases.
 
     Example
     -------
@@ -299,17 +292,6 @@ class Scenario(Serializable):
 
     >>> print(scenario.edge_starts)
     >>> [('bottom', 0), ('right', 57.5), ('top', 115.0), ('left', 172.5)]
-
-    Finally, the loop scenario does not contain any junctions or intersections,
-    and as a result the `internal_edge_starts` and `intersection_edge_starts`
-    attributes are both set to None. For an example of a network with junctions
-    and intersections, please refer to: flow/scenarios/figure_eight.py.
-
-    >>> print(scenario.internal_edge_starts)
-    >>> [(':', -1)]
-
-    >>> print(scenario.intersection_edge_starts)
-    >>> []
     """
 
     def __init__(self,
@@ -395,7 +377,7 @@ class Scenario(Serializable):
 
         # optional parameters, used to get positions from some global reference
         self.edge_starts = self.specify_edge_starts()
-        self.internal_edge_starts = self.specify_internal_edge_starts()
+        self.internal_edge_starts = []  # this will be deprecated
         self.intersection_edge_starts = []  # this will be deprecated
 
     # TODO: convert to property
@@ -417,29 +399,6 @@ class Scenario(Serializable):
             ex: [(edge0, pos0), (edge1, pos1), ...]
         """
         return None
-
-    # TODO: convert to property
-    def specify_internal_edge_starts(self):
-        """Define the edge starts for internal edge nodes.
-
-        This is meant to provide some global reference frame for the internal
-        edges in the network.
-
-        These edges are the result of finite-length connections between road
-        sections. This methods does not need to be specified if "no-internal-
-        links" is set to True in net_params.
-
-        By default, all internal edge starts are given a position of -1. This
-        may be overridden; however, in general we do not worry about internal
-        edges and junctions in large networks.
-
-        Returns
-        -------
-        list of (str, float)
-            list of internal junction names and starting positions,
-            ex: [(internal0, pos0), (internal1, pos1), ...]
-        """
-        return [(':', -1)]
 
     # TODO: convert to property
     def specify_nodes(self, net_params):

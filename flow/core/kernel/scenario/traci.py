@@ -180,7 +180,7 @@ class TraCIScenario(KernelScenario):
 
         # these optional parameters need only be used if "no-internal-links"
         # is set to "false" while calling sumo's netconvert function
-        self.internal_edgestarts = self.network.internal_edge_starts
+        self.internal_edgestarts = self._gen_internal_edgestarts()
         self.internal_edgestarts_dict = dict(self.internal_edgestarts)
 
         # total_edgestarts and total_edgestarts_dict contain all of the above
@@ -925,3 +925,52 @@ class TraCIScenario(KernelScenario):
         connection_data = {'next': next_conn_data, 'prev': prev_conn_data}
 
         return net_data, connection_data
+
+    def _gen_internal_edgestarts(self):
+        """Create a list of internal edgestarts.
+
+        This method also increments the regular edgestarts so that they do not
+        overlap with the internal edgestarts.
+
+        Returns
+        -------
+        list of (str, float)
+            list of internal junction names and starting positions,
+            ex: [(internal0, pos0), (internal1, pos1), ...]
+        """
+        # sort the regular edgestarts
+        self.edgestarts.sort(key=lambda tup: tup[1])
+
+        # the length that needs to be added to all next edges in the list of
+        # sorted edges
+        prev_junction_lengths = 0
+
+        internal_edgestarts = []
+        for i in range(len(self.edgestarts)):
+            edge, pos = self.edgestarts[i]
+
+            # increment the position with the junction length increment, and
+            # add it back to the edgestarts
+            pos += prev_junction_lengths
+            self.edgestarts[i] = (edge, pos)
+
+            # collect the names of all next junctions from the current edge
+            all_next_edges = []
+            for lane in range(self.num_lanes(edge)):
+                next_edge = self.next_edge(edge, lane)
+                for edge_i, _ in next_edge:
+                    if edge_i not in all_next_edges:
+                        all_next_edges.append(edge_i)
+
+            # get the maximum length of the edges, and add it to the junction
+            # increment length
+            max_length = max(self.edge_length(e) for e in all_next_edges)
+            prev_junction_lengths += max_length
+
+            # add the junctions with the position being immediately after the
+            # current edge
+            next_pos = pos + self.edge_length(edge)
+            for next_edge in all_next_edges:
+                internal_edgestarts.append((next_edge, next_pos))
+
+        return internal_edgestarts
