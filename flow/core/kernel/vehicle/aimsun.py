@@ -134,10 +134,17 @@ class AimsunKernelVehicle(KernelVehicle):
         self.kernel_api = kernel_api
 
     def make_bitmap_for_tracking(self, infos):
-        """
-        input: set containing all infos that we want
-        (see list of info in __init__)
-        returns a corresponding bitmap to be used in the
+        """Make bitmap for tracking.
+
+        Parameters
+        ----------
+        input : set 
+            contains all infos that we want,
+            (see list of info in __init__)
+        
+        Returns
+        -------
+        A corresponding bitmap to be used in the
         self.kernel_api.get_vehicle_tracking_info function
         """
         bitmap = ""
