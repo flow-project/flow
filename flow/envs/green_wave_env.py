@@ -256,7 +256,8 @@ class TrafficLightGridEnv(Env):
             distance to closest intersection
         """
         if isinstance(veh_ids, list):
-            return [get_distance_to_intersection(veh_id) for veh_id in veh_ids]
+            return [self.get_distance_to_intersection(veh_id)
+                    for veh_id in veh_ids]
         return self.find_intersection_dist(veh_ids)
 
     def find_intersection_dist(self, veh_id):
@@ -390,7 +391,7 @@ class TrafficLightGridEnv(Env):
                              .format(k))
 
         if isinstance(edges, list):
-            return [k_closest_to_intersection(edge, k) for edge in edges]
+            return [self.k_closest_to_intersection(edge, k) for edge in edges]
 
         # get the ids of all the vehicles on the edge 'edges' order by
         # increasing distance to intersection
