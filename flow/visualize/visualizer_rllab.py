@@ -11,6 +11,12 @@ from rllab.sampler.utils import rollout
 
 
 def visualizer_rllab(args):
+    """Visualizer for rllab experiments.
+
+    This function takes args (see function create_parser below for
+    more detailed information on what information can be fed to this
+    visualizer), and renders the experiment associated with it.
+    """
     # extract the flow environment
     data = joblib.load(args.file)
     policy = data['policy']
@@ -63,6 +69,7 @@ def visualizer_rllab(args):
 
 
 def create_parser():
+    """Create the parser to capture CLI arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument('file', type=str, help='path to the snapshot file')
     parser.add_argument(
