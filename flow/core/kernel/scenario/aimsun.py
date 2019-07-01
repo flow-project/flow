@@ -38,6 +38,7 @@ class AimsunKernelScenario(KernelScenario):
         self.aimsun_proc = None
 
     def generate_network(self, scenario):
+        """See parent class."""
         self.network = scenario
 
         output = {
@@ -328,11 +329,11 @@ class AimsunKernelScenario(KernelScenario):
             return []
 
     def aimsun_edge_name(self, edge):
-        """Returns the edge name in Aimsun."""
+        """Return the edge name in Aimsun."""
         return self._edge_flow2aimsun[edge]
 
     def flow_edge_name(self, edge):
-        """Returns the edge name in Aimsun."""
+        """Return the edge name in Aimsun."""
         if edge not in self._edge_aimsun2flow:
             # print("aimsun edge unknown: {}".format(edge))
             return ''

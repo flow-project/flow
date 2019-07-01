@@ -1,9 +1,11 @@
+"""Contains a list of custom velocity controllers."""
+
 from flow.controllers.base_controller import BaseController
 import numpy as np
 
 
 class FollowerStopper(BaseController):
-    """Inspired by Dan Work's... work:
+    """Inspired by Dan Work's... work.
 
     Dissipation of stop-and-go waves via control of autonomous vehicles:
     Field experiments https://arxiv.org/abs/1705.01693
@@ -111,7 +113,7 @@ class FollowerStopper(BaseController):
 
 
 class PISaturation(BaseController):
-    """Inspired by Dan Work's... work:
+    """Inspired by Dan Work's... work.
 
     Dissipation of stop-and-go waves via control of autonomous vehicles:
     Field experiments https://arxiv.org/abs/1705.01693

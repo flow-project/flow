@@ -33,7 +33,7 @@ ACCEPTABLE_SCENARIOS = [
 
 
 def import_data_from_emission(fp):
-    """Import relevant data from the predefined emission (.csv) file.
+    r"""Import relevant data from the predefined emission (.csv) file.
 
     Parameters
     ----------
@@ -74,7 +74,7 @@ def import_data_from_emission(fp):
 
 
 def get_time_space_data(data, params):
-    """Compute the unique inflows and subsequent outflow statistics.
+    r"""Compute the unique inflows and subsequent outflow statistics.
 
     Parameters
     ----------
@@ -141,7 +141,7 @@ def get_time_space_data(data, params):
 
 
 def _merge(data, params, all_time):
-    """Generate position and speed data for the merge.
+    r"""Generate position and speed data for the merge.
 
     This only include vehicles on the main highway, and not on the adjacent
     on-ramp.
@@ -215,7 +215,7 @@ def _merge(data, params, all_time):
 
 
 def _ring_road(data, params, all_time):
-    """Generate position and speed data for the ring road.
+    r"""Generate position and speed data for the ring road.
 
     Vehicles that reach the top of the plot simply return to the bottom and
     continue.
@@ -277,7 +277,7 @@ def _ring_road(data, params, all_time):
 
 
 def _figure_eight(data, params, all_time):
-    """Generate position and speed data for the figure eight.
+    r"""Generate position and speed data for the figure eight.
 
     The vehicles traveling towards the intersection from one side will be
     plotted from the top downward, while the vehicles from the other side will
