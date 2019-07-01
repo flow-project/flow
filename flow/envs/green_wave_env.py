@@ -386,6 +386,8 @@ class TrafficLightGridEnv(Env):
                 pos="0",
                 speed="max")
 
+    # FIXME it doesn't make sense to pass a list of edges since the function
+    # returns a flattened list with no padding, so we would lose information
     def k_closest_to_intersection(self, edges, k):
         """
         Get the ids of the k vehicles closest to an intersection for
