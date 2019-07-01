@@ -24,7 +24,7 @@ ADDITIONAL_ENV_PARAMS = {
 
 
 class MultiWaveAttenuationPOEnv(MultiEnv):
-    """Multiagent shared model version of WaveAttenuationPOEnv
+    """Multiagent shared model version of WaveAttenuationPOEnv.
 
     Intended to work with Lord Of The Rings Scenario.
     Note that this environment current
@@ -84,7 +84,7 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
         return obs
 
     def _apply_rl_actions(self, rl_actions):
-        """Split the accelerations by ring"""
+        """Split the accelerations by ring."""
         if rl_actions:
             rl_ids = list(rl_actions.keys())
             accel = list(rl_actions.values())
@@ -126,6 +126,6 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
             self.k.vehicle.set_observed(lead_id)
 
     def gen_edges(self, i):
-        """Return the edges corresponding to the rl id"""
+        """Return the edges corresponding to the rl id."""
         return ['top_{}'.format(i), 'left_{}'.format(i),
                 'right_{}'.format(i), 'bottom_{}'.format(i)]
