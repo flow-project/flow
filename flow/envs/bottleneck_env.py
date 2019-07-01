@@ -33,8 +33,8 @@ NUM_TOLL_LANES = MAX_LANES
 TOLL_BOOTH_AREA = 10  # how far into the edge lane changing is disabled
 RED_LIGHT_DIST = 50  # how close for the ramp meter to start going off
 
-EDGE_BEFORE_RAMP_METER = "2"  # Specifies which edge number is before ramp meter
-EDGE_AFTER_RAMP_METER = "3"  # Specifies which edge number is after ramp meter
+EDGE_BEFORE_RAMP_METER = "2"  # Specifies which edge is before ramp meter
+EDGE_AFTER_RAMP_METER = "3"  # Specifies which edge is after ramp meter
 NUM_RAMP_METERS = MAX_LANES
 
 RAMP_METER_AREA = 80  # Area occupied by ramp meter
@@ -326,8 +326,8 @@ class BottleneckEnv(Env):
 
     def get_bottleneck_density(self, lanes=None):
         """Return the density of specified lanes.
-        
-        If no lanes are specified, this function calculates the 
+
+        If no lanes are specified, this function calculates the
         density of all vehicles on all lanes of the bottleneck edges.
         """
         bottleneck_ids = self.k.vehicle.get_ids_by_edge(['3', '4'])
@@ -373,7 +373,7 @@ class BottleneckEnv(Env):
 
 class BottleNeckAccelEnv(BottleneckEnv):
     """BottleNeckAccelEnv.
-    
+
     Environment used to train vehicles to effectively pass through a
     bottleneck.
 
@@ -603,7 +603,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
 class DesiredVelocityEnv(BottleneckEnv):
     """DesiredVelocityEnv.
-    
+
     Environment used to train vehicles to effectively pass through a
     bottleneck by specifying the velocity that RL vehicles should attempt to
     travel in certain regions of space.

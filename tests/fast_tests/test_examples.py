@@ -135,7 +135,7 @@ class TestSumoExamples(unittest.TestCase):
 
     def test_density_exp(self):
         """Verifies that examples/sumo/density_exp.py is working."""
-        _ = run_bottleneck.remote(100, 1, 10, render=False)
+        run_bottleneck.remote(100, 1, 10, render=False)
 
 
 class TestRllibExamples(unittest.TestCase):
