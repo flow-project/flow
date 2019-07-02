@@ -12,9 +12,7 @@ Thank you for contributing to Flow and requesting a feature! Here are a few guid
 -->
 
 ## Feature Description
-<!--
 Please provide:
 - Clear description of the feature
 - Description of what you expect
 - [optional] Any other context (e.g. pictures) 
--->
