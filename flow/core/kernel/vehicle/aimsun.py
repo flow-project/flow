@@ -138,10 +138,9 @@ class AimsunKernelVehicle(KernelVehicle):
 
         Parameters
         ----------
-        input : set 
+        infos : set
             contains all infos that we want,
             (see list of info in __init__)
-        
         Returns
         -------
         A corresponding bitmap to be used in the

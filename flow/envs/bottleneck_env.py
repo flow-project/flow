@@ -176,6 +176,18 @@ class BottleneckEnv(Env):
             self.next_period += PERIOD / self.sim_step
 
     def ramp_meter_lane_change_control(self):
+        """Control the behavior of vehicles near ramp meter
+
+        This function serves as a means of controlling the
+        lane changing behavior of vehicles as they are near
+        the ramp meter as a form of bottleneck instigation.
+
+        First, monitor which vehicle has
+        passed the ramp meter and capture its default
+        lane changing mode. Second, disable lane changing
+        behavior for all vehicles that have passed the
+        ramp meter area and entered the toll area.
+        """
         cars_that_have_left = []
         for veh_id in self.cars_before_ramp:
             if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_RAMP_METER:
@@ -246,6 +258,36 @@ class BottleneckEnv(Env):
         self.k.traffic_light.set_state('3', ''.join(colors))
 
     def apply_toll_bridge_control(self):
+        """Central toll bridge behavior function.
+
+        This function controls the general behavior
+        of vehicles that are before/in/have passed the
+        toll bridge.
+
+        If a vehicle is before the toll bridge and not
+        in the fast track lane then it must wait for a
+        maximum amount of time derived from a normal distribution
+        defined by the MEAN_NUM_SECONDS_WAIT_AT_TOLL variable
+        and sim_steps. If the vehicle is in the fast track
+        lane then it will wait for a maximum amount of time
+        derived from a normal distribution defined by the
+        MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK and sim_step
+        variables.
+
+        If the vehicle is at the toll booth area then its lane
+        changing mode is disabled since no lane changing is
+        allowed inside the toll booth. A check for the toll
+        wait time occurs and if it is less than zero then
+        the traffic light is set to green ('G'); otherwise
+        the light is set to red ('R') and the toll wait
+        time is decreased by 1.
+
+        Finally, we join all traffic light states into one parameter
+        called new_tl_state and compare it with the current toll
+        lane state saved within the param self.tl_state. If there
+        is a change of state then we update the parameter
+        self.tl_state to be equals to new_tl_state.
+        """
         cars_that_have_left = []
         for veh_id in self.cars_waiting_for_toll:
             if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_TOLL:
