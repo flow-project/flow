@@ -1,17 +1,11 @@
 ---
 name: Bug report
-about: Help us answer your questions/submit bigs
+about: You can report a bug in the Flow
 
 ---
 
-**Choose an option**
-This is a: 
-- [ ] Question
-- [ ] Feature request
-- [ ] Bug report
-
 **Describe the issue**
-A clear and concise description of what the bug/question/feature request is.
+A clear and concise description of what the bug request is.
 
 **To Reproduce**
 Leave empty if not applicable.
