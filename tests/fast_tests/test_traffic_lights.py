@@ -206,6 +206,9 @@ class TestPOEnv(unittest.TestCase):
         for veh_id in k_closest:
             self.assertTrue(self.env.k.vehicle.get_edge(veh_id) in c0_edges)
 
+        with self.assertRaises(ValueError):
+            self.env.k_closest_to_intersection(c0_edges, -1)
+
 
 class TestItRuns(unittest.TestCase):
     """
