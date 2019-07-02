@@ -3,7 +3,7 @@
 This example consists of 22 IDM cars on a ring creating shockwaves.
 """
 
-from flow.controllers import IDMController, ContinuousRouter
+from flow.controllers import IDMController, ContinuousRouter,BCMController ,FollowerStopper, PISaturation,OVMController,LACController
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, \
     InitialConfig, NetParams
