@@ -1,3 +1,9 @@
+"""Environments for scenarios with traffic lights.
+
+These environments are used to train traffic lights to regulate traffic flow
+through an n x m grid.
+"""
+
 import numpy as np
 import re
 
@@ -27,15 +33,15 @@ ADDITIONAL_PO_ENV_PARAMS = {
 
 
 class TrafficLightGridEnv(Env):
-    """Environment used to train traffic lights to regulate traffic flow
-    through an n x m grid.
+    """Environment used to train traffic lights.
 
     Required from env_params:
 
-    * switch_time: minimum switch time for each traffic light (in seconds).
+    * switch_time: minimum time a light must be constant before
+      it switches (in seconds).
       Earlier RL commands are ignored.
-    * tl_type: whether the traffic lights should be actuated by sumo or RL
-      options are "controlled" and "actuated"
+    * tl_type: whether the traffic lights should be actuated by sumo or RL,
+      options are respectively "actuated" and "controlled"
     * discrete: determines whether the action space is meant to be discrete or
       continuous
 
@@ -243,7 +249,9 @@ class TrafficLightGridEnv(Env):
     # ===============================
 
     def get_distance_to_intersection(self, veh_ids):
-        """Determines the smallest distance from the current vehicle's position
+        """Return the distance from vehicle(s) to the next intersection.
+
+        Determines the smallest distance from the current vehicle's position
         to any of the intersections.
 
         Parameters
@@ -264,8 +272,11 @@ class TrafficLightGridEnv(Env):
             return self.find_intersection_dist(veh_ids)
 
     def find_intersection_dist(self, veh_id):
-        """Return distance from the vehicle's current position to the position
-        of the node it is heading toward."""
+        """Return distance from intersection.
+
+        Return the distance from the vehicle's current position to the position
+        of the node it is heading toward.
+        """
         edge_id = self.k.vehicle.get_edge(veh_id)
         # FIXME this might not be the best way of handling this
         if edge_id == "":
@@ -278,7 +289,7 @@ class TrafficLightGridEnv(Env):
         return dist
 
     def _convert_edge(self, edges):
-        """Converts the string edge to a number.
+        """Convert the string edge to a number.
 
         Start at the bottom left vertical edge and going right and then up, so
         the bottom left vertical edge is zero, the right edge beside it  is 1.
@@ -305,7 +316,7 @@ class TrafficLightGridEnv(Env):
             return self._split_edge(edges)
 
     def _split_edge(self, edge):
-        """Utility function for convert_edge"""
+        """Act as utility function for convert_edge."""
         if edge:
             if edge[0] == ":":  # center
                 center_index = int(edge.split("center")[1][0])
@@ -331,14 +342,20 @@ class TrafficLightGridEnv(Env):
             return 0
 
     def additional_command(self):
-        """Used to insert vehicles that are on the exit edge and place them
-        back on their entrance edge."""
+        """See parent class.
+
+        Used to insert vehicles that are on the exit edge and place them
+        back on their entrance edge.
+        """
         for veh_id in self.k.vehicle.get_ids():
             self._reroute_if_final_edge(veh_id)
 
     def _reroute_if_final_edge(self, veh_id):
-        """Checks if an edge is the final edge. If it is return the route it
-        should start off at."""
+        """Reroute vehicle associated with veh_id.
+
+        Checks if an edge is the final edge. If it is return the route it
+        should start off at.
+        """
         edge = self.k.vehicle.get_edge(veh_id)
         if edge == "":
             return
@@ -376,7 +393,8 @@ class TrafficLightGridEnv(Env):
                 speed="max")
 
     def k_closest_to_intersection(self, edges, k):
-        """
+        """Return the vehicle IDs of k closest vehicles to an intersection.
+
         Return the veh_id of the k closest vehicles to an intersection for
         each edge. Performs no check on whether or not edge is going toward an
         intersection or not. Does no padding
@@ -406,8 +424,7 @@ class TrafficLightGridEnv(Env):
 
 
 class PO_TrafficLightGridEnv(TrafficLightGridEnv):
-    """Environment used to train traffic lights to regulate traffic flow
-    through an n x m grid.
+    """Environment used to train traffic lights.
 
     Required from env_params:
 
@@ -459,8 +476,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
 
     @property
     def observation_space(self):
-        """
-        Partially observed state space.
+        """State space that is partially observed.
 
         Velocities, distance to intersections, edge number (for nearby
         vehicles), and traffic light state.
@@ -475,7 +491,8 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         return tl_box
 
     def get_state(self):
-        """
+        """See parent class.
+
         Returns self.num_observed number of vehicles closest to each traffic
         light and for each vehicle its velocity, distance to intersection,
         edge_number traffic light state. This is partially observed
@@ -549,7 +566,8 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         if self.env_params.evaluate:
             return - rewards.min_delay_unscaled(self)
         else:
-            return rewards.desired_velocity(self, fail=kwargs["fail"])
+            return (- rewards.min_delay_unscaled(self) +
+                    rewards.penalize_standstill(self, gain=0.2))
 
     def additional_command(self):
         """See class definition."""
@@ -559,7 +577,9 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
 
 class GreenWaveTestEnv(TrafficLightGridEnv):
     """
-    Class that overrides RL methods of green wave so we can test
+    Class for use in testing.
+
+    This class overrides RL methods of green wave so we can test
     construction without needing to specify RL methods
     """
 

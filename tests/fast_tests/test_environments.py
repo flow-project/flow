@@ -7,15 +7,12 @@ from copy import deepcopy
 from flow.core.params import VehicleParams
 from flow.core.params import NetParams, EnvParams, SumoParams, InFlows
 from flow.controllers import IDMController, RLController
-from flow.scenarios import LoopScenario, MergeScenario, BottleneckScenario, \
-    TwoLoopsOneMergingScenario
+from flow.scenarios import LoopScenario, MergeScenario, BottleneckScenario
 from flow.scenarios.loop import ADDITIONAL_NET_PARAMS as LOOP_PARAMS
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS as MERGE_PARAMS
-from flow.scenarios.loop_merge import ADDITIONAL_NET_PARAMS as LM_PARAMS
 from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
     WaveAttenuationEnv, WaveAttenuationPOEnv, WaveAttenuationMergePOEnv, \
-    TestEnv, TwoLoopsMergePOEnv, DesiredVelocityEnv, BottleneckEnv, \
-    BottleNeckAccelEnv
+    TestEnv, DesiredVelocityEnv, BottleneckEnv, BottleNeckAccelEnv
 from flow.envs.loop.wave_attenuation import v_eq_max_function
 
 
@@ -318,81 +315,6 @@ class TestAccelEnv(unittest.TestCase):
 
         # ensure that the list of ids did not change
         self.assertListEqual(sorted_ids, ids)
-
-
-class TestTwoLoopsMergeEnv(unittest.TestCase):
-
-    def setUp(self):
-        vehicles = VehicleParams()
-        vehicles.add("rl", acceleration_controller=(RLController, {}))
-        vehicles.add("human", acceleration_controller=(IDMController, {}))
-
-        self.sim_params = SumoParams()
-        self.scenario = TwoLoopsOneMergingScenario(
-            name="test_merge",
-            vehicles=vehicles,
-            net_params=NetParams(
-                no_internal_links=False,
-                additional_params=LM_PARAMS.copy(),
-            ),
-        )
-        self.env_params = EnvParams(
-            additional_params={
-                "max_accel": 3,
-                "max_decel": 3,
-                "target_velocity": 10,
-                "n_preceding": 2,
-                "n_following": 2,
-                "n_merging_in": 2,
-                "sort_vehicles": True
-            }
-        )
-
-    def tearDown(self):
-        self.sim_params = None
-        self.scenario = None
-        self.env_params = None
-
-    def test_additional_env_params(self):
-        """Ensures that not returning the correct params leads to an error."""
-        self.assertTrue(
-            test_additional_params(
-                env_class=TwoLoopsMergePOEnv,
-                sim_params=self.sim_params,
-                scenario=self.scenario,
-                additional_params={
-                    "max_accel": 1,
-                    "max_decel": 3,
-                    "target_velocity": 10,
-                    "n_preceding": 2,
-                    "n_following": 2,
-                    "n_merging_in": 2
-                }
-            )
-        )
-
-    def test_observation_action_space(self):
-        """Tests the observation and action spaces upon initialization."""
-        env = TwoLoopsMergePOEnv(
-            sim_params=self.sim_params,
-            scenario=self.scenario,
-            env_params=self.env_params
-        )
-
-        # check the observation space
-        self.assertTrue(test_space(
-            env.observation_space,
-            expected_size=17, expected_min=0, expected_max=float('inf')))
-
-        # check the action space
-        self.assertTrue(test_space(
-            env.action_space,
-            expected_size=env.initial_vehicles.num_rl_vehicles,
-            expected_min=-abs(env.env_params.additional_params["max_decel"]),
-            expected_max=env.env_params.additional_params["max_accel"])
-        )
-
-        env.terminate()
 
 
 class TestWaveAttenuationEnv(unittest.TestCase):
@@ -999,19 +921,10 @@ class TestDesiredVelocityEnv(unittest.TestCase):
 
         # reset the environment and get a new inflow rate
         env.reset()
-        expected_inflow = 1343.178  # just from checking the new inflow
+        expected_inflow = 1353.6  # just from checking the new inflow
 
-        # check that the first inflow rate is approximately 1500
-        for _ in range(500):
-            env.step(rl_actions=None)
-        self.assertAlmostEqual(
-            env.k.vehicle.get_inflow_rate(250)/expected_inflow, 1, 1)
-
-        # reset the environment and get a new inflow rate
-        env.reset()
-        expected_inflow = 1729.050  # just from checking the new inflow
-
-        # check that the new inflow rate is approximately as expected
+        # check that the first inflow rate is approximately what the seeded
+        # value expects it to be
         for _ in range(500):
             env.step(rl_actions=None)
         self.assertAlmostEqual(

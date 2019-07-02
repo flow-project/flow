@@ -50,7 +50,10 @@ class TraCITrafficLight(KernelTrafficLight):
 
     def update(self, reset):
         """See parent class."""
-        tls_obs = self.kernel_api.trafficlight.getSubscriptionResults()
+        tls_obs = {}
+        for tl_id in self.__ids:
+            tls_obs[tl_id] = \
+                self.kernel_api.trafficlight.getSubscriptionResults(tl_id)
         self.__tls = tls_obs.copy()
 
     def get_ids(self):

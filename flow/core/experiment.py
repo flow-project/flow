@@ -90,6 +90,19 @@ class Experiment:
         info_dict : dict
             contains returns, average speed per step
         """
+        # raise an error if convert_to_csv is set to True but no emission
+        # file will be generated, to avoid getting an error at the end of the
+        # simulation
+        if convert_to_csv and self.env.sim_params.emission_path is None:
+            raise ValueError(
+                'The experiment was run with convert_to_csv set '
+                'to True, but no emission file will be generated. If you wish '
+                'to generate an emission file, you should set the parameter '
+                'emission_path in the simulation parameters (SumoParams or '
+                'AimsunParams) to the path of the folder where emissions '
+                'output should be generated. If you do not wish to generate '
+                'emissions, set the convert_to_csv parameter to False.')
+
         info_dict = {}
         if rl_actions is None:
             def rl_actions(*_):
@@ -101,6 +114,7 @@ class Experiment:
         vels = []
         mean_vels = []
         std_vels = []
+        outflows = []
         for i in range(num_runs):
             vel = np.zeros(num_steps)
             logging.info("Iter #" + str(i))
@@ -113,6 +127,7 @@ class Experiment:
                     self.env.k.vehicle.get_speed(self.env.k.vehicle.get_ids()))
                 ret += reward
                 ret_list.append(reward)
+
                 if done:
                     break
             rets.append(ret)
@@ -121,12 +136,14 @@ class Experiment:
             ret_lists.append(ret_list)
             mean_vels.append(np.mean(vel))
             std_vels.append(np.std(vel))
+            outflows.append(self.env.k.vehicle.get_outflow_rate(int(500)))
             print("Round {0}, return: {1}".format(i, ret))
 
         info_dict["returns"] = rets
         info_dict["velocities"] = vels
         info_dict["mean_returns"] = mean_rets
         info_dict["per_step_returns"] = ret_lists
+        info_dict["mean_outflows"] = np.mean(outflows)
 
         print("Average, std return: {}, {}".format(
             np.mean(rets), np.std(rets)))

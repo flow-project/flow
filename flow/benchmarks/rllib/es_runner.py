@@ -1,5 +1,5 @@
-"""
-Runner script for environments located in flow/benchmarks.
+"""Runner script for environments located in flow/benchmarks.
+
 The environment file can be modified in the imports to change the environment
 this runner script is executed on. Furthermore, the rllib specific algorithm/
 parameters can be specified here once and used on multiple environments.
@@ -38,7 +38,10 @@ parser.add_argument(
 
 # required input parameters
 parser.add_argument(
-    "--upload_dir", type=str, help="S3 Bucket to upload to.")
+    "--upload_dir",
+    default=None,
+    type=str,
+    help="S3 Bucket to upload to.")
 
 # optional input parameters
 parser.add_argument(
