@@ -23,7 +23,7 @@ def truncate_colormap(cmap, minval=0.25, maxval=0.75, n=100):
 
 
 class PygletRenderer(object):
-    """
+    """Pyglet Renderer.
 
     Parameters
     ----------
@@ -293,7 +293,7 @@ class PygletRenderer(object):
             self._add_lane_poly(lane_poly, lane_color)
 
     def _add_lane_poly(self, lane_poly, lane_color):
-        """Internal pyglet method to render road network polygons.
+        """Render road network polygons.
 
         Parameters
         ----------
@@ -329,7 +329,7 @@ class PygletRenderer(object):
             self._add_vehicle_poly_circle((x, y), sight_radius, color)
 
     def _add_vehicle_poly_triangle(self, center, angle, size, color):
-        """Internal pyglet method to render a vehicle as a triangle.
+        """Render a vehicle as a triangle.
 
         Parameters
         ----------
@@ -365,8 +365,7 @@ class PygletRenderer(object):
                                        ("c3B", vertex_color))
 
     def _add_vehicle_poly_circle(self, center, radius, color):
-        """Internal pyglet method to render a vehicle as a circle or to render
-        its observation radius.
+        """Render a vehicle as a circle or render its observation radius.
 
         Parameters
         ----------

@@ -113,13 +113,20 @@ class TraCIVehicle(KernelVehicle):
             specifies whether the simulator was reset in the last simulation
             step
         """
-        vehicle_obs = self.kernel_api.vehicle.getSubscriptionResults()
+        vehicle_obs = {}
+        for veh_id in self.__ids:
+            vehicle_obs[veh_id] = \
+                self.kernel_api.vehicle.getSubscriptionResults(veh_id)
         sim_obs = self.kernel_api.simulation.getSubscriptionResults()
 
         # remove exiting vehicles from the vehicles class
         for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
             if veh_id not in sim_obs[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
                 self.remove(veh_id)
+                # remove exiting vehicles from the vehicle subscription if they
+                # haven't been removed already
+                if vehicle_obs[veh_id] is None:
+                    vehicle_obs.pop(veh_id, None)
             else:
                 # this is meant to resolve the KeyError bug when there are
                 # collisions
@@ -136,7 +143,9 @@ class TraCIVehicle(KernelVehicle):
                 # updated
                 pass
             else:
-                self._add_departed(veh_id, veh_type)
+                obs = self._add_departed(veh_id, veh_type)
+                # add the subscription information of the new vehicle
+                vehicle_obs[veh_id] = obs
 
         if reset:
             self.time_counter = 0
@@ -163,14 +172,13 @@ class TraCIVehicle(KernelVehicle):
                     vals['depart'] = str(
                         float(vals['depart']) + 2 * self.sim_step)
                     self.kernel_api.vehicle.addFull(
-                        veh_id, 'route{}'.format(veh_id), **vals)
+                        veh_id, 'route{}_0'.format(veh_id), **vals)
         else:
             self.time_counter += 1
             # update the "last_lc" variable
             for veh_id in self.__rl_ids:
                 prev_lane = self.get_lane(veh_id)
-                if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != \
-                        prev_lane and veh_id in self.__rl_ids:
+                if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != prev_lane:
                     self.__vehicles[veh_id]["last_lc"] = self.time_counter
 
             # updated the list of departed and arrived vehicles
@@ -227,6 +235,11 @@ class TraCIVehicle(KernelVehicle):
             name of the vehicle
         veh_type: str
             type of vehicle, as specified to sumo
+
+        Returns
+        -------
+        dict
+            subscription results from the new vehicle
         """
         if veh_type not in self.type_parameters:
             raise KeyError("Entering vehicle is not a valid type.")
@@ -318,14 +331,17 @@ class TraCIVehicle(KernelVehicle):
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
 
+        # get the subscription results from the new vehicle
+        new_obs = self.kernel_api.vehicle.getSubscriptionResults(veh_id)
+
+        return new_obs
+
     def remove(self, veh_id):
         """See parent class."""
         # remove from sumo
-        try:
+        if veh_id in self.kernel_api.vehicle.getIDList():
             self.kernel_api.vehicle.unsubscribe(veh_id)
             self.kernel_api.vehicle.remove(veh_id)
-        except (FatalTraCIError, TraCIException):
-            pass
 
         try:
             # remove from the vehicles kernel
@@ -385,6 +401,7 @@ class TraCIVehicle(KernelVehicle):
         return self.__vehicles[veh_id]["type"]
 
     def get_initial_speed(self, veh_id):
+        """Return the initial speed of the vehicle of veh_id."""
         return self.__vehicles[veh_id]["initial_speed"]
 
     def get_ids(self):
@@ -861,7 +878,7 @@ class TraCIVehicle(KernelVehicle):
             if acc[i] is not None and vid in self.get_ids():
                 this_vel = self.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
-                self.kernel_api.vehicle.slowDown(vid, next_vel, 1)
+                self.kernel_api.vehicle.slowDown(vid, next_vel, 1e-3)
 
     def apply_lane_change(self, veh_ids, direction):
         """See parent class."""
@@ -962,12 +979,15 @@ class TraCIVehicle(KernelVehicle):
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
-        # If the vehicle has its own route, use that route. This is used in the
-        # case of network templates.
         if veh_id in self.master_kernel.scenario.rts:
-            route_id = 'route{}'.format(veh_id)
+            # If the vehicle has its own route, use that route. This is used in
+            # the case of network templates.
+            route_id = 'route{}_0'.format(veh_id)
         else:
-            route_id = 'route{}'.format(edge)
+            num_routes = len(self.master_kernel.scenario.rts[edge])
+            frac = [val[1] for val in self.master_kernel.scenario.rts[edge]]
+            route_id = 'route{}_{}'.format(edge, np.random.choice(
+                [i for i in range(num_routes)], size=1, p=frac)[0])
 
         self.kernel_api.vehicle.addFull(
             veh_id,
