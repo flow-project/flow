@@ -11,6 +11,21 @@ class BaseController:
     safe_action to ensure that controls are never made that could
     cause the system to crash.
 
+    Usage Example:
+
+        >>> from flow.core.vehicles import Vehicles
+        >>> from flow.controllers import IDMController
+        >>> vehicles = Vehicles()
+        >>> veh_id = "human"
+        >>> vehicles.add(veh_id, acceleration_controller=(IDMController, {}))
+
+    In order to collect the list of all vehicles, run:
+
+        >>> veh_ids = vehicles.get_ids()
+
+    Note: You can replace "IDMController" with any subclass controller of your choice. 
+
+
     Parameters
     ----------
     veh_id : str
