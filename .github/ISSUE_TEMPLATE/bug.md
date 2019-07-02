@@ -1,31 +1,31 @@
 ---
 name: Bug report
+labels: bug
 about: You can report a bug in the Flow
 
 ---
 
-**Describe the issue**
-A clear and concise description of what the bug request is.
+## Bug Description
+A clear and concise description of the bug and concise description of what you expected to happen.
 
-**To Reproduce**
+## Bug Reproduce
 Leave empty if not applicable.
 1. File in which error occurred. 
-2. Exact command that was run that caused the error to occur. 
-3. Please attach the full error output log. 
+2. Exact command that was run that caused the error. 
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+## Output Log
 Leave empty if not applicable.
+Please enter the full error output log
+```
+error log
+```
 
-**Screenshots**
+## Screenshots
+Leave empty if not applicable.
 If applicable, add screenshots to help explain your problem.
+
+## Versions 
 Leave empty if not applicable.
-
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Commit number of flow [run git log and copy the commit number]
- - Version [run python -c "import flow; print(flow.__version__)"]: 
- Leave empty if not applicable.
-
-**Additional context**
-Add any other context about the problem here.
+ - OS: [e.g. Linux RedHat]
+ - Flow version [run `python -c "import flow; print(flow.__version__)"`]
+ - Flow commit number [run `git log` and copy the commit number]
