@@ -411,7 +411,7 @@ class TrafficLightGridEnv(Env):
             # flatten the list before returning it
             return [veh_id for sublist in ids for veh_id in sublist]
 
-        # get the ids of all the vehicles on the edge 'edges' order by
+        # get the ids of all the vehicles on the edge 'edges' ordered by
         # increasing distance to intersection
         veh_ids_ordered = sorted(
             self.k.vehicle.get_ids_by_edge(edges),
