@@ -202,6 +202,16 @@ class VehicleParams:
     This is used to describe the state of all vehicles in the network.
     State information on the vehicles for a given time step can be set or
     retrieved from this class.
+
+    Usage:
+
+        >>> from flow.core.params import VehicleParams
+        >>> from flow.controllers import IDMController, ContinuousRouter
+        >>> vehicles = VehicleParams()
+        >>> vehicles.add("human",
+                         acceleration_controller=(IDMController, {}),
+                         routing_controller=(ContinuousRouter, {}),
+                         num_vehicles=21)
     """
 
     def __init__(self):
@@ -360,6 +370,21 @@ class SimParams(object):
 
     All subsequent parameters of the same type must extend this.
 
+    Usage: (Example for using a subclass -- Sumo_Params)
+    
+        >>> from flow.core.params import SumoParams
+        >>> sumo_params = SumoParams(sim_step=0.1, render=False)
+        >>> flow_params = dict(
+                                ...
+                                # sumo-related parameters (see flow.core.params.SumoParams)
+                                sim=sumo_params
+                                ...
+                        )
+        >>> flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
+                           indent=4)  # generating a string version of flow_params
+        >>> config['env_config']['flow_params'] = flow_json 
+
+
     Parameters
     ----------
     sim_step : float optional
@@ -416,6 +441,8 @@ class AimsunParams(SimParams):
     """Aimsun-specific simulation parameters.
 
     Extends SimParams.
+
+    Usage: See Base Class for example.
 
     Parameters
     ----------
@@ -506,6 +533,8 @@ class SumoParams(SimParams):
     initialization. This includes passing the simulation step length,
     specifying whether to use sumo's gui during a run, and other features
     described in the Attributes below.
+
+    Usage: See Base Class for example.
 
     Parameters
     ----------
