@@ -40,7 +40,7 @@ class TrafficLightGridEnv(Env):
     * switch_time: minimum time a light must be constant before
       it switches (in seconds).
       Earlier RL commands are ignored.
-    * tl_type: whether the traffic lights should be actuated by sumo or RL
+    * tl_type: whether the traffic lights should be actuated by sumo or RL,
       options are respectively "actuated" and "controlled"
     * discrete: determines whether the action space is meant to be discrete or
       continuous
