@@ -1,37 +1,53 @@
 ---
 name: Bug report
 labels: bug
-about: You can report a bug in the Flow
+about: You can report a bug in Flow
 
 ---
 
 <!--
-Thank you for contributing to Flow and reporting a bug! Here are a few guidelines that you should follow so that your bug report gets reviewed more efficiently:
-1) Make sure your bug report has a short and relevant title
-2) Fill the following template as accurately as possible
+Thank you for contributing to Flow!
+
+Please make sure you keep the title of your bug report short and informative,
+and that you fill in the following template accurately (don't forget to remove
+the fields that you do not use and the example texts!).
 -->
 
 ## Bug Description
-A clear and concise description of the bug and a description of what you expected to happen.
+
+A clear and concise description of the bug and what you expected to happen.
 
 ## Bug Reproduce
-(Leave empty if not applicable.)
-1. File in which the bug occurred. 
-2. Exact command that was run that caused the bug. 
+
+<!-- DELETE THIS SECTION IF NOT APPLICABLE -->
+File in which the bug occurred: `file.py`
+
+Exact command that you did run that caused the bug:
+`command`
 
 ## Output Log
-(Leave empty if not applicable.)
-Please enter the full error output log
+
+<!-- DELETE THIS SECTION IF NOT APPLICABLE -->
+Full error output log:
+
 ```
 error log
 ```
 
 ## Screenshots
-(Leave empty if not applicable.)
-If applicable, add screenshots to help explain the bug.
 
-## Versions 
-(Leave empty if not applicable.)
- - OS: [e.g. Linux RedHat]
- - Flow version [run `python -c "import flow; print(flow.__version__)"`]
- - Flow commit number [run `git log` and copy the commit number]
+<!-- DELETE THIS SECTION IF NOT APPLICABLE -->
+
+<!-- If possible, add screenshots to help explain the bug -->
+
+Screenshots:
+
+![picture name](https://link/to/screenshot)
+
+## Versions
+
+<!-- DELETE THIS SECTION IF NOT APPLICABLE -->
+
+- OS: ? (RedHat, macOS Mojave...]
+- Flow version: ? (run `python -c "import flow; print(flow.__version__)"`)
+- Flow commit number: ? (run `git log` and copy the commit number)
