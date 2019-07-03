@@ -327,6 +327,11 @@ If you have OSX, run the following commands. If you don't have brew
 you can find installation instructions at
 <https://docs.brew.sh/Installation>
 
+Alternatively, the following segment of installation instructions is
+also compatible with OSX installation, following the brew updates and
+installations shown below.
+<https://sumo.dlr.de/wiki/Installing/Linux_Build#Building_the_SUMO_binaries_with_cmake_.28recommended.29>
+
 ::
 
     brew update
