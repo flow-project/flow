@@ -18,9 +18,7 @@ def minicity_example(render=None,
                      sight_radius=None,
                      pxpm=None,
                      show_radius=None):
-    """
-    Perform a simulation of vehicles on modified minicity of University of
-    Delaware.
+    """Perform a simulation of modified minicity of University of Delaware.
 
     Parameters
     ----------

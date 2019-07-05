@@ -28,8 +28,29 @@ gui.newDoc(os.path.join(config.PROJECT_PATH,
 model = gui.getActiveModel()
 
 
-def generate_net(nodes, edges, connections, inflows, veh_types,
+def generate_net(nodes,
+                 edges,
+                 connections,
+                 inflows,
+                 veh_types,
                  traffic_lights):
+    """Generate a network in the Aimsun template.
+
+    Parameters
+    ----------
+    nodes : list of dict
+        all available nodes
+    edges : list of dict
+        all available edges
+    connections : list of dict
+        all available connections
+    inflows : flow.core.params.InFlows
+        the flow inflow object
+    veh_types : list of dict
+        list of vehicle types and their corresponding properties
+    traffic_lights : flow.core.params.TrafficLightParams
+        traffic light specific parameters
+    """
     inflows = inflows.get()
     lane_width = 3.6  # TODO additional params??
     type_section = model.getType("GKSection")
@@ -256,6 +277,15 @@ def generate_net(nodes, edges, connections, inflows, veh_types,
 
 
 def generate_net_osm(file_name, inflows, veh_types):
+    """Generate a network from an osm file.
+
+    file_name : str
+        path to the osm file
+    inflows : TODO
+        TODO
+    veh_types : TODO
+        TODO
+    """
     inflows = inflows.get()
 
     type_section = model.getType("GKSection")
@@ -344,6 +374,18 @@ def generate_net_osm(file_name, inflows, veh_types):
 
 
 def get_junctions(nodes):
+    """Return the nodes with traffic lights.
+
+    Parameters
+    ----------
+    nodes : list of dict
+        all available nodes
+
+    Returns
+    -------
+    list of dict
+        the nodes with traffic lights
+    """
     junctions = []  # TODO check
     for node in nodes:
         if "type" in node:
@@ -352,8 +394,23 @@ def get_junctions(nodes):
     return junctions
 
 
-# get first and last nodes of an edge
 def get_edge_nodes(edge, nodes):
+    """Get first and last nodes of an edge.
+
+    Parameters
+    ----------
+    edge : dict
+        the edge information
+    nodes : list of dict
+        all available nodes
+
+    Returns
+    -------
+    dict
+        information on the first node
+    dict
+        information on the last node
+    """
     first_node = next(node for node in nodes
                       if node["id"] == edge["from"])
     last_node = next(node for node in nodes
@@ -361,8 +418,21 @@ def get_edge_nodes(edge, nodes):
     return first_node, last_node
 
 
-# compute the edge angle
 def get_edge_angle(first_node, last_node):
+    """Compute the edge angle.
+
+    Parameters
+    ----------
+    first_node : dict
+        information on the first node
+    last_node : dict
+        information on the last node
+
+    Returns
+    -------
+    float
+        edge angle
+    """
     del_x = np.array([last_node['x'] - first_node['x']])
     del_y = np.array([last_node['y'] - first_node['y']])
     theta = np.arctan2(del_y, del_x) * 180 / np.pi
@@ -536,6 +606,15 @@ def create_node_meters(model, cp, node_id, phases):
 
 
 def set_sim_step(experiment, sim_step):
+    """Set the simulation step of an Aimsun experiment.
+
+    Parameters
+    ----------
+    experiment : TODO
+        the experiment object
+    sim_step : float
+        desired simulation step
+    """
     # Get Simulation Step attribute column
     col_sim = model.getColumn('GKExperiment::simStepAtt')
     # Set new simulation step value

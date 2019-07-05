@@ -18,6 +18,7 @@ class AimsunTemplate(object):
     ones. It provides a pythonic interface to manipulate the different objects
     accessible via scripting.
     """
+
     def __init__(self, GKSystem, GKGUISystem):
         """Initialize the template.
 
@@ -42,7 +43,9 @@ class AimsunTemplate(object):
         GKGUISystem : GKGUISystem (Aimsun singleton class)
             Aimsun's GKGUISystem object
 
-        Note: This class takes as parameter the two high-level objects provided
+        Note
+        ----
+        This class takes as parameter the two high-level objects provided
         when interfacing with Aimsun: GKSystem and GKGUISystem. After having
         imported this class, you should be able to create an AimsunTemplate
         object as follows:
@@ -56,7 +59,7 @@ class AimsunTemplate(object):
         self.model = self.gui.getActiveModel()
 
     def load(self, path):
-        """Load an existing template into Aimsun
+        """Load an existing template into Aimsun.
 
         Parameters
         ----------
@@ -68,7 +71,7 @@ class AimsunTemplate(object):
         self.__wrap_object(self.model)
 
     def new_duplicate(self, path):
-        """Create a new template by duplicating an existing one
+        """Create a new template by duplicating an existing one.
 
         Parameters
         ----------
@@ -80,13 +83,13 @@ class AimsunTemplate(object):
         self.__wrap_object(self.model)
 
     def new_empty(self):
-        """Create a new empty template"""
+        """Create a new empty template."""
         self.gui.newSimpleDoc()
         self.model = self.gui.getActiveModel()
         self.__wrap_object(self.model)
 
     def save(self, path):
-        """Save the current template
+        """Save the current template.
 
         Parameters
         ----------
@@ -96,7 +99,7 @@ class AimsunTemplate(object):
         self.gui.saveAs(path)
 
     def run_replication(self, replication, render=True):
-        """Run a replication in Aimsun
+        """Run a replication in Aimsun.
 
         Parameters
         ----------
@@ -116,7 +119,9 @@ class AimsunTemplate(object):
     ####################################################################
 
     def __getattr__(self, name):
-        """If trying to access an attribute in this AimsunTemplate object
+        """Return object attribute.
+
+        If trying to access an attribute in this AimsunTemplate object
         fails, try to access it into the Aimsun model object
 
         Parameters
@@ -127,9 +132,10 @@ class AimsunTemplate(object):
         return getattr(self.model, name)
 
     def __wrap_object(self, obj):
-        """Wrap Aimsun objects with custom __getattr__ and __setattr__
-        functions in order to provide more pythonic attribute access
-        and attribute modification.
+        """Wrap Aimsun objects with custom __getattr__ and __setattr__ methods.
+
+        This provides a more pythonic attribute access and attribute
+        modification.
 
         Parameters
         ----------
@@ -145,10 +151,11 @@ class AimsunTemplate(object):
         - s.setName(new_name) becomes s.name = new_name
         etc.
 
-        Notes:
+        Notes
+        -----
         - This method directly modifies the object and does not return anything
         - For back-compatibility, it is still possible to call the original
-        Aimsun methods
+          Aimsun methods
         """
         if obj is None:
             return
@@ -221,7 +228,7 @@ class AimsunTemplate(object):
         obj.__class__.__setattr__ = custom_setattr
 
     def __wrap_objects(self, objects):
-        """See __wrap_object
+        """See __wrap_object.
 
         Parameters
         ----------
@@ -232,7 +239,7 @@ class AimsunTemplate(object):
         map(self.__wrap_object, objects)
 
     def __get_objects_by_type(self, type_name):
-        """Simplified getter for Aimsun objects
+        """Simplify getter for Aimsun objects.
 
         Parameters
         ----------
@@ -249,7 +256,7 @@ class AimsunTemplate(object):
         return objects
 
     def find_by_name(self, objects, name):
-        """Find an Aimsun object by its name
+        """Find an Aimsun object by its name.
 
         Parameters
         ----------
@@ -268,7 +275,7 @@ class AimsunTemplate(object):
         return ret
 
     def find_all_by_type(self, objects, type_name):
-        """Find Aimsun objects by their type
+        """Find Aimsun objects by their type.
 
         Parameters
         ----------

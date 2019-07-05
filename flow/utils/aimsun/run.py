@@ -1,5 +1,4 @@
 # flake8: noqa
-import sys
 import flow.config as config
 import sys
 import os
@@ -100,8 +99,18 @@ def retrieve_message(conn, out_format):
 
 
 def threaded_client(conn):
+    """Create a threaded process.
+
+    This process is called every simulation step to interact with the aimsun
+    server, and terminates once the simulation is ready to execute a new step.
+
+    Parameters
+    ----------
+    conn : socket.socket
+        socket for server connection
+    """
     # send feedback that the connection is active
-    conn.send('Ready.')
+    conn.send(b'Ready.')
 
     done = False
     while not done:
@@ -159,7 +168,7 @@ def threaded_client(conn):
                 send_message(conn, in_format='i', values=(0,))
 
             elif data == ac.VEH_SET_LANE:
-                conn.send('Set vehicle lane.')
+                conn.send(b'Set vehicle lane.')
                 veh_id, target_lane = retrieve_message(conn, 'i i')
                 aimsun_api.AKIVehTrackedModifyLane(veh_id, target_lane)
                 send_message(conn, in_format='i', values=(0,))
@@ -241,10 +250,10 @@ def threaded_client(conn):
                 typename = aimsun_api.AKIVehGetVehTypeName(static_info.type)
 
                 anyNonAsciiChar = aimsun_api.boolp()
-                output = str(aimsun_api.AKIConvertToAsciiString(typename, True, anyNonAsciiChar))
+                output = str(aimsun_api.AKIConvertToAsciiString(
+                    typename, True, anyNonAsciiChar))
 
                 send_message(conn, in_format='str', values=(output,))
-
 
             elif data == ac.VEH_GET_LENGTH:
                 send_message(conn, in_format='i', values=(0,))
@@ -254,7 +263,6 @@ def threaded_client(conn):
                 output = static_info.length
 
                 send_message(conn, in_format='f', values=(output,))
-
 
             elif data == ac.VEH_GET_STATIC:
                 send_message(conn, in_format='i', values=(0,))
@@ -433,7 +441,6 @@ def threaded_client(conn):
                 state = ECIGetCurrentStateofMeteringById(
                     meter_aimsun_id, lane_id)
                 send_message(conn, in_format='i', values=(state,))
-
 
             elif data == ac.GET_EDGE_NAME:
                 send_message(conn, in_format='i', values=(0,))

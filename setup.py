@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # flake8: noqa
+"""Setup script for the Flow repository."""
 from os.path import dirname, realpath
 from setuptools import find_packages, setup, Distribution
 import setuptools.command.build_ext as _build_ext
@@ -8,13 +9,17 @@ from flow.version import __version__
 
 
 def _read_requirements_file():
+    """Return the elements in requirements.txt."""
     req_file_path = '%s/requirements.txt' % dirname(realpath(__file__))
     with open(req_file_path) as f:
         return [line.strip() for line in f]
 
 
 class build_ext(_build_ext.build_ext):
+    """External buid commands."""
+
     def run(self):
+        """Install traci wheels."""
         subprocess.check_call(
             ['pip', 'install',
              'https://akreidieh.s3.amazonaws.com/sumo/flow-0.3.1/'
@@ -22,7 +27,10 @@ class build_ext(_build_ext.build_ext):
 
 
 class BinaryDistribution(Distribution):
+    """See parent class."""
+
     def has_ext_modules(self):
+        """Return True for external modules."""
         return True
 
 
