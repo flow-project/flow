@@ -1,4 +1,5 @@
 # flake8: noqa
+"""Script for generating a custom Aimsun network."""
 # TODO adapt this file with respect to scripting_api.py
 
 import sys
@@ -281,10 +282,10 @@ def generate_net_osm(file_name, inflows, veh_types):
 
     file_name : str
         path to the osm file
-    inflows : TODO
-        TODO
-    veh_types : TODO
-        TODO
+    inflows : flow.core.params.InFlows
+        the flow inflow object
+    veh_types : list of dict
+        list of vehicle types and their corresponding properties
     """
     inflows = inflows.get()
 
