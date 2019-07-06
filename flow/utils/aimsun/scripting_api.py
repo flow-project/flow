@@ -1,3 +1,4 @@
+"""Script containing an interface to do scripting with Aimsun."""
 import sys
 import os
 
@@ -294,28 +295,75 @@ class AimsunTemplate(object):
 
     @property
     def sections(self):
+        """Return Aimsun GKSection attribute.
+
+        A section is a group of contiguous lanes where vehicles move in the
+        same direction. The partition of the traffic network into sections is
+        usually governed by the physical boundaries of the area and the
+        existence of turn movements. In an urban network, a section corresponds
+        closely to the road from one intersection to the next. In a freeway
+        area, a section can be the part of the road between two ramps.
+        """
         return self.__get_objects_by_type('GKSection')
 
     @property
     def nodes(self):
+        """Return Aimsun GKTurning attribute.
+
+        A node is a point or an area in the network where vehicles change their
+        direction and/or disperse. Hence, a node has one or more origin
+        sections and one or more destination sections. Each node has a turns
+        list, which determines the possible exits of a vehicle entering the
+        nodes.
+        """
         return self.__get_objects_by_type('GKNode')
 
     @property
     def turnings(self):
+        """Return Aimsun GKSection attribute.
+
+        This object is responsible for connecting some (or all) lanes between
+        two sections.
+        """
         return self.__get_objects_by_type('GKTurning')
 
     @property
     def cen_connections(self):
+        """Return Aimsun GKCenConnection attribute.
+
+        This contains information of a connection between an object and a
+        centroid.
+        """
         return self.__get_objects_by_type('GKCenConnection')
 
     @property
     def replications(self):
+        """Return Aimsun GKReplication attribute.
+
+        A replication used by the Aimsun Next Simulators. They are the result
+        of a single simulation and they are groupped in experiment averages
+        (GKExperimentResult).
+        """
         return self.__get_objects_by_type('GKReplication')
 
     @property
     def centroid_configurations(self):
+        """Return Aimsun GKCentroidConfiguration attribute.
+
+        This object is a centroid set, which is appropriate to simulate either
+        a part of the network or the whole network.
+        """
         return self.__get_objects_by_type('GKCentroidConfiguration')
 
     @property
     def problem_nets(self):
+        """Return Aimsun GKProblemNet attribute.
+
+        A subnetwork is an area in a (very large) network that will be studied
+        with more detail using a dynamic simulator (usually a micro one).
+
+        The area is selected either as a polygon or as a set of sections. From
+        that information is possible to extract all the objects delimited by
+        the subnetwork.
+        """
         return self.__get_objects_by_type('GKProblemNet')

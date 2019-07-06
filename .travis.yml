@@ -46,10 +46,12 @@ install:
   - pip install nose
   - pip install matplotlib
   - pip install jupyter
+  - pip install pydocstyle
 
 before_script:
   - flake8 --version
   - flake8 --show-source
+  - pydocstyle --convention numpy
 
 script:
   - python setup.py install

@@ -1,4 +1,5 @@
 # flake8: noqa
+"""Script used to interact with Aimsun's API during the simulation phase."""
 import flow.config as config
 import sys
 import os
@@ -470,16 +471,19 @@ def threaded_client(conn):
 
 
 def AAPILoad():
+    """Execute commands while the Aimsun template is loading."""
     return 0
 
 
 def AAPIInit():
+    """Execute commands while the Aimsun instance is initializing."""
     # set the simulation time to be very large
     AKISetEndSimTime(2e6)
     return 0
 
 
 def AAPIManage(time, timeSta, timeTrans, acycle):
+    """Execute commands before an Aimsun simulation step."""
     # tcp/ip connection from the aimsun process
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -496,44 +500,54 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
 
 
 def AAPIPostManage(time, timeSta, timeTrans, acycle):
+    """Execute commands after an Aimsun simulation step."""
     return 0
 
 
 def AAPIFinish():
+    """Execute commands while the Aimsun instance is terminating."""
     return 0
 
 
 def AAPIUnLoad():
+    """Execute commands while Aimsun is closing."""
     return 0
 
 
 def AAPIPreRouteChoiceCalculation(time, timeSta):
+    """Execute Aimsun route choice calculation."""
     return 0
 
 
 def AAPIEnterVehicle(idveh, idsection):
+    """Execute command once a vehicle enters the Aimsun instance."""
     global entered_vehicles
     entered_vehicles.append(idveh)
     return 0
 
 
 def AAPIExitVehicle(idveh, idsection):
+    """Execute command once a vehicle exits the Aimsun instance."""
     global exited_vehicles
     exited_vehicles.append(idveh)
     return 0
 
 
 def AAPIEnterPedestrian(idPedestrian, originCentroid):
+    """Execute command once a pedestrian enters the Aimsun instance."""
     return 0
 
 
 def AAPIExitPedestrian(idPedestrian, destinationCentroid):
+    """Execute command once a pedestrian exits the Aimsun instance."""
     return 0
 
 
 def AAPIEnterVehicleSection(idveh, idsection, atime):
+    """Execute command once a vehicle enters the Aimsun instance."""
     return 0
 
 
 def AAPIExitVehicleSection(idveh, idsection, atime):
+    """Execute command once a vehicle exits the Aimsun instance."""
     return 0
