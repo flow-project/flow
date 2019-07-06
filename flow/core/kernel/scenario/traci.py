@@ -679,8 +679,7 @@ class TraCIScenario(KernelScenario):
                 else:
                     show_detector = {'key': 'show-detectors', 'value': 'false'}
 
-                # FIXME(ak): add abstract method
-                nodes = self.specify_tll(net_params)
+                nodes = self._inner_nodes  # nodes where there's traffic lights
                 tll = []
                 for node in nodes:
                     tll.append({
