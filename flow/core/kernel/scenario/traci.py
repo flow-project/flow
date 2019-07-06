@@ -679,7 +679,6 @@ class TraCIScenario(KernelScenario):
                 else:
                     show_detector = {'key': 'show-detectors', 'value': 'false'}
 
-                # FIXME(ak): add abstract method
                 nodes = self._inner_nodes  # nodes where there's traffic lights
                 tll = []
                 for node in nodes:
