@@ -247,8 +247,7 @@ class TrafficLightGridEnv(Env):
     # ===============================
 
     def get_distance_to_intersection(self, veh_ids):
-        """Determines the distance from the vehicle to the intersection
-        it is heading towards.
+        """Determine the distance from a vehicle to its next intersection.
 
         Parameters
         ----------
@@ -389,16 +388,14 @@ class TrafficLightGridEnv(Env):
     # FIXME it doesn't make sense to pass a list of edges since the function
     # returns a flattened list with no padding, so we would lose information
     def k_closest_to_intersection(self, edges, k):
-        """
-        Get the ids of the k vehicles closest to an intersection for
-        a given edge, or for several edges.
+        """Return the vehicle IDs of k closest vehicles to an intersection.
 
         For each edge in edges, return the ids (veh_id) of the k vehicles
         in edge that are closest to an intersection (the intersection they
         are heading towards).
 
         - Performs no check on whether or not edge is going towards an
-        intersection or not.
+          intersection or not.
         - Does no padding if there are less than k vehicles on an edge.
         """
         if k < 0:
