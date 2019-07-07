@@ -81,5 +81,5 @@ class KernelSimulation(object):
         raise NotImplementedError
 
     def close(self):
-        """Closes the current simulation instance."""
+        """Close the current simulation instance."""
         raise NotImplementedError
