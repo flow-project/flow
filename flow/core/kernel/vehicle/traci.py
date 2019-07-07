@@ -68,6 +68,9 @@ class TraCIVehicle(KernelVehicle):
         self._num_arrived = []
         self._arrived_ids = []
 
+        # checks whether the instance is being rendered
+        self.render = sim_params.render
+
     def initialize(self, vehicles):
         """Initialize vehicle state information.
 
@@ -202,7 +205,14 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id]["timedelta"] = _time_delta
             except TypeError:
                 pass
-            headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
+
+            if self.render:
+                headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
+            else:
+                headway = self.kernel_api.vehicle.getLeader(veh_id)
+                if headway[0] == '':
+                    headway = None
+
             # check for a collided vehicle or a vehicle with no leader
             if headway is None:
                 self.__vehicles[veh_id]["leader"] = None
@@ -294,7 +304,8 @@ class TraCIVehicle(KernelVehicle):
             tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
             tc.VAR_SPEED_WITHOUT_TRACI
         ])
-        self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
+        if self.render:
+            self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
 
         # some constant vehicle parameters to the vehicles class
         self.__vehicles[veh_id]["length"] = self.kernel_api.vehicle.getLength(
@@ -923,8 +934,7 @@ class TraCIVehicle(KernelVehicle):
 
         for i, veh_id in enumerate(veh_ids):
             if route_choices[i] is not None:
-                self.kernel_api.vehicle.setRoute(
-                    vehID=veh_id, edgeList=route_choices[i])
+                self.kernel_api.vehicle.setRoute(veh_id, route_choices[i])
 
     def get_x_by_id(self, veh_id):
         """See parent class."""

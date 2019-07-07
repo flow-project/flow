@@ -5,6 +5,7 @@ convective instability, with perturbations propagating upstream from the merge
 point before exiting the network.
 """
 
+import os.path as osp
 from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows, SumoCarFollowingParams
 from flow.core.params import VehicleParams
@@ -34,7 +35,7 @@ def merge_example(render=None):
     """
     sim_params = SumoParams(
         render=True,
-        emission_path="./data/",
+        emission_path=osp.abspath(osp.join(osp.dirname(__file__), 'data')),
         sim_step=0.2,
         restart_instance=False)
 

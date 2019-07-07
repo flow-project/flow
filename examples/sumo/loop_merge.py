@@ -1,5 +1,6 @@
 """Example of ring road with larger merging ring."""
 
+import os.path as osp
 from flow.controllers import IDMController, SimLaneChangeController, \
     ContinuousRouter
 from flow.core.experiment import Experiment
@@ -27,7 +28,9 @@ def loop_merge_example(render=None):
         vehicles on a loop merge.
     """
     sim_params = SumoParams(
-        sim_step=0.1, emission_path="./data/", render=True)
+        sim_step=0.1,
+        emission_path=osp.abspath(osp.join(osp.dirname(__file__), 'data')),
+        render=True)
 
     if render is not None:
         sim_params.render = render

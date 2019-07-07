@@ -1,10 +1,10 @@
 """Script containing the TraCI simulation kernel class."""
 
 from flow.core.kernel.simulation import KernelSimulation
-from flow.core.util import ensure_dir
 import flow.config as config
 import traci.constants as tc
 import traci
+import libsumo
 import traceback
 import os
 import time
@@ -88,72 +88,37 @@ class TraCISimulation(KernelSimulation):
                     sumo_binary, "-c", scenario.cfg,
                     "--remote-port", str(sim_params.port),
                     "--num-clients", str(sim_params.num_clients),
-                    "--step-length", str(sim_params.sim_step)
                 ]
-
-                # add step logs (if requested)
-                if sim_params.no_step_log:
-                    sumo_call.append("--no-step-log")
-
-                # add the lateral resolution of the sublanes (if requested)
-                if sim_params.lateral_resolution is not None:
-                    sumo_call.append("--lateral-resolution")
-                    sumo_call.append(str(sim_params.lateral_resolution))
-
-                # add the emission path to the sumo command (if requested)
-                if sim_params.emission_path is not None:
-                    ensure_dir(sim_params.emission_path)
-                    emission_out = os.path.join(
-                        sim_params.emission_path,
-                        "{0}-emission.xml".format(scenario.name))
-                    sumo_call.append("--emission-output")
-                    sumo_call.append(emission_out)
-                else:
-                    emission_out = None
-
-                if sim_params.overtake_right:
-                    sumo_call.append("--lanechange.overtake-right")
-                    sumo_call.append("true")
-
-                # specify a simulation seed (if requested)
-                if sim_params.seed is not None:
-                    sumo_call.append("--seed")
-                    sumo_call.append(str(sim_params.seed))
-
-                if not sim_params.print_warnings:
-                    sumo_call.append("--no-warnings")
-                    sumo_call.append("true")
-
-                # set the time it takes for a gridlock teleport to occur
-                sumo_call.append("--time-to-teleport")
-                sumo_call.append(str(int(sim_params.teleport_time)))
-
-                # check collisions at intersections
-                sumo_call.append("--collision.check-junctions")
-                sumo_call.append("true")
 
                 logging.info(" Starting SUMO on port " + str(port))
                 logging.debug(" Cfg file: " + str(scenario.cfg))
                 if sim_params.num_clients > 1:
                     logging.info(" Num clients are" +
                                  str(sim_params.num_clients))
-                logging.debug(" Emission file: " + str(emission_out))
                 logging.debug(" Step length: " + str(sim_params.sim_step))
 
-                # Opening the I/O thread to SUMO
-                self.sumo_proc = subprocess.Popen(
-                    sumo_call, preexec_fn=os.setsid)
+                if sim_params.render:
+                    # Opening the I/O thread to SUMO
+                    self.sumo_proc = subprocess.Popen(
+                        sumo_call, preexec_fn=os.setsid)
 
-                # wait a small period of time for the subprocess to activate
-                # before trying to connect with traci
-                if os.environ.get("TEST_FLAG", 0):
-                    time.sleep(0.1)
+                    # wait a small period of time for the subprocess to
+                    # activate before trying to connect with traci
+                    if os.environ.get("TEST_FLAG", 0):
+                        time.sleep(0.1)
+                    else:
+                        time.sleep(config.SUMO_SLEEP)
+
+                    traci_connection = traci.connect(port, numRetries=100)
+                    traci_connection.setOrder(0)
+                    traci_connection.simulationStep()
                 else:
-                    time.sleep(config.SUMO_SLEEP)
+                    # Use libsumo to create a simulation instance.
+                    libsumo.start(sumo_call[1:3])
+                    libsumo.simulationStep()
 
-                traci_connection = traci.connect(port, numRetries=100)
-                traci_connection.setOrder(0)
-                traci_connection.simulationStep()
+                    # libsumo will act as the kernel API
+                    traci_connection = libsumo
 
                 return traci_connection
             except Exception as e:
@@ -165,6 +130,8 @@ class TraCISimulation(KernelSimulation):
     def teardown_sumo(self):
         """Kill the sumo subprocess instance."""
         try:
-            os.killpg(self.sumo_proc.pid, signal.SIGTERM)
+            # In case not using libsumo, kill the process.
+            if self.sumo_proc is not None:
+                os.killpg(self.sumo_proc.pid, signal.SIGTERM)
         except Exception as e:
             print("Error during teardown: {}".format(e))
