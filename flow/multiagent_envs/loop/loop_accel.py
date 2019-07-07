@@ -12,6 +12,7 @@ class MultiAgentAccelEnv(AccelEnv, MultiEnv):
     Multi-agent env with an adversarial agent perturbing
     the accelerations of the autonomous vehicle
     """
+
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         sorted_rl_ids = [
@@ -25,7 +26,7 @@ class MultiAgentAccelEnv(AccelEnv, MultiEnv):
         self.k.vehicle.apply_acceleration(sorted_rl_ids, rl_action)
 
     def compute_reward(self, rl_actions, **kwargs):
-        """The agents receives opposing speed rewards.
+        """Compute opposing rewards for agents.
 
         The agent receives the class definition reward,
         the adversary receives the negative of the agent reward
