@@ -22,7 +22,7 @@ A clear and concise description of the bug and what you expected to happen.
 <!-- DELETE THIS SECTION IF NOT APPLICABLE -->
 File in which the bug occurred: `file.py`
 
-Exact command that you did run that caused the bug:
+The exact command that you did run that caused the bug:
 `command`
 
 ## Output Log
@@ -48,6 +48,6 @@ Screenshots:
 
 <!-- DELETE THIS SECTION IF NOT APPLICABLE -->
 
-- OS: ? (RedHat, macOS Mojave...]
+- OS: ? (For example, RedHat, macOS Mojave, ...]
 - Flow version: ? (run `python -c "import flow; print(flow.__version__)"`)
 - Flow commit number: ? (run `git log` and copy the commit number)
