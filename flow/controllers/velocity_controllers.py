@@ -84,7 +84,7 @@ class FollowerStopper(BaseController):
             dx_1 = self.dx_1_0 + 1 / (2 * self.d_1) * dv_minus**2
             dx_2 = self.dx_2_0 + 1 / (2 * self.d_2) * dv_minus**2
             dx_3 = self.dx_3_0 + 1 / (2 * self.d_3) * dv_minus**2
-            v = min(max(lead_vel,0),self.v_des) 
+            v = min(max(lead_vel, 0), self.v_des)
             # compute the desired velocity
             if dx <= dx_1:
                 v_cmd = 0

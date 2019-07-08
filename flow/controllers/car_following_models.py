@@ -180,7 +180,7 @@ class LACController(BaseController):
     k_2 : float
         design parameter (default: 0.9)
     h : float
-        desired time gap(default:1) 
+        desired time gap  (default: 1.0)
     tau : float
         lag time between control input u and real acceleration a (default:0.1)
     time_delay : float
@@ -195,14 +195,14 @@ class LACController(BaseController):
     def __init__(self, 
                  veh_id, 
                  car_following_params,
-                 k_1=0.8, 
-                 k_2=0.9, 
+                 k_1=0.3,
+                 k_2=0.4,
                  h=1,
                  tau=0.1,  
                  a=0, 
                  time_delay=0.0,
                  noise=0,
-                 fail_safe=None ): 
+                 fail_safe=None):
         """Instantiate a Linear Adaptive Cruise controller."""
         BaseController.__init__(
             self,
@@ -219,20 +219,20 @@ class LACController(BaseController):
         self.tau = tau
         self.a = a 
         
+    def get_accel(self, env):
     
-    def get_accel(self,env): 
-
         lead_id = env.k.vehicle.get_leader(self.veh_id)
         lead_vel = env.k.vehicle.get_speed(lead_id) 
         this_vel = env.k.vehicle.get_speed(self.veh_id)
         headway = env.k.vehicle.get_headway(self.veh_id) 
         L = env.k.vehicle.get_length(self.veh_id) 
-        ex = headway - L - (self.h)*(lead_vel) 
+        ex = headway - L - (self.h)*(this_vel)
         ev = lead_vel - this_vel 
         u = self.k_1*ex + self.k_2*ev 
-        a_dot = -(self.a/self.tau)+ (u/self.tau)
+        a_dot = -(self.a/self.tau) + (u/self.tau)
         self.a = a_dot*env.sim_step + self.a 
 
+        return self.a
 
         return self.a 
 
