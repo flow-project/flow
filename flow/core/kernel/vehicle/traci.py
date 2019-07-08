@@ -31,6 +31,7 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         KernelVehicle.__init__(self, master_kernel, sim_params)
 
+        self.check = False
         self.__ids = []  # ids of all vehicles
         self.__human_ids = []  # ids of human-driven vehicles
         self.__controlled_ids = []  # ids of flow-controlled vehicles
@@ -209,9 +210,7 @@ class TraCIVehicle(KernelVehicle):
             if self.render:
                 headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
             else:
-                headway = self.kernel_api.vehicle.getLeader(veh_id)
-                if headway[0] == '':
-                    headway = None
+                headway = self.kernel_api.vehicle.getLeader(veh_id, dist=2000)
 
             # check for a collided vehicle or a vehicle with no leader
             if headway is None:
