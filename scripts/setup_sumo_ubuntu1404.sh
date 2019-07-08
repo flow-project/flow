@@ -15,4 +15,4 @@ rm binaries-ubuntu1404.tar.xz
 chmod +x *
 popd
 echo 'export PATH="$PATH:$HOME/sumo_binaries/bin"' >> ~/.bashrc
-echo 'export SUMO_HOME="$HOME/sumo_binaries"' >> ~/.bashrc
+echo 'export SUMO_HOME="$HOME/sumo_binaries/bin"' >> ~/.bashrc
