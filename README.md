@@ -19,7 +19,7 @@ See [our website](https://flow-project.github.io/) for more information on the a
 
 # Technical questions
 
-Please direct your techincal questions to [Stack Overflow](https://stackoverflow.com) using the [flow-project](https://stackoverflow.com/questions/tagged/flow-project) tag.
+Please direct your technical questions to [Stack Overflow](https://stackoverflow.com) using the [flow-project](https://stackoverflow.com/questions/tagged/flow-project) tag.
 
 # Getting involved
 
