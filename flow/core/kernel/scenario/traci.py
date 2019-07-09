@@ -962,6 +962,11 @@ class TraCIScenario(KernelScenario):
                     if edge_i not in all_next_edges:
                         all_next_edges.append(edge_i)
 
+            # In the case there are no next edges from the current edge (e.g.
+            # end of a highway), stop.
+            if len(all_next_edges) == 0:
+                continue
+
             # get the maximum length of the edges, and add it to the junction
             # increment length
             max_length = max(self.edge_length(e) for e in all_next_edges)
