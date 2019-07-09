@@ -1,7 +1,7 @@
 # cluster.yaml ========================================= 
 
 # An unique identifier for the head node and workers of this cluster.
-cluster_name: test #<YOUR NAME>
+cluster_name: kathy #<YOUR NAME>
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
@@ -40,8 +40,10 @@ auth:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
     InstanceType: c4.4xlarge
+    # 04b53bf506e95394f
     #ImageId: ami-060b3311dd2b675ee # Flow AMI (Ubuntu)
-    ImageId: ami-0067051ba5c8f0b64 # Flow AMI (Ubuntu)
+    # ImageId: ami-0067051ba5c8f0b64 # Flow AMI (Ubuntu)
+    ImageId: ami-09ee73f99ee3510b0 # kathy AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -75,12 +77,12 @@ setup_commands:
     - pip install --upgrade pyzmq notebook
     - pip install ray==0.6.1
     - pip install lz4
-    - git clone https://github.com/flow-project/ray.git
-    - cd ray && git fetch && git checkout master
+    - cd /home/ubuntu && git clone https://github.com/flow-project/ray.git
+    - cd /home/ubuntu/ray && git fetch && git checkout master
     - rm -rf /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/rllib
-    - cd ray && cp -r python/ray/rllib /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/rllib
+    - cd ray && mkdir -p /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/rllib  && cp -r python/ray/rllib /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/rllib
     - rm -rf /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune
-    - cd ray && cp -r python/ray/tune /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune
+    - cd /home/ubuntu/ray && cp -r python/ray/tune /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune
     # set up sumo and anaconda
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
