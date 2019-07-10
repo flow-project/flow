@@ -8,13 +8,15 @@ sudo apt-get install -y build-essential curl unzip flex bison python python-dev
 sudo apt-get install -y python3-dev
 sudo pip3 install cmake cython
 
-echo "Installing sumo binaries"
-mkdir -p $HOME/sumo_binaries/bin
-pushd $HOME/sumo_binaries/bin
+echo "Installing sumo binaries and python tools"
+mkdir -p $HOME/sumo_binaries
+pushd $HOME/sumo_binaries
 wget https://akreidieh.s3.amazonaws.com/sumo/flow-0.4.1/binaries-ubuntu1604.tar.xz
 tar -xf binaries-ubuntu1604.tar.xz
 rm binaries-ubuntu1604.tar.xz
-chmod +x *
+chmod +x bin/*
 popd
+
 echo 'export PATH="$PATH:$HOME/sumo_binaries/bin"' >> ~/.bashrc
-echo 'export SUMO_HOME="$HOME/sumo_binaries/bin"' >> ~/.bashrc
+echo 'export SUMO_HOME="$HOME/sumo_binaries"' >> ~/.bashrc
+echo 'export PYTHONPATH="$PYTHONPATH:$HOME/sumo_binaries/tools"' >> ~/.bashrc

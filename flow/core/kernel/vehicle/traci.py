@@ -350,7 +350,9 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         # remove from sumo
         if veh_id in self.kernel_api.vehicle.getIDList():
-            self.kernel_api.vehicle.unsubscribe(veh_id)
+            if self.render:
+                # libsumo does not have an unsubscribe method
+                self.kernel_api.vehicle.unsubscribe(veh_id)
             self.kernel_api.vehicle.remove(veh_id)
 
         try:
