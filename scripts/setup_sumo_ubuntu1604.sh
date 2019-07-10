@@ -15,8 +15,8 @@ wget https://akreidieh.s3.amazonaws.com/sumo/flow-0.4.1/binaries-ubuntu1604.tar.
 tar -xf binaries-ubuntu1604.tar.xz
 rm binaries-ubuntu1604.tar.xz
 chmod +x bin/*
+python tools/build/setup-traci.py
 popd
 
 echo 'export PATH="$PATH:$HOME/sumo_binaries/bin"' >> ~/.bashrc
 echo 'export SUMO_HOME="$HOME/sumo_binaries"' >> ~/.bashrc
-echo 'export PYTHONPATH="$PYTHONPATH:$HOME/sumo_binaries/tools"' >> ~/.bashrc
