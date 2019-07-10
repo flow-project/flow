@@ -7,7 +7,7 @@ python:
 
 os: linux
 
-dist: trusty
+dist: xenial
 
 sudo: required
 
@@ -27,7 +27,7 @@ before_install:
 
   # [sumo] dependencies and binaries
   - pushd $HOME/build/flow-project
-  -     ./flow/scripts/setup_sumo_ubuntu1404.sh
+  -     ./flow/scripts/setup_sumo_ubuntu1604.sh
   - popd
   - source ~/.bashrc
 
