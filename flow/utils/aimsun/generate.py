@@ -280,6 +280,8 @@ def generate_net(nodes,
 def generate_net_osm(file_name, inflows, veh_types):
     """Generate a network from an osm file.
 
+    Parameters
+    ----------
     file_name : str
         path to the osm file
     inflows : flow.core.params.InFlows
@@ -441,6 +443,19 @@ def get_edge_angle(first_node, last_node):
 
 
 def get_state_folder(model):
+    """ Return traffic state folder. If the folder doesn't exist, a new
+     folder will be created.
+
+    Parameters
+    ----------
+    model : GKModel
+        Aimsun model object
+
+    Returns
+    -------
+    GKFolder
+        an Aimsun folder object which contains traffic state.
+    """
     folder_name = "GKModel::trafficStates"
     folder = model.getCreateRootFolder().findFolder(folder_name)
     if folder is None:
@@ -450,6 +465,20 @@ def get_state_folder(model):
 
 
 def create_state(model, name):
+    """ Create a traffic state object.
+
+    Parameters
+    ----------
+    model : GKModel
+        Aimsun model object
+    name : str
+        name of the traffic state
+
+    Returns
+    -------
+    GKTrafficState
+        an Aimsun traffic state object
+    """
     state = GKSystem.getSystem().newObject("GKTrafficState", model)
     state.setName(name)
     folder = get_state_folder(model)
@@ -458,6 +487,19 @@ def create_state(model, name):
 
 
 def get_demand_folder(model):
+    """ Return traffic demand folder. If the folder doesn't exist, a new
+     folder will be created.
+
+    Parameters
+    ----------
+    model : GKModel
+        Aimsun model object
+
+    Returns
+    -------
+    GKFolder
+        an Aimsun folder object which contains traffic demand.
+    """
     folder_name = "GKModel::trafficDemands"
     folder = model.getCreateRootFolder().findFolder(folder_name)
     if folder is None:
@@ -467,6 +509,20 @@ def get_demand_folder(model):
 
 
 def create_traffic_demand(model, name):
+    """ Create a traffic demand object.
+
+    Parameters
+    ----------
+    model : GKModel
+        Aimsun model object
+    name : str
+        name of the traffic state
+
+    Returns
+    -------
+    GKTrafficDemand
+        an Aimsun traffic demand object
+    """
     demand = GKSystem.getSystem().newObject("GKTrafficDemand", model)
     demand.setName(name)
     folder = get_demand_folder(model)
@@ -475,6 +531,17 @@ def create_traffic_demand(model, name):
 
 
 def set_demand_item(model, demand, item):
+    """ Set a traffic demand item.
+
+    Parameters
+    ----------
+    model : GKModel
+        Aimsun model object
+    demand : GKTrafficDemand
+        an Aimsun traffic demand object
+    item : GKTrafficDemandItem
+        a traffic item which is valid for a vehicle type and a time interval
+    """
     if item.getVehicle() is None:
         model.getLog().addError("Invalid Demand Item: no vehicle")
     else:
@@ -488,6 +555,17 @@ def set_demand_item(model, demand, item):
 
 
 def set_state_vehicle(model, state, veh_type_name):
+    """ Set state vehicle type.
+
+    Parameters
+    ----------
+    model : GKModel
+        Aimsun model object
+    state : GKTrafficState
+        an Aimsun traffic state object
+    veh_type_name : str
+        name of the vehicle type
+    """
     # find vehicle type
     veh_type = model.getCatalog().findByName(
         veh_type_name, model.getType("GKVehicle"))
@@ -496,6 +574,15 @@ def set_state_vehicle(model, state, veh_type_name):
 
 
 def set_vehicles_color(model):
+    """ Set view mode and view style to show different vehicle types with
+    different colors. View mode and view style are named
+    "DYNAMIC: Simulation Vehicles by Vehicle Type".
+
+    Parameters
+    ----------
+    model : GKModel
+        Aimsun model object
+    """
     view_mode = model.getGeoModel().findMode(
         "GKViewMode::VehiclesByVehicleType", False)
     if view_mode is None:
@@ -529,8 +616,20 @@ def set_vehicles_color(model):
     view_mode.addStyle(view_style)
 
 
-# Returns (and creates if needed) the folder for the control plan
 def get_control_plan_folder(model):
+    """ Return control plan folder. If the folder doesn't exist, a new
+     folder will be created.
+
+    Parameters
+    ----------
+    model : GKModel
+        Aimsun model object
+
+    Returns
+    -------
+    GKFolder
+        an Aimsun folder object which contains control plan.
+    """
     folder_name = "GKModel::controlPlans"
     folder = model.getCreateRootFolder().findFolder(folder_name)
     if folder is None:
@@ -539,8 +638,21 @@ def get_control_plan_folder(model):
     return folder
 
 
-# Creates a new control plan
 def create_control_plan(model, name):
+    """ Create a traffic control plan object.
+
+    Parameters
+    ----------
+    model : GKModel
+        Aimsun model object
+    name : str
+        name of the control plan
+
+    Returns
+    -------
+    GKControlPlan
+        an Aimsun control plan object
+    """
     control_plan = GKSystem.getSystem().newObject("GKControlPlan", model)
     control_plan.setName(name)
     folder = get_control_plan_folder(model)
@@ -549,6 +661,20 @@ def create_control_plan(model, name):
 
 
 def create_meter(model, edge):
+    """ Create a metering object.
+
+    Parameters
+    ----------
+    model : GKModel
+        Aimsun model object
+    edge : str
+        name of the edge
+
+    Returns
+    -------
+    GKSectionObject
+        an Aimsun metering (section object) object
+    """
     section = model.getCatalog().findByName(edge, model.getType("GKSection"))
     meter_length = 2
     pos = section.getLanesLength2D() - meter_length
@@ -564,6 +690,27 @@ def create_meter(model, edge):
 
 def set_metering_times(
         cp, meter, cycle, green, yellow, offset, min_green, max_green):
+    """Set a meter timing plan.
+
+    Parameters
+    ----------
+    cp : GKControlPlan
+        an aimsun control plan object
+    meter : GKSectionObject
+        an Aimsun metering (section object) object
+    cycle : int
+        cycle length
+    green : int
+        green phase duration
+    yellow : int
+        yellow phase duration
+    offset : int
+        offset duration
+    min_green : int
+        minimum green phase duration
+    max_green : int
+        maximum green phase duration
+    """
     cp_meter = cp.createControlMetering(meter)
     cp_meter.setControlMeteringType(GKControlMetering.eExternal)
     cp_meter.setCycle(cycle)
@@ -575,6 +722,23 @@ def set_metering_times(
 
 
 def create_node_meters(model, cp, node_id, phases):
+    """ Create meters for a node.
+
+    Parameters
+    ----------
+    model:
+    cp : GKControlPlan
+        an aimsun control plan object
+    node_id : str
+        node ID
+    phases :  list  of dict
+        list of phases to be followed by the traffic light
+
+    Returns
+    -------
+    list of GKSectionObject
+        list of meters in the node
+    """
     meters = []
     signal_groups = {}
     for connection in connections[node_id]:
@@ -611,7 +775,7 @@ def set_sim_step(experiment, sim_step):
 
     Parameters
     ----------
-    experiment : TODO
+    experiment : GKTExperiment
         the experiment object
     sim_step : float
         desired simulation step
