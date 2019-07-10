@@ -443,8 +443,9 @@ def get_edge_angle(first_node, last_node):
 
 
 def get_state_folder(model):
-    """ Return traffic state folder. If the folder doesn't exist, a new
-     folder will be created.
+    """Return traffic state folder.
+
+    If the folder doesn't exist, a new folder will be created.
 
     Parameters
     ----------
@@ -465,7 +466,7 @@ def get_state_folder(model):
 
 
 def create_state(model, name):
-    """ Create a traffic state object.
+    """Create a traffic state object.
 
     Parameters
     ----------
@@ -487,8 +488,9 @@ def create_state(model, name):
 
 
 def get_demand_folder(model):
-    """ Return traffic demand folder. If the folder doesn't exist, a new
-     folder will be created.
+    """Return traffic demand folder.
+
+    If the folder doesn't exist, a new folder will be created.
 
     Parameters
     ----------
@@ -509,7 +511,9 @@ def get_demand_folder(model):
 
 
 def create_traffic_demand(model, name):
-    """ Create a traffic demand object.
+    """Create a traffic demand object.
+
+    If the folder doesn't exist, a new folder will be created.
 
     Parameters
     ----------
@@ -531,7 +535,7 @@ def create_traffic_demand(model, name):
 
 
 def set_demand_item(model, demand, item):
-    """ Set a traffic demand item.
+    """Set a traffic demand item.
 
     Parameters
     ----------
@@ -555,7 +559,7 @@ def set_demand_item(model, demand, item):
 
 
 def set_state_vehicle(model, state, veh_type_name):
-    """ Set state vehicle type.
+    """Set state vehicle type.
 
     Parameters
     ----------
@@ -574,7 +578,9 @@ def set_state_vehicle(model, state, veh_type_name):
 
 
 def set_vehicles_color(model):
-    """ Set view mode and view style to show different vehicle types with
+    """Set view mode and view style.
+
+    View mode and view style are used to show different vehicle types with
     different colors. View mode and view style are named
     "DYNAMIC: Simulation Vehicles by Vehicle Type".
 
@@ -617,8 +623,9 @@ def set_vehicles_color(model):
 
 
 def get_control_plan_folder(model):
-    """ Return control plan folder. If the folder doesn't exist, a new
-     folder will be created.
+    """Return control plan folder.
+
+    If the folder doesn't exist, a new folder will be created.
 
     Parameters
     ----------
@@ -639,7 +646,7 @@ def get_control_plan_folder(model):
 
 
 def create_control_plan(model, name):
-    """ Create a traffic control plan object.
+    """Create a traffic control plan object.
 
     Parameters
     ----------
@@ -661,7 +668,7 @@ def create_control_plan(model, name):
 
 
 def create_meter(model, edge):
-    """ Create a metering object.
+    """Create a metering object.
 
     Parameters
     ----------
@@ -722,7 +729,7 @@ def set_metering_times(
 
 
 def create_node_meters(model, cp, node_id, phases):
-    """ Create meters for a node.
+    """Create meters for a node.
 
     Parameters
     ----------
