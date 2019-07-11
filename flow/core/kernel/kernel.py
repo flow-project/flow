@@ -44,7 +44,11 @@ class Kernel(object):
     traffic simulators, e.g. SUMO, AIMSUN, TruckSim, etc...
     """
 
-    def __init__(self, simulator, sim_params):
+    def __init__(self,
+                 simulator,
+                 sim_params,
+                 observation_list=None,
+                 monitor_rl=False):
         """Instantiate a Flow kernel object.
 
         Parameters
@@ -53,6 +57,11 @@ class Kernel(object):
             simulator type, must be one of {"traci"}
         sim_params : flow.core.params.SimParams
             simulation-specific parameters
+        observation_list : list
+            optional arguments to be specified when
+            certain observations wish to be monitored
+        monitor_rl : bool
+            Enable/Disable subscribing to RL vehicles only
 
         Raises
         ------
@@ -64,7 +73,16 @@ class Kernel(object):
         if simulator == "traci":
             self.simulation = TraCISimulation(self)
             self.scenario = TraCIScenario(self, sim_params)
-            self.vehicle = TraCIVehicle(self, sim_params)
+            if observation_list:
+                self.vehicle = TraCIVehicle(self,
+                                            sim_params=sim_params,
+                                            observation_list=observation_list,
+                                            monitor_rl=monitor_rl)
+            else:
+                self.vehicle = TraCIVehicle(self,
+                                            sim_params=sim_params,
+                                            monitor_rl=monitor_rl)
+
             self.traffic_light = TraCITrafficLight(self)
         elif simulator == 'aimsun':
             self.simulation = AimsunKernelSimulation(self)

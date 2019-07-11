@@ -8,6 +8,7 @@ import traceback
 import numpy as np
 import random
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
+import traci.constants as tc
 
 import gym
 from gym.spaces import Box
@@ -98,7 +99,13 @@ class Env(*classdef):
         is set to True or False.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self,
+                 env_params,
+                 sim_params,
+                 scenario,
+                 observation_list=None,
+                 simulator='traci',
+                 monitor_rl=False):
         """Initialize the environment class.
 
         Parameters
@@ -109,8 +116,13 @@ class Env(*classdef):
            see flow/core/params.py
         scenario : flow.scenarios.Scenario
             see flow/scenarios/base_scenario.py
+        observation_list : list
+            optional arguments to be specified when
+            certain observations wish to be monitored
         simulator : str
             the simulator used, one of {'traci', 'aimsun'}. Defaults to 'traci'
+        monitor_rl : bool
+            Enable/Disable subscribing to RL vehicles only
 
         Raises
         ------
@@ -147,9 +159,39 @@ class Env(*classdef):
         # the simulator used by this environment
         self.simulator = simulator
 
+        """
+        Go through the observations list and
+        replace all readable equivalent tags
+        with Traci equivalent parameters
+        """
+        if observation_list:
+            observation_list = [x.lower() for x in observation_list]
+
+            for index, elem in enumerate(observation_list):
+                if "lane index" in elem:
+                    observation_list[index] = tc.VAR_LANE_INDEX
+                elif "lane position" in elem:
+                    observation_list[index] = tc.VAR_LANEPOSITION
+                elif "road id" in elem:
+                    observation_list[index] = tc.VAR_ROAD_ID
+                elif "speed" in elem:
+                    observation_list[index] = tc.VAR_SPEED
+                elif "edges" in elem:
+                    observation_list[index] = tc.VAR_EDGES
+                elif "position" in elem:
+                    observation_list[index] = tc.VAR_POSITION
+                elif "angle" in elem:
+                    observation_list[index] = tc.VAR_ANGLE
+                elif "speed without traci" in elem:
+                    observation_list[index] = tc.VAR_SPEED_WITHOUT_TRACI
+
         # create the Flow kernel
-        self.k = Kernel(simulator=self.simulator,
-                        sim_params=sim_params)
+            self.k = Kernel(simulator=self.simulator,
+                            sim_params=sim_params,
+                            observation_list=observation_list)
+        else:
+            self.k = Kernel(simulator=self.simulator,
+                            sim_params=sim_params)
 
         # use the scenario class's network parameters to generate the necessary
         # scenario components within the scenario kernel
@@ -385,8 +427,8 @@ class Env(*classdef):
 
         # test if the environment should terminate due to a collision or the
         # time horizon being met
-        done = crash or (self.time_counter >= self.env_params.warmup_steps
-                         + self.env_params.horizon)
+        done = crash or (self.time_counter >= self.env_params.warmup_steps +
+                         self.env_params.horizon)
 
         # compute the info for each agent
         infos = {}

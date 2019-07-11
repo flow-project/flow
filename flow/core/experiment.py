@@ -6,7 +6,7 @@ import numpy as np
 import time
 import os
 
-from flow.core.util import emission_to_csv
+from flow.core.util import generic_observations
 
 
 class Experiment:
@@ -64,7 +64,12 @@ class Experiment:
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, num_steps, rl_actions=None, convert_to_csv=False):
+    def run(self,
+            num_runs,
+            num_steps,
+            *args,
+            rl_actions=None,
+            convert_to_csv=False):
         """Run the given scenario for a set number of runs and steps per run.
 
         Parameters
@@ -152,11 +157,22 @@ class Experiment:
 
             # collect the location of the emission file
             dir_path = self.env.sim_params.emission_path
+            print(dir_path)
             emission_filename = \
                 "{0}-emission.xml".format(self.env.scenario.name)
             emission_path = os.path.join(dir_path, emission_filename)
 
             # convert the emission file into a csv
-            emission_to_csv(emission_path)
+            # emission_to_csv(emission_path)
+            attributes_for_observation = []
+            if 'id' not in args:
+                attributes_for_observation.append('id')
+            else:
+                for attr in args:
+                    attributes_for_observation.append(attr)
+
+            generic_observations(emission_path,
+                                 attr_list=attributes_for_observation,
+                                 create_csv=True)
 
         return info_dict
