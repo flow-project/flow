@@ -342,6 +342,31 @@ class TrafficLightGridEnv(Env):
         else:
             return 0
 
+    def _get_relative_node(self, agent_id, direction):
+        agent_id_num = int(agent_id.split("center")[1][0])
+        if direction == "top":
+            edge = agent_id_num + self.cols
+            if edge >= self.cols * self.rows:
+                edge = -1
+        elif direction == "bottom":
+            edge = agent_id_num - self.cols
+            if edge < 0:
+                edge = -1
+        elif direction == "left":
+            if agent_id_num % self.cols == 0:
+                edge = -1
+            else:
+                edge = agent_id_num - 1
+        elif direction == "right":
+            if agent_id_num % self.cols == self.cols - 1:
+                edge = -1
+            else:
+                edge = agent_id_num + 1
+        else:
+            raise NotImplementedError
+
+        return edge
+
     def additional_command(self):
         """See parent class.
 
