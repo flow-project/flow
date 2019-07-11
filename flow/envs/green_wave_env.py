@@ -7,8 +7,8 @@ through an n x m grid.
 import numpy as np
 import re
 
-from gym.spaces.discrete import Discrete
 from gym.spaces.box import Box
+from gym.spaces.discrete import Discrete
 from gym.spaces.tuple_space import Tuple
 
 from flow.core import rewards
@@ -205,8 +205,8 @@ class TrafficLightGridEnv(Env):
             rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
             rl_mask = [0] * (self.num_traffic_lights - len(rl_mask)) + rl_mask
         else:
-            # convert values less than 0.5 to zero and above to 1. 0's indicate
-            # that should not switch the direction
+            # convert values less than 0.0 to zero and above to 1. 0's indicate
+            # that we should not switch the direction
             rl_mask = rl_actions > 0.0
 
         for i, action in enumerate(rl_mask):
@@ -290,9 +290,16 @@ class TrafficLightGridEnv(Env):
 
         The numbers are assigned along the lowest column, then the lowest row,
         then the second lowest column, etc. Left goes before right, top goes
-        before bot.
+        before bottom.
 
-        The values are are zero indexed.
+        The values are zero indexed.
+
+        Example for a 3x3 grid network:
+
+            12 13 14 15
+             8  9 10 11
+             4  5  6  7
+             0  1  2  3
 
         Parameters
         ----------
@@ -430,10 +437,9 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
       observed in the state space; defaults to 2
 
     States
-        An observation is the number of observe vehicles in each intersection
-        closest to the traffic lights, a
-        number uniquely identifying which edge the vehicle is on, and the speed
-        of the vehicle.
+        An observation is the number of observed vehicles in each intersection
+        closest to the traffic lights, a number uniquely identifying which
+        edge the vehicle is on, and the speed of the vehicle.
 
     Actions
         The action space consist of a list of float variables ranging from 0-1
@@ -477,6 +483,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         Velocities, distance to intersections, edge number (for nearby
         vehicles), and traffic light state.
         """
+        # TODO(cathywu) why 12 and not 3?
         tl_box = Box(
             low=0.,
             high=1,
@@ -539,12 +546,11 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         for edge in self.k.scenario.get_edge_list():
             ids = self.k.vehicle.get_ids_by_edge(edge)
             if len(ids) > 0:
+                # TODO(cathywu) Why is there a 5 here?
                 density += [5 * len(ids) / self.k.scenario.edge_length(edge)]
-                velocity_avg += [
-                    np.mean(
-                        [self.k.vehicle.get_speed(veh_id)
-                         for veh_id in ids]) / max_speed
-                ]
+                velocity_avg += [np.mean(
+                    [self.k.vehicle.get_speed(veh_id) for veh_id in
+                     ids]) / max_speed]
             else:
                 density += [0]
                 velocity_avg += [0]
