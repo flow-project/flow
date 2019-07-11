@@ -17,7 +17,7 @@ HORIZON = 1500
 
 def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
-    sim_params = AimsunParams(sim_step=0.5, render=True, seed=0)
+    sim_params = AimsunParams(sim_step=0.5, render=False, seed=0)
 
     vehicles = VehicleParams()
     vehicles.add(
