@@ -1,4 +1,5 @@
-"""
+"""Bottleneck runner script for generating flow-density plots.
+
 Run density experiment to generate capacity diagram for the
 bottleneck experiment
 """
@@ -13,6 +14,32 @@ from examples.sumo.bottlenecks import bottleneck_example
 
 @ray.remote
 def run_bottleneck(flow_rate, num_trials, num_steps, render=None):
+    """Run a rollout of the bottleneck environment.
+
+    Parameters
+    ----------
+    flow_rate : float
+        bottleneck inflow rate
+    num_trials : int
+        number of rollouts to perform
+    num_steps : int
+        number of simulation steps per rollout
+    render : bool
+        whether to render the environment
+
+    Returns
+    -------
+    float
+        average outflow rate across rollouts
+    float
+        average speed across rollouts
+    float
+        average rollout density outflow
+    list of float
+        per rollout outflows
+    float
+        inflow rate
+    """
     print('Running experiment for inflow rate: ', flow_rate, render)
     exp = bottleneck_example(flow_rate, num_steps, restart_instance=True)
     info_dict = exp.run(num_trials, num_steps)

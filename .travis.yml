@@ -7,7 +7,7 @@ python:
 
 os: linux
 
-dist: trusty
+dist: xenial
 
 sudo: required
 
@@ -27,7 +27,7 @@ before_install:
 
   # [sumo] dependencies and binaries
   - pushd $HOME/build/flow-project
-  -     ./flow/scripts/setup_sumo_ubuntu1404.sh
+  -     ./flow/scripts/setup_sumo_ubuntu.sh
   - popd
   - source ~/.bashrc
 
@@ -46,14 +46,16 @@ install:
   - pip install nose
   - pip install matplotlib
   - pip install jupyter
+  - pip install pydocstyle
 
 before_script:
   - flake8 --version
   - flake8 --show-source
+  - pydocstyle --convention numpy
 
 script:
   - python setup.py install
-  - nose2 --with-coverage
+  - xvfb-run --server-args="-screen 0 1024x768x24"  nose2 --with-coverage
 
 after_success:
   - coveralls
