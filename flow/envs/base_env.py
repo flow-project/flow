@@ -236,7 +236,7 @@ class Env(*classdef):
         self.k.close()
 
         # killed the sumo process if using sumo/TraCI
-        if self.simulator == 'traci':
+        if self.simulator == 'traci' and self.sim_params.render:
             self.k.simulation.sumo_proc.kill()
 
         if render is not None:
@@ -462,7 +462,7 @@ class Env(*classdef):
             # do not try to remove the vehicles from the network in the first
             # step after initializing the network, as there will be no vehicles
             if self.step_counter == 0:
-                continue
+                break
             try:
                 self.k.vehicle.remove(veh_id)
             except (FatalTraCIError, TraCIException):
