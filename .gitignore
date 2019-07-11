@@ -104,6 +104,7 @@ debug/
 
 # Custom for Aimsun
 *.ang.lck
-*flow.sqlite
+*.sqlite
 *.ang.old
 *.sang
+
