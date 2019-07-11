@@ -18,6 +18,7 @@ class build_ext(_build_ext.build_ext):
     """External buid commands."""
 
     def run(self):
+        """Do nothing."""
         pass
 
 
