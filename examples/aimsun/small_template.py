@@ -10,6 +10,7 @@ from flow.scenarios.loop import Scenario
 from flow.controllers.rlcontroller import RLController
 from flow.core.params import InFlows
 import flow.config as config
+import os
 
 sim_params = AimsunParams(
     sim_step=0.1,
