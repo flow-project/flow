@@ -7,7 +7,6 @@ from flow.core.params import AimsunParams, EnvParams, NetParams
 from flow.core.params import VehicleParams
 from flow.envs import TestEnv
 from flow.scenarios.loop import Scenario
-from flow.controllers.rlcontroller import RLController
 from flow.core.params import InFlows
 import flow.config as config
 import os
