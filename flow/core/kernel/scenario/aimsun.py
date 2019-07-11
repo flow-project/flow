@@ -148,10 +148,12 @@ class AimsunKernelScenario(KernelScenario):
                 # all the data can take several seconds for large scenarios
                 while not os.path.exists(check_path):
                     time.sleep(0.1)
+                os.remove(check_path)
 
                 # scenario_data.json has been written, load its content
                 with open(scenar_path) as f:
                     content = json.load(f)
+                os.remove(scenar_path)
 
                 self._edges = content['sections']
                 self._edge_list = self._edges.keys()

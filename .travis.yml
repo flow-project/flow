@@ -46,14 +46,16 @@ install:
   - pip install nose
   - pip install matplotlib
   - pip install jupyter
+  - pip install pydocstyle
 
 before_script:
   - flake8 --version
   - flake8 --show-source
+  - pydocstyle --convention numpy
 
 script:
   - python setup.py install
-  - nose2 --with-coverage
+  - xvfb-run --server-args="-screen 0 1024x768x24"  nose2 --with-coverage
 
 after_success:
   - coveralls

@@ -1,6 +1,5 @@
 """Trains vehicles to facilitate cooperative merging in a loop merge.
 
-
 This examples consists of 1 learning agent and 6 additional vehicles in an
 inner ring, and 10 vehicles in an outer ring attempting to
 merge into the inner ring.
@@ -142,7 +141,17 @@ flow_params = dict(
 
 
 def setup_exps():
+    """Return the relevant components of an RLlib experiment.
 
+    Returns
+    -------
+    str
+        name of the training algorithm
+    str
+        name of the gym environment to be trained
+    dict
+        training configuration parameters
+    """
     alg_run = 'PPO'
 
     agent_cls = get_agent_class(alg_run)

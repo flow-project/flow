@@ -1,6 +1,8 @@
-"""Example of a multi-agent environment containing a figure eight with
-one autonomous vehicle and an adversary that is allowed to perturb
-the accelerations of figure eight."""
+"""Example of a multi-agent environment containing a figure eight.
+
+This example consists of one autonomous vehicle and an adversary that is
+allowed to perturb the accelerations of figure eight.
+"""
 
 # WARNING: Expected total reward is zero as adversary reward is
 # the negative of the AV reward
@@ -108,7 +110,17 @@ flow_params = dict(
 
 
 def setup_exps():
+    """Return the relevant components of an RLlib experiment.
 
+    Returns
+    -------
+    str
+        name of the training algorithm
+    str
+        name of the gym environment to be trained
+    dict
+        training configuration parameters
+    """
     alg_run = 'PPO'
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
