@@ -838,7 +838,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                         action = rl_actions[bucket + self.action_index[edge]]
 
                     max_speed_curr = self.k.vehicle.get_max_speed(rl_id)
-                    next_max = np.clip(max_speed_curr + action, 0.01, 23.0)
+                    next_max = min(max(max_speed_curr + action[0], 0.01), 23.0)
                     self.k.vehicle.set_max_speed(rl_id, next_max)
 
                 else:

@@ -13,6 +13,7 @@ import gym
 from gym.spaces import Box
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
+import libsumo
 
 import sumolib
 
@@ -465,7 +466,7 @@ class Env(*classdef):
                 break
             try:
                 self.k.vehicle.remove(veh_id)
-            except (FatalTraCIError, TraCIException):
+            except (FatalTraCIError, TraCIException, libsumo.TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
 
         # reintroduce the initial vehicles to the network
@@ -481,7 +482,7 @@ class Env(*classdef):
                     lane=lane_index,
                     pos=pos,
                     speed=speed)
-            except (FatalTraCIError, TraCIException):
+            except (FatalTraCIError, TraCIException, libsumo.TraCIException):
                 # if a vehicle was not removed in the first attempt, remove it
                 # now and then reintroduce it
                 self.k.vehicle.remove(veh_id)

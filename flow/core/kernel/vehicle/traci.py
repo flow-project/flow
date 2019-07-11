@@ -885,7 +885,7 @@ class TraCIVehicle(KernelVehicle):
         for i, vid in enumerate(veh_ids):
             if acc[i] is not None and vid in self.get_ids():
                 this_vel = self.get_speed(vid)
-                next_vel = max([this_vel + acc[i] * self.sim_step, 0])
+                next_vel = max([this_vel + acc[i] * self.sim_step, 0.])
                 self.kernel_api.vehicle.slowDown(vid, next_vel, 1e-3)
 
     def apply_lane_change(self, veh_ids, direction):
@@ -982,7 +982,7 @@ class TraCIVehicle(KernelVehicle):
         The last term for sumo (transparency) is set to 255.
         """
         r, g, b = color
-        self.kernel_api.vehicle.setColor(vehID=veh_id, color=(r, g, b, 255))
+        self.kernel_api.vehicle.setColor(veh_id, (r, g, b, 255))
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
