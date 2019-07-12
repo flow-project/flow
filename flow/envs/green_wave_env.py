@@ -506,13 +506,13 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         """State space that is partially observed.
 
         Velocities, distance to intersections, edge number (for nearby
-        vehicles), and traffic light state.
+        vehicles) from each direction, edge information, and traffic light
+        state.
         """
-        # TODO(cathywu) why 12 and not 3?
         tl_box = Box(
             low=0.,
             high=1,
-            shape=(12 * self.num_observed * self.num_traffic_lights +
+            shape=(3 * 4 * self.num_observed * self.num_traffic_lights +
                    2 * len(self.k.scenario.get_edge_list()) +
                    3 * self.num_traffic_lights,),
             dtype=np.float32)

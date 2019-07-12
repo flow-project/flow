@@ -51,12 +51,13 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         """State space that is partially observed.
 
         Velocities, distance to intersections, edge number (for nearby
-        vehicles), and traffic light state.
+        vehicles) from each direction, local edge information, and traffic
+        light state.
         """
         tl_box = Box(
             low=0.,
             high=1,
-            shape=(3 * self.num_observed +
+            shape=(3 * 4 * self.num_observed +
                    2 * self.num_local_edges +
                    3 * (1 + self.num_local_lights),
                    ),
@@ -105,6 +106,9 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         edge_number = []
         all_observed_ids = []
         for _, edges in self.scenario.node_mapping:
+            local_speeds = []
+            local_dists_to_intersec = []
+            local_edge_numbers = []
             for edge in edges:
                 observed_ids = \
                     self.k_closest_to_intersection(edge, self.num_observed)
@@ -112,26 +116,27 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
 
                 # check which edges we have so we can always pad in the right
                 # positions
-                local_speeds = [self.k.vehicle.get_speed(veh_id) / max_speed for
-                                veh_id in observed_ids]
-                local_dists_to_intersection = [(self.k.scenario.edge_length(
+                local_speeds.extend(
+                    [self.k.vehicle.get_speed(veh_id) / max_speed for veh_id in
+                     observed_ids])
+                local_dists_to_intersec.extend([(self.k.scenario.edge_length(
                     self.k.vehicle.get_edge(
                         veh_id)) - self.k.vehicle.get_position(
-                    veh_id)) / max_dist for veh_id in observed_ids]
-                local_edge_numbers = [
-                    self._convert_edge(self.k.vehicle.get_edge(veh_id)) / (
-                    self.k.scenario.network.num_edges - 1) for veh_id in
-                    observed_ids]
+                    veh_id)) / max_dist for veh_id in observed_ids])
+                local_edge_numbers.extend([self._convert_edge(
+                    self.k.vehicle.get_edge(veh_id)) / (
+                                               self.k.scenario.network.num_edges - 1)
+                                           for veh_id in observed_ids])
 
                 if len(observed_ids) < self.num_observed:
                     diff = self.num_observed - len(observed_ids)
                     local_speeds.extend([0] * diff)
-                    local_dists_to_intersection.extend([0] * diff)
+                    local_dists_to_intersec.extend([0] * diff)
                     local_edge_numbers.extend([0] * diff)
 
-                speeds.append(local_speeds)
-                dist_to_intersec.append(local_dists_to_intersection)
-                edge_number.append(local_edge_numbers)
+            speeds.append(local_speeds)
+            dist_to_intersec.append(local_dists_to_intersec)
+            edge_number.append(local_edge_numbers)
 
         # Edge information
         density = []
