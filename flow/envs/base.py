@@ -62,7 +62,7 @@ class Env(*classdef):
     sim_params : flow.core.params.SimParams
        see flow/core/params.py
     scenario : flow.scenarios.Scenario
-        see flow/scenarios/base_scenario.py
+        see flow/scenarios/base.py
     simulator : str
         the simulator used, one of {'traci', 'aimsun'}
     k : flow.core.kernel.Kernel
@@ -107,7 +107,7 @@ class Env(*classdef):
         sim_params : flow.core.params.SimParams
            see flow/core/params.py
         scenario : flow.scenarios.Scenario
-            see flow/scenarios/base_scenario.py
+            see flow/scenarios/base.py
         simulator : str
             the simulator used, one of {'traci', 'aimsun'}. Defaults to 'traci'
 

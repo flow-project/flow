@@ -1,7 +1,7 @@
 """Contains all available scenarios in Flow."""
 
 # base scenario class
-from flow.scenarios.base_scenario import Scenario
+from flow.scenarios.base import Scenario
 
 # custom scenarios
 from flow.scenarios.bay_bridge import BayBridgeScenario

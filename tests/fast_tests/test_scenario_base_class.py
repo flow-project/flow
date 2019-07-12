@@ -94,7 +94,7 @@ class TestGetEdge(unittest.TestCase):
 
 class TestEvenStartPos(unittest.TestCase):
     """
-    Tests the function gen_even_start_pos in base_scenario.py. This function
+    Tests the function gen_even_start_pos in scenarios/base.py. This function
     can be used on any scenario subclass, and therefore may be tested on any of
     these classes. In order to perform this testing, replace the scenario in
     setUp() with the scenario to be tested.
@@ -492,7 +492,7 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
 
 class TestRandomStartPos(unittest.TestCase):
     """
-    Tests the function gen_random_start_pos in base_scenario.py.
+    Tests the function gen_random_start_pos in scenarios/base.py.
     """
 
     def setUp_gen_start_pos(self, initial_config=InitialConfig()):

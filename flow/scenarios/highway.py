@@ -1,6 +1,6 @@
 """Contains the highway scenario class."""
 
-from flow.scenarios.base_scenario import Scenario
+from flow.scenarios.base import Scenario
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 import numpy as np

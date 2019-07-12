@@ -5,7 +5,7 @@ from numpy import pi, sin, cos, linspace
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
-from flow.scenarios.base_scenario import Scenario
+from flow.scenarios.base import Scenario
 
 ADDITIONAL_NET_PARAMS = {
     # radius of the circular components

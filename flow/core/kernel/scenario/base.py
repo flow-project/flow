@@ -17,7 +17,7 @@ class KernelScenario(object):
     components needed to simulate a traffic network. This may include network
     creating configuration files that support the generating of certain traffic
     networks in a simulator (e.g. sumo), or may be as simple as passing network
-    features from the scenario class (see flow/scenarios/base_scenario.py) and
+    features from the scenario class (see flow/scenarios/base.py) and
     transferring them to the simulator kernel later on.
 
     In addition to generating files for network initialization, the scenario

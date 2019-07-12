@@ -1,6 +1,6 @@
 """Contains the grid scenario class."""
 
-from flow.scenarios.base_scenario import Scenario
+from flow.scenarios.base import Scenario
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from collections import defaultdict

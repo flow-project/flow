@@ -1,6 +1,6 @@
 """Contains the Bay Bridge toll scenario class."""
 
-from flow.scenarios.base_scenario import Scenario
+from flow.scenarios.base import Scenario
 
 # Use this to ensure that vehicles are only placed in the edges of the Bay
 # Bridge moving from Oakland to San Francisco.
