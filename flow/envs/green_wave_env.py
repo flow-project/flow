@@ -294,13 +294,6 @@ class TrafficLightGridEnv(Env):
 
         The values are zero indexed.
 
-        Example for a 3x3 grid network:
-
-            12 13 14 15
-             8  9 10 11
-             4  5  6  7
-             0  1  2  3
-
         Parameters
         ----------
         edges : list of str or str
