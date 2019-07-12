@@ -248,3 +248,10 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         for rl_id in rl_actions.keys():
             rews[rl_id] = rew
         return rews
+
+    def additional_command(self):
+        """See class definition."""
+        # specify observed vehicles
+        for veh_ids in self.observed_ids:
+            for veh_id in veh_ids:
+                self.k.vehicle.set_observed(veh_id)
