@@ -1,3 +1,9 @@
+"""Multi-agent environments for scenarios with traffic lights.
+
+These environments are used to train traffic lights to regulate traffic flow
+through an n x m grid.
+"""
+
 import numpy as np
 from gym.spaces.box import Box
 from gym.spaces.discrete import Discrete
@@ -29,6 +35,7 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         See parent class
 
     """
+
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         super().__init__(env_params, sim_params, scenario, simulator)
 
@@ -76,8 +83,7 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
                 dtype=np.float32)
 
     def get_state(self):
-        """
-        Observations for each traffic light agent
+        """Observations for each traffic light agent.
 
         :return: dictionary which contains agent-wise observations as follows:
         - For the self.num_observed number of vehicles closest and incoming

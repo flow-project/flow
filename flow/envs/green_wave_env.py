@@ -336,9 +336,7 @@ class TrafficLightGridEnv(Env):
             return 0
 
     def _get_relative_node(self, agent_id, direction):
-        """
-        Yields the node number of the traffic light agent for a specified
-        direction.
+        """Yield node number of traffic light agent in a given direction.
 
         :param agent_id: agent id of the form "center#"
         :param direction: top, bottom, left, right

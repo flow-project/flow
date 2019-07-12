@@ -153,10 +153,9 @@ flow_params = dict(
     ),
 )
 
-
 def setup_exps_ES():
     """
-    Experiment setup with ES
+    Experiment setup with ES using RLlib.
 
     Returns
     -------
@@ -219,7 +218,7 @@ def setup_exps_ES():
 
 def setup_exps_PPO():
     """
-    RLlib Experiment setup with PPO
+    Experiment setup with PPO using RLlib.
 
     Returns
     -------
