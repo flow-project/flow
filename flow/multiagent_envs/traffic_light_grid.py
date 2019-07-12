@@ -45,7 +45,6 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         self.num_local_edges = env_params.additional_params.get(
             "num_local_edges", 4)
 
-
     @property
     def observation_space(self):
         """State space that is partially observed.
@@ -125,8 +124,8 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
                     veh_id)) / max_dist for veh_id in observed_ids])
                 local_edge_numbers.extend([self._convert_edge(
                     self.k.vehicle.get_edge(veh_id)) / (
-                                               self.k.scenario.network.num_edges - 1)
-                                           for veh_id in observed_ids])
+                    self.k.scenario.network.num_edges - 1) for veh_id in
+                                           observed_ids])
 
                 if len(observed_ids) < self.num_observed:
                     diff = self.num_observed - len(observed_ids)
