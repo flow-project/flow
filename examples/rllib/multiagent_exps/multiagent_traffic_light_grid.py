@@ -9,6 +9,7 @@ try:
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
+from ray.rllib.agents.es.policies import GenericPolicy as ESPolicy
 from ray import tune
 from ray.tune.registry import register_env
 from ray.tune import run_experiments
@@ -183,7 +184,7 @@ def setup_exps_ES():
     act_space = test_env.action_space
 
     def gen_policy():
-        return (PPOPolicyGraph, obs_space, act_space, {})
+        return (ESPolicy, obs_space, act_space, {})
 
     # Setup PG with an ensemble of `num_policies` different policy graphs
     policy_graphs = {'av': gen_policy()}
