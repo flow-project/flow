@@ -152,8 +152,36 @@ flow_params = dict(
     ),
 )
 
+def setup_exps_ES():
+    alg_run = "ES"
+    agent_cls = get_agent_class(alg_run)
+    config = agent_cls._default_config.copy()
+    config["num_workers"] = min(N_CPUS, N_ROLLOUTS)
+    config["episodes_per_batch"] = N_ROLLOUTS
+    config["eval_prob"] = 0.05
+    # optimal parameters
+    config["noise_stdev"] = 0.02
+    config["stepsize"] = 0.02
 
-def setup_exps():
+    config["model"]["fcnet_hiddens"] = [100, 50, 25]
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
+    config["observation_filter"] = "NoFilter"
+
+    # save the flow params for replay
+    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
+                           indent=4)
+    config['env_config']['flow_params'] = flow_json
+    config['env_config']['run'] = alg_run
+
+    create_env, env_name = make_create_env(params=flow_params, version=0)
+
+    # Register as rllib env
+    register_env(env_name, create_env)
+
+    return alg_run, env_name, config
+
+
+def setup_exps_PPO():
     """Return the relevant components of an RLlib experiment.
 
     Returns
@@ -168,7 +196,7 @@ def setup_exps():
     alg_run = 'PPO'
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
-    config['num_workers'] = N_CPUS
+    config["num_workers"] = min(N_CPUS, N_ROLLOUTS)
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
     config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
@@ -217,17 +245,19 @@ if __name__ == '__main__':
     args = parser.parse_args()
     upload_dir = args.upload_dir
 
-    alg_run, env_name, config = setup_exps()
+    alg_run, env_name, config = setup_exps_ES()
     ray.init(num_cpus=N_CPUS + 1)
 
     exp_tag = {
         'run': alg_run,
         'env': env_name,
         'checkpoint_freq': 5,
+        "max_failures": 999,
         'stop': {
             'training_iteration': 500
         },
         'config': config,
+        "num_samples": 1,
     }
 
     if upload_dir:
