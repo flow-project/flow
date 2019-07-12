@@ -178,6 +178,27 @@ def setup_exps_ES():
     # Register as rllib env
     register_env(env_name, create_env)
 
+    test_env = create_env()
+    obs_space = test_env.observation_space
+    act_space = test_env.action_space
+
+    def gen_policy():
+        return (PPOPolicyGraph, obs_space, act_space, {})
+
+    # Setup PG with an ensemble of `num_policies` different policy graphs
+    policy_graphs = {'av': gen_policy()}
+
+    def policy_mapping_fn(_):
+        return 'av'
+
+    config.update({
+        'multiagent': {
+            'policy_graphs': policy_graphs,
+            'policy_mapping_fn': tune.function(policy_mapping_fn),
+            'policies_to_train': ['av']
+        }
+    })
+
     return alg_run, env_name, config
 
 
