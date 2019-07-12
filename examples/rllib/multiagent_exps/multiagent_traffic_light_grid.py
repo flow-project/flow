@@ -22,11 +22,7 @@ from flow.utils.rllib import FlowParamsEncoder
 
 EXAMPLE_USAGE = """
 example usage:
-    python ppo_runner.py grid0
-Here the arguments are:
-benchmark_name - name of the benchmark to run
-num_rollouts - number of rollouts to train across
-num_cpus - number of cpus to use for training
+    python multiagent_traffic_light_grid.py --upload_dir=<S3 bucket>
 """
 
 parser = argparse.ArgumentParser(
