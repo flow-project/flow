@@ -31,12 +31,12 @@ num_cpus - number of cpus to use for training
 
 parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
-    description="[Flow] Evaluates a Flow Garden solution on a benchmark.",
+    description="[Flow] Evaluates a multi-agent traffic light grid",
     epilog=EXAMPLE_USAGE)
 
 # required input parameters
 parser.add_argument(
-    "--upload_dir", type=str, help="S3 Bucket to upload to.")
+    "--upload_dir", type=str, help="S3 Bucket for uploading results.")
 
 # Experiment parameters
 N_ROLLOUTS = 32  # number of rollouts per training iteration
