@@ -159,7 +159,7 @@ class TestBenchmarks(unittest.TestCase):
     def test_merge0(self):
         """
         Tests flow/benchmark/baselines/merge{0,1,2}.py
-        env_name='WaveAttenuationMergePOEnv',
+        env_name='MergePOEnv',
         """
         # run the bottleneck to make sure it runs
         self.ray_runner(1, merge0.flow_params, 0)

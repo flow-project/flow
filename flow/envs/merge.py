@@ -25,7 +25,7 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 
-class WaveAttenuationMergePOEnv(Env):
+class MergePOEnv(Env):
     """Partially observable merge environment.
 
     This environment is used to train autonomous vehicles to attenuate the

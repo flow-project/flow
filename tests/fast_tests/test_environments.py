@@ -11,7 +11,7 @@ from flow.scenarios import LoopScenario, MergeScenario, BottleneckScenario
 from flow.scenarios.loop import ADDITIONAL_NET_PARAMS as LOOP_PARAMS
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS as MERGE_PARAMS
 from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
-    WaveAttenuationEnv, WaveAttenuationPOEnv, WaveAttenuationMergePOEnv, \
+    WaveAttenuationEnv, WaveAttenuationPOEnv, MergePOEnv, \
     TestEnv, BottleneckDesiredVelocityEnv, BottleneckEnv, BottleneckAccelEnv
 from flow.envs.loop.wave_attenuation import v_eq_max_function
 
@@ -597,7 +597,7 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
         )
 
 
-class TestWaveAttenuationMergePOEnv(unittest.TestCase):
+class TestMergePOEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
@@ -628,7 +628,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                env_class=WaveAttenuationMergePOEnv,
+                env_class=MergePOEnv,
                 sim_params=self.sim_params,
                 scenario=self.scenario,
                 additional_params={
@@ -643,7 +643,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
         # create the environment
-        env = WaveAttenuationMergePOEnv(
+        env = MergePOEnv(
             sim_params=self.sim_params,
             scenario=self.scenario,
             env_params=self.env_params
@@ -665,7 +665,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
         """Ensures that the observed ids are returning the correct vehicles."""
         self.assertTrue(
             test_observed(
-                env_class=WaveAttenuationMergePOEnv,
+                env_class=MergePOEnv,
                 sim_params=self.sim_params,
                 scenario=self.scenario,
                 env_params=self.env_params,

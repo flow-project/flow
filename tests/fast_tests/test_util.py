@@ -218,7 +218,7 @@ class TestRllib(unittest.TestCase):
 
         flow_params = dict(
             exp_tag="merge_0",
-            env_name="WaveAttenuationMergePOEnv",
+            env_name="MergePOEnv",
             scenario="MergeScenario",
             sim=SumoParams(
                 restart_instance=True,
