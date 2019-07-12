@@ -23,12 +23,17 @@ def truncate_colormap(cmap, minval=0.25, maxval=0.75, n=100):
 
 
 class PygletRenderer(object):
-    """Pyglet Renderer.
+    """Pyglet Renderer class.
 
-    Parameters
+    Provide a self-contained renderer module based on pyglet for visualization
+    and pixel-based learning. To run renderer in a headless machine, use
+    xvfb-run.
+
+    Attributes
     ----------
-    network : list
-        A list of road network polygons
+    data : list
+        A list of rendering data to be saved when save_render is set to
+        True.
     mode : str or bool
 
         * False: no rendering
@@ -46,6 +51,29 @@ class PygletRenderer(object):
         Set the radius of observation for RL vehicles (meter)
     show_radius : bool
         Specify whether to render the radius of RL observation
+    time : int
+        Rendering time that increments by one with every render() call
+    lane_polys : list
+        A list of road network polygons
+    lane_colors : list
+        A list of [r, g, b] specify colors of each lane in the network
+    width : int
+        Width of display window or frame
+    height : int
+        Height of display window or frame
+    x_shift : float
+        The shift substracted to the input x coordinate
+    x_scale : float
+        The scale multiplied to the input x coordinate
+    y_shift : float
+        The shift substracted to the input y coordinate
+    y_scale : float
+        The scale multiplied to the input y coordinate
+    window : pyglet.window.Window
+        A pyglet Window object used to create a display window.
+    frame : numpy.array
+        An array of size width x height x channel, where channel = 3 when
+        rendering in rgb mode and channel = 1 when rendering in gray mode
     pxpm : int
         Specify rendering resolution (pixel / meter)
     """
@@ -56,7 +84,32 @@ class PygletRenderer(object):
                  sight_radius=50,
                  show_radius=False,
                  pxpm=2):
-        """Instantiate a pyglet renderer class."""
+        """Initialize Pyglet Renderer.
+
+        Parameters
+        ----------
+        network : list
+            A list of road network polygons
+        mode : str or bool
+
+            * False: no rendering
+            * True: delegate rendering to sumo-gui for back-compatibility
+            * "gray": static grayscale rendering, which is good for training
+            * "dgray": dynamic grayscale rendering
+            * "rgb": static RGB rendering
+            * "drgb": dynamic RGB rendering, which is good for visualization
+
+        save_render : bool
+            Specify whether to save rendering data to disk
+        path : str
+            Specify where to store the rendering data
+        sight_radius : int
+            Set the radius of observation for RL vehicles (meter)
+        show_radius : bool
+            Specify whether to render the radius of RL observation
+        pxpm : int
+            Specify rendering resolution (pixel / meter)
+        """
         self.mode = mode
         if self.mode not in [True, False, "rgb", "drgb", "gray", "dgray"]:
             raise ValueError("Mode %s is not supported!" % self.mode)
