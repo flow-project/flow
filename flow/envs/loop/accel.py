@@ -1,7 +1,7 @@
 """Environment for training the acceleration behavior of vehicles in a loop."""
 
 from flow.core import rewards
-from flow.envs.base_env import Env
+from flow.envs.base import Env
 
 from gym.spaces.box import Box
 

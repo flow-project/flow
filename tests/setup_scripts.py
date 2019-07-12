@@ -14,8 +14,8 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import VehicleParams
-from flow.envs.green_wave_env import GreenWaveTestEnv
-from flow.envs.loop.loop_accel import AccelEnv
+from flow.envs.traffic_light_grid import GreenWaveTestEnv
+from flow.envs.loop.accel import AccelEnv
 from flow.scenarios.figure_eight import Figure8Scenario
 from flow.scenarios.grid import SimpleGridScenario
 from flow.scenarios.highway import HighwayScenario

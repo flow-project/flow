@@ -1,6 +1,6 @@
 """Environments that can train both lane change and acceleration behaviors."""
 
-from flow.envs.loop.loop_accel import AccelEnv
+from flow.envs.loop.accel import AccelEnv
 from flow.core import rewards
 
 from gym.spaces.box import Box

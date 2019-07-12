@@ -9,7 +9,7 @@ from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, NetParams, \
     SumoCarFollowingParams
 from flow.core.params import VehicleParams
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.loop.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.figure_eight import Figure8Scenario, ADDITIONAL_NET_PARAMS
 
 

@@ -31,7 +31,7 @@ class KernelScenario(object):
       travel within the network, this can be done by calling the following
       command:
 
-        >>> from flow.envs.base_env import Env
+        >>> from flow.envs.base import Env
         >>> env = Env(...)
         >>> max_speed = env.k.scenario.max_speed()
 

@@ -183,7 +183,7 @@ flow_params = dict(
     exp_tag='green_wave',
 
     # name of the flow environment the experiment is running on
-    env_name='PO_TrafficLightGridEnv',
+    env_name='TrafficLightGridPOEnv',
 
     # name of the scenario class the experiment is running on
     scenario='SimpleGridScenario',

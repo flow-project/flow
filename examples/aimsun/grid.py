@@ -3,7 +3,7 @@ from flow.core.experiment import Experiment
 from flow.core.params import AimsunParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.loop.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.grid import SimpleGridScenario
 
 

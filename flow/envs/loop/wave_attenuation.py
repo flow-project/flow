@@ -10,7 +10,7 @@ abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 
 from flow.core.params import InitialConfig
 from flow.core.params import NetParams
-from flow.envs.base_env import Env
+from flow.envs.base import Env
 
 from gym.spaces.box import Box
 

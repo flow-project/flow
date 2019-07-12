@@ -12,7 +12,7 @@ from flow.scenarios.loop import ADDITIONAL_NET_PARAMS as LOOP_PARAMS
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS as MERGE_PARAMS
 from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
     WaveAttenuationEnv, WaveAttenuationPOEnv, WaveAttenuationMergePOEnv, \
-    TestEnv, DesiredVelocityEnv, BottleneckEnv, BottleNeckAccelEnv
+    TestEnv, BottleneckDesiredVelocityEnv, BottleneckEnv, BottleneckAccelEnv
 from flow.envs.loop.wave_attenuation import v_eq_max_function
 
 
@@ -720,7 +720,7 @@ class TestTestEnv(unittest.TestCase):
 
 class TestBottleneckEnv(unittest.TestCase):
 
-    """Tests the BottleneckEnv environment in flow/envs/bottleneck_env.py"""
+    """Tests the BottleneckEnv environment in flow/envs/bottleneck.py"""
 
     def setUp(self):
         self.sim_params = SumoParams(sim_step=0.5, restart_instance=True)
@@ -795,7 +795,7 @@ class TestBottleneckEnv(unittest.TestCase):
 
 class TestBottleneckAccelEnv(unittest.TestCase):
 
-    """Tests BottleneckAccelEnv in flow/envs/bottleneck_env.py."""
+    """Tests BottleneckAccelEnv in flow/envs/bottleneck.py."""
 
     def setUp(self):
         self.sim_params = SumoParams(sim_step=0.5, restart_instance=True)
@@ -824,7 +824,7 @@ class TestBottleneckAccelEnv(unittest.TestCase):
             vehicles=vehicles,
             net_params=net_params)
 
-        self.env = BottleNeckAccelEnv(
+        self.env = BottleneckAccelEnv(
             env_params, self.sim_params, self.scenario)
         self.env.reset()
 
@@ -836,7 +836,7 @@ class TestBottleneckAccelEnv(unittest.TestCase):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                env_class=BottleNeckAccelEnv,
+                env_class=BottleneckAccelEnv,
                 sim_params=self.sim_params,
                 scenario=self.scenario,
                 additional_params={
@@ -862,9 +862,10 @@ class TestBottleneckAccelEnv(unittest.TestCase):
         )
 
 
-class TestDesiredVelocityEnv(unittest.TestCase):
+class TestBottleneckDesiredVelocityEnv(unittest.TestCase):
 
-    """Tests the DesiredVelocityEnv environment in flow/envs/bottleneck.py"""
+    """Tests the BottleneckDesiredVelocityEnv environment in
+       flow/envs/bottleneck.py"""
 
     def test_reset_inflows(self):
         """Tests that the inflow  change within the expected range when calling
@@ -917,7 +918,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
             vehicles=vehicles,
             net_params=net_params)
 
-        env = DesiredVelocityEnv(env_params, sim_params, scenario)
+        env = BottleneckDesiredVelocityEnv(env_params, sim_params, scenario)
 
         # reset the environment and get a new inflow rate
         env.reset()

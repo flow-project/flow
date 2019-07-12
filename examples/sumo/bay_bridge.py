@@ -9,7 +9,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 
 from flow.core.experiment import Experiment
-from flow.envs.bay_bridge.base import BayBridgeEnv
+from flow.envs.bay_bridge import BayBridgeEnv
 from flow.scenarios.bay_bridge import BayBridgeScenario, EDGES_DISTRIBUTION
 from flow.controllers import SimCarFollowingController, BayBridgeRouter
 

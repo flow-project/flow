@@ -6,7 +6,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import InFlows
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.loop.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.grid import SimpleGridScenario
 
 

@@ -14,7 +14,7 @@ Submodules
 flow.envs.base\_env module
 --------------------------
 
-.. automodule:: flow.envs.base_env
+.. automodule:: flow.envs.base
     :members:
     :undoc-members:
     :show-inheritance:
@@ -22,7 +22,7 @@ flow.envs.base\_env module
 flow.envs.bottleneck\_env module
 --------------------------------
 
-.. automodule:: flow.envs.bottleneck_env
+.. automodule:: flow.envs.bottleneck
     :members:
     :undoc-members:
     :show-inheritance:
@@ -30,7 +30,7 @@ flow.envs.bottleneck\_env module
 flow.envs.green\_wave\_env module
 ---------------------------------
 
-.. automodule:: flow.envs.green_wave_env
+.. automodule:: flow.envs.traffic_light_grid
     :members:
     :undoc-members:
     :show-inheritance:

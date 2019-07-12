@@ -12,7 +12,7 @@ from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 
 from flow.core import rewards
-from flow.envs.base_env import Env
+from flow.envs.base import Env
 
 ADDITIONAL_ENV_PARAMS = {
     # minimum switch time for each traffic light (in seconds)
@@ -419,7 +419,7 @@ class TrafficLightGridEnv(Env):
         return veh_ids_ordered[:k]
 
 
-class PO_TrafficLightGridEnv(TrafficLightGridEnv):
+class TrafficLightGridPOEnv(TrafficLightGridEnv):
     """Environment used to train traffic lights.
 
     Required from env_params:

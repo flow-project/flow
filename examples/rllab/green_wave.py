@@ -206,7 +206,7 @@ def run_task(*_):
         initial_config=initial_config,
         traffic_lights=tl_logic)
 
-    env_name = "PO_TrafficLightGridEnv"
+    env_name = "TrafficLightGridPOEnv"
     pass_params = (env_name, sim_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 

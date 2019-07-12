@@ -87,7 +87,7 @@ env_params = EnvParams(
 
 flow_rate = 1500 * SCALING
 print('flow rate is ', flow_rate)
-env_name = "DesiredVelocityEnv"
+env_name = "BottleneckDesiredVelocityEnv"
 
 inflow = InFlows()
 inflow.add(

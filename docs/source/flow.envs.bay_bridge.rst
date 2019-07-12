@@ -7,7 +7,7 @@ Submodules
 flow.envs.bay\_bridge.base module
 ---------------------------------
 
-.. automodule:: flow.envs.bay_bridge.base
+.. automodule:: flow.envs.bay_bridge
     :members:
     :undoc-members:
     :show-inheritance:
