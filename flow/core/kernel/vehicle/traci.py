@@ -134,8 +134,7 @@ class TraCIVehicle(KernelVehicle):
 
         # add entering vehicles into the vehicles class
         for veh_id in sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]:
-            veh_type = self.kernel_api.vehicle.getTypeID(veh_id)
-            if veh_id in self.get_ids():
+            if veh_id in self.get_ids() and vehicle_obs[veh_id] is not None:
                 # this occurs when a vehicle is actively being removed and
                 # placed again in the network to ensure a constant number of
                 # total vehicles (e.g. GreenWaveEnv). In this case, the vehicle
@@ -143,6 +142,7 @@ class TraCIVehicle(KernelVehicle):
                 # updated
                 pass
             else:
+                veh_type = self.kernel_api.vehicle.getTypeID(veh_id)
                 obs = self._add_departed(veh_id, veh_type)
                 # add the subscription information of the new vehicle
                 vehicle_obs[veh_id] = obs
@@ -244,7 +244,8 @@ class TraCIVehicle(KernelVehicle):
         if veh_type not in self.type_parameters:
             raise KeyError("Entering vehicle is not a valid type.")
 
-        self.__ids.append(veh_id)
+        if veh_id not in self.__ids:
+            self.__ids.append(veh_id)
         if veh_id not in self.__vehicles:
             self.num_vehicles += 1
             self.__vehicles[veh_id] = dict()
@@ -279,14 +280,16 @@ class TraCIVehicle(KernelVehicle):
 
         # add the vehicle's id to the list of vehicle ids
         if accel_controller[0] == RLController:
-            self.__rl_ids.append(veh_id)
-            self.num_rl_vehicles += 1
+            if veh_id not in self.__rl_ids:
+                self.__rl_ids.append(veh_id)
+                self.num_rl_vehicles += 1
         else:
-            self.__human_ids.append(veh_id)
-            if accel_controller[0] != SimCarFollowingController:
-                self.__controlled_ids.append(veh_id)
-            if lc_controller[0] != SimLaneChangeController:
-                self.__controlled_lc_ids.append(veh_id)
+            if veh_id not in self.__human_ids:
+                self.__human_ids.append(veh_id)
+                if accel_controller[0] != SimCarFollowingController:
+                    self.__controlled_ids.append(veh_id)
+                if lc_controller[0] != SimLaneChangeController:
+                    self.__controlled_lc_ids.append(veh_id)
 
         # subscribe the new vehicle
         self.kernel_api.vehicle.subscribe(veh_id, [
@@ -343,26 +346,27 @@ class TraCIVehicle(KernelVehicle):
             self.kernel_api.vehicle.unsubscribe(veh_id)
             self.kernel_api.vehicle.remove(veh_id)
 
-        try:
-            # remove from the vehicles kernel
-            del self.__vehicles[veh_id]
-            del self.__sumo_obs[veh_id]
+        if veh_id in self.__ids:
             self.__ids.remove(veh_id)
 
-            # remove it from all other ids (if it is there)
-            if veh_id in self.__human_ids:
-                self.__human_ids.remove(veh_id)
-                if veh_id in self.__controlled_ids:
-                    self.__controlled_ids.remove(veh_id)
-                if veh_id in self.__controlled_lc_ids:
-                    self.__controlled_lc_ids.remove(veh_id)
-            else:
-                self.__rl_ids.remove(veh_id)
+        # remove from the vehicles kernel
+        if veh_id in self.__vehicles:
+            del self.__vehicles[veh_id]
 
+        if veh_id in self.__sumo_obs:
+            del self.__sumo_obs[veh_id]
+
+        # remove it from all other id lists (if it is there)
+        if veh_id in self.__human_ids:
+            self.__human_ids.remove(veh_id)
+            if veh_id in self.__controlled_ids:
+                self.__controlled_ids.remove(veh_id)
+            if veh_id in self.__controlled_lc_ids:
+                self.__controlled_lc_ids.remove(veh_id)
+        elif veh_id in self.__rl_ids:
+            self.__rl_ids.remove(veh_id)
             # make sure that the rl ids remain sorted
             self.__rl_ids.sort()
-        except KeyError:
-            pass
 
         # modify the number of vehicles and RL vehicles
         self.num_vehicles = len(self.get_ids())
@@ -946,16 +950,16 @@ class TraCIVehicle(KernelVehicle):
             try:
                 # color rl vehicles red
                 self.set_color(veh_id=veh_id, color=RED)
-            except (FatalTraCIError, TraCIException):
-                pass
+            except (FatalTraCIError, TraCIException) as e:
+                print('Error when updating rl vehicle colors:', e)
 
         # color vehicles white if not observed and cyan if observed
         for veh_id in self.get_human_ids():
             try:
                 color = CYAN if veh_id in self.get_observed_ids() else WHITE
                 self.set_color(veh_id=veh_id, color=color)
-            except (FatalTraCIError, TraCIException):
-                pass
+            except (FatalTraCIError, TraCIException) as e:
+                print('Error when updating human vehicle colors:', e)
 
         # clear the list of observed vehicles
         for veh_id in self.get_observed_ids():
