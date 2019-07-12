@@ -267,14 +267,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
     upload_dir = args.upload_dir
 
-    alg_run, env_name, config = setup_exps_ES()
+    alg_run, env_name, config = setup_exps_PPO()
     ray.init(num_cpus=N_CPUS + 1)
 
     exp_tag = {
         'run': alg_run,
         'env': env_name,
         'checkpoint_freq': 5,
-        "max_failures": 999,
+        "max_failures": 10,
         'stop': {
             'training_iteration': 500
         },
