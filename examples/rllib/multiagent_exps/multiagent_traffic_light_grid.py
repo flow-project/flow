@@ -36,7 +36,7 @@ parser.add_argument(
     "--upload_dir", type=str, help="S3 Bucket for uploading results.")
 
 # Experiment parameters
-N_ROLLOUTS = 32  # number of rollouts per training iteration
+N_ROLLOUTS = 64  # number of rollouts per training iteration
 N_CPUS = 16  # number of parallel workers
 
 # Environment parameters
@@ -154,6 +154,19 @@ flow_params = dict(
 )
 
 def setup_exps_ES():
+    """
+    Experiment setup with ES
+
+    Returns
+    -------
+    str
+        name of the training algorithm
+    str
+        name of the gym environment to be trained
+    dict
+        training configuration parameters
+    """
+    # FIXME(cathywu) ES + multiagent is not supported
     alg_run = "ES"
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
@@ -204,7 +217,8 @@ def setup_exps_ES():
 
 
 def setup_exps_PPO():
-    """Return the relevant components of an RLlib experiment.
+    """
+    RLlib Experiment setup with PPO
 
     Returns
     -------
@@ -276,7 +290,7 @@ if __name__ == '__main__':
         'checkpoint_freq': 5,
         "max_failures": 10,
         'stop': {
-            'training_iteration': 500
+            'training_iteration': 2000
         },
         'config': config,
         "num_samples": 1,
