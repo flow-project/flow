@@ -172,7 +172,8 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         for rl_id in self.k.traffic_light.get_ids():
             rl_id_num = int(rl_id.split("center")[1][0])
             local_edges = node_to_edges[rl_id_num][1]
-            local_edge_numbers = [self._convert_edge(e) for e in local_edges]
+            local_edge_numbers = [self.k.scenario.get_edge_list().index(e)
+                                  for e in local_edges]
             local_id_nums = [rl_id_num, self._get_relative_node(rl_id, "top"),
                              self._get_relative_node(rl_id, "bottom"),
                              self._get_relative_node(rl_id, "left"),
@@ -194,7 +195,6 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
 
         Issues action for each traffic light agent.
         """
-        """Split the accelerations by ring."""
         for rl_id, rl_action in rl_actions.items():
             i = int(rl_id.split("center")[1][0])
             if self.discrete:
@@ -230,7 +230,6 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
-        # in the warmup steps
         if rl_actions is None:
             return {}
 
