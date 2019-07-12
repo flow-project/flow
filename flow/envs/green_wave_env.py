@@ -343,6 +343,14 @@ class TrafficLightGridEnv(Env):
             return 0
 
     def _get_relative_node(self, agent_id, direction):
+        """
+        Yields the node number of the traffic light agent for a specified
+        direction.
+
+        :param agent_id: agent id of the form "center#"
+        :param direction: top, bottom, left, right
+        :return:
+        """
         agent_id_num = int(agent_id.split("center")[1][0])
         if direction == "top":
             edge = agent_id_num + self.cols
