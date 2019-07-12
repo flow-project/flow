@@ -103,6 +103,7 @@ debug/
 .vs/**
 
 # Custom for Aimsun
+flow.ang
 *.ang.lck
 *.sqlite
 *.ang.old
