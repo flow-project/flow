@@ -1,6 +1,4 @@
-"""
-Load an already existing Aimsun template and run the simulation
-"""
+"""Load an already existing Aimsun template and run the simulation."""
 
 from flow.core.experiment import Experiment
 from flow.core.params import AimsunParams, EnvParams, NetParams
