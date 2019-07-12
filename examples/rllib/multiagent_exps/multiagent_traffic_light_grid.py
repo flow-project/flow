@@ -1,6 +1,7 @@
 """Traffic light example."""
 
 import json
+import argparse
 
 import ray
 try:
@@ -19,9 +20,27 @@ from flow.controllers import SimCarFollowingController, GridRouter
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
+EXAMPLE_USAGE = """
+example usage:
+    python ppo_runner.py grid0
+Here the arguments are:
+benchmark_name - name of the benchmark to run
+num_rollouts - number of rollouts to train across
+num_cpus - number of cpus to use for training
+"""
+
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description="[Flow] Evaluates a Flow Garden solution on a benchmark.",
+    epilog=EXAMPLE_USAGE)
+
+# required input parameters
+parser.add_argument(
+    "--upload_dir", type=str, help="S3 Bucket to upload to.")
+
 # Experiment parameters
-N_ROLLOUTS = 20  # number of rollouts per training iteration
-N_CPUS = 2  # number of parallel workers
+N_ROLLOUTS = 32  # number of rollouts per training iteration
+N_CPUS = 16  # number of parallel workers
 
 # Environment parameters
 HORIZON = 400  # time horizon of a single rollout
@@ -199,18 +218,25 @@ def setup_exps():
 
 
 if __name__ == '__main__':
+    args = parser.parse_args()
+    upload_dir = args.upload_dir
+
     alg_run, env_name, config = setup_exps()
     ray.init(num_cpus=N_CPUS + 1)
 
-    run_experiments({
-        flow_params['exp_tag']: {
-            'run': alg_run,
-            'env': env_name,
-            'checkpoint_freq': 1,
-            'stop': {
-                'training_iteration': 3
-            },
-            'config': config,
-            # 'upload_dir': 's3://<BUCKET NAME>'
+    exp_tag = {
+        'run': alg_run,
+        'env': env_name,
+        'checkpoint_freq': 5,
+        'stop': {
+            'training_iteration': 500
         },
+        'config': config,
+    }
+
+    if upload_dir:
+        exp_tag["upload_dir"] = "s3://" + upload_dir
+
+    run_experiments({
+        flow_params["exp_tag"]: exp_tag
     })
