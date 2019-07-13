@@ -350,15 +350,7 @@ def grid_mxn_exp_setup(row_num=1,
 
     if vehicles is None:
         vehicles_per_edge = 5
-        # TODO(cathywu) I'm sure this can be simplified...
-        if row_num == 1 and col_num == 1:
-            num_edges = 4
-        elif row_num == 1 and col_num == 2:
-            num_edges = 6
-        elif row_num == 2 and col_num == 1:
-            num_edges = 6
-        else:
-            num_edges = 4 + row_num + col_num
+        num_edges = 2 * (row_num + col_num)
         total_vehicles = num_edges * vehicles_per_edge
         vehicles = VehicleParams()
         vehicles.add(
@@ -380,7 +372,6 @@ def grid_mxn_exp_setup(row_num=1,
 
         env_params = EnvParams(
             additional_params=additional_env_params, horizon=100)
-
 
     if net_params is None:
         # set default net_params configuration
