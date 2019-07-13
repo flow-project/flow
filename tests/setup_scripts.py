@@ -381,7 +381,6 @@ def grid_mxn_exp_setup(row_num=1,
         env_params = EnvParams(
             additional_params=additional_env_params, horizon=100)
 
-
     if net_params is None:
         # set default net_params configuration
         total_vehicles = vehicles.num_vehicles
