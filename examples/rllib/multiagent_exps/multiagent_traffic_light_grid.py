@@ -35,16 +35,25 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--upload_dir", type=str, help="S3 Bucket for uploading results.")
 
+# optional input parameters
+parser.add_argument('--num_rows', type=int, default=3,
+    help="The number of rows in the grid "
+         "network.")
+parser.add_argument('--num_cols', type=int, default=3,
+                    help="The number of rows in the grid "
+                         "network.")
+args = parser.parse_args()
+
 # Experiment parameters
 N_ROLLOUTS = 64  # number of rollouts per training iteration
-N_CPUS = 16  # number of parallel workers
+N_CPUS = 64  # number of parallel workers
 
 # Environment parameters
 HORIZON = 400  # time horizon of a single rollout
 EDGE_INFLOW = 300  # inflow rate of vehicles at every edge
 V_ENTER = 30  # enter speed for departing vehicles
-N_ROWS = 3  # number of row of bidirectional lanes
-N_COLUMNS = 3  # number of columns of bidirectional lanes
+N_ROWS = args.num_rows  # number of row of bidirectional lanes
+N_COLUMNS = args.num_cols  # number of columns of bidirectional lanes
 INNER_LENGTH = 300  # length of inner edges in the grid network
 LONG_LENGTH = 100  # length of final edge in route
 SHORT_LENGTH = 300  # length of edges that vehicles start on
@@ -86,7 +95,7 @@ for edge in outer_edges:
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="grid_0_multiagent",
+    exp_tag="grid_0_{}x{}_multiagent".format(N_ROWS, N_COLUMNS),
 
     # name of the flow environment the experiment is running on
     env_name='MultiTrafficLightGridPOEnv',
@@ -279,7 +288,6 @@ def setup_exps_PPO():
 
 
 if __name__ == '__main__':
-    args = parser.parse_args()
     upload_dir = args.upload_dir
 
     alg_run, env_name, config = setup_exps_PPO()
