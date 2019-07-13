@@ -6,6 +6,10 @@ import sys
 import os
 import flow.config as config
 
+SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
+                            "lib/python2.7/site-packages")
+sys.path.append(SITEPACKAGES)
+
 from flow.core.params import InFlows
 from flow.core.params import TrafficLightParams
 
@@ -13,9 +17,6 @@ from copy import deepcopy
 import json
 import numpy as np
 
-SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
-                            "lib/python2.7/site-packages")
-sys.path.append(SITEPACKAGES)
 
 sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
                              'programming/Aimsun Next API/AAPIPython/Micro'))

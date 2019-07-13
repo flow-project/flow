@@ -272,6 +272,8 @@ def visualizer_rllib(args):
     # if we wanted to save the render, here we create the movie
     if args.save_render:
         dirs = os.listdir(os.path.expanduser('~')+'/flow_rendering')
+        # Ignore hidden files
+        dirs = [d for d in dirs if d[0] != '.']
         dirs.sort(key=lambda date: datetime.strptime(date, "%Y-%m-%d-%H%M%S"))
         recent_dir = dirs[-1]
         # create the movie
@@ -308,7 +310,7 @@ def create_parser():
              'class registered in the tune registry. '
              'Required for results trained with flow-0.2.0 and before.')
     parser.add_argument(
-        '--num-rollouts',
+        '--num_rollouts',
         type=int,
         default=1,
         help='The number of rollouts to visualize.')
