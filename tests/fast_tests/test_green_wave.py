@@ -115,17 +115,23 @@ class Test2x2Environment(unittest.TestCase):
         node = self.env._get_relative_node('center0', 'right')
         self.assertEqual(1, node)
 
-        self.assertRaises(NotImplementedError, self.env._get_relative_node(
-            'center0', 'bottom'))
+        node = self.env._get_relative_node('center0', 'bottom')
+        self.assertEqual(-1, node)
+
+        with self.assertRaises(NotImplementedError):
+            self.env._get_relative_node('center0', 'blah')
 
         node = self.env._get_relative_node('center2', 'bottom')
         self.assertEqual(0, node)
 
-        node = self.env._get_relative_node('center2', 'left')
+        node = self.env._get_relative_node('center2', 'right')
         self.assertEqual(3, node)
 
-        self.assertRaises(NotImplementedError, self.env._get_relative_node(
-            'center1', 'right'))
+        node = self.env._get_relative_node('center2', 'left')
+        self.assertEqual(-1, node)
+
+        with self.assertRaises(NotImplementedError):
+            self.env._get_relative_node('center1', 'blah')
 
 
 if __name__ == '__main__':
