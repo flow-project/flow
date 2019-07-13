@@ -244,6 +244,9 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
             rew = -rewards.min_delay_unscaled(self) \
                   + rewards.penalize_standstill(self, gain=0.2)
 
+        # each agent receives reward normalized by number of lights
+        rew /= self.num_traffic_lights
+
         rews = {}
         for rl_id in rl_actions.keys():
             rews[rl_id] = rew
