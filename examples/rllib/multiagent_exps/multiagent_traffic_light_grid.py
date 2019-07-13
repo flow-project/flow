@@ -39,8 +39,9 @@ parser.add_argument("--upload_dir", type=str, help="S3 Bucket for uploading "
 parser.add_argument('--num_rows', type=int, default=3,
                     help="The number of rows in the grid network.")
 parser.add_argument('--num_cols', type=int, default=3,
-                    help="The number of rows in the grid "
-                         "network.")
+                    help="The number of columns in the grid network.")
+parser.add_argument('--inflow_rate', type=int, default=300,
+                    help="The inflow rate (veh/hr) per edge.")
 args = parser.parse_args()
 
 # Experiment parameters
@@ -49,7 +50,7 @@ N_CPUS = 64  # number of parallel workers
 
 # Environment parameters
 HORIZON = 400  # time horizon of a single rollout
-EDGE_INFLOW = 300  # inflow rate of vehicles at every edge
+EDGE_INFLOW = args.inflow_rate  # inflow rate of vehicles at every edge
 V_ENTER = 30  # enter speed for departing vehicles
 N_ROWS = args.num_rows  # number of row of bidirectional lanes
 N_COLUMNS = args.num_cols  # number of columns of bidirectional lanes
@@ -94,7 +95,7 @@ for edge in outer_edges:
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="grid_0_{}x{}_multiagent".format(N_ROWS, N_COLUMNS),
+    exp_tag="grid_0_{}x{}_i{}_multiagent".format(N_ROWS, N_COLUMNS, EDGE_INFLOW),
 
     # name of the flow environment the experiment is running on
     env_name='MultiTrafficLightGridPOEnv',
@@ -246,7 +247,7 @@ def setup_exps_PPO():
     config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
     config['model'].update({'fcnet_hiddens': [32, 32]})
-    config['lr'] = tune.grid_search([1e-5])
+    config['lr'] = tune.grid_search([1e-5, 1e-4, 1e-3])
     config['horizon'] = HORIZON
     config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config['observation_filter'] = 'NoFilter'
@@ -295,7 +296,7 @@ if __name__ == '__main__':
     exp_tag = {
         'run': alg_run,
         'env': env_name,
-        'checkpoint_freq': 5,
+        'checkpoint_freq': 25,
         "max_failures": 10,
         'stop': {
             'training_iteration': 2000
@@ -305,7 +306,7 @@ if __name__ == '__main__':
     }
 
     if upload_dir:
-        exp_tag["upload_dir"] = "s3://" + upload_dir
+        exp_tag["upload_dir"] = "s3://{}".format(upload_dir)
 
     run_experiments({
         flow_params["exp_tag"]: exp_tag
