@@ -349,7 +349,17 @@ def grid_mxn_exp_setup(row_num=1,
         sim_params = SumoParams(sim_step=1, render=False)
 
     if vehicles is None:
-        total_vehicles = 20
+        vehicles_per_edge = 5
+        # TODO(cathywu) I'm sure this can be simplified...
+        if row_num == 1 and col_num == 1:
+            num_edges = 4
+        elif row_num == 1 and col_num == 2:
+            num_edges = 6
+        elif row_num == 2 and col_num == 1:
+            num_edges = 6
+        else:
+            num_edges = 4 + row_num + col_num
+        total_vehicles = num_edges * vehicles_per_edge
         vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
@@ -371,10 +381,15 @@ def grid_mxn_exp_setup(row_num=1,
         env_params = EnvParams(
             additional_params=additional_env_params, horizon=100)
 
+
     if net_params is None:
         # set default net_params configuration
         total_vehicles = vehicles.num_vehicles
         num_entries = 2 * row_num + 2 * col_num
+        assert total_vehicles % num_entries == 0, "{} total vehicles should " \
+                                                  "be divisible by {" \
+                                                  "}".format(total_vehicles,
+                                                             num_entries)
         grid_array = {
             "short_length": 100,
             "inner_length": 300,
