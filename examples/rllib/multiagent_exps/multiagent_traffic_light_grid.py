@@ -32,13 +32,12 @@ parser = argparse.ArgumentParser(
     epilog=EXAMPLE_USAGE)
 
 # required input parameters
-parser.add_argument(
-    "--upload_dir", type=str, help="S3 Bucket for uploading results.")
+parser.add_argument("--upload_dir", type=str,
+    help="S3 Bucket for uploading results.")
 
 # optional input parameters
 parser.add_argument('--num_rows', type=int, default=3,
-    help="The number of rows in the grid "
-         "network.")
+                    help="The number of rows in the grid network.")
 parser.add_argument('--num_cols', type=int, default=3,
                     help="The number of rows in the grid "
                          "network.")
