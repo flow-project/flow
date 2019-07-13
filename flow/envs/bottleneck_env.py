@@ -15,7 +15,6 @@ from flow.core.params import InFlows, NetParams
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
 
-from collections import defaultdict
 from copy import deepcopy
 
 import numpy as np
@@ -26,24 +25,24 @@ from flow.envs.base_env import Env
 
 MAX_LANES = 4  # base number of largest number of lanes in the network
 EDGE_LIST = ["1", "2", "3", "4", "5"]  # Edge 1 is before the toll booth
-EDGE_BEFORE_TOLL = "1"
+EDGE_BEFORE_TOLL = "1"  # Specifies which edge number is before toll booth
 TB_TL_ID = "2"
-EDGE_AFTER_TOLL = "2"
+EDGE_AFTER_TOLL = "2"  # Specifies which edge number is after toll booth
 NUM_TOLL_LANES = MAX_LANES
 
 TOLL_BOOTH_AREA = 10  # how far into the edge lane changing is disabled
 RED_LIGHT_DIST = 50  # how close for the ramp meter to start going off
 
-EDGE_BEFORE_RAMP_METER = "2"
-EDGE_AFTER_RAMP_METER = "3"
+EDGE_BEFORE_RAMP_METER = "2"  # Specifies which edge is before ramp meter
+EDGE_AFTER_RAMP_METER = "3"  # Specifies which edge is after ramp meter
 NUM_RAMP_METERS = MAX_LANES
 
-RAMP_METER_AREA = 80
+RAMP_METER_AREA = 80  # Area occupied by ramp meter
 
-MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3
-MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15
+MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3  # Average waiting time at fast track
+MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15  # Average waiting time at toll
 
-BOTTLE_NECK_LEN = 280
+BOTTLE_NECK_LEN = 280  # Length of bottleneck
 NUM_VEHICLE_NORM = 20
 
 ADDITIONAL_ENV_PARAMS = {
@@ -86,12 +85,12 @@ ADDITIONAL_VSL_ENV_PARAMS = {
     "inflow_range": [1000, 2000]
 }
 
-START_RECORD_TIME = 0.0
+START_RECORD_TIME = 0.0  # Time to start recording
 PERIOD = 10.0
 
 
 class BottleneckEnv(Env):
-    """Abstract bottleneck environment
+    """Abstract bottleneck environment.
 
     This environment is used as a simplified representation of the toll booth
     portion of the bay bridge. Contains ramp meters, and a toll both.
@@ -103,6 +102,7 @@ class BottleneckEnv(Env):
     """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+        """Initialize the BottleneckEnv class."""
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -111,8 +111,8 @@ class BottleneckEnv(Env):
         super().__init__(env_params, sim_params, scenario, simulator)
         env_add_params = self.env_params.additional_params
         # tells how scaled the number of lanes are
-        self.scaling = scenario.net_params.additional_params.get("scaling")
-        self.edge_dict = defaultdict(list)
+        self.scaling = scenario.net_params.additional_params.get("scaling", 1)
+        self.edge_dict = dict()
         self.cars_waiting_for_toll = dict()
         self.cars_before_ramp = dict()
         self.toll_wait_time = np.abs(
@@ -137,33 +137,35 @@ class BottleneckEnv(Env):
                                       cycle_offset * self.scaling * MAX_LANES,
                                       self.scaling * MAX_LANES)
         self.green_time = 4
-        self.red_min = 2
         self.feedback_coeff = env_add_params.get("feedback_coeff", 20)
 
         self.smoothed_num = np.zeros(10)  # averaged number of vehs in '4'
         self.outflow_index = 0
 
     def additional_command(self):
+        """Build a dict with vehicle information.
+
+        The dict contains the list of vehicles and their position for each edge
+        and for each edge within the edge.
+        """
         super().additional_command()
-        # build a list of vehicles and their edges and positions
-        self.edge_dict = defaultdict(list)
-        # update the dict with all the edges in edge_list
-        # so we can look forward for edges
-        self.edge_dict.update((k, [[]
-                                   for _ in range(MAX_LANES * self.scaling)])
-                              for k in EDGE_LIST)
+
+        # build a dict containing the list of vehicles and their position for
+        # each edge and for each lane within the edge
+        empty_edge = [[] for _ in range(MAX_LANES * self.scaling)]
+
+        self.edge_dict = {k: deepcopy(empty_edge) for k in EDGE_LIST}
         for veh_id in self.k.vehicle.get_ids():
             try:
                 edge = self.k.vehicle.get_edge(veh_id)
                 if edge not in self.edge_dict:
-                    self.edge_dict.update({
-                        edge: [[] for _ in range(MAX_LANES * self.scaling)]
-                    })
+                    self.edge_dict[edge] = deepcopy(empty_edge)
                 lane = self.k.vehicle.get_lane(veh_id)  # integer
                 pos = self.k.vehicle.get_position(veh_id)
                 self.edge_dict[edge][lane].append((veh_id, pos))
             except Exception:
                 pass
+
         if not self.env_params.additional_params['disable_tb']:
             self.apply_toll_bridge_control()
         if not self.env_params.additional_params['disable_ramp_metering']:
@@ -180,6 +182,12 @@ class BottleneckEnv(Env):
             self.next_period += PERIOD / self.sim_step
 
     def ramp_meter_lane_change_control(self):
+        """Control the lane changing behavior.
+
+        Specify/Toggle the lane changing behavior of the vehicles
+        depending on factors like whether or not they are before
+        the toll.
+        """
         cars_that_have_left = []
         for veh_id in self.cars_before_ramp:
             if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_RAMP_METER:
@@ -193,13 +201,12 @@ class BottleneckEnv(Env):
                 cars_that_have_left.append(veh_id)
 
         for veh_id in cars_that_have_left:
-            self.cars_before_ramp.__delitem__(veh_id)
+            del self.cars_before_ramp[veh_id]
 
         for lane in range(NUM_RAMP_METERS * self.scaling):
             cars_in_lane = self.edge_dict[EDGE_BEFORE_RAMP_METER][lane]
 
-            for car in cars_in_lane:
-                veh_id, pos = car
+            for veh_id, pos in cars_in_lane:
                 if pos > RAMP_METER_AREA:
                     if veh_id not in self.cars_waiting_for_toll:
                         if self.simulator == 'traci':
@@ -251,6 +258,7 @@ class BottleneckEnv(Env):
         self.k.traffic_light.set_state('3', ''.join(colors))
 
     def apply_toll_bridge_control(self):
+        """Apply control to the toll bridge."""
         cars_that_have_left = []
         for veh_id in self.cars_waiting_for_toll:
             if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_TOLL:
@@ -278,15 +286,14 @@ class BottleneckEnv(Env):
                 cars_that_have_left.append(veh_id)
 
         for veh_id in cars_that_have_left:
-            self.cars_waiting_for_toll.__delitem__(veh_id)
+            del self.cars_waiting_for_toll[veh_id]
 
         traffic_light_states = ["G"] * NUM_TOLL_LANES * self.scaling
 
         for lane in range(NUM_TOLL_LANES * self.scaling):
             cars_in_lane = self.edge_dict[EDGE_BEFORE_TOLL][lane]
 
-            for car in cars_in_lane:
-                veh_id, pos = car
+            for veh_id, pos in cars_in_lane:
                 if pos > TOLL_BOOTH_AREA:
                     if veh_id not in self.cars_waiting_for_toll:
                         # Disable lane changes inside Toll Area
@@ -317,22 +324,12 @@ class BottleneckEnv(Env):
             self.k.traffic_light.set_state(
                 node_id=TB_TL_ID, state=new_tl_state)
 
-    def distance_to_bottleneck(self, veh_id):
-        pre_bottleneck_edges = {
-            str(i): self.k.scenario.edge_length(str(i))
-            for i in [1, 2, 3]
-        }
-        edge_pos = self.k.vehicle.get_position(veh_id)
-        edge = self.k.vehicle.get_edge(veh_id)
-        if edge in pre_bottleneck_edges:
-            total_length = pre_bottleneck_edges[edge] - edge_pos
-            for next_edge in range(int(edge) + 1, 4):
-                total_length += pre_bottleneck_edges[str(next_edge)]
-            return total_length
-        else:
-            return -1
-
     def get_bottleneck_density(self, lanes=None):
+        """Return the density of specified lanes.
+
+        If no lanes are specified, this function calculates the
+        density of all vehicles on all lanes of the bottleneck edges.
+        """
         bottleneck_ids = self.k.vehicle.get_ids_by_edge(['3', '4'])
         if lanes:
             veh_ids = [
@@ -343,11 +340,6 @@ class BottleneckEnv(Env):
         else:
             veh_ids = self.k.vehicle.get_ids_by_edge(['3', '4'])
         return len(veh_ids) / BOTTLE_NECK_LEN
-
-    def get_avg_bottleneck_velocity(self):
-        veh_ids = self.k.vehicle.get_ids_by_edge(['3', '4', '5'])
-        return sum(self.k.vehicle.get_speed(veh_ids)) / len(veh_ids) \
-            if len(veh_ids) != 0 else 0
 
     # Dummy action and observation spaces
     @property
@@ -369,7 +361,7 @@ class BottleneckEnv(Env):
             dtype=np.float32)
 
     def compute_reward(self, rl_actions, **kwargs):
-        """ Outflow rate over last ten seconds normalized to max of 1 """
+        """Outflow rate over last ten seconds normalized to max of 1."""
         reward = self.k.vehicle.get_outflow_rate(10 * self.sim_step) / \
             (2000.0 * self.scaling)
         return reward
@@ -380,7 +372,9 @@ class BottleneckEnv(Env):
 
 
 class BottleNeckAccelEnv(BottleneckEnv):
-    """Environment used to train vehicles to effectively pass through a
+    """BottleNeckAccelEnv.
+
+    Environment used to train vehicles to effectively pass through a
     bottleneck.
 
     States
@@ -405,9 +399,10 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
     Termination
         A rollout is terminated once the time horizon is reached.
-   """
+    """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+        """Initialize BottleNeckAccelEnv."""
         for p in ADDITIONAL_RL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -450,11 +445,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
             # get the edge and convert it to a number
             edge_num = self.k.vehicle.get_edge(veh_id)
-            if edge_num is None:
-                edge_num = -1
-            elif edge_num == '':
-                edge_num = -1
-            elif edge_num[0] == ':':
+            if edge_num is None or edge_num == '' or edge_num[0] == ':':
                 edge_num = -1
             else:
                 edge_num = int(edge_num) / 6
@@ -484,14 +475,10 @@ class BottleNeckAccelEnv(BottleneckEnv):
             else:
                 id_counter += 1
             num_lanes = MAX_LANES * self.scaling
-            headway = np.asarray([1000
-                                  for _ in range(num_lanes)]) / headway_scale
-            tailway = np.asarray([1000
-                                  for _ in range(num_lanes)]) / headway_scale
-            vel_in_front = np.asarray([0 for _ in range(num_lanes)
-                                       ]) / self.max_speed
-            vel_behind = np.asarray([0 for _ in range(num_lanes)
-                                     ]) / self.max_speed
+            headway = np.asarray([1000] * num_lanes) / headway_scale
+            tailway = np.asarray([1000] * num_lanes) / headway_scale
+            vel_in_front = np.asarray([0] * num_lanes) / self.max_speed
+            vel_behind = np.asarray([0] * num_lanes) / self.max_speed
 
             lane_leaders = self.k.vehicle.get_lane_leaders(veh_id)
             lane_followers = self.k.vehicle.get_lane_followers(veh_id)
@@ -615,9 +602,11 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
 
 class DesiredVelocityEnv(BottleneckEnv):
-    """Environment used to train vehicles to effectively pass through a
+    """DesiredVelocityEnv.
+
+    Environment used to train vehicles to effectively pass through a
     bottleneck by specifying the velocity that RL vehicles should attempt to
-    travel in certain regions of space
+    travel in certain regions of space.
 
     States
         An observation is the number of vehicles in each lane in each
@@ -634,6 +623,7 @@ class DesiredVelocityEnv(BottleneckEnv):
     """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+        """Initialize DesiredVelocityEnv."""
         super().__init__(env_params, sim_params, scenario, simulator)
         for p in ADDITIONAL_VSL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -642,8 +632,7 @@ class DesiredVelocityEnv(BottleneckEnv):
 
         # default (edge, segment, controlled) status
         add_env_params = self.env_params.additional_params
-        default = [("1", 1, True), ("2", 1, True), ("3", 1, True),
-                   ("4", 1, True), ("5", 1, True)]
+        default = [(str(i), 1, True) for i in range(1, 6)]
         super(DesiredVelocityEnv, self).__init__(env_params, sim_params,
                                                  scenario)
         self.segments = add_env_params.get("controlled_segments", default)
@@ -682,7 +671,7 @@ class DesiredVelocityEnv(BottleneckEnv):
             self.slices[edge] = np.linspace(0, edge_length, num_segments + 1)
 
         # get info for observed segments
-        self.obs_segments = additional_params.get("observed_segments")
+        self.obs_segments = additional_params.get("observed_segments", [])
 
         # number of segments for each edge
         self.num_obs_segments = [segment[1] for segment in self.obs_segments]
@@ -754,8 +743,12 @@ class DesiredVelocityEnv(BottleneckEnv):
                 if segment[2]:  # if controlled
                     num_lanes = self.k.scenario.num_lanes(segment[0])
                     action_size += num_lanes * segment[1]
+        add_params = self.env_params.additional_params
+        max_accel = add_params.get("max_accel")
+        max_decel = add_params.get("max_decel")
         return Box(
-            low=-1.5, high=1.0, shape=(int(action_size), ), dtype=np.float32)
+            low=-max_decel*self.sim_step, high=max_accel*self.sim_step,
+            shape=(int(action_size), ), dtype=np.float32)
 
     def get_state(self):
         """See class definition."""

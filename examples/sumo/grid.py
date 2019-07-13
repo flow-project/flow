@@ -1,16 +1,13 @@
 """Grid example."""
-from flow.controllers.routing_controllers import GridRouter
+from flow.controllers import GridRouter
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
+from flow.core.params import SumoCarFollowingParams
 from flow.core.params import InFlows
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.grid import SimpleGridScenario
-
-# set to true if you would like to run the experiment with inflows of vehicles
-# from the edges, and false otherwise
-USE_INFLOWS = False
 
 
 def gen_edges(col_num, row_num):
@@ -115,7 +112,7 @@ def get_non_flow_params(enter_speed, add_net_params):
     return initial, net
 
 
-def grid_example(render=None):
+def grid_example(render=None, use_inflows=False):
     """
     Perform a simulation of vehicles on a grid.
 
@@ -123,6 +120,9 @@ def grid_example(render=None):
     ----------
     render: bool, optional
         specifies whether to use the gui during execution
+    use_inflows : bool, optional
+        set to True if you would like to run the experiment with inflows of
+        vehicles from the edges, and False otherwise
 
     Returns
     -------
@@ -164,6 +164,10 @@ def grid_example(render=None):
     vehicles.add(
         veh_id="human",
         routing_controller=(GridRouter, {}),
+        car_following_params=SumoCarFollowingParams(
+            min_gap=2.5,
+            decel=7.5,  # avoid collisions at emergency stops
+        ),
         num_vehicles=tot_cars)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
@@ -201,7 +205,7 @@ def grid_example(render=None):
         "vertical_lanes": 1
     }
 
-    if USE_INFLOWS:
+    if use_inflows:
         initial_config, net_params = get_flow_params(
             col_num=n_columns,
             row_num=n_rows,

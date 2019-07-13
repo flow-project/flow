@@ -649,7 +649,7 @@ class TestEdgeLength(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        # create the environment and scenario classes for a figure eight
+        # create the environment and scenario classes for a ring road
         env, scenario = ring_road_exp_setup(net_params=net_params)
 
         self.assertEqual(env.k.scenario.edge_length("top"), 250)
@@ -912,10 +912,10 @@ class TestDefaultRoutes(unittest.TestCase):
         # check the routes
         self.assertDictEqual(
             env.k.scenario.rts,
-            {"top": ["top"],
-             "bottom": ["bottom"],
-             "left": ["left"],
-             "right": ["right"]}
+            {"top": [(["top"], 1)],
+             "bottom": [(["bottom"], 1)],
+             "left": [(["left"], 1)],
+             "right": [(["right"], 1)]}
         )
 
 

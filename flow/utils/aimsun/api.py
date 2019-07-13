@@ -468,7 +468,6 @@ class FlowAimsunAPI(object):
         flow.utils.aimsun.struct.InfVeh
             tracking info object
         """
-
         # build the output format from the bitmap
         out_format = ''
         for i in range(len(info_bitmap)):
@@ -625,8 +624,9 @@ class FlowAimsunAPI(object):
                            out_format=None)
 
     def set_vehicle_tracked(self, veh_id):
-        """Set a vehicle as tracked in Aimsun, thus allowing faster
-        tracking information retrieval.
+        """Set a vehicle as tracked in Aimsun.
+
+        This thus allows for faster tracking information retrieval.
 
         Parameters
         ----------
@@ -639,7 +639,7 @@ class FlowAimsunAPI(object):
                            out_format=None)
 
     def set_vehicle_no_tracked(self, veh_id):
-        """Set a tracked vehicle as untracked in Aimsun
+        """Set a tracked vehicle as untracked in Aimsun.
 
         Parameters
         ----------

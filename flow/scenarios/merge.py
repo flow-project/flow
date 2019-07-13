@@ -99,7 +99,8 @@ class MergeScenario(Scenario):
             {
                 "id": "center",
                 "y": 0,
-                "x": premerge
+                "x": premerge,
+                "radius": 10
             },
             {
                 "id": "right",
@@ -196,11 +197,11 @@ class MergeScenario(Scenario):
         postmerge = self.net_params.additional_params["post_merge_length"]
 
         edgestarts = [("inflow_highway", 0), ("left", INFLOW_EDGE_LEN + 0.1),
-                      ("center", INFLOW_EDGE_LEN + premerge + 8.1),
+                      ("center", INFLOW_EDGE_LEN + premerge + 22.6),
                       ("inflow_merge",
-                       INFLOW_EDGE_LEN + premerge + postmerge + 8.1),
+                       INFLOW_EDGE_LEN + premerge + postmerge + 22.6),
                       ("bottom",
-                       2 * INFLOW_EDGE_LEN + premerge + postmerge + 8.2)]
+                       2 * INFLOW_EDGE_LEN + premerge + postmerge + 22.7)]
 
         return edgestarts
 
@@ -212,7 +213,7 @@ class MergeScenario(Scenario):
         internal_edgestarts = [
             (":left", INFLOW_EDGE_LEN), (":center",
                                          INFLOW_EDGE_LEN + premerge + 0.1),
-            (":bottom", 2 * INFLOW_EDGE_LEN + premerge + postmerge + 8.1)
+            (":bottom", 2 * INFLOW_EDGE_LEN + premerge + postmerge + 22.6)
         ]
 
         return internal_edgestarts

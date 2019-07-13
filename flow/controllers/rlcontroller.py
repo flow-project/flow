@@ -30,7 +30,7 @@ class RLController(BaseController):
     """
 
     def __init__(self, veh_id, car_following_params):
-        """Instantiates an RL Controller."""
+        """Instantiate an RL Controller."""
         BaseController.__init__(
             self,
             veh_id,

@@ -1,6 +1,6 @@
 """Grid example."""
 from flow.core.experiment import Experiment
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import AimsunParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
@@ -46,7 +46,7 @@ def grid_example(render=None):
         "cars_bot": num_cars_bot
     }
 
-    sim_params = SumoParams(sim_step=0.1, render=True)
+    sim_params = AimsunParams(sim_step=0.5, render=True)
 
     if render is not None:
         sim_params.render = render
