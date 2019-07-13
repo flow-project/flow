@@ -36,6 +36,8 @@ parser.add_argument("--upload_dir", type=str, help="S3 Bucket for uploading "
                                                    "results.")
 
 # optional input parameters
+parser.add_argument('--run_mode', type=str, default='local',
+                    help="Experiment run mode (local | cluster)")
 parser.add_argument('--num_rows', type=int, default=3,
                     help="The number of rows in the grid network.")
 parser.add_argument('--num_cols', type=int, default=3,
@@ -290,9 +292,15 @@ def setup_exps_PPO():
 
 if __name__ == '__main__':
     upload_dir = args.upload_dir
+    RUN_MODE = args.run_mode
 
     alg_run, env_name, config = setup_exps_PPO()
-    ray.init(num_cpus=N_CPUS + 1)
+    if RUN_MODE == 'local':
+        ray.init(num_cpus=N_CPUS + 1)
+        queue_trials = False
+    elif RUN_MODE == 'cluster':
+        ray.init(redis_address="localhost:6379")
+        queue_trials = True
 
     exp_tag = {
         'run': alg_run,
@@ -309,6 +317,9 @@ if __name__ == '__main__':
     if upload_dir:
         exp_tag["upload_dir"] = "s3://{}".format(upload_dir)
 
-    run_experiments({
-        flow_params["exp_tag"]: exp_tag
-    })
+    run_experiments(
+        {
+            flow_params["exp_tag"]: exp_tag
+         },
+        queue_trials=queue_trials,
+    )
