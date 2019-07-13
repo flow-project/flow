@@ -25,7 +25,7 @@ import argparse
 
 
 def import_data_from_csv(fp):
-    """Import inflow/outflow data from the predefined csv file.
+    r"""Import inflow/outflow data from the predefined csv file.
 
     Parameters
     ----------
@@ -50,7 +50,7 @@ def import_data_from_csv(fp):
 
 
 def get_capacity_data(data):
-    """Compute the unique inflows and subsequent outflow statistics.
+    r"""Compute the unique inflows and subsequent outflow statistics.
 
     Parameters
     ----------
@@ -80,6 +80,7 @@ def get_capacity_data(data):
 
 
 def create_parser():
+    """Create an argument parser."""
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description='[Flow] Generates capacity diagrams for the bottleneck.',

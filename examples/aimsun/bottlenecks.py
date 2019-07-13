@@ -42,7 +42,7 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
         render = False
 
     sim_params = AimsunParams(
-        sim_step=0.8,
+        sim_step=0.5,
         render=render,
         restart_instance=restart_instance)
 

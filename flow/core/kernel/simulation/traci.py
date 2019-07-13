@@ -103,8 +103,9 @@ class TraCISimulation(KernelSimulation):
                 # add the emission path to the sumo command (if requested)
                 if sim_params.emission_path is not None:
                     ensure_dir(sim_params.emission_path)
-                    emission_out = sim_params.emission_path + \
-                        "{0}-emission.xml".format(scenario.name)
+                    emission_out = os.path.join(
+                        sim_params.emission_path,
+                        "{0}-emission.xml".format(scenario.name))
                     sumo_call.append("--emission-output")
                     sumo_call.append(emission_out)
                 else:
