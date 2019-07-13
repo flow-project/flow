@@ -34,7 +34,7 @@ def merge_example(render=None):
     sim_params = params.AimsunParams(
         render=True,
         emission_path="./data/",
-        sim_step=0.2,
+        sim_step=0.5,
         restart_instance=False)
 
     if render is not None:

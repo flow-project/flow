@@ -1,18 +1,14 @@
 # flake8: noqa
+"""Script to load an Aimsun instance from a template."""
 import os
-import sys
 import json
-import numpy as np
-from copy import deepcopy
 
 import flow.config as config
-from flow.core.params import InFlows
-from flow.core.params import TrafficLightParams
 from flow.utils.aimsun.scripting_api import AimsunTemplate
 
 
 def load_network():
-    """Load the whole network into a dictionary and returns it"""
+    """Load the whole network into a dictionary and returns it."""
     sections = model.sections
     nodes = model.nodes
     turnings = model.turnings
@@ -24,7 +20,7 @@ def load_network():
 
 
 def load_subnetwork(subnetwork, scenario):
-    """Load subnetwork into a dictionary and returns it"""
+    """Load subnetwork into a dictionary and returns it."""
     # get all objects in subnetwork
     objs = list(subnetwork.classify_objects(scenario.id))
 
@@ -39,7 +35,7 @@ def load_subnetwork(subnetwork, scenario):
 
 
 def get_dict_from_objects(sections, nodes, turnings, cen_connections):
-    """Load all relevant data into dictionaries"""
+    """Load all relevant data into dictionaries."""
     scenario_data = {
         'sections': {},
         'nodes': {},

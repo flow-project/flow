@@ -1,16 +1,16 @@
 ..    include:: <isonum.txt>
 .. contents:: Table of contents
 
-Local Installation
+Local Installation of Flow
 ==================
 
 To get Flow running, you need three things: Flow,
 
-SUMO, and (recommended to explore the full suite of Flow's capabilities) 
+SUMO, and (recommended to explore the full suite of Flow's capabilities)
 a reinforcement learning library (RLlib/rllab). If you wish to use Flow with
 the traffic simulator Aimsun, this can be achieved by following the setup
 instructions under the "Installing Aimsun" subsection.
-If you choose not to install a reinforcement learning library, you will 
+If you choose not to install a reinforcement learning library, you will
 still be able to build and run SUMO-only traffic tasks, but will not be
 able to run experiments which require learning agents. Once
 each component is installed successfully, you might get some missing
@@ -164,6 +164,8 @@ required conda env by typing:
     source activate aimsun_flow
     which python
 
+Important note: For running Aimsun experiments, the `flow` environment should be
+used, NOT the `aimsun_flow` environment that was just created.
 The latter command should return an output similar to:
 
 ::
@@ -178,10 +180,13 @@ Testing your installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To test that you installation was successful, you can try running one of the
-Aimsun examples within the Flow main directory. In order to do so, type:
+Aimsun examples within the Flow main directory. In order to do so, you need
+to activate the `flow` env. Type:
 
 ::
 
+    source deactivate aimsun_flow
+    source activate flow
     python examples/aimsun/sugiyama.py
 
 
@@ -196,7 +201,7 @@ First visit <https://github.com/flow-project/ray/blob/master/doc/source/installa
 install the required packages.
 
 If you are not intending to develop RL algorithms or customize rllib you don't need to do anything,
-Ray was installed when you created the conda environment. 
+Ray was installed when you created the conda environment.
 
 If you are intending to modify Ray, the installation process for this library is as follows:
 
@@ -327,6 +332,11 @@ If you have OSX, run the following commands. If you don't have brew
 you can find installation instructions at
 <https://docs.brew.sh/Installation>
 
+Alternatively, the following segment of installation instructions is
+also compatible with OSX installation, following the brew updates and
+installations shown below.
+<https://sumo.dlr.de/wiki/Installing/Linux_Build#Building_the_SUMO_binaries_with_cmake_.28recommended.29>
+
 ::
 
     brew update
@@ -360,47 +370,17 @@ If you have Ubuntu 14.04+, run the following command
     source ~/.bashrc
 
 
-Remote installation using docker
+Virtual installation of Flow (using docker containers)
 ================================
 
-Installation
-------------
-
-Installation of a remote desktop and docker to get access to flow quickly
-
-First install docker: https://www.docker.com/
-
-In terminal
-
+To install a containerized Flow stack, run:
 ::
+    docker run -d -p 5901:5901 -p 6901:6901 fywu85/flow-desktop:latest
 
-    1° docker pull lucasfischerberkeley/flowdesktop
-    2° docker run -d -p 5901:5901 -p 6901:6901 -p 8888:8888 lucasfischerberkeley/flowdesktop
-
-Go into your browser ( Firefox, Chrome, Safari)
-
+To access the docker container, go to the following URL and enter the default password `password`:
 ::
+    http://localhost:6901/vnc.html
 
-    1° Go to http://localhost:6901/?password=vncpassword
-    2° Go to Applications and open Terminal Emulator
-    3° For SUMO: Write python flow/examples/sumo/sugiyama.py and run it
-    4° For rllib : Write python flow/examples/rllib/stabilizing_the_ring.py and run it
-    5° For rllab : source activate flow-rllab and python flow/examples/rllab/figure_eight.py ( first time, run it twice)
-
-
-Notebooks and tutorial
-----------------------
-
-In the docker desktop
-
+To use the Jupyter Notebook inside the container, run:
 ::
-
-    1° Go into Terminal Emulator
-    2° Run jupyter notebook --NotebookApp.token=admin --ip 0.0.0.0 --allow-root
-
-Go into your browser ( Firefox, Chrome, Safari)
-
-::
-
-    1° go to localhost:8888/tree
-    2° the password is 'admin' and you can run all your notebooks and tutorials
+    jupyter notebook --ip=127.0.0.1
