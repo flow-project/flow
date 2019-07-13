@@ -244,7 +244,7 @@ def visualizer_rllib(args):
         final_inflows.append(inflow)
         if np.all(np.array(final_inflows) > 1e-5):
             throughput_efficiency = [x / y for x, y in
-                                     zip(final_inflows, final_outflows)]
+                                     zip(final_outflows, final_inflows)]
         else:
             throughput_efficiency = [0] * len(final_inflows)
         mean_speed.append(np.mean(vel))
