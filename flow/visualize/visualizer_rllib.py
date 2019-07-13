@@ -242,8 +242,11 @@ def visualizer_rllib(args):
         final_outflows.append(outflow)
         inflow = vehicles.get_inflow_rate(500)
         final_inflows.append(inflow)
-        throughput_efficiency = [x / y for x, y in
-                                 zip(final_inflows, final_outflows)]
+        if np.all(np.array(final_inflows) > 1e-5):
+            throughput_efficiency = [x / y for x, y in
+                                     zip(final_inflows, final_outflows)]
+        else:
+            throughput_efficiency = [0] * len(final_inflows)
         mean_speed.append(np.mean(vel))
         std_speed.append(np.std(vel))
         if multiagent:
