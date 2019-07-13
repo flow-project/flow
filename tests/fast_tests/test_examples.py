@@ -23,6 +23,8 @@ from examples.rllib.multiagent_exps.multiagent_figure_eight \
    import setup_exps as multi_figure_eight_setup
 from examples.rllib.multiagent_exps.multiagent_stabilizing_the_ring \
     import setup_exps as multi_ring_setup
+from examples.rllib.multiagent_exps.multiagent_traffic_light_grid \
+    import setup_exps_PPO as multi_grid_setup
 
 import ray
 from ray.tune import run_experiments
@@ -184,6 +186,10 @@ class TestRllibExamples(unittest.TestCase):
 
     def test_multi_ring(self):
         alg_run, env_name, config = multi_ring_setup()
+        self.run_exp(alg_run, env_name, config)
+
+    def test_multi_grid(self):
+        alg_run, env_name, config = multi_grid_setup()
         self.run_exp(alg_run, env_name, config)
 
     @staticmethod
