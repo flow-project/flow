@@ -9,6 +9,33 @@ from flow.core.params import InFlows
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.grid import SimpleGridScenario
 
+USE_INFLOWS = False
+
+v_enter = 10
+inner_length = 300
+long_length = 500
+short_length = 300
+n_rows = 2
+n_columns = 3
+num_cars_left = 20
+num_cars_right = 20
+num_cars_top = 20
+num_cars_bot = 20
+tot_cars = (num_cars_left + num_cars_right) * n_columns \
+           + (num_cars_top + num_cars_bot) * n_rows
+
+grid_array = {
+    "short_length": short_length,
+    "inner_length": inner_length,
+    "long_length": long_length,
+    "row_num": n_rows,
+    "col_num": n_columns,
+    "cars_left": num_cars_left,
+    "cars_right": num_cars_right,
+    "cars_top": num_cars_top,
+    "cars_bot": num_cars_bot
+}
+
 
 def gen_edges(col_num, row_num):
     """Generate the names of the outer edges in the grid network.
@@ -112,124 +139,100 @@ def get_non_flow_params(enter_speed, add_net_params):
     return initial, net
 
 
-def grid_example(render=None, use_inflows=False):
-    """
-    Perform a simulation of vehicles on a grid.
+vehicles = VehicleParams()
+vehicles.add(
+    veh_id="human",
+    routing_controller=(GridRouter, {}),
+    car_following_params=SumoCarFollowingParams(
+        min_gap=2.5,
+        decel=7.5,  # avoid collisions at emergency stops
+    ),
+    num_vehicles=tot_cars)
 
-    Parameters
-    ----------
-    render: bool, optional
-        specifies whether to use the gui during execution
-    use_inflows : bool, optional
-        set to True if you would like to run the experiment with inflows of
-        vehicles from the edges, and False otherwise
+env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    Returns
-    -------
-    exp: flow.core.experiment.Experiment
-        A non-rl experiment demonstrating the performance of human-driven
-        vehicles and balanced traffic lights on a grid.
-    """
-    v_enter = 10
-    inner_length = 300
-    long_length = 500
-    short_length = 300
-    n_rows = 2
-    n_columns = 3
-    num_cars_left = 20
-    num_cars_right = 20
-    num_cars_top = 20
-    num_cars_bot = 20
-    tot_cars = (num_cars_left + num_cars_right) * n_columns \
-        + (num_cars_top + num_cars_bot) * n_rows
+tl_logic = TrafficLightParams(baseline=False)
+phases = [{
+    "duration": "31",
+    "minDur": "8",
+    "maxDur": "45",
+    "state": "GrGrGrGrGrGr"
+}, {
+    "duration": "6",
+    "minDur": "3",
+    "maxDur": "6",
+    "state": "yryryryryryr"
+}, {
+    "duration": "31",
+    "minDur": "8",
+    "maxDur": "45",
+    "state": "rGrGrGrGrGrG"
+}, {
+    "duration": "6",
+    "minDur": "3",
+    "maxDur": "6",
+    "state": "ryryryryryry"
+}]
+tl_logic.add("center0", phases=phases, programID=1)
+tl_logic.add("center1", phases=phases, programID=1)
+tl_logic.add("center2", phases=phases, programID=1, tls_type="actuated")
 
-    grid_array = {
-        "short_length": short_length,
-        "inner_length": inner_length,
-        "long_length": long_length,
-        "row_num": n_rows,
-        "col_num": n_columns,
-        "cars_left": num_cars_left,
-        "cars_right": num_cars_right,
-        "cars_top": num_cars_top,
-        "cars_bot": num_cars_bot
-    }
+additional_net_params = {
+    "grid_array": grid_array,
+    "speed_limit": 35,
+    "horizontal_lanes": 1,
+    "vertical_lanes": 1
+}
 
-    sim_params = SumoParams(sim_step=0.1, render=True)
-
-    if render is not None:
-        sim_params.render = render
-
-    vehicles = VehicleParams()
-    vehicles.add(
-        veh_id="human",
-        routing_controller=(GridRouter, {}),
-        car_following_params=SumoCarFollowingParams(
-            min_gap=2.5,
-            decel=7.5,  # avoid collisions at emergency stops
-        ),
-        num_vehicles=tot_cars)
-
-    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
-
-    tl_logic = TrafficLightParams(baseline=False)
-    phases = [{
-        "duration": "31",
-        "minDur": "8",
-        "maxDur": "45",
-        "state": "GrGrGrGrGrGr"
-    }, {
-        "duration": "6",
-        "minDur": "3",
-        "maxDur": "6",
-        "state": "yryryryryryr"
-    }, {
-        "duration": "31",
-        "minDur": "8",
-        "maxDur": "45",
-        "state": "rGrGrGrGrGrG"
-    }, {
-        "duration": "6",
-        "minDur": "3",
-        "maxDur": "6",
-        "state": "ryryryryryry"
-    }]
-    tl_logic.add("center0", phases=phases, programID=1)
-    tl_logic.add("center1", phases=phases, programID=1)
-    tl_logic.add("center2", phases=phases, programID=1, tls_type="actuated")
-
-    additional_net_params = {
-        "grid_array": grid_array,
-        "speed_limit": 35,
-        "horizontal_lanes": 1,
-        "vertical_lanes": 1
-    }
-
-    if use_inflows:
-        initial_config, net_params = get_flow_params(
-            col_num=n_columns,
-            row_num=n_rows,
-            additional_net_params=additional_net_params)
-    else:
-        initial_config, net_params = get_non_flow_params(
-            enter_speed=v_enter,
-            add_net_params=additional_net_params)
-
-    scenario = SimpleGridScenario(
-        name="grid-intersection",
-        vehicles=vehicles,
-        net_params=net_params,
-        initial_config=initial_config,
-        traffic_lights=tl_logic)
-
-    env = AccelEnv(env_params, sim_params, scenario)
-
-    return Experiment(env)
+if USE_INFLOWS:
+    initial_config, net_params = get_flow_params(
+        col_num=n_columns,
+        row_num=n_rows,
+        additional_net_params=additional_net_params)
+else:
+    initial_config, net_params = get_non_flow_params(
+        enter_speed=v_enter,
+        add_net_params=additional_net_params)
 
 
-if __name__ == "__main__":
-    # import the experiment variable
-    exp = grid_example()
+flow_params = dict(
+    # name of the experiment
+    exp_tag='grid-intersection',
 
-    # run for a set number of rollouts / time steps
-    exp.run(1, 1500)
+    # name of the flow environment the experiment is running on
+    env_name='AccelEnv',
+
+    # name of the scenario class the experiment is running on
+    scenario='SimpleGridScenario',
+
+    # simulator that is used by the experiment
+    simulator='traci',
+
+    # sumo-related parameters (see flow.core.params.SumoParams)
+    sim=SumoParams(
+        sim_step=0.1,
+        render=True,
+    ),
+
+    # environment related parameters (see flow.core.params.EnvParams)
+    env=EnvParams(
+        horizon=1500,
+        additional_params=ADDITIONAL_ENV_PARAMS.copy(),
+    ),
+
+    # network-related parameters (see flow.core.params.NetParams and the
+    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    net=net_params,
+
+    # vehicles to be placed in the network at the start of a rollout (see
+    # flow.core.params.VehicleParams)
+    veh=vehicles,
+
+    # parameters specifying the positioning of vehicles upon initialization/
+    # reset (see flow.core.params.InitialConfig)
+    initial=initial_config,
+
+    # traffic lights to be introduced to specific nodes (see
+    # flow.core.params.TrafficLightParams)
+    tls=tl_logic,
+)
