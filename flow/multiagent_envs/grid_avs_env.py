@@ -86,7 +86,7 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
     def observation_space(self):
         """State space that is partially observed.
 
-        Velocities, distance to intersections, edge number (for nearby
+        Velocities, distance to intersections, RL or not (for nearby
         vehicles) from each direction, local edge information, and traffic
         light state.
         """
@@ -96,7 +96,7 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         tl_box = Box(
             low=0.,
             high=1,
-            shape=(2 * 4 * self.num_observed +
+            shape=(3 * 4 * self.num_observed +
                    2 * self.num_local_edges +
                    traffic_light_obs,
                    ),
@@ -142,12 +142,14 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         # Observed vehicle information
         speeds = []
         dist_to_intersec = []
-        edge_number = []
+        veh_types = []
+        # edge_number = []
         all_observed_ids = []
         for _, edges in self.scenario.node_mapping:
             local_speeds = []
             local_dists_to_intersec = []
-            local_edge_numbers = []
+            local_veh_types = []
+            # local_edge_numbers = []
             for edge in edges:
                 observed_ids = \
                     self.k_closest_to_intersection(edge, self.num_observed)
@@ -162,6 +164,9 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
                     self.k.vehicle.get_edge(
                         veh_id)) - self.k.vehicle.get_position(
                     veh_id)) / max_dist for veh_id in observed_ids])
+                local_veh_types.extend(
+                    [1 if veh_id in self.k.vehicle.get_rl_ids() else 0 for
+                     veh_id in observed_ids])
                 # local_edge_numbers.extend([self._convert_edge(
                 #     self.k.vehicle.get_edge(veh_id)) / (
                 #                                self.k.scenario.network.num_edges - 1) for veh_id in
@@ -171,11 +176,13 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
                     diff = self.num_observed - len(observed_ids)
                     local_speeds.extend([0] * diff)
                     local_dists_to_intersec.extend([0] * diff)
-                    local_edge_numbers.extend([0] * diff)
+                    local_veh_types.extend([0] * diff)
+                    # local_edge_numbers.extend([0] * diff)
 
             speeds.append(local_speeds)
             dist_to_intersec.append(local_dists_to_intersec)
-            edge_number.append(local_edge_numbers)
+            veh_types.append(local_veh_types)
+            # edge_number.append(local_edge_numbers)
 
         # Edge information
         density = []
@@ -222,14 +229,14 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
             if self.traffic_lights:
                 observation = np.array(np.concatenate(
                     [speeds[rl_id_num], dist_to_intersec[rl_id_num],
-                     density[local_edge_numbers],
+                     veh_types[rl_id_num], density[local_edge_numbers],
                      velocity_avg[local_edge_numbers],
                      last_change[local_id_nums], direction[local_id_nums],
                      currently_yellow[local_id_nums]]))
             else:
                 observation = np.array(np.concatenate(
                     [speeds[rl_id_num], dist_to_intersec[rl_id_num],
-                     density[local_edge_numbers],
+                     veh_types[rl_id_num], density[local_edge_numbers],
                      velocity_avg[local_edge_numbers], ]))
             obs.update({rl_id: observation})
 

@@ -43,7 +43,7 @@ def setup_exps_PPO(flow_params, n_rollouts, n_cpus, horizon):
     config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
     config['model'].update({'fcnet_hiddens': [32, 32]})
-    config['lr'] = tune.grid_search([1e-5, 1e-4, 1e-3])
+    config['lr'] = tune.grid_search([1e-5])
     config['horizon'] = HORIZON
     config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config['observation_filter'] = 'NoFilter'
@@ -91,12 +91,12 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="[Flow] Evaluates a multi-agent traffic light grid",
+        description="[Flow] Evaluates a multi-agent grid with AVs",
         epilog=EXAMPLE_USAGE)
 
     # required input parameters
-    parser.add_argument("--upload_dir", type=str, help="S3 Bucket for uploading "
-                                                       "results.")
+    parser.add_argument("--upload_dir", type=str,
+                        help="S3 Bucket for uploading results.")
 
     # optional input parameters
     parser.add_argument('--run_mode', type=str, default='local',
@@ -107,15 +107,15 @@ if __name__ == '__main__':
                         help="The number of rows in the grid network.")
     parser.add_argument('--num_cols', type=int, default=1,
                         help="The number of columns in the grid network.")
-    parser.add_argument('--inflow_rate', type=int, default=600,
+    parser.add_argument('--inflow_rate', type=int, default=200,
                         help="The inflow rate (veh/hr) per edge.")
     args = parser.parse_args()
 
     # Experiment parameters
     RUN_MODE = args.run_mode
     if RUN_MODE == 'local':
-        N_ROLLOUTS = 2  # number of rollouts per training iteration
-        N_CPUS = 2  # number of parallel workers
+        N_ROLLOUTS = 1  # number of rollouts per training iteration
+        N_CPUS = 1  # number of parallel workers
     elif RUN_MODE == 'cluster':
         N_ROLLOUTS = 63  # number of rollouts per training iteration
         N_CPUS = 63  # number of parallel workers
@@ -146,18 +146,18 @@ if __name__ == '__main__':
             decel=7.5,  # avoid collisions at emergency stops
             speed_mode="right_of_way",
         ),
-        routing_controller=(GridRouter, {}),
-        num_vehicles=int((N_LEFT + N_RIGHT) * N_COLUMNS / 2 + (N_BOTTOM + N_TOP)
-                                                          * N_ROWS / 2))
+        routing_controller=(GridRouter, {}), num_vehicles=int(
+            (N_LEFT + N_RIGHT) * N_COLUMNS / 2 + (
+            N_BOTTOM + N_TOP) * N_ROWS / 2))
     vehicles.add(
         veh_id="followerstopper",
         acceleration_controller=(RLController, {}),
         car_following_params=SumoCarFollowingParams(
             speed_mode=9,
         ),
-        routing_controller=(GridRouter, {}),
-        num_vehicles=int((N_LEFT + N_RIGHT) * N_COLUMNS / 2 + (N_BOTTOM + N_TOP)
-                                                          * N_ROWS / 2))
+        routing_controller=(GridRouter, {}), num_vehicles=int(
+            (N_LEFT + N_RIGHT) * N_COLUMNS / 2 + (
+            N_BOTTOM + N_TOP) * N_ROWS / 2))
 
     # inflows of vehicles are place on all outer edges (listed here)
     outer_edges = []
@@ -246,8 +246,8 @@ if __name__ == '__main__':
         # flow.core.params.VehicleParams)
         veh=vehicles,
 
-        # parameters specifying the positioning of vehicles upon initialization/
-        # reset (see flow.core.params.InitialConfig)
+        # parameters specifying the positioning of vehicles upon initialization
+        # or reset (see flow.core.params.InitialConfig)
         initial=InitialConfig(
             spacing='custom',
             shuffle=True,
