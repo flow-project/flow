@@ -307,7 +307,7 @@ if __name__ == '__main__':
         queue_trials = False
     elif RUN_MODE == 'cluster':
         ray.init(redis_address="localhost:6379")
-        queue_trials = True
+        queue_trials = False
 
     exp_tag = {
         'run': alg_run,
