@@ -90,15 +90,16 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         vehicles) from each direction, local edge information, and traffic
         light state.
         """
-        traffic_light_obs = 3 * (1 + self.num_local_lights) * \
-                            self.traffic_lights
+        # traffic_light_obs = 3 * (1 + self.num_local_lights) * \
+        #                     self.traffic_lights
         # TODO(cathywu) CHANGE
         tl_box = Box(
             low=0.,
             high=1,
             shape=(3 * 4 * self.num_observed +
                    2 * self.num_local_edges +
-                   traffic_light_obs,
+                   2,
+                   # traffic_light_obs,
                    ),
             dtype=np.float32)
         return tl_box
@@ -136,54 +137,6 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         max_dist = max(grid_array["short_length"], grid_array["long_length"],
                        grid_array["inner_length"])
 
-        # TODO(cathywu) refactor PO_TrafficLightGridEnv with convenience
-        # methods for observations, but remember to flatten for single-agent
-
-        # Observed vehicle information
-        speeds = []
-        dist_to_intersec = []
-        veh_types = []
-        # edge_number = []
-        all_observed_ids = []
-        for _, edges in self.scenario.node_mapping:
-            local_speeds = []
-            local_dists_to_intersec = []
-            local_veh_types = []
-            # local_edge_numbers = []
-            for edge in edges:
-                observed_ids = \
-                    self.k_closest_to_intersection(edge, self.num_observed)
-                all_observed_ids.append(observed_ids)
-
-                # check which edges we have so we can always pad in the right
-                # positions
-                local_speeds.extend(
-                    [self.k.vehicle.get_speed(veh_id) / max_speed for veh_id in
-                     observed_ids])
-                local_dists_to_intersec.extend([(self.k.scenario.edge_length(
-                    self.k.vehicle.get_edge(
-                        veh_id)) - self.k.vehicle.get_position(
-                    veh_id)) / max_dist for veh_id in observed_ids])
-                local_veh_types.extend(
-                    [1 if veh_id in self.k.vehicle.get_rl_ids() else 0 for
-                     veh_id in observed_ids])
-                # local_edge_numbers.extend([self._convert_edge(
-                #     self.k.vehicle.get_edge(veh_id)) / (
-                #                                self.k.scenario.network.num_edges - 1) for veh_id in
-                #                            observed_ids])
-
-                if len(observed_ids) < self.num_observed:
-                    diff = self.num_observed - len(observed_ids)
-                    local_speeds.extend([0] * diff)
-                    local_dists_to_intersec.extend([0] * diff)
-                    local_veh_types.extend([0] * diff)
-                    # local_edge_numbers.extend([0] * diff)
-
-            speeds.append(local_speeds)
-            dist_to_intersec.append(local_dists_to_intersec)
-            veh_types.append(local_veh_types)
-            # edge_number.append(local_edge_numbers)
-
         # Edge information
         density = []
         velocity_avg = []
@@ -198,47 +151,69 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
             else:
                 density += [0]
                 velocity_avg += [0]
+        density += [0]  # for the unfound edges
+        velocity_avg += [0]  # for the unfound edges
         density = np.array(density)
         velocity_avg = np.array(velocity_avg)
-        self.observed_ids = all_observed_ids
-
-        if self.traffic_lights:
-            # Traffic light information
-            last_change = self.last_change.flatten()
-            direction = self.direction.flatten()
-            currently_yellow = self.currently_yellow.flatten()
-            # Dummy values for lights that are out of range
-            # TODO(cathywu) are these values reasonable?
-            last_change = np.append(last_change, [0])
-            direction = np.append(direction, [0])
-            currently_yellow = np.append(currently_yellow, [0])
 
         obs = {}
-        # TODO(cathywu) allow differentiation between rl and non-rl lights
-        node_to_edges = self.scenario.node_mapping
-        for rl_id in self.k.traffic_light.get_ids():
-            rl_id_num = int(rl_id.split("center")[1][0])
-            local_edges = node_to_edges[rl_id_num][1]
-            local_edge_numbers = [self.k.scenario.get_edge_list().index(e)
-                                  for e in local_edges]
-            local_id_nums = [rl_id_num, self._get_relative_node(rl_id, "top"),
-                             self._get_relative_node(rl_id, "bottom"),
-                             self._get_relative_node(rl_id, "left"),
-                             self._get_relative_node(rl_id, "right")]
+        all_observed_ids = []
+        ego_edges = self.scenario.ego_edges
+        for rl_id in self.k.vehicle.get_rl_ids():
+            edge = self.k.vehicle.get_edge(rl_id)
+            local_edges = [edge, ego_edges[edge]['downstream_opp'], ego_edges[
+                edge]['right_incoming'], ego_edges[edge]['left_incoming']]
+            local_edge_numbers = []
+            for local_edge in local_edges:
+                try:
+                    local_edge_numbers.append(
+                        self.k.scenario.get_edge_list().index(local_edge))
+                except ValueError:
+                    # Invalid edge
+                    local_edge_numbers.append(-1)
 
-            if self.traffic_lights:
-                observation = np.array(np.concatenate(
-                    [speeds[rl_id_num], dist_to_intersec[rl_id_num],
-                     veh_types[rl_id_num], density[local_edge_numbers],
-                     velocity_avg[local_edge_numbers],
-                     last_change[local_id_nums], direction[local_id_nums],
-                     currently_yellow[local_id_nums]]))
-            else:
-                observation = np.array(np.concatenate(
-                    [speeds[rl_id_num], dist_to_intersec[rl_id_num],
-                     veh_types[rl_id_num], density[local_edge_numbers],
-                     velocity_avg[local_edge_numbers], ]))
+            # Observed vehicle information
+            local_speeds = []
+            local_dists_to_intersec = []
+            local_veh_types = []
+            for local_edge in local_edges:
+                observed_ids = \
+                    self.k_closest_to_intersection(local_edge,
+                                                   self.num_observed)
+                all_observed_ids.append(observed_ids)
+
+                # check which edges we have so we can always pad in the right
+                # positions
+                local_speeds.extend(
+                    [self.k.vehicle.get_speed(veh_id) / max_speed for veh_id in
+                     observed_ids])
+                local_dists_to_intersec.extend([(self.k.scenario.edge_length(
+                    self.k.vehicle.get_edge(
+                        veh_id)) - self.k.vehicle.get_position(
+                    veh_id)) / max_dist for veh_id in observed_ids])
+                local_veh_types.extend(
+                    [1 if veh_id in self.k.vehicle.get_rl_ids() else 0 for
+                     veh_id in observed_ids])
+
+                if len(observed_ids) < self.num_observed:
+                    diff = self.num_observed - len(observed_ids)
+                    local_speeds.extend([0] * diff)
+                    local_dists_to_intersec.extend([0] * diff)
+                    local_veh_types.extend([0] * diff)
+
+            # Ego vehicle information
+            ego_speed =  self.k.vehicle.get_speed(rl_id)
+            ego_dist_to_intersec = self.k.scenario.edge_length(
+                self.k.vehicle.get_edge(rl_id)) - self.k.vehicle.get_position(
+                rl_id) / max_dist
+
+            observation = np.array(np.concatenate(
+                [local_speeds, local_dists_to_intersec, local_veh_types,
+                 density[local_edge_numbers], velocity_avg[local_edge_numbers],
+                 ego_speed, ego_dist_to_intersec]))
             obs.update({rl_id: observation})
+
+        self.observed_ids = all_observed_ids
 
         return obs
 

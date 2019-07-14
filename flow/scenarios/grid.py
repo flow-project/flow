@@ -601,3 +601,62 @@ class SimpleGridScenario(Scenario):
                                     right_edge_id, top_edge_id]
 
         return sorted(mapping.items(), key=lambda x: x[0])
+
+    @property
+    def ego_edges(self):
+        """Map ego edges to nearby edges.
+
+        Returns a nested dictionary
+            { edge_id : {
+                        'opposite': edge_id,
+                        'downstream': edge_id,
+                        'downstream_opp': edge_id,
+                        'right_turn': edge_id,
+                        'right_incoming': edge_id,
+                        'left_turn': edge_id,
+                        'left_incoming' edge_id
+                        }
+            }
+
+        Returns a list of pairs (node, connected edges) of all inner nodes
+        and for each of them, the 4 edges that leave this node.
+
+        The nodes are listed in alphabetical order, and within that, edges are
+        listed in order: [bot, right, top, left].
+        """
+        mapping = {}
+        right_turn = {'right': 'bot',
+                      'top': 'right',
+                      'left': 'top',
+                      'bot': 'left',
+                      }
+        opposite = {'right': 'left',
+                    'left': 'right',
+                    'top': 'bot',
+                    'bot': 'top',
+                    }
+        offset_order = ['opposite', 'downstream', 'downstream_opp',
+                        'right_turn', 'right_incoming', 'left_turn',
+                        'left_incoming']
+        offsets = {
+            'right': [(0, 0), (1, 0), (1, 0), (0, 1), (0, 1), (0, 0), (0, 0)],
+            'left': [(0, 0), (-1, 0), (-1, 0), (-1, 0), (-1, 0), (-1, 1),
+                     (-1, 1)],
+            'top': [(0, 0), (0, -1), (0, -1), (1, -1), (1, -1), (0, -1),
+                    (0, -1)],
+            'bot': [(0, 0), (0, 1), (0, 1), (0, 0), (0, 0), (1, 0), (1, 0)]
+        }
+
+        for row in range(self.row_num):
+            for col in range(self.col_num):
+                for dir in ["left", "right", "top", "bot"]:
+                    dirs = [opposite[dir], dir, opposite[dir], right_turn[dir],
+                            opposite[right_turn[dir]],
+                            opposite[right_turn[dir]], right_turn[dir]]
+                    submapping = dict(
+                        [(o, "{}{}_{}".format(d, r + row, c + col)) for
+                         o, d, (r, c) in zip(offset_order, dirs, offsets[dir])])
+                    edge_id = '{}{}_{}'.format(dir, row, col)
+                    mapping.update({edge_id: submapping})
+
+        return mapping

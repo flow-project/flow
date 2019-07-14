@@ -107,7 +107,7 @@ if __name__ == '__main__':
                         help="The number of rows in the grid network.")
     parser.add_argument('--num_cols', type=int, default=1,
                         help="The number of columns in the grid network.")
-    parser.add_argument('--inflow_rate', type=int, default=200,
+    parser.add_argument('--inflow_rate', type=int, default=600,
                         help="The inflow rate (veh/hr) per edge.")
     args = parser.parse_args()
 
