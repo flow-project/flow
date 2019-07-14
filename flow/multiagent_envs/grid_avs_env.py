@@ -160,9 +160,23 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         all_observed_ids = []
         ego_edges = self.scenario.ego_edges
         for rl_id in self.k.vehicle.get_rl_ids():
+            # Ego vehicle information
+            ego_speed = self.k.vehicle.get_speed(rl_id)
+            ego_dist_to_intersec = self.k.scenario.edge_length(
+                self.k.vehicle.get_edge(rl_id)) - self.k.vehicle.get_position(
+                rl_id) / max_dist
+
             edge = self.k.vehicle.get_edge(rl_id)
-            local_edges = [edge, ego_edges[edge]['downstream_opp'], ego_edges[
-                edge]['right_incoming'], ego_edges[edge]['left_incoming']]
+            if edge[0] == ":":  # center
+                observation = np.array(np.concatenate(
+                    [[0] * (12 * self.num_observed + 2 * self.num_local_edges),
+                     [ego_speed, ego_dist_to_intersec]]))
+                obs.update({rl_id: observation})
+                continue
+
+            local_edges = [edge, ego_edges[edge]['downstream_opp'],
+                           ego_edges[edge]['right_incoming'],
+                           ego_edges[edge]['left_incoming']]
             local_edge_numbers = []
             for local_edge in local_edges:
                 try:
@@ -201,16 +215,10 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
                     local_dists_to_intersec.extend([0] * diff)
                     local_veh_types.extend([0] * diff)
 
-            # Ego vehicle information
-            ego_speed =  self.k.vehicle.get_speed(rl_id)
-            ego_dist_to_intersec = self.k.scenario.edge_length(
-                self.k.vehicle.get_edge(rl_id)) - self.k.vehicle.get_position(
-                rl_id) / max_dist
-
             observation = np.array(np.concatenate(
                 [local_speeds, local_dists_to_intersec, local_veh_types,
                  density[local_edge_numbers], velocity_avg[local_edge_numbers],
-                 ego_speed, ego_dist_to_intersec]))
+                 [ego_speed, ego_dist_to_intersec]]))
             obs.update({rl_id: observation})
 
         self.observed_ids = all_observed_ids
@@ -251,7 +259,8 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         rew /= self.num_traffic_lights
 
         rews = {}
-        for rl_id in rl_actions.keys():
+        # for rl_id in rl_actions.keys():
+        for rl_id in self.k.vehicle.get_rl_ids():
             rews[rl_id] = rew
         return rews
 
@@ -266,25 +275,29 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         super().additional_command()
         # if the number of rl vehicles has decreased introduce it back in
         num_rl = self.k.vehicle.num_rl_vehicles
+        outer_edges = []
+        outer_edges += ["left{}_{}".format(self.rows, i) for i in
+                        range(self.cols)]
+        outer_edges += ["bot{}_0".format(i) for i in range(self.rows)]
         if num_rl != len(self.rl_id_list) and self.add_rl_if_exit:
             # find the vehicles that have exited
             diff_list = list(
                 set(self.rl_id_list).difference(self.k.vehicle.get_rl_ids()))
             for rl_id in diff_list:
-                # distribute rl cars evenly over lanes
-                lane_num = self.rl_id_list.index(rl_id) % \
-                           MAX_LANES * self.scaling
+                # distribute rl cars evenly over edges
+                edge = outer_edges[self.rl_id_list.index(rl_id) % len(
+                    outer_edges)]
                 # reintroduce it at the start of the network
                 try:
                     self.k.vehicle.add(
                         veh_id=rl_id,
-                        edge='1',
-                        type_id=str('rl'),
-                        lane=str(lane_num),
+                        edge=edge,
+                        type_id=str('followerstopper'),
+                        lane=0,
                         pos="0",
                         speed="max")
-                except Exception:
-                    pass
+                except Exception as e:
+                    print("Failed to add vehicle.", e)
 
         # specify observed vehicles
         for veh_ids in self.observed_ids:

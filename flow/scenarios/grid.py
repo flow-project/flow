@@ -647,8 +647,8 @@ class SimpleGridScenario(Scenario):
             'bot': [(0, 0), (0, 1), (0, 1), (0, 0), (0, 0), (1, 0), (1, 0)]
         }
 
-        for row in range(self.row_num):
-            for col in range(self.col_num):
+        for row in range(self.row_num+1):
+            for col in range(self.col_num+1):
                 for dir in ["left", "right", "top", "bot"]:
                     dirs = [opposite[dir], dir, opposite[dir], right_turn[dir],
                             opposite[right_turn[dir]],

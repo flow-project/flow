@@ -82,8 +82,8 @@ class TraCIVehicle(KernelVehicle):
         """
         self.type_parameters = vehicles.type_parameters
         self.minGap = vehicles.minGap
-        self.num_vehicles = 0
-        self.num_rl_vehicles = 0
+        self.num_vehicles = len(self.__ids)
+        self.num_rl_vehicles = len(self.__rl_ids)
 
         self.__vehicles.clear()
         for typ in vehicles.initial:
@@ -94,7 +94,18 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
                 self.num_vehicles += 1
                 if typ['acceleration_controller'][0] == RLController:
-                    self.num_rl_vehicles += 1
+                    if veh_id not in self.__rl_ids:
+                        self.__rl_ids.append(veh_id)
+                        self.num_rl_vehicles += 1
+                else:
+                    if veh_id not in self.__human_ids:
+                        self.__human_ids.append(veh_id)
+                        if typ['acceleration_controller'][
+                            0] != SimCarFollowingController:
+                            self.__controlled_ids.append(veh_id)
+                        if typ['lane_change_controller'][
+                            0] != SimLaneChangeController:
+                            self.__controlled_lc_ids.append(veh_id)
 
     def update(self, reset):
         """See parent class.
