@@ -92,7 +92,7 @@ def setup_exps_ES():
     return alg_run, env_name, config
 
 
-def setup_exps_PPO():
+def setup_exps_PPO(flow_params):
     """
     Experiment setup with PPO using RLlib.
 
@@ -299,16 +299,16 @@ if __name__ == '__main__':
     ALGO = args.algo
 
     if ALGO == 'PPO':
-        alg_run, env_name, config = setup_exps_PPO()
+        alg_run, env_name, config = setup_exps_PPO(flow_params)
     elif ALGO == 'ES':
         alg_run, env_name, config = setup_exps_ES()
 
     if RUN_MODE == 'local':
         ray.init(num_cpus=N_CPUS + 1)
-        queue_trials = False
+        N_ITER = 1
     elif RUN_MODE == 'cluster':
         ray.init(redis_address="localhost:6379")
-        queue_trials = False
+        N_ITER = 2000
 
     exp_tag = {
         'run': alg_run,
@@ -316,7 +316,7 @@ if __name__ == '__main__':
         'checkpoint_freq': 25,
         "max_failures": 10,
         'stop': {
-            'training_iteration': 2000
+            'training_iteration': N_ITER
         },
         'config': config,
         "num_samples": 1,
@@ -329,5 +329,4 @@ if __name__ == '__main__':
         {
             flow_params["exp_tag"]: exp_tag
          },
-        queue_trials=queue_trials,
     )
