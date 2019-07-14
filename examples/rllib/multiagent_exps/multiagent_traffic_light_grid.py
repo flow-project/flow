@@ -195,6 +195,7 @@ if __name__ == '__main__':
     # total number specified above. We also use a "right_of_way" speed mode to
     # support traffic light compliance
     vehicles = VehicleParams()
+    num_vehicles = (N_LEFT + N_RIGHT) * N_COLUMNS + (N_BOTTOM + N_TOP) * N_ROWS
     vehicles.add(
         veh_id="human",
         acceleration_controller=(SimCarFollowingController, {}),
@@ -205,8 +206,7 @@ if __name__ == '__main__':
             speed_mode="right_of_way",
         ),
         routing_controller=(GridRouter, {}),
-        num_vehicles=(N_LEFT + N_RIGHT) * N_COLUMNS + (N_BOTTOM + N_TOP) *
-                                                      N_ROWS)
+        num_vehicles=num_vehicles)
 
     # inflows of vehicles are place on all outer edges (listed here)
     outer_edges = []
