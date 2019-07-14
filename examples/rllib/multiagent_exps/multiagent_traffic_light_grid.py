@@ -165,8 +165,8 @@ if __name__ == '__main__':
         epilog=EXAMPLE_USAGE)
 
     # required input parameters
-    parser.add_argument("--upload_dir", type=str, help="S3 Bucket for uploading "
-                                                       "results.")
+    parser.add_argument("--upload_dir", type=str,
+                        help="S3 Bucket for uploading results.")
 
     # optional input parameters
     parser.add_argument('--run_mode', type=str, default='local',
@@ -205,7 +205,8 @@ if __name__ == '__main__':
             speed_mode="right_of_way",
         ),
         routing_controller=(GridRouter, {}),
-        num_vehicles=(N_LEFT + N_RIGHT) * N_COLUMNS + (N_BOTTOM + N_TOP) * N_ROWS)
+        num_vehicles=(N_LEFT + N_RIGHT) * N_COLUMNS + (N_BOTTOM + N_TOP) *
+                                                      N_ROWS)
 
     # inflows of vehicles are place on all outer edges (listed here)
     outer_edges = []
@@ -286,8 +287,8 @@ if __name__ == '__main__':
         # flow.core.params.VehicleParams)
         veh=vehicles,
 
-        # parameters specifying the positioning of vehicles upon initialization/
-        # reset (see flow.core.params.InitialConfig)
+        # parameters specifying the positioning of vehicles upon initialization
+        # or reset (see flow.core.params.InitialConfig)
         initial=InitialConfig(
             spacing='custom',
             shuffle=True,
