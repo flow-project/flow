@@ -610,6 +610,7 @@ class AimsunKernelVehicle(KernelVehicle):
         return self.__vehicles[veh_id]['type_name']
 
     def get_initial_speed(self, veh_id):
+        """See parent class."""
         return self.__vehicles[veh_id]["initial_speed"]
 
     def get_speed(self, veh_id, error=-1001):
@@ -702,7 +703,7 @@ class AimsunKernelVehicle(KernelVehicle):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_route(veh) for veh in veh_id]
-        return []  # FIXME
+        return [] # FIXME
         # aimsun_id = self._id_flow2aimsun[veh_id]
         # num_secs = self.kernel_api.AKIVehTrackedGetNbSectionsVehiclePath(
         #     aimsun_id)
