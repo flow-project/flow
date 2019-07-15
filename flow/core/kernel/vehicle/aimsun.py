@@ -614,6 +614,7 @@ class AimsunKernelVehicle(KernelVehicle):
         return self.__vehicles[veh_id]['type_name']
 
     def get_initial_speed(self, veh_id):
+        """See parent class."""
         return self.__vehicles[veh_id]["initial_speed"]
 
     def get_speed(self, veh_id, error=-1001):
