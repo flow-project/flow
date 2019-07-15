@@ -16,11 +16,11 @@ git:
 
 before_install:
   # install and run pep8 and docstyle tests
-  - pip install flake8 .
   - pip install pydocstyle
+  - pydocstyle --convention numpy
+  - pip install flake8 .
   - flake8 --version
   - flake8 --show-source
-  - pydocstyle --convention numpy
 
   # Setup conda (needed for opencv, ray dependency)
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
