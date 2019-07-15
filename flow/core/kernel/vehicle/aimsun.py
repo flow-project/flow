@@ -703,7 +703,7 @@ class AimsunKernelVehicle(KernelVehicle):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_route(veh) for veh in veh_id]
-        return [] # FIXME
+        return []  # FIXME
         # aimsun_id = self._id_flow2aimsun[veh_id]
         # num_secs = self.kernel_api.AKIVehTrackedGetNbSectionsVehiclePath(
         #     aimsun_id)
