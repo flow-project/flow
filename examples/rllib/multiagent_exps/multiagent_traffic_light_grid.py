@@ -37,7 +37,7 @@ N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 1, 1, 1, 1
 
 def make_flow_params(n_rows, n_columns, edge_inflow):
     """
-    Generates the flow params for the experiment.
+    Generate the flow params for the experiment.
 
     :param n_rows:
     :param n_columns:
