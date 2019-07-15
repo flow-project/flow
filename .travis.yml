@@ -15,7 +15,9 @@ git:
   depth: 1
 
 before_install:
-  # run some tests
+  # install and run pep8 and docstyle tests
+  - pip install flake8 .
+  - pip install pydocstyle
   - flake8 --version
   - flake8 --show-source
   - pydocstyle --convention numpy
@@ -46,12 +48,10 @@ before_install:
   - ls ../
 
 install:
-  - pip install flake8 .
   - pip install coveralls
   - pip install nose
   - pip install matplotlib
   - pip install jupyter
-  - pip install pydocstyle
 
 script:
   - python setup.py install
