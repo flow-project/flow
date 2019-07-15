@@ -9,7 +9,6 @@ try:
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
-from ray.rllib.agents.es.policies import GenericPolicy as ESPolicy
 from ray import tune
 from ray.tune.registry import register_env
 from ray.tune import run_experiments
