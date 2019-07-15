@@ -199,8 +199,8 @@ class TestRllibExamples(unittest.TestCase):
     def run_exp(alg_run, env_name, config):
         try:
             ray.init(num_cpus=1)
-        except Exception:
-            pass
+        except Exception as e:
+            print("ERROR", e)
         config['train_batch_size'] = 50
         config['horizon'] = 50
         config['sample_batch_size'] = 50
@@ -226,7 +226,7 @@ class TestRllibExamples(unittest.TestCase):
 if __name__ == '__main__':
     try:
         ray.init(num_cpus=1)
-    except Exception:
-        pass
+    except Exception as e:
+        print("ERROR", e)
     unittest.main()
     ray.shutdown()
