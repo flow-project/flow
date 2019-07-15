@@ -79,20 +79,6 @@ class TestVehiclesClass(unittest.TestCase):
         Ensure that, if a vehicle is not a sumo vehicle, then minGap is set to
         zero so that all headway values are correct.
         """
-        # check that, if the vehicle is not a SimCarFollowingController
-        # vehicle, then its minGap is equal to 0
-        vehicles = VehicleParams()
-        vehicles.add(
-            "typeA",
-            acceleration_controller=(IDMController, {}),
-            car_following_params=SumoCarFollowingParams(
-                speed_mode="obey_safe_speed",
-            ),
-            lane_change_params=SumoLaneChangeParams(
-                lane_change_mode="no_lat_collide",
-            ))
-        self.assertEqual(vehicles.types[0]["type_params"]["minGap"], 0)
-
         # check that, if the vehicle is a SimCarFollowingController vehicle,
         # then its minGap, accel, and decel are set to default
         vehicles = VehicleParams()
