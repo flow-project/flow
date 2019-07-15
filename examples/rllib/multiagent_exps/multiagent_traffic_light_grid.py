@@ -150,69 +150,6 @@ def make_flow_params(n_rows, n_columns, edge_inflow):
     return flow_params
 
 
-def setup_exps_ES():
-    """
-    Experiment setup with ES using RLlib.
-
-    Returns
-    -------
-    str
-        name of the training algorithm
-    str
-        name of the gym environment to be trained
-    dict
-        training configuration parameters
-    """
-    # FIXME(cathywu) ES + multiagent is not supported
-    alg_run = "ES"
-    agent_cls = get_agent_class(alg_run)
-    config = agent_cls._default_config.copy()
-    config["num_workers"] = min(N_CPUS, N_ROLLOUTS)
-    config["episodes_per_batch"] = N_ROLLOUTS
-    config["eval_prob"] = 0.05
-    # optimal parameters
-    config["noise_stdev"] = 0.02
-    config["stepsize"] = 0.02
-
-    config["model"]["fcnet_hiddens"] = [100, 50, 25]
-    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
-    config["observation_filter"] = "NoFilter"
-
-    # save the flow params for replay
-    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
-                           indent=4)
-    config['env_config']['flow_params'] = flow_json
-    config['env_config']['run'] = alg_run
-
-    create_env, env_name = make_create_env(params=flow_params, version=0)
-
-    # Register as rllib env
-    register_env(env_name, create_env)
-
-    test_env = create_env()
-    obs_space = test_env.observation_space
-    act_space = test_env.action_space
-
-    def gen_policy():
-        return (ESPolicy, obs_space, act_space, {})
-
-    # Setup PG with an ensemble of `num_policies` different policy graphs
-    policy_graphs = {'av': gen_policy()}
-
-    def policy_mapping_fn(_):
-        return 'av'
-
-    config.update({
-        'multiagent': {
-            'policy_graphs': policy_graphs,
-            'policy_mapping_fn': tune.function(policy_mapping_fn),
-            'policies_to_train': ['av']
-        }
-    })
-
-    return alg_run, env_name, config
-
-
 def setup_exps_PPO(flow_params):
     """
     Experiment setup with PPO using RLlib.
@@ -314,8 +251,8 @@ if __name__ == '__main__':
 
     if ALGO == 'PPO':
         alg_run, env_name, config = setup_exps_PPO(flow_params)
-    elif ALGO == 'ES':
-        alg_run, env_name, config = setup_exps_ES()
+    else:
+        raise NotImplementedError
 
     if RUN_MODE == 'local':
         ray.init(num_cpus=N_CPUS + 1)
