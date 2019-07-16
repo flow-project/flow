@@ -3,15 +3,19 @@
 These environments are used to train traffic lights to regulate traffic flow
 through an n x m grid.
 """
+from copy import deepcopy
+import re
 
 import numpy as np
-import re
 
 from gym.spaces.box import Box
 from gym.spaces.discrete import Discrete
 from gym.spaces.tuple_space import Tuple
 
+from flow.controllers.rlcontroller import RLController
+from flow.controllers import SimCarFollowingController, GridRouter
 from flow.core import rewards
+from flow.core.params import SumoCarFollowingParams, VehicleParams, InFlows
 from flow.envs.base_env import Env
 
 ADDITIONAL_ENV_PARAMS = {
@@ -22,6 +26,16 @@ ADDITIONAL_ENV_PARAMS = {
     "tl_type": "controlled",
     # determines whether the action space is meant to be discrete or continuous
     "discrete": False,
+    # whether the inflow should be reset on each rollout
+    "reset_inflow": False,
+    # base inflow per edge (veh/hr)
+    "inflow_base": 300,
+    # the range of edge inflows is the base inflow +/- the inflow_delta
+    "inflow_delta": 200,
+    # fraction of inflows which are AVs
+    "fraction_av": 0.1,
+    # speed at which vehicles enter the network
+    "speed_enter": 30,
 }
 
 ADDITIONAL_PO_ENV_PARAMS = {
@@ -242,6 +256,116 @@ class TrafficLightGridEnv(Env):
         """See class definition."""
         return - rewards.min_delay_unscaled(self) \
             - rewards.boolean_action_penalty(rl_actions >= 0.5, gain=1.0)
+
+    def reset(self):
+        """Reset the environment with a new inflow rate.
+
+        The diverse set of inflows are used to generate a policy that is more
+        robust with respect to the inflow rate. The inflow rate is update by
+        creating a new scenario similar to the previous one, but with a new
+        Inflow object with a rate within the additional environment parameter
+        "inflow_delta", which offsets the inflow_base, with +/- inflow_delta.
+
+        **WARNING**: The inflows assume there are vehicles of type
+        "followerstopper" and "human" within the VehicleParams object.
+        """
+        add_params = self.env_params.additional_params
+        if add_params.get("reset_inflow"):
+            inflow_base = add_params.get("inflow_base")
+            inflow_delta = add_params.get("inflow_delta")
+            flow_rate = np.random.uniform(inflow_base - inflow_delta,
+                                          inflow_base + inflow_delta)
+
+            fraction_av = add_params.get("fraction_av")
+            speed_enter = add_params.get("speed_enter")
+            cars_left = self.grid_array["cars_left"]
+            cars_right = self.grid_array["cars_right"]
+            cars_top = self.grid_array["cars_top"]
+            cars_bot = self.grid_array["cars_bot"]
+
+            # FIXME(cathywu) Code is repeated in several places. Consolidate.
+            # inflows of vehicles are place on all outer edges (listed here)
+            outer_edges = []
+            outer_edges += ["left{}_{}".format(self.rows, i) for i in range(
+                self.cols)]
+            outer_edges += ["bot{}_0".format(i) for i in range(self.rows)]
+
+            # We try this for 100 trials in case unexpected errors during
+            # instantiation.
+            for _ in range(100):
+                try:
+                    # introduce new inflows within the pre-defined inflow range
+                    inflow = InFlows()
+                    for edge in outer_edges:
+                        inflow.add(
+                            veh_type="human",
+                            edge=edge,
+                            vehs_per_hour=flow_rate * (1-fraction_av),
+                            departLane="free",
+                            departSpeed=speed_enter)
+                        inflow.add(
+                            veh_type="followerstopper",
+                            edge=edge,
+                            vehs_per_hour=flow_rate * fraction_av,
+                            departLane="free",
+                            departSpeed=speed_enter)
+
+                    # all other network parameters should match the previous
+                    # environment (we only want to change the inflow)
+                    net_params = deepcopy(self.net_params)
+                    net_params.inflows = inflow
+
+                    # we place a sufficient number of vehicles to ensure they
+                    # confirm with the total number specified above. We also
+                    # use a "right_of_way" speed mode to support traffic
+                    # light compliance
+                    vehicles = VehicleParams()
+                    vehicles.add(
+                        veh_id="human",
+                        acceleration_controller=(SimCarFollowingController, {}),
+                        car_following_params=SumoCarFollowingParams(
+                            min_gap=2.5,
+                            max_speed=speed_enter,
+                            decel=7.5,  # avoid collisions at emergency stops
+                            speed_mode="right_of_way",
+                        ),
+                        routing_controller=(GridRouter, {}), num_vehicles=int(
+                            (cars_left + cars_right) * self.cols / 2
+                            + (cars_bot + cars_top) * self.rows / 2))
+                    vehicles.add(
+                        veh_id="followerstopper",
+                        acceleration_controller=(RLController, {}),
+                        car_following_params=SumoCarFollowingParams(
+                            speed_mode=9,
+                        ),
+                        routing_controller=(GridRouter, {}), num_vehicles=int(
+                            (cars_left + cars_right) * self.cols / 2
+                            + (cars_bot + cars_top) * self.rows / 2))
+
+                    # recreate the scenario object
+                    self.scenario = self.scenario.__class__(
+                        name=self.scenario.orig_name,
+                        vehicles=vehicles,
+                        net_params=net_params,
+                        initial_config=self.initial_config)
+
+                    observation = super().reset()
+
+                    # reset the timer to zero
+                    self.time_counter = 0
+
+                    return observation
+
+                except Exception as e:
+                    print('error on reset ', e)
+
+        # perform the generic reset function
+        observation = super().reset()
+
+        # reset the timer to zero
+        self.time_counter = 0
+
+        return observation
 
     # ===============================
     # ============ UTILS ============

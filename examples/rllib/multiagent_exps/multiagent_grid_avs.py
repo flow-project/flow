@@ -215,6 +215,11 @@ if __name__ == '__main__':
                 "max_accel": 3,
                 "max_decel": 3,
                 "add_rl_if_exit": True,
+                "reset_inflow": True,
+                "inflow_base": EDGE_INFLOW,
+                "inflow_delta": 200,
+                "fraction_av": AV_FRAC,
+                "speed_enter": V_ENTER,
             },
         ),
 
