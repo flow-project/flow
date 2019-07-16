@@ -51,7 +51,7 @@ class TestGetX(unittest.TestCase):
         # test for an edge in the lanes
         edge_1 = "bottom"
         pos_1 = 4.72
-        self.assertAlmostEqual(self.env.k.scenario.get_x(edge_1, pos_1), 5)
+        self.assertAlmostEqual(self.env.k.scenario.get_x(edge_1, pos_1), 4.72)
 
         # test for an edge in the internal links
         edge_2 = ":bottom"
@@ -84,7 +84,7 @@ class TestGetEdge(unittest.TestCase):
         # test for a position in the lanes
         x1 = 5
         self.assertTupleEqual(
-            self.env.k.scenario.get_edge(x1), ("bottom", 4.72))
+            self.env.k.scenario.get_edge(x1), ("bottom", 5))
 
         # test for a position in the internal links
         x2 = 0.1
