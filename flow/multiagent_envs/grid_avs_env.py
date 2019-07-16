@@ -162,9 +162,9 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         for rl_id in self.k.vehicle.get_rl_ids():
             # Ego vehicle information
             ego_speed = self.k.vehicle.get_speed(rl_id)
-            ego_dist_to_intersec = self.k.scenario.edge_length(
+            ego_dist_to_intersec = (self.k.scenario.edge_length(
                 self.k.vehicle.get_edge(rl_id)) - self.k.vehicle.get_position(
-                rl_id) / max_dist
+                rl_id)) / max_dist
 
             edge = self.k.vehicle.get_edge(rl_id)
             if edge[0] == ":":  # center
