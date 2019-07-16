@@ -1,4 +1,4 @@
-"""Traffic light example."""
+"""Multi-agent traffic light example (single shared policy)."""
 
 import json
 import argparse

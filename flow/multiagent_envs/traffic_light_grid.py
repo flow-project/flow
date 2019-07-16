@@ -19,6 +19,9 @@ ADDITIONAL_ENV_PARAMS = {
     "num_local_edges": 4,  # FIXME: not implemented yet
 }
 
+# Index for retrieving ID when splitting node name, e.g. ":center#"
+ID_IDX = 1
+
 
 class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
     """Multiagent shared model version of PO_TrafficLightGridEnv.
@@ -88,7 +91,7 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         :return: dictionary which contains agent-wise observations as follows:
         - For the self.num_observed number of vehicles closest and incoming
         towards traffic light agent, gives the vehicle velocity, distance to
-        intersection, edge_number, density traffic light state.
+        intersection, edge number.
         - For edges in the network, gives the density and average velocity.
         - For the self.num_local_lights number of nearest lights (itself
         included), gives the traffic light information, including the last
@@ -135,8 +138,8 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
 
                 if len(observed_ids) < self.num_observed:
                     diff = self.num_observed - len(observed_ids)
-                    local_speeds.extend([0] * diff)
-                    local_dists_to_intersec.extend([0] * diff)
+                    local_speeds.extend([1] * diff)
+                    local_dists_to_intersec.extend([1] * diff)
                     local_edge_numbers.extend([0] * diff)
 
             speeds.append(local_speeds)
@@ -165,17 +168,19 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         last_change = self.last_change.flatten()
         direction = self.direction.flatten()
         currently_yellow = self.currently_yellow.flatten()
-        # Dummy values for lights that are out of range
+        # This is a catch-all for when the relative_node method returns a -1
+        # (when there is no node in the direction sought). We add a last
+        # item to the lists here, which will serve as a default value.
         # TODO(cathywu) are these values reasonable?
         last_change = np.append(last_change, [0])
         direction = np.append(direction, [0])
-        currently_yellow = np.append(currently_yellow, [0])
+        currently_yellow = np.append(currently_yellow, [1])
 
         obs = {}
         # TODO(cathywu) allow differentiation between rl and non-rl lights
         node_to_edges = self.scenario.node_mapping
         for rl_id in self.k.traffic_light.get_ids():
-            rl_id_num = int(rl_id.split("center")[1][0])
+            rl_id_num = int(rl_id.split("center")[ID_IDX])
             local_edges = node_to_edges[rl_id_num][1]
             local_edge_numbers = [self.k.scenario.get_edge_list().index(e)
                                   for e in local_edges]
@@ -201,7 +206,7 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         Issues action for each traffic light agent.
         """
         for rl_id, rl_action in rl_actions.items():
-            i = int(rl_id.split("center")[1][0])
+            i = int(rl_id.split("center")[ID_IDX])
             if self.discrete:
                 raise NotImplementedError
             else:

@@ -338,6 +338,21 @@ class TrafficLightGridEnv(Env):
     def _get_relative_node(self, agent_id, direction):
         """Yield node number of traffic light agent in a given direction.
 
+        For example, the nodes in a grid with 2 rows and 3 columns are
+        indexed as follows:
+
+            |     |     |
+        --- 3 --- 4 --- 5 ---
+            |     |     |
+        --- 0 --- 1 --- 2 ---
+            |     |     |
+
+        See flow.scenarios.grid for more information.
+
+        Example of function usage:
+        - Seeking the "top" direction to ":center0" would return 3.
+        - Seeking the "bottom" direction to ":center0" would return -1.
+
         :param agent_id: agent id of the form ":center#"
         :param direction: top, bottom, left, right
         :return: node number
