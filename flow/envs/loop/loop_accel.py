@@ -61,7 +61,7 @@ class AccelEnv(Env):
         dictionary keeping track of each veh_id's previous position
     absolute_position : dict
         dictionary keeping track of each veh_id's absolute position
-    obs_var_labels : list <str>
+    obs_var_labels : list of str
         referenced in the visualizer. Tells the visualizer which
         metrics to track
     """

@@ -191,7 +191,7 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
     ----------
     num_lanes : int
         maximum number of lanes on any edge in the network
-    visible : list <str>
+    visible : list of str
         lists of visible vehicles, used for visualization purposes
     """
 
