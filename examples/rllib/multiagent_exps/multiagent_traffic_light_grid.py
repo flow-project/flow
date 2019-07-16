@@ -118,7 +118,7 @@ def make_flow_params(n_rows, n_columns, edge_inflow):
             inflows=inflow,
             no_internal_links=False,
             additional_params={
-                "speed_limit": V_ENTER + 5,
+                "speed_limit": V_ENTER + 5,  # inherited from grid0 benchmark
                 "grid_array": {
                     "short_length": SHORT_LENGTH,
                     "inner_length": INNER_LENGTH,
@@ -152,6 +152,10 @@ def make_flow_params(n_rows, n_columns, edge_inflow):
 def setup_exps_PPO(flow_params):
     """
     Experiment setup with PPO using RLlib.
+
+    Parameters
+    ----------
+    flow_params : dictionary of flow parameters
 
     Returns
     -------
@@ -193,7 +197,7 @@ def setup_exps_PPO(flow_params):
     def gen_policy():
         return (PPOPolicyGraph, obs_space, act_space, {})
 
-    # Setup PG with an ensemble of `num_policies` different policy graphs
+    # Setup PG with a single policy graph for all agents
     policy_graphs = {'av': gen_policy()}
 
     def policy_mapping_fn(_):
@@ -218,7 +222,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="[Flow] Evaluates a multi-agent traffic light grid",
+        description="[Flow] Issues multi-agent traffic light grid experiment",
         epilog=EXAMPLE_USAGE)
 
     # required input parameters
@@ -229,7 +233,7 @@ if __name__ == '__main__':
     parser.add_argument('--run_mode', type=str, default='local',
                         help="Experiment run mode (local | cluster)")
     parser.add_argument('--algo', type=str, default='PPO',
-                        help="RL method to use (PPO | ES)")
+                        help="RL method to use (PPO)")
     parser.add_argument('--num_rows', type=int, default=3,
                         help="The number of rows in the grid network.")
     parser.add_argument('--num_cols', type=int, default=3,
