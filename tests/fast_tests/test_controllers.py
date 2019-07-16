@@ -502,7 +502,7 @@ class TestFollowerStopper(unittest.TestCase):
             for veh_id in ids
         ]
 
-        expected_accel = [-16.666667, 0, 0., -5., 5.]
+        expected_accel = [0, 0, 0., -5., 5.]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
