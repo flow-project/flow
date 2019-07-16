@@ -229,7 +229,7 @@ if __name__ == '__main__':
             inflows=inflow,
             no_internal_links=False,
             additional_params={
-                "speed_limit": V_ENTER + 5,
+                "speed_limit": V_ENTER + 5,  # inherited from grid0 benchmark
                 "grid_array": {
                     "short_length": SHORT_LENGTH,
                     "inner_length": INNER_LENGTH,
