@@ -100,7 +100,7 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
             high=1,
             shape=(3 * self.num_local_edges * self.num_observed +
                    2 * self.num_local_edges +
-                   3,
+                   4,
                    # traffic_light_obs,
                    ),
             dtype=np.float32)
@@ -165,17 +165,19 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
             # Ego vehicle information
             ego_speed = self.k.vehicle.get_speed(rl_id) / max_speed
             ego_max_speed = self.k.vehicle.get_max_speed(rl_id) / max_speed
-            # ego_headway = self.k.vehicle.get_headway(rl_id)
+            ego_headway = min(self.k.vehicle.get_headway(rl_id),
+                              max_dist) / max_dist
             ego_dist_to_intersec = (self.k.scenario.edge_length(
                 self.k.vehicle.get_edge(rl_id)) - self.k.vehicle.get_position(
                 rl_id)) / max_dist
+            ego_obs = [ego_speed, ego_max_speed, ego_headway,
+                       ego_dist_to_intersec]
 
             edge = self.k.vehicle.get_edge(rl_id)
             if edge[0] == ":":  # center
                 observation = np.array(np.concatenate([[0] * (
                     3 * self.num_local_edges * self.num_observed + 2 *
-                    self.num_local_edges), [ego_speed, ego_max_speed,
-                                            ego_dist_to_intersec]]))
+                    self.num_local_edges), ego_obs]))
                 obs.update({rl_id: observation})
                 continue
 
@@ -223,7 +225,7 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
             observation = np.array(np.concatenate(
                 [local_speeds, local_dists_to_intersec, local_veh_types,
                  density[local_edge_numbers], velocity_avg[local_edge_numbers],
-                 [ego_speed, ego_max_speed, ego_dist_to_intersec]]))
+                 ego_obs]))
 
             obs.update({rl_id: observation})
 
