@@ -823,8 +823,8 @@ class TraCIScenario(KernelScenario):
         if self.sim_params.emission_path is not None:
             ensure_dir(self.sim_params.emission_path)
             emission_out = os.path.join(
-                self.sim_params.emission_path,
-                "{0}-emission.xml".format(self.network.name))
+                os.path.abspath(self.sim_params.emission_path),
+                "{}-emission.xml".format(self.network.name))
             cfg.append(E("emission-output", value=emission_out))
 
         # add step logs (if requested)
