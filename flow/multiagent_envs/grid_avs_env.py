@@ -98,7 +98,7 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         tl_box = Box(
             low=0.,
             high=1,
-            shape=(3 * 4 * self.num_observed +
+            shape=(3 * self.num_local_edges * self.num_observed +
                    2 * self.num_local_edges +
                    3,
                    # traffic_light_obs,
@@ -172,9 +172,10 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
 
             edge = self.k.vehicle.get_edge(rl_id)
             if edge[0] == ":":  # center
-                observation = np.array(np.concatenate(
-                    [[0] * (12 * self.num_observed + 2 * self.num_local_edges),
-                     [ego_speed, ego_dist_to_intersec]]))
+                observation = np.array(np.concatenate([[0] * (
+                    3 * self.num_local_edges * self.num_observed + 2 *
+                    self.num_local_edges), [ego_speed, ego_max_speed,
+                                            ego_dist_to_intersec]]))
                 obs.update({rl_id: observation})
                 continue
 
