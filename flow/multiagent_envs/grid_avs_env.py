@@ -86,9 +86,11 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
     def observation_space(self):
         """State space that is partially observed.
 
-        Velocities, distance to intersections, RL or not (for nearby
-        vehicles) from each direction, local edge information, and traffic
-        light state.
+        Local observations:
+        - Observed vehicles on nearby lanes (velocity, distance to
+          intersection, RL or not)
+        - Local edge information (density, avg speed)
+        - Ego vehicle observations (speed, max speed, distance to intersection)
         """
         # traffic_light_obs = 3 * (1 + self.num_local_lights) * \
         #                     self.traffic_lights
@@ -98,7 +100,7 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
             high=1,
             shape=(3 * 4 * self.num_observed +
                    2 * self.num_local_edges +
-                   2,
+                   3,
                    # traffic_light_obs,
                    ),
             dtype=np.float32)
@@ -161,7 +163,9 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         ego_edges = self.scenario.ego_edges
         for rl_id in self.k.vehicle.get_rl_ids():
             # Ego vehicle information
-            ego_speed = self.k.vehicle.get_speed(rl_id)
+            ego_speed = self.k.vehicle.get_speed(rl_id) / max_speed
+            ego_max_speed = self.k.vehicle.get_max_speed(rl_id) / max_speed
+            # ego_headway = self.k.vehicle.get_headway(rl_id)
             ego_dist_to_intersec = (self.k.scenario.edge_length(
                 self.k.vehicle.get_edge(rl_id)) - self.k.vehicle.get_position(
                 rl_id)) / max_dist
@@ -218,7 +222,8 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
             observation = np.array(np.concatenate(
                 [local_speeds, local_dists_to_intersec, local_veh_types,
                  density[local_edge_numbers], velocity_avg[local_edge_numbers],
-                 [ego_speed, ego_dist_to_intersec]]))
+                 [ego_speed, ego_max_speed, ego_dist_to_intersec]]))
+
             obs.update({rl_id: observation})
 
         self.observed_ids = all_observed_ids
