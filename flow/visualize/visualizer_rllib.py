@@ -196,6 +196,7 @@ def visualizer_rllib(args):
 
     # Simulate and collect metrics
     final_outflows = []
+    final_inflows = []
     mean_speed = []
     std_speed = []
     for i in range(args.num_rollouts):
@@ -239,6 +240,13 @@ def visualizer_rllib(args):
             rets.append(ret)
         outflow = vehicles.get_outflow_rate(500)
         final_outflows.append(outflow)
+        inflow = vehicles.get_inflow_rate(500)
+        final_inflows.append(inflow)
+        if np.all(np.array(final_inflows) > 1e-5):
+            throughput_efficiency = [x / y for x, y in
+                                     zip(final_outflows, final_inflows)]
+        else:
+            throughput_efficiency = [0] * len(final_inflows)
         mean_speed.append(np.mean(vel))
         std_speed.append(np.std(vel))
         if multiagent:
@@ -276,6 +284,16 @@ def visualizer_rllib(args):
     print(final_outflows)
     print('Average, std: {}, {}'.format(np.mean(final_outflows),
                                         np.std(final_outflows)))
+    # Compute departure rate of vehicles in the last 500 sec of the run
+    print("Inflows (veh/hr):")
+    print(final_inflows)
+    print('Average, std: {}, {}'.format(np.mean(final_inflows),
+                                        np.std(final_inflows)))
+    # Compute throughput efficiency in the last 500 sec of the
+    print("Throughput efficiency (veh/hr):")
+    print(throughput_efficiency)
+    print('Average, std: {}, {}'.format(np.mean(throughput_efficiency),
+                                        np.std(throughput_efficiency)))
 
     # terminate the environment
     env.unwrapped.terminate()
