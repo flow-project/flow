@@ -446,6 +446,22 @@ class KernelVehicle(object):
         """
         raise NotImplementedError
 
+    def get_tailway(self, veh_id, error=-1001):
+        """Return the tailway of the specified vehicle(s).
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        float
+        """
+        raise NotImplementedError
+
     def get_last_lc(self, veh_id, error=-1001):
         """Return the last time step a vehicle changed lanes.
 

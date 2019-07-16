@@ -90,7 +90,8 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         - Observed vehicles on nearby lanes (velocity, distance to
           intersection, RL or not)
         - Local edge information (density, avg speed)
-        - Ego vehicle observations (speed, max speed, distance to intersection)
+        - Ego vehicle observations (speed, max speed, headway, tailway,
+          distance to intersection)
         """
         # traffic_light_obs = 3 * (1 + self.num_local_lights) * \
         #                     self.traffic_lights
@@ -100,7 +101,7 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
             high=1,
             shape=(3 * self.num_local_edges * self.num_observed +
                    2 * self.num_local_edges +
-                   4,
+                   5,
                    # traffic_light_obs,
                    ),
             dtype=np.float32)
@@ -167,10 +168,13 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
             ego_max_speed = self.k.vehicle.get_max_speed(rl_id) / max_speed
             ego_headway = min(self.k.vehicle.get_headway(rl_id),
                               max_dist) / max_dist
+            # map no tailway (-1000) to 1.0
+            ego_tailway = min(np.abs(self.k.vehicle.get_tailway(rl_id)),
+                              max_dist) / max_dist
             ego_dist_to_intersec = (self.k.scenario.edge_length(
                 self.k.vehicle.get_edge(rl_id)) - self.k.vehicle.get_position(
                 rl_id)) / max_dist
-            ego_obs = [ego_speed, ego_max_speed, ego_headway,
+            ego_obs = [ego_speed, ego_max_speed, ego_headway, ego_tailway,
                        ego_dist_to_intersec]
 
             edge = self.k.vehicle.get_edge(rl_id)

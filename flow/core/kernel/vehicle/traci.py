@@ -225,8 +225,10 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id]["leader"] = headway[0]
                 try:
                     self.__vehicles[headway[0]]["follower"] = veh_id
-                except KeyError:
-                    pass
+                    self.__vehicles[headway[0]]["tailway"] = headway[
+                                                                 1] + min_gap
+                except KeyError as e:
+                    print('Error:', e)
 
         # update the sumo observations variable
         self.__sumo_obs = vehicle_obs.copy()
@@ -554,6 +556,12 @@ class TraCIVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_headway(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("headway", error)
+
+    def get_tailway(self, veh_id, error=-1001):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_tailway(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("tailway", error)
 
     def get_last_lc(self, veh_id, error=-1001):
         """See parent class."""
