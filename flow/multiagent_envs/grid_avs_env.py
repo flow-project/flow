@@ -155,7 +155,7 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
                 density += [0]
                 velocity_avg += [0]
         density += [0]  # for the unfound edges
-        velocity_avg += [0]  # for the unfound edges
+        velocity_avg += [1]  # for the unfound edges
         density = np.array(density)
         velocity_avg = np.array(velocity_avg)
 
@@ -222,8 +222,8 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
 
                 if len(observed_ids) < self.num_observed:
                     diff = self.num_observed - len(observed_ids)
-                    local_speeds.extend([0] * diff)
-                    local_dists_to_intersec.extend([0] * diff)
+                    local_speeds.extend([1] * diff)
+                    local_dists_to_intersec.extend([1] * diff)
                     local_veh_types.extend([0] * diff)
 
             observation = np.array(np.concatenate(
