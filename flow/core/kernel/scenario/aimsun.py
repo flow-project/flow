@@ -27,24 +27,9 @@ class AimsunKernelScenario(KernelScenario):
     network : flow.scenarios.Scenario
         an object containing relevant network-specific features such as the
         locations and properties of nodes and edges in the network
-    _edges : dict
-        a dictionary containing all edges in the scenario
-    _edge_list : list <str>
-        list of edges
-    _junction_list : list <str>
-        list of junctions
-    __max_speed : float
-        maximum achievable speed on any edge in the network
-    __length : float
-        length of the network, or the portion of the network in which cars
-        are meant to be distributed
     rts : dict
         specifies routes vehicles can take. See the parent class for
         description of the attribute.
-    _edge_flow2aimsun : dict
-        dictionary for edge mapping from edges names in Flow to Aimsun
-    _edge_aimsun2flow : dict
-        dictionary for edge mapping from edges names in Aimsun to Flow
     aimsun_proc : subprocess.Popen
         an object which is used to start or shut down Aimsun from the script
     """
