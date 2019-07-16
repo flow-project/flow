@@ -15,6 +15,13 @@ git:
   depth: 1
 
 before_install:
+  # install and run pep8 and docstyle tests
+  - pip install pydocstyle
+  - pydocstyle --convention numpy
+  - pip install flake8 .
+  - flake8 --version
+  - flake8 --show-source
+
   # Setup conda (needed for opencv, ray dependency)
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
@@ -41,17 +48,10 @@ before_install:
   - ls ../
 
 install:
-  - pip install flake8 .
   - pip install coveralls
   - pip install nose
   - pip install matplotlib
   - pip install jupyter
-  - pip install pydocstyle
-
-before_script:
-  - flake8 --version
-  - flake8 --show-source
-  - pydocstyle --convention numpy
 
 script:
   - python setup.py install
