@@ -149,9 +149,10 @@ class TrafficLightParams:
         return self.__tls_properties
 
     def actuated_default(self):
-        """
-        Return the default values to be used for the scenario
-        for a system where all junctions are actuated traffic lights.
+        """Return the default values for an actuated scenario.
+
+        An actuated scenario is a scenario for a system where
+        all junctions are actuated traffic lights.
 
         Returns
         -------
@@ -167,22 +168,22 @@ class TrafficLightParams:
             "duration": "31",
             "minDur": "8",
             "maxDur": "45",
-            "state": "GGGrrrGGGrrr"
+            "state": "GrGr"
         }, {
             "duration": "6",
             "minDur": "3",
             "maxDur": "6",
-            "state": "yyyrrryyyrrr"
+            "state": "yryr"
         }, {
             "duration": "31",
             "minDur": "8",
             "maxDur": "45",
-            "state": "rrrGGGrrrGGG"
+            "state": "rGrG"
         }, {
             "duration": "6",
             "minDur": "3",
             "maxDur": "6",
-            "state": "rrryyyrrryyy"
+            "state": "ryry"
         }]
 
         return {
@@ -344,6 +345,13 @@ class VehicleParams:
         self.types.append({"veh_id": veh_id, "type_params": type_params})
 
     def get_type(self, veh_id):
+        """Return the type of a specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str
+            vehicle ID whose type the user is querying
+        """
         return self.__vehicles[veh_id]["type"]
 
 
@@ -460,6 +468,7 @@ class AimsunParams(SimParams):
         the objects contained in this subnetwork. If set to None or if the
         specified subnetwork does not exist, the whole network will be loaded.
     """
+
     def __init__(self,
                  sim_step=0.1,
                  render=False,
@@ -815,8 +824,8 @@ class SumoCarFollowingParams:
     def __init__(
             self,
             speed_mode='right_of_way',
-            accel=1.0,
-            decel=1.5,
+            accel=2.6,
+            decel=4.5,
             sigma=0.5,
             tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
             min_gap=2.5,
@@ -1086,22 +1095,22 @@ class InFlows:
 
         Parameters
         ----------
-        veh_type: str
+        veh_type : str
             type of vehicles entering the edge, must match one of the types set
             in the Vehicles class.
-        edge: str
+        edge : str
             starting edge for vehicles in this inflow.
         name : str, optional
             prefix for inflow vehicles
-        begin: float, optional
+        begin : float, optional
             see Note
-        end: float, optional
+        end : float, optional
             see Note
-        vehs_per_hour: float, optional
+        vehs_per_hour : float, optional
             see vehsPerHour in Note
-        probability: float, optional
+        probability : float, optional
             see Note
-        kwargs: dict, optional
+        kwargs : dict, optional
             see Note
 
         Note
@@ -1110,7 +1119,6 @@ class InFlows:
         probability, number, as well as other vehicle type and routing
         parameters that may be added via \*\*kwargs, refer to:
         http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
-
         """
         # check for deprecations (vehsPerHour)
         if "vehsPerHour" in kwargs:

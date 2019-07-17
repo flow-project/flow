@@ -28,6 +28,7 @@ import ray
 from ray.tune import run_experiments
 
 os.environ['TEST_FLAG'] = 'True'
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 
 class TestSumoExamples(unittest.TestCase):
@@ -56,10 +57,12 @@ class TestSumoExamples(unittest.TestCase):
 
     def test_grid(self):
         """Verifies that examples/sumo/grid.py is working."""
-        # import the experiment variable from the example
-        exp = grid_example(render=False)
+        # test the example in the absence of inflows
+        exp = grid_example(render=False, use_inflows=False)
+        exp.run(1, 5)
 
-        # run the experiment for a few time steps to ensure it doesn't fail
+        # test the example in the presence of inflows
+        exp = grid_example(render=False, use_inflows=True)
         exp.run(1, 5)
 
     def test_highway(self):
@@ -132,7 +135,7 @@ class TestSumoExamples(unittest.TestCase):
 
     def test_density_exp(self):
         """Verifies that examples/sumo/density_exp.py is working."""
-        _ = run_bottleneck.remote(100, 1, 10, render=False)
+        run_bottleneck.remote(100, 1, 10, render=False)
 
 
 class TestRllibExamples(unittest.TestCase):
@@ -155,7 +158,12 @@ class TestRllibExamples(unittest.TestCase):
         self.run_exp(alg_run, env_name, config)
 
     def test_green_wave(self):
-        alg_run, env_name, config = green_wave_setup()
+        # test the example in the absence of inflows
+        alg_run, env_name, config = green_wave_setup(use_inflows=False)
+        self.run_exp(alg_run, env_name, config)
+
+        # test the example in the presence of inflows
+        alg_run, env_name, config = green_wave_setup(use_inflows=True)
         self.run_exp(alg_run, env_name, config)
 
     def test_stabilizing_highway(self):
@@ -178,7 +186,8 @@ class TestRllibExamples(unittest.TestCase):
         alg_run, env_name, config = multi_ring_setup()
         self.run_exp(alg_run, env_name, config)
 
-    def run_exp(self, alg_run, env_name, config):
+    @staticmethod
+    def run_exp(alg_run, env_name, config):
         try:
             ray.init(num_cpus=1)
         except Exception:

@@ -171,14 +171,12 @@ vehicles.add(
     acceleration_controller=(SimCarFollowingController, {}),
     car_following_params=SumoCarFollowingParams(
         minGap=2.5,
+        decel=7.5,  # avoid collisions at emergency stops
         max_speed=V_ENTER,
         speed_mode="all_checks",
     ),
     routing_controller=(GridRouter, {}),
     num_vehicles=tot_cars)
-
-initial_config, net_params = \
-    get_non_flow_params(V_ENTER, additional_net_params)
 
 flow_params = dict(
     # name of the experiment
@@ -206,20 +204,54 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
-    net=net_params,
+    # scenario's documentation or ADDITIONAL_NET_PARAMS component). This is
+    # filled in by the setup_exps method below.
+    net=None,
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/
-    # reset (see flow.core.params.InitialConfig)
-    initial=initial_config,
+    # reset (see flow.core.params.InitialConfig). This is filled in by the
+    # setup_exps method below.
+    initial=None,
 )
 
 
-def setup_exps():
+def setup_exps(use_inflows=False):
+    """Return the relevant components of an RLlib experiment.
+
+    Parameters
+    ----------
+    use_inflows : bool, optional
+        set to True if you would like to run the experiment with inflows of
+        vehicles from the edges, and False otherwise
+
+    Returns
+    -------
+    str
+        name of the training algorithm
+    str
+        name of the gym environment to be trained
+    dict
+        training configuration parameters
+    """
+    # collect the initialization and network-specific parameters based on the
+    # choice to use inflows or not
+    if use_inflows:
+        initial_config, net_params = get_flow_params(
+            col_num=N_COLUMNS,
+            row_num=N_ROWS,
+            additional_net_params=additional_net_params)
+    else:
+        initial_config, net_params = get_non_flow_params(
+            enter_speed=V_ENTER,
+            add_net_params=additional_net_params)
+
+    # add the new parameters to flow_params
+    flow_params['initial'] = initial_config
+    flow_params['net'] = net_params
 
     alg_run = 'PPO'
 
