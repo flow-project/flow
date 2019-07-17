@@ -166,7 +166,9 @@ class BCMController(BaseController):
         return self.k_d * (headway - footway) + \
             self.k_v * ((lead_vel - this_vel) - (this_vel - trail_vel)) + \
             self.k_c * (self.v_des - this_vel)
-class LACController(BaseController): 
+
+
+class LACController(BaseController):
     """Linear Adaptive Cruise Control.
 
     Attributes
@@ -192,14 +194,14 @@ class LACController(BaseController):
         to no failsafe (None)
     """
 
-    def __init__(self, 
-                 veh_id, 
+    def __init__(self,
+                 veh_id,
                  car_following_params,
                  k_1=0.3,
                  k_2=0.4,
                  h=1,
-                 tau=0.1,  
-                 a=0, 
+                 tau=0.1,
+                 a=0,
                  time_delay=0.0,
                  noise=0,
                  fail_safe=None):
@@ -212,29 +214,27 @@ class LACController(BaseController):
             fail_safe=fail_safe,
             noise=noise)
 
-        self.veh_id = veh_id 
-        self.k_1 = k_1 
-        self.k_2 = k_2 
+        self.veh_id = veh_id
+        self.k_1 = k_1
+        self.k_2 = k_2
         self.h = h
         self.tau = tau
-        self.a = a 
-        
+        self.a = a
+
     def get_accel(self, env):
-    
+        """See parent class."""
         lead_id = env.k.vehicle.get_leader(self.veh_id)
-        lead_vel = env.k.vehicle.get_speed(lead_id) 
+        lead_vel = env.k.vehicle.get_speed(lead_id)
         this_vel = env.k.vehicle.get_speed(self.veh_id)
-        headway = env.k.vehicle.get_headway(self.veh_id) 
-        L = env.k.vehicle.get_length(self.veh_id) 
-        ex = headway - L - (self.h)*(this_vel)
-        ev = lead_vel - this_vel 
-        u = self.k_1*ex + self.k_2*ev 
+        headway = env.k.vehicle.get_headway(self.veh_id)
+        L = env.k.vehicle.get_length(self.veh_id)
+        ex = headway - L - self.h * this_vel
+        ev = lead_vel - this_vel
+        u = self.k_1*ex + self.k_2*ev
         a_dot = -(self.a/self.tau) + (u/self.tau)
-        self.a = a_dot*env.sim_step + self.a 
+        self.a = a_dot*env.sim_step + self.a
 
         return self.a
-
-        return self.a 
 
 
 class OVMController(BaseController):
@@ -451,10 +451,7 @@ class IDMController(BaseController):
         lead_id = env.k.vehicle.get_leader(self.veh_id)
         h = env.k.vehicle.get_headway(self.veh_id)
 
-        # negative headways may be registered by sumo at intersections/
-        # junctions. Setting them to 0 causes vehicles to not move; therefore,
-        # we maintain these negative headways to let sumo control the dynamics
-        # as it sees fit at these points.
+        # in order to deal with ZeroDivisionError
         if abs(h) < 1e-3:
             h = 1e-3
 

@@ -38,14 +38,14 @@ def grid0_baseline(num_runs, render=True):
     # define the traffic light logic
     tl_logic = TrafficLightParams(baseline=False)
 
-    phases = [{'duration': '31', 'minDur': '5', 'maxDur': '45',
-               'state': 'GGGrrrGGGrrr'},
-              {'duration': '2', 'minDur': '2', 'maxDur': '2',
-               'state': 'yyyrrryyyrrr'},
-              {'duration': '31', 'minDur': '5', 'maxDur': '45',
-               'state': 'rrrGGGrrrGGG'},
-              {'duration': '2', 'minDur': '2', 'maxDur': '2',
-               'state': 'rrryyyrrryyy'}]
+    phases = [{"duration": "31", "minDur": "8", "maxDur": "45",
+               "state": "GrGr"},
+              {"duration": "6", "minDur": "3", "maxDur": "6",
+               "state": "yryr"},
+              {"duration": "31", "minDur": "8", "maxDur": "45",
+               "state": "rGrG"},
+              {"duration": "6", "minDur": "3", "maxDur": "6",
+               "state": "ryry"}]
 
     for i in range(N_ROWS * N_COLUMNS):
         tl_logic.add('center'+str(i), tls_type='actuated', phases=phases,

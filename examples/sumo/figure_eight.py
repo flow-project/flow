@@ -41,6 +41,7 @@ def figure_eight_example(render=None):
         routing_controller=(ContinuousRouter, {}),
         car_following_params=SumoCarFollowingParams(
             speed_mode="obey_safe_speed",
+            decel=1.5,
         ),
         initial_speed=0,
         num_vehicles=14)

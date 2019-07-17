@@ -36,14 +36,21 @@ from flow.utils.rllib import get_rllib_pkl
 
 EXAMPLE_USAGE = """
 example usage:
-    python ./visualizer_rllib.py /tmp/ray/result_dir 1
+    python ./visualizer_rllib.py /ray_results/experiment_dir/result_dir 1
 
 Here the arguments are:
-1 - the number of the checkpoint
+1 - the path to the simulation results
+2 - the number of the checkpoint
 """
 
 
 def visualizer_rllib(args):
+    """Visualizer for RLlib experiments.
+
+    This function takes args (see function create_parser below for
+    more detailed information on what information can be fed to this
+    visualizer), and renders the experiment associated with it.
+    """
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
         else args.result_dir[:-1]
 
@@ -265,6 +272,8 @@ def visualizer_rllib(args):
     # if we wanted to save the render, here we create the movie
     if args.save_render:
         dirs = os.listdir(os.path.expanduser('~')+'/flow_rendering')
+        # Ignore hidden files
+        dirs = [d for d in dirs if d[0] != '.']
         dirs.sort(key=lambda date: datetime.strptime(date, "%Y-%m-%d-%H%M%S"))
         recent_dir = dirs[-1]
         # create the movie
@@ -279,6 +288,7 @@ def visualizer_rllib(args):
 
 
 def create_parser():
+    """Create the parser to capture CLI arguments."""
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description='[Flow] Evaluates a reinforcement learning agent '
@@ -300,7 +310,7 @@ def create_parser():
              'class registered in the tune registry. '
              'Required for results trained with flow-0.2.0 and before.')
     parser.add_argument(
-        '--num-rollouts',
+        '--num_rollouts',
         type=int,
         default=1,
         help='The number of rollouts to visualize.')
