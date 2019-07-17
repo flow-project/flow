@@ -462,8 +462,7 @@ class TrafficLightGridEnv(Env):
             self.k.vehicle.get_ids_by_edge(edges),
             key=self.get_distance_to_intersection)
 
-        # return the ids of the k vehicles closest to the intersection
-        return veh_ids_ordered[:k]
+        return veh_ids_ordered[:k] + [""] * max(0, k - len(veh_ids_ordered))
 
 
 class PO_TrafficLightGridEnv(TrafficLightGridEnv):
