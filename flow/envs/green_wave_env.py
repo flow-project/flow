@@ -7,8 +7,8 @@ through an n x m grid.
 import numpy as np
 import re
 
-from gym.spaces.discrete import Discrete
 from gym.spaces.box import Box
+from gym.spaces.discrete import Discrete
 from gym.spaces.tuple_space import Tuple
 
 from flow.core import rewards
@@ -205,8 +205,8 @@ class TrafficLightGridEnv(Env):
             rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
             rl_mask = [0] * (self.num_traffic_lights - len(rl_mask)) + rl_mask
         else:
-            # convert values less than 0.5 to zero and above to 1. 0's indicate
-            # that should not switch the direction
+            # convert values less than 0.0 to zero and above to 1. 0's indicate
+            # that we should not switch the direction
             rl_mask = rl_actions > 0.0
 
         for i, action in enumerate(rl_mask):
@@ -290,9 +290,9 @@ class TrafficLightGridEnv(Env):
 
         The numbers are assigned along the lowest column, then the lowest row,
         then the second lowest column, etc. Left goes before right, top goes
-        before bot.
+        before bottom.
 
-        The values are are zero indexed.
+        The values are zero indexed.
 
         Parameters
         ----------
@@ -334,6 +334,53 @@ class TrafficLightGridEnv(Env):
                     return edge_num if edge_type == 'left' else edge_num + 1
         else:
             return 0
+
+    def _get_relative_node(self, agent_id, direction):
+        """Yield node number of traffic light agent in a given direction.
+
+        For example, the nodes in a grid with 2 rows and 3 columns are
+        indexed as follows:
+
+            |     |     |
+        --- 3 --- 4 --- 5 ---
+            |     |     |
+        --- 0 --- 1 --- 2 ---
+            |     |     |
+
+        See flow.scenarios.grid for more information.
+
+        Example of function usage:
+        - Seeking the "top" direction to ":center0" would return 3.
+        - Seeking the "bottom" direction to ":center0" would return -1.
+
+        :param agent_id: agent id of the form ":center#"
+        :param direction: top, bottom, left, right
+        :return: node number
+        """
+        ID_IDX = 1
+        agent_id_num = int(agent_id.split("center")[ID_IDX])
+        if direction == "top":
+            node = agent_id_num + self.cols
+            if node >= self.cols * self.rows:
+                node = -1
+        elif direction == "bottom":
+            node = agent_id_num - self.cols
+            if node < 0:
+                node = -1
+        elif direction == "left":
+            if agent_id_num % self.cols == 0:
+                node = -1
+            else:
+                node = agent_id_num - 1
+        elif direction == "right":
+            if agent_id_num % self.cols == self.cols - 1:
+                node = -1
+            else:
+                node = agent_id_num + 1
+        else:
+            raise NotImplementedError
+
+        return node
 
     def additional_command(self):
         """See parent class.
@@ -430,10 +477,9 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
       observed in the state space; defaults to 2
 
     States
-        An observation is the number of observe vehicles in each intersection
-        closest to the traffic lights, a
-        number uniquely identifying which edge the vehicle is on, and the speed
-        of the vehicle.
+        An observation is the number of observed vehicles in each intersection
+        closest to the traffic lights, a number uniquely identifying which
+        edge the vehicle is on, and the speed of the vehicle.
 
     Actions
         The action space consist of a list of float variables ranging from 0-1
@@ -475,12 +521,13 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         """State space that is partially observed.
 
         Velocities, distance to intersections, edge number (for nearby
-        vehicles), and traffic light state.
+        vehicles) from each direction, edge information, and traffic light
+        state.
         """
         tl_box = Box(
             low=0.,
             high=1,
-            shape=(12 * self.num_observed * self.num_traffic_lights +
+            shape=(3 * 4 * self.num_observed * self.num_traffic_lights +
                    2 * len(self.k.scenario.get_edge_list()) +
                    3 * self.num_traffic_lights,),
             dtype=np.float32)
@@ -539,12 +586,11 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         for edge in self.k.scenario.get_edge_list():
             ids = self.k.vehicle.get_ids_by_edge(edge)
             if len(ids) > 0:
+                # TODO(cathywu) Why is there a 5 here?
                 density += [5 * len(ids) / self.k.scenario.edge_length(edge)]
-                velocity_avg += [
-                    np.mean(
-                        [self.k.vehicle.get_speed(veh_id)
-                         for veh_id in ids]) / max_speed
-                ]
+                velocity_avg += [np.mean(
+                    [self.k.vehicle.get_speed(veh_id) for veh_id in
+                     ids]) / max_speed]
             else:
                 density += [0]
                 velocity_avg += [0]
