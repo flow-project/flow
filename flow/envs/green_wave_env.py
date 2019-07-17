@@ -200,8 +200,9 @@ class TrafficLightGridEnv(Env):
             rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
             rl_mask = [0] * (self.num_traffic_lights - len(rl_mask)) + rl_mask
         else:
-            # convert values less than 0.5 to zero and above to 1. 0's indicate
-            # that should not switch the direction
+            # convert values less than 0 to zero and above 0 to 1. 0 indicates
+            # that should not switch the direction, and 1 indicates that switch
+            # should happen
             rl_mask = rl_actions > 0.0
 
         for i, action in enumerate(rl_mask):
