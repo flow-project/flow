@@ -464,7 +464,6 @@ class TrafficLightGridEnv(Env):
 
         Usage
         -----
-
         For example, consider the following network, composed of 4 edges
         whose ids are "edge0", "edge1", "edge2" and "edge3", the numbers
         being vehicles all headed towards intersection x. The id of the vehicle
@@ -500,7 +499,6 @@ class TrafficLightGridEnv(Env):
 
         Returns
         -------
-
         The returned list contains n * k vehicle ids where n is the number of
         edges given as parameters.
 
