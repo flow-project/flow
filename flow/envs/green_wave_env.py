@@ -433,7 +433,7 @@ class TrafficLightGridEnv(Env):
                 pos="0",
                 speed="max")
 
-    def k_closest_to_intersection(self, edges, k):
+    def k_closest_to_intersection(self, edges, k, padding=False):
         """Return the vehicle IDs of the k vehicles that are the closest to an
         intersection in each edge.
 
@@ -446,7 +446,22 @@ class TrafficLightGridEnv(Env):
         closest to the end of their edges.
 
         If there are less than k vehicles on an edge, the function performs
-        padding by adding empty strings "" instead of vehicle ids.
+        padding by adding empty strings "" instead of vehicle ids if the
+        padding parameter is set to True
+
+        Parameters
+        ----------
+        edges : str | str list
+            id of an edge or list of edge ids
+        k : int (> 0)
+            number of vehicles to consider on each edge
+        padding : bool (default False)
+            if there are less than k vehicles on an edge, perform padding by
+            adding empty strings "" instead of vehicle ids if the padding
+            parameter is set to True (note: leaving padding to False while
+            passing a list of several edges as parameter can lead to
+            information loss since you will not know which edge, if any,
+            contains less than k vehicles)
 
         Usage
         -----
@@ -474,9 +489,13 @@ class TrafficLightGridEnv(Env):
         ["veh6", "veh5", "veh4", "veh3"]
 
         >>> k_closest_to_intersection("edge0", 8)
+        ["veh6", "veh5", "veh4", "veh3", "veh2", "veh1"]
+
+        >>> k_closest_to_intersection("edge0", 8, padding=True)
         ["veh6", "veh5", "veh4", "veh3", "veh2", "veh1", "", ""]
 
-        >>> k_closest_to_intersection(["edge0", "edge1", "edge2", "edge3"], 3)
+        >>> k_closest_to_intersection(["edge0", "edge1", "edge2", "edge3"], 3,
+                                      padding=True)
         ["veh6", "veh5", "veh4", "veh8", "veh7", "", "", "", "", "veh9",
          "veh10", "veh11"]
 
@@ -508,8 +527,9 @@ class TrafficLightGridEnv(Env):
             key=self.get_distance_to_intersection)
 
         # return the ids of the k vehicles closest to the intersection,
-        # with ""-padding.
-        return veh_ids_ordered[:k] + [""] * max(0, k - len(veh_ids_ordered))
+        # potentially with ""-padding.
+        pad_lst = [""] * max(0, k - len(veh_ids_ordered)) if padding else []
+        return veh_ids_ordered[:k] + pad_lst
 
 
 class PO_TrafficLightGridEnv(TrafficLightGridEnv):
