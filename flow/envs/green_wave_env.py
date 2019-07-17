@@ -436,15 +436,62 @@ class TrafficLightGridEnv(Env):
     # FIXME it doesn't make sense to pass a list of edges since the function
     # returns a flattened list with no padding, so we would lose information
     def k_closest_to_intersection(self, edges, k):
-        """Return the vehicle IDs of k closest vehicles to an intersection.
+        """Return the vehicle IDs of the k vehicles that are the closest to an
+        intersection in each edge.
 
         For each edge in edges, return the ids (veh_id) of the k vehicles
         in edge that are closest to an intersection (the intersection they
         are heading towards).
 
-        - Performs no check on whether or not edge is going towards an
-          intersection or not.
-        - Does no padding if there are less than k vehicles on an edge.
+        This function performs no check on whether or not edges are going
+        towards an intersection or not, it just gets the vehicles that are
+        closest to the end of their edges.
+
+        If there are less than k vehicles on an edge, the function performs
+        padding by adding empty strings "" instead of vehicle ids.
+
+        Usage
+        -----
+
+        For example, consider the following network, composed of 4 edges
+        whose ids are "edge0", "edge1", "edge2" and "edge3", the numbers
+        being vehicles all headed towards intersection x. The id of the vehicle
+        with number n is "veh{n}" (edge "veh0", "veh1"...).
+
+                            edge1
+                            |   |
+                            | 7 |
+                            | 8 |
+               -------------|   |-------------
+        edge0    1 2 3 4 5 6  x                 edge2
+               -------------|   |-------------
+                            | 9 |
+                            | 10|
+                            | 11|
+                            edge3
+
+        And consider the following example calls on the previous network:
+
+        >>> k_closest_to_intersection("edge0", 4)
+        ["veh6", "veh5", "veh4", "veh3"]
+
+        >>> k_closest_to_intersection("edge0", 8)
+        ["veh6", "veh5", "veh4", "veh3", "veh2", "veh1", "", ""]
+
+        >>> k_closest_to_intersection(["edge0", "edge1", "edge2", "edge3"], 3)
+        ["veh6", "veh5", "veh4", "veh8", "veh7", "", "", "", "", "veh9",
+         "veh10", "veh11"]
+
+        Returns
+        -------
+
+        The returned list contains n * k vehicle ids where n is the number of
+        edges given as parameters.
+
+        Raises
+        ------
+        ValueError
+            if k < 0
         """
         if k < 0:
             raise ValueError("Function k_closest_to_intersection called with"
@@ -453,15 +500,17 @@ class TrafficLightGridEnv(Env):
 
         if isinstance(edges, list):
             ids = [self.k_closest_to_intersection(edge, k) for edge in edges]
-            # flatten the list before returning it
+            # flatten the list and return it
             return [veh_id for sublist in ids for veh_id in sublist]
 
         # get the ids of all the vehicles on the edge 'edges' ordered by
-        # increasing distance to intersection
+        # increasing distance to end of edge (intersection)
         veh_ids_ordered = sorted(
             self.k.vehicle.get_ids_by_edge(edges),
             key=self.get_distance_to_intersection)
 
+        # return the ids of the k vehicles closest to the intersection,
+        # with ""-padding.
         return veh_ids_ordered[:k] + [""] * max(0, k - len(veh_ids_ordered))
 
 
