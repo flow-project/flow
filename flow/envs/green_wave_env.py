@@ -434,8 +434,7 @@ class TrafficLightGridEnv(Env):
                 speed="max")
 
     def k_closest_to_intersection(self, edges, k, padding=False):
-        """Return the vehicle IDs of the k vehicles that are the closest to an
-        intersection in each edge.
+        """Return the vehicle IDs of the k vehicles closest to an intersection.
 
         For each edge in edges, return the ids (veh_id) of the k vehicles
         in edge that are closest to an intersection (the intersection they
