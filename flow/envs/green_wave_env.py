@@ -499,8 +499,9 @@ class TrafficLightGridEnv(Env):
 
         Returns
         -------
-        If n is the number of edges given as parameters, then the returned list
-        contains n * num_closest vehicle IDs.
+        str list
+            If n is the number of edges given as parameters, then the returned
+            list contains n * num_closest vehicle IDs.
 
         Raises
         ------
