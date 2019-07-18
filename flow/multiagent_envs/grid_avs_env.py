@@ -281,7 +281,7 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
                 curr_speed = self.k.vehicle.get_speed(rl_id)
                 # control cost, also penalizes over-acceleration
                 rew_speed = -0.01 * np.abs(curr_speed - max_speed)
-                rews[rl_id] = rew_delay + rew_still - rew_speed
+                rews[rl_id] = rew_delay + rew_still + rew_speed
             else:
                 rews[rl_id] = rew_delay + rew_still
         return rews
