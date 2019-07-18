@@ -525,7 +525,7 @@ class TrafficLightGridEnv(Env):
 
         # return the ids of the num_closest vehicles closest to the
         # intersection, potentially with ""-padding.
-        pad_lst = [""] * max(0, num_closest - len(veh_ids_ordered))
+        pad_lst = [""] * (num_closest - len(veh_ids_ordered))
         return veh_ids_ordered[:num_closest] + (pad_lst if padding else [])
 
 
