@@ -433,8 +433,8 @@ class TrafficLightGridEnv(Env):
                 pos="0",
                 speed="max")
 
-    def k_closest_to_intersection(self, edges, k, padding=False):
-        """Return the vehicle IDs of the k vehicles closest to an intersection.
+    def get_closest_to_intersection(self, edges, k, padding=False):
+        """Return the IDs of the vehicles that are closest to an intersection.
 
         For each edge in edges, return the ids (veh_id) of the k vehicles
         in edge that are closest to an intersection (the intersection they
@@ -483,17 +483,17 @@ class TrafficLightGridEnv(Env):
 
         And consider the following example calls on the previous network:
 
-        >>> k_closest_to_intersection("edge0", 4)
+        >>> get_closest_to_intersection("edge0", 4)
         ["veh6", "veh5", "veh4", "veh3"]
 
-        >>> k_closest_to_intersection("edge0", 8)
+        >>> get_closest_to_intersection("edge0", 8)
         ["veh6", "veh5", "veh4", "veh3", "veh2", "veh1"]
 
-        >>> k_closest_to_intersection("edge0", 8, padding=True)
+        >>> get_closest_to_intersection("edge0", 8, padding=True)
         ["veh6", "veh5", "veh4", "veh3", "veh2", "veh1", "", ""]
 
-        >>> k_closest_to_intersection(["edge0", "edge1", "edge2", "edge3"], 3,
-                                      padding=True)
+        >>> get_closest_to_intersection(["edge0", "edge1", "edge2", "edge3"],
+                                         3, padding=True)
         ["veh6", "veh5", "veh4", "veh8", "veh7", "", "", "", "", "veh9",
          "veh10", "veh11"]
 
@@ -513,7 +513,8 @@ class TrafficLightGridEnv(Env):
                              .format(k))
 
         if isinstance(edges, list):
-            ids = [self.k_closest_to_intersection(edge, k) for edge in edges]
+            ids = [self.get_closest_to_intersection(edge, k)
+                   for edge in edges]
             # flatten the list and return it
             return [veh_id for sublist in ids for veh_id in sublist]
 
