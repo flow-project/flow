@@ -462,33 +462,49 @@ class TrafficLightGridEnv(Env):
     def _get_relative_node(self, agent_id, direction):
         """Yield node number of traffic light agent in a given direction.
 
-        :param agent_id: agent id of the form "center#"
+        For example, the nodes in a grid with 2 rows and 3 columns are
+        indexed as follows:
+
+            |     |     |
+        --- 3 --- 4 --- 5 ---
+            |     |     |
+        --- 0 --- 1 --- 2 ---
+            |     |     |
+
+        See flow.scenarios.grid for more information.
+
+        Example of function usage:
+        - Seeking the "top" direction to ":center0" would return 3.
+        - Seeking the "bottom" direction to ":center0" would return -1.
+
+        :param agent_id: agent id of the form ":center#"
         :param direction: top, bottom, left, right
-        :return:
+        :return: node number
         """
-        agent_id_num = int(agent_id.split("center")[1][0])
+        ID_IDX = 1
+        agent_id_num = int(agent_id.split("center")[ID_IDX])
         if direction == "top":
-            edge = agent_id_num + self.cols
-            if edge >= self.cols * self.rows:
-                edge = -1
+            node = agent_id_num + self.cols
+            if node >= self.cols * self.rows:
+                node = -1
         elif direction == "bottom":
-            edge = agent_id_num - self.cols
-            if edge < 0:
-                edge = -1
+            node = agent_id_num - self.cols
+            if node < 0:
+                node = -1
         elif direction == "left":
             if agent_id_num % self.cols == 0:
-                edge = -1
+                node = -1
             else:
-                edge = agent_id_num - 1
+                node = agent_id_num - 1
         elif direction == "right":
             if agent_id_num % self.cols == self.cols - 1:
-                edge = -1
+                node = -1
             else:
-                edge = agent_id_num + 1
+                node = agent_id_num + 1
         else:
             raise NotImplementedError
 
-        return edge
+        return node
 
     def additional_command(self):
         """See parent class.
