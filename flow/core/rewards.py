@@ -2,6 +2,8 @@
 
 import numpy as np
 
+from flow.utils.flow_warnings import deprecated
+
 
 def desired_velocity(env, fail=False, edge_list=None):
     r"""Encourage proximity to a desired velocity.
@@ -177,7 +179,7 @@ def min_delay_unscaled(env):
     return cost / (env.k.vehicle.num_vehicles + eps)
 
 
-def penalize_standstill(env, gain=1):
+def penalize_standstill(env, gain=1, threshold=0):
     """Reward function that penalizes vehicle standstill.
 
     Is it better for this to be:
@@ -199,11 +201,12 @@ def penalize_standstill(env, gain=1):
     """
     veh_ids = env.k.vehicle.get_ids()
     vel = np.array(env.k.vehicle.get_speed(veh_ids))
-    num_standstill = len(vel[vel == 0])
+    num_standstill = len(vel[vel <= threshold])
     penalty = gain * num_standstill
     return -penalty
 
 
+@deprecated("Use rewards.penalize_standstill instead.")
 def penalize_near_standstill(env, thresh=0.3, gain=1):
     """Reward function which penalizes vehicles at a low velocity.
 
