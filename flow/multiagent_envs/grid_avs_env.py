@@ -265,19 +265,25 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         if rl_actions is None:
             return {}
 
-        if self.env_params.evaluate:
-            rew = -rewards.min_delay_unscaled(self)
-        else:
-            rew = -rewards.min_delay_unscaled(self) \
-                  + rewards.penalize_standstill(self, gain=0.2)
+        rew_delay = -rewards.min_delay_unscaled(self)
+        rew_still = rewards.penalize_standstill(self, gain=0.2, threshold=2.0)
 
-        # each agent receives reward normalized by number of lights
-        rew /= self.num_traffic_lights
+        # each agent receives reward normalized by number of RL agents
+        # rew /= num_agents
 
         rews = {}
-        # for rl_id in rl_actions.keys():
         for rl_id in self.k.vehicle.get_rl_ids():
-            rews[rl_id] = rew
+            if self.env_params.evaluate:
+                rews[rl_id] = rew_delay
+            elif rl_id in rl_actions:
+                max_speed = self.k.vehicle.get_max_speed(rl_id)
+                # Note: rl_action has already been applied
+                curr_speed = self.k.vehicle.get_speed(rl_id)
+                # control cost, also penalizes over-acceleration
+                rew_speed = -0.01 * np.abs(curr_speed - max_speed)
+                rews[rl_id] = rew_delay + rew_still - rew_speed
+            else:
+                rews[rl_id] = rew_delay + rew_still
         return rews
 
     def additional_command(self):
