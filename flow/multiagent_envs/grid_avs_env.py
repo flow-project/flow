@@ -248,10 +248,14 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
             if edge:
                 # If in outer lanes, on a controlled edge, in a controlled lane
                 if edge[0] != ':' and edge in self.controlled_edges:
+                    speed_curr = self.k.vehicle.get_speed(rl_id)
+                    # keep max close to current speed
+                    # FIXME(cathywu) generalize this
+                    local_max = speed_curr + 5
                     max_speed_curr = self.k.vehicle.get_max_speed(rl_id)
-                    next_max = np.clip(max_speed_curr + rl_action, 0.01, 23.0)
+                    next_max = np.clip(max_speed_curr + rl_action[0], 0.01,
+                                       local_max)
                     self.k.vehicle.set_max_speed(rl_id, next_max)
-
                 else:
                     # set the desired velocity of the controller to the default
                     self.k.vehicle.set_max_speed(rl_id, 23.0)
