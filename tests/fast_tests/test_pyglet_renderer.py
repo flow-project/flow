@@ -1,4 +1,4 @@
-from src.pyglet_renderer import PygletRenderer as Renderer
+from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
 import numpy as np
 import os
 import unittest
@@ -8,9 +8,7 @@ import ctypes
 class TestPygletRenderer(unittest.TestCase):
     """Tests pyglet_renderer"""
     def setUp(self):
-        # Ring road network polygons
-
-        path = os.path.dirname(__file__)
+        path = os.path.dirname(os.path.abspath(__file__))[:-11]
         self.data = np.load(
             '{}/data/renderer_data/replay.npy'.format(path),
             allow_pickle=True
