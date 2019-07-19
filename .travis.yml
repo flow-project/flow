@@ -49,10 +49,13 @@ before_install:
 
 install:
   - sudo apt-get update
-  - sudo apt-get install -y mesa-utils and libgl1-mesa-glx freeglut3-dev
+  - sudo apt-get install -y mesa-utils and libgl1-mesa-glx
   - pip install coveralls
-  - pip install nose
+  - pip install nose2
+  - pip install pyglet==1.3.2
   - pip install matplotlib
+  - pip install imutils
+  - pip install opencv-python
   - pip install jupyter
 
 script:
