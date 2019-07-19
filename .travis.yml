@@ -48,6 +48,8 @@ before_install:
   - ls ../
 
 install:
+  - sudo apt-get update
+  - sudo apt-get install -y mesa-utils and libgl1-mesa-glx
   - pip install coveralls
   - pip install nose
   - pip install matplotlib
