@@ -83,7 +83,7 @@ class Kernel(object):
         self.vehicle.pass_api(kernel_api)
         self.traffic_light.pass_api(kernel_api)
 
-    def update(self, reset):
+    def update(self, reset, time_counter=None):
         """Update the kernel subclasses after a simulation step.
 
         This is meant to support optimizations in the performance of some
@@ -96,8 +96,11 @@ class Kernel(object):
         reset : bool
             specifies whether the simulator was reset in the last simulation
             step
+        time_counter : int or None
+            optional argument, specifies time counter of environment
+
         """
-        self.vehicle.update(reset)
+        self.vehicle.update(reset, time_counter=time_counter)
         self.traffic_light.update(reset)
         self.scenario.update(reset)
         self.simulation.update(reset)

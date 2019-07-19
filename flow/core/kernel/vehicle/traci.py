@@ -107,7 +107,7 @@ class TraCIVehicle(KernelVehicle):
                             0] != SimLaneChangeController:
                             self.__controlled_lc_ids.append(veh_id)
 
-    def update(self, reset):
+    def update(self, reset, time_counter=None):
         """See parent class.
 
         The following actions are performed:
@@ -117,12 +117,6 @@ class TraCIVehicle(KernelVehicle):
           explicitly defined by flow, e.g. "num_arrived".
         * If vehicles exit the network, they are removed from the vehicles
           class, and newly departed vehicles are introduced to the class.
-
-        Parameters
-        ----------
-        reset : bool
-            specifies whether the simulator was reset in the last simulation
-            step
         """
         vehicle_obs = {}
         for veh_id in self.__ids:
@@ -154,7 +148,8 @@ class TraCIVehicle(KernelVehicle):
                 pass
             else:
                 veh_type = self.kernel_api.vehicle.getTypeID(veh_id)
-                obs = self._add_departed(veh_id, veh_type)
+                obs = self._add_departed(veh_id, veh_type,
+                                         time_counter=time_counter)
                 # add the subscription information of the new vehicle
                 vehicle_obs[veh_id] = obs
 
@@ -239,7 +234,7 @@ class TraCIVehicle(KernelVehicle):
         # make sure the rl vehicle list is still sorted
         self.__rl_ids.sort()
 
-    def _add_departed(self, veh_id, veh_type):
+    def _add_departed(self, veh_id, veh_type, time_counter=None):
         """Add a vehicle that entered the network from an inflow or reset.
 
         Parameters
@@ -248,6 +243,8 @@ class TraCIVehicle(KernelVehicle):
             name of the vehicle
         veh_type: str
             type of vehicle, as specified to sumo
+        time_counter : int or None
+            optional argument, specifies time counter of environment
 
         Returns
         -------
@@ -420,6 +417,12 @@ class TraCIVehicle(KernelVehicle):
     def get_initial_speed(self, veh_id):
         """Return the initial speed of the vehicle of veh_id."""
         return self.__vehicles[veh_id]["initial_speed"]
+
+    def get_timestep_departed(self, veh_id):
+        """Return the departure timestep of vehicle(s) veh_id."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_timestep_departed(vehID) for vehID in veh_id]
+        return self.__vehicles[veh_id]["timestep_departed"]
 
     def get_ids(self):
         """See parent class."""

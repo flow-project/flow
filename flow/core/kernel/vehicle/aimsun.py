@@ -160,7 +160,7 @@ class AimsunKernelVehicle(KernelVehicle):
     #               Methods for interacting with the simulator                #
     ###########################################################################
 
-    def update(self, reset):
+    def update(self, reset, time_counter=None):
         """See parent class.
 
         This is used to store an updated vehicle information object.
