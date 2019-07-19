@@ -319,6 +319,7 @@ class TrafficLightGridEnv(Env):
                     # confirm with the total number specified above. We also
                     # use a "right_of_way" speed mode to support traffic
                     # light compliance
+                    # FIXME(cathywu) Is this needed for multi-agent?
                     vehicles = VehicleParams()
                     vehicles.add(
                         veh_id="human",

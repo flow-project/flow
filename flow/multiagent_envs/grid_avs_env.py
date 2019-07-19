@@ -287,13 +287,14 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         return rews
 
     def additional_command(self):
-        """Reintroduce any RL vehicle that may have exited in the last step.
+        """See class definition.
+
+        Reintroduce any RL vehicle that may have exited in the last step.
 
         This is used to maintain a constant number of RL vehicle in the system
         at all times, in order to comply with a fixed size observation and
         action space.
         """
-        """See class definition."""
         super().additional_command()
         # if the number of rl vehicles has decreased introduce it back in
         num_rl = self.k.vehicle.num_rl_vehicles
