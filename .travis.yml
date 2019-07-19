@@ -60,7 +60,7 @@ install:
 
 script:
   - python setup.py install
-  - xvfb-run --server-args="-screen 0 1024x768x24"  nose2 -s tests fast_tests --with-coverage
+  - xvfb-run --server-args="-screen 0 1024x768x24"  nose2 -s tests debug_tests --with-coverage
 
 after_success:
   - coveralls
