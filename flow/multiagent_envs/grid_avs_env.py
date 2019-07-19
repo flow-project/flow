@@ -202,9 +202,8 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
             local_dists_to_intersec = []
             local_veh_types = []
             for local_edge in local_edges:
-                observed_ids = \
-                    self.k_closest_to_intersection(local_edge,
-                                                   self.num_observed)
+                observed_ids = self.get_closest_to_intersection(local_edge,
+                    self.num_observed)
                 all_observed_ids.append(observed_ids)
 
                 # check which edges we have so we can always pad in the right

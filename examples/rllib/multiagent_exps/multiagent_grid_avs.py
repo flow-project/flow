@@ -129,13 +129,11 @@ if __name__ == '__main__':
     INNER_LENGTH = 300  # length of inner edges in the grid network
     LONG_LENGTH = 100  # length of final edge in route
     SHORT_LENGTH = 300  # length of edges that vehicles start on
-    # number of vehicles originating in the left, right, top, and bottom edges
-    N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 2, 0, 0, 2
-    AV_FRAC = 0.10
+    AV_FRAC = 0.50  # fraction of AV vs human vehicles (for inflows)
 
-    # we place a sufficient number of vehicles to ensure they confirm with the
-    # total number specified above. We also use a "right_of_way" speed mode to
-    # support traffic light compliance
+    # Instead of adding vehicles, we add the types of inflow vehicles. For
+    # human vehicles, we use a "right_of_way" speed mode to support traffic
+    # light compliance.
     vehicles = VehicleParams()
     vehicles.add_type(
         veh_id="human",
@@ -233,10 +231,10 @@ if __name__ == '__main__':
                     "long_length": LONG_LENGTH,
                     "row_num": N_ROWS,
                     "col_num": N_COLUMNS,
-                    "cars_left": N_LEFT,
-                    "cars_right": N_RIGHT,
-                    "cars_top": N_TOP,
-                    "cars_bot": N_BOTTOM,
+                    "cars_top": 0,  # TODO(cathywu) make these optional
+                    "cars_bot": 0,
+                    "cars_left": 0,
+                    "cars_right": 0,
                 },
                 "horizontal_lanes": 1,
                 "vertical_lanes": 1,

@@ -278,10 +278,6 @@ class TrafficLightGridEnv(Env):
 
             fraction_av = add_params.get("fraction_av")
             speed_enter = add_params.get("speed_enter")
-            cars_left = self.grid_array["cars_left"]
-            cars_right = self.grid_array["cars_right"]
-            cars_top = self.grid_array["cars_top"]
-            cars_bot = self.grid_array["cars_bot"]
 
             # FIXME(cathywu) Code is repeated in several places. Consolidate.
             # inflows of vehicles are place on all outer edges (listed here)
