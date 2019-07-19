@@ -320,6 +320,13 @@ class TraCIVehicle(KernelVehicle):
         self.__vehicles[veh_id]["initial_speed"] = \
             self.type_parameters[veh_type]["initial_speed"]
 
+        # specify the time step that the vehicle departed
+        if time_counter is not None:
+            self.__vehicles[veh_id]["timestep_departed"] = time_counter * \
+                                                           self.sim_step
+        else:
+            self.__vehicles[veh_id]["timestep_departed"] = None
+
         # set the speed mode for the vehicle
         speed_mode = self.type_parameters[veh_type][
             "car_following_params"].speed_mode
