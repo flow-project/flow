@@ -220,7 +220,6 @@ class PygletRenderer(object):
         sleep: float
             Specify the rendering delay in second
         """
-
         if self.save_render:
             _human_orientations = copy.deepcopy(human_orientations)
             _machine_orientations = copy.deepcopy(machine_orientations)
