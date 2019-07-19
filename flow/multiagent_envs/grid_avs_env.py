@@ -265,13 +265,13 @@ class MultiGridAVsPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         if rl_actions is None:
             return {}
 
-        rew_delay = -rewards.min_delay_unscaled(self)
+        # rew_delay = -rewards.min_delay_unscaled(self)
+        rew_delay = -0.01 * rewards.delay(self)
         rew_still = rewards.penalize_standstill(self, gain=0.2, threshold=2.0)
 
-        # each agent receives reward normalized by number of RL agents
-        # rew /= num_agents
-
         rews = {}
+        # FIXME(cathywu) check that rl_ids is consistent with actions
+        # provided in rl_actions. If not, why not?
         for rl_id in self.k.vehicle.get_rl_ids():
             if self.env_params.evaluate:
                 rews[rl_id] = rew_delay

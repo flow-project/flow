@@ -179,6 +179,27 @@ def min_delay_unscaled(env):
     return cost / (env.k.vehicle.num_vehicles + eps)
 
 
+def delay(env):
+    """Return the total delay for all vehicles in the system.
+
+    Parameters
+    ----------
+    env : flow.envs.Env
+        the environment variable, which contains information on the current
+        state of the system.
+
+    Returns
+    -------
+    float
+        reward value
+    """
+    departed = env.k.vehicle.get_timestep_departed(env.k.vehicle.get_ids())
+    now = env.time_counter
+    delays = now - np.array(departed)
+    cost = np.sum(delays)
+    return cost
+
+
 def penalize_standstill(env, gain=1, threshold=0):
     """Reward function that penalizes vehicle standstill.
 
