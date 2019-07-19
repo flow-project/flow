@@ -277,21 +277,6 @@ class VehicleParams:
             # FIXME: depends on simulator
             lane_change_params = SumoLaneChangeParams()
 
-        type_params = {}
-        type_params.update(car_following_params.controller_params)
-        type_params.update(lane_change_params.controller_params)
-
-        # This dict will be used when trying to introduce new vehicles into
-        # the network via a Flow. It is passed to the vehicle kernel object
-        # during environment instantiation.
-        self.type_parameters[veh_id] = \
-            {"acceleration_controller": acceleration_controller,
-             "lane_change_controller": lane_change_controller,
-             "routing_controller": routing_controller,
-             "initial_speed": initial_speed,
-             "car_following_params": car_following_params,
-             "lane_change_params": lane_change_params}
-
         # TODO: delete?
         self.initial.append({
             "veh_id":
@@ -312,11 +297,7 @@ class VehicleParams:
                 lane_change_params
         })
 
-        # This is used to return the actual headways from the vehicles class.
-        # It is passed to the vehicle kernel class during environment
-        # instantiation.
-        self.minGap[veh_id] = type_params["minGap"]
-
+        # FIXME(cathywu) consider renaming veh_id to veh_type
         for i in range(num_vehicles):
             v_id = veh_id + '_%d' % i
 
@@ -332,6 +313,73 @@ class VehicleParams:
             self.num_vehicles += 1
             if acceleration_controller[0] == RLController:
                 self.num_rl_vehicles += 1
+
+        self.add_type(veh_id, acceleration_controller,
+                      lane_change_controller, routing_controller,
+                      initial_speed, car_following_params, lane_change_params)
+
+    def add_type(self,
+                 veh_id,
+                 acceleration_controller=(SimCarFollowingController, {}),
+                 lane_change_controller=(SimLaneChangeController, {}),
+                 routing_controller=None,
+                 initial_speed=0,
+                 car_following_params=None,
+                 lane_change_params=None):
+        """Add a vehicle type to the network.
+
+        Parameters
+        ----------
+        veh_id : str
+            base vehicle ID for the vehicles (will be appended by a number)
+        acceleration_controller : tup, optional
+            1st element: flow-specified acceleration controller
+            2nd element: controller parameters (may be set to None to maintain
+            default parameters)
+        lane_change_controller : tup, optional
+            1st element: flow-specified lane-changer controller
+            2nd element: controller parameters (may be set to None to maintain
+            default parameters)
+        routing_controller : tup, optional
+            1st element: flow-specified routing controller
+            2nd element: controller parameters (may be set to None to maintain
+            default parameters)
+        initial_speed : float, optional
+            initial speed of the vehicles being added (in m/s)
+        num_vehicles : int, optional
+            number of vehicles of this type to be added to the network
+        car_following_params : flow.core.params.SumoCarFollowingParams
+            Params object specifying attributes for Sumo car following model.
+        lane_change_params : flow.core.params.SumoLaneChangeParams
+            Params object specifying attributes for Sumo lane changing model.
+        """
+        if car_following_params is None:
+            # FIXME: depends on simulator
+            car_following_params = SumoCarFollowingParams()
+
+        if lane_change_params is None:
+            # FIXME: depends on simulator
+            lane_change_params = SumoLaneChangeParams()
+
+        type_params = {}
+        type_params.update(car_following_params.controller_params)
+        type_params.update(lane_change_params.controller_params)
+
+        # This dict will be used when trying to introduce new vehicles into
+        # the network via a Flow. It is passed to the vehicle kernel object
+        # during environment instantiation.
+        self.type_parameters[veh_id] = \
+            {"acceleration_controller": acceleration_controller,
+             "lane_change_controller": lane_change_controller,
+             "routing_controller": routing_controller,
+             "initial_speed": initial_speed,
+             "car_following_params": car_following_params,
+             "lane_change_params": lane_change_params}
+
+        # This is used to return the actual headways from the vehicles class.
+        # It is passed to the vehicle kernel class during environment
+        # instantiation.
+        self.minGap[veh_id] = type_params["minGap"]
 
         # increase the number of unique types of vehicles in the network, and
         # add the type to the list of types

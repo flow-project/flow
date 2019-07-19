@@ -319,9 +319,8 @@ class TrafficLightGridEnv(Env):
                     # confirm with the total number specified above. We also
                     # use a "right_of_way" speed mode to support traffic
                     # light compliance
-                    # FIXME(cathywu) Is this needed for multi-agent?
                     vehicles = VehicleParams()
-                    vehicles.add(
+                    vehicles.add_type(
                         veh_id="human",
                         acceleration_controller=(SimCarFollowingController, {}),
                         car_following_params=SumoCarFollowingParams(
@@ -330,18 +329,15 @@ class TrafficLightGridEnv(Env):
                             decel=7.5,  # avoid collisions at emergency stops
                             speed_mode="right_of_way",
                         ),
-                        routing_controller=(GridRouter, {}), num_vehicles=int(
-                            (cars_left + cars_right) * self.cols / 2
-                            + (cars_bot + cars_top) * self.rows / 2))
-                    vehicles.add(
+                        routing_controller=(GridRouter, {}))
+                    vehicles.add_type(
                         veh_id="followerstopper",
                         acceleration_controller=(RLController, {}),
                         car_following_params=SumoCarFollowingParams(
                             speed_mode=9,
                         ),
-                        routing_controller=(GridRouter, {}), num_vehicles=int(
-                            (cars_left + cars_right) * self.cols / 2
-                            + (cars_bot + cars_top) * self.rows / 2))
+                        routing_controller=(GridRouter, {})
+                    )
 
                     # recreate the scenario object
                     self.scenario = self.scenario.__class__(
