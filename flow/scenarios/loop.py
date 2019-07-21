@@ -193,22 +193,24 @@ class LoopScenario(Scenario):
 
     def specify_edge_starts(self):
         """See parent class."""
-        edgelen = self.net_params.additional_params["length"] / 4
+        ring_length = self.net_params.additional_params["length"]
+        junction_length = 0.1  # length of inter-edge junctions
 
         edgestarts = [("bottom", 0),
-                      ("right", edgelen + 0.1),
-                      ("top", 2 * edgelen + 0.2),
-                      ("left", 3 * edgelen + 0.3)]
+                      ("right", 0.25 * ring_length + junction_length),
+                      ("top", 0.5 * ring_length + 2 * junction_length),
+                      ("left", 0.75 * ring_length + 3 * junction_length)]
 
         return edgestarts
 
     def specify_internal_edge_starts(self):
         """See parent class."""
-        edgelen = self.net_params.additional_params["length"] / 4
+        ring_length = self.net_params.additional_params["length"]
+        junction_length = 0.1  # length of inter-edge junctions
 
-        edgestarts = [(":right_0", edgelen),
-                      (":top_0", 2 * edgelen + 0.1),
-                      (":left_0", 3 * edgelen + 0.2),
-                      (":bottom_0", 4 * edgelen + 0.3)]
+        edgestarts = [(":right_0", 0.25 * ring_length),
+                      (":top_0", 0.5 * ring_length + junction_length),
+                      (":left_0", 0.75 * ring_length + 2 * junction_length),
+                      (":bottom_0", ring_length + 3 * junction_length)]
 
         return edgestarts
