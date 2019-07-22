@@ -86,16 +86,6 @@ if __name__ == "__main__":
     alg.train()
 ```
 
-## Reporting Optimal Scores
-
-To encourage researchers to build more effective RL controllers for those 
-benchmarks, we post the above results to a leaderboard at 
-https://berkeleyflow.github.io/leaderboard. Anyone can submit solutions to the 
-website. The solutions will then be scored under the same metrics 
-described in the paper below, or at the leaderboard website. Through equal and 
-open competitions, we hope to push the limit of our understanding in 
-controlling mixed-autonomy traffic with deep-RL.
-
 ## Citing Flow Benchmarks
 
 If you use the following benchmarks for academic research, you are highly 

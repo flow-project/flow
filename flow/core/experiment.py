@@ -143,7 +143,7 @@ class Experiment:
         print("Average, std return: {}, {}".format(
             np.mean(rets), np.std(rets)))
         print("Average, std speed: {}, {}".format(
-            np.mean(mean_vels), np.std(std_vels)))
+            np.mean(mean_vels), np.std(mean_vels)))
         self.env.terminate()
 
         if convert_to_csv:
