@@ -147,6 +147,7 @@ def min_delay(env):
     cost = time_step * sum((v_top - vel) / v_top)
     return max((max_cost - cost) / (max_cost + eps), 0)
 
+
 def avg_delay_specified_vehicles(env, veh_ids):
     """Calculates the average delay for a set of vehicles in the system
     Parameters
@@ -154,25 +155,26 @@ def avg_delay_specified_vehicles(env, veh_ids):
     env: flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
-    veh_ids: a list of the ids of the vehicles, for which we are calculating 
-             average delay
+    veh_ids: a list of the ids of the vehicles, for which we are calculating
+        average delay
     Returns
     -------
     float
         average delay
     """
-    
-    sum = 0    
+
+    sum = 0
     for edge in env.k.scenario.get_edge_list():
         for veh_id in env.k.vehicle.get_ids_by_edge(edge):
-             v_top = env.k.scenario.speed_limit(edge)
-             sum += (v_top - env.k.vehicle.get_speed(veh_id)) / v_top
+            v_top = env.k.scenario.speed_limit(edge)
+            sum += (v_top - env.k.vehicle.get_speed(veh_id)) / v_top
     time_step = env.sim_step
     try:
         cost = time_step * sum
         return cost / len(veh_ids)
     except ZeroDivisionError:
         return 0
+
 
 def min_delay_unscaled(env):
     """Return the average delay for all vehicles in the system.
