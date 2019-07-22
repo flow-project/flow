@@ -3,11 +3,11 @@ from flow.core.kernel.vehicle.base import KernelVehicle
 import collections
 import numpy as np
 from flow.utils.aimsun.struct import InfVeh
-# from flow.controllers.car_following_models import SimCarFollowingController
+from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
-# from flow.controllers.lane_change_controllers import SimLaneChangeController
+from flow.controllers.lane_change_controllers import SimLaneChangeController
 
-import time
+# import time
 
 # colors for vehicles
 WHITE = (255, 255, 255)
@@ -79,7 +79,7 @@ class AimsunKernelVehicle(KernelVehicle):
         # note: vehicles added via the scenario (ie by calling the
         # add_vehicle function) will also be tracked, even if their
         # type is not specified here
-        self.tracked_vehicle_types = {"rl", "Car"}
+        self.tracked_vehicle_types = {"rl", "idm"}  # TODO maybe generic
 
         # all the vehicle tracking information that should be stored
         # for the tracked vehicles info that can be tracked:
@@ -119,26 +119,35 @@ class AimsunKernelVehicle(KernelVehicle):
                 veh_id = '{}_{}'.format(typ['veh_id'], i)
                 self.__vehicles[veh_id] = dict()
                 self.__vehicles[veh_id]['type'] = typ['veh_id']
+                self.__vehicles[veh_id]['type_name'] = typ['veh_id']  # FIXME
                 self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
                 self.num_vehicles += 1
                 if typ['acceleration_controller'][0] == RLController:
                     self.num_rl_vehicles += 1
 
-        for tracked_type in self.tracked_vehicle_types:
-            self.num_type[tracked_type] = 0
-            self.total_num_type[tracked_type] = 0
-            self.type_parameters[tracked_type] = {}
+        # for tracked_type in self.tracked_vehicle_types:
+        #     self.num_type[tracked_type] = 0
+        #     self.total_num_type[tracked_type] = 0
+        #     self.type_parameters[tracked_type] = {}
 
     def pass_api(self, kernel_api):
         """See parent class."""
         self.kernel_api = kernel_api
 
     def make_bitmap_for_tracking(self, infos):
-        """
-        input: set containing all infos that we want
-        (see list of info in __init__)
-        returns a corresponding bitmap to be used in the
-        self.kernel_api.get_vehicle_tracking_info function
+        """Create a bitmap object to simplify observation collection.
+
+        Parameters
+        ----------
+        infos : list
+            set containing all infos that we want (see list of info in
+            __init__)
+
+        Returns
+        -------
+        str
+            a corresponding bitmap to be used in the
+            self.kernel_api.get_vehicle_tracking_info function
         """
         bitmap = ""
 
@@ -156,10 +165,10 @@ class AimsunKernelVehicle(KernelVehicle):
 
         This is used to store an updated vehicle information object.
         """
-        for veh_type in self.tracked_vehicle_types:
-            print("- Type:", veh_type, ", count:",
-                  self.num_type[veh_type], ", total since start:",
-                  self.total_num_type[veh_type])
+        # for veh_type in self.tracked_vehicle_types:
+        #     print("- Type:", veh_type, ", count:",
+        #           self.num_type[veh_type], ", total since start:",
+        #           self.total_num_type[veh_type])
 
         # collect the entered and exited vehicle_ids
         added_vehicles = self.kernel_api.get_entered_ids()
@@ -177,7 +186,7 @@ class AimsunKernelVehicle(KernelVehicle):
                 if aimsun_id in self._id_aimsun2flow:
                     self.remove(aimsun_id)
 
-        start = time.time()
+        # start = time.time()
 
         for veh_id in self.__ids:
             aimsun_id = self._id_flow2aimsun[veh_id]
@@ -270,10 +279,10 @@ class AimsunKernelVehicle(KernelVehicle):
 
                 self.__vehicles[veh_id]['headway'] = gap
 
-        end = time.time()
-        if len(self.__ids) > 0:
-            print("update time per tracked vehicle (ms):",
-                  1000 * (end - start) / len(self.__ids))
+        # end = time.time()
+        # if len(self.__ids) > 0:
+        #     print("update time per tracked vehicle (ms):",
+        #           1000 * (end - start) / len(self.__ids))
 
     def _add_departed(self, aimsun_id):
         """See parent class."""
@@ -310,47 +319,50 @@ class AimsunKernelVehicle(KernelVehicle):
         # store an empty tracking info object
         self.__vehicles[veh_id]['tracking_info'] = InfVeh()
 
-        """
-        TODO
-        # specify the acceleration controller class
-        accel_controller = \
-            self.type_parameters[type_id]["acceleration_controller"]
-        car_following_params = \
-            self.type_parameters[type_id]["car_following_params"]
-        self.__vehicles[veh_id]["acc_controller"] = \
-            accel_controller[0](veh_id,
-                                car_following_params=car_following_params,
-                                **accel_controller[1])
+        if type_id in self.type_parameters:
+            # specify the acceleration controller class
+            accel_controller = \
+                self.type_parameters[type_id]["acceleration_controller"]
+            car_following_params = \
+                self.type_parameters[type_id]["car_following_params"]
+            self.__vehicles[veh_id]["acc_controller"] = \
+                accel_controller[0](veh_id,
+                                    car_following_params=car_following_params,
+                                    **accel_controller[1])
 
-        # specify the lane-changing controller class
-        lc_controller = \
-            self.type_parameters[type_id]["lane_change_controller"]
-        self.__vehicles[veh_id]["lane_changer"] = \
-            lc_controller[0](veh_id=veh_id, **lc_controller[1])
+            # specify the lane-changing controller class
+            lc_controller = \
+                self.type_parameters[type_id]["lane_change_controller"]
+            self.__vehicles[veh_id]["lane_changer"] = \
+                lc_controller[0](veh_id=veh_id, **lc_controller[1])
 
-        # specify the routing controller class
-        rt_controller = self.type_parameters[type_id]["routing_controller"]
-        if rt_controller is not None:
-            self.__vehicles[veh_id]["router"] = \
-                rt_controller[0](veh_id=veh_id, router_params=rt_controller[1])
-        else:
-            self.__vehicles[veh_id]["router"] = None
+            # specify the routing controller class
+            rt_controller = self.type_parameters[type_id]["routing_controller"]
+            if rt_controller is not None:
+                self.__vehicles[veh_id]["router"] = \
+                    rt_controller[0](veh_id=veh_id,
+                                     router_params=rt_controller[1])
+            else:
+                self.__vehicles[veh_id]["router"] = None
 
-        # add the vehicle's id to the list of vehicle ids
-        if accel_controller[0] == RLController:
-            self.__rl_ids.append(veh_id)
-            self.num_rl_vehicles += 1
-        else:
-            self.__human_ids.append(veh_id)
-            if accel_controller[0] != SimCarFollowingController:
-                self.__controlled_ids.append(veh_id)
-            if lc_controller[0] != SimLaneChangeController:
-                self.__controlled_lc_ids.append(veh_id)
+            # FIXME should add RL controller to RL vehicle added by Aimsun via
+            # load.py
+
+            # add the vehicle's id to the list of vehicle ids
+            if accel_controller[0] == RLController:
+                self.__rl_ids.append(veh_id)
+                self.num_rl_vehicles += 1
+            else:
+                self.__human_ids.append(veh_id)
+                if accel_controller[0] != SimCarFollowingController:
+                    self.__controlled_ids.append(veh_id)
+                if lc_controller[0] != SimLaneChangeController:
+                    self.__controlled_lc_ids.append(veh_id)
 
         # set the "last_lc" parameter of the vehicle
         self.__vehicles[veh_id]["last_lc"] = -float("inf")
-        """
-        self.__human_ids.append(veh_id)  # FIXME
+
+        self.__human_ids.append(veh_id)  # FIXME not true for RL vehicles
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
@@ -600,6 +612,10 @@ class AimsunKernelVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_type(veh) for veh in veh_id]
         return self.__vehicles[veh_id]['type_name']
+
+    def get_initial_speed(self, veh_id):
+        """See parent class."""
+        return self.__vehicles[veh_id]["initial_speed"]
 
     def get_speed(self, veh_id, error=-1001):
         """See parent class."""

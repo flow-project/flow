@@ -164,6 +164,8 @@ required conda env by typing:
     source activate aimsun_flow
     which python
 
+Important note: For running Aimsun experiments, the `flow` environment should be
+used, NOT the `aimsun_flow` environment that was just created.
 The latter command should return an output similar to:
 
 ::
@@ -178,10 +180,13 @@ Testing your installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To test that you installation was successful, you can try running one of the
-Aimsun examples within the Flow main directory. In order to do so, type:
+Aimsun examples within the Flow main directory. In order to do so, you need
+to activate the `flow` env. Type:
 
 ::
 
+    source deactivate aimsun_flow
+    source activate flow
     python examples/aimsun/sugiyama.py
 
 
@@ -326,6 +331,11 @@ We begin by downloading SUMO's github directory:
 If you have OSX, run the following commands. If you don't have brew
 you can find installation instructions at
 <https://docs.brew.sh/Installation>
+
+Alternatively, the following segment of installation instructions is
+also compatible with OSX installation, following the brew updates and
+installations shown below.
+<https://sumo.dlr.de/wiki/Installing/Linux_Build#Building_the_SUMO_binaries_with_cmake_.28recommended.29>
 
 ::
 
