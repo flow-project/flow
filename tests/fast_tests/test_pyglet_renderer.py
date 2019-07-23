@@ -7,6 +7,7 @@ import ctypes
 
 class TestPygletRenderer(unittest.TestCase):
     """Tests pyglet_renderer"""
+
     def setUp(self):
         path = os.path.dirname(os.path.abspath(__file__))[:-11]
         self.data = np.load(
