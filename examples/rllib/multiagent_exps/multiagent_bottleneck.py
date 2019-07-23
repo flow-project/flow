@@ -116,7 +116,8 @@ def setup_flow_params(args):
         "centralized_obs": args.central_obs,
         "aggregate_info": args.aggregate_info,
         "AV_FRAC": args.av_frac,
-        "congest_penalty_start": args.congest_penalty_start
+        "congest_penalty_start": args.congest_penalty_start,
+        "lc_mode": lc_mode
     }
 
     # percentage of flow coming out of each lane

@@ -36,7 +36,9 @@ ADDITIONAL_RL_ENV_PARAMS = {
     "congest_penalty": False,
     "AV_FRAC": 0.1,
     # Above this number, the congestion penalty starts to kick in
-    "congest_penalty_start": 30
+    "congest_penalty_start": 30,
+    # What lane changing mode the human drivers should have
+    "lc_mode": 0
 }
 
 
@@ -253,6 +255,45 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
             print('THE FLOW RATE IS: ', flow_rate)
             for _ in range(100):
                 try:
+                    vehicles = VehicleParams()
+                    if not np.isclose(add_params.get("AV_FRAC"), 1):
+                        vehicles.add(
+                            veh_id="human",
+                            lane_change_controller=(SimLaneChangeController, {}),
+                            routing_controller=(ContinuousRouter, {}),
+                            car_following_params=SumoCarFollowingParams(
+                                speed_mode=9,
+                            ),
+                            lane_change_params=SumoLaneChangeParams(
+                                lane_change_mode=add_params.get("lc_mode"),
+                            ),
+                            num_vehicles=1)
+                        vehicles.add(
+                            veh_id="av",
+                            acceleration_controller=(RLController, {}),
+                            lane_change_controller=(SimLaneChangeController, {}),
+                            routing_controller=(ContinuousRouter, {}),
+                            car_following_params=SumoCarFollowingParams(
+                                speed_mode=9,
+                            ),
+                            lane_change_params=SumoLaneChangeParams(
+                                lane_change_mode=0,
+                            ),
+                            num_vehicles=1)
+                    else:
+                        vehicles.add(
+                            veh_id="av",
+                            acceleration_controller=(RLController, {}),
+                            lane_change_controller=(SimLaneChangeController, {}),
+                            routing_controller=(ContinuousRouter, {}),
+                            car_following_params=SumoCarFollowingParams(
+                                speed_mode=9,
+                            ),
+                            lane_change_params=SumoLaneChangeParams(
+                                lane_change_mode=add_params.get("lc_mode"),
+                            ),
+                            num_vehicles=1)
+
                     inflow = InFlows()
                     if not np.isclose(add_params.get("AV_FRAC"), 1.0):
                         inflow.add(
@@ -286,11 +327,8 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                         additional_params=additional_net_params)
 
                     self.scenario = self.scenario.__class__(
-                        self.scenario.orig_name, self.scenario.vehicles,
+                        self.scenario.orig_name, vehicles,
                         net_params, self.scenario.initial_config)
-                    self.restart_simulation(
-                        sim_params=self.sim_params,
-                        render=self.sim_params.render)
                     observation = super().reset()
 
                     # reset the timer to zero
