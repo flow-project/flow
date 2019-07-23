@@ -7,7 +7,7 @@ from flow.core.params import SumoCarFollowingParams
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController, \
-    OVMController, BCMController, LinearOVM, CFMController
+    OVMController, BCMController, LinearOVM, CFMController, LACController
 from flow.controllers import FollowerStopper, PISaturation
 from tests.setup_scripts import ring_road_exp_setup
 import os
@@ -502,7 +502,7 @@ class TestFollowerStopper(unittest.TestCase):
             for veh_id in ids
         ]
 
-        expected_accel = [-16.666667, 0, 0., -5., 5.]
+        expected_accel = [0, 0, 0, -5, 5]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
@@ -578,6 +578,59 @@ class TestPISaturation(unittest.TestCase):
         ]
 
         expected_accel = [20., -36.847826, -35.76087, -37.173913, -31.086957]
+
+        np.testing.assert_array_almost_equal(requested_accel, expected_accel)
+
+
+class TestLACController(unittest.TestCase):
+    """
+    Tests that the LAC Controller returning mathematically accurate values.
+    """
+
+    def setUp(self):
+        # add a few vehicles to the network using the requested model
+        # also make sure that the input params are what is expected
+        contr_params = {
+            "k_1": 0.3,
+            "k_2": 0.4,
+            "h": 1,
+            "tau": 0.1,
+            "noise": 0
+        }
+
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(LACController, contr_params),
+            routing_controller=(ContinuousRouter, {}),
+            car_following_params=SumoCarFollowingParams(
+                accel=15, decel=5),
+            num_vehicles=5)
+
+        # create the environment and scenario classes for a ring road
+        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+
+    def tearDown(self):
+        # terminate the traci instance
+        self.env.terminate()
+
+        # free data used by the class
+        self.env = None
+
+    def test_get_action(self):
+        self.env.reset()
+        ids = self.env.k.vehicle.get_ids()
+
+        test_headways = [5, 10, 15, 20, 25]
+        for i, veh_id in enumerate(ids):
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
+
+        requested_accel = [
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
+            for veh_id in ids
+        ]
+
+        expected_accel = [0., 1.5, 3., 4.5, 6.]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 

@@ -149,9 +149,10 @@ class TrafficLightParams:
         return self.__tls_properties
 
     def actuated_default(self):
-        """
-        Return the default values to be used for the scenario
-        for a system where all junctions are actuated traffic lights.
+        """Return the default values for an actuated scenario.
+
+        An actuated scenario is a scenario for a system where
+        all junctions are actuated traffic lights.
 
         Returns
         -------
@@ -280,12 +281,6 @@ class VehicleParams:
         type_params.update(car_following_params.controller_params)
         type_params.update(lane_change_params.controller_params)
 
-        # If a vehicle is not sumo or RL, let the minGap be zero so that it
-        # does not tamper with the dynamics of the controller
-        if acceleration_controller[0] != SimCarFollowingController \
-                and acceleration_controller[0] != RLController:
-            type_params["minGap"] = 0.0
-
         # This dict will be used when trying to introduce new vehicles into
         # the network via a Flow. It is passed to the vehicle kernel object
         # during environment instantiation.
@@ -344,6 +339,13 @@ class VehicleParams:
         self.types.append({"veh_id": veh_id, "type_params": type_params})
 
     def get_type(self, veh_id):
+        """Return the type of a specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str
+            vehicle ID whose type the user is querying
+        """
         return self.__vehicles[veh_id]["type"]
 
 
@@ -460,6 +462,7 @@ class AimsunParams(SimParams):
         the objects contained in this subnetwork. If set to None or if the
         specified subnetwork does not exist, the whole network will be loaded.
     """
+
     def __init__(self,
                  sim_step=0.1,
                  render=False,

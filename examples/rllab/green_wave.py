@@ -1,3 +1,4 @@
+"""Green wave training experiment."""
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite
 from rllab.algos.trpo import TRPO
