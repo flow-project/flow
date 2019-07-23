@@ -14,7 +14,8 @@ pyglet==1.3.2
 matplotlib==3.0.0
 imutils==0.5.1
 numpydoc
-ray==0.6.1
+ray==0.7.2
+pandas
 opencv-python
 
 # theano==0.8.2 # for rllab

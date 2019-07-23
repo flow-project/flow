@@ -32,7 +32,11 @@ ADDITIONAL_RL_ENV_PARAMS = {
     "centralized_obs": False,
     # whether to add aggregate info (speed, number of congested vehicles) about some of the edges
     "aggregate_info": False,
-    "AV_FRAC": 0.1
+    # whether to add an additional penalty for allowing too many vehicles into the bottleneck
+    "congest_penalty": False,
+    "AV_FRAC": 0.1,
+    # Above this number, the congestion penalty starts to kick in
+    "congest_penalty_start": 30
 }
 
 
@@ -225,18 +229,9 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                 return 0
 
         if rl_actions:
-            # reward = -1
-            # add_params = self.env_params.additional_params
-            # if add_params["congest_penalty"]:
-            #     num_vehs = len(self.k.vehicle.get_ids_by_edge('4'))
-            #     if num_vehs > 30*self.scaling:
-            #         penalty = (num_vehs - 30*self.scaling)/10.0
-            #         reward -= penalty
-            # return {rl_id: reward for rl_id in self.k.vehicle.get_rl_ids()}
             reward = self.k.vehicle.get_outflow_rate(10 * self.sim_step) / \
                      (2000.0 * self.scaling) - 3
-            add_params = self.env_params.additional_params
-            if add_params["congest_penalty"]:
+            if self.env_params.additional_params["congest_penalty"]:
                 num_vehs = len(self.k.vehicle.get_ids_by_edge('4'))
                 if num_vehs > 30 * self.scaling:
                     penalty = (num_vehs - 30 * self.scaling) / 10.0

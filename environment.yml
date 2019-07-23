@@ -1,4 +1,4 @@
-name: flow
+name: cdc_bottlenecks
 
 dependencies:
     - python==3.5.2
@@ -13,13 +13,14 @@ dependencies:
     - setuptools==39.1.0
     - pip:
         - gym==0.10.5
+        - pandas
         - pyprind==2.11.2
         - nose2==0.8.0
         - cached_property
         - joblib==0.10.3
         - dill
         - lz4
-        - ray==0.6.1
+        - ray==0.7.2
         - setproctitle
         - psutil
         - opencv-python
