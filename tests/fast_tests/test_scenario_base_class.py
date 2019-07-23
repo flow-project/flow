@@ -42,7 +42,7 @@ class TestGetX(unittest.TestCase):
 
     def setUp(self):
         # create the environment and scenario classes for a figure eight
-        self.env, _ = figure_eight_exp_setup()
+        self.env, _ = ring_road_exp_setup()
 
     def tearDown(self):
         # free data used by the class
@@ -55,9 +55,9 @@ class TestGetX(unittest.TestCase):
         self.assertAlmostEqual(self.env.k.scenario.get_x(edge_1, pos_1), 4.72)
 
         # test for an edge in the internal links
-        edge_2 = ":bottom"
+        edge_2 = ":bottom_0"
         pos_2 = 0.1
-        self.assertAlmostEqual(self.env.k.scenario.get_x(edge_2, pos_2), 0.1)
+        self.assertAlmostEqual(self.env.k.scenario.get_x(edge_2, pos_2), 230.4)
 
     def test_error(self):
         edge = ''
@@ -74,7 +74,7 @@ class TestGetEdge(unittest.TestCase):
 
     def setUp(self):
         # create the environment and scenario classes for a figure eight
-        self.env, scenario = figure_eight_exp_setup()
+        self.env, scenario = ring_road_exp_setup()
 
     def tearDown(self):
         # free data used by the class
@@ -88,9 +88,10 @@ class TestGetEdge(unittest.TestCase):
             self.env.k.scenario.get_edge(x1), ("bottom", 5))
 
         # test for a position in the internal links
-        x2 = 0.1
-        self.assertTupleEqual(
-            self.env.k.scenario.get_edge(x2), (":bottom", 0.1))
+        x2 = 230.4
+        actual_edge = self.env.k.scenario.get_edge(x2)
+        self.assertEqual(actual_edge[0], ":bottom_0")
+        self.assertAlmostEqual(actual_edge[1], 0.1, places=2)
 
 
 class TestEvenStartPos(unittest.TestCase):
