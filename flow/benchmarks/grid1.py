@@ -1,10 +1,8 @@
 """Benchmark for grid1.
 
-Action Dimension: (25, )
-
-Observation Dimension: (915, )
-
-Horizon: 400 steps
+- **Action Dimension**: (25, )
+- **Observation Dimension**: (915, )
+- **Horizon**: 400 steps
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
@@ -41,6 +39,7 @@ vehicles.add(
     car_following_params=SumoCarFollowingParams(
         min_gap=2.5,
         max_speed=V_ENTER,
+        decel=7.5,  # avoid collisions at emergency stops
         speed_mode="right_of_way",
     ),
     routing_controller=(GridRouter, {}),
@@ -61,7 +60,7 @@ for edge in outer_edges:
         edge=edge,
         vehs_per_hour=EDGE_INFLOW,
         departLane="free",
-        departSpeed="max")
+        departSpeed=V_ENTER)
 
 flow_params = dict(
     # name of the experiment
@@ -88,7 +87,7 @@ flow_params = dict(
         horizon=HORIZON,
         additional_params={
             "target_velocity": 50,
-            "switch_time": 2,
+            "switch_time": 3,
             "num_observed": 2,
             "discrete": False,
             "tl_type": "actuated"
@@ -119,7 +118,7 @@ flow_params = dict(
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/

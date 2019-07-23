@@ -9,7 +9,14 @@ class RLController(BaseController):
     Vehicles with this class specified will be stored in the list of the RL IDs
     in the Vehicles class.
 
-    Usage:
+    Attributes
+    ----------
+    veh_id : str
+        Vehicle ID for SUMO identification
+
+    Examples
+    --------
+    A set of vehicles can be instantiated as RL vehicles as follows:
 
         >>> from flow.core.params import VehicleParams
         >>> vehicles = VehicleParams()
@@ -23,13 +30,7 @@ class RLController(BaseController):
     """
 
     def __init__(self, veh_id, car_following_params):
-        """Instantiates an RL Controller.
-
-        Attributes
-        ----------
-        veh_id: str
-            Vehicle ID for SUMO identification
-        """
+        """Instantiate an RL Controller."""
         BaseController.__init__(
             self,
             veh_id,

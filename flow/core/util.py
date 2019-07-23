@@ -1,18 +1,10 @@
-"""
-A collection of utility functions for Flow.
+"""A collection of utility functions for Flow."""
 
-Attributes
-----------
-E : etree.Element
-    Description
-"""
 import csv
 import errno
 import os
 from lxml import etree
 from xml.etree import ElementTree
-
-E = etree.Element
 
 
 def makexml(name, nsl):
@@ -20,7 +12,7 @@ def makexml(name, nsl):
     xsi = "http://www.w3.org/2001/XMLSchema-instance"
     ns = {"xsi": xsi}
     attr = {"{%s}noNamespaceSchemaLocation" % xsi: nsl}
-    t = E(name, attrib=attr, nsmap=ns)
+    t = etree.Element(name, attrib=attr, nsmap=ns)
     return t
 
 
@@ -49,9 +41,9 @@ def emission_to_csv(emission_path, output_path=None):
 
     Parameters
     ----------
-    emission_path: str
+    emission_path : str
         path to the emission file that should be converted
-    output_path: str
+    output_path : str
         path to the csv file that will be generated, default is the same
         directory as the emission file, with the same name
     """

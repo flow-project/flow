@@ -1,5 +1,5 @@
-"""
-Runner script for environments located in flow/benchmarks.
+"""Runner script for environments located in flow/benchmarks.
+
 The environment file can be modified in the imports to change the environment
 this runner script is executed on. Furthermore, the rllib specific algorithm/
 parameters can be specified here once and used on multiple environments.
@@ -38,7 +38,10 @@ parser.add_argument(
 
 # required input parameters
 parser.add_argument(
-    "--upload_dir", type=str, help="S3 Bucket to upload to.")
+    "--upload_dir",
+    default=None,
+    type=str,
+    help="S3 Bucket to upload to.")
 
 # optional input parameters
 parser.add_argument(
@@ -51,7 +54,7 @@ parser.add_argument(
 parser.add_argument(
     '--num_cpus',
     type=int,
-    default=6,
+    default=2,
     help="The number of cpus to use.")
 
 if __name__ == "__main__":
@@ -89,6 +92,7 @@ if __name__ == "__main__":
     config["stepsize"] = 0.02
 
     config["model"]["fcnet_hiddens"] = [100, 50, 25]
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config["observation_filter"] = "NoFilter"
     # save the flow params for replay
     flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,

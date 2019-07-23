@@ -34,7 +34,8 @@ vehicles.add(
     }),
     routing_controller=(ContinuousRouter, {}),
     car_following_params=SumoCarFollowingParams(
-        speed_mode="no_collide",
+        speed_mode="obey_safe_speed",
+        decel=1.5,
     ),
     num_vehicles=13)
 vehicles.add(
@@ -42,7 +43,8 @@ vehicles.add(
     acceleration_controller=(RLController, {}),
     routing_controller=(ContinuousRouter, {}),
     car_following_params=SumoCarFollowingParams(
-        speed_mode="no_collide",
+        speed_mode="obey_safe_speed",
+        decel=1.5,
     ),
     num_vehicles=1)
 
@@ -84,7 +86,7 @@ flow_params = dict(
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/
@@ -94,7 +96,17 @@ flow_params = dict(
 
 
 def setup_exps():
+    """Return the relevant components of an RLlib experiment.
 
+    Returns
+    -------
+    str
+        name of the training algorithm
+    str
+        name of the gym environment to be trained
+    dict
+        training configuration parameters
+    """
     alg_run = 'PPO'
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
@@ -106,6 +118,7 @@ def setup_exps():
     config['lambda'] = 0.97
     config['kl_target'] = 0.02
     config['num_sgd_iter'] = 10
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config['horizon'] = HORIZON
 
     # save the flow params for replay
@@ -132,6 +145,7 @@ if __name__ == '__main__':
                 **config
             },
             'checkpoint_freq': 20,
+            "checkpoint_at_end": True,
             'max_failures': 999,
             'stop': {
                 'training_iteration': 200,

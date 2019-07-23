@@ -117,19 +117,19 @@ class KernelVehicle(object):
         """
         raise NotImplementedError
 
-    def apply_acceleration(self, veh_ids, acc):
+    def apply_acceleration(self, veh_id, acc):
         """Apply the acceleration requested by a vehicle in the simulator.
 
         Parameters
         ----------
-        veh_ids : list of str
+        veh_id : str or list of str
             list of vehicle identifiers
-        acc : numpy ndarray or list of float
+        acc : float or array_like
             requested accelerations from the vehicles
         """
         raise NotImplementedError
 
-    def apply_lane_change(self, veh_ids, direction):
+    def apply_lane_change(self, veh_id, direction):
         """Apply an instantaneous lane-change to a set of vehicles.
 
         This method also prevents vehicles from moving to lanes that do not
@@ -139,9 +139,9 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_ids : list of str
+        veh_id : str or list of str
             list of vehicle identifiers
-        direction : list of {-1, 0, 1}
+        direction : {-1, 0, 1} or list of {-1, 0, 1}
             -1: lane change to the right
              0: no lane change
              1: lane change to the left
@@ -153,14 +153,14 @@ class KernelVehicle(object):
         """
         raise NotImplementedError
 
-    def choose_routes(self, veh_ids, route_choices):
+    def choose_routes(self, veh_id, route_choices):
         """Update the route choice of vehicles in the network.
 
         Parameters
         ----------
-        veh_ids : list
+        veh_id : str or list of str
             list of vehicle identifiers
-        route_choices : numpy ndarray or list of floats
+        route_choices : array_like
             list of edges the vehicle wishes to traverse, starting with the
             edge the vehicle is currently on. If a value of None is provided,
             the vehicle does not update its route
@@ -303,7 +303,7 @@ class KernelVehicle(object):
         raise NotImplementedError
 
     def get_default_speed(self, veh_id, error=-1001):
-        """Return the expected speed if no control were applied
+        """Return the expected speed if no control were applied.
 
         Parameters
         ----------

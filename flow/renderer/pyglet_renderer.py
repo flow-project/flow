@@ -15,16 +15,40 @@ HOME = expanduser("~")
 
 
 def truncate_colormap(cmap, minval=0.25, maxval=0.75, n=100):
-    """Truncate a matplotlib colormap.
-    """
-
+    """Truncate a matplotlib colormap."""
     new_cmap = colors.LinearSegmentedColormap.from_list(
         'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),
         cmap(np.linspace(minval, maxval, n)))
     return new_cmap
 
 
-class PygletRenderer():
+class PygletRenderer(object):
+    """Pyglet Renderer.
+
+    Parameters
+    ----------
+    network : list
+        A list of road network polygons
+    mode : str or bool
+
+        * False: no rendering
+        * True: delegate rendering to sumo-gui for back-compatibility
+        * "gray": static grayscale rendering, which is good for training
+        * "dgray": dynamic grayscale rendering
+        * "rgb": static RGB rendering
+        * "drgb": dynamic RGB rendering, which is good for visualization
+
+    save_render : bool
+        Specify whether to save rendering data to disk
+    path : str
+        Specify where to store the rendering data
+    sight_radius : int
+        Set the radius of observation for RL vehicles (meter)
+    show_radius : bool
+        Specify whether to render the radius of RL observation
+    pxpm : int
+        Specify rendering resolution (pixel / meter)
+    """
 
     def __init__(self, network, mode,
                  save_render=False,
@@ -32,30 +56,7 @@ class PygletRenderer():
                  sight_radius=50,
                  show_radius=False,
                  pxpm=2):
-        """Instantiate a pyglet renderer class.
-
-            Parameters
-            ----------
-            network: list
-                A list of road network polygons
-            mode: str or bool
-                False: no rendering
-                True: delegate rendering to sumo-gui for back-compatibility
-                "gray": static grayscale rendering, which is good for training
-                "dgray": dynamic grayscale rendering
-                "rgb": static RGB rendering
-                "drgb": dynamic RGB rendering, which is good for visualization
-            save_render: bool
-                Specify whether to save rendering data to disk
-            path: str
-                Specify where to store the rendering data
-            sight_radius: int
-                Set the radius of observation for RL vehicles (meter)
-            show_radius: bool
-                Specify whether to render the radius of RL observation
-            pxpm: int
-                Specify rendering resolution (pixel / meter)
-        """
+        """Instantiate a pyglet renderer class."""
         self.mode = mode
         if self.mode not in [True, False, "rgb", "drgb", "gray", "dgray"]:
             raise ValueError("Mode %s is not supported!" % self.mode)
@@ -131,39 +132,38 @@ class PygletRenderer():
                show_radius=None):
         """Update the rendering frame.
 
-            Parameters
-            ----------
-            human_orientations: list
-                A list contains orientations of all human vehicles
-                An orientation is a list contains [x, y, angle].
-            machine_orientations: list
-                A list contains orientations of all RL vehicles
-                An orientation is a list contains [x, y, angle].
-            human_dynamics: list
-                A list contains the speed of all human vehicles normalized by
-                max speed, i.e., speed/max_speed
-                This is used to dynamically color human vehicles based on its
-                velocity.
-            machine_dynamics: list
-                A list contains the speed of all RL vehicles normalized by
-                max speed, i.e., speed/max_speed
-                This is used to dynamically color RL vehicles based on its
-                velocity.
-            human_logs: list
-                A list contains the timestep (ms), timedelta (ms), and id of
-                all human vehicles
-            machine_logs: list
-                A list contains the timestep (ms), timedelta (ms), and id of
-                all RL vehicles
-            save_render: bool
-                Specify whether to Specify whether to save rendering data to
-                disk
-            sight_radius: int
-                Set the radius of observation for RL vehicles (meter)
-            show_radius: bool
-                Specify whether to render the radius of RL observation
+        Parameters
+        ----------
+        human_orientations : list
+            A list contains orientations of all human vehicles
+            An orientation is a list contains [x, y, angle].
+        machine_orientations : list
+            A list contains orientations of all RL vehicles
+            An orientation is a list contains [x, y, angle].
+        human_dynamics : list
+            A list contains the speed of all human vehicles normalized by
+            max speed, i.e., speed/max_speed
+            This is used to dynamically color human vehicles based on its
+            velocity.
+        machine_dynamics : list
+            A list contains the speed of all RL vehicles normalized by
+            max speed, i.e., speed/max_speed
+            This is used to dynamically color RL vehicles based on its
+            velocity.
+        human_logs : list
+            A list contains the timestep (ms), timedelta (ms), and id of
+            all human vehicles
+        machine_logs : list
+            A list contains the timestep (ms), timedelta (ms), and id of
+            all RL vehicles
+        save_render : bool
+            Specify whether to Specify whether to save rendering data to
+            disk
+        sight_radius : int
+            Set the radius of observation for RL vehicles (meter)
+        show_radius : bool
+            Specify whether to render the radius of RL observation
         """
-
         if save_render is None:
             save_render = self.save_render
         if sight_radius is not None:
@@ -237,18 +237,17 @@ class PygletRenderer():
     def get_sight(self, orientation, id, sight_radius=None, save_render=None):
         """Return the local observation of a vehicle.
 
-            Parameters
-            ----------
-            orientation: list
-                An orientation is a list contains [x, y, angle]
-            id: str
-                The vehicle to observe for
-            sight_radius: int
-                Set the radius of observation for RL vehicles (meter)
-            save_render: bool
-                Specify whether to save rendering data to disk
+        Parameters
+        ----------
+        orientation : list
+            An orientation is a list contains [x, y, angle]
+        id : str
+            The vehicle to observe for
+        sight_radius : int
+            Set the radius of observation for RL vehicles (meter)
+        save_render : bool
+            Specify whether to save rendering data to disk
         """
-
         if sight_radius is not None:
             sight_radius = sight_radius * self.pxpm
         else:
@@ -283,28 +282,25 @@ class PygletRenderer():
         return _rotated_sight
 
     def close(self):
-        """Terminate the renderer.
-        """
-
+        """Terminate the renderer."""
         if self.save_render:
             np.save("%s/data_%06d.npy" % (self.path, self.time), self.data)
         self.window.close()
 
     def add_lane_polys(self):
-        """Render road network polygons.
-        """
+        """Render road network polygons."""
         for lane_poly, lane_color in zip(self.lane_polys, self.lane_colors):
             self._add_lane_poly(lane_poly, lane_color)
 
     def _add_lane_poly(self, lane_poly, lane_color):
-        """Internal pyglet method to render road network polygons.
+        """Render road network polygons.
 
-            Parameters
-            ----------
-            lane_poly: list
-                A list of road network polygons
-            lane_color: list
-                A list of colors corresponding to the road network polygons
+        Parameters
+        ----------
+        lane_poly : list
+            A list of road network polygons
+        lane_color : list
+            A list of colors corresponding to the road network polygons
         """
         num = int(len(lane_poly)/2)
         index = [x for x in range(num)]
@@ -315,15 +311,15 @@ class PygletRenderer():
     def add_vehicle_polys(self, orientations, colors, sight_radius):
         """Render vehicle polygons.
 
-            Parameters
-            ----------
-            orientation: list
-                A list of orientations
-                An orientation is a list contains [x, y, angle].
-            colors: list
-                A list of colors corresponding to the vehicle orientations
-            sight_radius: int
-                Set the radius of observation for RL vehicles (meter)
+        Parameters
+        ----------
+        orientations : list
+            A list of orientations
+            An orientation is a list contains [x, y, angle].
+        colors : list
+            A list of colors corresponding to the vehicle orientations
+        sight_radius : int
+            Set the radius of observation for RL vehicles (meter)
         """
         for orientation, color in zip(orientations, colors):
             x, y, ang = orientation
@@ -333,18 +329,18 @@ class PygletRenderer():
             self._add_vehicle_poly_circle((x, y), sight_radius, color)
 
     def _add_vehicle_poly_triangle(self, center, angle, size, color):
-        """Internal pyglet method to render a vehicle as a triangle.
+        """Render a vehicle as a triangle.
 
-            Parameters
-            ----------
-            center: tuple
-                The center coordinate of the vehicle
-            angle: float
-                The angle of the vehicle
-            size: int
-                The size of the rendered triangle
-            color: list
-                The color of the vehicle  [r, g, b].
+        Parameters
+        ----------
+        center : tuple
+            The center coordinate of the vehicle
+        angle : float
+            The angle of the vehicle
+        size : int
+            The size of the rendered triangle
+        color : list
+            The color of the vehicle  [r, g, b].
         """
         cx, cy = center
         ang = np.radians(angle)
@@ -369,17 +365,16 @@ class PygletRenderer():
                                        ("c3B", vertex_color))
 
     def _add_vehicle_poly_circle(self, center, radius, color):
-        """Internal pyglet method to render a vehicle as a circle or to render
-        its observation radius.
+        """Render a vehicle as a circle or render its observation radius.
 
-            Parameters
-            ----------
-            center: tuple
-                The center coordinate of the vehicle
-            radius: float
-                The size of the rendered vehicle or the radius of observation
-            color: list
-                The color of the vehicle  [r, g, b].
+        Parameters
+        ----------
+        center: tuple
+            The center coordinate of the vehicle
+        radius: float
+            The size of the rendered vehicle or the radius of observation
+        color: list
+            The color of the vehicle  [r, g, b].
         """
         if radius == 0:
             return

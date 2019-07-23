@@ -96,7 +96,7 @@ flow_params = dict(
         }, ),
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/
@@ -106,6 +106,17 @@ flow_params = dict(
 
 
 def setup_exps():
+    """Return the relevant components of an RLlib experiment.
+
+    Returns
+    -------
+    str
+        name of the training algorithm
+    str
+        name of the gym environment to be trained
+    dict
+        training configuration parameters
+    """
     alg_run = 'PPO'
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
@@ -116,6 +127,7 @@ def setup_exps():
     config['model'].update({'fcnet_hiddens': [32, 32]})
     config['lr'] = tune.grid_search([1e-5])
     config['horizon'] = HORIZON
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config['observation_filter'] = 'NoFilter'
 
     # save the flow params for replay

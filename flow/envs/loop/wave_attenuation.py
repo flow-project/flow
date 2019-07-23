@@ -30,6 +30,23 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 
+def v_eq_max_function(v, *args):
+    """Return the error between the desired and actual equivalent gap."""
+    num_vehicles, length = args
+
+    # maximum gap in the presence of one rl vehicle
+    s_eq_max = (length - num_vehicles * 5) / (num_vehicles - 1)
+
+    v0 = 30
+    s0 = 2
+    tau = 1
+    gamma = 4
+
+    error = s_eq_max - (s0 + v * tau) * (1 - (v / v0) ** gamma) ** -0.5
+
+    return error
+
+
 class WaveAttenuationEnv(Env):
     """Fully observable wave attenuation environment.
 
@@ -75,7 +92,7 @@ class WaveAttenuationEnv(Env):
         return Box(
             low=-np.abs(self.env_params.additional_params['max_decel']),
             high=self.env_params.additional_params['max_accel'],
-            shape=(self.scenario.vehicles.num_rl_vehicles, ),
+            shape=(self.initial_vehicles.num_rl_vehicles, ),
             dtype=np.float32)
 
     @property
@@ -85,7 +102,7 @@ class WaveAttenuationEnv(Env):
         return Box(
             low=0,
             high=1,
-            shape=(2 * self.scenario.vehicles.num_vehicles, ),
+            shape=(2 * self.initial_vehicles.num_vehicles, ),
             dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
@@ -112,12 +129,12 @@ class WaveAttenuationEnv(Env):
         reward = eta_2 * np.mean(vel) / 20
 
         # punish accelerations (should lead to reduced stop-and-go waves)
-        eta = 8  # 0.25
-        rl_actions = np.array(rl_actions)
+        eta = 4  # 0.25
+        mean_actions = np.mean(np.abs(np.array(rl_actions)))
         accel_threshold = 0
 
-        if np.mean(np.abs(rl_actions)) > accel_threshold:
-            reward += eta * (accel_threshold - np.mean(np.abs(rl_actions)))
+        if mean_actions > accel_threshold:
+            reward += eta * (accel_threshold - mean_actions)
 
         return float(reward)
 
@@ -152,17 +169,18 @@ class WaveAttenuationEnv(Env):
 
         # update the scenario
         initial_config = InitialConfig(bunching=50, min_gap=0)
+        length = random.randint(
+            self.env_params.additional_params['ring_length'][0],
+            self.env_params.additional_params['ring_length'][1])
         additional_net_params = {
             'length':
-                random.randint(
-                    self.env_params.additional_params['ring_length'][0],
-                    self.env_params.additional_params['ring_length'][1]),
+                length,
             'lanes':
-                self.scenario.net_params.additional_params['lanes'],
+                self.net_params.additional_params['lanes'],
             'speed_limit':
-                self.scenario.net_params.additional_params['speed_limit'],
+                self.net_params.additional_params['speed_limit'],
             'resolution':
-                self.scenario.net_params.additional_params['resolution']
+                self.net_params.additional_params['resolution']
         }
         net_params = NetParams(additional_params=additional_net_params)
 
@@ -174,23 +192,9 @@ class WaveAttenuationEnv(Env):
         self.k.vehicle.master_kernel = self.k
 
         # solve for the velocity upper bound of the ring
-        def v_eq_max_function(v):
-            num_veh = self.k.vehicle.num_vehicles - 1
-            # maximum gap in the presence of one rl vehicle
-            s_eq_max = (self.k.scenario.length() -
-                        self.k.vehicle.num_vehicles * 5) / num_veh
-
-            v0 = 30
-            s0 = 2
-            T = 1
-            gamma = 4
-
-            error = s_eq_max - (s0 + v * T) * (1 - (v / v0)**gamma)**-0.5
-
-            return error
-
-        v_guess = 4.
-        v_eq_max = fsolve(v_eq_max_function, v_guess)[0]
+        v_guess = 4
+        v_eq_max = fsolve(v_eq_max_function, np.array(v_guess),
+                          args=(len(self.initial_ids), length))[0]
 
         print('\n-----------------------')
         print('ring length:', net_params.additional_params['length'])
@@ -243,7 +247,8 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
     @property
     def observation_space(self):
         """See class definition."""
-        return Box(low=0, high=1, shape=(3, ), dtype=np.float32)
+        return Box(low=-float('inf'), high=float('inf'),
+                   shape=(3, ), dtype=np.float32)
 
     def get_state(self):
         """See class definition."""
@@ -261,7 +266,9 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
             self.k.vehicle.get_speed(rl_id) / max_speed,
             (self.k.vehicle.get_speed(lead_id) -
              self.k.vehicle.get_speed(rl_id)) / max_speed,
-            self.k.vehicle.get_headway(rl_id) / max_length
+            (self.k.vehicle.get_x_by_id(lead_id) -
+             self.k.vehicle.get_x_by_id(rl_id)) % self.k.scenario.length()
+            / max_length
         ])
 
         return observation

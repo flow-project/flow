@@ -14,7 +14,40 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class BottleneckScenario(Scenario):
-    """Scenario class for bottleneck simulations."""
+    """Scenario class for bottleneck simulations.
+
+    This network acts as a scalable representation of the Bay Bridge. It
+    consists of a two-stage lane-drop bottleneck where 4n lanes reduce to 2n
+    and then to n, where n is the scaling value. The length of the bottleneck
+    is fixed.
+
+    Requires from net_params:
+
+    * **scaling** : the factor multiplying number of lanes
+    * **speed_limit** : edge speed limit
+
+    In order for right-of-way dynamics to take place at the intersection,
+    set *no_internal_links* in net_params to False.
+
+    Usage
+    -----
+    >>> from flow.core.params import NetParams
+    >>> from flow.core.params import VehicleParams
+    >>> from flow.core.params import InitialConfig
+    >>> from flow.scenarios import BottleneckScenario
+    >>>
+    >>> scenario = BottleneckScenario(
+    >>>     name='bottleneck',
+    >>>     vehicles=VehicleParams(),
+    >>>     net_params=NetParams(
+    >>>         additional_params={
+    >>>             'scaling': 1,
+    >>>             'speed_limit': 1,
+    >>>         },
+    >>>         no_internal_links=False  # we want junctions
+    >>>     )
+    >>> )
+    """
 
     def __init__(self,
                  name,
@@ -22,16 +55,7 @@ class BottleneckScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Instantiate the scenario class.
-
-        Requires from net_params:
-        - scaling: the factor multiplying number of lanes
-
-        In order for right-of-way dynamics to take place at the intersection,
-        set "no_internal_links" in net_params to False.
-
-        See flow/scenarios/base_scenario.py for description of params.
-        """
+        """Instantiate the scenario class."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))

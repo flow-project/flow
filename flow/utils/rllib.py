@@ -3,14 +3,16 @@ Utility functions for Flow compatibility with RLlib.
 
 This includes: environment generation, serialization, and visualization.
 """
-import dill
 import json
 from copy import deepcopy
+import os
 
 from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
     SumoParams, InitialConfig, EnvParams, NetParams, InFlows
 from flow.core.params import TrafficLightParams
 from flow.core.params import VehicleParams
+
+from ray.cloudpickle import cloudpickle
 
 
 class FlowParamsEncoder(json.JSONEncoder):
@@ -55,17 +57,37 @@ def get_flow_params(config):
 
     Parameters
     ----------
-    config : dict
-        stored RLlib configuration dict
+    config : dict < dict > or str
+        May be one of two things:
+
+        * If it is a dict, then it is the stored RLlib configuration dict.
+        * If it is a string, then it is the path to a flow_params json file.
 
     Returns
     -------
     dict
-        Dict of flow parameters, like net_params, env_params, vehicle
-        characteristics, etc
+        flow-related parameters, consisting of the following keys:
+
+         * exp_tag: name of the experiment
+         * env_name: name of the flow environment the experiment is running on
+         * scenario: name of the scenario class the experiment uses
+         * simulator: simulator that is used by the experiment (e.g. aimsun)
+         * sim: simulation-related parameters (see flow.core.params.SimParams)
+         * env: environment related parameters (see flow.core.params.EnvParams)
+         * net: network-related parameters (see flow.core.params.NetParams and
+           the scenario's documentation or ADDITIONAL_NET_PARAMS component)
+         * veh: vehicles to be placed in the network at the start of a rollout
+           (see flow.core.params.VehicleParams)
+         * initial: parameters affecting the positioning of vehicles upon
+           initialization/reset (see flow.core.params.InitialConfig)
+         * tls: traffic lights to be introduced to specific nodes (see
+           flow.core.params.TrafficLightParams)
     """
     # collect all data from the json file
-    flow_params = json.loads(config['env_config']['flow_params'])
+    if type(config) == dict:
+        flow_params = json.loads(config['env_config']['flow_params'])
+    else:
+        flow_params = json.load(open(config, 'r'))
 
     # reinitialize the vehicles class from stored data
     veh = VehicleParams()
@@ -139,14 +161,27 @@ def get_flow_params(config):
 
 def get_rllib_config(path):
     """Return the data from the specified rllib configuration file."""
-    jsonfile = path + '/params.json'  # params.json is the config file
-    jsondata = json.loads(open(jsonfile).read())
-    return jsondata
+    config_path = os.path.join(path, "params.json")
+    if not os.path.exists(config_path):
+        config_path = os.path.join(path, "../params.json")
+    if not os.path.exists(config_path):
+        raise ValueError(
+            "Could not find params.json in either the checkpoint dir or "
+            "its parent directory.")
+    with open(config_path) as f:
+        config = json.load(f)
+    return config
 
 
 def get_rllib_pkl(path):
     """Return the data from the specified rllib configuration file."""
-    pklfile = path + '/params.pkl'  # params.json is the config file
-    with open(pklfile, 'rb') as file:
-        pkldata = dill.load(file)
-    return pkldata
+    config_path = os.path.join(path, "params.pkl")
+    if not os.path.exists(config_path):
+        config_path = os.path.join(path, "../params.pkl")
+    if not os.path.exists(config_path):
+        raise ValueError(
+            "Could not find params.pkl in either the checkpoint dir or "
+            "its parent directory.")
+    with open(config_path, 'rb') as f:
+        config = cloudpickle.load(f)
+    return config

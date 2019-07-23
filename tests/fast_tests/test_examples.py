@@ -1,9 +1,10 @@
 import os
 import unittest
 
-# from examples.sumo.bay_bridge import bay_bridge_example
+from examples.sumo.bay_bridge import bay_bridge_example
 from examples.sumo.bay_bridge_toll import bay_bridge_toll_example
 from examples.sumo.bottlenecks import bottleneck_example
+from examples.sumo.density_exp import run_bottleneck
 from examples.sumo.figure_eight import figure_eight_example
 from examples.sumo.grid import grid_example
 from examples.sumo.highway import highway_example
@@ -19,14 +20,19 @@ from examples.rllib.stabilizing_highway import setup_exps as highway_setup
 from examples.rllib.stabilizing_the_ring import setup_exps as ring_setup
 from examples.rllib.velocity_bottleneck import setup_exps as bottleneck_setup
 from examples.rllib.multiagent_exps.multiagent_figure_eight \
-    import setup_exps as multi_figure_eight_setup
+   import setup_exps as multi_figure_eight_setup
 from examples.rllib.multiagent_exps.multiagent_stabilizing_the_ring \
     import setup_exps as multi_ring_setup
+from examples.rllib.multiagent_exps.multiagent_traffic_light_grid \
+    import setup_exps_PPO as multi_grid_setup
+from examples.rllib.multiagent_exps.multiagent_traffic_light_grid \
+    import make_flow_params as multi_grid_setup_flow_params
 
 import ray
 from ray.tune import run_experiments
 
 os.environ['TEST_FLAG'] = 'True'
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 
 class TestSumoExamples(unittest.TestCase):
@@ -55,10 +61,12 @@ class TestSumoExamples(unittest.TestCase):
 
     def test_grid(self):
         """Verifies that examples/sumo/grid.py is working."""
-        # import the experiment variable from the example
-        exp = grid_example(render=False)
+        # test the example in the absence of inflows
+        exp = grid_example(render=False, use_inflows=False)
+        exp.run(1, 5)
 
-        # run the experiment for a few time steps to ensure it doesn't fail
+        # test the example in the presence of inflows
+        exp = grid_example(render=False, use_inflows=True)
         exp.run(1, 5)
 
     def test_highway(self):
@@ -93,13 +101,25 @@ class TestSumoExamples(unittest.TestCase):
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
 
-    # def test_bay_bridge(self):
-    #     """Verifies that examples/sumo/bay_bridge.py is working."""
-    #     # import the experiment variable from the example
-    #     exp = bay_bridge_example(render=False)
-    #
-    #     # run the experiment for a few time steps to ensure it doesn't fail
-    #     exp.run(1, 5)
+    def test_bay_bridge(self):
+        """Verifies that examples/sumo/bay_bridge.py is working."""
+        # import the experiment variable from the example
+        exp = bay_bridge_example(render=False)
+
+        # run the experiment for a few time steps to ensure it doesn't fail
+        exp.run(1, 5)
+
+        # import the experiment variable from the example with inflows
+        exp = bay_bridge_example(render=False, use_inflows=True)
+
+        # run the experiment for a few time steps to ensure it doesn't fail
+        exp.run(1, 5)
+
+        # import the experiment variable from the example with traffic lights
+        exp = bay_bridge_example(render=False, use_traffic_lights=True)
+
+        # run the experiment for a few time steps to ensure it doesn't fail
+        exp.run(1, 5)
 
     def test_bay_bridge_toll(self):
         """Verifies that examples/sumo/bay_bridge_toll.py is working."""
@@ -117,6 +137,10 @@ class TestSumoExamples(unittest.TestCase):
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
 
+    def test_density_exp(self):
+        """Verifies that examples/sumo/density_exp.py is working."""
+        run_bottleneck.remote(100, 1, 10, render=False)
+
 
 class TestRllibExamples(unittest.TestCase):
     """Tests the example scripts in examples/sumo.
@@ -125,6 +149,9 @@ class TestRllibExamples(unittest.TestCase):
     and confirming that it completes one rollout with two workers.
     # FIXME(ev) this test adds several minutes to the testing scheme
     """
+    def setUp(self):
+        if not ray.is_initialized():
+            ray.init(num_cpus=1)
 
     def test_coop_merge(self):
         alg_run, env_name, config = coop_setup()
@@ -135,7 +162,12 @@ class TestRllibExamples(unittest.TestCase):
         self.run_exp(alg_run, env_name, config)
 
     def test_green_wave(self):
-        alg_run, env_name, config = green_wave_setup()
+        # test the example in the absence of inflows
+        alg_run, env_name, config = green_wave_setup(use_inflows=False)
+        self.run_exp(alg_run, env_name, config)
+
+        # test the example in the presence of inflows
+        alg_run, env_name, config = green_wave_setup(use_inflows=True)
         self.run_exp(alg_run, env_name, config)
 
     def test_stabilizing_highway(self):
@@ -158,11 +190,17 @@ class TestRllibExamples(unittest.TestCase):
         alg_run, env_name, config = multi_ring_setup()
         self.run_exp(alg_run, env_name, config)
 
-    def run_exp(self, alg_run, env_name, config):
+    def test_multi_grid(self):
+        flow_params = multi_grid_setup_flow_params(1, 1, 300)
+        alg_run, env_name, config = multi_grid_setup(flow_params)
+        self.run_exp(alg_run, env_name, config)
+
+    @staticmethod
+    def run_exp(alg_run, env_name, config):
         try:
             ray.init(num_cpus=1)
-        except Exception:
-            pass
+        except Exception as e:
+            print("ERROR", e)
         config['train_batch_size'] = 50
         config['horizon'] = 50
         config['sample_batch_size'] = 50
@@ -186,5 +224,9 @@ class TestRllibExamples(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    ray.init(num_cpus=1)  # , redis_address="localhost:6379")
+    try:
+        ray.init(num_cpus=1)
+    except Exception as e:
+        print("ERROR", e)
     unittest.main()
+    ray.shutdown()

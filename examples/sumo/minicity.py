@@ -6,7 +6,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
+from flow.scenarios.minicity import MiniCityScenario
 from flow.controllers.routing_controllers import MinicityRouter
 import numpy as np
 
@@ -18,9 +18,7 @@ def minicity_example(render=None,
                      sight_radius=None,
                      pxpm=None,
                      show_radius=None):
-    """
-    Perform a simulation of vehicles on modified minicity of University of
-    Delaware.
+    """Perform a simulation of modified minicity of University of Delaware.
 
     Parameters
     ----------
@@ -35,20 +33,12 @@ def minicity_example(render=None,
     """
     sim_params = SumoParams(sim_step=0.25)
 
-    if render is not None:
-        sim_params.render = render
-
-    if save_render is not None:
-        sim_params.save_render = save_render
-
-    if sight_radius is not None:
-        sim_params.sight_radius = sight_radius
-
-    if pxpm is not None:
-        sim_params.pxpm = pxpm
-
-    if show_radius is not None:
-        sim_params.show_radius = show_radius
+    # update sim_params values if provided as inputs
+    sim_params.render = render or sim_params.render
+    sim_params.save_render = save_render or sim_params.save_render
+    sim_params.sight_radius = sight_radius or sim_params.sight_radius
+    sim_params.pxpm = pxpm or sim_params.pxpm
+    sim_params.show_radius = show_radius or sim_params.show_radius
 
     vehicles = VehicleParams()
     vehicles.add(
@@ -68,16 +58,14 @@ def minicity_example(render=None,
         acceleration_controller=(RLController, {}),
         routing_controller=(MinicityRouter, {}),
         car_following_params=SumoCarFollowingParams(
-            speed_mode="no_collide",
+            speed_mode="obey_safe_speed",
         ),
         initial_speed=0,
         num_vehicles=10)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
-    net_params = NetParams(
-        no_internal_links=False, additional_params=additional_net_params)
+    net_params = NetParams(no_internal_links=False)
 
     initial_config = InitialConfig(
         spacing="random",

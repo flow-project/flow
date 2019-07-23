@@ -20,7 +20,45 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class Figure8Scenario(Scenario):
-    """Figure eight scenario class."""
+    """Figure eight scenario class.
+
+    The figure eight network is an extension of the ring road network: Two
+    rings, placed at opposite ends of the network, are connected by an
+    intersection with road segments of length equal to the diameter of the
+    rings. Serves as a simulation of a closed loop intersection.
+
+    Requires from net_params:
+
+    * **ring_radius** : radius of the circular portions of the network. Also
+      corresponds to half the length of the perpendicular straight lanes.
+    * **resolution** : number of nodes resolution in the circular portions
+    * **lanes** : number of lanes in the network
+    * **speed** : max speed of vehicles in the network
+
+    In order for right-of-way dynamics to take place at the intersection,
+    set *no_internal_links* in net_params to False.
+
+    Usage
+    -----
+    >>> from flow.core.params import NetParams
+    >>> from flow.core.params import VehicleParams
+    >>> from flow.core.params import InitialConfig
+    >>> from flow.scenarios import Figure8Scenario
+    >>>
+    >>> scenario = Figure8Scenario(
+    >>>     name='figure_eight',
+    >>>     vehicles=VehicleParams(),
+    >>>     net_params=NetParams(
+    >>>         additional_params={
+    >>>             'radius_ring': 50,
+    >>>             'lanes': 75,
+    >>>             'speed_limit': 30,
+    >>>             'resolution': 40
+    >>>         },
+    >>>         no_internal_links=False  # we want junctions
+    >>>     )
+    >>> )
+    """
 
     def __init__(self,
                  name,
@@ -28,20 +66,7 @@ class Figure8Scenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a figure 8 scenario.
-
-        Requires from net_params:
-        - ring_radius: radius of the circular portions of the network. Also
-          corresponds to half the length of the perpendicular straight lanes.
-        - resolution: number of nodes resolution in the circular portions
-        - lanes: number of lanes in the network
-        - speed: max speed of vehicles in the network
-
-        In order for right-of-way dynamics to take place at the intersection,
-        set "no_internal_links" in net_params to False.
-
-        See flow/scenarios/base_scenario.py for description of params.
-        """
+        """Initialize a figure 8 scenario."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
@@ -52,15 +77,10 @@ class Figure8Scenario(Scenario):
         self.junction_len = 2.9 + 3.3 * net_params.additional_params["lanes"]
         self.inner_space_len = 0.28
 
-        # instantiate "length" in net params
-        net_params.additional_params["length"] = \
-            6 * self.ring_edgelen + 2 * self.intersection_len + \
-            2 * self.junction_len + 10 * self.inner_space_len
-
-        self.radius_ring = net_params.additional_params["radius_ring"]
-        self.length = net_params.additional_params["length"]
-        self.lanes = net_params.additional_params["lanes"]
-        self.resolution = net_params.additional_params["resolution"]
+        # # instantiate "length" in net params
+        # net_params.additional_params["length"] = \
+        #     6 * self.ring_edgelen + 2 * self.intersection_len + \
+        #     2 * self.junction_len + 10 * self.inner_space_len
 
         super().__init__(name, vehicles, net_params, initial_config,
                          traffic_lights)
@@ -223,25 +243,18 @@ class Figure8Scenario(Scenario):
 
         return edgestarts
 
-    def specify_intersection_edge_starts(self):
-        """See base class."""
-        intersection_edgestarts = [
-            (":center_{}".format(self.lanes),
-             self.intersection_len / 2 + self.inner_space_len),
-            (":center_0", 3 / 2 * self.intersection_len + 3 * self.ring_edgelen
-             + self.junction_len + 3 * self.inner_space_len),
-        ]
-
-        return intersection_edgestarts
-
     def specify_internal_edge_starts(self):
         """See base class."""
         internal_edgestarts = [
             (":bottom", 0),
+            (":center_{}".format(self.net_params.additional_params['lanes']),
+             self.intersection_len / 2 + self.inner_space_len),
             (":top", self.intersection_len + self.junction_len +
              self.inner_space_len),
             (":right", self.intersection_len + 3 * self.ring_edgelen
              + self.junction_len + 2 * self.inner_space_len),
+            (":center_0", 3 / 2 * self.intersection_len + 3 * self.ring_edgelen
+             + self.junction_len + 3 * self.inner_space_len),
             (":left", 2 * self.intersection_len + 3 * self.ring_edgelen
              + 2 * self.junction_len + 3 * self.inner_space_len),
             # for aimsun

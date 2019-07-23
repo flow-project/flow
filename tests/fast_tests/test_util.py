@@ -90,7 +90,7 @@ class TestRegistry(unittest.TestCase):
             }),
             routing_controller=(ContinuousRouter, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode="no_collide",
+                speed_mode="obey_safe_speed",
             ),
             num_vehicles=13)
         vehicles.add(
@@ -98,7 +98,7 @@ class TestRegistry(unittest.TestCase):
             acceleration_controller=(RLController, {}),
             routing_controller=(ContinuousRouter, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode="no_collide",
+                speed_mode="obey_safe_speed",
             ),
             num_vehicles=1)
 
@@ -157,9 +157,9 @@ class TestRegistry(unittest.TestCase):
                          flow_params["sim"].__dict__)
         self.assertEqual(env.scenario.traffic_lights.__dict__,
                          flow_params["tls"].__dict__)
-        self.assertEqual(env.scenario.net_params.__dict__,
+        self.assertEqual(env.net_params.__dict__,
                          flow_params["net"].__dict__)
-        self.assertEqual(env.scenario.initial_config.__dict__,
+        self.assertEqual(env.initial_config.__dict__,
                          flow_params["initial"].__dict__)
         self.assertEqual(env.__class__.__name__, flow_params["env_name"])
         self.assertEqual(env.scenario.__class__.__name__,
@@ -183,7 +183,7 @@ class TestRllib(unittest.TestCase):
             veh_id="human",
             acceleration_controller=(IDMController, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode="no_collide",
+                speed_mode="obey_safe_speed",
             ),
             # for testing coverage purposes, we add a routing controller
             routing_controller=(ContinuousRouter, {}),
@@ -192,7 +192,7 @@ class TestRllib(unittest.TestCase):
             veh_id="rl",
             acceleration_controller=(RLController, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode="no_collide",
+                speed_mode="obey_safe_speed",
             ),
             num_vehicles=0)
 

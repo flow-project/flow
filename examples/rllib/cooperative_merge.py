@@ -1,6 +1,5 @@
 """Trains vehicles to facilitate cooperative merging in a loop merge.
 
-
 This examples consists of 1 learning agent and 6 additional vehicles in an
 inner ring, and 10 vehicles in an outer ring attempting to
 merge into the inner ring.
@@ -66,7 +65,7 @@ vehicles.add(
     car_following_params=SumoCarFollowingParams(
         minGap=0.01,
         tau=0.5,
-        speed_mode="no_collide",
+        speed_mode="obey_safe_speed",
     ),
     lane_change_params=SumoLaneChangeParams())
 # Outer ring vehicles
@@ -86,7 +85,7 @@ flow_params = dict(
     exp_tag='cooperative_merge',
 
     # name of the flow environment the experiment is running on
-    env_name='TwoLoopsMergePOEnv',
+    env_name='AccelEnv',
 
     # name of the scenario class the experiment is running on
     scenario='TwoLoopsOneMergingScenario',
@@ -104,12 +103,10 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         additional_params={
-            'max_accel': 3,
-            'max_decel': 3,
-            'target_velocity': 10,
-            'n_preceding': 2,
-            'n_following': 2,
-            'n_merging_in': 2,
+            "target_velocity": 10,
+            "max_accel": 3,
+            "max_decel": 3,
+            "sort_vehicles": False
         },
     ),
 
@@ -128,7 +125,7 @@ flow_params = dict(
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/
@@ -144,7 +141,17 @@ flow_params = dict(
 
 
 def setup_exps():
+    """Return the relevant components of an RLlib experiment.
 
+    Returns
+    -------
+    str
+        name of the training algorithm
+    str
+        name of the gym environment to be trained
+    dict
+        training configuration parameters
+    """
     alg_run = 'PPO'
 
     agent_cls = get_agent_class(alg_run)
@@ -157,6 +164,7 @@ def setup_exps():
     config['lambda'] = 0.97
     config['kl_target'] = 0.02
     config['num_sgd_iter'] = 10
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config['horizon'] = HORIZON
 
     # save the flow params for replay
@@ -183,6 +191,7 @@ if __name__ == '__main__':
                 **config
             },
             'checkpoint_freq': 20,
+            "checkpoint_at_end": True,
             'max_failures': 999,
             'stop': {
                 'training_iteration': 200,

@@ -5,6 +5,7 @@ from flow.core.kernel.scenario import TraCIScenario, AimsunKernelScenario
 from flow.core.kernel.vehicle import TraCIVehicle, AimsunKernelVehicle
 from flow.core.kernel.traffic_light import TraCITrafficLight, \
     AimsunKernelTrafficLight
+from flow.utils.exceptions import FatalFlowError
 
 
 class Kernel(object):
@@ -55,7 +56,7 @@ class Kernel(object):
 
         Raises
         ------
-        ValueError
+        flow.utils.exceptions.FatalFlowError
             if the specified input simulator is not a valid type
         """
         self.kernel_api = None
@@ -71,8 +72,8 @@ class Kernel(object):
             self.vehicle = AimsunKernelVehicle(self, sim_params)
             self.traffic_light = AimsunKernelTrafficLight(self)
         else:
-            raise ValueError('Simulator type "{}" is not valid.'.
-                             format(simulator))
+            raise FatalFlowError('Simulator type "{}" is not valid.'.
+                                 format(simulator))
 
     def pass_api(self, kernel_api):
         """Pass the kernel API to all kernel subclasses."""

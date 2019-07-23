@@ -2,17 +2,18 @@ import random
 import numpy as np
 import unittest
 import os
+from scipy.optimize import fsolve
+from copy import deepcopy
 from flow.core.params import VehicleParams
 from flow.core.params import NetParams, EnvParams, SumoParams, InFlows
 from flow.controllers import IDMController, RLController
-from flow.scenarios import LoopScenario, MergeScenario, BottleneckScenario, \
-    TwoLoopsOneMergingScenario
+from flow.scenarios import LoopScenario, MergeScenario, BottleneckScenario
 from flow.scenarios.loop import ADDITIONAL_NET_PARAMS as LOOP_PARAMS
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS as MERGE_PARAMS
-from flow.scenarios.loop_merge import ADDITIONAL_NET_PARAMS as LM_PARAMS
 from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
     WaveAttenuationEnv, WaveAttenuationPOEnv, WaveAttenuationMergePOEnv, \
-    TestEnv, TwoLoopsMergePOEnv, DesiredVelocityEnv
+    TestEnv, DesiredVelocityEnv, BottleneckEnv, BottleNeckAccelEnv
+from flow.envs.loop.wave_attenuation import v_eq_max_function
 
 
 os.environ["TEST_FLAG"] = "True"
@@ -75,7 +76,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
         # check the observation space
         self.assertTrue(test_space(
             env.observation_space,
-            expected_size=3 * env.scenario.vehicles.num_vehicles,
+            expected_size=3 * env.initial_vehicles.num_vehicles,
             expected_min=0,
             expected_max=1)
         )
@@ -83,7 +84,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
         # check the action space
         self.assertTrue(test_space(
             env.action_space,
-            expected_size=2 * env.scenario.vehicles.num_rl_vehicles,
+            expected_size=2 * env.initial_vehicles.num_rl_vehicles,
             expected_min=np.array([
                 -env.env_params.additional_params["max_decel"], -1]),
             expected_max=np.array([
@@ -241,13 +242,13 @@ class TestAccelEnv(unittest.TestCase):
         # check the observation space
         self.assertTrue(test_space(
             env.observation_space,
-            expected_size=2 * env.scenario.vehicles.num_vehicles,
+            expected_size=2 * env.initial_vehicles.num_vehicles,
             expected_min=0, expected_max=1))
 
         # check the action space
         self.assertTrue(test_space(
             env.action_space,
-            expected_size=env.scenario.vehicles.num_rl_vehicles,
+            expected_size=env.initial_vehicles.num_rl_vehicles,
             expected_min=-abs(env.env_params.additional_params["max_decel"]),
             expected_max=env.env_params.additional_params["max_accel"])
         )
@@ -316,81 +317,6 @@ class TestAccelEnv(unittest.TestCase):
         self.assertListEqual(sorted_ids, ids)
 
 
-class TestTwoLoopsMergeEnv(unittest.TestCase):
-
-    def setUp(self):
-        vehicles = VehicleParams()
-        vehicles.add("rl", acceleration_controller=(RLController, {}))
-        vehicles.add("human", acceleration_controller=(IDMController, {}))
-
-        self.sim_params = SumoParams()
-        self.scenario = TwoLoopsOneMergingScenario(
-            name="test_merge",
-            vehicles=vehicles,
-            net_params=NetParams(
-                no_internal_links=False,
-                additional_params=LM_PARAMS.copy(),
-            ),
-        )
-        self.env_params = EnvParams(
-            additional_params={
-                "max_accel": 3,
-                "max_decel": 3,
-                "target_velocity": 10,
-                "n_preceding": 2,
-                "n_following": 2,
-                "n_merging_in": 2,
-                "sort_vehicles": True
-            }
-        )
-
-    def tearDown(self):
-        self.sim_params = None
-        self.scenario = None
-        self.env_params = None
-
-    def test_additional_env_params(self):
-        """Ensures that not returning the correct params leads to an error."""
-        self.assertTrue(
-            test_additional_params(
-                env_class=TwoLoopsMergePOEnv,
-                sim_params=self.sim_params,
-                scenario=self.scenario,
-                additional_params={
-                    "max_accel": 1,
-                    "max_decel": 3,
-                    "target_velocity": 10,
-                    "n_preceding": 2,
-                    "n_following": 2,
-                    "n_merging_in": 2
-                }
-            )
-        )
-
-    def test_observation_action_space(self):
-        """Tests the observation and action spaces upon initialization."""
-        env = TwoLoopsMergePOEnv(
-            sim_params=self.sim_params,
-            scenario=self.scenario,
-            env_params=self.env_params
-        )
-
-        # check the observation space
-        self.assertTrue(test_space(
-            env.observation_space,
-            expected_size=17, expected_min=0, expected_max=float('inf')))
-
-        # check the action space
-        self.assertTrue(test_space(
-            env.action_space,
-            expected_size=env.scenario.vehicles.num_rl_vehicles,
-            expected_min=-abs(env.env_params.additional_params["max_decel"]),
-            expected_max=env.env_params.additional_params["max_accel"])
-        )
-
-        env.terminate()
-
-
 class TestWaveAttenuationEnv(unittest.TestCase):
 
     def setUp(self):
@@ -444,13 +370,13 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         # check the observation space
         self.assertTrue(test_space(
             env.observation_space,
-            expected_size=2 * env.scenario.vehicles.num_vehicles,
+            expected_size=2 * env.initial_vehicles.num_vehicles,
             expected_min=0, expected_max=1))
 
         # check the action space
         self.assertTrue(test_space(
             env.action_space,
-            expected_size=env.scenario.vehicles.num_rl_vehicles,
+            expected_size=env.initial_vehicles.num_rl_vehicles,
             expected_min=-abs(env.env_params.additional_params["max_decel"]),
             expected_max=env.env_params.additional_params["max_accel"])
         )
@@ -490,7 +416,44 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         env.reset()
         self.assertEqual(env.k.scenario.length(), 239)
         env.reset()
-        self.assertEqual(env.k.scenario.length(), 224)
+        self.assertEqual(env.k.scenario.length(), 256)
+
+    def test_v_eq_max_function(self):
+        """
+        Tests that the v_eq_max_function returns appropriate values.
+        """
+        # for 230 m ring roads
+        self.assertAlmostEqual(
+            float(fsolve(v_eq_max_function, np.array([4]), args=(22, 230))[0]),
+            3.7136148111012934)
+
+        # for 270 m ring roads
+        self.assertAlmostEqual(
+            float(fsolve(v_eq_max_function, np.array([4]), args=(22, 270))[0]),
+            5.6143732387852054)
+
+    def test_reset_no_same_length(self):
+        """
+        Tests that the reset method uses the original ring length when the
+        range is set to None.
+        """
+        # setup env_params with not range
+        env_params = deepcopy(self.env_params)
+        env_params.additional_params["ring_length"] = None
+
+        # create the environment
+        env = WaveAttenuationEnv(
+            sim_params=self.sim_params,
+            scenario=self.scenario,
+            env_params=env_params
+        )
+
+        # reset the network several times and check its length
+        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        env.reset()
+        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        env.reset()
+        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
 
 
 class TestWaveAttenuationPOEnv(unittest.TestCase):
@@ -546,7 +509,10 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
         # check the observation space
         self.assertTrue(test_space(
             env.observation_space,
-            expected_size=3, expected_min=0, expected_max=1))
+            expected_size=3,
+            expected_min=-float('inf'),
+            expected_max=float('inf')
+        ))
 
         # check the action space
         self.assertTrue(test_space(
@@ -565,6 +531,69 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
                 env_params=self.env_params,
                 expected_observed=["human_0"]
             )
+        )
+
+    def test_reward(self):
+        """Check the reward function for different values.
+
+        The reward function should be a linear combination of the average speed
+        of all vehicles and a penalty on the requested accelerations by the
+        AVs.
+        """
+        # create the environment
+        env = WaveAttenuationPOEnv(
+            sim_params=self.sim_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+        env.reset()
+
+        # check the reward for no acceleration
+
+        env.k.vehicle.test_set_speed('human_0', 0)
+        env.k.vehicle.test_set_speed('rl_0', 0)
+        self.assertAlmostEqual(
+            env.compute_reward(rl_actions=[0], fail=False),
+            0
+        )
+
+        env.k.vehicle.test_set_speed('human_0', 0)
+        env.k.vehicle.test_set_speed('rl_0', 1)
+        self.assertAlmostEqual(
+            env.compute_reward(rl_actions=[0], fail=False),
+            0.1
+        )
+
+        env.k.vehicle.test_set_speed('human_0', 1)
+        env.k.vehicle.test_set_speed('rl_0', 1)
+        self.assertAlmostEqual(
+            env.compute_reward(rl_actions=[0], fail=False),
+            0.2
+        )
+
+        # check the fail option
+
+        env.k.vehicle.test_set_speed('human_0', 1)
+        env.k.vehicle.test_set_speed('rl_0', 1)
+        self.assertAlmostEqual(
+            env.compute_reward(rl_actions=[0], fail=True),
+            0
+        )
+
+        # check the effect of RL actions
+
+        env.k.vehicle.test_set_speed('human_0', 1)
+        env.k.vehicle.test_set_speed('rl_0', 1)
+        self.assertAlmostEqual(
+            env.compute_reward(rl_actions=None, fail=False),
+            0
+        )
+
+        env.k.vehicle.test_set_speed('human_0', 1)
+        env.k.vehicle.test_set_speed('rl_0', 1)
+        self.assertAlmostEqual(
+            env.compute_reward(rl_actions=[1], fail=False),
+            -3.8
         )
 
 
@@ -689,6 +718,150 @@ class TestTestEnv(unittest.TestCase):
         self.assertEqual(self.env.compute_reward([]), 1)
 
 
+class TestBottleneckEnv(unittest.TestCase):
+
+    """Tests the BottleneckEnv environment in flow/envs/bottleneck_env.py"""
+
+    def setUp(self):
+        self.sim_params = SumoParams(sim_step=0.5, restart_instance=True)
+
+        vehicles = VehicleParams()
+        vehicles.add(veh_id="human", num_vehicles=10)
+
+        env_params = EnvParams(
+            additional_params={
+                "max_accel": 3,
+                "max_decel": 3,
+                "lane_change_duration": 5,
+                "disable_tb": True,
+                "disable_ramp_metering": True,
+            }
+        )
+
+        net_params = NetParams(
+            no_internal_links=False,
+            additional_params={"scaling": 1, "speed_limit": 23})
+
+        self.scenario = BottleneckScenario(
+            name="bay_bridge_toll",
+            vehicles=vehicles,
+            net_params=net_params)
+
+        self.env = BottleneckEnv(env_params, self.sim_params, self.scenario)
+        self.env.reset()
+
+    def tearDown(self):
+        self.env.terminate()
+        del self.env
+
+    def test_additional_env_params(self):
+        """Ensures that not returning the correct params leads to an error."""
+        self.assertTrue(
+            test_additional_params(
+                env_class=BottleneckEnv,
+                sim_params=self.sim_params,
+                scenario=self.scenario,
+                additional_params={
+                    "max_accel": 3,
+                    "max_decel": 3,
+                    "lane_change_duration": 5,
+                    "disable_tb": True,
+                    "disable_ramp_metering": True,
+                }
+            )
+        )
+
+    def test_get_bottleneck_density(self):
+        self.assertEqual(self.env.get_bottleneck_density(), 0)
+
+    def test_observation_action_space(self):
+        """Tests the observation and action spaces upon initialization."""
+        # check the observation space
+        self.assertTrue(test_space(
+            self.env.observation_space,
+            expected_size=1,
+            expected_min=-float('inf'),
+            expected_max=float('inf'))
+        )
+
+        # check the action space
+        self.assertTrue(test_space(
+            self.env.action_space,
+            expected_size=1,
+            expected_min=-float('inf'),
+            expected_max=float('inf'))
+        )
+
+
+class TestBottleneckAccelEnv(unittest.TestCase):
+
+    """Tests BottleneckAccelEnv in flow/envs/bottleneck_env.py."""
+
+    def setUp(self):
+        self.sim_params = SumoParams(sim_step=0.5, restart_instance=True)
+
+        vehicles = VehicleParams()
+        vehicles.add(veh_id="human", num_vehicles=10)
+
+        env_params = EnvParams(
+            additional_params={
+                "max_accel": 3,
+                "max_decel": 3,
+                "lane_change_duration": 5,
+                "disable_tb": True,
+                "disable_ramp_metering": True,
+                "target_velocity": 30,
+                "add_rl_if_exit": True,
+            }
+        )
+
+        net_params = NetParams(
+            no_internal_links=False,
+            additional_params={"scaling": 1, "speed_limit": 23})
+
+        self.scenario = BottleneckScenario(
+            name="bay_bridge_toll",
+            vehicles=vehicles,
+            net_params=net_params)
+
+        self.env = BottleNeckAccelEnv(
+            env_params, self.sim_params, self.scenario)
+        self.env.reset()
+
+    def tearDown(self):
+        self.env.terminate()
+        del self.env
+
+    def test_additional_env_params(self):
+        """Ensures that not returning the correct params leads to an error."""
+        self.assertTrue(
+            test_additional_params(
+                env_class=BottleNeckAccelEnv,
+                sim_params=self.sim_params,
+                scenario=self.scenario,
+                additional_params={
+                    "max_accel": 3,
+                    "max_decel": 3,
+                    "lane_change_duration": 5,
+                    "disable_tb": True,
+                    "disable_ramp_metering": True,
+                    "target_velocity": 30,
+                    "add_rl_if_exit": True,
+                }
+            )
+        )
+
+    def test_observation_action_space(self):
+        """Tests the observation and action spaces upon initialization."""
+        # check the observation space
+        self.assertTrue(test_space(
+            self.env.observation_space,
+            expected_size=12,
+            expected_min=0,
+            expected_max=1)
+        )
+
+
 class TestDesiredVelocityEnv(unittest.TestCase):
 
     """Tests the DesiredVelocityEnv environment in flow/envs/bottleneck.py"""
@@ -748,19 +921,10 @@ class TestDesiredVelocityEnv(unittest.TestCase):
 
         # reset the environment and get a new inflow rate
         env.reset()
-        expected_inflow = 1343.178  # just from checking the new inflow
+        expected_inflow = 1353.6  # just from checking the new inflow
 
-        # check that the first inflow rate is approximately 1500
-        for _ in range(500):
-            env.step(rl_actions=None)
-        self.assertAlmostEqual(
-            env.k.vehicle.get_inflow_rate(250)/expected_inflow, 1, 1)
-
-        # reset the environment and get a new inflow rate
-        env.reset()
-        expected_inflow = 1729.050  # just from checking the new inflow
-
-        # check that the new inflow rate is approximately as expected
+        # check that the first inflow rate is approximately what the seeded
+        # value expects it to be
         for _ in range(500):
             env.step(rl_actions=None)
         self.assertAlmostEqual(
@@ -825,9 +989,9 @@ def test_space(gym_space, expected_size, expected_min, expected_max):
         gym space object to be tested
     expected_size : int
         expected size
-    expected_min : float or numpy.ndarray
+    expected_min : float or array_like
         expected minimum value(s)
-    expected_max : float or numpy.ndarray
+    expected_max : float or array_like
         expected maximum value(s)
 
     Returns
@@ -849,7 +1013,7 @@ def test_observed(env_class,
 
     Parameters
     ----------
-    env_class : flow.envs.Env type
+    env_class : flow.envs.Env class
         blank
     sim_params : flow.core.params.SumoParams
         sumo-specific parameters
@@ -857,7 +1021,7 @@ def test_observed(env_class,
         scenario that works for the environment
     env_params : flow.core.params.EnvParams
         environment-specific parameters
-    expected_observed : list or numpy.ndarray
+    expected_observed : array_like
         expected list of observed vehicles
 
     Returns

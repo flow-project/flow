@@ -11,7 +11,17 @@ dist: trusty
 
 sudo: required
 
+git:
+  depth: 1
+
 before_install:
+  # install and run pep8 and docstyle tests
+  - pip install pydocstyle
+  - pydocstyle --convention numpy
+  - pip install flake8 .
+  - flake8 --version
+  - flake8 --show-source
+
   # Setup conda (needed for opencv, ray dependency)
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
@@ -21,23 +31,6 @@ before_install:
   # Set up requirements for flow
   - conda env create -f environment.yml
   - source activate flow
-
-  # Requirements for Ray
-  - pip install opencv-python
-  # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
-  - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.5.3-cp35-cp35m-manylinux1_x86_64.whl
-
-  # Copy over local rllib changes (testing branch)
-  - pushd $HOME/build/flow-project
-  -     git clone https://github.com/flow-project/ray.git
-  -     cd ray && git fetch && git checkout ray_merge && cd ..
-  -     pushd ray
-  -         RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
-  -         rm -rf $RAY_SITE_DIR/rllib
-  -         ls $RAY_SITE_DIR
-  -         cp -r python/ray/rllib $RAY_SITE_DIR/rllib
-  -     popd
-  - popd
 
   # [sumo] dependencies and binaries
   - pushd $HOME/build/flow-project
@@ -55,19 +48,14 @@ before_install:
   - ls ../
 
 install:
-  - pip install flake8 .
   - pip install coveralls
   - pip install nose
   - pip install matplotlib
   - pip install jupyter
 
-before_script:
-  - flake8 --version
-  - flake8 --show-source
-
 script:
   - python setup.py install
-  - nose2 --with-coverage
+  - xvfb-run --server-args="-screen 0 1024x768x24"  nose2 --with-coverage
 
 after_success:
   - coveralls

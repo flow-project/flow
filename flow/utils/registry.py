@@ -28,19 +28,22 @@ def make_create_env(params, version=0, render=None):
     ----------
     params : dict
         flow-related parameters, consisting of the following keys:
+
          - exp_tag: name of the experiment
          - env_name: name of the flow environment the experiment is running on
          - scenario: name of the scenario class the experiment uses
+         - simulator: simulator that is used by the experiment (e.g. aimsun)
          - sim: simulation-related parameters (see flow.core.params.SimParams)
          - env: environment related parameters (see flow.core.params.EnvParams)
          - net: network-related parameters (see flow.core.params.NetParams and
            the scenario's documentation or ADDITIONAL_NET_PARAMS component)
          - veh: vehicles to be placed in the network at the start of a rollout
-           (see flow.core.vehicles.Vehicles)
+           (see flow.core.params.VehicleParams)
          - initial (optional): parameters affecting the positioning of vehicles
            upon initialization/reset (see flow.core.params.InitialConfig)
          - tls (optional): traffic lights to be introduced to specific nodes
            (see flow.core.params.TrafficLightParams)
+
     version : int, optional
         environment version number
     render : bool, optional
@@ -78,8 +81,8 @@ def make_create_env(params, version=0, render=None):
             traffic_lights=traffic_lights,
         )
 
-        if render is not None:
-            sim_params.render = render
+        # accept new render type if not set to None
+        sim_params.render = render or sim_params.render
 
         # check if the environment is a single or multiagent environment, and
         # get the right address accordingly

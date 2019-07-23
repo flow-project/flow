@@ -85,6 +85,9 @@ additional_env_params = {
     "start_inflow": flow_rate,
 }
 
+# flow rate
+flow_rate = 2300 * SCALING
+
 # percentage of flow coming out of each lane
 inflow = InFlows()
 inflow.add(
@@ -150,7 +153,7 @@ flow_params = dict(
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/
@@ -169,7 +172,17 @@ flow_params = dict(
 
 
 def setup_exps():
+    """Return the relevant components of an RLlib experiment.
 
+    Returns
+    -------
+    str
+        name of the training algorithm
+    str
+        name of the gym environment to be trained
+    dict
+        training configuration parameters
+    """
     alg_run = "PPO"
 
     agent_cls = get_agent_class(alg_run)
@@ -177,8 +190,12 @@ def setup_exps():
     config["num_workers"] = N_CPUS
     config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [100, 50, 25]})
-    config['clip_actions'] = False
+    config["model"].update({"fcnet_hiddens": [64, 64]})
+    config["use_gae"] = True
+    config["lambda"] = 0.97
+    config["kl_target"] = 0.02
+    config["num_sgd_iter"] = 10
+    config['clip_actions'] = True
     config["horizon"] = HORIZON
 
     # Grid search things
@@ -210,6 +227,7 @@ if __name__ == "__main__":
                 **config
             },
             "checkpoint_freq": 50,
+            "checkpoint_at_end": True,
             "max_failures": 999,
             "stop": {
                 "training_iteration": 300,

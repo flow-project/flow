@@ -54,7 +54,28 @@ EDGES_DISTRIBUTION = [
 
 
 class BayBridgeScenario(Scenario):
-    """A scenario used to simulate the bottleneck portion of the Bay Bridge."""
+    """A scenario used to simulate the Bay Bridge.
+
+    The bay bridge was originally imported from OpenStreetMap and subsequently
+    modified to more closely match the network geometry of the actual Bay
+    Bridge. Vehicles are only allowed to exist of and traverse the edges
+    leading up to and which the westbound Bay Bridge.
+
+    Usage
+    -----
+    >>> from flow.core.params import NetParams
+    >>> from flow.core.params import VehicleParams
+    >>> from flow.core.params import InitialConfig
+    >>> from flow.scenarios import BayBridgeScenario
+    >>>
+    >>> scenario = BayBridgeScenario(
+    >>>     name='bay_bridge',
+    >>>     vehicles=VehicleParams(),
+    >>>     net_params=NetParams(
+    >>>         no_internal_links=False  # we want junctions
+    >>>     )
+    >>> )
+    """
 
     def specify_routes(self, net_params):
         """See parent class.
@@ -119,9 +140,9 @@ class BayBridgeScenario(Scenario):
             'gneE3': ['gneE3', '340686911#0.54.0'],
             '340686911#0.54.0': ['340686911#0.54.0', '340686911#0.54.54.0'],
             '340686911#0.54.54.0':
-            ['340686911#0.54.54.0', '340686911#0.54.54.127.0'],
+                ['340686911#0.54.54.0', '340686911#0.54.54.127.0'],
             '340686911#0.54.54.127.0':
-            ['340686911#0.54.54.127.0', '340686911#0.54.54.127.74'],
+                ['340686911#0.54.54.127.0', '340686911#0.54.54.127.74'],
             '340686911#2.35': ['340686911#2.35', '340686911#3']
         }
 

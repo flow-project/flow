@@ -4,11 +4,9 @@ Bottleneck in which the actions are specifying a desired velocity in a segment
 of space for a large bottleneck.
 The autonomous penetration rate in this example is 10%.
 
-Action Dimension: (40, )
-
-Observation Dimension: (281, )
-
-Horizon: 1000 steps
+- **Action Dimension**: (40, )
+- **Observation Dimension**: (281, )
+- **Horizon**: 1000 steps
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
@@ -18,7 +16,7 @@ from flow.core.params import VehicleParams
 from flow.controllers import RLController, ContinuousRouter
 
 # time horizon of a single rollout
-HORIZON = 1000
+HORIZON = 1500
 
 SCALING = 2
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
@@ -63,11 +61,11 @@ additional_env_params = {
     "lane_change_duration": 5,
     "max_accel": 3,
     "max_decel": 3,
-    "inflow_range": [1000, 2000]
+    "inflow_range": [1200 * SCALING, 2500 * SCALING]
 }
 
 # flow rate
-flow_rate = 1900 * SCALING
+flow_rate = 2000 * SCALING
 
 # percentage of flow coming out of each lane
 inflow = InFlows()
@@ -134,7 +132,7 @@ flow_params = dict(
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/
