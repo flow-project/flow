@@ -523,19 +523,17 @@ class SimpleGridScenario(Scenario):
 
     # TODO necessary?
     def specify_edge_starts(self):
-        """See parent class.
-
-        Edges go in the following order: vert_right, vert_left, horz_right,
-        horz_left.
-        """
+        """See parent class."""
         edgestarts = []
         for i in range(self.col_num + 1):
             for j in range(self.row_num + 1):
                 index = "{}_{}".format(j, i)
-                edgestarts += [("left" + index, 0 + i * 50 + j * 5000),
-                               ("right" + index, 10 + i * 50 + j * 5000),
-                               ("top" + index, 15 + i * 50 + j * 5000),
-                               ("bot" + index, 20 + i * 50 + j * 5000)]
+                if i != self.col_num:
+                    edgestarts += [("left" + index, 0 + i * 50 + j * 5000),
+                                   ("right" + index, 10 + i * 50 + j * 5000)]
+                if j != self.row_num:
+                    edgestarts += [("top" + index, 15 + i * 50 + j * 5000),
+                                   ("bot" + index, 20 + i * 50 + j * 5000)]
 
         return edgestarts
 

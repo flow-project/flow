@@ -8,6 +8,7 @@ from flow.core.params import NetParams
 from flow.core.params import VehicleParams
 from flow.core.params import EnvParams
 from flow.core.params import SumoParams
+from flow.core.params import SumoCarFollowingParams
 from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
 from flow.envs import TestEnv
 from flow.scenarios import Scenario
@@ -121,6 +122,9 @@ class TestEvenStartPos(unittest.TestCase):
             veh_id="test",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
+            car_following_params=SumoCarFollowingParams(
+                min_gap=0
+            ),
             num_vehicles=15)
 
         # create the environment and scenario classes for a ring road
@@ -441,6 +445,9 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
             veh_id="test",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
+            car_following_params=SumoCarFollowingParams(
+                min_gap=0
+            ),
             num_vehicles=15)
 
         initial_config = InitialConfig(x0=150)
@@ -514,6 +521,9 @@ class TestRandomStartPos(unittest.TestCase):
             veh_id="test",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
+            car_following_params=SumoCarFollowingParams(
+                min_gap=0
+            ),
             num_vehicles=5)
 
         # create the environment and scenario classes for a ring road
@@ -590,6 +600,9 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
             veh_id="test",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
+            car_following_params=SumoCarFollowingParams(
+                min_gap=0
+            ),
             num_vehicles=50)
 
         initial_config = InitialConfig(lanes_distribution=5)
@@ -622,6 +635,9 @@ class TestRandomStartPosVariableLanes(TestEvenStartPosVariableLanes):
             veh_id="test",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
+            car_following_params=SumoCarFollowingParams(
+                min_gap=0
+            ),
             num_vehicles=50)
 
         initial_config = InitialConfig(spacing="random", lanes_distribution=5)

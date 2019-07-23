@@ -247,17 +247,18 @@ def _ring_road(data, params, all_time):
         that time step.
     """
     # import network data from flow params
-    edgelen = params['net'].additional_params["length"] / 4
+    ring_length = params['net'].additional_params["length"]
+    junction_length = 0.1  # length of inter-edge junctions
 
     edgestarts = {
         "bottom": 0,
-        ":right_0": edgelen,
-        "right": edgelen + 0.1,
-        ":top_0": 2 * edgelen + 0.1,
-        "top": 2 * edgelen + 0.2,
-        ":left_0": 3 * edgelen + 0.2,
-        "left": 3 * edgelen + 0.3,
-        ":bottom_0": 4 * edgelen + 0.3
+        ":right_0": 0.25 * ring_length,
+        "right": 0.25 * ring_length + junction_length,
+        ":top_0": 0.5 * ring_length + junction_length,
+        "top": 0.5 * ring_length + 2 * junction_length,
+        ":left_0": 0.75 * ring_length + 2 * junction_length,
+        "left": 0.75 * ring_length + 3 * junction_length,
+        ":bottom_0": ring_length + 3 * junction_length
     }
 
     # compute the absolute position
