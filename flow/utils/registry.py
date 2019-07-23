@@ -68,44 +68,44 @@ def make_create_env(params, version=0, render=None):
     net_params = params['net']
     initial_config = params.get('initial', InitialConfig())
     traffic_lights = params.get("tls", TrafficLightParams())
+    sim_params = deepcopy(params['sim'])
+    vehicles = deepcopy(params['veh'])
+
+    scenario = scenario_class(
+        name=exp_tag,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config,
+        traffic_lights=traffic_lights,
+    )
+
+    # accept new render type if not set to None
+    sim_params.render = render or sim_params.render
+
+    # check if the environment is a single or multiagent environment, and
+    # get the right address accordingly
+    single_agent_envs = [env for env in dir(flow.envs)
+                         if not env.startswith('__')]
+
+    if params['env_name'] in single_agent_envs:
+        env_loc = 'flow.envs'
+    else:
+        env_loc = 'flow.multiagent_envs'
+
+    try:
+        register(
+            id=env_name,
+            entry_point=env_loc + ':{}'.format(params["env_name"]),
+            kwargs={
+                "env_params": env_params,
+                "sim_params": sim_params,
+                "scenario": scenario,
+                "simulator": params['simulator']
+            })
+    except Exception:
+        pass
 
     def create_env(*_):
-        sim_params = deepcopy(params['sim'])
-        vehicles = deepcopy(params['veh'])
-
-        scenario = scenario_class(
-            name=exp_tag,
-            vehicles=vehicles,
-            net_params=net_params,
-            initial_config=initial_config,
-            traffic_lights=traffic_lights,
-        )
-
-        # accept new render type if not set to None
-        sim_params.render = render or sim_params.render
-
-        # check if the environment is a single or multiagent environment, and
-        # get the right address accordingly
-        single_agent_envs = [env for env in dir(flow.envs)
-                             if not env.startswith('__')]
-
-        if params['env_name'] in single_agent_envs:
-            env_loc = 'flow.envs'
-        else:
-            env_loc = 'flow.multiagent_envs'
-
-        try:
-            register(
-                id=env_name,
-                entry_point=env_loc + ':{}'.format(params["env_name"]),
-                kwargs={
-                    "env_params": env_params,
-                    "sim_params": sim_params,
-                    "scenario": scenario,
-                    "simulator": params['simulator']
-                })
-        except Exception:
-            pass
         return gym.envs.make(env_name)
 
     return create_env, env_name

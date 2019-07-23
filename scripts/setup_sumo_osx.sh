@@ -1,5 +1,7 @@
 #!/bin/bash
 echo "Installing system dependencies for SUMO"
+# openai-baselines dependencies
+brew install cmake openmpi
 # rllab dependencies
 brew install swig sdl sdl_image sdl_mixer sdl_ttf portmidi
 # sumo dependencies
