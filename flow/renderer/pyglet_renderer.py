@@ -102,7 +102,7 @@ class PygletRenderer(object):
             Specify whether to render the radius of RL observation
         pxpm : int
             Specify rendering resolution (pixel / meter)
-        alpha: int
+        alpha : int
             Specify opacity of the alpha channel.
             1.0 is fully opaque; 0.0 is fully transparent.
         """
