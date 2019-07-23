@@ -113,7 +113,6 @@ flow_params = dict(
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        no_internal_links=False,
         additional_params={
             'ring_radius': 50,
             'lane_length': 75,
