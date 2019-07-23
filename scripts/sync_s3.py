@@ -1,6 +1,7 @@
 """Script for syncing files form s3 down to your local machine.
-   Code is heavily based on
-   https://github.com/rll/rllab/blob/master/scripts/sync_s3.py
+
+Code is heavily based on
+https://github.com/rll/rllab/blob/master/scripts/sync_s3.py
 """
 
 import sys
