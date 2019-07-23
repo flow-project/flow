@@ -217,7 +217,7 @@ class PygletRenderer(object):
             Set the radius of observation for RL vehicles (meter)
         show_radius : bool
             Specify whether to render the radius of RL observation
-        sleep: float
+        sleep : float
             Specify the rendering delay in second
         """
         if self.save_render:
