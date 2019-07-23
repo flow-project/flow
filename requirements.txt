@@ -17,6 +17,3 @@ numpydoc
 ray==0.6.1
 opencv-python
 
-# theano==0.8.2 # for rllab
-# lasagne # for rllab
-# tensorflow==1.8.0

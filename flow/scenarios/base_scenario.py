@@ -9,12 +9,6 @@ import xml.etree.ElementTree as ElementTree
 from lxml import etree
 from collections import defaultdict
 
-try:
-    # Import serializable if rllab is installed
-    from rllab.core.serializable import Serializable
-except ImportError:
-    Serializable = object
-
 # default sumo probability value  TODO (ak): remove
 DEFAULT_PROBABILITY = 0
 # default sumo vehicle length value (in meters) TODO (ak): remove
@@ -23,7 +17,7 @@ DEFAULT_LENGTH = 5
 DEFAULT_VCLASS = 0
 
 
-class Scenario(Serializable):
+class Scenario(object):
     """Base scenario class.
 
     Initializes a new scenario. Scenarios are used to specify features of
@@ -333,9 +327,6 @@ class Scenario(Serializable):
         traffic_lights : flow.core.params.TrafficLightParams
             see flow/core/params.py
         """
-        # Invoke serializable if using rllab
-        if Serializable is not object:
-            Serializable.quick_init(self, locals())
 
         self.orig_name = name  # To avoid repeated concatenation upon reset
         self.name = name + time.strftime('_%Y%m%d-%H%M%S') + str(time.time())

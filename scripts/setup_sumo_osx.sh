@@ -1,7 +1,5 @@
 #!/bin/bash
 echo "Installing system dependencies for SUMO"
-# rllab dependencies
-brew install swig sdl sdl_image sdl_mixer sdl_ttf portmidi
 # sumo dependencies
 brew install Caskroom/cask/xquartz autoconf automake pkg-config libtool gdal proj xerces-c fox
 
