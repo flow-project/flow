@@ -81,8 +81,9 @@ class PygletRenderer(object):
 
         Parameters
         ----------
-        network : list
-            A list of road network polygons
+        network : list of list
+            A list of road network polygons. Each polygon is expressed as
+            a list of x and y coordinates, e.g., [x1, y1, x2, y2, ...]
         mode : str or bool
 
             * False: no rendering
@@ -298,10 +299,6 @@ class PygletRenderer(object):
         self.frame = frame[::-1, :, 0:3][..., ::-1]
         self.window.flip()
 
-        # import matplotlib.pyplot as plt
-        # plt.imshow(self.frame)
-        # plt.show()
-
         if self.save_render:
             cv2.imwrite("%s/frame_%06d.png" %
                         (self.path, self.time), self.frame)
@@ -457,11 +454,11 @@ class PygletRenderer(object):
 
         Parameters
         ----------
-        center: tuple
+        center : tuple
             The center coordinate of the vehicle
-        radius: float
+        radius : float
             The size of the rendered vehicle or the radius of observation
-        color: list
+        color : list
             The color of the vehicle  [r, g, b].
         """
         if radius == 0:
@@ -488,7 +485,19 @@ class PygletRenderer(object):
                            minval=0.25,
                            maxval=0.75,
                            n=100):
-        """Truncate a matplotlib colormap."""
+        """Truncate a matplotlib colormap.
+
+        Parameters
+        ----------
+        cmap : matplotlib.colors.LinearSegmentedColormap
+            Original colormap
+        minval : float
+            Minimum value of the truncated colormap
+        maxval : float
+            Maximum value of the truncated colormap
+        n : int
+            Number of RGB quantization levels of the truncated colormap
+        """
         new_cmap = colors.LinearSegmentedColormap.from_list(
             'trunc({n},{a:.2f},{b:.2f})'
             .format(n=cmap.name, a=minval, b=maxval),
