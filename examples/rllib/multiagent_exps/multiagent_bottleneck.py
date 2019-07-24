@@ -273,7 +273,7 @@ if __name__ == '__main__':
         epilog=EXAMPLE_USAGE)
 
     # required input parameters for tune
-    parser.add_argument('--exp_title', type=str, help='Informative experiment title to help distinguish results')
+    parser.add_argument('exp_title', type=str, help='Informative experiment title to help distinguish results')
     parser.add_argument('--use_s3', type=bool, default=False, help='If true, upload results to s3')
     parser.add_argument('--n_cpus', type=int, default=1, help='Number of cpus to run experiment with')
     parser.add_argument('--multi_node', type=bool, default=False, help='Set to true if this will '
@@ -284,7 +284,7 @@ if __name__ == '__main__':
     parser.add_argument("--grid_search", type=bool, default=False)
 
     # arguments for flow
-    parser.add_argument('--render', type=bool, default=False, help='Show sumo-gui of results')
+    parser.add_argument('--render', type=bool, action='store_true', help='Show sumo-gui of results')
     parser.add_argument('--horizon', type=int, default=2000, help='Horizon of the environment')
     parser.add_argument('--av_frac', type=float, default=0.1, help='What fraction of the vehicles should be autonomous')
     parser.add_argument('--scaling', type=int, default=1, help='How many lane should we start with. Value of 1 -> 4, '
