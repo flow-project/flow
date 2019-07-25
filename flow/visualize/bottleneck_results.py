@@ -17,10 +17,11 @@ import collections
 from datetime import datetime
 import os
 import sys
+import time
 
 import gym
 import matplotlib
-matplotlib.use('TkAgg')
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import ray
@@ -163,18 +164,17 @@ def bottleneck_visuallizer(args):
         use_lstm = {DEFAULT_POLICY_ID: False}
 
     steps = 0
-    inflow_grid = list(range(args.outflow_min, args.outflow_max,
+    inflow_grid = list(range(args.outflow_min, args.outflow_max + args.step_size,
                              args.step_size))
     outflow_arr = np.zeros((len(inflow_grid) * args.num_trials, 2))
     # keep track of the last 500 points of velocity data for lane 0
     # and 1 in edge 4
-    velocity_arr = np.zeros((args.end_len * len(inflow_grid) * args.num_trials, 3))
+    velocity_arr = []
     for i in range(len(inflow_grid)):
         for j in range(args.num_trials):
             vel = []
             obs = env.unwrapped.reset(inflow_grid[i])
             mapping_cache = {}  # in case policy_agent_mapping is stochastic
-            reward_dict = {}
             agent_states = DefaultMapping(
                 lambda agent_id: state_init[mapping_cache[agent_id]])
             prev_actions = DefaultMapping(
@@ -182,9 +182,11 @@ def bottleneck_visuallizer(args):
             prev_rewards = collections.defaultdict(lambda: 0.)
             done = False
             reward_total = 0.0
-            for k in range(env_params.horizon):
+            k = 0
+            while k < env_params.horizon and not done:
                 vehicles = env.unwrapped.k.vehicle
                 vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
+                # don't start recording till we have hit the warmup time
                 if k >= env_params.horizon - args.end_len:
                     vehs_on_four = vehicles.get_ids_by_edge('4')
                     lanes = vehicles.get_lane(vehs_on_four)
@@ -203,11 +205,10 @@ def bottleneck_visuallizer(args):
                             sort_by_lane[num_zeros:]))
                     else:
                         speed_on_one = 0.0
-                    velocity_arr[args.end_len * (j + i * args.num_trials) + k - (
-                            env_params.horizon - args.end_len), :] = \
+                    velocity_arr.append(
                         [inflow_grid[i],
                          speed_on_zero,
-                         speed_on_one]
+                         speed_on_one])
                 multi_obs = obs if multiagent else {_DUMMY_AGENT_ID: obs}
                 action_dict = {}
                 for agent_id, a_obs in multi_obs.items():
@@ -251,18 +252,18 @@ def bottleneck_visuallizer(args):
                 steps += 1
                 obs = next_obs
 
-        outflow = vehicles.get_outflow_rate(500)
-        final_outflows.append(outflow)
-        inflow = vehicles.get_inflow_rate(500)
-        final_inflows.append(inflow)
-        outflow_arr[j + i * args.num_trials, :] = [inflow_grid[i], outflow]
-        if np.all(np.array(final_inflows) > 1e-5):
-            throughput_efficiency = [x / y for x, y in
-                                     zip(final_outflows, final_inflows)]
-        else:
-            throughput_efficiency = [0] * len(final_inflows)
-        mean_speed.append(np.mean(vel))
-        std_speed.append(np.std(vel))
+            outflow = vehicles.get_outflow_rate(500)
+            final_outflows.append(outflow)
+            inflow = vehicles.get_inflow_rate(500)
+            final_inflows.append(inflow)
+            outflow_arr[j + i * args.num_trials, :] = [inflow_grid[i], outflow]
+            if np.all(np.array(final_inflows) > 1e-5):
+                throughput_efficiency = [x / y for x, y in
+                                         zip(final_outflows, final_inflows)]
+            else:
+                throughput_efficiency = [0] * len(final_inflows)
+            mean_speed.append(np.mean(vel))
+            std_speed.append(np.std(vel))
         print("Episode reward", reward_total)
 
     print('==== Summary of results ====')
@@ -323,8 +324,10 @@ def bottleneck_visuallizer(args):
     plt.tick_params(labelsize=20)
     plt.rcParams['xtick.minor.size'] = 20
     plt.minorticks_on()
+    plt.savefig(os.path.join(output_path, 'figures/outflow_{}'.format(filename)) + '.png')
 
     # plot the velocity results
+    velocity_arr = np.asarray(velocity_arr)
     unique_inflows = sorted(list(set(velocity_arr[:, 0])))
     inflows = velocity_arr[:, 0]
     lane_0 = velocity_arr[:, 1]
@@ -348,7 +351,7 @@ def bottleneck_visuallizer(args):
     plt.tick_params(labelsize=20)
     plt.rcParams['xtick.minor.size'] = 20
     plt.minorticks_on()
-    plt.show()
+    plt.savefig(os.path.join(output_path, 'figures/speed_{}'.format(filename)) + '.png')
 
     # terminate the environment
     env.unwrapped.terminate()
