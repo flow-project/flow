@@ -28,6 +28,7 @@ from ray.rllib.env import MultiAgentEnv
 from ray.rllib.env.base_env import _DUMMY_AGENT_ID
 from ray.rllib.evaluation.episode import _flatten_action
 from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
+from ray.tune.registry import register_env
 
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
@@ -67,16 +68,7 @@ def visualizer_rllib(args):
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
         else args.result_dir[:-1]
 
-    config = get_rllib_config(result_dir)
-    pkl = get_rllib_pkl(result_dir)
-
-    # check if we have a multiagent scenario but in a
-    # backwards compatible way
-    if config.get('multiagent', {}).get('policy_graphs', {}):
-        multiagent = True
-        config['multiagent'] = pkl['multiagent']
-    else:
-        multiagent = False
+    config = get_rllib_pkl(result_dir)
 
     # Run on only one cpu for rendering purposes
     config['num_workers'] = 0
@@ -130,14 +122,10 @@ def visualizer_rllib(args):
         sim_params.pxpm = 4
         sim_params.save_render = True
 
-    # Create and register a gym+rllib env
-    create_env, env_name = make_create_env(params=flow_params, version=0)
-    env = create_env()
-
     # Start the environment with the gui turned on and a path for the
     # emission file
     env_params = flow_params['env']
-    env_params.restart_instance = False
+    sim_params.restart_instance = False
     if args.evaluate:
         env_params.evaluate = True
 
@@ -146,20 +134,16 @@ def visualizer_rllib(args):
         config['horizon'] = args.horizon
         env_params.horizon = args.horizon
 
+
+    # Create and register a gym+rllib env
+    create_env, env_name = make_create_env(params=flow_params, version=0)
+    register_env(env_name, create_env)
+
     # create the agent that will be used to compute the actions
     agent = agent_cls(env=env_name, config=config)
     checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
-
-    if hasattr(agent, "local_evaluator") and \
-            os.environ.get("TEST_FLAG") != 'True':
-        env = agent.local_evaluator.env
-    else:
-        env = gym.make(env_name)
-
-    env.restart_simulation(
-        sim_params=sim_params, render=sim_params.render)
 
     # Simulate and collect metrics
     final_outflows = []
@@ -167,6 +151,7 @@ def visualizer_rllib(args):
     mean_speed = []
     std_speed = []
 
+    policy_agent_mapping = default_policy_agent_mapping
     if hasattr(agent, "workers"):
         env = agent.workers.local_worker().env
         multiagent = isinstance(env, MultiAgentEnv)
@@ -386,5 +371,5 @@ def create_parser():
 if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
-    ray.init(num_cpus=1, redirect_output=False)
+    ray.init(num_cpus=1)
     visualizer_rllib(args)
