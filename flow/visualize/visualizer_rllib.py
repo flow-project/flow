@@ -18,7 +18,6 @@ from datetime import datetime
 import gym
 import numpy as np
 import os
-import pickle
 import sys
 import time
 
@@ -33,7 +32,6 @@ from ray.tune.registry import register_env
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
-from flow.utils.rllib import get_rllib_config
 from flow.utils.rllib import get_rllib_pkl
 
 EXAMPLE_USAGE = """
@@ -255,28 +253,25 @@ def visualizer_rllib(args):
     #     print('Average, std: {}, {}'.format(
     #         np.mean(rets), np.std(rets)))
 
-    print("\nSpeed, mean (m/s):")
-    print(mean_speed)
+    print("\nSpeed, mean (m/s): {}".format(mean_speed))
     print('Average, std: {}, {}'.format(np.mean(mean_speed), np.std(
         mean_speed)))
-    print("\nSpeed, std (m/s):")
-    print(std_speed)
+    print("\nSpeed, std (m/s): {}".format(std_speed))
     print('Average, std: {}, {}'.format(np.mean(std_speed), np.std(
         std_speed)))
 
     # Compute arrival rate of vehicles in the last 500 sec of the run
-    print("\nOutflows (veh/hr):")
-    print(final_outflows)
+    print("\nOutflows (veh/hr): {}".format(final_outflows))
     print('Average, std: {}, {}'.format(np.mean(final_outflows),
                                         np.std(final_outflows)))
+
     # Compute departure rate of vehicles in the last 500 sec of the run
-    print("Inflows (veh/hr):")
-    print(final_inflows)
+    print("Inflows (veh/hr): {}".format(final_inflows))
     print('Average, std: {}, {}'.format(np.mean(final_inflows),
                                         np.std(final_inflows)))
+
     # Compute throughput efficiency in the last 500 sec of the
-    print("Throughput efficiency (veh/hr):")
-    print(throughput_efficiency)
+    print("Throughput efficiency (veh/hr): {}".format(throughput_efficiency))
     print('Average, std: {}, {}'.format(np.mean(throughput_efficiency),
                                         np.std(throughput_efficiency)))
 

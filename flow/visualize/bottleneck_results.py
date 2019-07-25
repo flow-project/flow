@@ -13,36 +13,26 @@ parser : ArgumentParser
 """
 
 import argparse
+import collections
 from datetime import datetime
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 import sys
 
-import ray
-
-try:
-    from ray.rllib.agents.agent import get_agent_class
-except ImportError:
-    from ray.rllib.agents.registry import get_agent_class
-from ray.tune.registry import register_env
-from ray.rllib.models import ModelCatalog
 import gym
+import matplotlib.pyplot as plt
+import numpy as np
+import ray
+from ray.rllib.agents.registry import get_agent_class
+from ray.rllib.env import MultiAgentEnv
+from ray.rllib.env.base_env import _DUMMY_AGENT_ID
+from ray.rllib.evaluation.episode import _flatten_action
+from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
+from ray.tune.registry import register_env
 
-import flow.envs
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
-from flow.utils.rllib import get_rllib_config
 from flow.utils.rllib import get_rllib_pkl
-
-EXAMPLE_USAGE = """
-example usage:
-    python ./visualizer_rllib.py /tmp/ray/result_dir 1
-
-Here the arguments are:
-1 - the number of the checkpoint
-"""
 
 OUTFLOW_RANGE = [400, 2500]
 STEP_SIZE = 100
@@ -50,56 +40,34 @@ NUM_TRIALS = 20
 END_LEN = 500
 
 
-class _RLlibPreprocessorWrapper(gym.ObservationWrapper):
-    """Adapts a RLlib preprocessor for use as an observation wrapper."""
+class DefaultMapping(collections.defaultdict):
+    """default_factory now takes as an argument the missing key."""
 
-    def __init__(self, env, preprocessor):
-        super(_RLlibPreprocessorWrapper, self).__init__(env)
-        self.preprocessor = preprocessor
-
-        from gym.spaces.box import Box
-        self.observation_space = Box(
-            -1.0, 1.0, preprocessor.shape, dtype=np.float32)
-
-    def observation(self, observation):
-        return self.preprocessor.transform(observation)
+    def __missing__(self, key):
+        self[key] = value = self.default_factory(key)
+        return value
 
 
-def bottleneck_visualizer(args):
+def default_policy_agent_mapping(unused_agent_id):
+    return DEFAULT_POLICY_ID
+
+
+def bottleneck_visuallizer(args):
+    """Visualizer for RLlib experiments.
+
+    This function takes args (see function create_parser below for
+    more detailed information on what information can be fed to this
+    visualizer), and renders the experiment associated with it.
+    """
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
         else args.result_dir[:-1]
 
-    # config = get_rllib_config(result_dir + '/..')
-    # pkl = get_rllib_pkl(result_dir + '/..')
-    config = get_rllib_config(result_dir)
-    # TODO(ev) backwards compatibility hack
-    try:
-        pkl = get_rllib_pkl(result_dir)
-    except Exception:
-        pass
-
-    # check if we have a multiagent scenario but in a
-    # backwards compatible way
-    if config.get('multiagent', {}).get('policy_graphs', {}):
-        multiagent = True
-        config['multiagent'] = pkl['multiagent']
-    else:
-        multiagent = False
+    config = get_rllib_pkl(result_dir)
 
     # Run on only one cpu for rendering purposes
     config['num_workers'] = 0
 
     flow_params = get_flow_params(config)
-
-    # hack for old pkl files
-    # TODO(ev) remove eventually
-    sim_params = flow_params['sim']
-    setattr(sim_params, 'num_clients', 1)
-
-    # Create and register a gym+rllib env
-    create_env, env_name = make_create_env(
-        params=flow_params, version=0, render=False)
-    register_env(env_name, create_env)
 
     # Determine agent and checkpoint
     config_run = config['env_config']['run'] if 'run' in config['env_config'] \
@@ -123,11 +91,13 @@ def bottleneck_visualizer(args):
               'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
 
+    sim_params = flow_params['sim']
     sim_params.restart_instance = True
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    emission_path = '{0}/test_time_rollout/'.format(dir_path)
+    sim_params.emission_path = emission_path if args.gen_emission else None
 
-    sim_params.emission_path = './test_time_rollout/'
-
-    # prepare for rendering
+    # pick your rendering mode
     if args.render_mode == 'sumo_web3d':
         sim_params.num_clients = 2
         sim_params.render = False
@@ -136,44 +106,20 @@ def bottleneck_visualizer(args):
         sim_params.pxpm = 4
     elif args.render_mode == 'sumo_gui':
         sim_params.render = True
+        print('NOTE: With render mode {}, an extra instance of the SUMO GUI '
+              'will display before the GUI for visualizing the result. Click '
+              'the green Play arrow to continue.'.format(args.render_mode))
     elif args.render_mode == 'no_render':
         sim_params.render = False
-        sim_params.restart_instance = True
-
     if args.save_render:
         sim_params.render = 'drgb'
         sim_params.pxpm = 4
         sim_params.save_render = True
 
-    # Recreate the scenario from the pickled parameters
-    exp_tag = flow_params['exp_tag']
-    net_params = flow_params['net']
-    vehicles = flow_params['veh']
-    initial_config = flow_params['initial']
-    module = __import__('flow.scenarios', fromlist=[flow_params['scenario']])
-    scenario_class = getattr(module, flow_params['scenario'])
-
-    scenario = scenario_class(
-        name=exp_tag,
-        vehicles=vehicles,
-        net_params=net_params,
-        initial_config=initial_config)
-
-    # check if the environment is a single or multiagent environment, and
-    # get the right address accordingly
-    single_agent_envs = [env for env in dir(flow.envs)
-                         if not env.startswith('__')]
-
-    if flow_params['env_name'] in single_agent_envs:
-        env_loc = 'flow.envs'
-    else:
-        env_loc = 'flow.multiagent_envs'
-
     # Start the environment with the gui turned on and a path for the
     # emission file
-    module = __import__(env_loc, fromlist=[flow_params['env_name']])
-    env_class = getattr(module, flow_params['env_name'])
     env_params = flow_params['env']
+    sim_params.restart_instance = False
     if args.evaluate:
         env_params.evaluate = True
 
@@ -182,53 +128,63 @@ def bottleneck_visualizer(args):
         config['horizon'] = args.horizon
         env_params.horizon = args.horizon
 
+
+    # Create and register a gym+rllib env
+    create_env, env_name = make_create_env(params=flow_params, version=0)
+    register_env(env_name, create_env)
+
     # create the agent that will be used to compute the actions
     agent = agent_cls(env=env_name, config=config)
     checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
 
-    _env = env_class(
-        env_params=env_params, sim_params=sim_params, scenario=scenario)
-    _prep = ModelCatalog.get_preprocessor(_env, options={})
-    env = _RLlibPreprocessorWrapper(_env, _prep)
-
-    if config['model']['use_lstm']:
-        use_lstm = True
-        state_init = [
-            np.zeros(config['model']['lstm_cell_size'], np.float32),
-            np.zeros(config['model']['lstm_cell_size'], np.float32)
-        ]
-    else:
-        use_lstm = False
-
-    if multiagent:
-        rets = {}
-        # map the agent id to its policy
-        policy_map_fn = config['multiagent']['policy_mapping_fn'].func
-        for key in config['multiagent']['policy_graphs'].keys():
-            rets[key] = []
-    else:
-        rets = []
+    # Simulate and collect metrics
     final_outflows = []
+    final_inflows = []
     mean_speed = []
+    std_speed = []
 
+    policy_agent_mapping = default_policy_agent_mapping
+    if hasattr(agent, "workers"):
+        env = agent.workers.local_worker().env
+        multiagent = isinstance(env, MultiAgentEnv)
+        if agent.workers.local_worker().multiagent:
+            policy_agent_mapping = agent.config["multiagent"][
+                "policy_mapping_fn"]
+
+        policy_map = agent.workers.local_worker().policy_map
+        state_init = {p: m.get_initial_state() for p, m in policy_map.items()}
+        use_lstm = {p: len(s) > 0 for p, s in state_init.items()}
+        action_init = {
+            p: m.action_space.sample()
+            for p, m in policy_map.items()
+        }
+    else:
+        env = gym.make(env_name)
+        multiagent = False
+        use_lstm = {DEFAULT_POLICY_ID: False}
+
+    steps = 0
     inflow_grid = list(range(OUTFLOW_RANGE[0], OUTFLOW_RANGE[1],
                              STEP_SIZE))
     outflow_arr = np.zeros((len(inflow_grid) * NUM_TRIALS, 2))
     # keep track of the last 500 points of velocity data for lane 0
     # and 1 in edge 4
     velocity_arr = np.zeros((END_LEN * len(inflow_grid) * NUM_TRIALS, 3))
-
     for i in range(len(inflow_grid)):
         for j in range(NUM_TRIALS):
             vel = []
-            hidden_state_keys = {}
-            state = env.unwrapped.reset(inflow_grid[i])
-            if multiagent:
-                ret = {key: [0] for key in rets.keys()}
-            else:
-                ret = 0
+            obs = env.unwrapped.reset(inflow_grid[i])
+            mapping_cache = {}  # in case policy_agent_mapping is stochastic
+            reward_dict = {}
+            agent_states = DefaultMapping(
+                lambda agent_id: state_init[mapping_cache[agent_id]])
+            prev_actions = DefaultMapping(
+                lambda agent_id: action_init[mapping_cache[agent_id]])
+            prev_rewards = collections.defaultdict(lambda: 0.)
+            done = False
+            reward_total = 0.0
             for k in range(env_params.horizon):
                 vehicles = env.unwrapped.k.vehicle
                 vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
@@ -253,84 +209,99 @@ def bottleneck_visualizer(args):
                     velocity_arr[END_LEN * (j + i * NUM_TRIALS) + k - (
                             env_params.horizon - END_LEN), :] = \
                         [inflow_grid[i],
-                            speed_on_zero,
-                            speed_on_one]
-
-                if multiagent:
-                    action = {}
-                    for agent_id in state.keys():
-                        if use_lstm:
-                            if agent_id not in hidden_state_keys.keys():
-                                hidden_state_keys[agent_id] = [
-                                    np.zeros(config['model']['lstm_cell_size'], np.float32),
-                                    np.zeros(config['model']['lstm_cell_size'], np.float32)
-                                ]
-                            action[agent_id], hidden_state_keys[agent_id],\
-                            logits = agent.compute_action(
-                                state[agent_id], state=hidden_state_keys[agent_id],
-                                policy_id=policy_map_fn(agent_id))
+                         speed_on_zero,
+                         speed_on_one]
+                multi_obs = obs if multiagent else {_DUMMY_AGENT_ID: obs}
+                action_dict = {}
+                for agent_id, a_obs in multi_obs.items():
+                    if a_obs is not None:
+                        policy_id = mapping_cache.setdefault(
+                            agent_id, policy_agent_mapping(agent_id))
+                        p_use_lstm = use_lstm[policy_id]
+                        if p_use_lstm:
+                            a_action, p_state, _ = agent.compute_action(
+                                a_obs,
+                                state=agent_states[agent_id],
+                                prev_action=prev_actions[agent_id],
+                                prev_reward=prev_rewards[agent_id],
+                                policy_id=policy_id)
+                            agent_states[agent_id] = p_state
                         else:
-                            action[agent_id] = agent.compute_action(
-                                state[agent_id], policy_id=policy_map_fn(agent_id))
-                else:
-                    action = agent.compute_action(state)
-                state, reward, done, _ = env.step(action)
+                            a_action = agent.compute_action(
+                                a_obs,
+                                prev_action=prev_actions[agent_id],
+                                prev_reward=prev_rewards[agent_id],
+                                policy_id=policy_id)
+                        a_action = _flatten_action(a_action)  # tuple actions
+                        action_dict[agent_id] = a_action
+                        prev_actions[agent_id] = a_action
+                action = action_dict
+
+                action = action if multiagent else action[_DUMMY_AGENT_ID]
+                next_obs, reward, done, _ = env.step(action)
+
                 if multiagent:
-                    for actor, rew in reward.items():
-                        ret[policy_map_fn(actor)][0] += rew
+                    for agent_id, r in reward.items():
+                        prev_rewards[agent_id] = r
                 else:
-                    ret += reward
-                if multiagent and done['__all__']:
-                    break
-                if not multiagent and done:
-                    break
+                    prev_rewards[_DUMMY_AGENT_ID] = reward
 
-            if multiagent:
-                for key in rets.keys():
-                    rets[key].append(ret[key])
-            else:
-                rets.append(ret)
-            outflow = vehicles.get_outflow_rate(500)
-            outflow_arr[j + i * NUM_TRIALS, :] = [inflow_grid[i], outflow]
-            final_outflows.append(outflow)
-            mean_speed.append(np.mean(vel))
-            if multiagent:
-                for agent_id, rew in rets.items():
-                    print('Round {}, Return: {} for agent {}'.format(
-                        j, ret, agent_id))
-            else:
-                print('Round {}, Return: {}'.format(j, ret))
-        if multiagent:
-            for agent_id, rew in rets.items():
-                print('Average, std return: {}, {} for agent {}'.format(
-                    np.mean(rew), np.std(rew), agent_id))
+                if multiagent:
+                    done = done["__all__"]
+                    reward_total += sum(reward.values())
+                else:
+                    reward_total += reward
+                steps += 1
+                obs = next_obs
+
+        outflow = vehicles.get_outflow_rate(500)
+        final_outflows.append(outflow)
+        inflow = vehicles.get_inflow_rate(500)
+        final_inflows.append(inflow)
+        outflow_arr[j + i * NUM_TRIALS, :] = [inflow_grid[i], outflow]
+        if np.all(np.array(final_inflows) > 1e-5):
+            throughput_efficiency = [x / y for x, y in
+                                     zip(final_outflows, final_inflows)]
         else:
-            print('Average, std return: {}, {}'.format(
-                np.mean(rets), np.std(rets)))
-    print('Average, std speed: {}, {}'.format(
-        np.mean(mean_speed), np.std(mean_speed)))
-    print('Average, std outflow: {}, {}'.format(
-        np.mean(final_outflows), np.std(final_outflows)))
+            throughput_efficiency = [0] * len(final_inflows)
+        mean_speed.append(np.mean(vel))
+        std_speed.append(np.std(vel))
+        print("Episode reward", reward_total)
 
-    # terminate the environment
-    env.unwrapped.terminate()
+    print('==== Summary of results ====')
+
+    print("\nSpeed, mean (m/s): {}".format(mean_speed))
+    print('Average, std: {}, {}'.format(np.mean(mean_speed), np.std(
+        mean_speed)))
+    print("\nSpeed, std (m/s): {}".format(std_speed))
+    print('Average, std: {}, {}'.format(np.mean(std_speed), np.std(
+        std_speed)))
+
+    # Compute arrival rate of vehicles in the last 500 sec of the run
+    print("\nOutflows (veh/hr): {}".format(final_outflows))
+    print('Average, std: {}, {}'.format(np.mean(final_outflows),
+                                        np.std(final_outflows)))
+
+    # Compute departure rate of vehicles in the last 500 sec of the run
+    print("Inflows (veh/hr): {}".format(final_inflows))
+    print('Average, std: {}, {}'.format(np.mean(final_inflows),
+                                        np.std(final_inflows)))
+
+    # Compute throughput efficiency in the last 500 sec of the
+    print("Throughput efficiency (veh/hr): {}".format(throughput_efficiency))
+    print('Average, std: {}, {}'.format(np.mean(throughput_efficiency),
+                                        np.std(throughput_efficiency)))
 
     # save the file
     output_path = os.path.abspath(os.path.join(
-        os.path.dirname(__file__), './data'))
-    if args.filename:
-        filename = args.filename
-        outflow_name = '/bottleneck_outflow_{}.txt'.format(filename)
-        speed_name = '/speed_outflow_{}.txt'.format(filename)
-        np.savetxt(output_path + outflow_name,
-                   outflow_arr, delimiter=', ')
-        np.savetxt(output_path + speed_name,
-                   velocity_arr, delimiter=', ')
-    else:
-        np.savetxt(output_path + '/bottleneck_outflow_MA_LC_LSTM.txt',
-                   outflow_arr, delimiter=', ')
-        np.savetxt(output_path + '/speed_outflow_MA_LC_LSTM.txt',
-                   velocity_arr, delimiter=', ')
+    os.path.dirname(__file__), './trb_data'))
+    filename = args.filename
+    outflow_name = '/bottleneck_outflow_{}.txt'.format(filename)
+    speed_name = '/speed_outflow_{}.txt'.format(filename)
+    with open(os.path.join(output_path, outflow_name), 'ab') as file:
+        np.savetxt(file, outflow_arr, delimiter=', ')
+    with open(os.path.join(output_path, speed_name), 'ab') as file:
+        np.savetxt(file, velocity_arr, delimiter=', ')
 
     # Plot the inflow results
     unique_inflows = sorted(list(set(outflow_arr[:, 0])))
@@ -381,10 +352,15 @@ def bottleneck_visualizer(args):
     plt.minorticks_on()
     plt.show()
 
+    # terminate the environment
+    env.unwrapped.terminate()
+
     # if prompted, convert the emission file into a csv file
-    if args.emission_to_csv:
+    if args.gen_emission:
+        time.sleep(0.1)
+
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        emission_filename = '{0}-emission.xml'.format(scenario.name)
+        emission_filename = '{0}-emission.xml'.format(env.scenario.name)
 
         emission_path = \
             '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
@@ -394,6 +370,8 @@ def bottleneck_visualizer(args):
     # if we wanted to save the render, here we create the movie
     if args.save_render:
         dirs = os.listdir(os.path.expanduser('~') + '/flow_rendering')
+        # Ignore hidden files
+        dirs = [d for d in dirs if d[0] != '.']
         dirs.sort(key=lambda date: datetime.strptime(date, "%Y-%m-%d-%H%M%S"))
         recent_dir = dirs[-1]
         # create the movie
@@ -408,16 +386,16 @@ def bottleneck_visualizer(args):
 
 
 def create_parser():
+    """Create the parser to capture CLI arguments."""
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description='[Flow] Evaluates a reinforcement learning agent '
-                    'given a checkpoint.',
-        epilog=EXAMPLE_USAGE)
+        description='Evaluates a bottleneck agent over a grid of inflows')
 
     # required input parameters
     parser.add_argument(
         'result_dir', type=str, help='Directory containing results')
     parser.add_argument('checkpoint_num', type=str, help='Checkpoint number.')
+    parser.add_argument('filename', type=str, help='Specifies the filename to output the results into.')
 
     # optional input parameters
     parser.add_argument(
@@ -429,15 +407,15 @@ def create_parser():
              'class registered in the tune registry. '
              'Required for results trained with flow-0.2.0 and before.')
     parser.add_argument(
-        '--num-rollouts',
+        '--num_rollouts',
         type=int,
         default=1,
         help='The number of rollouts to visualize.')
     parser.add_argument(
-        '--emission-to-csv',
+        '--gen_emission',
         action='store_true',
-        help='Specifies whether to convert the emission file '
-             'created by sumo into a csv file')
+        help='Specifies whether to generate an emission file from the '
+             'simulation')
     parser.add_argument(
         '--evaluate',
         action='store_true',
@@ -446,21 +424,18 @@ def create_parser():
     parser.add_argument(
         '--render_mode',
         type=str,
-        default='no_render',
+        default='sumo_gui',
         help='Pick the render mode. Options include sumo_web3d, '
-             'rgbd, no_render and sumo_gui')
+             'rgbd, no_render, and sumo_gui')
     parser.add_argument(
         '--save_render',
         action='store_true',
-        help='saves the render to a file')
+        help='Saves a rendered video to a file. NOTE: Overrides render_mode '
+             'with pyglet rendering.')
     parser.add_argument(
         '--horizon',
         type=int,
         help='Specifies the horizon.')
-    parser.add_argument(
-        '--filename',
-        type=str,
-        help='Specifies the filename to output the results into.')
     return parser
 
 
@@ -468,4 +443,4 @@ if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
     ray.init(num_cpus=1)
-    bottleneck_visualizer(args)
+    bottleneck_visuallizer(args)
