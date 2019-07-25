@@ -149,7 +149,8 @@ def min_delay(env):
 
 
 def avg_delay_specified_vehicles(env, veh_ids):
-    """Calculates the average delay for a set of vehicles in the system
+    """Calculate the average delay for a set of vehicles in the system.
+
     Parameters
     ----------
     env: flow.envs.Env
@@ -162,7 +163,6 @@ def avg_delay_specified_vehicles(env, veh_ids):
     float
         average delay
     """
-
     sum = 0
     for edge in env.k.scenario.get_edge_list():
         for veh_id in env.k.vehicle.get_ids_by_edge(edge):
