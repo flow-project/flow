@@ -281,12 +281,6 @@ class VehicleParams:
         type_params.update(car_following_params.controller_params)
         type_params.update(lane_change_params.controller_params)
 
-        # If a vehicle is not sumo or RL, let the minGap be zero so that it
-        # does not tamper with the dynamics of the controller
-        if acceleration_controller[0] != SimCarFollowingController \
-                and acceleration_controller[0] != RLController:
-            type_params["minGap"] = 0.0
-
         # This dict will be used when trying to introduce new vehicles into
         # the network via a Flow. It is passed to the vehicle kernel object
         # during environment instantiation.
@@ -659,9 +653,6 @@ class NetParams:
 
     Parameters
     ----------
-    no_internal_links : bool, optional
-        determines whether the space between edges is finite. Important
-        when using networks with intersections; default is False
     inflows : InFlows type, optional
         specifies the inflows of specific edges and the types of vehicles
         entering the network from these edges
@@ -680,17 +671,12 @@ class NetParams:
     """
 
     def __init__(self,
-                 no_internal_links=True,
                  inflows=None,
                  osm_path=None,
                  template=None,
                  additional_params=None):
         """Instantiate NetParams."""
-        self.no_internal_links = no_internal_links
-        if inflows is None:
-            self.inflows = InFlows()
-        else:
-            self.inflows = inflows
+        self.inflows = inflows or InFlows()
         self.osm_path = osm_path
         self.template = template
         self.additional_params = additional_params or {}

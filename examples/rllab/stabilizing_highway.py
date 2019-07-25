@@ -102,7 +102,6 @@ def run_task(_):
     additional_net_params["pre_merge_length"] = 500
     net_params = NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params)
 
     initial_config = InitialConfig(

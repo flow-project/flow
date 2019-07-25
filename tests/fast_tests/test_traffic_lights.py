@@ -191,23 +191,26 @@ class TestPOEnv(unittest.TestCase):
 
         # get the node mapping for node center0
         c0_edges = node_mapping[0][1]
-        k_closest = self.env.k_closest_to_intersection(c0_edges, 3)
+        k_closest = self.env.get_closest_to_intersection(c0_edges, 3)
 
         # check bot, right, top, left in that order
         self.assertEqual(
-            self.env.k_closest_to_intersection(c0_edges[0], 3), k_closest[0:2])
+            self.env.get_closest_to_intersection(c0_edges[0], 3),
+            k_closest[0:2])
         self.assertEqual(
-            self.env.k_closest_to_intersection(c0_edges[1], 3), k_closest[2:4])
+            self.env.get_closest_to_intersection(c0_edges[1], 3),
+            k_closest[2:4])
         self.assertEqual(
-            len(self.env.k_closest_to_intersection(c0_edges[2], 3)), 0)
+            len(self.env.get_closest_to_intersection(c0_edges[2], 3)), 0)
         self.assertEqual(
-            self.env.k_closest_to_intersection(c0_edges[3], 3), k_closest[4:6])
+            self.env.get_closest_to_intersection(c0_edges[3], 3),
+            k_closest[4:6])
 
         for veh_id in k_closest:
             self.assertTrue(self.env.k.vehicle.get_edge(veh_id) in c0_edges)
 
         with self.assertRaises(ValueError):
-            self.env.k_closest_to_intersection(c0_edges, -1)
+            self.env.get_closest_to_intersection(c0_edges, -1)
 
 
 class TestItRuns(unittest.TestCase):

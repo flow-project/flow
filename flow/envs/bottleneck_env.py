@@ -904,7 +904,6 @@ class DesiredVelocityEnv(BottleneckEnv):
                     }
                     net_params = NetParams(
                         inflows=inflow,
-                        no_internal_links=False,
                         additional_params=additional_net_params)
 
                     vehicles = VehicleParams()
