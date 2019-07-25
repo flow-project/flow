@@ -292,8 +292,8 @@ def visualizer_rllib(args):
 
         emission_to_csv(emission_path)
 
-        print("\nGenerated emission file at " + emission_path +
-              " and converted it into a CSV file.")
+        emission_path_csv = emission_path[:-4] + ".csv"
+        print("\nGenerated emission file at " + emission_path_csv)
 
     # if we wanted to save the render, here we create the movie
     if args.save_render:
