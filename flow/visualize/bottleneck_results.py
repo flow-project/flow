@@ -19,6 +19,8 @@ import os
 import sys
 
 import gym
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
 import ray
@@ -33,11 +35,6 @@ from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_pkl
-
-OUTFLOW_RANGE = [400, 2500]
-STEP_SIZE = 100
-NUM_TRIALS = 20
-END_LEN = 500
 
 
 class DefaultMapping(collections.defaultdict):
@@ -166,14 +163,14 @@ def bottleneck_visuallizer(args):
         use_lstm = {DEFAULT_POLICY_ID: False}
 
     steps = 0
-    inflow_grid = list(range(OUTFLOW_RANGE[0], OUTFLOW_RANGE[1],
-                             STEP_SIZE))
-    outflow_arr = np.zeros((len(inflow_grid) * NUM_TRIALS, 2))
+    inflow_grid = list(range(args.outflow_min, args.outflow_max,
+                             args.step_size))
+    outflow_arr = np.zeros((len(inflow_grid) * args.num_trials, 2))
     # keep track of the last 500 points of velocity data for lane 0
     # and 1 in edge 4
-    velocity_arr = np.zeros((END_LEN * len(inflow_grid) * NUM_TRIALS, 3))
+    velocity_arr = np.zeros((args.end_len * len(inflow_grid) * args.num_trials, 3))
     for i in range(len(inflow_grid)):
-        for j in range(NUM_TRIALS):
+        for j in range(args.num_trials):
             vel = []
             obs = env.unwrapped.reset(inflow_grid[i])
             mapping_cache = {}  # in case policy_agent_mapping is stochastic
@@ -188,7 +185,7 @@ def bottleneck_visuallizer(args):
             for k in range(env_params.horizon):
                 vehicles = env.unwrapped.k.vehicle
                 vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
-                if k >= env_params.horizon - END_LEN:
+                if k >= env_params.horizon - args.end_len:
                     vehs_on_four = vehicles.get_ids_by_edge('4')
                     lanes = vehicles.get_lane(vehs_on_four)
                     lane_dict = {veh_id: lane for veh_id, lane in
@@ -206,8 +203,8 @@ def bottleneck_visuallizer(args):
                             sort_by_lane[num_zeros:]))
                     else:
                         speed_on_one = 0.0
-                    velocity_arr[END_LEN * (j + i * NUM_TRIALS) + k - (
-                            env_params.horizon - END_LEN), :] = \
+                    velocity_arr[args.end_len * (j + i * args.num_trials) + k - (
+                            env_params.horizon - args.end_len), :] = \
                         [inflow_grid[i],
                          speed_on_zero,
                          speed_on_one]
@@ -258,7 +255,7 @@ def bottleneck_visuallizer(args):
         final_outflows.append(outflow)
         inflow = vehicles.get_inflow_rate(500)
         final_inflows.append(inflow)
-        outflow_arr[j + i * NUM_TRIALS, :] = [inflow_grid[i], outflow]
+        outflow_arr[j + i * args.num_trials, :] = [inflow_grid[i], outflow]
         if np.all(np.array(final_inflows) > 1e-5):
             throughput_efficiency = [x / y for x, y in
                                      zip(final_outflows, final_inflows)]
@@ -296,14 +293,15 @@ def bottleneck_visuallizer(args):
     output_path = os.path.abspath(os.path.join(
     os.path.dirname(__file__), './trb_data'))
     filename = args.filename
-    outflow_name = '/bottleneck_outflow_{}.txt'.format(filename)
-    speed_name = '/speed_outflow_{}.txt'.format(filename)
+    outflow_name = 'bottleneck_outflow_{}.txt'.format(filename)
+    speed_name = 'speed_outflow_{}.txt'.format(filename)
     with open(os.path.join(output_path, outflow_name), 'ab') as file:
         np.savetxt(file, outflow_arr, delimiter=', ')
     with open(os.path.join(output_path, speed_name), 'ab') as file:
         np.savetxt(file, velocity_arr, delimiter=', ')
 
     # Plot the inflow results
+    # open the file and pull from there
     unique_inflows = sorted(list(set(outflow_arr[:, 0])))
     inflows = outflow_arr[:, 0]
     outflows = outflow_arr[:, 1]
@@ -436,6 +434,12 @@ def create_parser():
         '--horizon',
         type=int,
         help='Specifies the horizon.')
+    parser.add_argument('--outflow_min', type=int, default=400, help='Lowest inflow to evaluate over')
+    parser.add_argument('--outflow_max', type=int, default=2500, help='Lowest inflow to evaluate over')
+    parser.add_argument('--step_size', type=int, default=100, help='The size of increments to sweep over inflow in')
+    parser.add_argument('--num_trials', type=int, default=20, help='How many samples of each inflow to take')
+    parser.add_argument('--end_len', type=int, default=500, help='How many last seconds of the run to use for '
+                                                                 'calculating the outflow statistics')
     return parser
 
 
