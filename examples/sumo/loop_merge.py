@@ -70,8 +70,7 @@ def loop_merge_example(render=None):
     additional_net_params["inner_lanes"] = 1
     additional_net_params["outer_lanes"] = 1
     additional_net_params["lane_length"] = 75
-    net_params = NetParams(
-        no_internal_links=False, additional_params=additional_net_params)
+    net_params = NetParams(additional_params=additional_net_params)
 
     initial_config = InitialConfig(
         x0=50, spacing="uniform", additional_params={"merge_bunching": 0})

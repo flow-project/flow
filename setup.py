@@ -18,8 +18,16 @@ class build_ext(_build_ext.build_ext):
     """External buid commands."""
 
     def run(self):
+<<<<<<< HEAD
         """Do nothing."""
         pass
+=======
+        """Install traci wheels."""
+        subprocess.check_call(
+            ['pip', 'install',
+             'https://akreidieh.s3.amazonaws.com/sumo/flow-0.4.0/'
+             'sumotools-0.4.0-py3-none-any.whl'])
+>>>>>>> 47f04157923be2aaf95a1246a8a92a73e15506ef
 
 
 class BinaryDistribution(Distribution):

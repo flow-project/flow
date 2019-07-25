@@ -8,6 +8,12 @@ python:
 os: linux
 
 dist: xenial
+<<<<<<< HEAD
+=======
+
+services:
+  - xvfb
+>>>>>>> 47f04157923be2aaf95a1246a8a92a73e15506ef
 
 sudo: required
 
@@ -15,6 +21,13 @@ git:
   depth: 1
 
 before_install:
+  # install and run pep8 and docstyle tests
+  - pip install pydocstyle
+  - pydocstyle --convention numpy
+  - pip install flake8
+  - flake8 --version
+  - flake8 --show-source
+
   # Setup conda (needed for opencv, ray dependency)
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
@@ -27,7 +40,11 @@ before_install:
 
   # [sumo] dependencies and binaries
   - pushd $HOME/build/flow-project
+<<<<<<< HEAD
   -     ./flow/scripts/setup_sumo_ubuntu.sh
+=======
+  -     ./flow/scripts/setup_sumo_ubuntu1604.sh
+>>>>>>> 47f04157923be2aaf95a1246a8a92a73e15506ef
   - popd
   - source ~/.bashrc
 
@@ -41,21 +58,14 @@ before_install:
   - ls ../
 
 install:
-  - pip install flake8 .
+  - sudo apt update
+  - sudo apt install -y freeglut3-dev libgl1-mesa-dev libglu1-mesa-dev
+  - pip install -e .
   - pip install coveralls
-  - pip install nose
-  - pip install matplotlib
   - pip install jupyter
-  - pip install pydocstyle
-
-before_script:
-  - flake8 --version
-  - flake8 --show-source
-  - pydocstyle --convention numpy
 
 script:
-  - python setup.py install
-  - xvfb-run --server-args="-screen 0 1024x768x24"  nose2 --with-coverage
+  - nose2 --with-coverage
 
 after_success:
   - coveralls

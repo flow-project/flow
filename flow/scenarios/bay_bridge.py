@@ -71,9 +71,7 @@ class BayBridgeScenario(Scenario):
     >>> scenario = BayBridgeScenario(
     >>>     name='bay_bridge',
     >>>     vehicles=VehicleParams(),
-    >>>     net_params=NetParams(
-    >>>         no_internal_links=False  # we want junctions
-    >>>     )
+    >>>     net_params=NetParams()
     >>> )
     """
 
