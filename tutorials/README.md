@@ -39,6 +39,8 @@ exercises, you may find the
 
 The content of each exercise is as follows:
 
+**Tutorial 0:** High-level introduction to Flow.
+
 **Tutorial 1:** Running SUMO simulations in Flow.
 
 **Tutorial 2:** Running Aimsun simulations in Flow.
