@@ -85,6 +85,8 @@ ADDITIONAL_VSL_ENV_PARAMS = {
     "congest_penalty": True,
     # initial inflow
     "start_inflow": 1900,
+    # the lane changing mode. 1621 for LC on for humans, 0 for it off.
+    "lc_mode": 1621
 }
 
 START_RECORD_TIME = 0.0  # Time to start recording
@@ -130,6 +132,7 @@ class BottleneckEnv(Env):
         self.n_crit = env_add_params.get("n_crit", 8)
         self.q_max = env_add_params.get("q_max", 1100)
         self.q_min = env_add_params.get("q_min", .25 * 1100)
+        self.feedback_coeff = env_add_params.get("feedback_coeff", 20)
         self.q = self.q_min  # ramp meter feedback controller
         self.feedback_update_time = env_add_params.get("feedback_update", 15)
         self.feedback_timer = 0.0
@@ -139,7 +142,6 @@ class BottleneckEnv(Env):
                                       cycle_offset * self.scaling * MAX_LANES,
                                       self.scaling * MAX_LANES)
         self.green_time = 4
-        self.feedback_coeff = env_add_params.get("feedback_coeff", 20)
 
         self.smoothed_num = np.zeros(10)  # averaged number of vehs in '4'
         self.outflow_index = 0
@@ -896,43 +898,65 @@ class DesiredVelocityEnv(BottleneckEnv):
                 try:
 
                     vehicles = VehicleParams()
-                    vehicles.add(
-                        veh_id="human",  # FIXME: make generic
-                        car_following_params=SumoCarFollowingParams(
-                            speed_mode=9,
-                        ),
-                        lane_change_controller=(SimLaneChangeController, {}),
-                        routing_controller=(ContinuousRouter, {}),
-                        lane_change_params=SumoLaneChangeParams(
-                            lane_change_mode=0,  # 1621,#0b100000101,
-                        ),
-                        num_vehicles=1 * self.scaling)
-                    vehicles.add(
-                        veh_id="av",
-                        acceleration_controller=(RLController, {}),
-                        lane_change_controller=(SimLaneChangeController, {}),
-                        routing_controller=(ContinuousRouter, {}),
-                        car_following_params=SumoCarFollowingParams(
-                            speed_mode=9,
-                        ),
-                        lane_change_params=SumoLaneChangeParams(
-                            lane_change_mode=0,
-                        ),
-                        num_vehicles=1 * self.scaling)
+                    if not np.isclose(add_params.get("av_frac"), 1):
+                        vehicles.add(
+                            veh_id="human",
+                            lane_change_controller=(SimLaneChangeController, {}),
+                            routing_controller=(ContinuousRouter, {}),
+                            car_following_params=SumoCarFollowingParams(
+                                speed_mode=9,
+                            ),
+                            lane_change_params=SumoLaneChangeParams(
+                                lane_change_mode=add_params.get("lc_mode"),
+                            ),
+                            num_vehicles=1)
+                        vehicles.add(
+                            veh_id="av",
+                            acceleration_controller=(RLController, {}),
+                            lane_change_controller=(SimLaneChangeController, {}),
+                            routing_controller=(ContinuousRouter, {}),
+                            car_following_params=SumoCarFollowingParams(
+                                speed_mode=9,
+                            ),
+                            lane_change_params=SumoLaneChangeParams(
+                                lane_change_mode=0,
+                            ),
+                            num_vehicles=1)
+                    else:
+                        vehicles.add(
+                            veh_id="av",
+                            acceleration_controller=(RLController, {}),
+                            lane_change_controller=(SimLaneChangeController, {}),
+                            routing_controller=(ContinuousRouter, {}),
+                            car_following_params=SumoCarFollowingParams(
+                                speed_mode=9,
+                            ),
+                            lane_change_params=SumoLaneChangeParams(
+                                lane_change_mode=add_params.get("lc_mode"),
+                            ),
+                            num_vehicles=1)
 
                     inflow = InFlows()
-                    inflow.add(
-                        veh_type="av",
-                        edge="1",
-                        vehs_per_hour=flow_rate * .1,
-                        departLane="random",
-                        departSpeed=10.0)
-                    inflow.add(
-                        veh_type="human",
-                        edge="1",
-                        vehs_per_hour=flow_rate * .9,
-                        departLane="random",
-                        departSpeed=10.0)
+                    if not np.isclose(add_params.get("av_frac"), 1.0):
+                        inflow.add(
+                            veh_type="av",
+                            edge="1",
+                            vehs_per_hour=flow_rate * add_params.get("av_frac"),
+                            departLane="random",
+                            departSpeed=10.0)
+                        inflow.add(
+                            veh_type="human",
+                            edge="1",
+                            vehs_per_hour=flow_rate * (1 - add_params.get("av_frac")),
+                            departLane="random",
+                            departSpeed=10.0)
+                    else:
+                        inflow.add(
+                            veh_type="av",
+                            edge="1",
+                            vehs_per_hour=flow_rate,
+                            departLane="random",
+                            departSpeed=10.0)
 
                     # all other network parameters should match the previous
                     # environment (we only want to change the inflow)

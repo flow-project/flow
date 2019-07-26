@@ -41,7 +41,7 @@ def setup_flow_params(args):
     if args.lc_on:
         lc_mode = 1621
     else:
-        lc_mode = 0
+        lc_mode = 512
 
     vehicles = VehicleParams()
     if not np.isclose(AV_FRAC, 1):
@@ -78,7 +78,7 @@ def setup_flow_params(args):
                 speed_mode=9,
             ),
             lane_change_params=SumoLaneChangeParams(
-                lane_change_mode=lc_mode,
+                lane_change_mode=0,
             ),
             num_vehicles=1)
 
@@ -102,6 +102,8 @@ def setup_flow_params(args):
         'inflow_range': [800, 2000],
         'start_inflow': flow_rate,
         'congest_penalty': args.congest_penalty,
+        "av_frac": args.av_frac,
+        "lc_mode": lc_mode
     }
 
     # percentage of flow coming out of each lane

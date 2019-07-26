@@ -18,7 +18,9 @@ Usage
     python capacity_diagram_generator.py </path/to/file>.csv
 """
 import csv
-from matplotlib import pyplot as plt
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 from matplotlib import rc
 import numpy as np
 

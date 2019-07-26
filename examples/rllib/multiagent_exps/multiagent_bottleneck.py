@@ -47,14 +47,14 @@ def setup_rllib_params(args):
 def setup_flow_params(args):
     DISABLE_TB = True
     DISABLE_RAMP_METER = True
-    AV_FRAC = args.av_frac
+    av_frac = args.av_frac
     if args.lc_on:
         lc_mode = 1621
     else:
         lc_mode = 0
 
     vehicles = VehicleParams()
-    if not np.isclose(AV_FRAC, 1):
+    if not np.isclose(av_frac, 1):
         vehicles.add(
             veh_id="human",
             lane_change_controller=(SimLaneChangeController, {}),
@@ -88,7 +88,7 @@ def setup_flow_params(args):
                 speed_mode=9,
             ),
             lane_change_params=SumoLaneChangeParams(
-                lane_change_mode=lc_mode,
+                lane_change_mode=0,
             ),
             num_vehicles=1)
 
@@ -115,7 +115,7 @@ def setup_flow_params(args):
         'communicate': args.communicate,
         "centralized_obs": args.central_obs,
         "aggregate_info": args.aggregate_info,
-        "AV_FRAC": args.av_frac,
+        "av_frac": args.av_frac,
         "congest_penalty_start": args.congest_penalty_start,
         "lc_mode": lc_mode
     }

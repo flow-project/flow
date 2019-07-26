@@ -1,5 +1,10 @@
 """File demonstrating formation of congestion in bottleneck."""
 
+import argparse
+import logging
+
+import numpy as np
+
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoLaneChangeParams, SumoCarFollowingParams
 from flow.core.params import VehicleParams
@@ -10,23 +15,13 @@ from flow.controllers import SimLaneChangeController, ContinuousRouter
 from flow.envs.bottleneck_env import BottleneckEnv
 from flow.core.experiment import Experiment
 
-import logging
-
-import numpy as np
-SCALING = 1
-DISABLE_TB = True
-
-# If set to False, ALINEA will control the ramp meter
-DISABLE_RAMP_METER = True
-INFLOW = 2300
-
 
 class BottleneckDensityExperiment(Experiment):
     """Experiment object for bottleneck-specific simulations.
 
     Extends flow.core.experiment.Experiment
     """
-    def __init__(self, env, inflow=INFLOW):
+    def __init__(self, env, inflow=2300):
         """Instantiate the bottleneck experiment."""
         super().__init__(env)
         self.inflow = inflow
@@ -97,7 +92,7 @@ class BottleneckDensityExperiment(Experiment):
             mean_densities.append(sum(step_densities[100:]) /
                                   (num_steps - 100))
             env = self.env
-            outflow = env.get_bottleneck_outflow_vehicles_per_hour(end_len)
+            outflow = env.k.vehicle.get_outflow_rate(end_len)
             mean_outflows.append(outflow)
             mean_rets.append(np.mean(ret_list))
             ret_lists.append(ret_list)
@@ -125,7 +120,8 @@ class BottleneckDensityExperiment(Experiment):
 
 
 def bottleneck_example(flow_rate, horizon, restart_instance=False,
-                       render=None):
+                       render=None, scaling=1, disable_ramp_meter=True, disable_tb=True,
+                       lc_on=False, n_crit=8.0, q_max=1100, q_min=275, feedback_coef=20):
     """
     Perform a simulation of vehicles on a bottleneck.
 
@@ -139,6 +135,23 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
         whether to restart the instance upon reset
     render: bool, optional
         specifies whether to use the gui during execution
+    scaling: int, optional
+        This sets the number of lanes so that they go from 4 * scaling -> 2 * scaling -> 1 * scaling
+    disable_tb: bool, optional
+        whether the toll booth should be active
+    disable_ramp_meter: bool, optional
+        specifies if ALINEA should be active. For more details, look at the BottleneckEnv documentation
+    lc_on: bool, optional
+        if true, the vehicles have LC mode 1621 which is all safe lane changes allowed. Otherwise, it is 0 for
+        no lane changing.
+    n_crit: float, optional
+        number of vehicles in the bottleneck we feedback around. Look at BottleneckEnv for details
+    q_max: float, optional
+        maximum permissible ALINEA flow. Look at BottleneckEnv for details
+    q_min: float, optional
+        minimum permissible ALINEA flow. Look at BottleneckEnv for details
+    feedback_coeff: float, optional
+        gain coefficient for ALINEA. Look at BottleneckEnv for details
 
     Returns
     -------
@@ -152,20 +165,22 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
     sim_params = SumoParams(
         sim_step=0.5,
         render=render,
-        overtake_right=False,
         restart_instance=restart_instance)
-
     vehicles = VehicleParams()
 
+    if lc_on:
+        lc_mode = 1621
+    else:
+        lc_mode = 0
     vehicles.add(
         veh_id="human",
         lane_change_controller=(SimLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
         car_following_params=SumoCarFollowingParams(
-            speed_mode=9,
+            speed_mode=31,
         ),
         lane_change_params=SumoLaneChangeParams(
-            lane_change_mode=512
+            lane_change_mode=lc_mode
         ),
         num_vehicles=1)
 
@@ -175,8 +190,12 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
         "max_decel": 3,
         "lane_change_duration": 5,
         "add_rl_if_exit": False,
-        "disable_tb": DISABLE_TB,
-        "disable_ramp_metering": DISABLE_RAMP_METER
+        "disable_tb": disable_tb,
+        "disable_ramp_metering": disable_ramp_meter,
+        "n_crit": n_crit,
+        "q_max": q_max,
+        "q_min": q_min,
+        "feedback_coeff": feedback_coef
     }
     env_params = EnvParams(
         horizon=horizon, additional_params=additional_env_params)
@@ -190,12 +209,12 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
         departSpeed=10)
 
     traffic_lights = TrafficLightParams()
-    if not DISABLE_TB:
+    if not disable_tb:
         traffic_lights.add(node_id="2")
-    if not DISABLE_RAMP_METER:
+    if not disable_ramp_meter:
         traffic_lights.add(node_id="3")
 
-    additional_net_params = {"scaling": SCALING, "speed_limit": 23}
+    additional_net_params = {"scaling": scaling, "speed_limit": 23}
     net_params = NetParams(
         inflows=inflow,
         no_internal_links=False,
@@ -222,5 +241,11 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
 if __name__ == '__main__':
     # import the experiment variable
     # inflow, number of steps, binary
-    exp = bottleneck_example(INFLOW, 1000, render=True)
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='Runs the bottleneck exps')
+    parser.add_argument('--inflow', type=int, default=2300, help='inflow value for running the experiment')
+    parser.add_argument('--ramp_meter', action='store_true', help='If set, ALINEA is active in this scenario')
+    args = parser.parse_args()
+    exp = bottleneck_example(args.inflow, 1000, disable_ramp_meter=not args.ramp_meter, render=True)
     exp.run(5, 1000)

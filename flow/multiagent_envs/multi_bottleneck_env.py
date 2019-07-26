@@ -34,7 +34,7 @@ ADDITIONAL_RL_ENV_PARAMS = {
     "aggregate_info": False,
     # whether to add an additional penalty for allowing too many vehicles into the bottleneck
     "congest_penalty": False,
-    "AV_FRAC": 0.1,
+    "av_frac": 0.1,
     # Above this number, the congestion penalty starts to kick in
     "congest_penalty_start": 30,
     # What lane changing mode the human drivers should have
@@ -256,7 +256,7 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
             for _ in range(100):
                 try:
                     vehicles = VehicleParams()
-                    if not np.isclose(add_params.get("AV_FRAC"), 1):
+                    if not np.isclose(add_params.get("av_frac"), 1):
                         vehicles.add(
                             veh_id="human",
                             lane_change_controller=(SimLaneChangeController, {}),
@@ -295,17 +295,17 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                             num_vehicles=1)
 
                     inflow = InFlows()
-                    if not np.isclose(add_params.get("AV_FRAC"), 1.0):
+                    if not np.isclose(add_params.get("av_frac"), 1.0):
                         inflow.add(
                             veh_type="av",
                             edge="1",
-                            vehs_per_hour=flow_rate * add_params.get("AV_FRAC"),
+                            vehs_per_hour=flow_rate * add_params.get("av_frac"),
                             departLane="random",
                             departSpeed=10.0)
                         inflow.add(
                             veh_type="human",
                             edge="1",
-                            vehs_per_hour=flow_rate * (1 - add_params.get("AV_FRAC")),
+                            vehs_per_hour=flow_rate * (1 - add_params.get("av_frac")),
                             departLane="random",
                             departSpeed=10.0)
                     else:
