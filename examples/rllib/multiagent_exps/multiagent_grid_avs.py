@@ -212,7 +212,7 @@ if __name__ == '__main__':
                 "add_rl_if_exit": True,
                 "reset_inflow": True,
                 "inflow_base": EDGE_INFLOW,
-                "inflow_delta": 100,
+                "inflow_delta": 50,
                 "fraction_av": AV_FRAC,
                 "speed_enter": V_ENTER,
             },
