@@ -50,7 +50,7 @@ def setup_flow_params(args):
             lane_change_controller=(SimLaneChangeController, {}),
             routing_controller=(ContinuousRouter, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode=9,
+                speed_mode=31,
             ),
             lane_change_params=SumoLaneChangeParams(
                 lane_change_mode=lc_mode,
@@ -62,7 +62,7 @@ def setup_flow_params(args):
             lane_change_controller=(SimLaneChangeController, {}),
             routing_controller=(ContinuousRouter, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode=9,
+                speed_mode=31,
             ),
             lane_change_params=SumoLaneChangeParams(
                 lane_change_mode=0,
@@ -75,7 +75,7 @@ def setup_flow_params(args):
             lane_change_controller=(SimLaneChangeController, {}),
             routing_controller=(ContinuousRouter, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode=9,
+                speed_mode=31,
             ),
             lane_change_params=SumoLaneChangeParams(
                 lane_change_mode=0,
@@ -245,12 +245,12 @@ if __name__ == '__main__':
     parser.add_argument('exp_title', type=str, help='Informative experiment title to help distinguish results')
     parser.add_argument('--use_s3', action='store_true', help='If true, upload results to s3')
     parser.add_argument('--n_cpus', type=int, default=1, help='Number of cpus to run experiment with')
-    parser.add_argument('--multi_node', type=bool, default=False, help='Set to true if this will '
+    parser.add_argument('--multi_node', action='store_true', help='Set to true if this will '
                                                                        'be run in cluster mode')
     parser.add_argument("--num_iters", type=int, default=350)
     parser.add_argument("--checkpoint_freq", type=int, default=50)
     parser.add_argument("--num_samples", type=int, default=1)
-    parser.add_argument("--grid_search", type=bool, default=False)
+    parser.add_argument("--grid_search", action='store_true')
 
     # arguments for flow
     parser.add_argument('--render', action='store_true', help='Show sumo-gui of results')
@@ -258,14 +258,14 @@ if __name__ == '__main__':
     parser.add_argument('--av_frac', type=float, default=0.1, help='What fraction of the vehicles should be autonomous')
     parser.add_argument('--scaling', type=int, default=1, help='How many lane should we start with. Value of 1 -> 4, '
                                                                '2 -> 8, etc.')
-    parser.add_argument('--lc_on', type=bool, default=False, help='If true, lane changing is enabled.')
-    parser.add_argument('--congest_penalty', type=bool, default=False, help='If true, an additional penalty is added '
+    parser.add_argument('--lc_on', action='store_true', help='If true, lane changing is enabled.')
+    parser.add_argument('--congest_penalty', action='store_trye', help='If true, an additional penalty is added '
                                                                             'for vehicles queueing in the bottleneck')
 
     # arguments for ray
     parser.add_argument('--rollout_scale_factor', type=int, default=1, help='the total number of rollouts is'
                                                                             'args.n_cpus * rollout_scale_factor')
-    parser.add_argument('--use_lstm', type=bool, default=False)
+    parser.add_argument('--use_lstm', action='store_true')
 
     args = parser.parse_args()
 
@@ -291,4 +291,4 @@ if __name__ == '__main__':
     if args.use_s3:
         exp_dict[args.exp_title]['upload_dir'] = s3_string
 
-    run_experiments(exp_dict)
+    run_experiments(exp_dict, queue_trials=True)

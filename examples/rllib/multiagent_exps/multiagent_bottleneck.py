@@ -11,7 +11,7 @@ import numpy as np
 import ray
 import ray.rllib.agents.ppo as ppo
 from ray import tune
-from ray.tune import run_experiments
+from ray.tune import run
 from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
@@ -60,7 +60,7 @@ def setup_flow_params(args):
             lane_change_controller=(SimLaneChangeController, {}),
             routing_controller=(ContinuousRouter, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode=9,
+                speed_mode=31,
             ),
             lane_change_params=SumoLaneChangeParams(
                 lane_change_mode=lc_mode,
@@ -72,7 +72,7 @@ def setup_flow_params(args):
             lane_change_controller=(SimLaneChangeController, {}),
             routing_controller=(ContinuousRouter, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode=9,
+                speed_mode=31,
             ),
             lane_change_params=SumoLaneChangeParams(
                 lane_change_mode=0,
@@ -85,7 +85,7 @@ def setup_flow_params(args):
             lane_change_controller=(SimLaneChangeController, {}),
             routing_controller=(ContinuousRouter, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode=9,
+                speed_mode=31,
             ),
             lane_change_params=SumoLaneChangeParams(
                 lane_change_mode=0,
@@ -276,12 +276,14 @@ if __name__ == '__main__':
     parser.add_argument('exp_title', type=str, help='Informative experiment title to help distinguish results')
     parser.add_argument('--use_s3', action='store_true', help='If true, upload results to s3')
     parser.add_argument('--n_cpus', type=int, default=1, help='Number of cpus to run experiment with')
-    parser.add_argument('--multi_node', type=bool, default=False, help='Set to true if this will '
+    parser.add_argument('--multi_node', action='store_true', help='Set to true if this will '
                                                                        'be run in cluster mode')
     parser.add_argument("--num_iters", type=int, default=350)
     parser.add_argument("--checkpoint_freq", type=int, default=50)
     parser.add_argument("--num_samples", type=int, default=1)
-    parser.add_argument("--grid_search", type=bool, default=False)
+    parser.add_argument("--grid_search", action='store_true')
+    parser.add_argument('--rollout_scale_factor', type=int, default=1, help='the total number of rollouts is'
+                                                                            'args.n_cpus * rollout_scale_factor')
 
     # arguments for flow
     parser.add_argument('--render', action='store_true', help='Show sumo-gui of results')
@@ -289,24 +291,22 @@ if __name__ == '__main__':
     parser.add_argument('--av_frac', type=float, default=0.1, help='What fraction of the vehicles should be autonomous')
     parser.add_argument('--scaling', type=int, default=1, help='How many lane should we start with. Value of 1 -> 4, '
                                                                '2 -> 8, etc.')
-    parser.add_argument('--lc_on', type=bool, default=False, help='If true, lane changing is enabled.')
-    parser.add_argument('--congest_penalty', type=bool, default=False, help='If true, an additional penalty is added '
+    parser.add_argument('--lc_on', action='store_true', help='If true, lane changing is enabled.')
+    parser.add_argument('--congest_penalty', action='store_true', help='If true, an additional penalty is added '
                                                                             'for vehicles queueing in the bottleneck')
-    parser.add_argument('--communicate', type=bool, default=False, help='If true, the agents have an additional action '
+    parser.add_argument('--communicate', action='store_true', help='If true, the agents have an additional action '
                                                                         'which consists of sending a discrete signal '
                                                                         'to all nearby vehicles')
-    parser.add_argument('--central_obs', type=bool, default=False, help='If true, all agents receive the same '
+    parser.add_argument('--central_obs', action='store_true', help='If true, all agents receive the same '
                                                                         'aggregate statistics')
-    parser.add_argument('--aggregate_info', type=bool, default=False, help='If true, agents receive some '
+    parser.add_argument('--aggregate_info', action='store_true', help='If true, agents receive some '
                                                                            'centralized info')
     parser.add_argument('--congest_penalty_start', type=int, default=30, help='If congest_penalty is true, this '
                                                                               'sets the number of vehicles in edge 4'
                                                                               'at which the penalty sets in')
 
     # arguments for ray
-    parser.add_argument('--rollout_scale_factor', type=int, default=1, help='the total number of rollouts is'
-                                                                            'args.n_cpus * rollout_scale_factor')
-    parser.add_argument('--use_lstm', type=bool, default=False)
+    parser.add_argument('--use_lstm', action='store_true')
 
     args = parser.parse_args()
 
@@ -314,22 +314,21 @@ if __name__ == '__main__':
     if args.multi_node:
         ray.init(redis_address='localhost:6379')
     else:
-        ray.init(num_cpus=args.n_cpus + 1)
+        ray.init()
     s3_string = "s3://eugene.experiments/trb_bottleneck_paper/" \
                 + datetime.now().strftime("%m-%d-%Y") + '/' + args.exp_title
+    config['env'] = env_name
     exp_dict = {
-        args.exp_title: {
-            'run': alg_run,
-            'env': env_name,
+            'name': args.exp_title,
+            'run_or_experiment': alg_run,
             'checkpoint_freq': args.checkpoint_freq,
             'stop': {
                 'training_iteration': args.num_iters
             },
             'config': config,
             'num_samples': args.num_samples,
-        },
-    }
+        }
     if args.use_s3:
-        exp_dict[args.exp_title]['upload_dir'] = s3_string
+        exp_dict['upload_dir'] = s3_string
 
-    run_experiments(exp_dict)
+    run(**exp_dict, queue_trials=True)

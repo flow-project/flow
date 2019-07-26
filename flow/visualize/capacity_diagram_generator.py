@@ -120,4 +120,5 @@ if __name__ == '__main__':
     plt.tick_params(labelsize=20)
     plt.rcParams['xtick.minor.size'] = 20
     plt.minorticks_on()
+    plt.legend([])
     plt.show()

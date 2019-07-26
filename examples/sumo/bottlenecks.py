@@ -120,7 +120,7 @@ class BottleneckDensityExperiment(Experiment):
 
 
 def bottleneck_example(flow_rate, horizon, restart_instance=False,
-                       render=None, scaling=1, disable_ramp_meter=True, disable_tb=True,
+                       render=False, scaling=1, disable_ramp_meter=True, disable_tb=True,
                        lc_on=False, n_crit=8.0, q_max=1100, q_min=275, feedback_coef=20):
     """
     Perform a simulation of vehicles on a bottleneck.

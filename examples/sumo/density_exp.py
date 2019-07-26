@@ -14,7 +14,7 @@ from examples.sumo.bottlenecks import bottleneck_example
 
 
 @ray.remote
-def run_bottleneck(flow_rate, num_trials, num_steps, render=None, disable_ramp_meter=False, n_crit=8,
+def run_bottleneck(flow_rate, num_trials, num_steps, render=None, disable_ramp_meter=True, n_crit=8,
                    feedback_coef=20, lc_on=False):
     """Run a rollout of the bottleneck environment.
 
@@ -43,7 +43,8 @@ def run_bottleneck(flow_rate, num_trials, num_steps, render=None, disable_ramp_m
         inflow rate
     """
     print('Running experiment for inflow rate: ', flow_rate, render)
-    exp = bottleneck_example(flow_rate, num_steps, restart_instance=True, disable_ramp_meter=disable_ramp_meter,
+    exp = bottleneck_example(flow_rate, num_steps, render=render, restart_instance=True,
+                             disable_ramp_meter=disable_ramp_meter,
                              feedback_coef=feedback_coef, n_crit=n_crit, lc_on=lc_on)
     info_dict = exp.run(num_trials, num_steps)
 
@@ -58,6 +59,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description='Runs the bottleneck exps and stores the results for processing')
+    parser.add_argument('--render', action='store_true', help='Display the scenarios')
+
     parser.add_argument('--ramp_meter', action='store_true', help='If set, ALINEA is active in this scenario')
     parser.add_argument('--alinea_sweep', action='store_true', help='If set, perform a hyperparam sweep over ALINEA '
                                                                     'hyperparams')
@@ -70,7 +73,23 @@ if __name__ == '__main__':
     parser.add_argument('--num_trials', type=int, default=20)
     parser.add_argument('--horizon', type=int, default=2000)
     parser.add_argument('--lc_on', action='store_true')
+    parser.add_argument('--clear_data', action='store_true', help='If true, clean the folder where the files are '
+                                                                  'stored before running anything')
     args = parser.parse_args()
+
+    path = os.path.dirname(os.path.abspath(__file__))
+    outer_path = '../../flow/visualize/trb_data/human_driving'
+
+    if args.clear_data:
+        for the_file in os.listdir(os.path.join(path, outer_path)):
+            file_path = os.path.join(os.path.join(path, outer_path), the_file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+                # elif os.path.isdir(file_path): shutil.rmtree(file_path)
+            except Exception as e:
+                print(e)
+
     n_crit_range = list(range(args.ncrit_min, args.ncrit_max + args.ncrit_step_size, args.ncrit_step_size))
     feedback_coef_range = [5, 10, 20, 40, 100]
 
@@ -106,7 +125,9 @@ if __name__ == '__main__':
 
                 rollout_inflows = []
                 rollout_outflows = []
-                bottleneck_outputs = [run_bottleneck.remote(d, args.num_trials, args.horizon, lc_on=args.lc_on,
+                bottleneck_outputs = [run_bottleneck.remote(d, args.num_trials, args.horizon, render=args.render,
+                                                            disable_ramp_meter=not args.ramp_meter,
+                                                            lc_on=args.lc_on,
                                                             feedback_coef=feedback_coef, n_crit=n_crit)
                                       for d in densities]
                 for output in ray.get(bottleneck_outputs):
@@ -120,8 +141,6 @@ if __name__ == '__main__':
                     lane_4_vels += lane_4_vel
                     bottleneckdensities.append(bottleneckdensity)
 
-                path = os.path.dirname(os.path.abspath(__file__))
-                outer_path = '../../flow/visualize/trb_data/human_driving'
                 # save the returns
                 if args.lc_on:
                     ret_string = 'rets_LC_n{}_fcoeff{}_alinea.csv'.format(n_crit, feedback_coef)
@@ -146,7 +165,8 @@ if __name__ == '__main__':
 
 
     else:
-        bottleneck_outputs = [run_bottleneck.remote(d, args.num_trials, args.horizon, lc_on=args.lc_on)
+        bottleneck_outputs = [run_bottleneck.remote(d, args.num_trials, args.horizon, render=args.render,
+                                                    lc_on=args.lc_on)
                               for d in densities]
         for output in ray.get(bottleneck_outputs):
             outflow, velocity, bottleneckdensity, \
@@ -160,16 +180,16 @@ if __name__ == '__main__':
             bottleneckdensities.append(bottleneckdensity)
 
         path = os.path.dirname(os.path.abspath(__file__))
-        np.savetxt(path + '/../../flow/visualize/trb_data/rets_LC.csv',
+        np.savetxt(path + '/../../flow/visualize/trb_data/human_driving/rets_LC.csv',
                    np.matrix([densities,
                               outflows,
                               velocities,
                               bottleneckdensities]).T,
                    delimiter=',')
-        np.savetxt(path + '/../../flow/visualize/trb_data/inflows_outflows_LC.csv',
+        np.savetxt(path + '/../../flow/visualize/trb_data/human_driving/inflows_outflows_LC.csv',
                    np.matrix([rollout_inflows,
                               rollout_outflows]).T,
                    delimiter=',')
-        np.savetxt(path + '/../../flow/visualize/trb_data/inflows_velocity_LC.csv',
+        np.savetxt(path + '/../../flow/visualize/trb_data/human_driving/inflows_velocity_LC.csv',
                    np.matrix(lane_4_vels),
                    delimiter=',')

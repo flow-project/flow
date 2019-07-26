@@ -78,25 +78,25 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                 num_obs += 4 * segment[1] * \
                            self.k.scenario.num_lanes(segment[0])
             num_obs += 2
-            return Box(low=0.0, high=1.0, shape=(num_obs,), dtype=np.float32)
+            return Box(low=-3.0, high=3.0, shape=(num_obs,), dtype=np.float32)
         else:
             if self.env_params.additional_params.get('communicate', False):
                 # eight possible signals if above
                 if self.env_params.additional_params.get('aggregate_info'):
-                    return Box(low=-1.0, high=1.0,
+                    return Box(low=-3.0, high=3.0,
                                shape=(6 * MAX_LANES * self.scaling + 17,),
                                dtype=np.float32)
                 else:
-                    return Box(low=-1.0, high=1.0,
+                    return Box(low=-3.0, high=3.0,
                                shape=(6 * MAX_LANES * self.scaling + 11,),
                                dtype=np.float32)
             else:
                 if self.env_params.additional_params.get('aggregate_info'):
-                    return Box(low=-1.0, high=1.0,
+                    return Box(low=-3.0, high=3.0,
                                shape=(6 * MAX_LANES * self.scaling + 9,),
                                dtype=np.float32)
                 else:
-                    return Box(low=-1.0, high=1.0,
+                    return Box(low=-3.0, high=3.0,
                                shape=(6 * MAX_LANES * self.scaling + 3,),
                                dtype=np.float32)
 
@@ -262,7 +262,7 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                             lane_change_controller=(SimLaneChangeController, {}),
                             routing_controller=(ContinuousRouter, {}),
                             car_following_params=SumoCarFollowingParams(
-                                speed_mode=9,
+                                speed_mode=31,
                             ),
                             lane_change_params=SumoLaneChangeParams(
                                 lane_change_mode=add_params.get("lc_mode"),
@@ -274,7 +274,7 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                             lane_change_controller=(SimLaneChangeController, {}),
                             routing_controller=(ContinuousRouter, {}),
                             car_following_params=SumoCarFollowingParams(
-                                speed_mode=9,
+                                speed_mode=31,
                             ),
                             lane_change_params=SumoLaneChangeParams(
                                 lane_change_mode=0,
@@ -287,7 +287,7 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                             lane_change_controller=(SimLaneChangeController, {}),
                             routing_controller=(ContinuousRouter, {}),
                             car_following_params=SumoCarFollowingParams(
-                                speed_mode=9,
+                                speed_mode=31,
                             ),
                             lane_change_params=SumoLaneChangeParams(
                                 lane_change_mode=add_params.get("lc_mode"),
