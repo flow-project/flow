@@ -278,6 +278,8 @@ class VehicleParams:
             lane_change_params = SumoLaneChangeParams()
 
         # TODO: delete?
+        # TODO(cathywu): this is used by FlowParamsEncoder; consider renaming
+        # for clarity of usage?
         self.initial.append({
             "veh_id":
                 veh_id,
@@ -360,6 +362,27 @@ class VehicleParams:
         if lane_change_params is None:
             # FIXME: depends on simulator
             lane_change_params = SumoLaneChangeParams()
+
+        # TODO(cathywu): this is used by FlowParamsEncoder; consider renaming
+        # for clarity of usage?
+        self.initial.append({
+            "veh_id":
+                veh_id,
+            "acceleration_controller":
+                acceleration_controller,
+            "lane_change_controller":
+                lane_change_controller,
+            "routing_controller":
+                routing_controller,
+            "initial_speed":
+                initial_speed,
+            "num_vehicles":
+                0,
+            "car_following_params":
+                car_following_params,
+            "lane_change_params":
+                lane_change_params
+        })
 
         type_params = {}
         type_params.update(car_following_params.controller_params)
