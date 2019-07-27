@@ -1069,73 +1069,143 @@ class InFlows:
 
     def __init__(self):
         """Instantiate Inflows."""
-        self.num_flows = 0
         self.__flows = []
 
     def add(self,
-            veh_type,
             edge,
-            name="flow",
-            begin=1,
-            end=2e6,
+            veh_type,
             vehs_per_hour=None,
             probability=None,
+            period=None,
+            depart_lane="first",
+            depart_speed=0,
+            name="flow",
+            begin=1,
+            end=86400,
+            number=None,
             **kwargs):
         r"""Specify a new inflow for a given type of vehicles and edge.
 
+
+
         Parameters
         ----------
-        veh_type : str
-            type of vehicles entering the edge, must match one of the types set
-            in the Vehicles class.
         edge : str
-            starting edge for vehicles in this inflow.
+            starting edge for the vehicles in this inflow
+        veh_type : str
+            type of the vehicles entering the edge
+            must match one of the types set in the Vehicles class
+        vehs_per_hour : float, optional if period or probability is specified
+            number of vehicles per hour, equally spaced (in vehicles/hour)
+            cannot be specified together with probability or period
+        probability : float, optional if vehs_per_hour or period is specified
+            probability for emitting a vehicle each second (between 0 and 1)
+            cannot be specified together with vehs_per_hour or period
+        period : float, optional if vehs_per_hour or probability is specified
+            insert equally spaced vehicles at that period (in seconds)
+            cannot be specified together with vehs_per_hour or probability
+        depart_lane : int or str
+            the lane on which the vehicle shall be inserted
+            can be either one of:
+            - int >= 0: index of the lane (starting with rightmost = 0)
+            - "random": a random lane is chosen, but the vehicle insertion is
+                        not retried if it could not be inserted
+            - "free": the most free (least occupied) lane is chosen
+            - "best": the "free" lane (see above) among those who allow the
+                      vehicle the longest ride without the need to change lane
+            - "first": the rightmost lane the vehicle may use
+            defaults to "first"
+        depart_speed : float or str
+            the speed with which the vehicle shall enter the network (in m/s)
+            can be either one of:
+            - float >= 0: the vehicle is tried to be inserted using the given
+                          speed; if that speed is unsafe, departure is delayed
+            - "random": vehicles enter the edge with a random speed between 0
+                        and the speed limit on the edge; the entering speed may
+                        be adapted to ensure a safe distance to the leading
+                        vehicle is kept
+            - "speedLimit": vehicles enter the edge with the maximum speed
+                            that is allowed on this edge; if that speed is
+                            unsafe, departure is delayed
+            defaults to 0
         name : str, optional
-            prefix for inflow vehicles
+            prefix for the id of the vehicles entering via this inflow
+            default to "flow"
         begin : float, optional
-            see Note
+            first vehicle departure time (in seconds, minimum 1 second)
+            defaults to 1 second
         end : float, optional
-            see Note
-        vehs_per_hour : float, optional
-            see vehsPerHour in Note
-        probability : float, optional
-            see Note
+            end of departure interval (in seconds)
+            this parameter is not taken into account if 'number' is specified
+            defaults to 24 hours
+        number : int, optional
+            total number of vehicles the inflow should create
+            (due to rounding up, this parameter may not be exactly enforced
+            and shouldn't be set too small)
+            default: infinite (c.f. 'end' parameter)
         kwargs : dict, optional
             see Note
 
         Note
         ----
-        For information on the parameters start, end, vehs_per_hour, period,
-        probability, number, as well as other vehicle type and routing
+        For information on the parameters start, end, vehs_per_hour,
+        probability, period, number, as well as other vehicle type and routing
         parameters that may be added via \*\*kwargs, refer to:
         http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
         """
-        # check for deprecations (vehsPerHour)
+        # check for deprecations
+        def deprecate(old, new):
+            deprecation_warning(self, old, new)
+            new_val = kwargs[old]
+            del kwargs[old]
+            return new_val
+
         if "vehsPerHour" in kwargs:
-            deprecation_warning(self, "vehsPerHour", "vehs_per_hour")
-            vehs_per_hour = kwargs["vehsPerHour"]
-            # delete since all parameters in kwargs are used again later
-            del kwargs["vehsPerHour"]
+            vehs_per_hour = deprecate("vehsPerHour", "vehs_per_hour")
+        if "departLane" in kwargs:
+            depart_lane = deprecate("departLane", "depart_lane")
+        if "departSpeed" in kwargs:
+            depart_speed = deprecate("departSpeed", "depart_speed")
 
         new_inflow = {
-            "name": "%s_%d" % (name, self.num_flows),
+            "name": "%s_%d" % (name, len(self.__flows)),
             "vtype": veh_type,
             "edge": edge,
+            "departLane": depart_lane,
+            "departSpeed": depart_speed,
+            "begin": begin,
             "end": end
         }
-
         new_inflow.update(kwargs)
 
-        if begin is not None:
-            new_inflow["begin"] = begin
+        inflow_params = [vehs_per_hour, probability, period]
+        n_inflow_params = len(inflow_params) - inflow_params.count(None)
+        if n_inflow_params != 1:
+            raise ValueError("Exactly one among the three parameters "
+                             "'vehs_per_hour', 'probability' and 'period' must"
+                             " be specified in InFlows.add. "
+                             "{} were specified.".format(n_inflow_params))
+        if probability is not None and (probability < 0 or probability > 1):
+            raise ValueError("Inflow.add called with parameter 'probability' "
+                             "set to {}, but probability should be between 0 "
+                             "and 1.".format(probability))
+        if begin is not None and begin < 1:
+            raise ValueError("Inflow.add called with parameter 'begin' "
+                             "set to {}, but begin should be greater or equal "
+                             "than 1 second.".format(begin))
+
+        if number is not None:
+            del new_inflow["end"]
+            new_inflow["number"] = number
+
         if vehs_per_hour is not None:
             new_inflow["vehsPerHour"] = vehs_per_hour
         if probability is not None:
             new_inflow["probability"] = probability
+        if period is not None:
+            new_inflow["period"] = period
 
         self.__flows.append(new_inflow)
-
-        self.num_flows += 1
 
     def get(self):
         """Return the inflows of each edge."""
