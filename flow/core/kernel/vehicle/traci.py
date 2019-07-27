@@ -68,6 +68,9 @@ class TraCIVehicle(KernelVehicle):
         self._num_arrived = []
         self._arrived_ids = []
 
+        # whether or not to automatically color vehicles
+        self._color_vehicles = sim_params.color_vehicles
+
     def initialize(self, vehicles):
         """Initialize vehicle state information.
 
@@ -974,8 +977,10 @@ class TraCIVehicle(KernelVehicle):
 
         The last term for sumo (transparency) is set to 255.
         """
-        r, g, b = color
-        self.kernel_api.vehicle.setColor(vehID=veh_id, color=(r, g, b, 255))
+        if self._color_vehicles:
+            r, g, b = color
+            self.kernel_api.vehicle.setColor(
+                vehID=veh_id, color=(r, g, b, 255))
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
