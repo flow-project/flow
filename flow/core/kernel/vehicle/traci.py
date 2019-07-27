@@ -69,7 +69,10 @@ class TraCIVehicle(KernelVehicle):
         self._arrived_ids = []
 
         # whether or not to automatically color vehicles
-        self._color_vehicles = sim_params.color_vehicles
+        try:
+            self._color_vehicles = sim_params.color_vehicles
+        except AttributeError:
+            self._color_vehicles = False
 
     def initialize(self, vehicles):
         """Initialize vehicle state information.
