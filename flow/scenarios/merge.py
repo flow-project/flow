@@ -59,7 +59,6 @@ class MergeScenario(Scenario):
     >>>             'highway_lanes': 1,
     >>>             'speed_limit': 30
     >>>         },
-    >>>         no_internal_links=False  # we want junctions
     >>>     )
     >>> )
     """

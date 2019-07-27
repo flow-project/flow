@@ -739,7 +739,6 @@ class TestBottleneckEnv(unittest.TestCase):
         )
 
         net_params = NetParams(
-            no_internal_links=False,
             additional_params={"scaling": 1, "speed_limit": 23})
 
         self.scenario = BottleneckScenario(
@@ -816,7 +815,6 @@ class TestBottleneckAccelEnv(unittest.TestCase):
         )
 
         net_params = NetParams(
-            no_internal_links=False,
             additional_params={"scaling": 1, "speed_limit": 23})
 
         self.scenario = BottleneckScenario(
@@ -909,7 +907,6 @@ class TestDesiredVelocityEnv(unittest.TestCase):
 
         net_params = NetParams(
             inflows=inflow,
-            no_internal_links=False,
             additional_params={"scaling": 1, "speed_limit": 23})
 
         scenario = BottleneckScenario(
