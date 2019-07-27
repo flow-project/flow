@@ -1086,8 +1086,6 @@ class InFlows:
             **kwargs):
         r"""Specify a new inflow for a given type of vehicles and edge.
 
-
-
         Parameters
         ----------
         edge : str
