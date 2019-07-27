@@ -14,12 +14,12 @@ additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 
 # lengths
 additional_net_params["highway_length"] = 600
-additional_net_params["on_ramps_length"] = 100
-additional_net_params["off_ramps_length"] = 100
+additional_net_params["on_ramps_length"] = 65
+additional_net_params["off_ramps_length"] = 65
 
 # number of lanes
 additional_net_params["highway_lanes"] = 4
-additional_net_params["on_ramps_lanes"] = 2
+additional_net_params["on_ramps_lanes"] = 1
 additional_net_params["off_ramps_lanes"] = 1
 
 # speed limits
@@ -35,7 +35,7 @@ additional_net_params["off_ramps_pos"] = [300, 500]
 additional_net_params["next_off_ramp_proba"] = 0.05
 
 # inflow rates in vehs/hour
-HIGHWAY_INFLOW_RATE = 2000
+HIGHWAY_INFLOW_RATE = 1000
 ON_RAMPS_INFLOW_RATE = 200
 
 
