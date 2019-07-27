@@ -384,6 +384,8 @@ class SimParams(object):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
+    color_vehicles : bool, optional
+        whether or not to automatically color vehicles according to their types
     """
 
     def __init__(self,
