@@ -766,11 +766,13 @@ class TraCIScenario(KernelScenario):
                 del sumo_inflow['edge']
 
                 for i, (_, frac) in enumerate(routes[edge]):
+                    sumo_inflow['name'] += str(i)
                     sumo_inflow['route'] = 'route{}_{}'.format(edge, i)
 
                     for key in ['vehsPerHour', 'probability', 'period']:
                         if key in sumo_inflow:
                             sumo_inflow[key] = str(float(inflow[key]) * frac)
+
                     if 'number' in sumo_inflow:
                         sumo_inflow['number'] = str(int(
                             float(inflow['number']) * frac))
