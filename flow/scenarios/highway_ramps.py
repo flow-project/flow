@@ -3,6 +3,7 @@
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig, TrafficLightParams
 from collections import defaultdict
+from numpy import pi, sin, cos
 
 
 ADDITIONAL_NET_PARAMS = {
@@ -112,6 +113,9 @@ class HighwayRampsScenario(Scenario):
 
     def specify_nodes(self, net_params):
         """See parent class."""
+        angle_on_ramps = - 3 * pi / 4
+        angle_off_ramps = - pi / 4
+
         nodes_highway = [{
             "id": "highway_{}".format(i),
             "x": self.nodes_pos[i],
@@ -120,14 +124,14 @@ class HighwayRampsScenario(Scenario):
 
         nodes_on_ramps = [{
             "id": "on_ramp_{}".format(i),
-            "x": x,
-            "y": -100
+            "x": x + self.on_ramps_length * cos(angle_on_ramps),
+            "y": self.on_ramps_length * sin(angle_on_ramps)
         } for i, x in enumerate(self.on_ramps_pos)]
 
         nodes_off_ramps = [{
             "id": "off_ramp_{}".format(i),
-            "x": x,
-            "y": -100
+            "x": x + self.off_ramps_length * cos(angle_off_ramps),
+            "y": self.off_ramps_length * sin(angle_off_ramps)
         } for i, x in enumerate(self.off_ramps_pos)]
 
         return nodes_highway + nodes_on_ramps + nodes_off_ramps
