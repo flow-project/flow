@@ -93,7 +93,7 @@ class HighwayRampsScenario(Scenario):
         self.highway_pos = {x: i for i, x in enumerate(self.nodes_pos)}
         # ramp_pos[x] = id of the ramp node whose intersection with the highway
         # is at position x
-        self.ramp_pos = {x: "on_ramp_{}".format(i) 
+        self.ramp_pos = {x: "on_ramp_{}".format(i)
                          for i, x in enumerate(self.on_ramps_pos)}
         self.ramp_pos.update({x: "off_ramp_{}".format(i)
                              for i, x in enumerate(self.off_ramps_pos)})
