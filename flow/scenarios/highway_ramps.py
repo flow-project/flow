@@ -168,7 +168,7 @@ class HighwayRampsScenario(Scenario):
     def specify_routes(self, net_params):
         """See parent class."""
         def get_routes(start_node_pos):
-            """Compute the routes recursively"""
+            """Compute the routes recursively."""
             if start_node_pos not in self.nodes_pos:
                 raise ValueError('{} is not a node position.'.format(
                     start_node_pos))
