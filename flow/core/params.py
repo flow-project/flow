@@ -1091,56 +1091,57 @@ class InFlows:
         edge : str
             starting edge for the vehicles in this inflow
         veh_type : str
-            type of the vehicles entering the edge
-            must match one of the types set in the Vehicles class
-        vehs_per_hour : float, optional if period or probability is specified
-            number of vehicles per hour, equally spaced (in vehicles/hour)
-            cannot be specified together with probability or period
-        probability : float, optional if vehs_per_hour or period is specified
-            probability for emitting a vehicle each second (between 0 and 1)
-            cannot be specified together with vehs_per_hour or period
-        period : float, optional if vehs_per_hour or probability is specified
-            insert equally spaced vehicles at that period (in seconds)
-            cannot be specified together with vehs_per_hour or probability
+            type of the vehicles entering the edge. Must match one of the types
+            set in the Vehicles class
+        vehs_per_hour : float, optional
+            number of vehicles per hour, equally spaced (in vehicles/hour).
+            Cannot be specified together with probability or period
+        probability : float, optional
+            probability for emitting a vehicle each second (between 0 and 1).
+            Cannot be specified together with vehs_per_hour or period
+        period : float, optional
+            insert equally spaced vehicles at that period (in seconds). Cannot
+            be specified together with vehs_per_hour or probability
         depart_lane : int or str
-            the lane on which the vehicle shall be inserted
-            can be either one of:
-            - int >= 0: index of the lane (starting with rightmost = 0)
-            - "random": a random lane is chosen, but the vehicle insertion is
-                        not retried if it could not be inserted
-            - "free": the most free (least occupied) lane is chosen
-            - "best": the "free" lane (see above) among those who allow the
-                      vehicle the longest ride without the need to change lane
-            - "first": the rightmost lane the vehicle may use
-            defaults to "first"
+            the lane on which the vehicle shall be inserted. Can be either one
+            of:
+
+            * int >= 0: index of the lane (starting with rightmost = 0)
+            * "random": a random lane is chosen, but the vehicle insertion is
+              not retried if it could not be inserted
+            * "free": the most free (least occupied) lane is chosen
+            * "best": the "free" lane (see above) among those who allow the
+              vehicle the longest ride without the need to change lane
+            * "first": the rightmost lane the vehicle may use
+
+            Defaults to "first".
         depart_speed : float or str
             the speed with which the vehicle shall enter the network (in m/s)
             can be either one of:
+
             - float >= 0: the vehicle is tried to be inserted using the given
-                          speed; if that speed is unsafe, departure is delayed
+              speed; if that speed is unsafe, departure is delayed
             - "random": vehicles enter the edge with a random speed between 0
-                        and the speed limit on the edge; the entering speed may
-                        be adapted to ensure a safe distance to the leading
-                        vehicle is kept
-            - "speedLimit": vehicles enter the edge with the maximum speed
-                            that is allowed on this edge; if that speed is
-                            unsafe, departure is delayed
-            defaults to 0
+              and the speed limit on the edge; the entering speed may be
+              adapted to ensure a safe distance to the leading vehicle is kept
+            - "speedLimit": vehicles enter the edge with the maximum speed that
+              is allowed on this edge; if that speed is unsafe, departure is
+              delayed
+
+            Defaults to 0.
         name : str, optional
-            prefix for the id of the vehicles entering via this inflow
-            default to "flow"
+            prefix for the id of the vehicles entering via this inflow.
+            Defaults to "flow"
         begin : float, optional
-            first vehicle departure time (in seconds, minimum 1 second)
-            defaults to 1 second
+            first vehicle departure time (in seconds, minimum 1 second).
+            Defaults to 1 second
         end : float, optional
-            end of departure interval (in seconds)
-            this parameter is not taken into account if 'number' is specified
-            defaults to 24 hours
+            end of departure interval (in seconds). This parameter is not taken
+            into account if 'number' is specified. Defaults to 24 hours
         number : int, optional
-            total number of vehicles the inflow should create
-            (due to rounding up, this parameter may not be exactly enforced
-            and shouldn't be set too small)
-            default: infinite (c.f. 'end' parameter)
+            total number of vehicles the inflow should create (due to rounding
+            up, this parameter may not be exactly enforced and shouldn't be set
+            too small). Default: infinite (c.f. 'end' parameter)
         kwargs : dict, optional
             see Note
 
@@ -1179,18 +1180,18 @@ class InFlows:
         inflow_params = [vehs_per_hour, probability, period]
         n_inflow_params = len(inflow_params) - inflow_params.count(None)
         if n_inflow_params != 1:
-            raise ValueError("Exactly one among the three parameters "
-                             "'vehs_per_hour', 'probability' and 'period' must"
-                             " be specified in InFlows.add. "
-                             "{} were specified.".format(n_inflow_params))
+            raise ValueError(
+                "Exactly one among the three parameters 'vehs_per_hour', "
+                "'probability' and 'period' must be specified in InFlows.add. "
+                "{} were specified.".format(n_inflow_params))
         if probability is not None and (probability < 0 or probability > 1):
-            raise ValueError("Inflow.add called with parameter 'probability' "
-                             "set to {}, but probability should be between 0 "
-                             "and 1.".format(probability))
+            raise ValueError(
+                "Inflow.add called with parameter 'probability' set to {}, but"
+                " probability should be between 0 and 1.".format(probability))
         if begin is not None and begin < 1:
-            raise ValueError("Inflow.add called with parameter 'begin' "
-                             "set to {}, but begin should be greater or equal "
-                             "than 1 second.".format(begin))
+            raise ValueError(
+                "Inflow.add called with parameter 'begin' set to {}, but begin"
+                " should be greater or equal than 1 second.".format(begin))
 
         if number is not None:
             del new_inflow["end"]
