@@ -10,6 +10,22 @@ class AimsunKernelSimulation(KernelSimulation):
     """Aimsun simulation kernel.
 
     Extends KernelSimulation.
+
+    Attributes
+    ----------
+    master_kernel : flow.core.kernel.Kernel
+        the higher level kernel (used to call methods from other sub-kernels)
+    kernel_api : any
+        an API that may be used to interact with the simulator
+    sim_step : float
+        seconds per simulation step; 0.5 by default
+    emission_path : str
+        Path to the folder in which to create the emissions output.
+        Emissions output is not generated if this value is not specified
+    time : float
+        used to internally keep track of the simulation time
+    stored_data : dict
+        a file used to store data if an emission file is provided
     """
 
     def __init__(self, master_kernel):
@@ -20,11 +36,7 @@ class AimsunKernelSimulation(KernelSimulation):
         self.kernel_api = None
         self.sim_step = None
         self.emission_path = None
-
-        # used to internally keep track of the simulation time
         self.time = 0
-
-        # a file used to store data if an emission file is provided
         self.stored_data = {
             'time': [],
             'x': [],
