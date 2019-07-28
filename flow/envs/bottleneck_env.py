@@ -182,15 +182,17 @@ class BottleneckEnv(Env):
             self.next_period += PERIOD / self.sim_step
 
     def ramp_meter_lane_change_control(self):
-        """Control the lane changing behavior of vehicles approaching the ramp metering lights.
+        """Control lane change behavior of vehicles near the ramp meters.
 
-        If the traffic lights after the toll booth are enabled ('disable_ramp_metering' is False),
-        we want to change the lane changing behavior of vehicles approaching the lights so that they stop
-        changing lanes. This method disables their lane changing before the light and re-enables it after
-        they have passed the light.
+        If the traffic lights after the toll booth are enabled
+        ('disable_ramp_metering' is False), we want to change the lane changing
+        behavior of vehicles approaching the lights so that they stop changing
+        lanes. This method disables their lane changing before the light and
+        re-enables it after they have passed the light.
 
-        Additionally, to visually make it clearer that the lane changing behavior of the vehicles has been adjusted,
-        we temporary set the color of the affected vehicles to light blue.
+        Additionally, to visually make it clearer that the lane changing
+        behavior of the vehicles has been adjusted, we temporary set the color
+        of the affected vehicles to light blue.
         """
         cars_that_have_left = []
         for veh_id in self.cars_before_ramp:
@@ -262,13 +264,18 @@ class BottleneckEnv(Env):
         self.k.traffic_light.set_state('3', ''.join(colors))
 
     def apply_toll_bridge_control(self):
-        """Apply control to the toll bridge. Vehicles approaching the toll region slow down and stop lane changing.
+        """Apply control to the toll bridge.
 
-        If 'disable_tb' is set to False, vehicles within TOLL_BOOTH_AREA of the end of edge EDGE_BEFORE_TOLL
-        are labelled as approaching the toll booth. Their color changes and their lane changing is disabled.
-        To force them to slow down/mimic the effect of the toll booth, we sample from a random normal
-        distribution with mean MEAN_NUM_SECONDS_WAIT_AT_TOLL and std-dev 1/self.sim_step
-        to get how long a vehicle should wait. We then turn on a red light for that many seconds.
+        Vehicles approaching the toll region slow down and stop lane changing.
+
+        If 'disable_tb' is set to False, vehicles within TOLL_BOOTH_AREA of the
+        end of edge EDGE_BEFORE_TOLL are labelled as approaching the toll
+        booth. Their color changes and their lane changing is disabled. To
+        force them to slow down/mimic the effect of the toll booth, we sample
+        from a random normal distribution with mean
+        MEAN_NUM_SECONDS_WAIT_AT_TOLL and std-dev 1/self.sim_step to get how
+        long a vehicle should wait. We then turn on a red light for that many
+        seconds.
         """
         cars_that_have_left = []
         for veh_id in self.cars_waiting_for_toll:
@@ -762,20 +769,25 @@ class DesiredVelocityEnv(BottleneckEnv):
             shape=(int(action_size), ), dtype=np.float32)
 
     def get_state(self):
-        """Returns aggregate statistics of different segments of the bottleneck.
+        """Return aggregate statistics of different segments of the bottleneck.
 
-        The state space of the system is defined by splitting the bottleneck up into edges and then segments
-        in each edge. The class variable self.num_obs_segments specifies how many segments each edge is cut up
-        into. Each lane defines a unique segment: we refer to this as a lane-segment.
-        For example, if edge 1 has four lanes and three segments, then we have a total of 12 lane-segments. We will
-        track the aggregate statistics of the vehicles in each lane segment.
+        The state space of the system is defined by splitting the bottleneck up
+        into edges and then segments in each edge. The class variable
+        self.num_obs_segments specifies how many segments each edge is cut up
+        into. Each lane defines a unique segment: we refer to this as a
+        lane-segment. For example, if edge 1 has four lanes and three segments,
+        then we have a total of 12 lane-segments. We will track the aggregate
+        statistics of the vehicles in each lane segment.
 
         For each lane-segment we return the:
-            - Number of vehicles on that segment.
-            - Number of AVs (referred to here as rl_vehicles) in the segment.
-            - The average speed of the vehicles in that segment.
-            - The average speed of the rl vehicles in that segment.
-        Finally, we also append the total outflow of the bottleneck over the last 20 * self.sim_step seconds.
+
+        * Number of vehicles on that segment.
+        * Number of AVs (referred to here as rl_vehicles) in the segment.
+        * The average speed of the vehicles in that segment.
+        * The average speed of the rl vehicles in that segment.
+
+        Finally, we also append the total outflow of the bottleneck over the
+        last 20 * self.sim_step seconds.
         """
         num_vehicles_list = []
         num_rl_vehicles_list = []
