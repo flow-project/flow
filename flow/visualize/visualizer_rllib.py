@@ -310,7 +310,7 @@ def visualizer_rllib(args):
 
         # convert the emission file into a csv file
         emission_to_csv(emission_path)
-        
+
         # delete the .xml version of the emission file
         os.remove(emission_path)
 
