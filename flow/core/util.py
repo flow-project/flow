@@ -97,3 +97,4 @@ def emission_to_csv(emission_path, output_path=None):
         dict_writer = csv.DictWriter(output_file, keys)
         dict_writer.writeheader()
         dict_writer.writerows(out_data)
+    print("CSV emission file written at {}".format(output_path))
