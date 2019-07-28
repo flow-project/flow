@@ -215,7 +215,7 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id]["leader"] = headway[0]
                 try:
                     self.__vehicles[headway[0]]["follower"] = veh_id
-                except KeyError as e:
+                except KeyError:
                     print(traceback.format_exc())
 
         # update the sumo observations variable
