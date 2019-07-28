@@ -89,7 +89,7 @@ class TrafficLightGridEnv(Env):
     node_mapping : dict
         Dictionary mapping intersections / nodes (nomenclature is used
         interchangeably here) to the edges that are leading to said
-        intersection /node
+        intersection / node
     last_change : np array [num_traffic_lights]x1 np array
         Multi-dimensional array keeping track, in timesteps, of how much time
         has passed since the last change to yellow for each traffic light
@@ -103,7 +103,7 @@ class TrafficLightGridEnv(Env):
     min_switch_time : np array [num_traffic_lights]x1 np array
         The minimum time in timesteps that a light can be yellow. Serves
         as a lower bound
-    discrete : boolean
+    discrete : bool
         Indicates whether or not the action space is discrete. See below for
         more information:
         https://github.com/openai/gym/blob/master/gym/spaces/discrete.py
