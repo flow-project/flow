@@ -1180,20 +1180,6 @@ class InFlows:
         inflow_params = [vehs_per_hour, probability, period]
         n_inflow_params = len(inflow_params) - inflow_params.count(None)
         if n_inflow_params != 1:
-<<<<<<< HEAD
-            raise ValueError("Exactly one among the three parameters "
-                             "'vehs_per_hour', 'probability' and 'period' must"
-                             " be specified in InFlows.add. "
-                             "{} were specified.".format(n_inflow_params))
-        if probability is not None and (probability < 0 or probability > 1):
-            raise ValueError("Inflow.add called with parameter 'probability' "
-                             "set to {}, but probability should be between 0 "
-                             "and 1.".format(probability))
-        if begin is not None and begin < 1:
-            raise ValueError("Inflow.add called with parameter 'begin' "
-                             "set to {}, but begin should be greater or equal "
-                             "than 1 second.".format(begin))
-=======
             raise ValueError(
                 "Exactly one among the three parameters 'vehs_per_hour', "
                 "'probability' and 'period' must be specified in InFlows.add. "
@@ -1206,7 +1192,6 @@ class InFlows:
             raise ValueError(
                 "Inflow.add called with parameter 'begin' set to {}, but begin"
                 " should be greater or equal than 1 second.".format(begin))
->>>>>>> fd0ad46533e7d8a80603bc32633cf8db9849ba50
 
         if number is not None:
             del new_inflow["end"]
