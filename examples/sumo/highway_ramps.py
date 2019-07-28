@@ -1,7 +1,8 @@
 """Example of a highway section network with on/off ramps."""
 
 from flow.core.params import SumoParams, EnvParams, \
-    NetParams, InitialConfig, InFlows, SumoCarFollowingParams
+    NetParams, InitialConfig, InFlows, SumoCarFollowingParams, \
+    SumoLaneChangeParams
 from flow.core.params import VehicleParams
 from flow.core.experiment import Experiment
 from flow.scenarios.highway_ramps import HighwayRampsScenario, \
@@ -68,7 +69,8 @@ def highway_ramps_example(render=True):
         }),
         car_following_params=SumoCarFollowingParams(
             speed_mode="obey_safe_speed",
-        ))
+        ),
+        lane_change_params=SumoLaneChangeParams(lane_change_mode=1621))
 
     env_params = EnvParams(
         additional_params=ADDITIONAL_ENV_PARAMS,
