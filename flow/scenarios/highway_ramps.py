@@ -215,36 +215,6 @@ class HighwayRampsScenario(Scenario):
 
         return rts
 
-    def specify_connections(self, net_params):
-        """See parent class."""
-        conn_dict = defaultdict(list)
-        for x in self.ramps_pos:
-            highway_id = self.highway_pos[x]
-            ramp_id = self.ramp_pos[x]
-            idx = "highway_{}".format(highway_id)
-            if ramp_id.startswith("on"):
-                for i in range(self.on_ramps_lanes):
-                    conn_dict[idx] += [{"from": ramp_id,
-                                        "to": "highway_{}".format(highway_id),
-                                        "fromLane": str(i),
-                                        "toLane": "0"}]
-            else:
-                for i in range(self.highway_lanes):
-                    for j in range(self.off_ramps_lanes):
-                        conn_dict[idx] += [{"from": "highway_{}".format(
-                                                highway_id - 1),
-                                            "to": ramp_id,
-                                            "fromLane": str(i),
-                                            "toLane": str(j)}]
-            for i in range(self.highway_lanes):
-                conn_dict[idx] += [{"from": "highway_{}".format(
-                                        highway_id - 1),
-                                    "to": "highway_{}".format(highway_id),
-                                    "fromLane": str(i),
-                                    "toLane": str(i)}]
-
-        return conn_dict
-
     def specify_types(self, net_params):
         """See parent class."""
         types = [{
