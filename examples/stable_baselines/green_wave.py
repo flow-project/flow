@@ -78,7 +78,6 @@ def get_flow_params(col_num, row_num, additional_net_params):
 
     net = NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params)
 
     return initial, net
@@ -110,7 +109,7 @@ def get_non_flow_params(enter_speed, add_net_params):
     initial = InitialConfig(
         spacing='custom', additional_params=additional_init_params)
     net = NetParams(
-        no_internal_links=False, additional_params=add_net_params)
+        additional_params=add_net_params)
 
     return initial, net
 
@@ -256,10 +255,9 @@ if __name__ == "__main__":
     flow_params['initial'] = initial_config
     flow_params['net'] = net_params
 
-    # TODO(@evinitsky) figure out why it doesn't finish a complete rollout
     if args.num_cpus == 1:
-        env = construct_env(params=flow_params, version=0, render=True)()
-        env = DummyVecEnv([lambda: env])  # The algorithms require a vectorized environment to run
+        env_constructor = construct_env(params=flow_params, version=0)()
+        env = DummyVecEnv([lambda: env_constructor])  # The algorithms require a vectorized environment to run
     else:
         env = SubprocVecEnv([construct_env(params=flow_params, version=i) for i in range(args.num_cpus)])
 
@@ -275,10 +273,11 @@ if __name__ == "__main__":
     del model
 
     # Replay the result by loading the model
+    print('Loading the trained model and testing it out!')
     model = PPO2.load(save_path)
     flow_params['sim'].render = True
-    env = construct_env(params=flow_params, version=0)()
-    env = DummyVecEnv([lambda: env])  # The algorithms require a vectorized environment to run
+    env_constructor = construct_env(params=flow_params, version=0)()
+    env = DummyVecEnv([lambda: env_constructor])  # The algorithms require a vectorized environment to run
     obs = env.reset()
     reward = 0
     for i in range(flow_params['env'].horizon):

@@ -47,6 +47,11 @@ script. Be sure to run the below commands from ``/path/to/flow``.
     # create a conda environment
     conda env create -f environment.yml
     source activate flow
+
+If the conda install fails, you can also install the requirements using pip by calling
+
+::
+
     # install flow within the environment
     pip install -e .
 

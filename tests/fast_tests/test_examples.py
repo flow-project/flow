@@ -143,7 +143,7 @@ class TestSumoExamples(unittest.TestCase):
 
 
 class TestRllibExamples(unittest.TestCase):
-    """Tests the example scripts in examples/sumo.
+    """Tests the example scripts in examples/rllib.
 
     This is done by running each experiment in that folder for five time-steps
     and confirming that it completes one rollout with two workers.

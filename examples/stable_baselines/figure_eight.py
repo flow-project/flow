@@ -77,7 +77,6 @@ flow_params = dict(
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        no_internal_links=False,
         additional_params=ADDITIONAL_NET_PARAMS.copy(),
     ),
 
@@ -101,8 +100,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.num_cpus == 1:
-        env = construct_env(params=flow_params, version=0)()
-        env = DummyVecEnv([lambda: env])  # The algorithms require a vectorized environment to run
+        env_constructor = construct_env(params=flow_params, version=0)()
+        env = DummyVecEnv([lambda: env_constructor])  # The algorithms require a vectorized environment to run
     else:
         env = SubprocVecEnv([construct_env(params=flow_params, version=i) for i in range(args.num_cpus)])
 
@@ -118,10 +117,11 @@ if __name__ == "__main__":
     del model
 
     # Replay the result by loading the model
+    print('Loading the trained model and testing it out!')
     model = PPO2.load(save_path)
     flow_params['sim'].render = True
-    env = construct_env(params=flow_params, version=0)()
-    env = DummyVecEnv([lambda: env])  # The algorithms require a vectorized environment to run
+    env_constructor = construct_env(params=flow_params, version=0)()
+    env = DummyVecEnv([lambda: env_constructor])  # The algorithms require a vectorized environment to run
     obs = env.reset()
     reward = 0
     for i in range(flow_params['env'].horizon):
