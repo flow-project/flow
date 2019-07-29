@@ -1,3 +1,4 @@
+"""Base environment for the Bay Bridge."""
 import numpy as np
 from collections import defaultdict
 
@@ -80,6 +81,11 @@ class BayBridgeEnv(Env):
                 "disable_ramp_metering")
 
     def additional_command(self):
+        """See parent class.
+
+        This methods add traffic light and ramp metering control to the
+        environment.
+        """
         super().additional_command()
         # build a list of vehicles and their edges and positions
         self.edge_dict = defaultdict(list)
@@ -106,6 +112,11 @@ class BayBridgeEnv(Env):
             self.ramp_meter_lane_change_control()
 
     def ramp_meter_lane_change_control(self):
+        """Control the lane changing behavior.
+
+        Specify/Toggle the lane changing behavior of the vehicles depending on
+        factors like whether or not they are before the toll.
+        """
         cars_that_have_left = []
         for veh_id in self.cars_before_ramp:
             if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_RAMP_METER:
@@ -145,6 +156,7 @@ class BayBridgeEnv(Env):
                         }
 
     def apply_toll_bridge_control(self):
+        """Apply control to the toll bridge."""
         cars_that_have_left = []
         for veh_id in self.cars_waiting_for_toll:
             if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_TOLL:
@@ -223,9 +235,15 @@ class BayBridgeEnv(Env):
     ###########################################################################
 
     def _apply_rl_actions(self, rl_actions):
-        """Implemented by child classes."""
+        """See parent class.
+
+        To be implemented by child classes.
+        """
         pass
 
     def get_state(self):
-        """Implemented by child classes."""
+        """See parent class.
+
+        To be implemented by child classes.
+        """
         return []

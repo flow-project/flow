@@ -9,7 +9,7 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from flow.scenarios.loop import LoopScenario
 from flow.controllers import RLController, IDMController, ContinuousRouter
 from flow.core.params import VehicleParams
-from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
+from flow.core.params import AimsunParams, EnvParams, NetParams, InitialConfig
 from rllab.envs.gym_env import GymEnv
 
 HORIZON = 1500
@@ -17,7 +17,7 @@ HORIZON = 1500
 
 def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
-    sim_params = SumoParams(sim_step=0.1, render=False, seed=0)
+    sim_params = AimsunParams(sim_step=0.5, render=False, seed=0)
 
     vehicles = VehicleParams()
     vehicles.add(
