@@ -94,6 +94,7 @@ ENV/
 # Don't add xml or csv
 *.xml
 *.csv
+*.png
 .DS_Store
 
 # Custom for learning-traffic
