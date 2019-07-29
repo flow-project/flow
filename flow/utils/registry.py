@@ -109,3 +109,8 @@ def make_create_env(params, version=0, render=None):
         return gym.envs.make(env_name)
 
     return create_env, env_name
+
+def construct_env(params, version=0, render=None):
+    """Utility function to actually return a constructed env from make_create_env"""
+    create_env, env_name = make_create_env(params, version, render)
+    return create_env

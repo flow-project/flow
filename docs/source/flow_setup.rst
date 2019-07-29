@@ -217,6 +217,19 @@ required libraries as specified at
 <http://ray.readthedocs.io/en/latest/installation.html> and
 then follow the setup instructions.
 
+(Optional) Install Stable Baselines
+----------------------------
+
+An additional library that Flow supports is the fork of OpenAI's Baselines, Stable-Baselines.
+First visit <https://stable-baselines.readthedocs.io/en/master/guide/install.html> and
+install the required packages and pip install the stable baselines package as described in their
+installation instructions.
+
+You can test your installation by running
+
+::
+
+    python examples/stable_baselines/stabilizing_the_ring.py
 
 Testing your installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~

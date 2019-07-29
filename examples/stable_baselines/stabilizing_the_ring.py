@@ -4,22 +4,19 @@ Trains a single autonomous vehicle to stabilize the flow of 21 human-driven
 vehicles in a variable length ring road.
 """
 
-import json
+import argparse
+import os
 
-from stable_baselines.common.vec_env import DummyVecEnv
+from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines import PPO2
 
-from flow.utils.registry import make_create_env
+from flow.utils.registry import construct_env
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams, SumoCarFollowingParams
 from flow.controllers import RLController, IDMController, ContinuousRouter
 
 # time horizon of a single rollout
 HORIZON = 3000
-# number of rollouts per training iteration
-N_ROLLOUTS = 2
-# number of parallel workers
-N_CPUS = 2
 
 # We place one autonomous vehicle and 22 human-driven vehicles in the network
 vehicles = VehicleParams()
@@ -91,15 +88,35 @@ flow_params = dict(
 )
 
 if __name__ == "__main__":
-    create_env, gym_name = make_create_env(params=flow_params, version=0)
-    env = create_env()
-    env = DummyVecEnv([lambda: env])  # The algorithms require a vectorized environment to run
-    model = PPO2('MlpPolicy', env, verbose=1)
-    model.learn(total_timesteps=1000)
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--num_cpus', type=int, default=1, help='How many CPUs to use')
+    parser.add_argument('--num_steps', type=int, default=5000, help='How many total steps to perform learning over')
+    parser.add_argument('--rollout_size', type=int, default=1000, help='How many steps are in a training batch.')
+    parser.add_argument('--result_name', type=str, default='ring_stabilize', help='Name of saved model')
+    args = parser.parse_args()
+
+    if args.num_cpus == 1:
+        env = construct_env(params=flow_params, version=0)()
+        env = DummyVecEnv([lambda: env])  # The algorithms require a vectorized environment to run
+    else:
+        env = SubprocVecEnv([construct_env(params=flow_params, version=i) for i in range(args.num_cpus)])
+
+    model = PPO2('MlpPolicy', env, verbose=1, n_steps=args.rollout_size)
+    model.learn(total_timesteps=args.num_steps)
+
+    # Save the model to a desired folder and then delete it to demonstrate loading
+    if not os.path.exists(os.path.realpath(os.path.expanduser('~/baseline_results'))):
+        os.makedirs(os.path.realpath(os.path.expanduser('~/baseline_results')))
+    path = os.path.realpath(os.path.expanduser('~/baseline_results'))
+    save_path = os.path.join(path, args.result_name)
+    model.save(save_path)
+    del model
+
+    # Replay the result by loading the model
+    model = PPO2.load(save_path)
     flow_params['sim'].render = True
-    create_env, gym_name = make_create_env(params=flow_params, version=0)
-    env = create_env()
+    env = construct_env(params=flow_params, version=0)()
     env = DummyVecEnv([lambda: env])  # The algorithms require a vectorized environment to run
     obs = env.reset()
     reward = 0
