@@ -120,7 +120,8 @@ class HighwayRampsScenario(Scenario):
         nodes_highway = [{
             "id": "highway_{}".format(i),
             "x": self.nodes_pos[i],
-            "y": 0
+            "y": 0,
+            "radius": 10
         } for i in range(len(self.nodes_pos))]
 
         nodes_on_ramps = [{
