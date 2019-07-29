@@ -40,7 +40,7 @@ HIGHWAY_INFLOW_RATE = 1000
 ON_RAMPS_INFLOW_RATE = 200
 
 
-def highway_ramps_example(render=True):
+def highway_ramps_example(render=None):
     """
     Perform a simulation of vehicles on a highway section with ramps.
 
@@ -60,6 +60,9 @@ def highway_ramps_example(render=True):
         emission_path="./data/",
         sim_step=0.2,
         restart_instance=True)
+
+    if render is not None:
+        sim_params.render = render
 
     vehicles = VehicleParams()
     vehicles.add(
@@ -83,7 +86,7 @@ def highway_ramps_example(render=True):
         edge="highway_0",
         vehs_per_hour=HIGHWAY_INFLOW_RATE,
         depart_lane="free",
-        depart_speed="speedLimit",
+        depart_speed="max",
         name="highway_flow")
     for i in range(len(additional_net_params["on_ramps_pos"])):
         inflows.add(
@@ -91,7 +94,7 @@ def highway_ramps_example(render=True):
             edge="on_ramp_{}".format(i),
             vehs_per_hour=ON_RAMPS_INFLOW_RATE,
             depart_lane="first",
-            depart_speed="speedLimit",
+            depart_speed="max",
             name="on_ramp_flow")
 
     net_params = NetParams(
