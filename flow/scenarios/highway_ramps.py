@@ -24,7 +24,10 @@ ADDITIONAL_NET_PARAMS = {
     # positions of the off-ramps
     "off_ramps_pos": [],
     # probability for a vehicle to exit the highway at the next off-ramp
-    "next_off_ramp_proba": 0.2
+    "next_off_ramp_proba": 0.2,
+    # ramps angles
+    "angle_on_ramps": - 3 * pi / 4,
+    "angle_off_ramps": - pi / 4
 }
 
 
@@ -84,6 +87,9 @@ class HighwayRampsScenario(Scenario):
 
         self.p = params['next_off_ramp_proba']
 
+        self.angle_on_ramps = params['angle_on_ramps']
+        self.angle_off_ramps = params['angle_off_ramps']
+
         # generate position of all network nodes
         self.ramps_pos = sorted(self.on_ramps_pos + self.off_ramps_pos)
         self.nodes_pos = sorted(list(set([0] + self.ramps_pos +
@@ -114,25 +120,23 @@ class HighwayRampsScenario(Scenario):
 
     def specify_nodes(self, net_params):
         """See parent class."""
-        angle_on_ramps = - 3 * pi / 4
-        angle_off_ramps = - pi / 4
-
         nodes_highway = [{
             "id": "highway_{}".format(i),
             "x": self.nodes_pos[i],
-            "y": 0
+            "y": 0,
+            "radius": 10
         } for i in range(len(self.nodes_pos))]
 
         nodes_on_ramps = [{
             "id": "on_ramp_{}".format(i),
-            "x": x + self.on_ramps_length * cos(angle_on_ramps),
-            "y": self.on_ramps_length * sin(angle_on_ramps)
+            "x": x + self.on_ramps_length * cos(self.angle_on_ramps),
+            "y": self.on_ramps_length * sin(self.angle_on_ramps)
         } for i, x in enumerate(self.on_ramps_pos)]
 
         nodes_off_ramps = [{
             "id": "off_ramp_{}".format(i),
-            "x": x + self.off_ramps_length * cos(angle_off_ramps),
-            "y": self.off_ramps_length * sin(angle_off_ramps)
+            "x": x + self.off_ramps_length * cos(self.angle_off_ramps),
+            "y": self.off_ramps_length * sin(self.angle_off_ramps)
         } for i, x in enumerate(self.off_ramps_pos)]
 
         return nodes_highway + nodes_on_ramps + nodes_off_ramps
