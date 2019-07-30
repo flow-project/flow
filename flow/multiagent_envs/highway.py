@@ -135,7 +135,7 @@ class MultiAgentHighwayPOEnv(MultiEnv):
             return {}
 
         rewards = {}
-        for rl_id in rl_actions.keys():
+        for rl_id in self.k.vehicle.get_rl_ids():
             if self.env_params.evaluate:
                 # reward is speed of vehicle if we are in evaluation mode
                 reward = self.k.vehicle.get_speed(rl_id)
