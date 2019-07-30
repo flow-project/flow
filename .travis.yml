@@ -30,6 +30,8 @@ before_install:
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - export TEST_FLAG="True"
+  - conda config --append channels https://repo.anaconda.com/pkgs/free
+  - conda config --append channels https://repo.anaconda.com/pkgs/pro
 
   # Set up requirements for flow
   - conda env create -f environment.yml
