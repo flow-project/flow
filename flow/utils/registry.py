@@ -112,6 +112,6 @@ def make_create_env(params, version=0, render=None):
 
 
 def construct_env(params, version=0, render=None):
-    """Utility function to actually return a constructor from make_create_env"""
+    """Return a constructor from make_create_env."""
     create_env, env_name = make_create_env(params, version, render)
     return create_env

@@ -1,15 +1,18 @@
+"""Grid/green wave example."""
+
 import argparse
+import json
 import os
 
 from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines import PPO2
 
-from flow.utils.registry import construct_env
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams, InFlows
 from flow.core.params import VehicleParams
 from flow.controllers import SimCarFollowingController, GridRouter
-
+from flow.utils.registry import construct_env
+from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 
 # time horizon of a single rollout
 HORIZON = 200
@@ -35,7 +38,7 @@ def gen_edges(col_num, row_num):
         edges += ['left' + str(row_num) + '_' + str(i)]
         edges += ['right' + '0' + '_' + str(i)]
 
-    # build the left and then the right edges
+    # build the left and then the right edgesØ
     for i in range(row_num):
         edges += ['bot' + str(i) + '_' + '0']
         edges += ['top' + str(i) + '_' + str(col_num)]
@@ -43,7 +46,7 @@ def gen_edges(col_num, row_num):
     return edges
 
 
-def get_flow_params(col_num, row_num, additional_net_params):
+def get_inflow_params(col_num, row_num, additional_net_params):
     """Define the network and initial params in the presence of inflows.
 
     Parameters
@@ -229,7 +232,7 @@ def setup_exps(use_inflows=False):
     # collect the initialization and network-specific parameters based on the
     # choice to use inflows or not
     if use_inflows:
-        initial_config, net_params = get_flow_params(
+        initial_config, net_params = get_inflow_params(
             col_num=N_COLUMNS,
             row_num=N_ROWS,
             additional_net_params=additional_net_params)
@@ -240,8 +243,8 @@ def setup_exps(use_inflows=False):
     return initial_config, net_params
 
 
-if __name__ == "__main__":
-
+def run_model(num_steps=None):
+    """Run the model for num_steps if provided. Otherwise, take num_steps from the args."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_cpus', type=int, default=1, help='How many CPUs to use')
     parser.add_argument('--num_steps', type=int, default=5000, help='How many total steps to perform learning over')
@@ -262,19 +265,32 @@ if __name__ == "__main__":
         env = SubprocVecEnv([construct_env(params=flow_params, version=i) for i in range(args.num_cpus)])
 
     model = PPO2('MlpPolicy', env, verbose=1, n_steps=args.rollout_size)
-    model.learn(total_timesteps=args.num_steps)
+    if num_steps:
+        model.learn(total_timesteps=num_steps)
+    else:
+        model.learn(total_timesteps=args.num_steps)
+    return model, args
 
+
+if __name__ == "__main__":
+    model, parsed_args = run_model()
     # Save the model to a desired folder and then delete it to demonstrate loading
     if not os.path.exists(os.path.realpath(os.path.expanduser('~/baseline_results'))):
         os.makedirs(os.path.realpath(os.path.expanduser('~/baseline_results')))
     path = os.path.realpath(os.path.expanduser('~/baseline_results'))
-    save_path = os.path.join(path, args.result_name)
+    save_path = os.path.join(path, parsed_args.result_name)
+    # dump the model
     model.save(save_path)
+    # dump the flow params
+    with open(os.path.join(path, parsed_args.result_name) + '.json', 'w') as outfile:
+        json.dump(flow_params, outfile,  cls=FlowParamsEncoder, sort_keys=True, indent=4)
     del model
+    del flow_params
 
     # Replay the result by loading the model
     print('Loading the trained model and testing it out!')
     model = PPO2.load(save_path)
+    flow_params = get_flow_params(os.path.join(path, parsed_args.result_name) + '.json')
     flow_params['sim'].render = True
     env_constructor = construct_env(params=flow_params, version=0)()
     env = DummyVecEnv([lambda: env_constructor])  # The algorithms require a vectorized environment to run
