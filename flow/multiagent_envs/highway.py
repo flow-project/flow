@@ -149,14 +149,14 @@ class MultiAgentHighwayPOEnv(MultiEnv):
                 # penalize small time headways
                 cost2 = 0
                 t_min = 1  # smallest acceptable time headway
-                for rl_id in self.rl_veh:
-                    lead_id = self.k.vehicle.get_leader(rl_id)
-                    if lead_id not in ["", None] \
-                            and self.k.vehicle.get_speed(rl_id) > 0:
-                        t_headway = max(
-                            self.k.vehicle.get_headway(rl_id) /
-                            self.k.vehicle.get_speed(rl_id), 0)
-                        cost2 += min((t_headway - t_min) / t_min, 0)
+
+                lead_id = self.k.vehicle.get_leader(rl_id)
+                if lead_id not in ["", None] \
+                        and self.k.vehicle.get_speed(rl_id) > 0:
+                    t_headway = max(
+                        self.k.vehicle.get_headway(rl_id) /
+                        self.k.vehicle.get_speed(rl_id), 0)
+                    cost2 += min((t_headway - t_min) / t_min, 0)
 
                 # weights for cost1, cost2, and cost3, respectively
                 eta1, eta2 = 1.00, 0.10
