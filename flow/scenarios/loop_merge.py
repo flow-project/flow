@@ -57,7 +57,6 @@ class TwoLoopsOneMergingScenario(Scenario):
     >>>             'speed_limit': 30,
     >>>             'resolution': 40
     >>>         },
-    >>>         no_internal_links=False  # we want junctions
     >>>     )
     >>> )
     """

@@ -683,8 +683,7 @@ class TestEdgeLength(unittest.TestCase):
             "speed_limit": 60,
             "resolution": 40
         }
-        net_params = NetParams(
-            no_internal_links=False, additional_params=additional_net_params)
+        net_params = NetParams(additional_params=additional_net_params)
 
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
@@ -729,8 +728,7 @@ class TestSpeedLimit(unittest.TestCase):
             "speed_limit": 60,
             "resolution": 40
         }
-        net_params = NetParams(
-            no_internal_links=False, additional_params=additional_net_params)
+        net_params = NetParams(additional_params=additional_net_params)
 
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
@@ -775,8 +773,7 @@ class TestNumLanes(unittest.TestCase):
             "speed_limit": 60,
             "resolution": 40
         }
-        net_params = NetParams(
-            no_internal_links=False, additional_params=additional_net_params)
+        net_params = NetParams(additional_params=additional_net_params)
 
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
@@ -839,44 +836,32 @@ class TestNextPrevEdge(unittest.TestCase):
     the next edge)
     """
 
-    def test_next_edge_internal_links(self):
+    def test_next_prev_edge_figure_eight(self):
         """
-        Tests the next_edge() method in the presence of internal links.
+        Tests the next_edge() and prev_edge() methods for the figure eight.
         """
         env, scenario = figure_eight_exp_setup()
+
         next_edge = env.k.scenario.next_edge("bottom", 0)
         expected_next_edge = [(':center_1', 0)]
-
         self.assertCountEqual(next_edge, expected_next_edge)
 
-    def test_prev_edge_internal_links(self):
-        """
-        Tests the prev_edge() method in the presence of internal links.
-        """
-        env, scenario = figure_eight_exp_setup()
         prev_edge = env.k.scenario.prev_edge("bottom", 0)
         expected_prev_edge = [(':bottom_0', 0)]
-
         self.assertCountEqual(prev_edge, expected_prev_edge)
 
-    def test_next_edge_no_internal_links(self):
+    def test_next_prev_edge_ring_road(self):
         """
-        Tests the next_edge() method in the absence of internal links.
+        Tests the next_edge() and prev_edge() methods for the ring road.
         """
         env, scenario = ring_road_exp_setup()
-        next_edge = env.k.scenario.next_edge("top", 0)
-        expected_next_edge = [("left", 0)]
 
+        next_edge = env.k.scenario.next_edge("top", 0)
+        expected_next_edge = [(":left_0", 0)]
         self.assertCountEqual(next_edge, expected_next_edge)
 
-    def test_prev_edge_no_internal_links(self):
-        """
-        Tests the prev_edge() method in the absence of internal links.
-        """
-        env, scenario = ring_road_exp_setup()
         prev_edge = env.k.scenario.prev_edge("top", 0)
-        expected_prev_edge = [("right", 0)]
-
+        expected_prev_edge = [(":top_0", 0)]
         self.assertCountEqual(prev_edge, expected_prev_edge)
 
     def test_no_edge_ahead(self):
@@ -945,7 +930,6 @@ class TestOpenStreetMap(unittest.TestCase):
         vehicles.add(veh_id="test")
         env_params = EnvParams()
         net_params = NetParams(
-            no_internal_links=False,
             osm_path=os.path.join(PROJECT_PATH, 'tests/data/euclid.osm'))
 
         scenario = Scenario(
@@ -980,7 +964,6 @@ class TestNetworkTemplateGenerator(unittest.TestCase):
                 # features associated with the properties of drivers
                 "vtype": os.path.join(dir_path, "test_files/fig8_test.add.xml")
             },
-            no_internal_links=False
         )
 
         # create the scenario object from the network template files
@@ -1051,7 +1034,6 @@ class TestNetworkTemplateGenerator(unittest.TestCase):
                 # features associated with the properties of drivers
                 "vtype": os.path.join(dir_path, "test_files/fig8_test.add.xml")
             },
-            no_internal_links=False
         )
 
         scenario = Scenario(
