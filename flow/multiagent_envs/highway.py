@@ -1,7 +1,7 @@
 """Environment used to train vehicles to improve traffic on a highway."""
 import numpy as np
 from gym.spaces.box import Box
-from flow.core import rewards
+from flow.core.rewards import desired_velocity
 from flow.multiagent_envs.multiagent_env import MultiEnv
 
 
@@ -144,7 +144,7 @@ class MultiAgentHighwayPOEnv(MultiEnv):
                 reward = 0
             else:
                 # reward high system-level velocities
-                cost1 = rewards.desired_velocity(self, fail=kwargs['fail'])
+                cost1 = desired_velocity(self, fail=kwargs['fail'])
 
                 # penalize small time headways
                 cost2 = 0
