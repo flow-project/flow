@@ -180,4 +180,4 @@ class MultiAgentHighwayPOEnv(MultiEnv):
             # follower
             follow_id = self.k.vehicle.get_follower(rl_id)
             if follow_id:
-                self.k.vehicle.set_observed(lead_id)
+                self.k.vehicle.set_observed(follow_id)
