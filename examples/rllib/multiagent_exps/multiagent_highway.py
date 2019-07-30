@@ -1,11 +1,9 @@
-"""Ring road example.
+"""Multi-agent highway with ramps example.
 
-Creates a set of stabilizing the ring experiments to test if
- more agents -> fewer needed batches
+Trains a non-constant number of agents, all sharing the same policy, on the
+highway with ramps scenario.
 """
-
 import json
-
 import ray
 try:
     from ray.rllib.agents.agent import get_agent_class
@@ -16,160 +14,153 @@ from ray import tune
 from ray.tune.registry import register_env
 from ray.tune import run_experiments
 
-from flow.controllers import ContinuousRouter
-from flow.controllers import IDMController
-from flow.controllers import RLController
-from flow.core.params import EnvParams
-from flow.core.params import InitialConfig
-from flow.core.params import NetParams
-from flow.core.params import SumoParams
-from flow.core.params import VehicleParams
+from flow.controllers import IDMController, RLController
+from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
+                             VehicleParams, SumoParams, \
+                             SumoCarFollowingParams, SumoLaneChangeParams
+
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
-from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.experiment import Experiment
-from flow.core.params import SumoParams, EnvParams, \
-    InitialConfig, NetParams, SumoCarFollowingParams, InFlows, \
-    SumoLaneChangeParams, VehicleParams
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.highway_ramps import HighwayRampsScenario, \
-                                         ADDITIONAL_NET_PARAMS
-from numpy import pi, sin, cos
+
+from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
+from flow.scenarios.highway_ramps import ADDITIONAL_NET_PARAMS
 
 
+# SET UP PARAMETERS FOR THE SIMULATION
 
-# make sure (sample_batch_size * num_workers ~= train_batch_size)
-# time horizon of a single rollout
-HORIZON = 1000
-# Number of rings
-NUM_RINGS = 1
+# number of training iterations
+N_TRAINING_ITERATIONS = 1
 # number of rollouts per training iteration
 N_ROLLOUTS = 1
+# number of steps per rollout
+HORIZON = 1000
 # number of parallel workers
 N_CPUS = 1
-# number of iterations
-TRAINING_ITERATIONS = 1
+
+# inflow rate on the highway in vehicles per hour
+HIGHWAY_INFLOW_RATE = 2000
+# inflow rate on each on-ramp in vehicles per hour
+ON_RAMPS_INFLOW_RATE = 200
+# percentage of autonomous vehicles compared to human vehicles on highway
+PENETRATION_RATE = 5
 
 
+# SET UP PARAMETERS FOR THE SCENARIO
 
-length_before = 150
-length_between = 200
-highway_inflow_rate = 2000
-ramp_inflow_rate = 200
-
-inflows = InFlows()
-inflows.add(
-    veh_type="idm",
-    edge="highway_0",
-    vehs_per_hour=highway_inflow_rate,
-    depart_lane="free",
-    depart_speed="speedLimit",
-    name="highway_inflow")
-inflows.add(
-    veh_type="rl",
-    edge="highway_0",
-    vehs_per_hour=highway_inflow_rate // 2,
-    depart_lane="free",
-    depart_speed="speedLimit",
-    name="highway_inflow")
-inflows.add(
-    veh_type="idm",
-    edge="on_ramp_0",
-    vehs_per_hour=ramp_inflow_rate,
-    depart_lane="free",
-    depart_speed="speedLimit",
-    name="on_ramp_inflow")
+additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+additional_net_params.update({
+    # lengths of highway, on-ramps and off-ramps respectively
+    "highway_length": 1500,
+    "on_ramps_length": 200,
+    "off_ramps_length": 200,
+    # number of lanes on highway, on-ramps and off-ramps respectively
+    "highway_lanes": 3,
+    "on_ramps_lanes": 2,
+    "off_ramps_lanes": 2,
+    # speed limit on highway, on-ramps and off-ramps respectively
+    "highway_speed": 30,
+    "on_ramps_speed": 20,
+    "off_ramps_speed": 20,
+    # positions of the on-ramps
+    "on_ramps_pos": [500],
+    # positions of the off-ramps
+    "off_ramps_pos": [1000],
+    # probability for a vehicle to exit the highway at the next off-ramp
+    "next_off_ramp_proba": 0.2
+})
 
 
-# We place one autonomous vehicle and 21 human-driven vehicles in the network
+# SET UP PARAMETERS FOR THE ENVIRONMENT
+
+additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
+additional_env_params.update({
+    'max_accel': 1,
+    'max_decel': 1,
+    'target_velocity': 30
+})
+
+
+# CREATE VEHICLE TYPES AND INFLOWS
+
 vehicles = VehicleParams()
+inflows = InFlows()
+
+# human vehicles
 vehicles.add(
     veh_id="idm",
     acceleration_controller=(IDMController, {}),
     car_following_params=SumoCarFollowingParams(
-        min_gap=0,
-        speed_mode="obey_safe_speed"
+        speed_mode="obey_safe_speed"  # for safer behavior at the merges
     ),
     lane_change_params=SumoLaneChangeParams(lane_change_mode=1621))
+
+# autonomous vehicles
 vehicles.add(
     veh_id='rl',
-    acceleration_controller=(RLController, {}),
-    car_following_params=SumoCarFollowingParams(
-        min_gap=0,
-        speed_mode='obey_safe_speed',
-    ),
-    lane_change_params=SumoLaneChangeParams(lane_change_mode=1621))
+    acceleration_controller=(RLController, {}))
+
+# add human vehicles on the highway
+inflows.add(
+    veh_type="idm",
+    edge="highway_0",
+    vehs_per_hour=HIGHWAY_INFLOW_RATE,
+    depart_lane="free",
+    depart_speed="max",
+    name="idm_highway_inflow")
+
+# add autonomous vehicles on the highway
+inflows.add(
+    veh_type="rl",
+    edge="highway_0",
+    vehs_per_hour=int(HIGHWAY_INFLOW_RATE * PENETRATION_RATE / 100),
+    depart_lane="free",
+    depart_speed="max",
+    name="rl_highway_inflow")
+
+# add human vehicles on all the on-ramps
+for i in range(len(additional_net_params['on_ramps_pos'])):
+    inflows.add(
+        veh_type="idm",
+        edge="on_ramp_{}".format(i),
+        vehs_per_hour=ON_RAMPS_INFLOW_RATE,
+        depart_lane="free",
+        depart_speed="max",
+        name="idm_on_ramp_inflow")
+
+
+# SET UP FLOW PARAMETERS
 
 flow_params = dict(
-    # name of the experiment
-    exp_tag='multienv_pi',
-
-    # name of the flow environment the experiment is running on
-    env_name='MultiWaveAttenuationPOEnv',
-
-    # name of the scenario class the experiment is running on
+    exp_tag='multiagent_highway',
+    env_name='MultiAgentHighwayPOEnv',
     scenario='HighwayRampsScenario',
-
-    # simulator that is used by the experiment
     simulator='traci',
 
-    # sumo-related parameters (see flow.core.params.SumoParams)
+    env=EnvParams(
+        horizon=HORIZON,
+        warmup_steps=750,
+        additional_params=additional_env_params,
+    ),
+
     sim=SumoParams(
         sim_step=0.1,
         render=True,
     ),
 
-    # environment related parameters (see flow.core.params.EnvParams)
-    env=EnvParams(
-        horizon=HORIZON,
-        warmup_steps=750,
-        additional_params={
-            'max_accel': 1,
-            'max_decel': 1,
-            'target_velocity': 30
-        },
-    ),
-
-    # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflows,
-        additional_params={
-            # lengths of highway, on-ramps and off-ramps respectively
-            "highway_length": 1500,
-            "on_ramps_length": 200,
-            "off_ramps_length": 200,
-            # number of lanes on highway, on-ramps and off-ramps respectively
-            "highway_lanes": 3,
-            "on_ramps_lanes": 2,
-            "off_ramps_lanes": 2,
-            # speed limit on highway, on-ramps and off-ramps respectively
-            "highway_speed": 30,
-            "on_ramps_speed": 20,
-            "off_ramps_speed": 20,
-            # positions of the on-ramps
-            "on_ramps_pos": [500],
-            # positions of the off-ramps
-            "off_ramps_pos": [1000],
-            # probability for a vehicle to exit the highway at the next off-ramp
-            "next_off_ramp_proba": 0.2,
-            # ramps angles
-            "angle_on_ramps": - 3 * pi / 4,
-            "angle_off_ramps": - pi / 4
-        }, ),
+        additional_params=additional_net_params),
 
-    # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.params.VehicleParams)
     veh=vehicles,
-
-    # parameters specifying the positioning of vehicles upon initialization/
-    # reset (see flow.core.params.InitialConfig)
     initial=InitialConfig(),
 )
 
 
+# SET UP EXPERIMENT
+
 def setup_exps():
-    """Return the relevant components of an RLlib experiment.
+    """Create the relevant components of a multiagent RLlib experiment.
 
     Returns
     -------
@@ -190,7 +181,7 @@ def setup_exps():
     config['model'].update({'fcnet_hiddens': [32, 32]})
     config['lr'] = tune.grid_search([1e-5])
     config['horizon'] = HORIZON
-    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
+    config['clip_actions'] = False
     config['observation_filter'] = 'NoFilter'
 
     # save the flow params for replay
@@ -201,18 +192,15 @@ def setup_exps():
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
-    # Register as rllib env
+    # register as rllib env
     register_env(env_name, create_env)
 
-    test_env = create_env()
-    obs_space = test_env.observation_space
-    act_space = test_env.action_space
-
-    def gen_policy():
-        return (PPOPolicyGraph, obs_space, act_space, {})
-
-    # Setup PG with an ensemble of `num_policies` different policy graphs
-    policy_graphs = {'av': gen_policy()}
+    # multiagent configuration
+    temp_env = create_env()
+    policy_graphs = {'av': (PPOPolicyGraph,
+                            temp_env.observation_space,
+                            temp_env.action_space,
+                            {})}
 
     def policy_mapping_fn(_):
         return 'av'
@@ -228,6 +216,8 @@ def setup_exps():
     return alg_run, env_name, config
 
 
+# RUN EXPERIMENT
+
 if __name__ == '__main__':
     alg_run, env_name, config = setup_exps()
     ray.init(num_cpus=N_CPUS + 1)
@@ -236,12 +226,11 @@ if __name__ == '__main__':
         flow_params['exp_tag']: {
             'run': alg_run,
             'env': env_name,
-            'checkpoint_freq': 5,
+            'checkpoint_freq': 20,
             'checkpoint_at_end': True,
             'stop': {
-                'training_iteration': TRAINING_ITERATIONS
+                'training_iteration': N_TRAINING_ITERATIONS
             },
             'config': config,
-            # 'upload_dir': 's3://<BUCKET NAME>'
         },
     })
