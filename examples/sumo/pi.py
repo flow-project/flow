@@ -18,17 +18,16 @@ from matplotlib.collections import LineCollection
 import matplotlib.colors as colors
 
 
-for i1, length_before in enumerate([100, 300, 500]):
-    for i2, length_between in enumerate([100, 300, 500]):
-        for i3, highway_inflow_rate in enumerate([1000, 2500, 4000, 6500, 10000]):
-            for i4, ramp_inflow_rate in enumerate([200, 500, 800, 1200, 2000]):
-                print(i1, i2, i3, i4)  # took 90 minutes
+for length_before in [500]:
+    for length_between in [350]:
+        for highway_inflow_rate in [4000]:
+            for ramp_inflow_rate in [200]:
                 add_net_params = ADDITIONAL_NET_PARAMS.copy()
-                add_net_params['highway_length'] = length_before + length_between + 300
-                add_net_params['on_ramps_length'] = 100
-                add_net_params['off_ramps_length'] = 100
+                add_net_params['highway_length'] = 2 * length_before + length_between
+                add_net_params['on_ramps_length'] = length_before / 2
+                add_net_params['off_ramps_length'] = length_before / 2
                 add_net_params['highway_lanes'] = 3
-                add_net_params['on_ramps_lanes'] = 2
+                add_net_params['on_ramps_lanes'] = 1
                 add_net_params['off_ramps_lanes'] = 2
                 add_net_params['highway_speed'] = 30
                 add_net_params['on_ramps_speed'] = 20
@@ -39,16 +38,17 @@ for i1, length_before in enumerate([100, 300, 500]):
 
                 inflows = InFlows()
                 inflows.add(
-                    veh_type="idm",
+                    veh_type="idm_all_checks",
                     edge="highway_0",
                     vehs_per_hour=highway_inflow_rate,
                     depart_lane="free",
                     depart_speed="speedLimit",
                     name="highway_inflow")
                 inflows.add(
-                    veh_type="idm",
+                    veh_type="idm_safe_speed",
                     edge="on_ramp_0",
-                    vehs_per_hour=ramp_inflow_rate,
+                    # vehs_per_hour=ramp_inflow_rate,
+                    probability=0.1,
                     depart_lane="free",
                     depart_speed="speedLimit",
                     name="on_ramp_inflow")
@@ -59,23 +59,33 @@ for i1, length_before in enumerate([100, 300, 500]):
 
                 vehicles = VehicleParams()
                 vehicles.add(
-                    veh_id="idm",
-                    acceleration_controller=(IDMController, {}),
+                    veh_id="idm_safe_speed",
+                    # acceleration_controller=(IDMController, {
+                    #     "noise": 0.2
+                    # }),
                     car_following_params=SumoCarFollowingParams(
-                        min_gap=0,
-                        speed_mode="obey_safe_speed"
+                        speed_mode=23,
+                        tau=1.5
                     ),
-                    # routing_controller=
-                    # lane_change_controller=
-                    lane_change_params=SumoLaneChangeParams(lane_change_mode=1621)
-                    # a lot of other params in SumoLaneChangeParams for lane changing
-                    )  # maybe vehicles were disappearing bc no routing_controller specified
+                    # lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"))
+                    lane_change_params=SumoLaneChangeParams(lane_change_mode=1621))
+                vehicles.add(
+                    veh_id="idm_all_checks",
+                    # acceleration_controller=(IDMController, {
+                    #     "noise": 0.2
+                    # }),
+                    car_following_params=SumoCarFollowingParams(
+                        speed_mode="all_checks",
+                        tau=1.5
+                    ),
+                    lane_change_params=SumoLaneChangeParams(lane_change_mode=1621))
+                    # lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"))
 
                 env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
                 sim_params = SumoParams(
-                    sim_step=0.1,
+                    sim_step=0.2,
                     emission_path="./pi_data",
-                    render=False,
+                    render=True,
                     restart_instance=True)
                 initial_config = InitialConfig()
 
@@ -88,7 +98,8 @@ for i1, length_before in enumerate([100, 300, 500]):
                 env = AccelEnv(env_params, sim_params, scenario)
 
                 exp = Experiment(env)
-                exp.run(1, 1500, convert_to_csv=True)
+                exp.run(1, 8000, convert_to_csv=True)
+                # exit(0)
 
                 csv_emissions_path = os.path.join(sim_params.emission_path,
                                                 "{0}-emission.csv".format(scenario.name))
@@ -130,10 +141,12 @@ for i1, length_before in enumerate([100, 300, 500]):
                             pos[step][veh_count] = float(rel_pos)
                         elif edge_id == ':highway_1_2':
                             pos[step][veh_count] = h0_length + float(rel_pos)
+                            # print(edge_id, rel_pos)
                         elif edge_id == 'highway_1':
                             pos[step][veh_count] = h0_length + 12 + float(rel_pos)
                         elif edge_id == ':highway_2_2':
                             pos[step][veh_count] = h0_length + 12 + h1_length + float(rel_pos)
+                            # print(edge_id, rel_pos)
                         elif edge_id == 'highway_2':
                             pos[step][veh_count] = h0_length + 24 + h1_length + float(rel_pos)
 

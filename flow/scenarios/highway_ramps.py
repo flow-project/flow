@@ -26,8 +26,8 @@ ADDITIONAL_NET_PARAMS = {
     # probability for a vehicle to exit the highway at the next off-ramp
     "next_off_ramp_proba": 0.2,
     # ramps angles
-    "angle_on_ramps": - 3 * pi / 4,
-    "angle_off_ramps": - pi / 4
+    "angle_on_ramps": - 4 * pi / 5,
+    "angle_off_ramps": - pi / 5
 }
 
 
@@ -124,7 +124,8 @@ class HighwayRampsScenario(Scenario):
             "id": "highway_{}".format(i),
             "x": self.nodes_pos[i],
             "y": 0,
-            "radius": 10
+            "radius": 20,
+            "type": "priority"
         } for i in range(len(self.nodes_pos))]
 
         nodes_on_ramps = [{
@@ -148,7 +149,8 @@ class HighwayRampsScenario(Scenario):
             "type": "highway",
             "from": "highway_{}".format(i),
             "to": "highway_{}".format(i + 1),
-            "length": self.nodes_pos[i + 1] - self.nodes_pos[i]
+            "length": self.nodes_pos[i + 1] - self.nodes_pos[i],
+            "priority": 42
         } for i in range(len(self.nodes_pos) - 1)]
 
         on_ramps_edges = [{
@@ -156,7 +158,8 @@ class HighwayRampsScenario(Scenario):
             "type": "on_ramp",
             "from": "on_ramp_{}".format(i),
             "to": "highway_{}".format(self.highway_pos[x]),
-            "length": self.on_ramps_length
+            "length": self.on_ramps_length,
+            "priority": 12
         } for i, x in enumerate(self.on_ramps_pos)]
 
         off_ramps_edges = [{
@@ -164,7 +167,8 @@ class HighwayRampsScenario(Scenario):
             "type": "off_ramp",
             "from": "highway_{}".format(self.highway_pos[x]),
             "to": "off_ramp_{}".format(i),
-            "length": self.off_ramps_length
+            "length": self.off_ramps_length,
+            "priority": 12
         } for i, x in enumerate(self.off_ramps_pos)]
 
         return highway_edges + on_ramps_edges + off_ramps_edges
@@ -236,3 +240,23 @@ class HighwayRampsScenario(Scenario):
         }]
 
         return types
+
+    def specify_edge_starts(self):
+        """See parent class."""
+        edge_starts = [("highway_0", 0),
+                       ("highway_1", 500 + 61),
+                       ("on_ramp_0", 500 + 61 + 500),
+                       ("highway_2", 500 + 61 + 500 + 250 + 61),
+                       ("off_ramp_0", 500 + 61 + 500 + 250 + 61 + 500),
+                       ("highway_3", 500 + 61 + 500 + 250 + 61 + 500 + 250)]
+
+        return edge_starts
+
+    def specify_internal_edge_starts(self):
+        """See parent class."""
+        internal_edge_starts = [
+            (":highway_1", 500),
+            (":highway_2", 500 + 61 + 500 + 250)
+        ]
+
+        return internal_edge_starts
