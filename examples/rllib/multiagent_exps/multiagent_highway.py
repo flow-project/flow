@@ -145,7 +145,8 @@ flow_params = dict(
 
     sim=SumoParams(
         sim_step=0.1,
-        render=True,
+        render=False,
+        restart_instance=True
     ),
 
     net=NetParams(
