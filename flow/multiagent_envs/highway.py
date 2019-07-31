@@ -43,8 +43,9 @@ class MultiAgentHighwayPOEnv(MultiEnv):
 
     Actions
         The action consists of an acceleration, bound according to the
-        environment parameters. In order to ensure safety, the acceleration is
-        bound again by failsafes provided by the simulator at every time step.
+        environment parameters, as well as three values that will be converted
+        into probabilities via softmax to decide of a lane change (left, none
+        or right).
 
     Rewards
         The reward function encourages proximity of the system-level velocity
@@ -74,16 +75,23 @@ class MultiAgentHighwayPOEnv(MultiEnv):
         return Box(
             low=-np.abs(self.env_params.additional_params['max_decel']),
             high=self.env_params.additional_params['max_accel'],
-            shape=(1,),
+            shape=(4,),
             dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         # in the warmup steps, rl_actions is None
         if rl_actions:
-            rl_ids = list(rl_actions.keys())
-            accel = list(rl_actions.values())
-            self.k.vehicle.apply_acceleration(rl_ids, accel)
+            for rl_id, actions in rl_actions.items():
+                accel = actions[0]
+
+                lane_change_softmax = np.exp(actions[1:4])
+                lane_change_softmax /= np.sum(lane_change_softmax)
+                lane_change_action = np.random.choice([-1, 0, 1],
+                                                      p=lane_change_softmax)
+
+                self.k.vehicle.apply_acceleration(rl_id, accel)
+                self.k.vehicle.apply_lane_change(rl_id, lane_change_action)
 
     def get_state(self):
         """See class definition."""
