@@ -30,20 +30,20 @@ from flow.scenarios.highway_ramps import ADDITIONAL_NET_PARAMS
 # SET UP PARAMETERS FOR THE SIMULATION
 
 # number of training iterations
-N_TRAINING_ITERATIONS = 1
+N_TRAINING_ITERATIONS = 200
 # number of rollouts per training iteration
-N_ROLLOUTS = 1
+N_ROLLOUTS = 20
 # number of steps per rollout
 HORIZON = 1000
 # number of parallel workers
-N_CPUS = 1
+N_CPUS = 11
 
 # inflow rate on the highway in vehicles per hour
-HIGHWAY_INFLOW_RATE = 2000
+HIGHWAY_INFLOW_RATE = 4000
 # inflow rate on each on-ramp in vehicles per hour
-ON_RAMPS_INFLOW_RATE = 200
+ON_RAMPS_INFLOW_RATE = 450
 # percentage of autonomous vehicles compared to human vehicles on highway
-PENETRATION_RATE = 5
+PENETRATION_RATE = 20
 
 
 # SET UP PARAMETERS FOR THE SCENARIO
@@ -52,12 +52,12 @@ additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
     # lengths of highway, on-ramps and off-ramps respectively
     "highway_length": 1500,
-    "on_ramps_length": 200,
-    "off_ramps_length": 200,
+    "on_ramps_length": 250,
+    "off_ramps_length": 250,
     # number of lanes on highway, on-ramps and off-ramps respectively
     "highway_lanes": 3,
-    "on_ramps_lanes": 2,
-    "off_ramps_lanes": 2,
+    "on_ramps_lanes": 1,
+    "off_ramps_lanes": 1,
     # speed limit on highway, on-ramps and off-ramps respectively
     "highway_speed": 30,
     "on_ramps_speed": 20,
@@ -67,7 +67,7 @@ additional_net_params.update({
     # positions of the off-ramps
     "off_ramps_pos": [1000],
     # probability for a vehicle to exit the highway at the next off-ramp
-    "next_off_ramp_proba": 0.2
+    "next_off_ramp_proba": 0.25
 })
 
 
@@ -89,9 +89,9 @@ inflows = InFlows()
 # human vehicles
 vehicles.add(
     veh_id="idm",
-    acceleration_controller=(IDMController, {}),
     car_following_params=SumoCarFollowingParams(
-        speed_mode="obey_safe_speed"  # for safer behavior at the merges
+        speed_mode="obey_safe_speed",  # for safer behavior at the merges
+        tau=1.5
     ),
     lane_change_params=SumoLaneChangeParams(lane_change_mode=1621))
 
@@ -144,7 +144,7 @@ flow_params = dict(
     ),
 
     sim=SumoParams(
-        sim_step=0.1,
+        sim_step=0.2,
         render=False,
         restart_instance=True
     ),
