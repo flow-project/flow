@@ -34,7 +34,7 @@ N_TRAINING_ITERATIONS = 200
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of steps per rollout
-HORIZON = 1000
+HORIZON = 1500
 # number of parallel workers
 N_CPUS = 11
 
@@ -139,7 +139,8 @@ flow_params = dict(
 
     env=EnvParams(
         horizon=HORIZON,
-        warmup_steps=750,
+        warmup_steps=0,
+        sims_per_step=1,  # do not put more than one
         additional_params=additional_env_params,
     ),
 
