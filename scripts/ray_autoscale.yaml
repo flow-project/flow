@@ -94,10 +94,11 @@ setup_commands:
 #    - cd ray && cp python/ray/autoscaler/autoscaler.py /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/autoscaler/autoscaler.py
     # set up sumo and anaconda
     - pip install ray==0.7.2
+    - pip install botocore==1.12.195
 
 # Custom commands that will be run on the head node after common setup.
 head_setup_commands:
-    - pip install boto3==1.4.8  # 1.4.8 adds InstanceMarketOptions
+    - pip install boto3
 
 # Custom commands that will be run on worker nodes after common setup.
 worker_setup_commands: []

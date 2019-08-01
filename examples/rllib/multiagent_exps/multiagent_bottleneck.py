@@ -227,7 +227,6 @@ def setup_exps(args):
     # Grid search things
     if args.grid_search:
         config['lr'] = tune.grid_search([5e-5, 5e-4])
-        config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # LSTM Things
     config['model']['use_lstm'] = args.use_lstm
