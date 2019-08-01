@@ -75,7 +75,7 @@ class MultiAgentHighwayPOEnv(MultiEnv):
         return Box(
             low=-np.abs(self.env_params.additional_params['max_decel']),
             high=self.env_params.additional_params['max_accel'],
-            shape=(4,),
+            shape=(1,),  # (4,),
             dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
@@ -85,13 +85,13 @@ class MultiAgentHighwayPOEnv(MultiEnv):
             for rl_id, actions in rl_actions.items():
                 accel = actions[0]
 
-                lane_change_softmax = np.exp(actions[1:4])
-                lane_change_softmax /= np.sum(lane_change_softmax)
-                lane_change_action = np.random.choice([-1, 0, 1],
-                                                      p=lane_change_softmax)
+                # lane_change_softmax = np.exp(actions[1:4])
+                # lane_change_softmax /= np.sum(lane_change_softmax)
+                # lane_change_action = np.random.choice([-1, 0, 1],
+                #                                       p=lane_change_softmax)
 
                 self.k.vehicle.apply_acceleration(rl_id, accel)
-                self.k.vehicle.apply_lane_change(rl_id, lane_change_action)
+                # self.k.vehicle.apply_lane_change(rl_id, lane_change_action)
 
     def get_state(self):
         """See class definition."""
