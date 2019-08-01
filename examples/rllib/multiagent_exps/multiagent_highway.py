@@ -110,13 +110,15 @@ inflows.add(
     name="idm_highway_inflow")
 
 # add autonomous vehicles on the highway
+# they will stay on the highway, i.e. they won't exit through the off-ramps
 inflows.add(
     veh_type="rl",
     edge="highway_0",
     vehs_per_hour=int(HIGHWAY_INFLOW_RATE * PENETRATION_RATE / 100),
     depart_lane="free",
     depart_speed="max",
-    name="rl_highway_inflow")
+    name="rl_highway_inflow",
+    route="routehighway_0_0")
 
 # add human vehicles on all the on-ramps
 for i in range(len(additional_net_params['on_ramps_pos'])):

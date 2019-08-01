@@ -760,23 +760,26 @@ class TraCIScenario(KernelScenario):
                     if not isinstance(sumo_inflow[key], str):
                         sumo_inflow[key] = repr(sumo_inflow[key])
 
-                # distribute the inflow rates across all routes from a given
-                # edge on the basis of the provided fractions for each route
                 edge = sumo_inflow['edge']
                 del sumo_inflow['edge']
 
-                for i, (_, frac) in enumerate(routes[edge]):
-                    sumo_inflow['name'] += str(i)
-                    sumo_inflow['route'] = 'route{}_{}'.format(edge, i)
+                if 'route' not in sumo_inflow:
+                    # distribute the inflow rates across all routes from a
+                    # given edge w.r.t. the provided fractions for each route
+                    for i, (_, ft) in enumerate(routes[edge]):
+                        sumo_inflow['name'] += str(i)
+                        sumo_inflow['route'] = 'route{}_{}'.format(edge, i)
 
-                    for key in ['vehsPerHour', 'probability', 'period']:
-                        if key in sumo_inflow:
-                            sumo_inflow[key] = str(float(inflow[key]) * frac)
+                        for key in ['vehsPerHour', 'probability', 'period']:
+                            if key in sumo_inflow:
+                                sumo_inflow[key] = str(float(inflow[key]) * ft)
 
-                    if 'number' in sumo_inflow:
-                        sumo_inflow['number'] = str(int(
-                            float(inflow['number']) * frac))
+                        if 'number' in sumo_inflow:
+                            sumo_inflow['number'] = str(int(
+                                float(inflow['number']) * frac))
 
+                        routes_data.append(_flow(**sumo_inflow))
+                else:
                     routes_data.append(_flow(**sumo_inflow))
 
         printxml(routes_data, self.cfg_path + self.roufn)
