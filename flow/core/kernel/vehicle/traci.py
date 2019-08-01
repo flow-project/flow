@@ -127,16 +127,15 @@ class TraCIVehicle(KernelVehicle):
 
         # remove exiting vehicles from the vehicles class
         for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
-            if veh_id not in sim_obs[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
-                self.remove(veh_id)
-                # remove exiting vehicles from the vehicle subscription if they
-                # haven't been removed already
-                if vehicle_obs[veh_id] is None:
-                    vehicle_obs.pop(veh_id, None)
-            else:
-                # this is meant to resolve the KeyError bug when there are
-                # collisions
-                vehicle_obs[veh_id] = self.__sumo_obs[veh_id]
+            # if veh_id in sim_obs[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
+            #     # this is meant to resolve the KeyError bug when there are
+            #     # collisions
+            #     vehicle_obs[veh_id] = self.__sumo_obs[veh_id]
+            self.remove(veh_id)
+            # remove exiting vehicles from the vehicle subscription if they
+            # haven't been removed already
+            if vehicle_obs[veh_id] is None:
+                vehicle_obs.pop(veh_id, None)
 
         # add entering vehicles into the vehicles class
         for veh_id in sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]:
