@@ -4,11 +4,14 @@ from flow.visualize import visualizer_rllib as vs_rllib
 from flow.visualize.visualizer_rllib import visualizer_rllib
 import flow.visualize.capacity_diagram_generator as cdg
 import flow.visualize.time_space_diagram as tsd
+import flow.visualize.plot_ray_results as prr
 
 import os
 import unittest
 import ray
 import numpy as np
+import contextlib
+from io import StringIO
 
 os.environ['TEST_FLAG'] = 'True'
 
@@ -26,7 +29,7 @@ class TestVisualizerRLlib(unittest.TestCase):
         current_path = os.path.realpath(__file__).rsplit('/', 1)[0]
 
         # run the experiment and check it doesn't crash
-        arg_str = '{}/../data/rllib_data/single_agent 1 --num-rollouts 1 ' \
+        arg_str = '{}/../data/rllib_data/single_agent 1 --num_rollouts 1 ' \
                   '--render_mode no_render ' \
                   '--horizon 10'.format(current_path).split()
         parser = vs_rllib.create_parser()
@@ -44,7 +47,7 @@ class TestVisualizerRLlib(unittest.TestCase):
         current_path = os.path.realpath(__file__).rsplit('/', 1)[0]
 
         # run the experiment and check it doesn't crash
-        arg_str = '{}/../data/rllib_data/multi_agent 1 --num-rollouts 1 ' \
+        arg_str = '{}/../data/rllib_data/multi_agent 1 --num_rollouts 1 ' \
                   '--render_mode no_render ' \
                   '--horizon 10'.format(current_path).split()
         parser = vs_rllib.create_parser()
@@ -243,33 +246,33 @@ class TestPlotters(unittest.TestCase):
         pos, speed, _ = tsd.get_time_space_data(emission_data, flow_params)
 
         expected_pos = np.array(
-            [[0.0000e+00, 9.5500e+00, 9.5450e+01, 1.0500e+02, 1.1455e+02,
-              1.2409e+02, 1.3364e+02, 1.4318e+02, 1.5273e+02, 1.6227e+02,
-              1.7182e+02, 1.8136e+02, 1.9090e+01, 1.9091e+02, 2.0045e+02,
-              2.8640e+01, 3.8180e+01, 4.7730e+01, 5.7270e+01, 6.6820e+01,
-              7.6360e+01, 8.5910e+01],
-             [1.0000e-02, 9.5500e+00, 9.5460e+01, 1.0501e+02, 1.1455e+02,
-              1.2410e+02, 1.3364e+02, 1.4319e+02, 1.5274e+02, 1.6228e+02,
-              1.7183e+02, 1.8137e+02, 1.9100e+01, 1.9092e+02, 2.0046e+02,
-              2.8640e+01, 3.8190e+01, 4.7740e+01, 5.7280e+01, 6.6830e+01,
-              7.6370e+01, 8.5920e+01],
-             [2.0000e-02, 9.5700e+00, 9.5480e+01, 1.0502e+02, 1.1457e+02,
-              1.2411e+02, 1.3366e+02, 1.4321e+02, 1.5275e+02, 1.6230e+02,
-              1.7184e+02, 1.8139e+02, 1.9110e+01, 1.9093e+02, 2.0048e+02,
-              2.8660e+01, 3.8210e+01, 4.7750e+01, 5.7300e+01, 6.6840e+01,
-              7.6390e+01, 8.5930e+01],
-             [5.0000e-02, 9.5900e+00, 9.5500e+01, 1.0505e+02, 1.1459e+02,
-              1.2414e+02, 1.3368e+02, 1.4323e+02, 1.5277e+02, 1.6232e+02,
-              1.7187e+02, 1.8141e+02, 1.9140e+01, 1.9096e+02, 2.0051e+02,
-              2.8680e+01, 3.8230e+01, 4.7770e+01, 5.7320e+01, 6.6870e+01,
-              7.6410e+01, 8.5960e+01],
-             [8.0000e-02, 9.6200e+00, 9.5530e+01, 1.0508e+02, 1.1462e+02,
-              1.2417e+02, 1.3371e+02, 1.4326e+02, 1.5281e+02, 1.6235e+02,
-              1.7190e+02, 1.8144e+02, 1.9170e+01, 1.9099e+02, 2.0055e+02,
-              2.8710e+01, 3.8260e+01, 4.7810e+01, 5.7350e+01, 6.6900e+01,
-              7.6440e+01, 8.5990e+01],
-             [1.2000e-01, 9.6600e+00, 9.5570e+01, 1.0512e+02, 1.1466e+02,
-              1.2421e+02, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00,
+            [[0.0000e+00, 9.5500e+00, 9.5550e+01, 1.0510e+02, 1.1465e+02,
+              1.2429e+02, 1.3384e+02, 1.4338e+02, 1.5293e+02, 1.6247e+02,
+              1.7202e+02, 1.8166e+02, 1.9090e+01, 1.9121e+02, 2.0075e+02,
+              2.8640e+01, 3.8180e+01, 4.7730e+01, 5.7270e+01, 6.6920e+01,
+              7.6460e+01, 8.6010e+01],
+             [1.0000e-02, 9.5500e+00, 9.5560e+01, 1.0511e+02, 1.1465e+02,
+              1.2430e+02, 1.3384e+02, 1.4339e+02, 1.5294e+02, 1.6248e+02,
+              1.7203e+02, 1.8167e+02, 1.9100e+01, 1.9122e+02, 2.0076e+02,
+              2.8640e+01, 3.8190e+01, 4.7740e+01, 5.7280e+01, 6.6930e+01,
+              7.6470e+01, 8.6020e+01],
+             [2.0000e-02, 9.5700e+00, 9.5580e+01, 1.0512e+02, 1.1467e+02,
+              1.2431e+02, 1.3386e+02, 1.4341e+02, 1.5295e+02, 1.6250e+02,
+              1.7204e+02, 1.8169e+02, 1.9110e+01, 1.9123e+02, 2.0078e+02,
+              2.8660e+01, 3.8210e+01, 4.7750e+01, 5.7300e+01, 6.6940e+01,
+              7.6490e+01, 8.6030e+01],
+             [5.0000e-02, 9.5900e+00, 9.5600e+01, 1.0515e+02, 1.1469e+02,
+              1.2434e+02, 1.3388e+02, 1.4343e+02, 1.5297e+02, 1.6252e+02,
+              1.7207e+02, 1.8171e+02, 1.9140e+01, 1.9126e+02, 2.0081e+02,
+              2.8680e+01, 3.8230e+01, 4.7770e+01, 5.7320e+01, 6.6970e+01,
+              7.6510e+01, 8.6060e+01],
+             [8.0000e-02, 9.6200e+00, 9.5630e+01, 1.0518e+02, 1.1472e+02,
+              1.2437e+02, 1.3391e+02, 1.4346e+02, 1.5301e+02, 1.6255e+02,
+              1.7210e+02, 1.8174e+02, 1.9170e+01, 1.9129e+02, 2.0085e+02,
+              2.8710e+01, 3.8260e+01, 4.7810e+01, 5.7350e+01, 6.7000e+01,
+              7.6540e+01, 8.6090e+01],
+             [1.2000e-01, 9.6600e+00, 9.5670e+01, 1.0522e+02, 1.1476e+02,
+              1.2441e+02, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00,
               0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00,
               0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00,
               0.0000e+00, 0.0000e+00]]
@@ -290,6 +293,72 @@ class TestPlotters(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(pos, expected_pos)
         np.testing.assert_array_almost_equal(speed, expected_speed)
+
+    def test_plot_ray_results(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        file_path = os.path.join(dir_path, 'test_files/progress.csv')
+
+        parser = prr.create_parser()
+
+        # test with one column
+        args = parser.parse_args([file_path, 'episode_reward_mean'])
+        prr.plot_progress(args.file, args.columns)
+
+        # test with several columns
+        args = parser.parse_args([file_path, 'episode_reward_mean',
+                                  'episode_reward_min', 'episode_reward_max'])
+        prr.plot_progress(args.file, args.columns)
+
+        # test with non-existing column name
+        with self.assertRaises(KeyError):
+            args = parser.parse_args([file_path, 'episode_reward'])
+            prr.plot_progress(args.file, args.columns)
+
+        # test with column containing non-float values
+        with self.assertRaises(ValueError):
+            args = parser.parse_args([file_path, 'info'])
+            prr.plot_progress(args.file, args.columns)
+
+        # test that script outputs available column names if none is given
+        column_names = [
+            'episode_reward_max',
+            'episode_reward_min',
+            'episode_reward_mean',
+            'episode_len_mean',
+            'episodes_this_iter',
+            'policy_reward_mean',
+            'custom_metrics',
+            'sampler_perf',
+            'off_policy_estimator',
+            'num_metric_batches_dropped',
+            'info',
+            'timesteps_this_iter',
+            'done',
+            'timesteps_total',
+            'episodes_total',
+            'training_iteration',
+            'experiment_id',
+            'date',
+            'timestamp',
+            'time_this_iter_s',
+            'time_total_s',
+            'pid',
+            'hostname',
+            'node_ip',
+            'config',
+            'time_since_restore',
+            'timesteps_since_restore',
+            'iterations_since_restore'
+        ]
+
+        temp_stdout = StringIO()
+        with contextlib.redirect_stdout(temp_stdout):
+            args = parser.parse_args([file_path])
+            prr.plot_progress(args.file, args.columns)
+        output = temp_stdout.getvalue()
+
+        for column in column_names:
+            self.assertTrue(column in output)
 
 
 if __name__ == '__main__':

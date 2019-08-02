@@ -36,7 +36,6 @@
             "_InFlows__flows": [],
             "num_flows": 0
         },
-        "no_internal_links": false,
         "osm_path": null,
         "template": null
     },

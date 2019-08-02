@@ -17,7 +17,7 @@ from ray.tune.registry import register_env
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.params import VehicleParams
+from flow.core.params import VehicleParams, SumoCarFollowingParams
 from flow.controllers import RLController, IDMController, ContinuousRouter
 
 # time horizon of a single rollout
@@ -34,6 +34,9 @@ vehicles.add(
     acceleration_controller=(IDMController, {
         "noise": 0.2
     }),
+    car_following_params=SumoCarFollowingParams(
+        min_gap=0
+    ),
     routing_controller=(ContinuousRouter, {}),
     num_vehicles=21)
 vehicles.add(
@@ -94,7 +97,17 @@ flow_params = dict(
 
 
 def setup_exps():
+    """Return the relevant components of an RLlib experiment.
 
+    Returns
+    -------
+    str
+        name of the training algorithm
+    str
+        name of the gym environment to be trained
+    dict
+        training configuration parameters
+    """
     alg_run = "PPO"
 
     agent_cls = get_agent_class(alg_run)
@@ -102,7 +115,7 @@ def setup_exps():
     config["num_workers"] = N_CPUS
     config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [16, 16]})
+    config["model"].update({"fcnet_hiddens": [3, 3]})
     config["use_gae"] = True
     config["lambda"] = 0.97
     config["kl_target"] = 0.02
@@ -134,6 +147,7 @@ if __name__ == "__main__":
                 **config
             },
             "checkpoint_freq": 20,
+            "checkpoint_at_end": True,
             "max_failures": 999,
             "stop": {
                 "training_iteration": 200,

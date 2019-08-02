@@ -81,7 +81,6 @@ flow_params = dict(
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        no_internal_links=False,
         additional_params=ADDITIONAL_NET_PARAMS.copy(),
     ),
 
@@ -96,7 +95,17 @@ flow_params = dict(
 
 
 def setup_exps():
+    """Return the relevant components of an RLlib experiment.
 
+    Returns
+    -------
+    str
+        name of the training algorithm
+    str
+        name of the gym environment to be trained
+    dict
+        training configuration parameters
+    """
     alg_run = 'PPO'
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
@@ -135,6 +144,7 @@ if __name__ == '__main__':
                 **config
             },
             'checkpoint_freq': 20,
+            "checkpoint_at_end": True,
             'max_failures': 999,
             'stop': {
                 'training_iteration': 200,

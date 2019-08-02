@@ -48,8 +48,7 @@ class TestCollisions(unittest.TestCase):
             "vertical_lanes": 1
         }
 
-        net_params = NetParams(
-            no_internal_links=False, additional_params=additional_net_params)
+        net_params = NetParams(additional_params=additional_net_params)
 
         env, _ = grid_mxn_exp_setup(
             row_num=1,
@@ -109,7 +108,6 @@ class TestCollisions(unittest.TestCase):
         inflows.add(veh_type="idm", edge="right0_0", vehs_per_hour=1000)
 
         net_params = NetParams(
-            no_internal_links=False,
             inflows=inflows,
             additional_params=additional_net_params)
 

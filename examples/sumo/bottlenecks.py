@@ -15,17 +15,24 @@ import logging
 import numpy as np
 SCALING = 1
 DISABLE_TB = True
+
 # If set to False, ALINEA will control the ramp meter
 DISABLE_RAMP_METER = True
 INFLOW = 2300
 
 
 class BottleneckDensityExperiment(Experiment):
+    """Experiment object for bottleneck-specific simulations.
+
+    Extends flow.core.experiment.Experiment
+    """
 
     def __init__(self, env):
+        """Instantiate the bottleneck experiment."""
         super().__init__(env)
 
     def run(self, num_runs, num_steps, rl_actions=None, convert_to_csv=False):
+        """See parent class."""
         info_dict = {}
         if rl_actions is None:
 
@@ -168,7 +175,6 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
     additional_net_params = {"scaling": SCALING, "speed_limit": 23}
     net_params = NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params)
 
     initial_config = InitialConfig(
