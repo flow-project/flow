@@ -114,10 +114,6 @@ class Env(gym.Env):
         flow.utils.exceptions.FatalFlowError
             if the render mode is not set to a valid value
         """
-        # Invoke serializable if using rllab
-        if serializable_flag:
-            Serializable.quick_init(self, locals())
-
         self.env_params = env_params
         self.scenario = scenario
         self.net_params = scenario.net_params

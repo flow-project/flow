@@ -327,7 +327,6 @@ class Scenario(object):
         traffic_lights : flow.core.params.TrafficLightParams
             see flow/core/params.py
         """
-
         self.orig_name = name  # To avoid repeated concatenation upon reset
         self.name = name + time.strftime('_%Y%m%d-%H%M%S') + str(time.time())
 
