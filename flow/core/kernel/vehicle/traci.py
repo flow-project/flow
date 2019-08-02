@@ -1,4 +1,5 @@
 """Script containing the TraCI vehicle kernel class."""
+import traceback
 
 from flow.core.kernel.vehicle import KernelVehicle
 import traci.constants as tc
@@ -207,7 +208,7 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id]["timestep"] = _time_step
                 self.__vehicles[veh_id]["timedelta"] = _time_delta
             except TypeError:
-                pass
+                print(traceback.format_exc())
             headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
             # check for a collided vehicle or a vehicle with no leader
             if headway is None:
@@ -221,7 +222,7 @@ class TraCIVehicle(KernelVehicle):
                 try:
                     self.__vehicles[headway[0]]["follower"] = veh_id
                 except KeyError:
-                    pass
+                    print(traceback.format_exc())
 
         # update the sumo observations variable
         self.__sumo_obs = vehicle_obs.copy()
@@ -821,6 +822,7 @@ class TraCIVehicle(KernelVehicle):
                         - self.get_length(leader)
             except KeyError:
                 # current edge has no vehicles, so move on
+                # print(traceback.format_exc())
                 continue
 
             # stop if a lane follower is found
@@ -865,6 +867,7 @@ class TraCIVehicle(KernelVehicle):
                     follower = edge_dict[edge][lane][-1][0]
             except KeyError:
                 # current edge has no vehicles, so move on
+                # print(traceback.format_exc())
                 continue
 
             # stop if a lane follower is found
@@ -952,16 +955,18 @@ class TraCIVehicle(KernelVehicle):
             try:
                 # color rl vehicles red
                 self.set_color(veh_id=veh_id, color=RED)
-            except (FatalTraCIError, TraCIException):
-                pass
+            except (FatalTraCIError, TraCIException) as e:
+                print('Error when updating rl vehicle colors:', e)
+                print(traceback.format_exc())
 
         # color vehicles white if not observed and cyan if observed
         for veh_id in self.get_human_ids():
             try:
                 color = CYAN if veh_id in self.get_observed_ids() else WHITE
                 self.set_color(veh_id=veh_id, color=color)
-            except (FatalTraCIError, TraCIException):
-                pass
+            except (FatalTraCIError, TraCIException) as e:
+                print('Error when updating human vehicle colors:', e)
+                print(traceback.format_exc())
 
         # clear the list of observed vehicles
         for veh_id in self.get_observed_ids():
