@@ -23,8 +23,10 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
-        vehicles.add("rl", acceleration_controller=(RLController, {}))
-        vehicles.add("human", acceleration_controller=(IDMController, {}))
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
 
         self.sim_params = SumoParams()
         self.scenario = LoopScenario(
@@ -110,8 +112,10 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
-        vehicles.add("rl", acceleration_controller=(RLController, {}))
-        vehicles.add("human", acceleration_controller=(IDMController, {}))
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
 
         self.sim_params = SumoParams()
         self.scenario = LoopScenario(
@@ -192,8 +196,10 @@ class TestAccelEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
-        vehicles.add("rl", acceleration_controller=(RLController, {}))
-        vehicles.add("human", acceleration_controller=(IDMController, {}))
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
 
         self.sim_params = SumoParams()
         self.scenario = LoopScenario(
@@ -321,8 +327,10 @@ class TestWaveAttenuationEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
-        vehicles.add("rl", acceleration_controller=(RLController, {}))
-        vehicles.add("human", acceleration_controller=(IDMController, {}))
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
 
         self.sim_params = SumoParams(
             restart_instance=True
@@ -460,8 +468,10 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
-        vehicles.add("rl", acceleration_controller=(RLController, {}))
-        vehicles.add("human", acceleration_controller=(IDMController, {}))
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
 
         self.sim_params = SumoParams()
         self.scenario = LoopScenario(
@@ -601,8 +611,10 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
-        vehicles.add("rl", acceleration_controller=(RLController, {}))
-        vehicles.add("human", acceleration_controller=(IDMController, {}))
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
 
         self.sim_params = SumoParams()
         self.scenario = MergeScenario(
@@ -680,7 +692,7 @@ class TestTestEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
-        vehicles.add("test")
+        vehicles.add("test", num_vehicles=1)
         net_params = NetParams(additional_params=LOOP_PARAMS)
         env_params = EnvParams()
         sim_params = SumoParams()
