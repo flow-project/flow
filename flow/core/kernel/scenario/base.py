@@ -366,7 +366,9 @@ class KernelScenario(object):
                 if car_count == num_vehicles:
                     break
 
-            x = (x + increment + VEHICLE_LENGTH + min_gap) % self.length()
+            x = (x + increment + VEHICLE_LENGTH + min_gap) % \
+                (self.length() + sum(self.edge_length(edge)
+                                     for edge in self.get_junction_list()))
 
         # add a perturbation to each vehicle, while not letting the vehicle
         # leave its current edge

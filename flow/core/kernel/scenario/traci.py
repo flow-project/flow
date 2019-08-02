@@ -880,8 +880,11 @@ class TraCIScenario(KernelScenario):
             net_data[edge_id]['lanes'] = 0
             for i, lane in enumerate(edge):
                 net_data[edge_id]['lanes'] += 1
+                # choose the largest length across lanes as the edge length
+                net_data[edge_id]['length'] = max(
+                    net_data[edge_id].get('length', 0),
+                    float(lane.attrib['length']))
                 if i == 0:
-                    net_data[edge_id]['length'] = float(lane.attrib['length'])
                     if net_data[edge_id]['speed'] is None \
                             and 'speed' in lane.attrib:
                         net_data[edge_id]['speed'] = float(
