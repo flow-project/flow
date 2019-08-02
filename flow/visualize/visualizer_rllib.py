@@ -36,14 +36,21 @@ from flow.utils.rllib import get_rllib_pkl
 
 EXAMPLE_USAGE = """
 example usage:
-    python ./visualizer_rllib.py /tmp/ray/result_dir 1
+    python ./visualizer_rllib.py /ray_results/experiment_dir/result_dir 1
 
 Here the arguments are:
-1 - the number of the checkpoint
+1 - the path to the simulation results
+2 - the number of the checkpoint
 """
 
 
 def visualizer_rllib(args):
+    """Visualizer for RLlib experiments.
+
+    This function takes args (see function create_parser below for
+    more detailed information on what information can be fed to this
+    visualizer), and renders the experiment associated with it.
+    """
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
         else args.result_dir[:-1]
 
@@ -94,7 +101,7 @@ def visualizer_rllib(args):
               'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
 
-    sim_params.restart_instance = False
+    sim_params.restart_instance = True
     dir_path = os.path.dirname(os.path.realpath(__file__))
     emission_path = '{0}/test_time_rollout/'.format(dir_path)
     sim_params.emission_path = emission_path if args.gen_emission else None
@@ -108,6 +115,9 @@ def visualizer_rllib(args):
         sim_params.pxpm = 4
     elif args.render_mode == 'sumo_gui':
         sim_params.render = True
+        print('NOTE: With render mode {}, an extra instance of the SUMO GUI '
+              'will display before the GUI for visualizing the result. Click '
+              'the green Play arrow to continue.'.format(args.render_mode))
     elif args.render_mode == 'no_render':
         sim_params.render = False
     if args.save_render:
@@ -116,8 +126,7 @@ def visualizer_rllib(args):
         sim_params.save_render = True
 
     # Create and register a gym+rllib env
-    create_env, env_name = make_create_env(
-        params=flow_params, version=0)
+    create_env, env_name = make_create_env(params=flow_params, version=0)
     register_env(env_name, create_env)
 
     # check if the environment is a single or multiagent environment, and
@@ -185,8 +194,11 @@ def visualizer_rllib(args):
     env.restart_simulation(
         sim_params=sim_params, render=sim_params.render)
 
+    # Simulate and collect metrics
     final_outflows = []
+    final_inflows = []
     mean_speed = []
+    std_speed = []
     for i in range(args.num_rollouts):
         vel = []
         state = env.reset()
@@ -228,24 +240,60 @@ def visualizer_rllib(args):
             rets.append(ret)
         outflow = vehicles.get_outflow_rate(500)
         final_outflows.append(outflow)
+        inflow = vehicles.get_inflow_rate(500)
+        final_inflows.append(inflow)
+        if np.all(np.array(final_inflows) > 1e-5):
+            throughput_efficiency = [x / y for x, y in
+                                     zip(final_outflows, final_inflows)]
+        else:
+            throughput_efficiency = [0] * len(final_inflows)
         mean_speed.append(np.mean(vel))
+        std_speed.append(np.std(vel))
         if multiagent:
             for agent_id, rew in rets.items():
                 print('Round {}, Return: {} for agent {}'.format(
                     i, ret, agent_id))
         else:
             print('Round {}, Return: {}'.format(i, ret))
+
+    print('==== Summary of results ====')
+    print("Return:")
+    print(mean_speed)
     if multiagent:
         for agent_id, rew in rets.items():
+            print('For agent', agent_id)
+            print(rew)
             print('Average, std return: {}, {} for agent {}'.format(
                 np.mean(rew), np.std(rew), agent_id))
     else:
-        print('Average, std return: {}, {}'.format(
+        print(rets)
+        print('Average, std: {}, {}'.format(
             np.mean(rets), np.std(rets)))
-    print('Average, std speed: {}, {}'.format(
-        np.mean(mean_speed), np.std(mean_speed)))
-    print('Average, std outflow: {}, {}'.format(
-        np.mean(final_outflows), np.std(final_outflows)))
+
+    print("\nSpeed, mean (m/s):")
+    print(mean_speed)
+    print('Average, std: {}, {}'.format(np.mean(mean_speed), np.std(
+        mean_speed)))
+    print("\nSpeed, std (m/s):")
+    print(std_speed)
+    print('Average, std: {}, {}'.format(np.mean(std_speed), np.std(
+        std_speed)))
+
+    # Compute arrival rate of vehicles in the last 500 sec of the run
+    print("\nOutflows (veh/hr):")
+    print(final_outflows)
+    print('Average, std: {}, {}'.format(np.mean(final_outflows),
+                                        np.std(final_outflows)))
+    # Compute departure rate of vehicles in the last 500 sec of the run
+    print("Inflows (veh/hr):")
+    print(final_inflows)
+    print('Average, std: {}, {}'.format(np.mean(final_inflows),
+                                        np.std(final_inflows)))
+    # Compute throughput efficiency in the last 500 sec of the
+    print("Throughput efficiency (veh/hr):")
+    print(throughput_efficiency)
+    print('Average, std: {}, {}'.format(np.mean(throughput_efficiency),
+                                        np.std(throughput_efficiency)))
 
     # terminate the environment
     env.unwrapped.terminate()
@@ -260,11 +308,17 @@ def visualizer_rllib(args):
         emission_path = \
             '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
 
+        # convert the emission file into a csv file
         emission_to_csv(emission_path)
+
+        # delete the .xml version of the emission file
+        os.remove(emission_path)
 
     # if we wanted to save the render, here we create the movie
     if args.save_render:
         dirs = os.listdir(os.path.expanduser('~')+'/flow_rendering')
+        # Ignore hidden files
+        dirs = [d for d in dirs if d[0] != '.']
         dirs.sort(key=lambda date: datetime.strptime(date, "%Y-%m-%d-%H%M%S"))
         recent_dir = dirs[-1]
         # create the movie
@@ -279,6 +333,7 @@ def visualizer_rllib(args):
 
 
 def create_parser():
+    """Create the parser to capture CLI arguments."""
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description='[Flow] Evaluates a reinforcement learning agent '
@@ -300,7 +355,7 @@ def create_parser():
              'class registered in the tune registry. '
              'Required for results trained with flow-0.2.0 and before.')
     parser.add_argument(
-        '--num-rollouts',
+        '--num_rollouts',
         type=int,
         default=1,
         help='The number of rollouts to visualize.')
@@ -323,7 +378,8 @@ def create_parser():
     parser.add_argument(
         '--save_render',
         action='store_true',
-        help='saves the render to a file')
+        help='Saves a rendered video to a file. NOTE: Overrides render_mode '
+             'with pyglet rendering.')
     parser.add_argument(
         '--horizon',
         type=int,

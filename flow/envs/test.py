@@ -31,16 +31,19 @@ class TestEnv(Env):
 
     @property
     def action_space(self):
+        """See parent class."""
         return Box(low=0, high=0, shape=(0,), dtype=np.float32)
 
     @property
     def observation_space(self):
+        """See parent class."""
         return Box(low=0, high=0, shape=(0,), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         return
 
     def compute_reward(self, rl_actions, **kwargs):
+        """See parent class."""
         if "reward_fn" in self.env_params.additional_params:
             return self.env_params.additional_params["reward_fn"](self)
         else:
