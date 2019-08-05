@@ -775,8 +775,8 @@ class TraCIScenario(KernelScenario):
                                 sumo_inflow[key] = str(float(inflow[key]) * ft)
 
                         if 'number' in sumo_inflow:
-                            sumo_inflow['number'] = str(int(
-                                float(inflow['number']) * frac))
+                            sumo_inflow['number'] = str(
+                                int(float(inflow['number']) * ft))
 
                         routes_data.append(_flow(**sumo_inflow))
                 else:

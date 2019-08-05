@@ -14,14 +14,13 @@ from ray import tune
 from ray.tune.registry import register_env
 from ray.tune import run_experiments
 
-from flow.controllers import IDMController, RLController
+from flow.controllers import RLController
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
                              VehicleParams, SumoParams, \
                              SumoCarFollowingParams, SumoLaneChangeParams
 
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
-from flow.core.experiment import Experiment
 
 from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
 from flow.scenarios.highway_ramps import ADDITIONAL_NET_PARAMS
