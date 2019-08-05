@@ -308,7 +308,11 @@ def visualizer_rllib(args):
         emission_path = \
             '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
 
+        # convert the emission file into a csv file
         emission_to_csv(emission_path)
+
+        # delete the .xml version of the emission file
+        os.remove(emission_path)
 
     # if we wanted to save the render, here we create the movie
     if args.save_render:
