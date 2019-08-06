@@ -14,7 +14,7 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, InFlows, NetP
 from flow.core.params import VehicleParams, SumoCarFollowingParams
 from flow.controllers import RLController, IDMController
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
-from flow.utils.registry import construct_env
+from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 
 # experiment number
@@ -145,10 +145,10 @@ def run_model(num_steps=None):
     args = parser.parse_args()
 
     if args.num_cpus == 1:
-        env_constructor = construct_env(params=flow_params, version=0)()
-        env = DummyVecEnv([lambda: env_constructor])  # The algorithms require a vectorized environment to run
+        constructor = env_constructor(params=flow_params, version=0)()
+        env = DummyVecEnv([lambda: constructor])  # The algorithms require a vectorized environment to run
     else:
-        env = SubprocVecEnv([construct_env(params=flow_params, version=i) for i in range(args.num_cpus)])
+        env = SubprocVecEnv([env_constructor(params=flow_params, version=i) for i in range(args.num_cpus)])
 
     model = PPO2('MlpPolicy', env, verbose=1, n_steps=args.rollout_size)
     if num_steps:
@@ -178,7 +178,7 @@ if __name__ == "__main__":
     model = PPO2.load(save_path)
     flow_params = get_flow_params(os.path.join(path, parsed_args.result_name) + '.json')
     flow_params['sim'].render = True
-    env_constructor = construct_env(params=flow_params, version=0)()
+    env_constructor = env_constructor(params=flow_params, version=0)()
     env = DummyVecEnv([lambda: env_constructor])  # The algorithms require a vectorized environment to run
     obs = env.reset()
     reward = 0
