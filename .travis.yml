@@ -33,6 +33,9 @@ before_install:
   - conda config --append channels https://repo.anaconda.com/pkgs/free
   - conda config --append channels https://repo.anaconda.com/pkgs/pro
 
+  # Requirements for stable baselines
+  - sudo apt-get update && sudo apt-get install cmake libopenmpi-dev python3-dev zlib1g-dev
+
   # Set up requirements for flow
   - conda env create -f environment.yml
   - source activate flow
@@ -58,6 +61,7 @@ install:
   - pip install -e .
   - pip install coveralls
   - pip install jupyter
+  - pip install stable-baselines
 
 script:
   - nose2 --with-coverage
