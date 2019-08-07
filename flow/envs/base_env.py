@@ -11,6 +11,7 @@ from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
 
 import gym
 from gym.spaces import Box
+from gym.spaces import Tuple
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
 
@@ -562,11 +563,11 @@ class Env(*classdef):
         Returns
         -------
         array_like
-            The rl_actions clipped according to the box
+            The rl_actions clipped according to the box or boxes
         """
         # ignore if no actions are issued
         if rl_actions is None:
-            return None
+            return
 
         # clip according to the action space requirements
         if isinstance(self.action_space, Box):
@@ -574,6 +575,14 @@ class Env(*classdef):
                 rl_actions,
                 a_min=self.action_space.low,
                 a_max=self.action_space.high)
+        elif isinstance(self.action_space, Tuple):
+            for idx, action in enumerate(rl_actions):
+                subspace = self.action_space[idx]
+                if isinstance(subspace, Box):
+                    rl_actions[idx] = np.clip(
+                        action,
+                        a_min=subspace.low,
+                        a_max=subspace.high)
         return rl_actions
 
     def apply_rl_actions(self, rl_actions=None):
