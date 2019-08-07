@@ -41,7 +41,7 @@ class TestBenchmarks(unittest.TestCase):
     reported on the website, or other).
     """
 
-    def setup(self):
+    def setUp(self):
         if not os.path.exists('./benchmark_tmp'):
             os.mkdir('benchmark_tmp')
 

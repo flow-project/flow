@@ -16,9 +16,6 @@ class MiniCityScenario(Scenario):
     the network can be modified by updating the SCALING variable within the
     script.
 
-    In order for right-of-way dynamics to take place at the intersection,
-    set *no_internal_links* in net_params to False.
-
     Usage
     -----
     >>> from flow.core.params import NetParams
@@ -29,9 +26,7 @@ class MiniCityScenario(Scenario):
     >>> scenario = MiniCityScenario(
     >>>     name='minicity',
     >>>     vehicles=VehicleParams(),
-    >>>     net_params=NetParams(
-    >>>         no_internal_links=False  # we want junctions
-    >>>     )
+    >>>     net_params=NetParams()
     >>> )
     """
 
