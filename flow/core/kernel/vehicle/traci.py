@@ -521,8 +521,10 @@ class TraCIVehicle(KernelVehicle):
             return [self.get_lane(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_LANE_INDEX, error)
 
-    def get_route(self, veh_id, error=list()):
+    def get_route(self, veh_id, error=None):
         """See parent class."""
+        if error is None:
+            error = list()
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_route(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_EDGES, error)
@@ -590,19 +592,21 @@ class TraCIVehicle(KernelVehicle):
         """Set the lane headways of the specified vehicle."""
         self.__vehicles[veh_id]["lane_headways"] = lane_headways
 
-    def get_lane_headways(self, veh_id, error=list()):
+    def get_lane_headways(self, veh_id, error=None):
         """See parent class."""
+        if error is None:
+            error = list()
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane_headways(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("lane_headways", error)
 
-    def get_lane_leaders_speed(self, veh_id, error=list()):
+    def get_lane_leaders_speed(self, veh_id, error=None):
         """See parent class."""
         lane_leaders = self.get_lane_leaders(veh_id)
         return [0 if lane_leader == '' else self.get_speed(lane_leader)
                 for lane_leader in lane_leaders]
 
-    def get_lane_followers_speed(self, veh_id, error=list()):
+    def get_lane_followers_speed(self, veh_id, error=None):
         """See parent class."""
         lane_followers = self.get_lane_followers(veh_id)
         return [0 if lane_follower == '' else self.get_speed(lane_follower)
@@ -612,8 +616,10 @@ class TraCIVehicle(KernelVehicle):
         """Set the lane leaders of the specified vehicle."""
         self.__vehicles[veh_id]["lane_leaders"] = lane_leaders
 
-    def get_lane_leaders(self, veh_id, error=list()):
+    def get_lane_leaders(self, veh_id, error=None):
         """See parent class."""
+        if error is None:
+            error = list()
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane_leaders(vehID, error) for vehID in veh_id]
         return self.__vehicles[veh_id]["lane_leaders"]
@@ -622,8 +628,10 @@ class TraCIVehicle(KernelVehicle):
         """Set the lane tailways of the specified vehicle."""
         self.__vehicles[veh_id]["lane_tailways"] = lane_tailways
 
-    def get_lane_tailways(self, veh_id, error=list()):
+    def get_lane_tailways(self, veh_id, error=None):
         """See parent class."""
+        if error is None:
+            error = list()
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane_tailways(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("lane_tailways", error)
@@ -632,8 +640,10 @@ class TraCIVehicle(KernelVehicle):
         """Set the lane followers of the specified vehicle."""
         self.__vehicles[veh_id]["lane_followers"] = lane_followers
 
-    def get_lane_followers(self, veh_id, error=list()):
+    def get_lane_followers(self, veh_id, error=None):
         """See parent class."""
+        if error is None:
+            error = list()
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane_followers(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("lane_followers", error)

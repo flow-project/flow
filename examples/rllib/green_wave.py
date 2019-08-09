@@ -123,7 +123,7 @@ def get_non_flow_params(enter_speed, add_net_params):
     return initial, net
 
 
-V_ENTER = 30
+V_ENTER = 15
 INNER_LENGTH = 300
 LONG_LENGTH = 100
 SHORT_LENGTH = 300

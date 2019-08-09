@@ -162,8 +162,13 @@ flow_params = dict(
 
 # SET UP EXPERIMENT
 
-def setup_exps():
+def setup_exps(flow_params):
     """Create the relevant components of a multiagent RLlib experiment.
+
+    Parameters
+    ----------
+    flow_params : dict
+        input flow-parameters
 
     Returns
     -------
@@ -222,7 +227,7 @@ def setup_exps():
 # RUN EXPERIMENT
 
 if __name__ == '__main__':
-    alg_run, env_name, config = setup_exps()
+    alg_run, env_name, config = setup_exps(flow_params)
     ray.init(num_cpus=N_CPUS + 1)
 
     run_experiments({
