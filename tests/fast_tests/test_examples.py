@@ -8,6 +8,7 @@ from examples.sumo.density_exp import run_bottleneck
 from examples.sumo.figure_eight import figure_eight_example
 from examples.sumo.grid import grid_example
 from examples.sumo.highway import highway_example
+from examples.sumo.highway_ramps import highway_ramps_example
 from examples.sumo.loop_merge import loop_merge_example
 from examples.sumo.merge import merge_example
 from examples.sumo.minicity import minicity_example
@@ -73,6 +74,14 @@ class TestSumoExamples(unittest.TestCase):
         """Verifies that examples/sumo/highway.py is working."""
         # import the experiment variable from the example
         exp = highway_example(render=False)
+
+        # run the experiment for a few time steps to ensure it doesn't fail
+        exp.run(1, 5)
+
+    def test_highway_ramps(self):
+        """Verifies that examples/sumo/highway_ramps.py is working."""
+        # import the experiment variable from the example
+        exp = highway_ramps_example(render=False)
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)

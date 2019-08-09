@@ -159,4 +159,7 @@ class Experiment:
             # convert the emission file into a csv
             emission_to_csv(emission_path)
 
+            # Delete the .xml version of the emission file.
+            os.remove(emission_path)
+
         return info_dict
