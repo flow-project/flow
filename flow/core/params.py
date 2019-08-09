@@ -36,18 +36,18 @@ class TrafficLightParams:
     Usage:
 
         >>> tl_logic = TrafficLightParams(baseline=True)
-        >>> additional_net_params = {"grid_array": grid_array, 
+        >>> additional_net_params = {"grid_array": grid_array,
                                      "speed_limit": 35,
-                                     "horizontal_lanes": 1, 
+                                     "horizontal_lanes": 1,
                                      "vertical_lanes": 1,
-                                     "traffic_lights": True, 
+                                     "traffic_lights": True,
                                      "tl_logic": tl_logic}
     """
 
     def __init__(self, baseline=False):
         """Instantiate base traffic light.
 
-        Parameters
+        Attributes
         ----------
         baseline: bool
         """
@@ -375,21 +375,21 @@ class SimParams(object):
     All subsequent parameters of the same type must extend this.
 
     Usage: (Example for using a subclass -- Sumo_Params)
-    
+
         >>> from flow.core.params import SumoParams
         >>> sumo_params = SumoParams(sim_step=0.1, render=False)
         >>> flow_params = dict(
-                                ...
-                                # sumo-related parameters (see flow.core.params.SumoParams)
-                                sim=sumo_params
-                                ...
-                        )
-        >>> flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
-                           indent=4)  # generating a string version of flow_params
-        >>> config['env_config']['flow_params'] = flow_json 
+            ...
+            # sumo-related parameters (see flow.core.params.SumoParams)
+            sim=sumo_params
+            ...
+            )
+        >>> flow_json = json.dumps(
+        >>>     flow_params, cls=FlowParamsEncoder, sort_keys=True,
+        >>>     indent=4)  # generating a string version of flow_params
+        >>> config['env_config']['flow_params'] = flow_json
 
-
-    Parameters
+    Attributes
     ----------
     sim_step : float optional
         seconds per simulation step; 0.1 by default
@@ -452,7 +452,7 @@ class AimsunParams(SimParams):
 
     Usage: See Base Class for example.
 
-    Parameters
+    Attributes
     ----------
     sim_step : float optional
         seconds per simulation step; 0.1 by default
@@ -544,7 +544,7 @@ class SumoParams(SimParams):
 
     Usage: See Base Class for example.
 
-    Parameters
+    Attributes
     ----------
     port : int, optional
         Port for Traci to connect to; finds an empty port by default
@@ -635,7 +635,7 @@ class EnvParams:
     coefficients to the reward function, as well as specifying how the
     positions of vehicles are modified in between rollouts.
 
-    Parameters
+    Attributes
     ----------
     additional_params : dict, optional
         Specify additional environment params for a specific
@@ -659,7 +659,6 @@ class EnvParams:
         specifies whether to clip actions from the policy by their range when
         they are inputted to the reward function. Note that the actions are
         still clipped before they are provided to `apply_rl_actions`.
-    
 
     Usage:
 
@@ -714,7 +713,7 @@ class NetParams:
     for a specific scenario, refer to the ADDITIONAL_NET_PARAMS variable
     located in the scenario file.
 
-    Parameters
+    Attributes
     ----------
     inflows : InFlows type, optional
         specifies the inflows of specific edges and the types of vehicles
@@ -740,7 +739,7 @@ class NetParams:
         >>> net_params = NetParams(additional_params=additional_net_params)
         >>> initial_config = InitialConfig(bunching=20)
 
-        >>> scenario = LoopScenario(name="sugiyama", 
+        >>> scenario = LoopScenario(name="sugiyama",
                                     vehicles=vehicles,
                                     net_params=net_params,
                                     initial_config=initial_config)
@@ -765,7 +764,7 @@ class InitialConfig:
     network at the start of a rollout. By default, vehicles are uniformly
     distributed in the network.
 
-    Parameters
+    Attributes
     ----------
     shuffle : bool, optional  # TODO: remove
         specifies whether the ordering of vehicles in the Vehicles class
@@ -800,7 +799,6 @@ class InitialConfig:
           each edge
     additional_params : dict, optional
         some other network-specific params
-
 
     Usage:
 
@@ -841,7 +839,7 @@ class InitialConfig:
 class SumoCarFollowingParams:
     """Parameters for sumo-controlled acceleration behavior.
 
-    Parameters
+    Attributes
     ----------
     speed_mode : str or int, optional
         may be one of the following:
@@ -891,11 +889,11 @@ class SumoCarFollowingParams:
     For a description of all params, see:
     http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
 
-
-    Usage: 
+    Usage:
 
     >>> from flow.core.params import SumoParams
-    >>> sumo_params = SumoParams(sim_step=0.1, render=True, emission_path='data')
+    >>> sumo_params = SumoParams(sim_step=0.1, render=True,
+    >>>                          emission_path='data')
     """
 
     def __init__(
@@ -966,7 +964,7 @@ class SumoCarFollowingParams:
 class SumoLaneChangeParams:
     """Parameters for sumo-controlled lane change behavior.
 
-    Parameters
+    Attributes
     ----------
     lane_change_mode : str or int, optional
         may be one of the following:
@@ -1017,11 +1015,6 @@ class SumoLaneChangeParams:
     ----
     For a description of all params, see:
     http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
-
-
-    Usage:
-
-        >>> 
     """
 
     def __init__(self,
@@ -1244,8 +1237,7 @@ class InFlows:
         parameters that may be added via \*\*kwargs, refer to:
         http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
 
-
-        Usage: 
+        Usage:
 
             >>> # create the inflows
             >>> inflows = InFlows()

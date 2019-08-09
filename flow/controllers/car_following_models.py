@@ -17,7 +17,9 @@ from flow.controllers.base_controller import BaseController
 class CFMController(BaseController):
     """CFM controller.
 
-    Usage: See BaseController for usage example.
+    Usage
+    -----
+    See BaseController for usage example.
 
     Attributes
     ----------
@@ -91,7 +93,9 @@ class BCMController(BaseController):
 
     This model looks ahead and behind when computing its acceleration.
 
-    Usage: See BaseController for usage example.
+    Usage
+    -----
+    See BaseController for usage example.
 
     Attributes
     ----------
@@ -175,7 +179,9 @@ class BCMController(BaseController):
 class OVMController(BaseController):
     """Optimal Vehicle Model controller.
 
-    Usage: See BaseController for usage example.
+    Usage
+    -----
+    See BaseController for usage example.
 
     Attributes
     ----------
@@ -256,7 +262,9 @@ class OVMController(BaseController):
 class LinearOVM(BaseController):
     """Linear OVM controller.
 
-    Usage: See BaseController for usage example.
+    Usage
+    -----
+    See BaseController for usage example.
 
     Attributes
     ----------
@@ -328,9 +336,9 @@ class IDMController(BaseController):
     states in empirical observations and microscopic simulations." Physical
     review E 62.2 (2000): 1805.
 
-
-    Usage: See BaseController for usage example.
-    
+    Usage
+    -----
+    See BaseController for usage example.
 
     Attributes
     ----------
