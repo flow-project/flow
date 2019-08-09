@@ -38,10 +38,19 @@ def make_flow_params(n_rows, n_columns, edge_inflow):
     """
     Generate the flow params for the experiment.
 
-    :param n_rows:
-    :param n_columns:
-    :param edge_inflow:
-    :return:
+    Parameters
+    ----------
+    n_rows : int
+        number of rows in the grid
+    n_columns : int
+        number of columns in the grid
+    edge_inflow : float
+
+
+    Returns
+    -------
+    dict
+        flow_params object
     """
     # we place a sufficient number of vehicles to ensure they confirm with the
     # total number specified above. We also use a "right_of_way" speed mode to

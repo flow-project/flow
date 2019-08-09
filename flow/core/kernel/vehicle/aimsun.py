@@ -611,7 +611,7 @@ class AimsunKernelVehicle(KernelVehicle):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_type(veh) for veh in veh_id]
-        return self.__vehicles[veh_id]['type_name']
+        return self.__vehicles.get(veh_id, {}).get('type_name', "")
 
     def get_initial_speed(self, veh_id):
         """See parent class."""
