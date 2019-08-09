@@ -6,8 +6,7 @@ from flow.core.params import SumoParams, EnvParams, \
 from flow.core.params import VehicleParams
 from flow.core.experiment import Experiment
 from flow.scenarios.highway_ramps import HighwayRampsScenario, \
-                                         ADDITIONAL_NET_PARAMS
-from flow.controllers import IDMController
+    ADDITIONAL_NET_PARAMS
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 
 
