@@ -84,7 +84,7 @@ def get_flow_params(col_num, row_num, additional_net_params):
             edge=outer_edges[i],
             probability=0.25,
             departLane='free',
-            departSpeed=20)
+            departSpeed=10)
 
     net = NetParams(
         inflows=inflow,
