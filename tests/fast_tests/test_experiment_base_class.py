@@ -111,8 +111,8 @@ class TestConvertToCSV(unittest.TestCase):
 
         time.sleep(0.1)
 
-        # check that both the emission xml and csv files exist
-        self.assertTrue(os.path.isfile(dir_path + "/{}-emission.xml".format(
+        # check that both the csv file exists and the xml file doesn't.
+        self.assertFalse(os.path.isfile(dir_path + "/{}-emission.xml".format(
             scenario.name)))
         self.assertTrue(os.path.isfile(dir_path + "/{}-emission.csv".format(
             scenario.name)))
@@ -120,8 +120,6 @@ class TestConvertToCSV(unittest.TestCase):
         time.sleep(0.1)
 
         # delete the files
-        os.remove(os.path.expanduser(dir_path + "/{}-emission.xml".format(
-            scenario.name)))
         os.remove(os.path.expanduser(dir_path + "/{}-emission.csv".format(
             scenario.name)))
 

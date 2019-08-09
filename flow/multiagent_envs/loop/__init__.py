@@ -1,2 +1,1 @@
-"""Empty init file to ensure documentation for
-multi-agent loop envs is created."""
+"""Empty init file to ensure documentation for multi-agent envs is created."""

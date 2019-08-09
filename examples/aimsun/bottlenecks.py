@@ -42,7 +42,7 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
         render = False
 
     sim_params = AimsunParams(
-        sim_step=0.8,
+        sim_step=0.5,
         render=render,
         restart_instance=restart_instance)
 
@@ -81,7 +81,6 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
     additional_net_params = {"scaling": SCALING, "speed_limit": 30/3.6}
     net_params = NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params)
 
     initial_config = InitialConfig(

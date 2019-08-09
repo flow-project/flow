@@ -186,16 +186,20 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
 
     Termination
         See parent class.
+
+    Attributes
+    ----------
+    num_lanes : int
+        maximum number of lanes on any edge in the network
+    visible : list of str
+        lists of visible vehicles, used for visualization purposes
     """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         super().__init__(env_params, sim_params, scenario, simulator)
 
-        # maximum number of lanes on any edge in the network
         self.num_lanes = max(self.k.scenario.num_lanes(edge)
                              for edge in self.k.scenario.get_edge_list())
-
-        # lists of visible vehicles, used for visualization purposes
         self.visible = []
 
     @property

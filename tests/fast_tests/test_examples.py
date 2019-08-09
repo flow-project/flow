@@ -8,6 +8,7 @@ from examples.sumo.density_exp import run_bottleneck
 from examples.sumo.figure_eight import figure_eight_example
 from examples.sumo.grid import grid_example
 from examples.sumo.highway import highway_example
+from examples.sumo.highway_ramps import highway_ramps_example
 from examples.sumo.loop_merge import loop_merge_example
 from examples.sumo.merge import merge_example
 from examples.sumo.minicity import minicity_example
@@ -23,6 +24,10 @@ from examples.rllib.multiagent_exps.multiagent_figure_eight \
    import setup_exps as multi_figure_eight_setup
 from examples.rllib.multiagent_exps.multiagent_stabilizing_the_ring \
     import setup_exps as multi_ring_setup
+from examples.rllib.multiagent_exps.multiagent_traffic_light_grid \
+    import setup_exps_PPO as multi_grid_setup
+from examples.rllib.multiagent_exps.multiagent_traffic_light_grid \
+    import make_flow_params as multi_grid_setup_flow_params
 
 import ray
 from ray.tune import run_experiments
@@ -69,6 +74,14 @@ class TestSumoExamples(unittest.TestCase):
         """Verifies that examples/sumo/highway.py is working."""
         # import the experiment variable from the example
         exp = highway_example(render=False)
+
+        # run the experiment for a few time steps to ensure it doesn't fail
+        exp.run(1, 5)
+
+    def test_highway_ramps(self):
+        """Verifies that examples/sumo/highway_ramps.py is working."""
+        # import the experiment variable from the example
+        exp = highway_ramps_example(render=False)
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
@@ -186,12 +199,17 @@ class TestRllibExamples(unittest.TestCase):
         alg_run, env_name, config = multi_ring_setup()
         self.run_exp(alg_run, env_name, config)
 
+    def test_multi_grid(self):
+        flow_params = multi_grid_setup_flow_params(1, 1, 300)
+        alg_run, env_name, config = multi_grid_setup(flow_params)
+        self.run_exp(alg_run, env_name, config)
+
     @staticmethod
     def run_exp(alg_run, env_name, config):
         try:
             ray.init(num_cpus=1)
-        except Exception:
-            pass
+        except Exception as e:
+            print("ERROR", e)
         config['train_batch_size'] = 50
         config['horizon'] = 50
         config['sample_batch_size'] = 50
@@ -217,7 +235,7 @@ class TestRllibExamples(unittest.TestCase):
 if __name__ == '__main__':
     try:
         ray.init(num_cpus=1)
-    except Exception:
-        pass
+    except Exception as e:
+        print("ERROR", e)
     unittest.main()
     ray.shutdown()

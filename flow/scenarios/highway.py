@@ -47,7 +47,6 @@ class HighwayScenario(Scenario):
     >>>             'speed_limit': 30,
     >>>             'num_edges': 1
     >>>         },
-    >>>         no_internal_links=True  # we do not want junctions
     >>>     )
     >>> )
     """

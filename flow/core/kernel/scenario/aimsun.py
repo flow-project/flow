@@ -19,6 +19,19 @@ class AimsunKernelScenario(KernelScenario):
     This class is responsible for passing features to and calling the
     "generate.py" file within flow/utils/aimsun/. All other features are
     designed to extend KernelScenario.
+
+    Attributes
+    ----------
+    kernel_api : any
+        an API that may be used to interact with the simulator
+    network : flow.scenarios.Scenario
+        an object containing relevant network-specific features such as the
+        locations and properties of nodes and edges in the network
+    rts : dict
+        specifies routes vehicles can take. See the parent class for
+        description of the attribute.
+    aimsun_proc : subprocess.Popen
+        an object which is used to start or shut down Aimsun from the script
     """
 
     def __init__(self, master_kernel, sim_params):
@@ -148,10 +161,12 @@ class AimsunKernelScenario(KernelScenario):
                 # all the data can take several seconds for large scenarios
                 while not os.path.exists(check_path):
                     time.sleep(0.1)
+                os.remove(check_path)
 
                 # scenario_data.json has been written, load its content
                 with open(scenar_path) as f:
                     content = json.load(f)
+                os.remove(scenar_path)
 
                 self._edges = content['sections']
                 self._edge_list = self._edges.keys()
