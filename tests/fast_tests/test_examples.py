@@ -28,6 +28,10 @@ from examples.rllib.multiagent_exps.multiagent_traffic_light_grid \
     import setup_exps_PPO as multi_grid_setup
 from examples.rllib.multiagent_exps.multiagent_traffic_light_grid \
     import make_flow_params as multi_grid_setup_flow_params
+from examples.rllib.multiagent_exps.multiagent_highway import flow_params \
+    as multi_highway_flow_params
+from examples.rllib.multiagent_exps.multiagent_highway import setup_exps \
+    as multi_highway_setup
 
 import ray
 from ray.tune import run_experiments
@@ -175,6 +179,7 @@ class TestRllibExamples(unittest.TestCase):
         alg_run, env_name, config = green_wave_setup(use_inflows=False)
         self.run_exp(alg_run, env_name, config)
 
+    def test_green_wave_inflows(self):
         # test the example in the presence of inflows
         alg_run, env_name, config = green_wave_setup(use_inflows=True)
         self.run_exp(alg_run, env_name, config)
@@ -202,6 +207,11 @@ class TestRllibExamples(unittest.TestCase):
     def test_multi_grid(self):
         flow_params = multi_grid_setup_flow_params(1, 1, 300)
         alg_run, env_name, config = multi_grid_setup(flow_params)
+        self.run_exp(alg_run, env_name, config)
+
+    def test_multi_highway(self):
+        flow_params = multi_highway_flow_params
+        alg_run, env_name, config = multi_highway_setup(flow_params)
         self.run_exp(alg_run, env_name, config)
 
     @staticmethod
