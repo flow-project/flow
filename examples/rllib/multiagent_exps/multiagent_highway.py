@@ -90,7 +90,7 @@ vehicles.add(
     veh_id="idm",
     car_following_params=SumoCarFollowingParams(
         speed_mode="obey_safe_speed",  # for safer behavior at the merges
-        tau=1.5
+        tau=1.5  # larger distance between cars
     ),
     lane_change_params=SumoLaneChangeParams(lane_change_mode=1621))
 
