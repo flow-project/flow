@@ -37,7 +37,7 @@ class TrafficLightParams:
     def __init__(self, baseline=False):
         """Instantiate base traffic light.
 
-        Parameters
+        Attributes
         ----------
         baseline: bool
         """
@@ -354,7 +354,7 @@ class SimParams(object):
 
     All subsequent parameters of the same type must extend this.
 
-    Parameters
+    Attributes
     ----------
     sim_step : float optional
         seconds per simulation step; 0.1 by default
@@ -415,7 +415,7 @@ class AimsunParams(SimParams):
 
     Extends SimParams.
 
-    Parameters
+    Attributes
     ----------
     sim_step : float optional
         seconds per simulation step; 0.1 by default
@@ -505,7 +505,7 @@ class SumoParams(SimParams):
     specifying whether to use sumo's gui during a run, and other features
     described in the Attributes below.
 
-    Parameters
+    Attributes
     ----------
     port : int, optional
         Port for Traci to connect to; finds an empty port by default
@@ -596,7 +596,7 @@ class EnvParams:
     coefficients to the reward function, as well as specifying how the
     positions of vehicles are modified in between rollouts.
 
-    Parameters
+    Attributes
     ----------
     additional_params : dict, optional
         Specify additional environment params for a specific
@@ -655,7 +655,7 @@ class NetParams:
     for a specific scenario, refer to the ADDITIONAL_NET_PARAMS variable
     located in the scenario file.
 
-    Parameters
+    Attributes
     ----------
     inflows : InFlows type, optional
         specifies the inflows of specific edges and the types of vehicles
@@ -693,7 +693,7 @@ class InitialConfig:
     network at the start of a rollout. By default, vehicles are uniformly
     distributed in the network.
 
-    Parameters
+    Attributes
     ----------
     shuffle : bool, optional  # TODO: remove
         specifies whether the ordering of vehicles in the Vehicles class
@@ -760,7 +760,7 @@ class InitialConfig:
 class SumoCarFollowingParams:
     """Parameters for sumo-controlled acceleration behavior.
 
-    Parameters
+    Attributes
     ----------
     speed_mode : str or int, optional
         may be one of the following:
@@ -879,7 +879,7 @@ class SumoCarFollowingParams:
 class SumoLaneChangeParams:
     """Parameters for sumo-controlled lane change behavior.
 
-    Parameters
+    Attributes
     ----------
     lane_change_mode : str or int, optional
         may be one of the following:
