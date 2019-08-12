@@ -435,10 +435,11 @@ class TestClipBoxActions(unittest.TestCase):
 
     def test_clip_box_actions(self):
         """Test whether box actions get properly clipped."""
-        actions =[0.5, -1, 2]
+        actions = [0.5, -1, 2]
         clipped_actions = [0.5, 0, 1]
         _actions = self.env.clip_actions(actions)
         self.assertTrue((_actions == clipped_actions).all())
+
 
 class TupleEnv(Env):
     """A mock-up class to test clipping for Tuple."""
