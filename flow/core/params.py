@@ -32,16 +32,6 @@ class TrafficLightParams:
     This class is used to place traffic lights in the network and describe
     the state of these traffic lights. In addition, this class supports
     modifying the states of certain lights via TraCI.
-
-    Usage:
-
-        >>> tl_logic = TrafficLightParams(baseline=True)
-        >>> additional_net_params = {"grid_array": grid_array,
-                                     "speed_limit": 35,
-                                     "horizontal_lanes": 1,
-                                     "vertical_lanes": 1,
-                                     "traffic_lights": True,
-                                     "tl_logic": tl_logic}
     """
 
     def __init__(self, baseline=False):
@@ -212,16 +202,6 @@ class VehicleParams:
     This is used to describe the state of all vehicles in the network.
     State information on the vehicles for a given time step can be set or
     retrieved from this class.
-
-    Usage:
-
-        >>> from flow.core.params import VehicleParams
-        >>> from flow.controllers import IDMController, ContinuousRouter
-        >>> vehicles = VehicleParams()
-        >>> vehicles.add("human",
-                         acceleration_controller=(IDMController, {}),
-                         routing_controller=(ContinuousRouter, {}),
-                         num_vehicles=21)
     """
 
     def __init__(self):
@@ -374,21 +354,6 @@ class SimParams(object):
 
     All subsequent parameters of the same type must extend this.
 
-    Usage: (Example for using a subclass -- Sumo_Params)
-
-        >>> from flow.core.params import SumoParams
-        >>> sumo_params = SumoParams(sim_step=0.1, render=False)
-        >>> flow_params = dict(
-            ...
-            # sumo-related parameters (see flow.core.params.SumoParams)
-            sim=sumo_params
-            ...
-            )
-        >>> flow_json = json.dumps(
-        >>>     flow_params, cls=FlowParamsEncoder, sort_keys=True,
-        >>>     indent=4)  # generating a string version of flow_params
-        >>> config['env_config']['flow_params'] = flow_json
-
     Attributes
     ----------
     sim_step : float optional
@@ -449,8 +414,6 @@ class AimsunParams(SimParams):
     """Aimsun-specific simulation parameters.
 
     Extends SimParams.
-
-    Usage: See Base Class for example.
 
     Attributes
     ----------
@@ -541,8 +504,6 @@ class SumoParams(SimParams):
     initialization. This includes passing the simulation step length,
     specifying whether to use sumo's gui during a run, and other features
     described in the Attributes below.
-
-    Usage: See Base Class for example.
 
     Attributes
     ----------
@@ -659,25 +620,6 @@ class EnvParams:
         specifies whether to clip actions from the policy by their range when
         they are inputted to the reward function. Note that the actions are
         still clipped before they are provided to `apply_rl_actions`.
-
-    Usage:
-
-        >>> sumo_params = SumoParams(sim_step=0.1, render=True)
-        >>> env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
-        ...
-        ...
-        >>> scenario = LoopScenario(name="sugiyama",
-                                    vehicles=vehicles,
-                                    net_params=net_params,
-                                    initial_config=initial_config)
-
-        #############################################################
-        ######## using my new environment for the simulation ########
-        #############################################################
-        >>> env = myEnv(env_params, sumo_params, scenario)
-        #############################################################
-
-        >>> exp = Experiment(env)
     """
 
     def __init__(self,
@@ -730,19 +672,6 @@ class NetParams:
     additional_params : dict, optional
         network specific parameters; see each subclass for a description of
         what is needed
-
-
-    Usage:
-
-        ...
-        >>> additional_net_params = ADDITIONAL_NET_PARAMS.copy()
-        >>> net_params = NetParams(additional_params=additional_net_params)
-        >>> initial_config = InitialConfig(bunching=20)
-
-        >>> scenario = LoopScenario(name="sugiyama",
-                                    vehicles=vehicles,
-                                    net_params=net_params,
-                                    initial_config=initial_config)
     """
 
     def __init__(self,
@@ -799,14 +728,6 @@ class InitialConfig:
           each edge
     additional_params : dict, optional
         some other network-specific params
-
-    Usage:
-
-        >>> initial_config = InitialConfig(bunching=20)
-        >>> scenario = LoopScenario(name="sugiyama",
-                                    vehicles=vehicles,
-                                    net_params=net_params,
-                                    initial_config=initial_config)
     """
 
     def __init__(self,
@@ -888,12 +809,6 @@ class SumoCarFollowingParams:
     ----
     For a description of all params, see:
     http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
-
-    Usage:
-
-    >>> from flow.core.params import SumoParams
-    >>> sumo_params = SumoParams(sim_step=0.1, render=True,
-    >>>                          emission_path='data')
     """
 
     def __init__(
@@ -1236,43 +1151,6 @@ class InFlows:
         probability, period, number, as well as other vehicle type and routing
         parameters that may be added via \*\*kwargs, refer to:
         http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
-
-        Usage:
-
-            >>> # create the inflows
-            >>> inflows = InFlows()
-
-            >>> # inflow for (1)
-            >>> inflows.add(veh_type="human",
-                            edge="inflow_highway",
-                            vehs_per_hour=10000,
-                            depart_lane="random",
-                            depart_speed="speedLimit",
-                            color="white")
-
-            >>> # inflow for (2)
-            >>> inflows.add(veh_type="human",
-                            edge="inflow_merge",
-                            period=2,
-                            depart_lane=0,  # right lane
-                            depart_speed=0,
-                            color="green")
-
-            >>> # inflow for (3)
-            >>> inflows.add(veh_type="human",
-                            edge="inflow_merge",
-                            probability=0.1,
-                            depart_lane=1,  # left lane
-                            depart_speed="random",
-                            begin=60,  # 1 minute
-                            number=30,
-                            color="red")
-            ...
-            ...
-            ...
-            >>> # setup and run the simulation
-            >>> net_params = NetParams(inflows=inflows,
-                                       additional_params=additional_net_params)
         """
         # check for deprecations
         def deprecate(old, new):
