@@ -31,6 +31,7 @@ ADDITIONAL_ENV_PARAMS = {
 
 
 def v_eq_max_function(v, *args):
+    """Return the error between the desired and actual equivalent gap."""
     num_vehicles, length = args
 
     # maximum gap in the presence of one rl vehicle

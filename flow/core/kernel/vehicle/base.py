@@ -303,7 +303,7 @@ class KernelVehicle(object):
         raise NotImplementedError
 
     def get_default_speed(self, veh_id, error=-1001):
-        """Return the expected speed if no control were applied
+        """Return the expected speed if no control were applied.
 
         Parameters
         ----------

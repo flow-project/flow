@@ -68,6 +68,12 @@ class TraCIVehicle(KernelVehicle):
         self._num_arrived = []
         self._arrived_ids = []
 
+        # whether or not to automatically color vehicles
+        try:
+            self._color_vehicles = sim_params.color_vehicles
+        except AttributeError:
+            self._color_vehicles = False
+
     def initialize(self, vehicles):
         """Initialize vehicle state information.
 
@@ -172,7 +178,7 @@ class TraCIVehicle(KernelVehicle):
                     vals['depart'] = str(
                         float(vals['depart']) + 2 * self.sim_step)
                     self.kernel_api.vehicle.addFull(
-                        veh_id, 'route{}'.format(veh_id), **vals)
+                        veh_id, 'route{}_0'.format(veh_id), **vals)
         else:
             self.time_counter += 1
             # update the "last_lc" variable
@@ -401,6 +407,7 @@ class TraCIVehicle(KernelVehicle):
         return self.__vehicles[veh_id]["type"]
 
     def get_initial_speed(self, veh_id):
+        """Return the initial speed of the vehicle of veh_id."""
         return self.__vehicles[veh_id]["initial_speed"]
 
     def get_ids(self):
@@ -973,17 +980,22 @@ class TraCIVehicle(KernelVehicle):
 
         The last term for sumo (transparency) is set to 255.
         """
-        r, g, b = color
-        self.kernel_api.vehicle.setColor(vehID=veh_id, color=(r, g, b, 255))
+        if self._color_vehicles:
+            r, g, b = color
+            self.kernel_api.vehicle.setColor(
+                vehID=veh_id, color=(r, g, b, 255))
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
-        # If the vehicle has its own route, use that route. This is used in the
-        # case of network templates.
         if veh_id in self.master_kernel.scenario.rts:
-            route_id = 'route{}'.format(veh_id)
+            # If the vehicle has its own route, use that route. This is used in
+            # the case of network templates.
+            route_id = 'route{}_0'.format(veh_id)
         else:
-            route_id = 'route{}'.format(edge)
+            num_routes = len(self.master_kernel.scenario.rts[edge])
+            frac = [val[1] for val in self.master_kernel.scenario.rts[edge]]
+            route_id = 'route{}_{}'.format(edge, np.random.choice(
+                [i for i in range(num_routes)], size=1, p=frac)[0])
 
         self.kernel_api.vehicle.addFull(
             veh_id,

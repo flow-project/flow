@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.com/flow-project/flow.svg?branch=master)](https://travis-ci.com/flow-project/flow)
 [![Docs](https://readthedocs.org/projects/flow/badge)](http://flow.readthedocs.org/en/latest/)
 [![Coverage Status](https://coveralls.io/repos/github/flow-project/flow/badge.svg?branch=master)](https://coveralls.io/github/flow-project/flow?branch=master)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/flow-project/flow/binder)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/flow-project/flow/blob/master/LICENSE.md)
 
 # Flow
@@ -16,6 +17,7 @@ See [our website](https://flow-project.github.io/) for more information on the a
 - [Documentation](https://flow.readthedocs.org/en/latest/)
 - [Installation instructions](http://flow.readthedocs.io/en/latest/flow_setup.html)
 - [Tutorials](https://github.com/flow-project/flow/tree/master/tutorials)
+- [Binder Build (beta)](https://mybinder.org/v2/gh/flow-project/flow/binder)
 
 # Technical questions
 

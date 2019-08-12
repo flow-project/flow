@@ -57,8 +57,7 @@ def run_task(*_):
         "speed_limit": 30,
         "resolution": 40
     }
-    net_params = NetParams(
-        no_internal_links=False, additional_params=additional_net_params)
+    net_params = NetParams(additional_params=additional_net_params)
 
     initial_config = InitialConfig(spacing="uniform")
 

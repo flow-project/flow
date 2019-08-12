@@ -5,9 +5,9 @@ from flow.core.experiment import Experiment
 from tests.setup_scripts import grid_mxn_exp_setup
 
 
-class TestEnvironment(unittest.TestCase):
+class Test1x1Environment(unittest.TestCase):
     def setUp(self):
-        # create the environment and scenario classes for a ring road
+        # create the environment and scenario classes for a grid network
         self.env, _ = grid_mxn_exp_setup()
         self.env.reset()
 
@@ -44,16 +44,6 @@ class TestEnvironment(unittest.TestCase):
         self.assertEqual(
             sorted(self.env._convert_edge(edges)),
             [i + 1 for i in range(len(edges))])
-
-
-class TestUtils(unittest.TestCase):
-    def setUp(self):
-        # create the environment and scenario classes for a ring road
-        self.env, _ = grid_mxn_exp_setup()
-        self.env.reset()
-
-        # instantiate an experiment class
-        self.exp = Experiment(self.env)
 
     @staticmethod
     def gen_edges(col_num, row_num):
@@ -100,6 +90,16 @@ class TestUtils(unittest.TestCase):
         for veh_id in junction_veh:
             self.assertEqual(0, self.env.get_distance_to_intersection(veh_id))
 
+
+class Test2x2Environment(unittest.TestCase):
+    def setUp(self):
+        # create the environment and scenario classes for a grid network
+        self.env, _ = grid_mxn_exp_setup(row_num=2, col_num=2)
+        self.env.reset()
+
+        # instantiate an experiment class
+        self.exp = Experiment(self.env)
+
     def tearDown(self):
         # terminate the traci instance
         self.env.terminate()
@@ -107,6 +107,31 @@ class TestUtils(unittest.TestCase):
         # free up used memory
         self.env = None
         self.exp = None
+
+    def test_get_relative_node(self):
+        node = self.env._get_relative_node('center0', 'top')
+        self.assertEqual(2, node)
+
+        node = self.env._get_relative_node('center0', 'right')
+        self.assertEqual(1, node)
+
+        node = self.env._get_relative_node('center0', 'bottom')
+        self.assertEqual(-1, node)
+
+        with self.assertRaises(NotImplementedError):
+            self.env._get_relative_node('center0', 'blah')
+
+        node = self.env._get_relative_node('center2', 'bottom')
+        self.assertEqual(0, node)
+
+        node = self.env._get_relative_node('center2', 'right')
+        self.assertEqual(3, node)
+
+        node = self.env._get_relative_node('center2', 'left')
+        self.assertEqual(-1, node)
+
+        with self.assertRaises(NotImplementedError):
+            self.env._get_relative_node('center1', 'blah')
 
 
 if __name__ == '__main__':
