@@ -160,7 +160,7 @@ def bay_bridge_example(render=None,
             departLane="0",
             departSpeed=20)  # no data for this
 
-    net_params = NetParams(inflows=inflow, no_internal_links=False)
+    net_params = NetParams(inflows=inflow)
     net_params.template = TEMPLATE
 
     # download the template from AWS

@@ -30,13 +30,15 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
 
     States
         See parent class
+
     Actions
         See parent class
+
     Rewards
         See parent class
+
     Termination
         See parent class
-
     """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
@@ -119,7 +121,7 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
             local_edge_numbers = []
             for edge in edges:
                 observed_ids = \
-                    self.k_closest_to_intersection(edge, self.num_observed)
+                    self.get_closest_to_intersection(edge, self.num_observed)
                 all_observed_ids.append(observed_ids)
 
                 # check which edges we have so we can always pad in the right

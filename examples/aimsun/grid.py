@@ -97,8 +97,7 @@ def grid_example(render=None):
         "horizontal_lanes": 1,
         "vertical_lanes": 1
     }
-    net_params = NetParams(
-        no_internal_links=False, additional_params=additional_net_params)
+    net_params = NetParams(additional_params=additional_net_params)
 
     initial_config = InitialConfig(spacing='custom')
 
