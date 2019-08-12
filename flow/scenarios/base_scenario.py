@@ -548,14 +548,87 @@ class Scenario(Serializable):
     def specify_routes(self, net_params):
         """Specify the routes vehicles can take starting from any edge.
 
-        The routes are specified as lists of edges the vehicle must traverse,
-        with the first edge corresponding to the edge the vehicle begins on.
-        Note that the edges must be connected for the route to be valid. If
-        this method is not implemented, vehicles that enter a network are
-        assigned routes consisting solely on their current edges, and exit the
-        network once they reach the end of their edge.
+        Routes can be specified in one of three ways:
 
-        Currently, only one route is allowed from any given starting edge.
+        * In this case of deterministic routes (as is the case in the ring road
+          scenario), the routes can be specified as dictionary where the key
+          element represents the starting edge and the element is a single list
+          of edges the vehicle must traverse, with the first edge corresponding
+          to the edge the vehicle begins on. Note that the edges must be
+          connected for the route to be valid.
+
+          For example (from flow/scenarios/loop.py):
+
+          >>> def specify_routes(self, net_params):
+          >>>     return {
+          >>>         "top": ["top", "left", "bottom", "right"],
+          >>>         "left": ["left", "bottom", "right", "top"],
+          >>>         "bottom": ["bottom", "right", "top", "left"],
+          >>>         "right": ["right", "top", "left", "bottom"]
+          >>>     }
+
+        * Alternatively, if the routes are meant to be stochastic, each element
+          can consist of a list of (route, probability) tuples, where the first
+          element in the tuple is one of the routes a vehicle can take from a
+          specific starting edge, and the second element is the probability
+          that vehicles will choose that route. Note that, in this case, the
+          sum of probability values for each dictionary key must sum up to one.
+
+          For example, if we were to imagine the edge "right" in the ring road
+          examples where split into two edges, "right_0" and "right_1", the
+          routes for vehicles in this network in the probabilistic setting can
+          be:
+
+          >>> def specify_routes(self, net_params):
+          >>>     return {
+          >>>         "top": [
+          >>>             (["top", "left", "bottom", "right_0"], 0.9),
+          >>>             (["top", "left", "bottom", "right_1"], 0.1)
+          >>>         ],
+          >>>         "left": [
+          >>>             (["left", "bottom", "right_0", "top"], 0.3),
+          >>>             (["left", "bottom", "right_1", "top"], 0.7)
+          >>>         ],
+          >>>         "bottom": [
+          >>>             (["bottom", "right_0", "top", "left"], 0.5),
+          >>>             (["bottom", "right_1", "top", "left"], 0.5)
+          >>>         ],
+          >>>         "right_0": [
+          >>>             (["right_0", "top", "left", "bottom"], 1)
+          >>>         ],
+          >>>         "right_1": [
+          >>>             (["right_1", "top", "left", "bottom"], 1)
+          >>>         ]
+          >>>     }
+
+        * Finally, if you would like to assign a specific starting edge and
+          route to a vehicle with a specific ID, you can do so by adding a
+          element into the dictionary whose key is the name of the vehicle and
+          whose content is the list of edges the vehicle is meant to traverse
+          as soon as it is introduced to the network.
+
+          As an example, assume we have 4 vehicles named 'human_0', 'human_1',
+          'human_2', and 'human_3' in the original ring road. Then, an
+          appropriate definition of the routes may look something like:
+
+          >>> def specify_routes(self, net_params):
+          >>>     return {
+          >>>         "human_0": ["top", "left", "bottom", "right"],
+          >>>         "human_1": ["left", "bottom", "right", "top"],
+          >>>         "human_2": ["bottom", "right", "top", "left"],
+          >>>         "human_3": ["right", "top", "left", "bottom"]
+          >>>     }
+
+          **Note**: This feature is experimental, and may not always work as
+          expected (for example if the starting positions and routes of a
+          specific vehicle do not match).
+
+        The `define_routes` method is optional, and need not be defined. If it
+        is not implemented, vehicles that enter a network are assigned routes
+        consisting solely on their current edges, and exit the network once
+        they reach the end of their edge. Routes, however, can be reassigned
+        during simulation via a routing controller (see
+        flow/controllers/routing_controllers.py).
 
         Parameters
         ----------
@@ -567,7 +640,8 @@ class Scenario(Serializable):
         dict
             Key = name of the starting edge
             Element = list of edges a vehicle starting from this edge must
-            traverse.
+            traverse *OR* a list of (route, probability) tuples for each
+            starting edge
         """
         return None
 

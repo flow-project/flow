@@ -1,3 +1,4 @@
+"""Green wave training experiment."""
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite
 from rllab.algos.trpo import TRPO
@@ -89,7 +90,6 @@ def get_flow_params(v_enter, vehs_per_hour, col_num, row_num, add_net_params):
 
     net_params = NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=add_net_params)
 
     return initial_config, net_params
@@ -120,8 +120,7 @@ def get_non_flow_params(enter_speed, add_net_params):
     additional_init_params = {'enter_speed': enter_speed}
     initial_config = InitialConfig(
         spacing='custom', additional_params=additional_init_params)
-    net_params = NetParams(
-        no_internal_links=False, additional_params=add_net_params)
+    net_params = NetParams(additional_params=add_net_params)
 
     return initial_config, net_params
 

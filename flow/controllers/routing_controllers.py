@@ -1,6 +1,7 @@
-import random
-
 """Contains a list of custom routing controllers."""
+
+import random
+import numpy as np
 
 from flow.controllers.base_routing_controller import BaseRouter
 
@@ -13,14 +14,27 @@ class ContinuousRouter(BaseRouter):
     """
 
     def choose_route(self, env):
-        """Adopt the current edge's route if about to leave the network."""
-        if len(env.k.vehicle.get_route(self.veh_id)) == 0:
+        """See parent class.
+
+        Adopt one of the current edge's routes if about to leave the network.
+        """
+        edge = env.k.vehicle.get_edge(self.veh_id)
+        current_route = env.k.vehicle.get_route(self.veh_id)
+
+        if len(current_route) == 0:
             # this occurs to inflowing vehicles, whose information is not added
             # to the subscriptions in the first step that they departed
             return None
-        elif env.k.vehicle.get_edge(self.veh_id) == \
-                env.k.vehicle.get_route(self.veh_id)[-1]:
-            return env.available_routes[env.k.vehicle.get_edge(self.veh_id)]
+        elif edge == current_route[-1]:
+            # choose one of the available routes based on the fraction of times
+            # the given route can be chosen
+            num_routes = len(env.available_routes[edge])
+            frac = [val[1] for val in env.available_routes[edge]]
+            route_id = np.random.choice(
+                [i for i in range(num_routes)], size=1, p=frac)[0]
+
+            # pass the chosen route
+            return env.available_routes[edge][route_id][0]
         else:
             return None
 
@@ -64,6 +78,7 @@ class GridRouter(BaseRouter):
     """A router used to re-route a vehicle within a grid environment."""
 
     def choose_route(self, env):
+        """See parent class."""
         if len(env.k.vehicle.get_route(self.veh_id)) == 0:
             # this occurs to inflowing vehicles, whose information is not added
             # to the subscriptions in the first step that they departed
@@ -88,7 +103,7 @@ class BayBridgeRouter(ContinuousRouter):
 
         if edge == "183343422" and lane in [2] \
                 or edge == "124952179" and lane in [1, 2]:
-            new_route = env.available_routes[edge + "_1"]
+            new_route = env.available_routes[edge + "_1"][0][0]
         else:
             new_route = super().choose_route(env)
 

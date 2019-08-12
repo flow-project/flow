@@ -121,7 +121,6 @@ class TestRegistry(unittest.TestCase):
                 },
             ),
             net=NetParams(
-                no_internal_links=False,
                 additional_params={
                     "radius_ring": 30,
                     "lanes": 1,
@@ -238,7 +237,6 @@ class TestRllib(unittest.TestCase):
             ),
             net=NetParams(
                 inflows=inflow,
-                no_internal_links=False,
                 additional_params={
                     "merge_length": 100,
                     "pre_merge_length": 500,

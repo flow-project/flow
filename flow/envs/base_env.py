@@ -58,9 +58,13 @@ class Env(*classdef):
     Attributes
     ----------
     env_params : flow.core.params.EnvParams
-       see flow/core/params.py
+        see flow/core/params.py
     sim_params : flow.core.params.SimParams
-       see flow/core/params.py
+        see flow/core/params.py
+    net_params : flow.core.params.NetParams
+        see flow/core/params.py
+    initial_config : flow.core.params.InitialConfig
+        see flow/core/params.py
     scenario : flow.scenarios.Scenario
         see flow/scenarios/base_scenario.py
     simulator : str
@@ -69,6 +73,12 @@ class Env(*classdef):
         Flow kernel object, using for state acquisition and issuing commands to
         the certain components of the simulator. For more information, see:
         flow/core/kernel/kernel.py
+    state : to be defined in observation space
+        state of the simulation
+    obs_var_labels : list
+        optional labels for each entries in observed state
+    sim_step : float optional
+        seconds per simulation step; 0.1 by default
     time_counter : int
         number of steps taken since the start of a rollout
     step_counter : int
