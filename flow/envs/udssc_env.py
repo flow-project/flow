@@ -358,14 +358,12 @@ class UDSSCMergeEnv(Env):
                 perturbation = np.random.normal(0, var) 
                 state[i] = st + perturbation
 
-            # Reclip
-            if isinstance(self.observation_space, Box):
-                state = np.clip(
-                    state,
-                    a_min=self.observation_space.low,
-                    a_max=self.observation_space.high)
-
-            # what happens if you don't clip it
+        # Reclip
+        if isinstance(self.observation_space, Box):
+            state = np.clip(
+                state,
+                a_min=self.observation_space.low,
+                a_max=self.observation_space.high)
 
         return state
 
@@ -396,6 +394,11 @@ class UDSSCMergeEnv(Env):
 
         edge_info = [len(self.k.vehicle.get_ids_by_edge(edge)) for edge in ALL_EDGES]
         state = np.array(np.concatenate([edge_info, rl_info, rl_info_2]))
+        if isinstance(self.observation_space, Box):
+            state = np.clip(
+                state,
+                a_min=self.observation_space.low,
+                a_max=self.observation_space.high)
         return state
     
     def rl_info(self, stack):
@@ -842,7 +845,7 @@ class UDSSCMergeEnvReset(UDSSCMergeEnv):
 
     def get_state(self, **kwargs):
         self.curate_rl_stack()
-        
+
         rl_id = None
         
         # Get normalization factors 
@@ -904,13 +907,12 @@ class UDSSCMergeEnvReset(UDSSCMergeEnv):
                 perturbation = np.random.normal(0, var) 
                 state[i] = st + perturbation
 
-            # Reclip
-            if isinstance(self.observation_space, Box):
-                state = np.clip(
-                    state,
-                    a_min=self.observation_space.low,
-                    a_max=self.observation_space.high)
-
+        # Reclip
+        if isinstance(self.observation_space, Box):
+            state = np.clip(
+                state,
+                a_min=self.observation_space.low,
+                a_max=self.observation_space.high)
         return state 
 
     def reset(self):
