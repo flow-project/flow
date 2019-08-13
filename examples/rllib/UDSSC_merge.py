@@ -25,7 +25,7 @@ SIM_STEP = 1
 BATCH_SIZE = 20000
 ITR = 100
 N_ROLLOUTS = 40
-exp_tag = "icra_0"  # experiment prefix
+exp_tag = "icra_1"  # experiment prefix
 
 # # Local settings
 # N_CPUS = 1
@@ -81,6 +81,7 @@ vehicles.add(veh_id="rl",
 inflow = InFlows()
     
 inflow.add(veh_type="rl", edge="inflow_0", name="rl", vehs_per_hour=50)
+inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
 inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
 inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
 

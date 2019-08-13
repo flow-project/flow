@@ -93,11 +93,7 @@ class UDSSCMergeEnv(Env):
         self.past_actions_2 = deque(maxlen=10)
 
         super().__init__(env_params, sim_params, scenario)
-        
-        # self.k.scenario.edge_length = self.k.scenario.edge_length
-        # self.edge_length = self.k.scenario.edge_length
-        # self.k.total_edgestarts = self.k.scenario.create_edgestarts()
-        # self.k.to
+
 
     @property
     def observation_space(self):
@@ -118,8 +114,6 @@ class UDSSCMergeEnv(Env):
                          self.n_merging_in * 4 + \
                          2 + \
                          int(self.roundabout_length // 5) * 2
-        # self.total_obs = self.n_obs_vehicles * 2 + 2 + \
-        #                  int(self.roundabout_length // 5) * 2
                          
         box = Box(low=0.,
                   high=1,
@@ -168,18 +162,7 @@ class UDSSCMergeEnv(Env):
                     a_max=self.action_space.high)
 
         # Curation
-        removal = [] 
-        removal_2 = []
-        for rl_id in self.rl_stack:
-            if rl_id not in self.k.vehicle.get_rl_ids():
-                removal.append(rl_id)
-        for rl_id in self.rl_stack_2:
-            if rl_id not in self.k.vehicle.get_rl_ids():
-                removal_2.append(rl_id)
-        for rl_id in removal:
-            self.rl_stack.remove(rl_id)
-        for rl_id in removal_2:
-            self.rl_stack_2.remove(rl_id)
+        self.curate_rl_stack() # This shouldn't be necessary given the new flow of events
 
         # Apply RL Actions
         if self.rl_stack:
@@ -213,7 +196,7 @@ class UDSSCMergeEnv(Env):
         # reward
         # return min_delay + penalty + penalty_2
         # rew = min_delay + penalty + penalty_2 + penalty_jerk + penalty_speeding
-        avg_vel = np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))
+        # avg_vel = np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))
         # print('avg_vel: %.2f, min_delay: %.2f, penalty: %.2f, penalty_2: %.2f, penalty_jerk: %.2f, penalty_speed: %.2f' % \
         #       (avg_vel, min_delay, penalty, penalty_2, penalty_jerk, penalty_speeding))
         # return 2 * min_delay + penalty + penalty_2 + penalty_jerk + penalty_speeding
@@ -762,13 +745,15 @@ class UDSSCMergeEnv(Env):
         return length
 
     def curate_rl_stack(self):
-        # Curate rl_stack
+
+        # Add to stacks
         for veh_id in self.k.vehicle.get_rl_ids():
             if veh_id not in self.rl_stack and self.k.vehicle.get_edge(veh_id) == "inflow_0":
                 self.rl_stack.append(veh_id)
             elif veh_id not in self.rl_stack_2 and self.k.vehicle.get_edge(veh_id) == "inflow_1":
                 self.rl_stack_2.append(veh_id)
-        # Curate second rl_stack
+
+        # Remove from stacks
         removal = [] 
         removal_2 = []
         for rl_id in self.rl_stack:
@@ -781,6 +766,15 @@ class UDSSCMergeEnv(Env):
             self.rl_stack.remove(rl_id)
         for rl_id in removal_2:
             self.rl_stack_2.remove(rl_id)
+        
+
+    def additional_command(self):
+        try: 
+            self.velocities.append(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids())))
+        except AttributeError:
+            self.velocities = []
+            self.velocities.append(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids())))
+
         # Color RL vehicles
         rl_control = self.rl_stack[:min(1, len(self.rl_stack))]
         rl_control_2 = self.rl_stack_2[:min(1, len(self.rl_stack_2))]
@@ -791,13 +785,6 @@ class UDSSCMergeEnv(Env):
                             vehID=veh_id, color=(0, 255, 255, 255))
         except:
             pass
-
-    def additional_command(self):
-        try: 
-            self.velocities.append(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids())))
-        except AttributeError:
-            self.velocities = []
-            self.velocities.append(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids())))
         
 
 class UDSSCMergeEnvReset(UDSSCMergeEnv):
