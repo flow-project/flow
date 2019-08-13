@@ -100,6 +100,9 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario='UDSSCMergingScenario',
 
+    # simulator that is used by the experiment
+    simulator='traci',
+
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim = SumoParams(
         sim_step=SIM_STEP,
@@ -202,7 +205,7 @@ def setup_exps():
 
 if __name__ == '__main__':
     alg_run, gym_name, config = setup_exps()
-    ray.init(num_cpus=N_CPUS + 1, object_store_memory=10000000)
+    ray.init(num_cpus=N_CPUS+1, object_store_memory=10000000)
     trials = run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,

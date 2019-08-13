@@ -1,11 +1,9 @@
 from flow.envs.base_env import Env
 from flow.core import rewards
 from flow.core.params import InitialConfig, NetParams, InFlows
-from flow.controllers import RLController, IDMController, \
-    SumoLaneChangeController, ContinuousRouter
+from flow.controllers import RLController, IDMController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
-    SumoCarFollowingParams, SumoLaneChangeParams    
-from flow.core.vehicles import Vehicles
+    SumoCarFollowingParams, SumoLaneChangeParams, VehicleParams  
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -70,7 +68,7 @@ class UDSSCMergeEnv(Env):
         vehicles collide into one another.
     """
 
-    def __init__(self, env_params, sumo_params, scenario):
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError('Environment parameter "{}" not supplied'.
@@ -94,7 +92,12 @@ class UDSSCMergeEnv(Env):
         self.past_actions = deque(maxlen=10)
         self.past_actions_2 = deque(maxlen=10)
 
-        super().__init__(env_params, sumo_params, scenario)
+        super().__init__(env_params, sim_params, scenario)
+        
+        # self.scenario.edge_length = self.k.scenario.edge_length
+        # self.edge_length = self.k.scenario.edge_length
+        # self.k.total_edgestarts = self.scenario.create_edgestarts()
+        # self.k.to
 
     @property
     def observation_space(self):
@@ -304,7 +307,7 @@ class UDSSCMergeEnv(Env):
         
         # Get normalization factors 
         circ = self.circumference()
-        max_speed = self.scenario.max_speed 
+        max_speed = self.k.scenario.max_speed 
         merge_0_norm = sum([self.scenario.edge_length(e) for e in RAMP_0])
         merge_1_norm = sum([self.scenario.edge_length(e) for e in RAMP_1])
         queue_0_norm = ceil(merge_0_norm/5 + 1) # 5 is the car length
@@ -798,7 +801,7 @@ class UDSSCMergeEnvReset(UDSSCMergeEnv):
     Creating this class for the purpose of having an experimental
     reset function.
     """
-    def __init__(self, env_params, sumo_params, scenario):
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         self.range_inflow_0 = env_params.additional_params['range_inflow_0']
         self.range_inflow_1 = env_params.additional_params['range_inflow_1']
         self.max_inflow = max(self.range_inflow_0 + self.range_inflow_1)
