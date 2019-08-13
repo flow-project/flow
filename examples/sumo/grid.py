@@ -132,12 +132,12 @@ def grid_example(render=None, use_inflows=False):
     inner_length = 300
     long_length = 500
     short_length = 300
-    n_rows = 2
+    n_rows = 1
     n_columns = 3
-    num_cars_left = 20
-    num_cars_right = 20
-    num_cars_top = 20
-    num_cars_bot = 20
+    num_cars_left = 1
+    num_cars_right = 1
+    num_cars_top = 1
+    num_cars_bot = 1
     tot_cars = (num_cars_left + num_cars_right) * n_columns \
         + (num_cars_top + num_cars_bot) * n_rows
 
@@ -170,7 +170,9 @@ def grid_example(render=None, use_inflows=False):
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    tl_logic = TrafficLightParams(baseline=False)
+    tl_logic = TrafficLightParams()
+    # tl_logic.toggle_all_nodes('traffic_light')
+    # tl_logic.toggle_baseline(True, 'static')
     phases = [{
         "duration": "31",
         "minDur": "8",
@@ -192,9 +194,9 @@ def grid_example(render=None, use_inflows=False):
         "maxDur": "6",
         "state": "ryryryryryry"
     }]
+    # ### TODO (kj) error here: need check for if the tl_logic your'e adding doesn't exist in the scenario
     tl_logic.add("center0", phases=phases, programID=1)
-    tl_logic.add("center1", phases=phases, programID=1)
-    tl_logic.add("center2", phases=phases, programID=1, tls_type="actuated")
+    # tl_logic.add("center2", phases=phases, programID=1, tls_type="actuated")
 
     additional_net_params = {
         "grid_array": grid_array,

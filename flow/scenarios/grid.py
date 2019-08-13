@@ -149,15 +149,17 @@ class SimpleGridScenario(Scenario):
         self.use_traffic_lights = net_params.additional_params.get(
             "traffic_lights", True)
 
+        self.traffic_lights = traffic_lights
         # radius of the inner nodes (ie of the intersections)
         self.inner_nodes_radius = 2.9 + 3.3 * max(self.vertical_lanes,
                                                   self.horizontal_lanes)
 
-        # total number of edges in the scenario
+        # total number of edges  in the scenario
         self.num_edges = 4 * ((self.col_num + 1) * self.row_num + self.col_num)
 
         # name of the scenario (DO NOT CHANGE)
         self.name = "BobLoblawsLawBlog"
+        self.traffic_lights = traffic_lights
 
         super().__init__(name, vehicles, net_params, initial_config,
                          traffic_lights)
@@ -165,6 +167,10 @@ class SimpleGridScenario(Scenario):
     def specify_nodes(self, net_params):
         """See parent class."""
         return self._inner_nodes + self._outer_nodes
+
+    def specify_tll(self, net_params):
+        """See parent class."""
+        return self._inner_nodes
 
     def specify_edges(self, net_params):
         """See parent class."""
@@ -235,19 +241,24 @@ class SimpleGridScenario(Scenario):
         list <dict>
             List of inner nodes
         """
-        node_type = "traffic_light" if self.use_traffic_lights else "priority"
-
         nodes = []
         for row in range(self.row_num):
             for col in range(self.col_num):
+                node_id = "center{}".format(row * self.col_num + col)
+                if self.traffic_lights.baseline:
+                    node_type = "traffic_light"
+                elif self.traffic_lights.all_type:
+                    node_type = self.traffic_lights.all_type
+                else:
+                    tl_type = self.traffic_lights.get_node_type(node_id)
+                    node_type = "traffic_light" if tl_type else "priority"
                 nodes.append({
-                    "id": "center{}".format(row * self.col_num + col),
+                    "id": node_id,
                     "x": col * self.inner_length,
                     "y": row * self.inner_length,
                     "type": node_type,
                     "radius": self.inner_nodes_radius
                 })
-
         return nodes
 
     @property
