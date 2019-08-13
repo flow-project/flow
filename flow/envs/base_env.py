@@ -394,8 +394,8 @@ class Env(*classdef):
 
         # test if the environment should terminate due to a collision or the
         # time horizon being met
-        done = crash or (self.time_counter >= self.env_params.warmup_steps
-                         + self.env_params.horizon)
+        done = (self.time_counter >= self.env_params.warmup_steps +
+                self.env_params.horizon)  # or crash
 
         # compute the info for each agent
         infos = {}
@@ -464,7 +464,7 @@ class Env(*classdef):
                 try:
                     self.k.vehicle.remove(veh_id)
                 except (FatalTraCIError, TraCIException):
-                    pass
+                    print(traceback.format_exc())
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
@@ -671,7 +671,7 @@ class Env(*classdef):
                 self.renderer.close()
         except FileNotFoundError:
             # Skip automatic termination. Connection is probably already closed
-            pass
+            print(traceback.format_exc())
 
     def render(self, reset=False, buffer_length=5):
         """Render a frame.
