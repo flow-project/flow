@@ -1,7 +1,7 @@
 # cluster.yaml ========================================= 
 
 # An unique identifier for the head node and workers of this cluster.
-cluster_name: test #<YOUR NAME>
+cluster_name: kathy10 #<YOUR NAME>
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
@@ -41,7 +41,7 @@ auth:
 head_node:
     InstanceType: c4.4xlarge
     #ImageId: ami-060b3311dd2b675ee # Flow AMI (Ubuntu)
-    ImageId: ami-0067051ba5c8f0b64 # Flow AMI (Ubuntu)
+    ImageId: ami-0dfd7329b99c64987 # kathy10 AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -57,7 +57,7 @@ head_node:
 worker_nodes:
     InstanceType: c4.4xlarge
     #ImageId: ami-060b3311dd2b675ee # Flow AMI (Ubuntu)
-    ImageId: ami-0067051ba5c8f0b64 # Flow AMI (Ubuntu)
+    ImageId: ami-0dfd7329b99c64987 # kathy10 AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
@@ -70,17 +70,20 @@ worker_nodes:
 
 setup_commands:
     # checkout your desired branch on all worker nodes
-    - cd flow && git fetch && git checkout itsc_bottleneck
+    - cd flow && git remote add kathy https://github.com/kjang96/flow-1
+    - cd ~/flow && git fetch kathy && git checkout kathy/get_the_autoscaler_working # && git pull
+    # - cd flow && git pull && git checkout master
+    
     # set up ray by pip installing and copying over rllib and tune folder
-    - pip install --upgrade pyzmq notebook
-    - pip install ray==0.6.1
-    - pip install lz4
-    - git clone https://github.com/flow-project/ray.git
-    - cd ray && git fetch && git checkout master
-    - rm -rf /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/rllib
-    - cd ray && cp -r python/ray/rllib /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/rllib
-    - rm -rf /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune
-    - cd ray && cp -r python/ray/tune /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune
+    # - pip install --upgrade pyzmq notebook
+    # - pip install ray==0.6.1
+    # - pip install lz4
+    # - git clone https://github.com/flow-project/ray.git
+    # - cd ray && git fetch && git checkout master
+    # - rm -rf /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/rllib
+    # - cd ray && cp -r python/ray/rllib /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/rllib
+    # - rm -rf /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune
+    # - cd ray && cp -r python/ray/tune /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune
     # set up sumo and anaconda
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
@@ -88,7 +91,8 @@ setup_commands:
     - echo 'export PATH="/home/ubuntu/anaconda3/bin:$PATH"' >> ~/.bashrc
 # Custom commands that will be run on the head node after common setup.
 head_setup_commands:
-    - PATH="/home/ubuntu/anaconda3/bin:$PATH" yes | ~/anaconda3/bin/conda install boto3=1.4.8  # 1.4.8 adds InstanceMarketOptions
+    - cd
+    # - PATH="/home/ubuntu/anaconda3/bin:$PATH" yes | ~/anaconda3/bin/conda install boto3=1.4.8  # 1.4.8 adds InstanceMarketOptions
 
 # Custom commands that will be run on worker nodes after common setup.
 worker_setup_commands: []

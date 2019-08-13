@@ -16,6 +16,13 @@ imutils==0.5.1
 numpydoc
 ray==0.6.1
 opencv-python
+dill
+lz4
+setproctitle
+psutil
+opencv-python
+boto3==1.4.8
+redis~=2.10.6
 
 # theano==0.8.2 # for rllab
 # lasagne # for rllab
