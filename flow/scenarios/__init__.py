@@ -15,6 +15,7 @@ from flow.scenarios.merge import MergeScenario
 from flow.scenarios.loop_merge import TwoLoopsOneMergingScenario
 from flow.scenarios.multi_loop import MultiLoopScenario
 from flow.scenarios.minicity import MiniCityScenario
+from flow.scenarios.udssc import UDSSCMergingScenario
 from flow.scenarios.highway_ramps import HighwayRampsScenario
 
 __all__ = [
@@ -22,5 +23,5 @@ __all__ = [
     "BottleneckScenario", "Figure8Scenario", "SimpleGridScenario",
     "HighwayScenario", "LoopScenario", "MergeScenario",
     "TwoLoopsOneMergingScenario", "MultiLoopScenario", "MiniCityScenario",
-    "HighwayRampsScenario"
+    "HighwayRampsScenario", "UDSSCMergingScenario"
 ]
