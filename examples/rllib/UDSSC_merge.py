@@ -31,7 +31,7 @@ exp_tag = "kathy_rllib"  # experiment prefix
 N_CPUS = 1
 RENDER = True
 MODE = "local"
-RESTART_INSTANCE = True
+RESTART_INSTANCE = False
 SEEDS = [1]
 
 # # Autoscaler settings

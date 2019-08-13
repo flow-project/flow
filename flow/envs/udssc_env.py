@@ -299,10 +299,8 @@ class UDSSCMergeEnv(Env):
         * max_speed = 15 
 
         """
-        # import ipdb; ipdb.set_trace()
-        # for v in self.rl_stack: 
-        #     if v in self.rl_stack_2:
-        #         import ipdb; ipdb.set_trace()
+        self.curate_rl_stack()
+
         rl_id = None
         
         # Get normalization factors 
@@ -373,6 +371,7 @@ class UDSSCMergeEnv(Env):
 
     def get_state_test(self): 
         # number of vehicles on each edge
+        self.curate_rl_stack()
 
         def edge_index(veh_id):
             try:
@@ -759,13 +758,7 @@ class UDSSCMergeEnv(Env):
         length = sum([self.k.scenario.edge_length(e) for e in ALL_EDGES])
         return length
 
-    def additional_command(self):
-        try: 
-            self.velocities.append(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids())))
-        except AttributeError:
-            self.velocities = []
-            self.velocities.append(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids())))
-        
+    def curate_rl_stack(self):
         # Curate rl_stack
         for veh_id in self.k.vehicle.get_rl_ids():
             if veh_id not in self.rl_stack and self.k.vehicle.get_edge(veh_id) == "inflow_0":
@@ -795,6 +788,14 @@ class UDSSCMergeEnv(Env):
                             vehID=veh_id, color=(0, 255, 255, 255))
         except:
             pass
+
+    def additional_command(self):
+        try: 
+            self.velocities.append(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids())))
+        except AttributeError:
+            self.velocities = []
+            self.velocities.append(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids())))
+        
 
 class UDSSCMergeEnvReset(UDSSCMergeEnv):
     """
@@ -840,6 +841,8 @@ class UDSSCMergeEnvReset(UDSSCMergeEnv):
         return box
 
     def get_state(self, **kwargs):
+        self.curate_rl_stack()
+        
         rl_id = None
         
         # Get normalization factors 

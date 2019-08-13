@@ -1,11 +1,21 @@
 import xml.etree.ElementTree as ET
 
 from flow.scenarios.base_scenario import Scenario
-from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import InitialConfig, TrafficLightParams
+from flow.core.util import makexml, printxml, ensure_dir
 
+import os
+import time
 import numpy as np
+import subprocess
 from numpy import pi, sin, cos, linspace, sqrt
+from lxml import etree
+import xml.etree.ElementTree as ElementTree
+E = etree.Element
+# Number of retries on accessing the .net.xml file before giving up
+RETRIES_ON_ERROR = 10
+# number of seconds to wait before trying to access the .net.xml file again
+WAIT_ON_ERROR = 1
 
 
 ADDITIONAL_NET_PARAMS = {
@@ -36,7 +46,7 @@ class UDSSCMergingScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initializes a two loop scenario where one loop merging in and out of
         the other.
 
@@ -54,37 +64,393 @@ class UDSSCMergingScenario(Scenario):
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
-        # <-- 
+        
         self.es = {}
 
-        # -->
         radius = net_params.additional_params["ring_radius"]
-        x = net_params.additional_params["lane_length"]
+        lane_length = net_params.additional_params["lane_length"]
+        merge_length = net_params.additional_params["merge_length"]
 
         self.junction_length = 0.3
         self.intersection_length = 25.5  # calibrate when the radius changes
 
-        net_params.additional_params["length"] = \
-            2 * x + 2 * pi * radius + \
-            2 * self.intersection_length + 2 * self.junction_length
+        # net_params.additional_params["length"] = \
+        #     2 * lane_length + 2 * pi * radius + \
+        #     2 * self.intersection_length + 2 * self.junction_length
 
-        num_vehicles = vehicles.num_vehicles
-        num_merge_vehicles = sum("merge" in vehicles.get_state(veh_id, "type")
-                                 for veh_id in vehicles.get_ids())
-        self.n_inner_vehicles = num_merge_vehicles
-        self.n_outer_vehicles = num_vehicles - num_merge_vehicles
-
-        radius = net_params.additional_params["ring_radius"]
-        length_loop = 2 * pi * radius
-        self.length_loop = length_loop
-        self.roundabout_speed_limit = net_params.additional_params["roundabout_speed_limit"]
-        self.outside_speed_limit = net_params.additional_params["outside_speed_limit"]
         self.lane_num = net_params.additional_params["lane_num"]
+        
+        self._edges, self._connections = self.generate_net(
+                net_params,
+                traffic_lights,
+                self.specify_nodes(net_params),
+                self.specify_edges(net_params),
+                self.specify_types(net_params),
+            )
 
         super().__init__(name, vehicles, net_params,
                          initial_config, traffic_lights)
 
+
+    def generate_net(self,
+                     net_params,
+                     traffic_lights,
+                     nodes,
+                     edges,
+                     types=None,
+                     connections=None):
+        """Generate Net files for the transportation network.
+
+        Creates different network configuration files for:
+
+        * nodes: x,y position of points which are connected together to form
+          links. The nodes may also be fitted with traffic lights, or can be
+          treated as priority or zipper merge regions if they combines several
+          lanes or edges together.
+        * edges: directed edges combining nodes together. These constitute the
+          lanes vehicles will be allowed to drive on.
+        * types (optional): parameters used to describe common features amount
+          several edges of similar types. If edges are not defined with common
+          types, this is not needed.
+        * connections (optional): describes how incoming and outgoing edge/lane
+          pairs on a specific node as connected. If none is specified, SUMO
+          handles these connections by default.
+
+        The above files are then combined to form a .net.xml file describing
+        the shape of the traffic network in a form compatible with SUMO.
+
+        Parameters
+        ----------
+        net_params : flow.core.params.NetParams
+            network-specific parameters. Different networks require different
+            net_params; see the separate sub-classes for more information.
+        traffic_lights : flow.core.params.TrafficLightParams
+            traffic light information, used to determine which nodes are
+            treated as traffic lights
+        nodes : list of dict
+            A list of node attributes (a separate dict for each node). Nodes
+            attributes must include:
+
+            * id {string} -- name of the node
+            * x {float} -- x coordinate of the node
+            * y {float} -- y coordinate of the node
+
+        edges : list of dict
+            A list of edges attributes (a separate dict for each edge). Edge
+            attributes must include:
+
+            * id {string} -- name of the edge
+            * from {string} -- name of node the directed edge starts from
+            * to {string} -- name of the node the directed edge ends at
+
+            In addition, the attributes must contain at least one of the
+            following:
+
+            * "numLanes" {int} and "speed" {float} -- the number of lanes and
+              speed limit of the edge, respectively
+            * type {string} -- a type identifier for the edge, which can be
+              used if several edges are supposed to possess the same number of
+              lanes, speed limits, etc...
+
+        types : list of dict
+            A list of type attributes for specific groups of edges. If none are
+            specified, no .typ.xml file is created.
+        connections : list of dict
+            A list of connection attributes. If none are specified, no .con.xml
+            file is created.
+
+        Returns
+        -------
+        edges : dict <dict>
+            Key = name of the edge
+            Elements = length, lanes, speed
+        connection_data : dict < dict < list < (edge, pos) > > >
+            Key = name of the arriving edge
+                Key = lane index
+                Element = list of edge/lane pairs that a vehicle can traverse
+                from the arriving edge/lane pairs
+        """
+        net_path = os.path.dirname(os.path.abspath(__file__)) \
+            + '/debug/net/'
+        cfg_path = os.path.dirname(os.path.abspath(__file__)) \
+            + '/debug/cfg/'
+
+        ensure_dir('%s' % net_path)
+        ensure_dir('%s' % cfg_path)
+
+        network = "temp"
+        nodfn = '%s.nod.xml' % network
+        edgfn = '%s.edg.xml' % network
+        typfn = '%s.typ.xml' % network
+        cfgfn = '%s.netccfg' % network
+        netfn = '%s.net.xml' % network
+        confn = '%s.con.xml' % network
+        roufn = '%s.rou.xml' % network
+        addfn = '%s.add.xml' % network
+        sumfn = '%s.sumo.cfg' % network
+        guifn = '%s.gui.cfg' % network
+        # self._edges = None
+        # self._connections = None
+        # self._edge_list = None
+        # self._junction_list = None
+        # self.__max_speed = None
+        self.__length = None
+        self.rts = None
+        self.cfg = None
+
+        def _import_edges_from_net(net_params):
+            """Import edges from a configuration file.
     
+            This is a utility function for computing edge information. It imports a
+            network configuration file, and returns the information on the edges
+            and junctions located in the file.
+    
+            Parameters
+            ----------
+            net_params : flow.core.params.NetParams
+                see flow/core/params.py
+    
+            Returns
+            -------
+            net_data : dict <dict>
+                Key = name of the edge/junction
+                Element = lanes, speed, length
+            connection_data : dict < dict < list < (edge, pos) > > >
+                Key = "prev" or "next", indicating coming from or to this
+                edge/lane pair
+                    Key = name of the edge
+                        Key = lane index
+                        Element = list of edge/lane pairs preceding or following
+                        the edge/lane pairs
+            """
+            # import the .net.xml file containing all edge/type data
+            parser = etree.XMLParser(recover=True)
+            net_path = os.path.join(cfg_path, netfn) \
+                if net_params.template is None else netfn
+            tree = ElementTree.parse(net_path, parser=parser)
+            root = tree.getroot()
+    
+            # Collect information on the available types (if any are available).
+            # This may be used when specifying some edge data.
+            types_data = dict()
+    
+            for typ in root.findall('type'):
+                type_id = typ.attrib['id']
+                types_data[type_id] = dict()
+    
+                if 'speed' in typ.attrib:
+                    types_data[type_id]['speed'] = float(typ.attrib['speed'])
+                else:
+                    types_data[type_id]['speed'] = None
+    
+                if 'numLanes' in typ.attrib:
+                    types_data[type_id]['numLanes'] = int(typ.attrib['numLanes'])
+                else:
+                    types_data[type_id]['numLanes'] = None
+    
+            net_data = dict()
+            next_conn_data = dict()  # forward looking connections
+            prev_conn_data = dict()  # backward looking connections
+    
+            # collect all information on the edges and junctions
+            for edge in root.findall('edge'):
+                edge_id = edge.attrib['id']
+    
+                # create a new key for this edge
+                net_data[edge_id] = dict()
+    
+                # check for speed
+                if 'speed' in edge:
+                    net_data[edge_id]['speed'] = float(edge.attrib['speed'])
+                else:
+                    net_data[edge_id]['speed'] = None
+    
+                # if the edge has a type parameters, check that type for a
+                # speed and parameter if one was not already found
+                if 'type' in edge.attrib and edge.attrib['type'] in types_data:
+                    if net_data[edge_id]['speed'] is None:
+                        net_data[edge_id]['speed'] = \
+                            float(types_data[edge.attrib['type']]['speed'])
+    
+                # collect the length from the lane sub-element in the edge, the
+                # number of lanes from the number of lane elements, and if needed,
+                # also collect the speed value (assuming it is there)
+                net_data[edge_id]['lanes'] = 0
+                for i, lane in enumerate(edge):
+                    net_data[edge_id]['lanes'] += 1
+                    if i == 0:
+                        net_data[edge_id]['length'] = float(lane.attrib['length'])
+                        if net_data[edge_id]['speed'] is None \
+                                and 'speed' in lane.attrib:
+                            net_data[edge_id]['speed'] = float(
+                                lane.attrib['speed'])
+    
+                # if no speed value is present anywhere, set it to some default
+                if net_data[edge_id]['speed'] is None:
+                    net_data[edge_id]['speed'] = 30
+    
+            # collect connection data
+            for connection in root.findall('connection'):
+                from_edge = connection.attrib['from']
+                from_lane = int(connection.attrib['fromLane'])
+    
+                if from_edge[0] != ":":
+                    # if the edge is not an internal link, then get the next
+                    # edge/lane pair from the "via" element
+                    via = connection.attrib['via'].rsplit('_', 1)
+                    to_edge = via[0]
+                    to_lane = int(via[1])
+                else:
+                    to_edge = connection.attrib['to']
+                    to_lane = int(connection.attrib['toLane'])
+    
+                if from_edge not in next_conn_data:
+                    next_conn_data[from_edge] = dict()
+    
+                if from_lane not in next_conn_data[from_edge]:
+                    next_conn_data[from_edge][from_lane] = list()
+    
+                if to_edge not in prev_conn_data:
+                    prev_conn_data[to_edge] = dict()
+    
+                if to_lane not in prev_conn_data[to_edge]:
+                    prev_conn_data[to_edge][to_lane] = list()
+    
+                next_conn_data[from_edge][from_lane].append((to_edge, to_lane))
+                prev_conn_data[to_edge][to_lane].append((from_edge, from_lane))
+    
+            connection_data = {'next': next_conn_data, 'prev': prev_conn_data}
+    
+            return net_data, connection_data
+
+        # add traffic lights to the nodes
+        tl_ids = list(traffic_lights.get_properties().keys())
+        for n_id in tl_ids:
+            indx = next(i for i, nd in enumerate(nodes) if nd['id'] == n_id)
+            nodes[indx]['type'] = 'traffic_light'
+
+        # for nodes that have traffic lights that haven't been added
+        for node in nodes:
+            if node['id'] not in tl_ids \
+                    and node.get('type', None) == 'traffic_light':
+                traffic_lights.add(node['id'])
+
+            # modify the x and y values to be strings
+            node['x'] = str(node['x'])
+            node['y'] = str(node['y'])
+            if 'radius' in node:
+                node['radius'] = str(node['radius'])
+
+        # xml file for nodes; contains nodes for the boundary points with
+        # respect to the x and y axes
+        x = makexml('nodes', 'http://sumo.dlr.de/xsd/nodes_file.xsd')
+        for node_attributes in nodes:
+            x.append(E('node', **node_attributes))
+        printxml(x, net_path + nodfn)
+
+        # modify the length, shape, numLanes, and speed values
+        for edge in edges:
+            edge['length'] = str(edge['length'])
+            if 'priority' in edge:
+                edge['priority'] = str(edge['priority'])
+            if 'shape' in edge:
+                if not isinstance(edge['shape'], str):
+                    edge['shape'] = ' '.join('%.2f,%.2f' % (x, y)
+                                             for x, y in edge['shape'])
+            if 'numLanes' in edge:
+                edge['numLanes'] = str(edge['numLanes'])
+            if 'speed' in edge:
+                edge['speed'] = str(edge['speed'])
+
+        # xml file for edges
+        x = makexml('edges', 'http://sumo.dlr.de/xsd/edges_file.xsd')
+        for edge_attributes in edges:
+            x.append(E('edge', attrib=edge_attributes))
+        printxml(x, net_path + edgfn)
+
+        # xml file for types: contains the the number of lanes and the speed
+        # limit for the lanes
+        if types is not None:
+            # modify the numLanes and speed values
+            for typ in types:
+                if 'numLanes' in typ:
+                    typ['numLanes'] = str(typ['numLanes'])
+                if 'speed' in typ:
+                    typ['speed'] = str(typ['speed'])
+
+            x = makexml('types', 'http://sumo.dlr.de/xsd/types_file.xsd')
+            for type_attributes in types:
+                x.append(E('type', **type_attributes))
+            printxml(x, net_path + typfn)
+
+        # xml for connections: specifies which lanes connect to which in the
+        # edges
+        if connections is not None:
+            # modify the fromLane and toLane values
+            for connection in connections:
+                if 'fromLane' in connection:
+                    connection['fromLane'] = str(connection['fromLane'])
+                if 'toLane' in connection:
+                    connection['toLane'] = str(connection['toLane'])
+
+            x = makexml('connections',
+                        'http://sumo.dlr.de/xsd/connections_file.xsd')
+            for connection_attributes in connections:
+                if 'signal_group' in connection_attributes:
+                    del connection_attributes['signal_group']
+                x.append(E('connection', **connection_attributes))
+            printxml(x, net_path + confn)
+
+        # xml file for configuration, which specifies:
+        # - the location of all files of interest for sumo
+        # - output net file
+        # - processing parameters for no internal links and no turnarounds
+        x = makexml('configuration',
+                    'http://sumo.dlr.de/xsd/netconvertConfiguration.xsd')
+        t = E('input')
+        t.append(E('node-files', value=nodfn))
+        t.append(E('edge-files', value=edgfn))
+        if types is not None:
+            t.append(E('type-files', value=typfn))
+        if connections is not None:
+            t.append(E('connection-files', value=confn))
+        x.append(t)
+        t = E('output')
+        t.append(E('output-file', value=netfn))
+        x.append(t)
+        t = E('processing')
+        t.append(E('no-internal-links', value='false'))
+        t.append(E('no-turnarounds', value='true'))
+        x.append(t)
+        printxml(x, net_path + cfgfn)
+
+        subprocess.call(
+            [
+                'netconvert -c ' + net_path + cfgfn +
+                ' --output-file=' + cfg_path + netfn +
+                ' --no-internal-links="false"'
+            ],
+            shell=True)
+
+        # collect data from the generated network configuration file
+        error = None
+        for _ in range(RETRIES_ON_ERROR):
+            try:
+                edges_dict, conn_dict = _import_edges_from_net(net_params)
+                return edges_dict, conn_dict
+            except Exception as e:
+                print('Error during start: {}'.format(e))
+                print('Retrying in {} seconds...'.format(WAIT_ON_ERROR))
+                time.sleep(WAIT_ON_ERROR)
+        raise error
+
+    def edge_length(self, edge_id):
+        """See parent class."""
+        try:
+            return self._edges[edge_id]['length']
+        except KeyError:
+            print('Error in edge length with key', edge_id)
+            return -1001
 
     def specify_edge_starts(self):
         """
@@ -121,7 +487,6 @@ class UDSSCMergingScenario(Scenario):
             ("outflow_1", edge_dict["outflow_1"]),
         ]
 
-        # import ipdb; ipdb.set_trace()
         return edgestarts
 
     def specify_internal_edge_starts(self):
@@ -184,162 +549,13 @@ class UDSSCMergingScenario(Scenario):
         Vehicles with the prefix "merge" are placed in the merge ring,
         while all other vehicles are placed in the ring.
         """
-        x0 = initial_config.x0
-        # changes to x0 in kwargs suggests a switch in between rollouts,
-        #  and so overwrites anything in initial_config
-        if "x0" in kwargs:
-            x0 = kwargs["x0"]
-
-        random_scale = \
-            self.initial_config.additional_params.get("gaussian_scale", 0)
-
-        bunching = initial_config.bunching
-        # changes to bunching in kwargs suggests a switch in between rollouts,
-        #  and so overwrites anything in initial_config
-        if "bunching" in kwargs:
-            bunching = kwargs["bunching"]
-
-        merge_bunching = 0
-        if "merge_bunching" in initial_config.additional_params:
-            merge_bunching = initial_config.additional_params["merge_bunching"]
-
-        num_vehicles = self.vehicles.num_vehicles
-        num_merge_vehicles = \
-            sum("merge" in self.vehicles.get_state(veh_id, "type")
-                for veh_id in self.vehicles.get_ids())
-
-        radius = self.net_params.additional_params["ring_radius"]
-        lane_length = self.net_params.additional_params["lane_length"]
-
-        startpositions = []
-        startlanes = []
-        length_loop = 2 * pi * radius
-
-        try:
-            increment_loop = \
-                (self.length_loop - bunching) \
-                * self.net_params.additional_params["inner_lanes"] \
-                / (num_vehicles - num_merge_vehicles)
-
-            # x = [x0] * initial_config.lanes_distribution
-            if self.initial_config.additional_params.get("ring_from_right",
-                                                         False):
-                x = [dict(self.edgestarts)["right"]] * \
-                    self.net_params.additional_params["inner_lanes"]
-            else:
-                x = [x0] * self.net_params.additional_params["inner_lanes"]
-            car_count = 0
-            lane_count = 0
-            while car_count < num_vehicles - num_merge_vehicles:
-                # collect the position and lane number of each new vehicle
-                pos = self.get_edge(x[lane_count])
-
-                # ensures that vehicles are not placed in an internal junction
-                while pos[0] in dict(self.internal_edgestarts).keys():
-                    # find the location of the internal edge in
-                    # total_edgestarts, which has the edges ordered by position
-                    edges = [tup[0] for tup in self.total_edgestarts]
-                    indx_edge = next(i for i, edge in enumerate(edges)
-                                     if edge == pos[0])
-
-                    # take the next edge in the list, and place the car at the
-                    # beginning of this edge
-                    if indx_edge == len(edges)-1:
-                        next_edge_pos = self.total_edgestarts[0]
-                    else:
-                        next_edge_pos = self.total_edgestarts[indx_edge+1]
-
-                    x[lane_count] = next_edge_pos[1]
-                    pos = (next_edge_pos[0], 0)
-
-                startpositions.append(pos)
-                startlanes.append(lane_count)
-
-                x[lane_count] = \
-                    (x[lane_count] + increment_loop
-                     + random_scale * np.random.randn()) % length_loop
-
-                # increment the car_count and lane_num
-                car_count += 1
-                lane_count += 1
-                # if the lane num exceeds the number of lanes the vehicles
-                # should be distributed on in the network, reset
-                if lane_count >= \
-                        self.net_params.additional_params["inner_lanes"]:
-                    lane_count = 0
-        except ZeroDivisionError:
-            pass
-
-        length_merge = pi * radius + 2 * lane_length
-        try:
-            increment_merge = \
-                (length_merge - merge_bunching) * \
-                initial_config.lanes_distribution / num_merge_vehicles
-
-            if self.initial_config.additional_params.get("merge_from_top",
-                                                         False):
-                x = [dict(self.edgestarts)["top"] - x0] * \
-                    self.net_params.additional_params["outer_lanes"]
-            else:
-                x = [dict(self.edgestarts)["bottom"] - x0] * \
-                    self.net_params.additional_params["outer_lanes"]
-            car_count = 0
-            lane_count = 0
-            while car_count < num_merge_vehicles:
-                # collect the position and lane number of each new vehicle
-                pos = self.get_edge(x[lane_count])
-
-                # ensures that vehicles are not placed in an internal junction
-                while pos[0] in dict(self.internal_edgestarts).keys():
-                    # find the location of the internal edge in
-                    # total_edgestarts, which has the edges ordered by position
-                    edges = [tup[0] for tup in self.total_edgestarts]
-                    indx_edge = next(i for i, edge in enumerate(edges)
-                                     if edge == pos[0])
-
-                    # take the next edge in the list, and place the car at the
-                    # beginning of this edge
-                    if indx_edge == len(edges)-1:
-                        next_edge_pos = self.total_edgestarts[0]
-                    else:
-                        next_edge_pos = self.total_edgestarts[indx_edge+1]
-
-                    x[lane_count] = next_edge_pos[1]
-                    pos = (next_edge_pos[0], 0)
-
-                startpositions.append(pos)
-                startlanes.append(lane_count)
-
-                if self.initial_config.additional_params.get(
-                        "merge_from_top", False):
-                    x[lane_count] = x[lane_count] - increment_merge + \
-                        random_scale*np.random.randn()
-                else:
-                    x[lane_count] = x[lane_count] + increment_merge + \
-                        random_scale*np.random.randn()
-
-                # increment the car_count and lane_num
-                car_count += 1
-                lane_count += 1
-                # if the lane num exceeds the number of lanes the vehicles
-                # should be distributed on in the network, reset
-                # if lane_count >= self.initial_config.lane_distribution
-                if lane_count >= \
-                        self.net_params.additional_params["outer_lanes"]:
-                    lane_count = 0
-
-        # CHANGES START
-        # startpositions = [('right', 2.87), ('inflow_1', 10.0)]
-        # CHANGES END
-        except ZeroDivisionError:
-            pass
-        # First one corresponds to the IDM,
-        # second one corresponds to the RL 
-        if 'rl_0' in self.vehicles.get_ids(): # HARDCODE ALERT
+        if 'rl_0' in self.vehicles.ids: # HARDCODE ALERT
             # startpositions = [('inflow_0', 10), ('right', 10)]
+            startlanes = [0, 0]
             startpositions = [('outflow_0', 0), ('outflow_0', 10)]
         else: 
             startpositions = [('inflow_0', 10)]
+            startlanes = [0]
         
         return startpositions, startlanes
 
@@ -368,7 +584,7 @@ class UDSSCMergingScenario(Scenario):
         """
         r = net_params.additional_params["ring_radius"]
         x = net_params.additional_params["lane_length"]
-        m = self.net_params.additional_params["merge_length"]
+        m = net_params.additional_params["merge_length"]
 
         roundabout_type = "priority"
         default = "priority"
@@ -390,14 +606,13 @@ class UDSSCMergingScenario(Scenario):
         See parent class
         """
         r = net_params.additional_params["ring_radius"]
-        x = net_params.additional_params["lane_length"]
+        lane_length = net_params.additional_params["lane_length"]
+        merge_length = net_params.additional_params["merge_length"]
         circumference = 2 * pi * r
         lanes = repr(net_params.additional_params["lane_num"])
         
         resolution = net_params.additional_params["resolution"]
 
-        length = net_params.additional_params["length"]
-        # edgelen = length / 4.
         circ = 2 * pi * r
         twelfth = circ / 12
         edges = [
@@ -442,6 +657,7 @@ class UDSSCMergingScenario(Scenario):
              "from": "b",
              "to": "e",
              "numLanes": lanes,
+             "length": merge_length,
             },
 
             {"id": "merge_in_0",
@@ -449,6 +665,7 @@ class UDSSCMergingScenario(Scenario):
              "from": "e",
              "to": "c",
              "numLanes": lanes,
+             "length": merge_length,
             },
 
             {"id": "outflow_0",
@@ -456,6 +673,7 @@ class UDSSCMergingScenario(Scenario):
              "from": "e",
              "to": "f",
              "numLanes": lanes,
+             "length": lane_length,
             },
 
             {"id": "inflow_0",
@@ -463,6 +681,7 @@ class UDSSCMergingScenario(Scenario):
              "from": "f",
              "to": "e",
              "numLanes": lanes,
+             "length": lane_length,
             },
 
             {"id": "merge_out_1",
@@ -470,6 +689,7 @@ class UDSSCMergingScenario(Scenario):
              "from": "d",
              "to": "g",
              "numLanes": lanes,
+             "length": merge_length,
             },
             
             {"id": "merge_in_1",
@@ -477,6 +697,7 @@ class UDSSCMergingScenario(Scenario):
              "from": "g",
              "to": "a",
              "numLanes": lanes,
+             "length": merge_length,
             },
 
             {"id": "outflow_1",
@@ -484,6 +705,7 @@ class UDSSCMergingScenario(Scenario):
              "from": "g",
              "to": "h",
              "numLanes": lanes,
+             "length": lane_length,
             },
 
             {"id": "inflow_1",
@@ -491,6 +713,7 @@ class UDSSCMergingScenario(Scenario):
              "from": "h",
              "to": "g",
              "numLanes": lanes,
+             "length": lane_length,
             },
         ]
 
