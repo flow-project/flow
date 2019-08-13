@@ -25,21 +25,21 @@ SIM_STEP = 1
 BATCH_SIZE = 20000
 ITR = 100
 N_ROLLOUTS = 40
-exp_tag = "kathy_rllib"  # experiment prefix
+exp_tag = "icra_0"  # experiment prefix
 
-# Local settings
-N_CPUS = 1
-RENDER = True
-MODE = "local"
-RESTART_INSTANCE = False
-SEEDS = [1]
-
-# # Autoscaler settings
-# N_CPUS = 10
+# # Local settings
+# N_CPUS = 1
 # RENDER = False
 # MODE = "local"
 # RESTART_INSTANCE = True
-# SEEDS = [1, 2, 5, 91, 104, 32] 
+# SEEDS = [1]
+
+# Autoscaler settings
+N_CPUS = 10
+RENDER = False
+MODE = "local"
+RESTART_INSTANCE = True
+SEEDS = [1, 2, 5]#, 91, 104, 32] 
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = VehicleParams()
@@ -205,7 +205,7 @@ def setup_exps():
 
 if __name__ == '__main__':
     alg_run, gym_name, config = setup_exps()
-    ray.init(num_cpus=N_CPUS+1, object_store_memory=10000000)
+    ray.init(num_cpus=N_CPUS+1)#, object_store_memory=10000000)
     trials = run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,
@@ -218,5 +218,6 @@ if __name__ == '__main__':
             'stop': {
                 'training_iteration': ITR,
             },
+            'upload_dir': 's3://kathy.experiments/rllib/experiments'
         }
     })

@@ -1,7 +1,7 @@
 # cluster.yaml ========================================= 
 
 # An unique identifier for the head node and workers of this cluster.
-cluster_name: kathy10 #<YOUR NAME>
+cluster_name: icra_0 #<YOUR NAME>
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
@@ -71,7 +71,7 @@ worker_nodes:
 setup_commands:
     # checkout your desired branch on all worker nodes
     - cd flow && git remote add kathy https://github.com/kjang96/flow-1
-    - cd ~/flow && git fetch kathy && git checkout kathy/get_the_autoscaler_working # && git pull
+    - cd ~/flow && git fetch kathy && git checkout kathy/roundabout_temp # && git pull
     # - cd flow && git pull && git checkout master
     
     # set up ray by pip installing and copying over rllib and tune folder
