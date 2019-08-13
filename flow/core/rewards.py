@@ -231,6 +231,26 @@ def penalize_standstill(env, gain=1):
     penalty = gain * num_standstill
     return -penalty
 
+def penalize_speeding(env, gain=1, fail=False):
+    """
+    Not meant for use with desired_velocity, because
+    that reward function already enforces the speed limit
+    """
+    vel = np.array(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
+    num_vehicles = env.k.vehicle.num_vehicles
+
+    if any(vel < -100) or fail:
+        return 0.
+
+    target_vel = env.env_params.additional_params['target_velocity']
+    max_cost = np.array([target_vel] * num_vehicles)
+
+    cost = target_vel - vel # if under the speed limit 
+    cost = np.array([0 if x >= 0 else abs(x) for x in cost])
+    # cost = sum(cost)
+    cost = np.linalg.norm(cost)
+
+    return min(0, -cost*gain)
 
 def penalize_near_standstill(env, thresh=0.3, gain=1):
     """Reward function which penalizes vehicles at a low velocity.
@@ -255,6 +275,16 @@ def penalize_near_standstill(env, thresh=0.3, gain=1):
     penalty = gain * penalize
     return -penalty
 
+def penalize_jerkiness(env, gain=0.2):
+    """
+    A penalty function the penalizes jerky driving 
+    """
+    pen = 0
+    if env.past_actions: # not empty
+        pen += np.var(env.past_actions)
+    if env.past_actions_2: 
+        pen += np.var(env.past_actions_2)
+    return -pen * gain
 
 def penalize_headway_variance(vehicles,
                               vids,
