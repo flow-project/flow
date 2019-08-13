@@ -61,7 +61,6 @@ install:
   - pip install -e .
   - pip install coveralls
   - pip install jupyter
-  - pip install stable-baselines
 
 script:
   - nose2 --with-coverage
