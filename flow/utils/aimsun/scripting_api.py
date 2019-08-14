@@ -1,3 +1,4 @@
+"""Script containing an interface to do scripting with Aimsun."""
 import sys
 import os
 
@@ -18,6 +19,7 @@ class AimsunTemplate(object):
     ones. It provides a pythonic interface to manipulate the different objects
     accessible via scripting.
     """
+
     def __init__(self, GKSystem, GKGUISystem):
         """Initialize the template.
 
@@ -42,7 +44,9 @@ class AimsunTemplate(object):
         GKGUISystem : GKGUISystem (Aimsun singleton class)
             Aimsun's GKGUISystem object
 
-        Note: This class takes as parameter the two high-level objects provided
+        Note
+        ----
+        This class takes as parameter the two high-level objects provided
         when interfacing with Aimsun: GKSystem and GKGUISystem. After having
         imported this class, you should be able to create an AimsunTemplate
         object as follows:
@@ -56,7 +60,7 @@ class AimsunTemplate(object):
         self.model = self.gui.getActiveModel()
 
     def load(self, path):
-        """Load an existing template into Aimsun
+        """Load an existing template into Aimsun.
 
         Parameters
         ----------
@@ -68,7 +72,7 @@ class AimsunTemplate(object):
         self.__wrap_object(self.model)
 
     def new_duplicate(self, path):
-        """Create a new template by duplicating an existing one
+        """Create a new template by duplicating an existing one.
 
         Parameters
         ----------
@@ -80,13 +84,13 @@ class AimsunTemplate(object):
         self.__wrap_object(self.model)
 
     def new_empty(self):
-        """Create a new empty template"""
+        """Create a new empty template."""
         self.gui.newSimpleDoc()
         self.model = self.gui.getActiveModel()
         self.__wrap_object(self.model)
 
     def save(self, path):
-        """Save the current template
+        """Save the current template.
 
         Parameters
         ----------
@@ -96,7 +100,7 @@ class AimsunTemplate(object):
         self.gui.saveAs(path)
 
     def run_replication(self, replication, render=True):
-        """Run a replication in Aimsun
+        """Run a replication in Aimsun.
 
         Parameters
         ----------
@@ -116,7 +120,9 @@ class AimsunTemplate(object):
     ####################################################################
 
     def __getattr__(self, name):
-        """If trying to access an attribute in this AimsunTemplate object
+        """Return object attribute.
+
+        If trying to access an attribute in this AimsunTemplate object
         fails, try to access it into the Aimsun model object
 
         Parameters
@@ -127,9 +133,10 @@ class AimsunTemplate(object):
         return getattr(self.model, name)
 
     def __wrap_object(self, obj):
-        """Wrap Aimsun objects with custom __getattr__ and __setattr__
-        functions in order to provide more pythonic attribute access
-        and attribute modification.
+        """Wrap Aimsun objects with custom __getattr__ and __setattr__ methods.
+
+        This provides a more pythonic attribute access and attribute
+        modification.
 
         Parameters
         ----------
@@ -145,10 +152,11 @@ class AimsunTemplate(object):
         - s.setName(new_name) becomes s.name = new_name
         etc.
 
-        Notes:
+        Notes
+        -----
         - This method directly modifies the object and does not return anything
         - For back-compatibility, it is still possible to call the original
-        Aimsun methods
+          Aimsun methods
         """
         if obj is None:
             return
@@ -221,7 +229,7 @@ class AimsunTemplate(object):
         obj.__class__.__setattr__ = custom_setattr
 
     def __wrap_objects(self, objects):
-        """See __wrap_object
+        """See __wrap_object.
 
         Parameters
         ----------
@@ -232,7 +240,7 @@ class AimsunTemplate(object):
         map(self.__wrap_object, objects)
 
     def __get_objects_by_type(self, type_name):
-        """Simplified getter for Aimsun objects
+        """Simplify getter for Aimsun objects.
 
         Parameters
         ----------
@@ -249,7 +257,7 @@ class AimsunTemplate(object):
         return objects
 
     def find_by_name(self, objects, name):
-        """Find an Aimsun object by its name
+        """Find an Aimsun object by its name.
 
         Parameters
         ----------
@@ -268,7 +276,7 @@ class AimsunTemplate(object):
         return ret
 
     def find_all_by_type(self, objects, type_name):
-        """Find Aimsun objects by their type
+        """Find Aimsun objects by their type.
 
         Parameters
         ----------
@@ -287,28 +295,75 @@ class AimsunTemplate(object):
 
     @property
     def sections(self):
+        """Return Aimsun GKSection attribute.
+
+        A section is a group of contiguous lanes where vehicles move in the
+        same direction. The partition of the traffic network into sections is
+        usually governed by the physical boundaries of the area and the
+        existence of turn movements. In an urban network, a section corresponds
+        closely to the road from one intersection to the next. In a freeway
+        area, a section can be the part of the road between two ramps.
+        """
         return self.__get_objects_by_type('GKSection')
 
     @property
     def nodes(self):
+        """Return Aimsun GKTurning attribute.
+
+        A node is a point or an area in the network where vehicles change their
+        direction and/or disperse. Hence, a node has one or more origin
+        sections and one or more destination sections. Each node has a turns
+        list, which determines the possible exits of a vehicle entering the
+        nodes.
+        """
         return self.__get_objects_by_type('GKNode')
 
     @property
     def turnings(self):
+        """Return Aimsun GKSection attribute.
+
+        This object is responsible for connecting some (or all) lanes between
+        two sections.
+        """
         return self.__get_objects_by_type('GKTurning')
 
     @property
     def cen_connections(self):
+        """Return Aimsun GKCenConnection attribute.
+
+        This contains information of a connection between an object and a
+        centroid.
+        """
         return self.__get_objects_by_type('GKCenConnection')
 
     @property
     def replications(self):
+        """Return Aimsun GKReplication attribute.
+
+        A replication used by the Aimsun Next Simulators. They are the result
+        of a single simulation and they are groupped in experiment averages
+        (GKExperimentResult).
+        """
         return self.__get_objects_by_type('GKReplication')
 
     @property
     def centroid_configurations(self):
+        """Return Aimsun GKCentroidConfiguration attribute.
+
+        This object is a centroid set, which is appropriate to simulate either
+        a part of the network or the whole network.
+        """
         return self.__get_objects_by_type('GKCentroidConfiguration')
 
     @property
     def problem_nets(self):
+        """Return Aimsun GKProblemNet attribute.
+
+        A subnetwork is an area in a (very large) network that will be studied
+        with more detail using a dynamic simulator (usually a micro one).
+
+        The area is selected either as a polygon or as a set of sections. From
+        that information is possible to extract all the objects delimited by
+        the subnetwork.
+        """
         return self.__get_objects_by_type('GKProblemNet')

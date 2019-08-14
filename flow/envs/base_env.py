@@ -58,9 +58,13 @@ class Env(*classdef):
     Attributes
     ----------
     env_params : flow.core.params.EnvParams
-       see flow/core/params.py
+        see flow/core/params.py
     sim_params : flow.core.params.SimParams
-       see flow/core/params.py
+        see flow/core/params.py
+    net_params : flow.core.params.NetParams
+        see flow/core/params.py
+    initial_config : flow.core.params.InitialConfig
+        see flow/core/params.py
     scenario : flow.scenarios.Scenario
         see flow/scenarios/base_scenario.py
     simulator : str
@@ -69,6 +73,12 @@ class Env(*classdef):
         Flow kernel object, using for state acquisition and issuing commands to
         the certain components of the simulator. For more information, see:
         flow/core/kernel/kernel.py
+    state : to be defined in observation space
+        state of the simulation
+    obs_var_labels : list
+        optional labels for each entries in observed state
+    sim_step : float optional
+        seconds per simulation step; 0.1 by default
     time_counter : int
         number of steps taken since the start of a rollout
     step_counter : int
@@ -384,8 +394,8 @@ class Env(*classdef):
 
         # test if the environment should terminate due to a collision or the
         # time horizon being met
-        done = crash or (self.time_counter >= self.env_params.warmup_steps
-                         + self.env_params.horizon)
+        done = (self.time_counter >= self.env_params.warmup_steps +
+                self.env_params.horizon)  # or crash
 
         # compute the info for each agent
         infos = {}
@@ -454,7 +464,7 @@ class Env(*classdef):
                 try:
                     self.k.vehicle.remove(veh_id)
                 except (FatalTraCIError, TraCIException):
-                    pass
+                    print(traceback.format_exc())
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
@@ -661,7 +671,7 @@ class Env(*classdef):
                 self.renderer.close()
         except FileNotFoundError:
             # Skip automatic termination. Connection is probably already closed
-            pass
+            print(traceback.format_exc())
 
     def render(self, reset=False, buffer_length=5):
         """Render a frame.

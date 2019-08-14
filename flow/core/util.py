@@ -1,6 +1,5 @@
-"""
-A collection of utility functions for Flow.
-"""
+"""A collection of utility functions for Flow."""
+
 import csv
 import errno
 import os

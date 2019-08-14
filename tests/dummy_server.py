@@ -97,8 +97,17 @@ def retrieve_message(conn, out_format):
 
 
 def threaded_client(conn):
+    """Create a dummy threaded process.
+
+    For testing purposes.
+
+    Parameters
+    ----------
+    conn : socket.socket
+        socket for server connection
+    """
     # send feedback that the connection is active
-    conn.send('Ready.')
+    conn.send(b'Ready.')
 
     done = False
     while not done:

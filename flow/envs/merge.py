@@ -78,11 +78,15 @@ class WaveAttenuationMergePOEnv(Env):
 
         # maximum number of controlled vehicles
         self.num_rl = env_params.additional_params["num_rl"]
+
         # queue of rl vehicles waiting to be controlled
         self.rl_queue = collections.deque()
+
         # names of the rl vehicles controlled at any step
         self.rl_veh = []
-        # used for visualization
+
+        # used for visualization: the vehicles behind and after RL vehicles
+        # (ie the observed vehicles) will have a different color
         self.leader = []
         self.follower = []
 

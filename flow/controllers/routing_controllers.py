@@ -11,6 +11,10 @@ class ContinuousRouter(BaseRouter):
 
     This class is useful if vehicles are expected to continuously follow the
     same route, and repeat said route once it reaches its end.
+
+    Usage
+    -----
+    See base class for usage example.
     """
 
     def choose_route(self, env):
@@ -43,6 +47,10 @@ class MinicityRouter(BaseRouter):
     """A router used to continuously re-route vehicles in minicity scenario.
 
     This class allows the vehicle to pick a random route at junctions.
+
+    Usage
+    -----
+    See base class for usage example.
     """
 
     def choose_route(self, env):
@@ -75,9 +83,15 @@ class MinicityRouter(BaseRouter):
 
 
 class GridRouter(BaseRouter):
-    """A router used to re-route a vehicle within a grid environment."""
+    """A router used to re-route a vehicle within a grid environment.
+
+    Usage
+    -----
+    See base class for usage example.
+    """
 
     def choose_route(self, env):
+        """See parent class."""
         if len(env.k.vehicle.get_route(self.veh_id)) == 0:
             # this occurs to inflowing vehicles, whose information is not added
             # to the subscriptions in the first step that they departed
@@ -93,6 +107,10 @@ class BayBridgeRouter(ContinuousRouter):
     """Assists in choosing routes in select cases for the Bay Bridge scenario.
 
     Extension to the Continuous Router.
+
+    Usage
+    -----
+    See base class for usage example.
     """
 
     def choose_route(self, env):
