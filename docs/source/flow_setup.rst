@@ -7,7 +7,7 @@ Local Installation of Flow
 To get Flow running, you need three things: Flow,
 
 SUMO, and (recommended to explore the full suite of Flow's capabilities)
-a reinforcement learning library (RLlib/rllab). If you wish to use Flow with
+a reinforcement learning library (RLlib). If you wish to use Flow with
 the traffic simulator Aimsun, this can be achieved by following the setup
 instructions under the "Installing Aimsun" subsection.
 If you choose not to install a reinforcement learning library, you will
@@ -279,34 +279,6 @@ jobs from there.
     ray teardown scripts/ray_autoscale.yaml
 
 
-(Optional) Install Rllab-multiagent
------------------------------------
-
-`rllab-multiagent` is another RL library that is compatible with Flow.
-In order to install the `rllab-multiagent` library, follow the below instructions:
-
-::
-
-    cd ~
-    git clone https://github.com/cathywu/rllab-multiagent.git
-    cd rllab-multiagent
-    python setup.py develop
-
-For linux run
-
-::
-
-    echo 'export PYTHONPATH="$HOME/rllab-multiagent:$PYTHONPATH"' >> ~/.bashrc
-    source ~/.bashrc
-
-For mac run
-
-::
-
-    echo 'export PYTHONPATH="$HOME/rllab-multiagent:$PYTHONPATH"' >> ~/.bash_profile
-    source ~/.bash_profile
-
-
 Testing your installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -316,15 +288,15 @@ To run any of the RL examples, make sure to run
 
     source activate flow
 
-In order to test run an Flow experiment in rllab-multiagent, try the following
+In order to test run an Flow experiment in rllib, try the following
 command:
 
 ::
 
-    python examples/rllab/stabilizing_the_ring.py
+    python examples/rllib/stabilizing_the_ring.py
 
 If it does not fail, this means that you have Flow properly configured with
-rllab-multiagent.
+rllib.
 
 
 (Optional) Direct install of SUMO from GitHub
