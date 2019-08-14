@@ -132,12 +132,12 @@ def grid_example(render=None, use_inflows=False):
     inner_length = 300
     long_length = 500
     short_length = 300
-    n_rows = 1
+    n_rows = 2
     n_columns = 3
-    num_cars_left = 1
-    num_cars_right = 1
-    num_cars_top = 1
-    num_cars_bot = 1
+    num_cars_left = 20
+    num_cars_right = 20
+    num_cars_top = 20
+    num_cars_bot = 20
     tot_cars = (num_cars_left + num_cars_right) * n_columns \
         + (num_cars_top + num_cars_bot) * n_rows
 
@@ -171,7 +171,7 @@ def grid_example(render=None, use_inflows=False):
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     tl_logic = TrafficLightParams()
-    # tl_logic.toggle_all_nodes('traffic_light')
+    tl_logic.toggle_all_nodes('traffic_light')
     # tl_logic.toggle_baseline(True, 'static')
     phases = [{
         "duration": "31",

@@ -649,6 +649,8 @@ class TraCIScenario(KernelScenario):
         num_traffic_lights = len(list(traffic_lights.get_properties().keys()))
         if num_traffic_lights > 0:
             if traffic_lights.baseline:
+                # If the baseline with actuated traffic lights
+                # is selected.
                 if traffic_lights.all_type == 'actuated':
                     tl_params = traffic_lights.actuated_default()
                     program_id = str(tl_params['program_id'])

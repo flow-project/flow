@@ -55,8 +55,11 @@ class TrafficLightParams:
         self.__tls_properties = dict()
 
         # all traffic light parameters are set to default baseline values.
-        # NOTE: This overrides all customization
-        # self.baseline = bool
+        # NOTE: This overrides all customization, i.e. if you use the add
+        # function to add customized traffic lights, turning the baseline
+        # on will replace the tl_type with the argument specified in the
+        # toggle_baseline function as well as the default parameters of
+        # the baseline.
         # supported types in SUPPORTED_BASELINES
         self.baseline = False
         if baseline:
