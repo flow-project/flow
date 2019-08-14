@@ -12,7 +12,7 @@ dependencies:
     - cloudpickle==0.5.3
     - setuptools==39.1.0
     - pip:
-        - gym==0.10.5
+        - gym==0.13.1
         - pyprind==2.11.2
         - nose2==0.8.0
         - cached_property
@@ -20,6 +20,7 @@ dependencies:
         - matplotlib==3.0.0
         - dill
         - lz4
+        - stable_baselines==2.7.0
         - ray==0.6.1
         - setproctitle
         - psutil
