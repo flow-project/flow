@@ -25,13 +25,13 @@ SIM_STEP = 1
 BATCH_SIZE = 20000
 ITR = 100
 N_ROLLOUTS = 40
-exp_tag = "icra_1"  # experiment prefix
+exp_tag = "icra_2"  # experiment prefix
 
 # # Local settings
 # N_CPUS = 1
-# RENDER = False
+# RENDER = True
 # MODE = "local"
-# RESTART_INSTANCE = True
+# RESTART_INSTANCE = False
 # SEEDS = [1]
 
 # Autoscaler settings
