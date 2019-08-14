@@ -100,7 +100,7 @@ class TrafficLightParams:
         For RL experiments with full RL control over traffic lights,
         no further modification needs to be done.
 
-        Note that node_type is NOT the same as tl_type (traffic light type)
+        Be aware that node_type is NOT the same as tl_type (traffic light type)
 
         Parameters
         ----------
