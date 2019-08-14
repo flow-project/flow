@@ -105,6 +105,7 @@ class TrafficLightParams:
             one of 'traffic_light', 'priority', or other. See Note.
 
         Note:
+        _____
         https://sumo.dlr.de/wiki/Networks/PlainXML#Node_Descriptions
         """
         if node_type not in SUPPORTED_NODE_TYPES:
