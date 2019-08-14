@@ -1,4 +1,4 @@
-"""Train a single AV to stabilize a variable density ring road."""
+"""Trains a percentage of AVs to increase traveling speeds in a figure 8."""
 
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite
@@ -6,10 +6,11 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-from flow.scenarios.loop import LoopScenario
+from flow.scenarios.figure_eight import Figure8Scenario
 from flow.controllers import RLController, IDMController, ContinuousRouter
 from flow.core.params import VehicleParams
-from flow.core.params import AimsunParams, EnvParams, NetParams, InitialConfig
+from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
+    SumoCarFollowingParams
 from rllab.envs.gym_env import GymEnv
 
 HORIZON = 1500
@@ -17,61 +18,65 @@ HORIZON = 1500
 
 def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
-    sim_params = AimsunParams(sim_step=0.5, render=False, seed=0)
+    sim_params = SumoParams(sim_step=0.1, render=True)
 
     vehicles = VehicleParams()
     vehicles.add(
         veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(ContinuousRouter, {}),
+        car_following_params=SumoCarFollowingParams(
+            speed_mode="obey_safe_speed",
+            decel=1.5,
+        ),
         num_vehicles=1)
     vehicles.add(
         veh_id="idm",
-        acceleration_controller=(IDMController, {}),
+        acceleration_controller=(IDMController, {
+            "noise": 0.2
+        }),
         routing_controller=(ContinuousRouter, {}),
-        num_vehicles=21)
+        car_following_params=SumoCarFollowingParams(
+            speed_mode="obey_safe_speed",
+            decel=1.5,
+        ),
+        num_vehicles=13)
 
     additional_env_params = {
-        "target_velocity": 8,
-        "ring_length": None,
-        "max_accel": 1,
-        "max_decel": 1
+        "target_velocity": 20,
+        "max_accel": 3,
+        "max_decel": 3,
+        "sort_vehicles": False
     }
     env_params = EnvParams(
-        horizon=HORIZON,
-        additional_params=additional_env_params,
-        warmup_steps=1500)
+        horizon=HORIZON, additional_params=additional_env_params)
 
     additional_net_params = {
-        "length": 230,
+        "radius_ring": 30,
         "lanes": 1,
         "speed_limit": 30,
         "resolution": 40
     }
     net_params = NetParams(additional_params=additional_net_params)
 
-    initial_config = InitialConfig(spacing="uniform", bunching=50)
+    initial_config = InitialConfig(spacing="uniform")
 
     print("XXX name", exp_tag)
-    scenario = LoopScenario(
+    scenario = Figure8Scenario(
         exp_tag,
         vehicles,
         net_params,
         initial_config=initial_config)
 
-    env_name = "WaveAttenuationPOEnv"
-    simulator = 'aimsun'
+    env_name = "AccelEnv"
     pass_params = (env_name, sim_params, vehicles, env_params, net_params,
-                   initial_config, scenario, simulator)
+                   initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
     env = normalize(env)
 
-    policy = GaussianMLPPolicy(
-        env_spec=env.spec,
-        hidden_sizes=(3, 3),
-    )
+    policy = GaussianMLPPolicy(env_spec=env.spec, hidden_sizes=(16, 16))
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
 
@@ -89,7 +94,7 @@ def run_task(*_):
     algo.train(),
 
 
-exp_tag = "stabilizing-the-ring"
+exp_tag = "figure-eight-control"
 
 for seed in [5]:  # , 20, 68]:
     run_experiment_lite(

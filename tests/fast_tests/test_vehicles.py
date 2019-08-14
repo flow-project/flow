@@ -248,7 +248,7 @@ class TestMultiLaneData(unittest.TestCase):
 
         # check the lane tailways is outputting the right values
         actual_lane_tail = env.k.vehicle.get_lane_tailways("test_0")
-        expected_lane_tail = [27.85714285714286] * 3
+        expected_lane_tail = [28.577143] * 3
         np.testing.assert_array_almost_equal(actual_lane_tail,
                                              expected_lane_tail)
 
@@ -435,7 +435,7 @@ class TestMultiLaneData(unittest.TestCase):
         expected_lane_leaders = ["", "", "test_1"]
         self.assertTrue(actual_lane_leaders == expected_lane_leaders)
         actual_lane_headways = env.k.vehicle.get_lane_headways("test_0")
-        expected_lane_headways = [1000, 1000, 19.996667]
+        expected_lane_headways = [1000, 1000, 22.996667]
         np.testing.assert_array_almost_equal(actual_lane_headways,
                                              expected_lane_headways)
 
@@ -443,7 +443,7 @@ class TestMultiLaneData(unittest.TestCase):
         expected_lane_followers = ["test_2", "", ""]
         self.assertTrue(actual_lane_followers == expected_lane_followers)
         actual_lane_tailways = env.k.vehicle.get_lane_tailways("test_0")
-        expected_lane_tailways = [19.996667, 1000, 1000]
+        expected_lane_tailways = [20.096667, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
 
@@ -501,7 +501,7 @@ class TestMultiLaneData(unittest.TestCase):
         expected_lane_leaders = ["test_1", "", ""]
         self.assertTrue(actual_lane_leaders == expected_lane_leaders)
         actual_lane_headways = env.k.vehicle.get_lane_headways("test_0")
-        expected_lane_headways = [19.996667, 1000, 1000]
+        expected_lane_headways = [22.996667, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_headways,
                                              expected_lane_headways)
 
@@ -509,7 +509,7 @@ class TestMultiLaneData(unittest.TestCase):
         expected_lane_followers = ["test_2", "", ""]
         self.assertTrue(actual_lane_followers == expected_lane_followers)
         actual_lane_tailways = env.k.vehicle.get_lane_tailways("test_0")
-        expected_lane_tailways = [19.996667, 1000, 1000]
+        expected_lane_tailways = [20.096667, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
 

@@ -29,7 +29,6 @@ import ray
 from ray.rllib.agent import get_agent_class
 from ray.tune.registry import get_registry, register_env
 import numpy as np
-import joblib
 
 # number of simulations to execute when computing performance scores
 NUM_RUNS = 10
