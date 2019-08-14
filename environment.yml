@@ -1,4 +1,4 @@
-name: test
+name: flow
 
 dependencies:
     - python==3.6.8
