@@ -9,6 +9,8 @@ class RLController(BaseController):
     Vehicles with this class specified will be stored in the list of the RL IDs
     in the Vehicles class.
 
+    Usage: See base class for usage example.
+
     Attributes
     ----------
     veh_id : str

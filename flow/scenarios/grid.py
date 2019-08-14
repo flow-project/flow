@@ -1,5 +1,7 @@
 """Contains the grid scenario class."""
 
+import numpy as np
+
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
@@ -554,19 +556,24 @@ class SimpleGridScenario(Scenario):
         x0 = 6  # position of the first car
         dx = 10  # distance between each car
 
+        start_lanes = []
         for i in range(col_num):
             start_pos += [("right0_{}".format(i), x0 + k * dx)
                           for k in range(cars_heading_right)]
             start_pos += [("left{}_{}".format(row_num, i), x0 + k * dx)
                           for k in range(cars_heading_left)]
+            horz_lanes = np.random.randint(low=0, high=net_params.additional_params["horizontal_lanes"],
+                                           size=cars_heading_left + cars_heading_right).tolist()
+            start_lanes += horz_lanes
 
         for i in range(row_num):
             start_pos += [("top{}_{}".format(i, col_num), x0 + k * dx)
                           for k in range(cars_heading_top)]
             start_pos += [("bot{}_0".format(i), x0 + k * dx)
                           for k in range(cars_heading_bot)]
-
-        start_lanes = [0] * len(start_pos)
+            vert_lanes = np.random.randint(low=0, high=net_params.additional_params["vertical_lanes"],
+                                           size=cars_heading_left + cars_heading_right).tolist()
+            start_lanes += vert_lanes
 
         return start_pos, start_lanes
 

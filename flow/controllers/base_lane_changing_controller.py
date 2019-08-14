@@ -7,10 +7,21 @@ class BaseLaneChangeController:
     Instantiates a controller and forces the user to pass a
     lane_changing duration to the controller.
 
+    Usage
+    -----
+    >>> from flow.core.params import VehicleParams
+    >>> from flow.controllers import SimLaneChangeController
+    >>> vehicles = VehicleParams()
+    >>> vehicles.add("human",
+    >>>              lane_change_controller=(SimLaneChangeController, {}))
+
+    Note: You can replace SimLaneChangeController with any lane changing
+    controller of your choice.
+
     Parameters
     ----------
     veh_id : str
-        ID of the vehi cle this controller is used for
+        ID of the vehicle this controller is used for
     lane_change_params : dict
         Dictionary of lane changes params that may optional contain
         "min_gap", which denotes the minimize safe gap (in meters) a car
