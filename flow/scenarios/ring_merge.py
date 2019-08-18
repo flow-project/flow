@@ -1,4 +1,4 @@
-"""Contains the loop merge scenario class."""
+"""Contains the ring merge scenario class."""
 
 from flow.scenarios.base import Scenario
 from flow.core.params import InitialConfig
@@ -6,13 +6,13 @@ from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos, linspace
 
 ADDITIONAL_NET_PARAMS = {
-    # radius of the loops
+    # radius of the rings
     "ring_radius": 50,
-    # length of the straight edges connected the outer loop to the inner loop
+    # length of the straight edges connected the outer ring to the inner ring
     "lane_length": 75,
-    # number of lanes in the inner loop
+    # number of lanes in the inner ring
     "inner_lanes": 3,
-    # number of lanes in the outer loop
+    # number of lanes in the outer ring
     "outer_lanes": 2,
     # max speed limit in the network
     "speed_limit": 30,
@@ -21,20 +21,20 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class TwoLoopsOneMergingScenario(Scenario):
-    """Two loop merge scenario.
+class TwoRingsOneMergingScenario(Scenario):
+    """Two ring merge scenario.
 
-    This network is expected to simulate a closed loop representation of a
+    This network is expected to simulate a closed ring representation of a
     merge. It consists of two rings that merge together for half the length of
     the smaller ring.
 
     Requires from net_params:
 
-    * **ring_radius** : radius of the loops
-    * **lane_length** : length of the straight edges connected the outer loop
-      to the inner loop
-    * **inner_lanes** : number of lanes in the inner loop
-    * **outer_lanes** : number of lanes in the outer loop
+    * **ring_radius** : radius of the rings
+    * **lane_length** : length of the straight edges connected the outer ring
+      to the inner ring
+    * **inner_lanes** : number of lanes in the inner ring
+    * **outer_lanes** : number of lanes in the outer ring
     * **speed_limit** : max speed limit in the network
     * **resolution** : resolution of the curved portions
 
@@ -43,10 +43,10 @@ class TwoLoopsOneMergingScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import TwoLoopsOneMergingScenario
+    >>> from flow.scenarios import TwoRingsOneMergingScenario
     >>>
-    >>> scenario = TwoLoopsOneMergingScenario(
-    >>>     name='two_loops_merge',
+    >>> scenario = TwoRingsOneMergingScenario(
+    >>>     name='two_rings_merge',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
     >>>         additional_params={
@@ -68,7 +68,7 @@ class TwoLoopsOneMergingScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a two loop scenario."""
+        """Initialize a two ring scenario."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
@@ -93,8 +93,8 @@ class TwoLoopsOneMergingScenario(Scenario):
         self.n_outer_vehicles = num_vehicles - num_merge_vehicles
 
         radius = net_params.additional_params["ring_radius"]
-        length_loop = 2 * pi * radius
-        self.length_loop = length_loop
+        length_ring = 2 * pi * radius
+        self.length_ring = length_ring
 
         super().__init__(name, vehicles, net_params, initial_config,
                          traffic_lights)

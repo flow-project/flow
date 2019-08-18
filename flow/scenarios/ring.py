@@ -17,7 +17,7 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class LoopScenario(Scenario):
+class RingScenario(Scenario):
     """Ring road scenario.
 
     This network consists of nodes at the top, bottom, left, and right
@@ -37,9 +37,9 @@ class LoopScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import LoopScenario
+    >>> from flow.scenarios import RingScenario
     >>>
-    >>> scenario = LoopScenario(
+    >>> scenario = RingScenario(
     >>>     name='ring_road',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
@@ -60,7 +60,7 @@ class LoopScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a loop scenario."""
+        """Initialize a ring scenario."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))

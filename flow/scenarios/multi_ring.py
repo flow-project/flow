@@ -21,10 +21,10 @@ ADDITIONAL_NET_PARAMS = {
 VEHICLE_LENGTH = 5  # length of vehicles in the network, in meters
 
 
-class MultiLoopScenario(Scenario):
+class MultiRingScenario(Scenario):
     """Ring road scenario.
 
-    This network is similar to `LoopScenario`, but generates multiple separate
+    This network is similar to `RingScenario`, but generates multiple separate
     ring roads in the same simulation.
 
     Requires from net_params:
@@ -40,9 +40,9 @@ class MultiLoopScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import MultiLoopScenario
+    >>> from flow.scenarios import MultiRingScenario
     >>>
-    >>> scenario = MultiLoopScenario(
+    >>> scenario = MultiRingScenario(
     >>>     name='multi_ring_road',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
@@ -64,7 +64,7 @@ class MultiLoopScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a loop scenario."""
+        """Initialize a ring scenario."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
