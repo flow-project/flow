@@ -11,6 +11,16 @@ class BaseController:
     safe_action to ensure that controls are never made that could
     cause the system to crash.
 
+    Usage
+    -----
+    >>> from flow.core.params import VehicleParams
+    >>> from flow.controllers import IDMController
+    >>> vehicles = VehicleParams()
+    >>> vehicles.add("human", acceleration_controller=(IDMController, {}))
+
+    Note: You can replace "IDMController" with any subclass controller of your
+    choice.
+
     Parameters
     ----------
     veh_id : str

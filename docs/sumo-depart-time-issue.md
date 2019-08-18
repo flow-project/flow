@@ -1,6 +1,6 @@
 ### SUMO Depart Time Issue:
 
-Issue: When running an experiement using RLLab with  flow_dev, after a large number of steps, or specifiying a small timestep causes the following error when resetting the state of the vehicles:
+Issue: When running a long experiment the following error may occur:
 
 
 1. Find your SUMO installation directory (should be in your bash config and be named something like: `sumo-0.27.1`)
