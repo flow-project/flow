@@ -6,7 +6,7 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/flow-project/flow/binder)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/flow-project/flow/blob/master/LICENSE.md)
 
-# FlowLALALA
+# Flow
 
 [Flow](https://flow-project.github.io/) is a computational framework for deep RL and control experiments for traffic microsimulation.
 
