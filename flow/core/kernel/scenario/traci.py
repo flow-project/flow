@@ -185,10 +185,7 @@ class TraCIScenario(KernelScenario):
 
         # total_edgestarts and total_edgestarts_dict contain all of the above
         # edges, with the former being ordered by position
-        if self.network.net_params.no_internal_links:
-            self.total_edgestarts = self.edgestarts
-        else:
-            self.total_edgestarts = self.edgestarts + self.internal_edgestarts
+        self.total_edgestarts = self.edgestarts + self.internal_edgestarts
         self.total_edgestarts.sort(key=lambda tup: tup[1])
 
         self.total_edgestarts_dict = dict(self.total_edgestarts)
@@ -480,12 +477,6 @@ class TraCIScenario(KernelScenario):
                 x.append(E('connection', **connection_attributes))
             printxml(x, self.net_path + self.confn)
 
-        # check whether the user requested no-internal-links (default="true")
-        if net_params.no_internal_links:
-            no_internal_links = 'true'
-        else:
-            no_internal_links = 'false'
-
         # xml file for configuration, which specifies:
         # - the location of all files of interest for sumo
         # - output net file
@@ -504,7 +495,7 @@ class TraCIScenario(KernelScenario):
         t.append(E('output-file', value=self.netfn))
         x.append(t)
         t = E('processing')
-        t.append(E('no-internal-links', value='%s' % no_internal_links))
+        t.append(E('no-internal-links', value='false'))
         t.append(E('no-turnarounds', value='true'))
         x.append(t)
         printxml(x, self.net_path + self.cfgfn)
@@ -513,7 +504,7 @@ class TraCIScenario(KernelScenario):
             [
                 'netconvert -c ' + self.net_path + self.cfgfn +
                 ' --output-file=' + self.cfg_path + self.netfn +
-                ' --no-internal-links="%s"' % no_internal_links
+                ' --no-internal-links="false"'
             ],
             shell=True)
 
@@ -568,11 +559,6 @@ class TraCIScenario(KernelScenario):
 
         # this removes edges that are not connected to a network (isolated)
         net_cmd += " --remove-edges.isolated"
-
-        # this removes internal links from the network (useful when the network
-        # becomes very large)
-        if net_params.no_internal_links:
-            net_cmd += " --no_internal_links"
 
         subprocess.call(net_cmd, shell=True)
 
@@ -765,35 +751,36 @@ class TraCIScenario(KernelScenario):
         # add the inflows from various edges to the xml file
         if self.network.net_params.inflows is not None:
             total_inflows = self.network.net_params.inflows.get()
-            for next_inflow in total_inflows:
+            for inflow in total_inflows:
                 # do not want to affect the original values
-                inflow = deepcopy(next_inflow)
+                sumo_inflow = deepcopy(inflow)
 
                 # convert any non-string element in the inflow dict to a string
-                for key in inflow:
-                    if not isinstance(inflow[key], str):
-                        inflow[key] = repr(inflow[key])
+                for key in sumo_inflow:
+                    if not isinstance(sumo_inflow[key], str):
+                        sumo_inflow[key] = repr(sumo_inflow[key])
 
-                # get the name of the edge the inflows correspond to, and the
-                # total inflow rate of the specific inflow
-                edge = deepcopy(inflow['edge'])
-                if 'vehsPerHour' in inflow:
-                    flag, rate = 0, float(inflow['vehsPerHour'])
+                edge = sumo_inflow['edge']
+                del sumo_inflow['edge']
+
+                if 'route' not in sumo_inflow:
+                    # distribute the inflow rates across all routes from a
+                    # given edge w.r.t. the provided fractions for each route
+                    for i, (_, ft) in enumerate(routes[edge]):
+                        sumo_inflow['name'] += str(i)
+                        sumo_inflow['route'] = 'route{}_{}'.format(edge, i)
+
+                        for key in ['vehsPerHour', 'probability', 'period']:
+                            if key in sumo_inflow:
+                                sumo_inflow[key] = str(float(inflow[key]) * ft)
+
+                        if 'number' in sumo_inflow:
+                            sumo_inflow['number'] = str(
+                                int(float(inflow['number']) * ft))
+
+                        routes_data.append(_flow(**sumo_inflow))
                 else:
-                    flag, rate = 1, float(inflow['probability'])
-                del inflow['edge']
-
-                # distribute the inflow rates across all routes from a given
-                # edge on the basis of the provided fractions for each route
-                for i in range(len(routes[edge])):
-                    _, frac = routes[edge][i]
-                    inflow['route'] = 'route{}_{}'.format(edge, i)
-                    if flag:
-                        inflow['probability'] = str(rate * frac)
-                    else:
-                        inflow['vehsPerHour'] = str(rate * frac)
-
-                    routes_data.append(_flow(**inflow))
+                    routes_data.append(_flow(**sumo_inflow))
 
         printxml(routes_data, self.cfg_path + self.roufn)
 
@@ -910,11 +897,9 @@ class TraCIScenario(KernelScenario):
             from_edge = connection.attrib['from']
             from_lane = int(connection.attrib['fromLane'])
 
-            no_internal_links = self.network.net_params.no_internal_links
-            if from_edge[0] != ":" and not no_internal_links:
-                # if the edge is not an internal links and the network is
-                # allowed to have internal links, then get the next edge/lane
-                # pair from the "via" element
+            if from_edge[0] != ":":
+                # if the edge is not an internal link, then get the next
+                # edge/lane pair from the "via" element
                 via = connection.attrib['via'].rsplit('_', 1)
                 to_edge = via[0]
                 to_lane = int(via[1])
