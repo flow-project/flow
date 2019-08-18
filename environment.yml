@@ -17,8 +17,10 @@ dependencies:
         - nose2==0.8.0
         - cached_property
         - joblib==0.10.3
+        - matplotlib==3.0.0
         - dill
         - lz4
+        - stable_baselines==2.7.0
         - ray==0.6.1
         - setproctitle
         - psutil
