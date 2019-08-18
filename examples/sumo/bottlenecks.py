@@ -22,9 +22,13 @@ INFLOW = 2300
 
 
 class BottleneckDensityExperiment(Experiment):
+    """Experiment object for bottleneck-specific simulations.
+
+    Extends flow.core.experiment.Experiment
+    """
 
     def __init__(self, env):
-        """Instantiate the bottleneck experiment"""
+        """Instantiate the bottleneck experiment."""
         super().__init__(env)
 
     def run(self, num_runs, num_steps, rl_actions=None, convert_to_csv=False):
@@ -171,7 +175,6 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
     additional_net_params = {"scaling": SCALING, "speed_limit": 23}
     net_params = NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params)
 
     initial_config = InitialConfig(

@@ -1,5 +1,7 @@
 """Contains the grid scenario class."""
 
+import numpy as np
+
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
@@ -70,9 +72,6 @@ class SimpleGridScenario(Scenario):
       float value, or a dictionary with separate values for vertical and
       horizontal lanes.
 
-    In order for right-of-way dynamics to take place at the intersections,
-    set *no_internal_links* in net_params to False.
-
     Usage
     -----
     >>> from flow.core.params import NetParams
@@ -103,7 +102,6 @@ class SimpleGridScenario(Scenario):
     >>>                 'horizontal': 35
     >>>             }
     >>>         },
-    >>>         no_internal_links=False  # we want junctions
     >>>     )
     >>> )
     """
@@ -527,19 +525,17 @@ class SimpleGridScenario(Scenario):
 
     # TODO necessary?
     def specify_edge_starts(self):
-        """See parent class.
-
-        Edges go in the following order: vert_right, vert_left, horz_right,
-        horz_left.
-        """
+        """See parent class."""
         edgestarts = []
         for i in range(self.col_num + 1):
             for j in range(self.row_num + 1):
                 index = "{}_{}".format(j, i)
-                edgestarts += [("left" + index, 0 + i * 50 + j * 5000),
-                               ("right" + index, 10 + i * 50 + j * 5000),
-                               ("top" + index, 15 + i * 50 + j * 5000),
-                               ("bot" + index, 20 + i * 50 + j * 5000)]
+                if i != self.col_num:
+                    edgestarts += [("left" + index, 0 + i * 50 + j * 5000),
+                                   ("right" + index, 10 + i * 50 + j * 5000)]
+                if j != self.row_num:
+                    edgestarts += [("top" + index, 15 + i * 50 + j * 5000),
+                                   ("bot" + index, 20 + i * 50 + j * 5000)]
 
         return edgestarts
 
@@ -560,19 +556,24 @@ class SimpleGridScenario(Scenario):
         x0 = 6  # position of the first car
         dx = 10  # distance between each car
 
+        start_lanes = []
         for i in range(col_num):
             start_pos += [("right0_{}".format(i), x0 + k * dx)
                           for k in range(cars_heading_right)]
             start_pos += [("left{}_{}".format(row_num, i), x0 + k * dx)
                           for k in range(cars_heading_left)]
+            horz_lanes = np.random.randint(low=0, high=net_params.additional_params["horizontal_lanes"],
+                                           size=cars_heading_left + cars_heading_right).tolist()
+            start_lanes += horz_lanes
 
         for i in range(row_num):
             start_pos += [("top{}_{}".format(i, col_num), x0 + k * dx)
                           for k in range(cars_heading_top)]
             start_pos += [("bot{}_0".format(i), x0 + k * dx)
                           for k in range(cars_heading_bot)]
-
-        start_lanes = [0] * len(start_pos)
+            vert_lanes = np.random.randint(low=0, high=net_params.additional_params["vertical_lanes"],
+                                           size=cars_heading_left + cars_heading_right).tolist()
+            start_lanes += vert_lanes
 
         return start_pos, start_lanes
 

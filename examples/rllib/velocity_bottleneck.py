@@ -104,7 +104,6 @@ if not DISABLE_RAMP_METER:
 additional_net_params = {"scaling": SCALING, "speed_limit": 23}
 net_params = NetParams(
     inflows=inflow,
-    no_internal_links=False,
     additional_params=additional_net_params)
 
 flow_params = dict(
@@ -140,7 +139,6 @@ flow_params = dict(
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params,
     ),
 
@@ -164,7 +162,17 @@ flow_params = dict(
 
 
 def setup_exps():
+    """Return the relevant components of an RLlib experiment.
 
+    Returns
+    -------
+    str
+        name of the training algorithm
+    str
+        name of the gym environment to be trained
+    dict
+        training configuration parameters
+    """
     alg_run = "PPO"
 
     agent_cls = get_agent_class(alg_run)

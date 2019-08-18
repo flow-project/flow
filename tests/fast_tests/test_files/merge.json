@@ -69,7 +69,6 @@
             ],
             "num_flows": 3
         },
-        "no_internal_links": false,
         "osm_path": null,
         "template": null
     },

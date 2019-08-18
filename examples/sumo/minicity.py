@@ -18,9 +18,7 @@ def minicity_example(render=None,
                      sight_radius=None,
                      pxpm=None,
                      show_radius=None):
-    """
-    Perform a simulation of vehicles on modified minicity of University of
-    Delaware.
+    """Perform a simulation of modified minicity of University of Delaware.
 
     Parameters
     ----------
@@ -67,7 +65,7 @@ def minicity_example(render=None,
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    net_params = NetParams(no_internal_links=False)
+    net_params = NetParams()
 
     initial_config = InitialConfig(
         spacing="random",
