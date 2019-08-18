@@ -16,25 +16,13 @@ from traci.exceptions import TraCIException
 
 import sumolib
 
-try:
-    # Import serializable if rllab is installed
-    from rllab.core.serializable import Serializable
-    serializable_flag = True
-except ImportError:
-    serializable_flag = False
 
 from flow.core.util import ensure_dir
 from flow.core.kernel import Kernel
 from flow.utils.exceptions import FatalFlowError
 
-# pick out the correct class definition
-if serializable_flag:
-    classdef = (gym.Env, Serializable)
-else:
-    classdef = (gym.Env,)
 
-
-class Env(*classdef):
+class Env(gym.Env):
     """Base environment class.
 
     Provides the interface for interacting with various aspects of a traffic
@@ -126,10 +114,6 @@ class Env(*classdef):
         flow.utils.exceptions.FatalFlowError
             if the render mode is not set to a valid value
         """
-        # Invoke serializable if using rllab
-        if serializable_flag:
-            Serializable.quick_init(self, locals())
-
         self.env_params = env_params
         self.scenario = scenario
         self.net_params = scenario.net_params
