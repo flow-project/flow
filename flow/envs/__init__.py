@@ -5,10 +5,10 @@ from flow.envs.bottleneck import BottleneckAccelEnv, BottleneckEnv, \
     BottleneckDesiredVelocityEnv
 from flow.envs.traffic_light_grid import TrafficLightGridEnv, \
     TrafficLightGridPOEnv, GreenWaveTestEnv
-from flow.envs.loop.lane_change_accel import LaneChangeAccelEnv, \
+from flow.envs.ring.lane_change_accel import LaneChangeAccelEnv, \
     LaneChangeAccelPOEnv
-from flow.envs.loop.accel import AccelEnv
-from flow.envs.loop.wave_attenuation import WaveAttenuationEnv, \
+from flow.envs.ring.accel import AccelEnv
+from flow.envs.ring.wave_attenuation import WaveAttenuationEnv, \
     WaveAttenuationPOEnv
 from flow.envs.merge import MergePOEnv
 from flow.envs.test import TestEnv

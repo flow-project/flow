@@ -19,7 +19,7 @@ A few points of clarification:
 
 Figure Eight
 ------------
-The figure-eight is a closed-loop version of an intersection. The goal is to maximize
+The figure-eight is a closed-ring version of an intersection. The goal is to maximize
 the system-wide velocity for fourteen vehicles,
 which necessitates spacing the vehicles so that they don't
 run into conflicts at the merging points. The scenario is fully observed: all vehicles

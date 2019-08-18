@@ -13,7 +13,7 @@ from flow.scenarios.merge import ADDITIONAL_NET_PARAMS as MERGE_PARAMS
 from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
     WaveAttenuationEnv, WaveAttenuationPOEnv, MergePOEnv, \
     TestEnv, BottleneckDesiredVelocityEnv, BottleneckEnv, BottleneckAccelEnv
-from flow.envs.loop.wave_attenuation import v_eq_max_function
+from flow.envs.ring.wave_attenuation import v_eq_max_function
 
 
 os.environ["TEST_FLAG"] = "True"

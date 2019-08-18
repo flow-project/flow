@@ -8,7 +8,7 @@ from flow.core.experiment import Experiment
 from flow.core.params import AimsunParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
 from flow.envs import TestEnv
-from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
+from flow.scenarios.ring import LoopScenario, ADDITIONAL_NET_PARAMS
 
 
 def sugiyama_example(render=None):

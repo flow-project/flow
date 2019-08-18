@@ -7,7 +7,7 @@ from flow.core.params import VehicleParams
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
 from flow.controllers import RLController
-from flow.envs.loop.accel import ADDITIONAL_ENV_PARAMS
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.utils.exceptions import FatalFlowError
 from flow.envs import Env, TestEnv
 

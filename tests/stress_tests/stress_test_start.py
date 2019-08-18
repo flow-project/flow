@@ -3,7 +3,7 @@ from flow.controllers import IDMController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, \
     InitialConfig, NetParams
 from flow.core.params import VehicleParams
-from flow.envs.loop.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
 import ray
 
