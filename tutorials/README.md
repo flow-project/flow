@@ -71,3 +71,7 @@ testing simulations in the presence of an RLlib/rllab agent.
 **Tutorial 10:** Traffic lights.
 
 **Tutorial 11:** Running simulations with inflows of vehicles.
+
+**Tutorial 13:** Running rllib experiments on Amazon EC2 instances
+
+**Tutorial 14:** Running the bottleneck environment.
