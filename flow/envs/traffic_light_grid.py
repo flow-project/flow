@@ -571,11 +571,11 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         [self.k.vehicle.set_observed(veh_id) for veh_id in self.observed_ids]
 
 
-class GreenWaveTestEnv(TrafficLightGridEnv):
+class TrafficLightGridTestEnv(TrafficLightGridEnv):
     """
     Class for use in testing.
 
-    This class overrides RL methods of green wave so we can test
+    This class overrides RL methods of Traffic Light Grid so we can test
     construction without needing to specify RL methods
     """
 

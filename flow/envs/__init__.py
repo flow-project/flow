@@ -4,7 +4,7 @@ from flow.envs.bay_bridge import BayBridgeEnv
 from flow.envs.bottleneck import BottleneckAccelEnv, BottleneckEnv, \
     BottleneckDesiredVelocityEnv
 from flow.envs.traffic_light_grid import TrafficLightGridEnv, \
-    TrafficLightGridPOEnv, GreenWaveTestEnv
+    TrafficLightGridPOEnv, TrafficLightGridTestEnv
 from flow.envs.ring.lane_change_accel import LaneChangeAccelEnv, \
     LaneChangeAccelPOEnv
 from flow.envs.ring.accel import AccelEnv
@@ -15,7 +15,7 @@ from flow.envs.test import TestEnv
 
 __all__ = [
     'Env', 'AccelEnv', 'LaneChangeAccelEnv',
-    'LaneChangeAccelPOEnv', 'GreenWaveTestEnv', 'GreenWaveTestEnv',
+    'LaneChangeAccelPOEnv', 'TrafficLightGridTestEnv',
     'MergePOEnv', 'BottleneckEnv',
     'BottleneckAccelEnv', 'WaveAttenuationEnv', 'WaveAttenuationPOEnv',
     'TrafficLightGridEnv', 'TrafficLightGridPOEnv',

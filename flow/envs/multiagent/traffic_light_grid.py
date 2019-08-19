@@ -9,7 +9,7 @@ from flow.envs.multiagent.base import MultiEnv
 from gym.spaces.discrete import Discrete
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
-from flow.envs.green_wave_env import TrafficLightGridEnv
+from flow.envs.traffic_light_grid import TrafficLightGridEnv
 
 ADDITIONAL_ENV_PARAMS = {
     # minimum switch time for each traffic light (in seconds)
@@ -24,7 +24,7 @@ ADDITIONAL_ENV_PARAMS = {
 
 
 
-class MultiAgentGrid(TrafficLightGridEnv, MultiEnv):
+class MultiAgentTrafficLightGrid(TrafficLightGridEnv, MultiEnv):
     """Grid multi agent env.
     """
     

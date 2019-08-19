@@ -14,7 +14,7 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import VehicleParams
-from flow.envs.traffic_light_grid import GreenWaveTestEnv
+from flow.envs.traffic_light_grid import TrafficLightGridTestEnv
 from flow.envs.ring.accel import AccelEnv
 from flow.scenarios.figure_eight import Figure8Scenario
 from flow.scenarios.grid import SimpleGridScenario
@@ -414,7 +414,7 @@ def grid_mxn_exp_setup(row_num=1,
         traffic_lights=tl_logic)
 
     # create the environment
-    env = GreenWaveTestEnv(
+    env = TrafficLightGridTestEnv(
         env_params=env_params, sim_params=sim_params, scenario=scenario)
 
     # reset the environment

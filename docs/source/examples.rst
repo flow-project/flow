@@ -63,7 +63,7 @@ Flow comes with a New York City style, configurable grid of traffic lights where
 control both the traffic lights and the autonomous vehicles. The build-in reward is to minimize
 the total system delay. The number of rows and columns can be adjusted by changing the values in
 `N_ROWS` and `N_COLUMNS` and the inflows adjusted by changing `EDGE_INFLOW`. Relevant files are
-`green_wave.py` in the examples folder and `grid_0.py` and `grid_1.py` in the benchmark folder.
+`traffic_light_grid.py` in the examples folder and `grid_0.py` and `grid_1.py` in the benchmark folder.
 
 .. image:: ../img/grid-corl2018.png
    :width: 400

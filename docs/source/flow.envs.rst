@@ -27,7 +27,7 @@ flow.envs.bottleneck\_env module
     :undoc-members:
     :show-inheritance:
 
-flow.envs.green\_wave\_env module
+flow.envs.traffic\_light\_grid module
 ---------------------------------
 
 .. automodule:: flow.envs.traffic_light_grid
