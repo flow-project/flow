@@ -26,7 +26,7 @@ import argparse
 
 # scenarios that can be plotted by this method
 ACCEPTABLE_SCENARIOS = [
-    'LoopScenario',
+    'RingScenario',
     'Figure8Scenario',
     'MergeScenario',
 ]
@@ -120,7 +120,7 @@ def get_time_space_data(data, params):
 
     # switcher used to compute the positions based on the type of scenario
     switcher = {
-        'LoopScenario': _ring_road,
+        'RingScenario': _ring_road,
         'MergeScenario': _merge,
         'Figure8Scenario': _figure_eight
     }

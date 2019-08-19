@@ -7,8 +7,8 @@ from copy import deepcopy
 from flow.core.params import VehicleParams
 from flow.core.params import NetParams, EnvParams, SumoParams, InFlows
 from flow.controllers import IDMController, RLController
-from flow.scenarios import LoopScenario, MergeScenario, BottleneckScenario
-from flow.scenarios.ring import ADDITIONAL_NET_PARAMS as LOOP_PARAMS
+from flow.scenarios import RingScenario, MergeScenario, BottleneckScenario
+from flow.scenarios.ring import ADDITIONAL_NET_PARAMS as Ring_PARAMS
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS as MERGE_PARAMS
 from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
     WaveAttenuationEnv, WaveAttenuationPOEnv, MergePOEnv, \
@@ -27,10 +27,10 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
         self.sim_params = SumoParams()
-        self.scenario = LoopScenario(
+        self.scenario = RingScenario(
             name="test_merge",
             vehicles=vehicles,
-            net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
+            net_params=NetParams(additional_params=Ring_PARAMS.copy()),
         )
         self.env_params = EnvParams(
             additional_params={
@@ -114,10 +114,10 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
         self.sim_params = SumoParams()
-        self.scenario = LoopScenario(
+        self.scenario = RingScenario(
             name="test_merge",
             vehicles=vehicles,
-            net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
+            net_params=NetParams(additional_params=Ring_PARAMS.copy()),
         )
         self.env_params = EnvParams(
             additional_params={
@@ -196,10 +196,10 @@ class TestAccelEnv(unittest.TestCase):
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
         self.sim_params = SumoParams()
-        self.scenario = LoopScenario(
+        self.scenario = RingScenario(
             name="test_merge",
             vehicles=vehicles,
-            net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
+            net_params=NetParams(additional_params=Ring_PARAMS.copy()),
         )
         self.env_params = EnvParams(
             additional_params={
@@ -327,10 +327,10 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         self.sim_params = SumoParams(
             restart_instance=True
         )
-        self.scenario = LoopScenario(
+        self.scenario = RingScenario(
             name="test_merge",
             vehicles=vehicles,
-            net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
+            net_params=NetParams(additional_params=Ring_PARAMS.copy()),
         )
         params = {
             "max_accel": 1,
@@ -449,11 +449,11 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         )
 
         # reset the network several times and check its length
-        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        self.assertEqual(env.k.scenario.length(), Ring_PARAMS["length"])
         env.reset()
-        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        self.assertEqual(env.k.scenario.length(), Ring_PARAMS["length"])
         env.reset()
-        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        self.assertEqual(env.k.scenario.length(), Ring_PARAMS["length"])
 
 
 class TestWaveAttenuationPOEnv(unittest.TestCase):
@@ -464,10 +464,10 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
         self.sim_params = SumoParams()
-        self.scenario = LoopScenario(
+        self.scenario = RingScenario(
             name="test_merge",
             vehicles=vehicles,
-            net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
+            net_params=NetParams(additional_params=Ring_PARAMS.copy()),
         )
         self.env_params = EnvParams(
             additional_params={
@@ -681,10 +681,10 @@ class TestTestEnv(unittest.TestCase):
     def setUp(self):
         vehicles = VehicleParams()
         vehicles.add("test")
-        net_params = NetParams(additional_params=LOOP_PARAMS)
+        net_params = NetParams(additional_params=Ring_PARAMS)
         env_params = EnvParams()
         sim_params = SumoParams()
-        scenario = LoopScenario("test_ring",
+        scenario = RingScenario("test_ring",
                                 vehicles=vehicles,
                                 net_params=net_params)
         self.env = TestEnv(env_params, sim_params, scenario)

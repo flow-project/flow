@@ -19,6 +19,6 @@ from flow.scenarios.minicity import MiniCityScenario
 __all__ = [
     "Scenario", "BayBridgeScenario", "BayBridgeTollScenario",
     "BottleneckScenario", "Figure8Scenario", "SimpleGridScenario",
-    "HighwayScenario", "LoopScenario", "MergeScenario",
+    "HighwayScenario", "RingScenario", "MergeScenario",
     "TwoRingsOneMergingScenario", "MultiRingScenario", "MiniCityScenario"
 ]

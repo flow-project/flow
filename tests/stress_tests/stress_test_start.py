@@ -27,7 +27,7 @@ def start():
 
     initial_config = InitialConfig(bunching=20)
 
-    scenario = LoopScenario(
+    scenario = RingScenario(
         name="sugiyama",
         vehicles=vehicles,
         net_params=net_params,

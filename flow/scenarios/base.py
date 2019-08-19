@@ -177,7 +177,7 @@ class Scenario(Serializable):
 
     Example
     -------
-    The following examples are derived from the `LoopScenario` Scenario class
+    The following examples are derived from the `RingScenario` Scenario class
     located in flow/scenarios/ring.py, and should serve as an example of the
     types of outputs to be expected from the different variables of a scenario
     class.
@@ -186,10 +186,10 @@ class Scenario(Serializable):
     the following commands (note if this this unclear please refer to Tutorial
     1):
 
-    >>> from flow.scenarios import LoopScenario
+    >>> from flow.scenarios import RingScenario
     >>> from flow.core.params import NetParams, VehicleParams
     >>>
-    >>> scenario = LoopScenario(
+    >>> scenario = RingScenario(
     >>>     name='test',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(

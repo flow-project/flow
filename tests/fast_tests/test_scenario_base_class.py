@@ -22,7 +22,7 @@ from tests.setup_scripts import variable_lanes_exp_setup
 os.environ["TEST_FLAG"] = "True"
 
 
-class NoRouteNetwork(LoopScenario):
+class NoRouteNetwork(RingScenario):
     """A network with no routes.
 
     Used to check for default route assignment.

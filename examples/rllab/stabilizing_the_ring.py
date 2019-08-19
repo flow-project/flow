@@ -6,7 +6,7 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_gru_policy import GaussianGRUPolicy
 
-from flow.scenarios.ring import LoopScenario
+from flow.scenarios.ring import RingScenario
 from flow.controllers import RLController, IDMController, ContinuousRouter
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
@@ -54,7 +54,7 @@ def run_task(*_):
     initial_config = InitialConfig(spacing="uniform", bunching=50)
 
     print("XXX name", exp_tag)
-    scenario = LoopScenario(
+    scenario = RingScenario(
         exp_tag,
         vehicles,
         net_params,

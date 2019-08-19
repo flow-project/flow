@@ -98,7 +98,7 @@ def ring_road_exp_setup(sim_params=None,
         traffic_lights = TrafficLightParams()
 
     # create the scenario
-    scenario = LoopScenario(
+    scenario = RingScenario(
         name="RingRoadTest",
         vehicles=vehicles,
         net_params=net_params,
@@ -519,7 +519,7 @@ def variable_lanes_exp_setup(sim_params=None,
     return env, scenario
 
 
-class VariableLanesScenario(LoopScenario):
+class VariableLanesScenario(RingScenario):
     """Instantiate a ring road with variable number of lanes per edge."""
 
     def specify_edges(self, net_params):
