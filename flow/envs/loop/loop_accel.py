@@ -120,7 +120,15 @@ class AccelEnv(Env):
         pos = [self.k.vehicle.get_x_by_id(veh_id) / self.k.scenario.length()
                for veh_id in self.sorted_ids]
 
-        return np.array(speed + pos)
+        state = np.array(speed + pos)
+
+        if isinstance(self.observation_space, Box):
+            state = np.clip(
+                state,
+                a_min=self.observation_space.low,
+                a_max=self.observation_space.high)
+
+        return state
 
     def additional_command(self):
         """See parent class.

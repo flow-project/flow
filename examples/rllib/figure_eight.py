@@ -23,7 +23,7 @@ HORIZON = 1500
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 8
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = VehicleParams()
@@ -135,7 +135,7 @@ def setup_exps():
 
 if __name__ == '__main__':
     alg_run, gym_name, config = setup_exps()
-    ray.init(num_cpus=N_CPUS + 1, redirect_output=False)
+    ray.init(num_cpus=N_CPUS + 1)#, object_store_memory=10000000)
     trials = run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,
@@ -147,7 +147,8 @@ if __name__ == '__main__':
             "checkpoint_at_end": True,
             'max_failures': 999,
             'stop': {
-                'training_iteration': 200,
+                'training_iteration': 100,
             },
+            'upload_dir': 's3://kathy.experiments/rllib/experiments',
         }
     })
