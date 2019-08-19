@@ -1,4 +1,4 @@
-"""Trains vehicles to facilitate cooperative merging in a loop merge.
+"""Trains vehicles to facilitate cooperative merging in a ring merge.
 
 This examples consists of 1 learning agent and 6 additional vehicles in an
 inner ring, and 10 vehicles in an outer ring attempting to

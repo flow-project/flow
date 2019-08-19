@@ -7,13 +7,13 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.loop_merge import TwoLoopsOneMergingScenario, \
+from flow.scenarios.ring_merge import TwoLoopsOneMergingScenario, \
     ADDITIONAL_NET_PARAMS
 
 
-def loop_merge_example(render=None):
+def ring_merge_example(render=None):
     """
-    Perform a simulation of vehicles on a loop merge.
+    Perform a simulation of vehicles on a ring merge.
 
     Parameters
     ----------
@@ -24,7 +24,7 @@ def loop_merge_example(render=None):
     -------
     exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
-        vehicles on a loop merge.
+        vehicles on a ring merge.
     """
     sim_params = SumoParams(
         sim_step=0.1, emission_path="./data/", render=True)
@@ -74,7 +74,7 @@ def loop_merge_example(render=None):
         x0=50, spacing="uniform", additional_params={"merge_bunching": 0})
 
     scenario = TwoLoopsOneMergingScenario(
-        name="two-loop-one-merging",
+        name="two-ring-one-merging",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
@@ -86,7 +86,7 @@ def loop_merge_example(render=None):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = loop_merge_example()
+    exp = ring()
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500, convert_to_csv=True)

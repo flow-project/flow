@@ -142,7 +142,7 @@ class Scenario(Serializable):
 
         If the type variable is None, then no types are available within the
         scenario. Furthermore, a proper example of this variable being used can
-        be found under `specify_types` in flow/scenarios/loop.py.
+        be found under `specify_types` in flow/scenarios/ring.py.
 
         Note that, if the scenario is meant to generate the network from an
         OpenStreetMap or template file, this variable is set to None
@@ -178,7 +178,7 @@ class Scenario(Serializable):
     Example
     -------
     The following examples are derived from the `LoopScenario` Scenario class
-    located in flow/scenarios/loop.py, and should serve as an example of the
+    located in flow/scenarios/ring.py, and should serve as an example of the
     types of outputs to be expected from the different variables of a scenario
     class.
 
@@ -300,7 +300,7 @@ class Scenario(Serializable):
     >>> print(scenario.edge_starts)
     >>> [('bottom', 0), ('right', 57.5), ('top', 115.0), ('left', 172.5)]
 
-    Finally, the loop scenario does not contain any junctions or intersections,
+    Finally, the ring scenario does not contain any junctions or intersections,
     and as a result the `internal_edge_starts` and `intersection_edge_starts`
     attributes are both set to None. For an example of a network with junctions
     and intersections, please refer to: flow/scenarios/figure_eight.py.
@@ -557,7 +557,7 @@ class Scenario(Serializable):
           to the edge the vehicle begins on. Note that the edges must be
           connected for the route to be valid.
 
-          For example (from flow/scenarios/loop.py):
+          For example (from flow/scenarios/ring.py):
 
           >>> def specify_routes(self, net_params):
           >>>     return {

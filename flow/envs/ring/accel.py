@@ -1,4 +1,4 @@
-"""Environment for training the acceleration behavior of vehicles in a loop."""
+"""Environment for training the acceleration behavior of vehicles in a ring."""
 
 from flow.core import rewards
 from flow.envs.base import Env

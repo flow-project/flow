@@ -77,11 +77,11 @@ Example of an open multi-lane network with human-driven vehicles.
 
 ![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/highway.gif)
 
-### loop_merges.py
+### ring_merge.py
 
 Example of ring road with larger merging ring.
 
-![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/loop_merge.gif)
+![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/ring_merge.gif)
 
 ### merge.py
 

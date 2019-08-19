@@ -19,7 +19,7 @@ from flow.envs.ring.accel import AccelEnv
 from flow.scenarios.figure_eight import Figure8Scenario
 from flow.scenarios.grid import SimpleGridScenario
 from flow.scenarios.highway import HighwayScenario
-from flow.scenarios.loop import LoopScenario
+from flow.scenarios.ring import RingScenario
 
 
 def ring_road_exp_setup(sim_params=None,

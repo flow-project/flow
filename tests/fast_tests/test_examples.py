@@ -8,7 +8,7 @@ from examples.sumo.density_exp import run_bottleneck
 from examples.sumo.figure_eight import figure_eight_example
 from examples.sumo.grid import grid_example
 from examples.sumo.highway import highway_example
-from examples.sumo.loop_merge import loop_merge_example
+from examples.sumo.ring_merge import ring_merge_example
 from examples.sumo.merge import merge_example
 from examples.sumo.minicity import minicity_example
 from examples.sumo.sugiyama import sugiyama_example
@@ -89,10 +89,10 @@ class TestSumoExamples(unittest.TestCase):
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
 
-    def test_loop_merge(self):
-        """Verify that examples/sumo/two_loops_merge_straight.py is working."""
+    def test_ring_merge(self):
+        """Verify that examples/sumo/two_rings_merge_straight.py is working."""
         # import the experiment variable from the example
-        exp = loop_merge_example(render=False)
+        exp = ring_merge_example(render=False)
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)

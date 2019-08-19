@@ -1,4 +1,4 @@
-"""Trains vehicles to facilitate cooperative merging in a loop merge.
+"""Trains vehicles to facilitate cooperative merging in a ring merge.
 
 This example consists of 1 learning agent and 6 additional vehicles in an inner
 ring, and 10 vehicles in an outer ring attempting to merge into the inner ring.
@@ -16,7 +16,7 @@ from flow.controllers import RLController, IDMController, \
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
-from flow.scenarios.loop_merge import TwoLoopsOneMergingScenario, \
+from flow.scenarios.ring_merge import TwoLoopsOneMergingScenario, \
     ADDITIONAL_NET_PARAMS
 
 HORIZON = 300

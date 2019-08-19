@@ -25,7 +25,7 @@ class Figure8Scenario(Scenario):
     The figure eight network is an extension of the ring road network: Two
     rings, placed at opposite ends of the network, are connected by an
     intersection with road segments of length equal to the diameter of the
-    rings. Serves as a simulation of a closed loop intersection.
+    rings. Serves as a simulation of a closed ring intersection.
 
     Requires from net_params:
 

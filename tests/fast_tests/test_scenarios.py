@@ -102,7 +102,7 @@ class TestHighwayScenario(unittest.TestCase):
 
 class TestLoopScenario(unittest.TestCase):
 
-    """Tests LoopScenario in flow/scenarios/loop.py."""
+    """Tests LoopScenario in flow/scenarios/ring.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
@@ -121,7 +121,7 @@ class TestLoopScenario(unittest.TestCase):
 
 class TestTwoLoopsOneMergingScenario(unittest.TestCase):
 
-    """Tests TwoLoopsOneMergingScenario in flow/scenarios/loop_merge.py."""
+    """Tests TwoLoopsOneMergingScenario in flow/scenarios/ring_merge.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
@@ -163,7 +163,7 @@ class TestMergeScenario(unittest.TestCase):
 
 class TestMultiLoopScenario(unittest.TestCase):
 
-    """Tests MultiLoopScenario in flow/scenarios/multi_loop.py."""
+    """Tests MultiLoopScenario in flow/scenarios/multi_ring.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
