@@ -7,7 +7,7 @@ from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import InFlows
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.grid import SimpleGridScenario
+from flow.scenarios.traffic_light_grid import TrafficLightGridScenario
 
 
 def gen_edges(col_num, row_num):
@@ -215,7 +215,7 @@ def grid_example(render=None, use_inflows=False):
             enter_speed=v_enter,
             add_net_params=additional_net_params)
 
-    scenario = SimpleGridScenario(
+    scenario = TrafficLightGridScenario(
         name="grid-intersection",
         vehicles=vehicles,
         net_params=net_params,

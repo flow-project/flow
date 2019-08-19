@@ -186,7 +186,7 @@ flow_params = dict(
     env_name='TrafficLightGridPOEnv',
 
     # name of the scenario class the experiment is running on
-    scenario='SimpleGridScenario',
+    scenario='TrafficLightGridScenario',
 
     # simulator that is used by the experiment
     simulator='traci',

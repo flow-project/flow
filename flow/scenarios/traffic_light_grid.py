@@ -40,7 +40,7 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class SimpleGridScenario(Scenario):
+class TrafficLightGridScenario(Scenario):
     """Grid scenario class.
 
     The grid scenario consists of m vertical lanes and n horizontal lanes,
@@ -78,9 +78,9 @@ class SimpleGridScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import SimpleGridScenario
+    >>> from flow.scenarios import TrafficLightGridScenario
     >>>
-    >>> scenario = SimpleGridScenario(
+    >>> scenario = TrafficLightGridScenario(
     >>>     name='grid',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(

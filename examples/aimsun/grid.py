@@ -4,7 +4,7 @@ from flow.core.params import AimsunParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.grid import SimpleGridScenario
+from flow.scenarios.traffic_light_grid import TrafficLightGridScenario
 
 
 def grid_example(render=None):
@@ -102,7 +102,7 @@ def grid_example(render=None):
 
     initial_config = InitialConfig(spacing='custom')
 
-    scenario = SimpleGridScenario(
+    scenario = TrafficLightGridScenario(
         name="grid-intersection",
         vehicles=vehicles,
         net_params=net_params,

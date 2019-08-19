@@ -14,7 +14,7 @@ from flow.core.params import SumoCarFollowingParams
 
 from flow.controllers import SimCarFollowingController, GridRouter
 
-from flow.scenarios.grid import SimpleGridScenario
+from flow.scenarios.traffic_light_grid import TrafficLightGridScenario
 
 # set to true if you would like to run the experiment with inflows of vehicles
 # from the edges, and false otherwise
@@ -199,7 +199,7 @@ def run_task(*_):
         initial_config, net_params = get_non_flow_params(
             V_ENTER, additional_net_params)
 
-    scenario = SimpleGridScenario(
+    scenario = TrafficLightGridScenario(
         name="grid-intersection",
         vehicles=vehicles,
         net_params=net_params,

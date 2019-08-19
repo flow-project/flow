@@ -10,7 +10,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, \
     SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.figure_eight import Figure8Scenario, ADDITIONAL_NET_PARAMS
+from flow.scenarios.figure_eight import FigureEightScenario, ADDITIONAL_NET_PARAMS
 
 
 def figure_eight_example(render=None):
@@ -52,8 +52,8 @@ def figure_eight_example(render=None):
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
-    scenario = Figure8Scenario(
-        name="figure8",
+    scenario = FigureEightScenario(
+        name="FigureEight",
         vehicles=vehicles,
         net_params=net_params)
 

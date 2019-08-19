@@ -16,7 +16,7 @@ from flow.controllers import RLController, IDMController, \
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
-from flow.scenarios.ring_merge import TwoRingsOneMergingScenario, \
+from flow.scenarios.two_rings_one_merge import TwoRingsOneMergeScenario, \
     ADDITIONAL_NET_PARAMS
 
 HORIZON = 300
@@ -86,7 +86,7 @@ def run_task(*_):
 
     initial_config = InitialConfig(x0=50, spacing="uniform")
 
-    scenario = TwoRingsOneMergingScenario(
+    scenario = TwoRingsOneMergeScenario(
         name=exp_tag,
         vehicles=vehicles,
         net_params=net_params,

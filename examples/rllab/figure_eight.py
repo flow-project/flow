@@ -6,7 +6,7 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-from flow.scenarios.figure_eight import Figure8Scenario
+from flow.scenarios.figure_eight import FigureEightScenario
 from flow.controllers import RLController, IDMController, ContinuousRouter
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
@@ -63,7 +63,7 @@ def run_task(*_):
     initial_config = InitialConfig(spacing="uniform")
 
     print("XXX name", exp_tag)
-    scenario = Figure8Scenario(
+    scenario = FigureEightScenario(
         exp_tag,
         vehicles,
         net_params,

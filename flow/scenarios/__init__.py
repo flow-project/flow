@@ -7,18 +7,18 @@ from flow.scenarios.base import Scenario
 from flow.scenarios.bay_bridge import BayBridgeScenario
 from flow.scenarios.bay_bridge_toll import BayBridgeTollScenario
 from flow.scenarios.bottleneck import BottleneckScenario
-from flow.scenarios.figure_eight import Figure8Scenario
-from flow.scenarios.grid import SimpleGridScenario
+from flow.scenarios.figure_eight import FigureEightScenario
+from flow.scenarios.traffic_light_grid import TrafficLightGridScenario
 from flow.scenarios.highway import HighwayScenario
 from flow.scenarios.ring import RingScenario
 from flow.scenarios.merge import MergeScenario
-from flow.scenarios.ring_merge import TwoRingsOneMergingScenario
+from flow.scenarios.two_rings_one_merge import TwoRingsOneMergeScenario
 from flow.scenarios.multi_ring import MultiRingScenario
 from flow.scenarios.minicity import MiniCityScenario
 
 __all__ = [
     "Scenario", "BayBridgeScenario", "BayBridgeTollScenario",
-    "BottleneckScenario", "Figure8Scenario", "SimpleGridScenario",
+    "BottleneckScenario", "FigureEightScenario", "TrafficLightGridScenario",
     "HighwayScenario", "RingScenario", "MergeScenario",
-    "TwoRingsOneMergingScenario", "MultiRingScenario", "MiniCityScenario"
+    "TwoRingsOneMergeScenario", "MultiRingScenario", "MiniCityScenario"
 ]

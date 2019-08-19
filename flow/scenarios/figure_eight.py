@@ -19,7 +19,7 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class Figure8Scenario(Scenario):
+class FigureEightScenario(Scenario):
     """Figure eight scenario class.
 
     The figure eight network is an extension of the ring road network: Two
@@ -43,9 +43,9 @@ class Figure8Scenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import Figure8Scenario
+    >>> from flow.scenarios import FigureEightScenario
     >>>
-    >>> scenario = Figure8Scenario(
+    >>> scenario = FigureEightScenario(
     >>>     name='figure_eight',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(

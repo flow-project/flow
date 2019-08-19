@@ -21,7 +21,7 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class TwoRingsOneMergingScenario(Scenario):
+class TwoRingsOneMergeScenario(Scenario):
     """Two ring merge scenario.
 
     This network is expected to simulate a closed ring representation of a
@@ -43,9 +43,9 @@ class TwoRingsOneMergingScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import TwoRingsOneMergingScenario
+    >>> from flow.scenarios import TwoRingsOneMergeScenario
     >>>
-    >>> scenario = TwoRingsOneMergingScenario(
+    >>> scenario = TwoRingsOneMergeScenario(
     >>>     name='two_rings_merge',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(

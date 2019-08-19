@@ -88,7 +88,7 @@ flow_params = dict(
     env_name='AccelEnv',
 
     # name of the scenario class the experiment is running on
-    scenario='TwoRingsOneMergingScenario',
+    scenario='TwoRingsOneMergeScenario',
 
     # simulator that is used by the experiment
     simulator='traci',

@@ -16,8 +16,8 @@ from flow.core.params import TrafficLightParams
 from flow.core.params import VehicleParams
 from flow.envs.traffic_light_grid import TrafficLightGridTestEnv
 from flow.envs.ring.accel import AccelEnv
-from flow.scenarios.figure_eight import Figure8Scenario
-from flow.scenarios.grid import SimpleGridScenario
+from flow.scenarios.figure_eight import FigureEightScenario
+from flow.scenarios.traffic_light_grid import TrafficLightGridScenario
 from flow.scenarios.highway import HighwayScenario
 from flow.scenarios.ring import RingScenario
 
@@ -192,7 +192,7 @@ def figure_eight_exp_setup(sim_params=None,
         traffic_lights = TrafficLightParams()
 
     # create the scenario
-    scenario = Figure8Scenario(
+    scenario = FigureEightScenario(
         name="FigureEightTest",
         vehicles=vehicles,
         net_params=net_params,
@@ -406,7 +406,7 @@ def grid_mxn_exp_setup(row_num=1,
             spacing="custom", additional_params={"enter_speed": 30})
 
     # create the scenario
-    scenario = SimpleGridScenario(
+    scenario = TrafficLightGridScenario(
         name="Grid1x1Test",
         vehicles=vehicles,
         net_params=net_params,

@@ -105,7 +105,7 @@ class TestRegistry(unittest.TestCase):
         flow_params = dict(
             exp_tag="figure_eight_0",
             env_name="AccelEnv",
-            scenario="Figure8Scenario",
+            scenario="FigureEightScenario",
             simulator='traci',
             sim=SumoParams(
                 sim_step=0.1,

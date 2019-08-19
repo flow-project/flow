@@ -32,7 +32,7 @@ is relatively light-weight and can be trained the quickest. It can serve both as
 that the training process is working correctly and as a study of the difficulty of controlling
 many vehicles simultaneously.
 
-.. image:: ../img/figure8-corl2018.png
+.. image:: ../img/figure_eight-corl2018.png
    :width: 400
    :align: center
 

@@ -7,11 +7,11 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.ring_merge import TwoRingsOneMergingScenario, \
+from flow.scenarios.two_rings_one_merge import TwoRingsOneMergeScenario, \
     ADDITIONAL_NET_PARAMS
 
 
-def ring_merge_example(render=None):
+def two_rings_one_merge_example(render=None):
     """
     Perform a simulation of vehicles on a ring merge.
 
@@ -73,7 +73,7 @@ def ring_merge_example(render=None):
     initial_config = InitialConfig(
         x0=50, spacing="uniform", additional_params={"merge_bunching": 0})
 
-    scenario = TwoRingsOneMergingScenario(
+    scenario = TwoRingsOneMergeScenario(
         name="two-ring-one-merging",
         vehicles=vehicles,
         net_params=net_params,
