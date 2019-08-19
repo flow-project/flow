@@ -135,7 +135,7 @@ def visualizer_rllib(args):
     # if flow_params['env_name'] in single_agent_envs:
     #     env_loc = 'flow.envs'
     # else:
-    #     env_loc = 'flow.multiagent_envs'
+    #     env_loc = 'flow.envs.multiagent'
 
     # Start the environment with the gui turned on and a path for the
     # emission file

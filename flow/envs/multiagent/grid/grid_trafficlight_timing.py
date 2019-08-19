@@ -2,7 +2,7 @@
 
 import numpy as np
 from flow.core import rewards
-from flow.multiagent_envs.multiagent_env import MultiEnv
+from flow.envs.multiagent.base import MultiEnv
 
 
 # todo for Ashkan: This needs to be defined for multi-agent RL in grid scenario
