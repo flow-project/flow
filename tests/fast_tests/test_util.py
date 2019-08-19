@@ -105,7 +105,7 @@ class TestRegistry(unittest.TestCase):
         flow_params = dict(
             exp_tag="figure_eight_0",
             env_name="AccelEnv",
-            scenario="Figure8Scenario",
+            scenario="Figure8Network",
             simulator='traci',
             sim=SumoParams(
                 sim_step=0.1,
@@ -218,7 +218,7 @@ class TestRllib(unittest.TestCase):
         flow_params = dict(
             exp_tag="merge_0",
             env_name="WaveAttenuationMergePOEnv",
-            scenario="MergeScenario",
+            scenario="MergeNetwork",
             sim=SumoParams(
                 restart_instance=True,
                 sim_step=0.5,

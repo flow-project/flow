@@ -1,7 +1,7 @@
 """Script containing the Flow kernel object for interacting with simulators."""
 
 from flow.core.kernel.simulation import TraCISimulation, AimsunKernelSimulation
-from flow.core.kernel.scenario import TraCIScenario, AimsunKernelScenario
+from flow.core.kernel.scenario import TraCINetwork, AimsunKernelNetwork
 from flow.core.kernel.vehicle import TraCIVehicle, AimsunKernelVehicle
 from flow.core.kernel.traffic_light import TraCITrafficLight, \
     AimsunKernelTrafficLight
@@ -63,12 +63,12 @@ class Kernel(object):
 
         if simulator == "traci":
             self.simulation = TraCISimulation(self)
-            self.scenario = TraCIScenario(self, sim_params)
+            self.scenario = TraCINetwork(self, sim_params)
             self.vehicle = TraCIVehicle(self, sim_params)
             self.traffic_light = TraCITrafficLight(self)
         elif simulator == 'aimsun':
             self.simulation = AimsunKernelSimulation(self)
-            self.scenario = AimsunKernelScenario(self, sim_params)
+            self.scenario = AimsunKernelNetwork(self, sim_params)
             self.vehicle = AimsunKernelVehicle(self, sim_params)
             self.traffic_light = AimsunKernelTrafficLight(self)
         else:

@@ -5,7 +5,7 @@ from numpy import pi, sin, cos, linspace
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_scenario import Network
 
 ADDITIONAL_NET_PARAMS = {
     # radius of the circular components
@@ -19,7 +19,7 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class Figure8Scenario(Scenario):
+class Figure8Network(Network):
     """Figure eight scenario class.
 
     The figure eight network is an extension of the ring road network: Two
@@ -40,9 +40,9 @@ class Figure8Scenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import Figure8Scenario
+    >>> from flow.networks import Figure8Network
     >>>
-    >>> scenario = Figure8Scenario(
+    >>> scenario = Figure8Network(
     >>>     name='figure_eight',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(

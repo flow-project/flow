@@ -61,7 +61,7 @@ def make_create_env(params, version=0, render=None):
 
     env_name = params["env_name"] + '-v{}'.format(version)
 
-    module = __import__("flow.scenarios", fromlist=[params["scenario"]])
+    module = __import__("flow.networks", fromlist=[params["scenario"]])
     scenario_class = getattr(module, params["scenario"])
 
     env_params = params['env']

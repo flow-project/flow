@@ -1,6 +1,6 @@
 """Contains the ring road scenario class."""
 
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_scenario import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos, linspace
@@ -17,8 +17,8 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class LoopScenario(Scenario):
-    """Ring road scenario.
+class LoopNetwork(Network):
+    """Ring road network.
 
     This network consists of nodes at the top, bottom, left, and right
     peripheries of the circles, connected by four 90 degree arcs. It is
@@ -37,9 +37,9 @@ class LoopScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import LoopScenario
+    >>> from flow.networks import LoopNetwork
     >>>
-    >>> scenario = LoopScenario(
+    >>> network = LoopNetwork(
     >>>     name='ring_road',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(

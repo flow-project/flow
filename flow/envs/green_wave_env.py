@@ -387,15 +387,23 @@ class TrafficLightGridEnv(Env):
         --- 0 --- 1 --- 2 ---
             |     |     |
 
-        See flow.scenarios.grid for more information.
+        See flow.networks.grid for more information.
 
         Example of function usage:
         - Seeking the "top" direction to ":center0" would return 3.
         - Seeking the "bottom" direction to ":center0" would return -1.
 
-        :param agent_id: agent id of the form ":center#"
-        :param direction: top, bottom, left, right
-        :return: node number
+        Parameters
+        ----------
+        agent_id : str
+            agent id of the form ":center#"
+        direction : str
+            top, bottom, left, right
+
+        Returns
+        -------
+        int
+            node number
         """
         ID_IDX = 1
         agent_id_num = int(agent_id.split("center")[ID_IDX])

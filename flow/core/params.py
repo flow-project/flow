@@ -662,13 +662,10 @@ class NetParams:
         entering the network from these edges
     osm_path : str, optional
         path to the .osm file that should be used to generate the network
-        configuration files. This parameter is only needed / used if the
-        OpenStreetMapScenario class is used.
+        configuration files
     template : str, optional
-        path to the .net.xml file that should be passed to SUMO. This is
-        only needed / used if the NetFileScenario class is used, such as
-        in the case of Bay Bridge experiments (which use a custom net.xml
-        file)
+        path to the network template file that can be used to instantiate a
+        netowrk in the simulator of choice
     additional_params : dict, optional
         network specific parameters; see each subclass for a description of
         what is needed

@@ -23,7 +23,7 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
 from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
-from flow.scenarios.highway_ramps import ADDITIONAL_NET_PARAMS
+from flow.networks.highway_ramps import ADDITIONAL_NET_PARAMS
 
 
 # SET UP PARAMETERS FOR THE SIMULATION
@@ -135,7 +135,7 @@ for i in range(len(additional_net_params['on_ramps_pos'])):
 flow_params = dict(
     exp_tag='multiagent_highway',
     env_name='MultiAgentHighwayPOEnv',
-    scenario='HighwayRampsScenario',
+    scenario='HighwayRampsNetwork',
     simulator='traci',
 
     env=EnvParams(

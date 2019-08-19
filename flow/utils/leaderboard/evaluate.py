@@ -97,7 +97,7 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
     # import the environment and scenario classes
     module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
     env_class = getattr(module, flow_params["env_name"])
-    module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
+    module = __import__("flow.networks", fromlist=[flow_params["scenario"]])
     scenario_class = getattr(module, flow_params["scenario"])
 
     # recreate the scenario and environment

@@ -7,7 +7,7 @@ from flow.core.params import SumoParams, EnvParams, \
 from flow.core.params import VehicleParams
 from flow.envs.loop.lane_changing import LaneChangeAccelEnv, \
     ADDITIONAL_ENV_PARAMS
-from flow.scenarios.highway import HighwayScenario, ADDITIONAL_NET_PARAMS
+from flow.networks.highway import HighwayNetwork, ADDITIONAL_NET_PARAMS
 
 
 def highway_example(render=None):
@@ -62,7 +62,7 @@ def highway_example(render=None):
 
     initial_config = InitialConfig(spacing="uniform", shuffle=True)
 
-    scenario = HighwayScenario(
+    scenario = HighwayNetwork(
         name="highway",
         vehicles=vehicles,
         net_params=net_params,

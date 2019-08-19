@@ -22,7 +22,7 @@ class MultiAgentHighwayPOEnv(MultiEnv):
     formation and propagation of waves in an open highway network.
 
     The highway can contain an arbitrary number of entrance and exit ramps, and
-    is intended to be used with the HighwayRampsScenario scenario.
+    is intended to be used with the HighwayRampsNetwork network.
 
     The policy is shared among the agents, so there can be a non-constant
     number of RL vehicles throughout the simulation.

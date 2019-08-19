@@ -1,6 +1,6 @@
 """Contains the loop merge scenario class."""
 
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_scenario import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos, linspace
@@ -21,8 +21,8 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class TwoLoopsOneMergingScenario(Scenario):
-    """Two loop merge scenario.
+class TwoLoopsOneMergingNetwork(Network):
+    """Two loop merge network.
 
     This network is expected to simulate a closed loop representation of a
     merge. It consists of two rings that merge together for half the length of
@@ -43,9 +43,9 @@ class TwoLoopsOneMergingScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import TwoLoopsOneMergingScenario
+    >>> from flow.networks import TwoLoopsOneMergingNetwork
     >>>
-    >>> scenario = TwoLoopsOneMergingScenario(
+    >>> network = TwoLoopsOneMergingNetwork(
     >>>     name='two_loops_merge',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(

@@ -54,7 +54,7 @@ def figure_eight_baseline(num_runs, render=True):
                  num_vehicles=14)
 
     # import the scenario class
-    module = __import__('flow.scenarios', fromlist=[flow_params['scenario']])
+    module = __import__('flow.networks', fromlist=[flow_params['scenario']])
     scenario_class = getattr(module, flow_params['scenario'])
 
     # create the scenario object

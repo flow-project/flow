@@ -95,7 +95,7 @@ def make_flow_params(n_rows, n_columns, edge_inflow):
         env_name='MultiTrafficLightGridPOEnv',
 
         # name of the scenario class the experiment is running on
-        scenario="SimpleGridScenario",
+        scenario="SimpleGridNetwork",
 
         # simulator that is used by the experiment
         simulator='traci',

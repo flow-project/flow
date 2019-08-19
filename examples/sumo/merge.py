@@ -9,7 +9,7 @@ from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows, SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.core.experiment import Experiment
-from flow.scenarios.merge import MergeScenario, ADDITIONAL_NET_PARAMS
+from flow.networks.merge import MergeNetwork, ADDITIONAL_NET_PARAMS
 from flow.controllers import IDMController
 from flow.envs.merge import WaveAttenuationMergePOEnv, ADDITIONAL_ENV_PARAMS
 
@@ -81,7 +81,7 @@ def merge_example(render=None):
 
     initial_config = InitialConfig(spacing="uniform", perturbation=5.0)
 
-    scenario = MergeScenario(
+    scenario = MergeNetwork(
         name="merge-baseline",
         vehicles=vehicles,
         net_params=net_params,

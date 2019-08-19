@@ -17,10 +17,10 @@ DEFAULT_LENGTH = 5
 DEFAULT_VCLASS = 0
 
 
-class Scenario(object):
-    """Base scenario class.
+class Network(object):
+    """Base network class.
 
-    Initializes a new scenario. Scenarios are used to specify features of
+    Initializes a new network. Networks are used to specify features of
     a network, including the positions of nodes, properties of the edges
     and junctions connecting these nodes, properties of vehicles and
     traffic lights, and other features as well. These features can later be
@@ -41,7 +41,7 @@ class Scenario(object):
       see the tutorial on creating custom scenarios or refer to some of the
       available scenarios.
 
-    * Scenario data can be collected from an OpenStreetMap (.osm) file. The
+    * Network data can be collected from an OpenStreetMap (.osm) file. The
       .osm file is specified in the NetParams object. For example:
 
         >>> from flow.core.params import NetParams
@@ -51,7 +51,7 @@ class Scenario(object):
       needed. However, a ``specify_routes`` method is still needed to specify
       the appropriate routes vehicles can traverse in the network.
 
-    * Scenario data can be collected from an sumo-specific network (.net.xml)
+    * Network data can be collected from an sumo-specific network (.net.xml)
       file. This file is specified in the NetParams object. For example:
 
         >>> from flow.core.params import NetParams
@@ -171,7 +171,7 @@ class Scenario(object):
 
     Example
     -------
-    The following examples are derived from the `LoopScenario` Scenario class
+    The following examples are derived from the `LoopNetwork` Network class
     located in flow/scenarios/loop.py, and should serve as an example of the
     types of outputs to be expected from the different variables of a scenario
     class.
@@ -180,10 +180,10 @@ class Scenario(object):
     the following commands (note if this this unclear please refer to Tutorial
     1):
 
-    >>> from flow.scenarios import LoopScenario
+    >>> from flow.networks import LoopNetwork
     >>> from flow.core.params import NetParams, VehicleParams
     >>>
-    >>> scenario = LoopScenario(
+    >>> network = LoopNetwork(
     >>>     name='test',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
@@ -198,14 +198,14 @@ class Scenario(object):
 
     The various attributes then look as follows:
 
-    >>> print(scenario.nodes)
+    >>> print(network.nodes)
     >>> [{'id': 'bottom', 'x': '0', 'y': '-36.60563691113593'},
     >>>  {'id': 'right', 'x': '36.60563691113593', 'y': '0'},
     >>>  {'id': 'top', 'x': '0', 'y': '36.60563691113593'},
     >>>  {'id': 'left', 'x': '-36.60563691113593', 'y': '0'}]
 
 
-    >>> print(scenario.edges)
+    >>> print(network.edges)
     >>> [
     >>>     {'id': 'bottom',
     >>>      'type': 'edgeType',
@@ -276,13 +276,13 @@ class Scenario(object):
     >>> ]
 
 
-    >>> print(scenario.types)
+    >>> print(network.types)
     >>> [{'id': 'edgeType', 'numLanes': '1', 'speed': '30'}]
 
-    >>> print(scenario.connections)
+    >>> print(network.connections)
     >>> None
 
-    >>> print(scenario.routes)
+    >>> print(network.routes)
     >>> {
     >>>     'top': ['top', 'left', 'bottom', 'right'],
     >>>     'left': ['left', 'bottom', 'right', 'top'],
@@ -291,18 +291,18 @@ class Scenario(object):
     >>> }
 
 
-    >>> print(scenario.edge_starts)
+    >>> print(network.edge_starts)
     >>> [('bottom', 0), ('right', 57.5), ('top', 115.0), ('left', 172.5)]
 
-    Finally, the loop scenario does not contain any junctions or intersections,
+    Finally, the loop network does not contain any junctions or intersections,
     and as a result the `internal_edge_starts` and `intersection_edge_starts`
     attributes are both set to None. For an example of a network with junctions
     and intersections, please refer to: flow/scenarios/figure_eight.py.
 
-    >>> print(scenario.internal_edge_starts)
+    >>> print(network.internal_edge_starts)
     >>> [(':', -1)]
 
-    >>> print(scenario.intersection_edge_starts)
+    >>> print(network.intersection_edge_starts)
     >>> []
     """
 
@@ -312,12 +312,12 @@ class Scenario(object):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Instantiate the base scenario class.
+        """Instantiate the base network class.
 
         Attributes
         ----------
         name : str
-            A tag associated with the scenario
+            A tag associated with the network
         vehicles : flow.core.params.VehicleParams
             see flow/core/params.py
         net_params : flow.core.params.NetParams
@@ -641,7 +641,7 @@ class Scenario(object):
 
         Parameters
         ----------
-        cls : flow.core.kernel.scenario.KernelScenario
+        cls : flow.core.kernel.scenario.KernelNetwork
             flow scenario kernel, with all the relevant methods implemented
         net_params : flow.core.params.NetParams
             network-specific parameters
@@ -807,5 +807,5 @@ class Scenario(object):
 
     def __str__(self):
         """Return the name of the scenario and the number of vehicles."""
-        return 'Scenario ' + self.name + ' with ' + \
+        return 'Network ' + self.name + ' with ' + \
                str(self.vehicles.num_vehicles) + ' vehicles.'

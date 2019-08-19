@@ -15,7 +15,7 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.controllers import IDMController, ContinuousRouter, RLController
-from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
+from flow.networks.figure_eight import ADDITIONAL_NET_PARAMS
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 
@@ -54,7 +54,7 @@ flow_params = dict(
     env_name='AccelEnv',
 
     # name of the scenario class the experiment is running on
-    scenario='Figure8Scenario',
+    scenario='Figure8Network',
 
     # simulator that is used by the experiment
     simulator='traci',

@@ -9,7 +9,7 @@ from flow.core.experiment import Experiment
 from flow.core.params import AimsunParams, EnvParams, NetParams
 from flow.core.params import VehicleParams
 from flow.envs import TestEnv
-from flow.scenarios.figure_eight import Figure8Scenario, ADDITIONAL_NET_PARAMS
+from flow.networks.figure_eight import Figure8Network, ADDITIONAL_NET_PARAMS
 
 
 def figure_eight_example(render=None):
@@ -42,7 +42,7 @@ def figure_eight_example(render=None):
     net_params = NetParams(
         additional_params=ADDITIONAL_NET_PARAMS.copy())
 
-    scenario = Figure8Scenario(
+    scenario = Figure8Network(
         name="figure8",
         vehicles=vehicles,
         net_params=net_params)

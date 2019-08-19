@@ -12,7 +12,7 @@ is 25%.
 from copy import deepcopy
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
-from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
+from flow.networks.merge import ADDITIONAL_NET_PARAMS
 from flow.core.params import VehicleParams
 from flow.controllers import SimCarFollowingController, RLController
 
@@ -79,7 +79,7 @@ flow_params = dict(
     env_name="WaveAttenuationMergePOEnv",
 
     # name of the scenario class the experiment is running on
-    scenario="MergeScenario",
+    scenario="MergeNetwork",
 
     # simulator that is used by the experiment
     simulator='traci',

@@ -101,7 +101,7 @@ flow_params = dict(
     env_name="DesiredVelocityEnv",
 
     # name of the scenario class the experiment is running on
-    scenario="BottleneckScenario",
+    scenario="BottleneckNetwork",
 
     # simulator that is used by the experiment
     simulator='traci',

@@ -9,9 +9,9 @@ from flow.core.params import VehicleParams
 from flow.core.params import EnvParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoCarFollowingParams
-from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
+from flow.networks.loop import LoopNetwork, ADDITIONAL_NET_PARAMS
 from flow.envs import TestEnv
-from flow.scenarios import Scenario
+from flow.networks import Network
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
@@ -23,7 +23,7 @@ from tests.setup_scripts import variable_lanes_exp_setup
 os.environ["TEST_FLAG"] = "True"
 
 
-class NoRouteNetwork(LoopScenario):
+class NoRouteNetwork(LoopNetwork):
     """A network with no routes.
 
     Used to check for default route assignment.
@@ -932,7 +932,7 @@ class TestOpenStreetMap(unittest.TestCase):
         net_params = NetParams(
             osm_path=os.path.join(PROJECT_PATH, 'tests/data/euclid.osm'))
 
-        scenario = Scenario(
+        scenario = Network(
             name="UC-Berkeley-Northside",
             vehicles=vehicles,
             net_params=net_params)
@@ -967,7 +967,7 @@ class TestNetworkTemplateGenerator(unittest.TestCase):
         )
 
         # create the scenario object from the network template files
-        scenario = Scenario(
+        scenario = Network(
             name="template",
             net_params=net_params,
             vehicles=VehicleParams()
@@ -1036,7 +1036,7 @@ class TestNetworkTemplateGenerator(unittest.TestCase):
             },
         )
 
-        scenario = Scenario(
+        scenario = Network(
             name="template",
             net_params=net_params,
             vehicles=VehicleParams()

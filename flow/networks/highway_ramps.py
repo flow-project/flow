@@ -1,6 +1,6 @@
 """Contains the highway with ramps scenario class."""
 
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_scenario import Network
 from flow.core.params import InitialConfig, TrafficLightParams
 from collections import defaultdict
 from numpy import pi, sin, cos
@@ -31,10 +31,10 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class HighwayRampsScenario(Scenario):
-    """Scenario class for a highway section with on and off ramps.
+class HighwayRampsNetwork(Network):
+    """Network class for a highway section with on and off ramps.
 
-    This scenario consists of a single or multi-lane highway network with a
+    This network consists of a single or multi-lane highway network with a
     variable number of on-ramps and off-ramps at arbitrary positions,
     with arbitrary numbers of lanes. It can be used to generate periodic
     perturbation on a more realistic highway.

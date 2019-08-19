@@ -6,7 +6,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.minicity import MiniCityScenario
+from flow.networks.minicity import MiniCityNetwork
 from flow.controllers.routing_controllers import MinicityRouter
 import numpy as np
 
@@ -71,7 +71,7 @@ def minicity_example(render=None,
         spacing="random",
         min_gap=5
     )
-    scenario = MiniCityScenario(
+    scenario = MiniCityNetwork(
         name="minicity",
         vehicles=vehicles,
         initial_config=initial_config,

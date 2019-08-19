@@ -16,10 +16,10 @@ from flow.core.params import TrafficLightParams
 from flow.core.params import VehicleParams
 from flow.envs.green_wave_env import GreenWaveTestEnv
 from flow.envs.loop.loop_accel import AccelEnv
-from flow.scenarios.figure_eight import Figure8Scenario
-from flow.scenarios.grid import SimpleGridScenario
-from flow.scenarios.highway import HighwayScenario
-from flow.scenarios.loop import LoopScenario
+from flow.networks.figure_eight import Figure8Network
+from flow.networks.grid import SimpleGridNetwork
+from flow.networks.highway import HighwayNetwork
+from flow.networks.loop import LoopNetwork
 
 
 def ring_road_exp_setup(sim_params=None,
@@ -29,7 +29,7 @@ def ring_road_exp_setup(sim_params=None,
                         initial_config=None,
                         traffic_lights=None):
     """
-    Create an environment and scenario pair for ring road test experiments.
+    Create an environment and network pair for ring road test experiments.
 
     Parameters
     ----------
@@ -98,7 +98,7 @@ def ring_road_exp_setup(sim_params=None,
         traffic_lights = TrafficLightParams()
 
     # create the scenario
-    scenario = LoopScenario(
+    scenario = LoopNetwork(
         name="RingRoadTest",
         vehicles=vehicles,
         net_params=net_params,
@@ -191,7 +191,7 @@ def figure_eight_exp_setup(sim_params=None,
         traffic_lights = TrafficLightParams()
 
     # create the scenario
-    scenario = Figure8Scenario(
+    scenario = Figure8Network(
         name="FigureEightTest",
         vehicles=vehicles,
         net_params=net_params,
@@ -285,7 +285,7 @@ def highway_exp_setup(sim_params=None,
         traffic_lights = TrafficLightParams()
 
     # create the scenario
-    scenario = HighwayScenario(
+    scenario = HighwayNetwork(
         name="RingRoadTest",
         vehicles=vehicles,
         net_params=net_params,
@@ -410,7 +410,7 @@ def grid_mxn_exp_setup(row_num=1,
             spacing="custom", additional_params={"enter_speed": 30})
 
     # create the scenario
-    scenario = SimpleGridScenario(
+    scenario = SimpleGridNetwork(
         name="Grid1x1Test",
         vehicles=vehicles,
         net_params=net_params,
@@ -506,7 +506,7 @@ def variable_lanes_exp_setup(sim_params=None,
         traffic_lights = TrafficLightParams()
 
     # create the scenario
-    scenario = VariableLanesScenario(
+    scenario = VariableLanesNetwork(
         name="VariableLaneRingRoadTest",
         vehicles=vehicles,
         net_params=net_params,
@@ -523,7 +523,7 @@ def variable_lanes_exp_setup(sim_params=None,
     return env, scenario
 
 
-class VariableLanesScenario(LoopScenario):
+class VariableLanesNetwork(LoopNetwork):
     """Instantiate a ring road with variable number of lanes per edge."""
 
     def specify_edges(self, net_params):

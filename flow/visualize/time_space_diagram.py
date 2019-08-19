@@ -9,7 +9,7 @@ If the number of simulation steps is too dense, you can plot every nth step in
 the plot by setting the input `--steps=n`.
 
 Note: This script assumes that the provided network has only one lane on the
-each edge, or one lane on the main highway in the case of MergeScenario.
+each edge, or one lane on the main highway in the case of MergeNetwork.
 
 Usage
 -----
@@ -26,9 +26,9 @@ import argparse
 
 # scenarios that can be plotted by this method
 ACCEPTABLE_SCENARIOS = [
-    'LoopScenario',
-    'Figure8Scenario',
-    'MergeScenario',
+    'LoopNetwork',
+    'Figure8Network',
+    'MergeNetwork',
 ]
 
 
@@ -116,13 +116,13 @@ def get_time_space_data(data, params):
     """
     # check that the scenario is appropriate
     assert params['scenario'] in ACCEPTABLE_SCENARIOS, \
-        'Scenario must be one of: ' + ', '.join(ACCEPTABLE_SCENARIOS)
+        'Network must be one of: ' + ', '.join(ACCEPTABLE_SCENARIOS)
 
     # switcher used to compute the positions based on the type of scenario
     switcher = {
-        'LoopScenario': _ring_road,
-        'MergeScenario': _merge,
-        'Figure8Scenario': _figure_eight
+        'LoopNetwork': _ring_road,
+        'MergeNetwork': _merge,
+        'Figure8Network': _figure_eight
     }
 
     # Collect a list of all the unique times.
@@ -487,8 +487,8 @@ if __name__ == '__main__':
     plt.yticks(fontsize=18)
 
     ###########################################################################
-    #                      Note: For MergeScenario only                       #
-    if flow_params['scenario'] == 'MergeScenario':                            #
+    #                       Note: For MergeNetwork only                       #
+    if flow_params['scenario'] == 'MergeNetwork':                             #
         plt.plot(time, [0] * pos.shape[0], linewidth=3, color="white")        #
         plt.plot(time, [-0.1] * pos.shape[0], linewidth=3, color="white")     #
     ###########################################################################

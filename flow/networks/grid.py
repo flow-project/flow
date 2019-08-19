@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_scenario import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from collections import defaultdict
@@ -42,7 +42,7 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class SimpleGridScenario(Scenario):
+class SimpleGridNetwork(Network):
     """Grid scenario class.
 
     The grid scenario consists of m vertical lanes and n horizontal lanes,
@@ -77,9 +77,9 @@ class SimpleGridScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import SimpleGridScenario
+    >>> from flow.networks import SimpleGridNetwork
     >>>
-    >>> scenario = SimpleGridScenario(
+    >>> scenario = SimpleGridNetwork(
     >>>     name='grid',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(

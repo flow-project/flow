@@ -53,7 +53,7 @@ class Env(gym.Env):
         see flow/core/params.py
     initial_config : flow.core.params.InitialConfig
         see flow/core/params.py
-    scenario : flow.scenarios.Scenario
+    scenario : flow.networks.Network
         see flow/scenarios/base_scenario.py
     simulator : str
         the simulator used, one of {'traci', 'aimsun'}
@@ -104,7 +104,7 @@ class Env(gym.Env):
            see flow/core/params.py
         sim_params : flow.core.params.SimParams
            see flow/core/params.py
-        scenario : flow.scenarios.Scenario
+        scenario : flow.networks.Network
             see flow/scenarios/base_scenario.py
         simulator : str
             the simulator used, one of {'traci', 'aimsun'}. Defaults to 'traci'

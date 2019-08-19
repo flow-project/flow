@@ -10,7 +10,7 @@ from flow.core.params import TrafficLightParams
 
 from flow.core.experiment import Experiment
 from flow.envs.bay_bridge.base import BayBridgeEnv
-from flow.scenarios.bay_bridge import BayBridgeScenario, EDGES_DISTRIBUTION
+from flow.networks.bay_bridge import BayBridgeNetwork, EDGES_DISTRIBUTION
 from flow.controllers import SimCarFollowingController, BayBridgeRouter
 
 TEMPLATE = os.path.join(
@@ -183,7 +183,7 @@ def bay_bridge_example(render=None,
         min_gap=15,
         edges_distribution=EDGES_DISTRIBUTION.copy())
 
-    scenario = BayBridgeScenario(
+    scenario = BayBridgeNetwork(
         name="bay_bridge",
         vehicles=vehicles,
         traffic_lights=traffic_lights,

@@ -10,8 +10,8 @@ from flow.core.params import VehicleParams
 from flow.core.experiment import Experiment
 from flow.envs.bay_bridge.base import BayBridgeEnv
 
-from flow.scenarios.bay_bridge_toll import BayBridgeTollScenario
-from flow.scenarios.bay_bridge_toll import EDGES_DISTRIBUTION
+from flow.networks.bay_bridge_toll import BayBridgeTollNetwork
+from flow.networks.bay_bridge_toll import EDGES_DISTRIBUTION
 from flow.controllers import SimCarFollowingController, BayBridgeRouter
 
 TEMPLATE = os.path.join(
@@ -112,7 +112,7 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
         min_gap=15,
         edges_distribution=EDGES_DISTRIBUTION.copy())
 
-    scenario = BayBridgeTollScenario(
+    scenario = BayBridgeTollNetwork(
         name="bay_bridge_toll",
         vehicles=vehicles,
         net_params=net_params,

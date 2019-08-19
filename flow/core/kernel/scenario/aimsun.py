@@ -6,25 +6,25 @@ import os.path as osp
 import os
 import platform
 import time
-from flow.core.kernel.scenario.base import KernelScenario
+from flow.core.kernel.scenario.base import KernelNetwork
 from copy import deepcopy
 
 # length of vehicles in the network, in meters
 VEHICLE_LENGTH = 5
 
 
-class AimsunKernelScenario(KernelScenario):
-    """Scenario kernel for Aimsun-based simulations.
+class AimsunKernelNetwork(KernelNetwork):
+    """Network kernel for Aimsun-based simulations.
 
     This class is responsible for passing features to and calling the
     "generate.py" file within flow/utils/aimsun/. All other features are
-    designed to extend KernelScenario.
+    designed to extend KernelNetwork.
 
     Attributes
     ----------
     kernel_api : any
         an API that may be used to interact with the simulator
-    network : flow.scenarios.Scenario
+    network : flow.networks.Network
         an object containing relevant network-specific features such as the
         locations and properties of nodes and edges in the network
     rts : dict
@@ -36,7 +36,7 @@ class AimsunKernelScenario(KernelScenario):
 
     def __init__(self, master_kernel, sim_params):
         """See parent class."""
-        KernelScenario.__init__(self, master_kernel, sim_params)
+        KernelNetwork.__init__(self, master_kernel, sim_params)
 
         self.kernel_api = None
         self.network = None

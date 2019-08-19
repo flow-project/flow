@@ -1,6 +1,6 @@
 """Contains the Bay Bridge scenario class."""
 
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_scenario import Network
 
 # Use this to ensure that vehicles are only placed in the edges of the Bay
 # Bridge moving from Oakland to San Francisco.
@@ -53,8 +53,8 @@ EDGES_DISTRIBUTION = [
 ]
 
 
-class BayBridgeScenario(Scenario):
-    """A scenario used to simulate the Bay Bridge.
+class BayBridgeNetwork(Network):
+    """A network used to simulate the Bay Bridge.
 
     The bay bridge was originally imported from OpenStreetMap and subsequently
     modified to more closely match the network geometry of the actual Bay
@@ -66,9 +66,9 @@ class BayBridgeScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import BayBridgeScenario
+    >>> from flow.networks import BayBridgeNetwork
     >>>
-    >>> scenario = BayBridgeScenario(
+    >>> network = BayBridgeNetwork(
     >>>     name='bay_bridge',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams()

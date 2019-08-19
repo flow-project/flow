@@ -7,7 +7,7 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.loop_merge import TwoLoopsOneMergingScenario, \
+from flow.networks.loop_merge import TwoLoopsOneMergingNetwork, \
     ADDITIONAL_NET_PARAMS
 
 
@@ -72,7 +72,7 @@ def loop_merge_example(render=None):
     initial_config = InitialConfig(
         x0=50, spacing="uniform", additional_params={"merge_bunching": 0})
 
-    scenario = TwoLoopsOneMergingScenario(
+    scenario = TwoLoopsOneMergingNetwork(
         name="two-loop-one-merging",
         vehicles=vehicles,
         net_params=net_params,

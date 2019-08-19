@@ -58,7 +58,7 @@ def grid0_baseline(num_runs, render=True):
     env_params.evaluate = True
 
     # import the scenario class
-    module = __import__('flow.scenarios', fromlist=[flow_params['scenario']])
+    module = __import__('flow.networks', fromlist=[flow_params['scenario']])
     scenario_class = getattr(module, flow_params['scenario'])
 
     # create the scenario object

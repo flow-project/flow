@@ -7,11 +7,11 @@ from copy import deepcopy
 from flow.core.params import VehicleParams
 from flow.core.params import NetParams, EnvParams, SumoParams, InFlows
 from flow.controllers import IDMController, RLController
-from flow.scenarios import LoopScenario, MergeScenario, BottleneckScenario
-from flow.scenarios import HighwayRampsScenario
-from flow.scenarios.loop import ADDITIONAL_NET_PARAMS as LOOP_PARAMS
-from flow.scenarios.merge import ADDITIONAL_NET_PARAMS as MERGE_PARAMS
-from flow.scenarios.highway_ramps import ADDITIONAL_NET_PARAMS as \
+from flow.networks import LoopNetwork, MergeNetwork, BottleneckNetwork
+from flow.networks import HighwayRampsNetwork
+from flow.networks.loop import ADDITIONAL_NET_PARAMS as LOOP_PARAMS
+from flow.networks.merge import ADDITIONAL_NET_PARAMS as MERGE_PARAMS
+from flow.networks.highway_ramps import ADDITIONAL_NET_PARAMS as \
     HIGHWAY_PARAMS
 from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
     WaveAttenuationEnv, WaveAttenuationPOEnv, WaveAttenuationMergePOEnv, \
@@ -33,7 +33,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = LoopScenario(
+        self.scenario = LoopNetwork(
             name="test_merge",
             vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
@@ -122,7 +122,7 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = LoopScenario(
+        self.scenario = LoopNetwork(
             name="test_merge",
             vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
@@ -206,7 +206,7 @@ class TestAccelEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = LoopScenario(
+        self.scenario = LoopNetwork(
             name="test_merge",
             vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
@@ -339,7 +339,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         self.sim_params = SumoParams(
             restart_instance=True
         )
-        self.scenario = LoopScenario(
+        self.scenario = LoopNetwork(
             name="test_merge",
             vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
@@ -478,7 +478,7 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = LoopScenario(
+        self.scenario = LoopNetwork(
             name="test_merge",
             vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
@@ -621,7 +621,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = MergeScenario(
+        self.scenario = MergeNetwork(
             name="test_merge",
             vehicles=vehicles,
             net_params=NetParams(additional_params=MERGE_PARAMS.copy()),
@@ -700,9 +700,9 @@ class TestTestEnv(unittest.TestCase):
         net_params = NetParams(additional_params=LOOP_PARAMS)
         env_params = EnvParams()
         sim_params = SumoParams()
-        scenario = LoopScenario("test_loop",
-                                vehicles=vehicles,
-                                net_params=net_params)
+        scenario = LoopNetwork("test_loop",
+                               vehicles=vehicles,
+                               net_params=net_params)
         self.env = TestEnv(env_params, sim_params, scenario)
 
     def tearDown(self):
@@ -757,7 +757,7 @@ class TestBottleneckEnv(unittest.TestCase):
         net_params = NetParams(
             additional_params={"scaling": 1, "speed_limit": 23})
 
-        self.scenario = BottleneckScenario(
+        self.scenario = BottleneckNetwork(
             name="bay_bridge_toll",
             vehicles=vehicles,
             net_params=net_params)
@@ -833,7 +833,7 @@ class TestBottleneckAccelEnv(unittest.TestCase):
         net_params = NetParams(
             additional_params={"scaling": 1, "speed_limit": 23})
 
-        self.scenario = BottleneckScenario(
+        self.scenario = BottleneckNetwork(
             name="bay_bridge_toll",
             vehicles=vehicles,
             net_params=net_params)
@@ -925,7 +925,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
             inflows=inflow,
             additional_params={"scaling": 1, "speed_limit": 23})
 
-        scenario = BottleneckScenario(
+        scenario = BottleneckNetwork(
             name="bay_bridge_toll",
             vehicles=vehicles,
             net_params=net_params)
@@ -954,7 +954,7 @@ class TestMultiAgentHighwayPOEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = HighwayRampsScenario(
+        self.scenario = HighwayRampsNetwork(
             name="test_merge",
             vehicles=vehicles,
             net_params=NetParams(additional_params=HIGHWAY_PARAMS.copy()),
@@ -1063,7 +1063,7 @@ def test_additional_params(env_class,
         blank
     sim_params : flow.core.params.SumoParams
         sumo-specific parameters
-    scenario : flow.scenarios.Scenario
+    scenario : flow.networks.Network
         scenario that works for the environment
     additional_params : dict
         the valid and required additional parameters for the environment in
@@ -1133,7 +1133,7 @@ def test_observed(env_class,
         blank
     sim_params : flow.core.params.SumoParams
         sumo-specific parameters
-    scenario : flow.scenarios.Scenario
+    scenario : flow.networks.Network
         scenario that works for the environment
     env_params : flow.core.params.EnvParams
         environment-specific parameters
