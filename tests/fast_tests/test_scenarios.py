@@ -4,7 +4,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import NetParams
 from flow.scenarios import BottleneckScenario, FigureEightScenario, \
     TrafficLightGridScenario, HighwayScenario, RingScenario, MergeScenario, \
-    TwoRingsOneMergeScenario, MiniCityScenario, MultiRingScenario
+    MiniCityScenario, MultiRingScenario
 
 __all__ = [
     "MultiRingScenario", "MiniCityScenario"
@@ -112,27 +112,6 @@ class TestRingScenario(unittest.TestCase):
                 additional_params={
                     "length": 230,
                     "lanes": 1,
-                    "speed_limit": 30,
-                    "resolution": 40
-                }
-            )
-        )
-
-
-class TestTwoRingsOneMergeScenario(unittest.TestCase):
-
-    """Tests TwoRingsOneMergeScenario in flow/scenarios/two_rings_one_merge.py."""
-
-    def test_additional_net_params(self):
-        """Ensures that not returning the correct params leads to an error."""
-        self.assertTrue(
-            test_additional_params(
-                scenario_class=TwoRingsOneMergeScenario,
-                additional_params={
-                    "ring_radius": 50,
-                    "lane_length": 75,
-                    "inner_lanes": 3,
-                    "outer_lanes": 2,
                     "speed_limit": 30,
                     "resolution": 40
                 }

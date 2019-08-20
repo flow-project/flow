@@ -77,12 +77,6 @@ Example of an open multi-lane network with human-driven vehicles.
 
 ![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/highway.gif)
 
-### two_rings_one_merge.py
-
-Example of ring road with larger merging ring.
-
-![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/two_rings_one_merge.gif)
-
 ### merge.py
 
 Example of a merge network with human-driven vehicles.
