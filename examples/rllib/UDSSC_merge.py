@@ -25,7 +25,7 @@ SIM_STEP = 1
 BATCH_SIZE = 20000
 ITR = 100
 N_ROLLOUTS = 40
-exp_tag = "icra_2"  # experiment prefix
+exp_tag = "icra_6"  # experiment prefix
 
 # # Local settings
 # N_CPUS = 1
@@ -80,10 +80,10 @@ vehicles.add(veh_id="rl",
 
 inflow = InFlows()
     
-inflow.add(veh_type="rl", edge="inflow_0", name="rl", vehs_per_hour=50)
-inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
-inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
-inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
+# inflow.add(veh_type="rl", edge="inflow_0", name="rl", vehs_per_hour=50)
+# inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
+# inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
+# inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
 
 inflow.add(veh_type="rl", edge="inflow_1", name="rl", vehs_per_hour=50)
 inflow.add(veh_type="idm", edge="inflow_1", name="idm", vehs_per_hour=50)
@@ -152,9 +152,9 @@ flow_params = dict(
             # number of lanes in the outer loop
             "outer_lanes": 1,
             # max speed limit in the roundabout
-            "roundabout_speed_limit": 8,
+            "roundabout_speed_limit": 10,
             # max speed limit in the rest of the roundabout
-            "outside_speed_limit": 8,
+            "outside_speed_limit": 10,
             # resolution of the curved portions
             "resolution": 100,
             # num lanes
@@ -215,6 +215,7 @@ if __name__ == '__main__':
                 **config
             },
             'checkpoint_freq': 20,
+            "checkpoint_at_end": True,
             'max_failures': 999,
             'stop': {
                 'training_iteration': ITR,
