@@ -19,7 +19,6 @@ opencv-python
 dill
 lz4
 setproctitle
-stable_baselines==2.7.0
 psutil
 opencv-python
 boto3==1.4.8
