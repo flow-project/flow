@@ -23,9 +23,9 @@ from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 HORIZON = 500
 SIM_STEP = 1
 BATCH_SIZE = 20000
-ITR = 101
+ITR = 201
 N_ROLLOUTS = 40
-exp_tag = "icra_9"  # experiment prefix
+exp_tag = "icra_10"  # experiment prefix
 
 # # Local settings
 # N_CPUS = 1
@@ -186,7 +186,8 @@ def setup_exps():
     config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
     config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [32, 32]})
+    config['model'].update({'fcnet_hiddens': [100, 50, 25]})
+    config['sgd_minibatch_size'] = 128
     config['use_gae'] = True
     config['lambda'] = 0.97
     config['kl_target'] = 0.02
