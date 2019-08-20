@@ -1,3 +1,5 @@
+"""Empty init file to handle deprecations."""
+
 import warnings
 from flow.networks import *  # noqa: F401,F403
 

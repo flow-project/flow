@@ -110,6 +110,7 @@ class Kernel(object):
 
     @property
     def scenario(self):
+        """Return network for this deprecated method."""
         warnings.simplefilter('always', PendingDeprecationWarning)
         warnings.warn(
             "self.k.scenario will be deprecated in a future release. Please "
