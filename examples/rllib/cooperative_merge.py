@@ -41,7 +41,7 @@ RING_RADIUS = 100
 NUM_MERGE_HUMANS = 9
 NUM_MERGE_RL = 1
 
-# note that the vehicles are added sequentially by the scenario,
+# note that the vehicles are added sequentially by the network,
 # so place the merging vehicles after the vehicles in the ring
 vehicles = VehicleParams()
 # Inner ring vehicles
@@ -87,8 +87,8 @@ flow_params = dict(
     # name of the flow environment the experiment is running on
     env_name='AccelEnv',
 
-    # name of the scenario class the experiment is running on
-    scenario='TwoLoopsOneMergingNetwork',
+    # name of the network class the experiment is running on
+    network='TwoLoopsOneMergingNetwork',
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -111,7 +111,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         additional_params={
             'ring_radius': 50,

@@ -1,4 +1,4 @@
-"""Contains the base scenario class."""
+"""Contains the base network class."""
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
@@ -29,7 +29,7 @@ class Network(object):
 
     This class uses network specific features to generate the necessary network
     configuration files needed to initialize a simulation instance. The methods
-    of this class are called by the base scenario class.
+    of this class are called by the base network class.
 
     The network files can be created in one of three ways:
 
@@ -38,8 +38,8 @@ class Network(object):
       properties using the ``specify_nodes`` and ``specify_edges`` methods,
       respectively, as well as other properties via methods including
       ``specify_types``, ``specify_connections``, etc... For more on this,
-      see the tutorial on creating custom scenarios or refer to some of the
-      available scenarios.
+      see the tutorial on creating custom networks or refer to some of the
+      available networks.
 
     * Network data can be collected from an OpenStreetMap (.osm) file. The
       .osm file is specified in the NetParams object. For example:
@@ -73,7 +73,7 @@ class Network(object):
     name : str
         the variable provided under the `name` parameter to this object upon
         instantiation, appended with a timestamp variable. This timestamp is
-        meant to differentiate generated scenario files during parallelism
+        meant to differentiate generated network files during parallelism
     vehicles : flow.core.params.VehicleParams
         vehicle specific parameters, used to specify the types and number of
         vehicles at the start of a simulation
@@ -81,7 +81,7 @@ class Network(object):
         network specific parameters, used primarily to identify properties of a
         network such as the lengths of edges and the number of lanes in each
         edge. This attribute is very network-specific, and should contain the
-        variables denoted by the `ADDITIONAL_NET_PARAMS` dict in each scenario
+        variables denoted by the `ADDITIONAL_NET_PARAMS` dict in each network
         class file
     initial_config : flow.core.params.InitialConfig
         specifies parameters that affect the positioning of vehicle in the
@@ -90,7 +90,7 @@ class Network(object):
         used to describe the positions and types of traffic lights in the
         network. For more, see flow/core/params.py
     nodes : list of dict or None
-        list of nodes that are assigned to the scenario via the `specify_nodes`
+        list of nodes that are assigned to the network via the `specify_nodes`
         method. All nodes in this variable are expected to have the following
         properties:
 
@@ -98,10 +98,10 @@ class Network(object):
         * **x**: x-coordinate of the node, in meters
         * **y**: y-coordinate of the node, in meters
 
-        If the scenario is meant to generate the network from an OpenStreetMap
+        If the network is meant to generate the network from an OpenStreetMap
         or template file, this variable is set to None
     edges : list of dict or None
-        edges that are assigned to the scenario via the `specify_edges` method.
+        edges that are assigned to the network via the `specify_edges` method.
         This include the shape, position, and properties of all edges in the
         network. These properties include the following mandatory properties:
 
@@ -123,7 +123,7 @@ class Network(object):
           shape of an edge. If no shape is specified, then the edge will appear
           as a straight line.
 
-        Note that, if the scenario is meant to generate the network from an
+        Note that, if the network is meant to generate the network from an
         OpenStreetMap or template file, this variable is set to None
     types : list of dict or None
         A variable used to ease the definition of the properties of various
@@ -135,10 +135,10 @@ class Network(object):
           of other components of this list, such as "speed" and "numLanes".
 
         If the type variable is None, then no types are available within the
-        scenario. Furthermore, a proper example of this variable being used can
-        be found under `specify_types` in flow/scenarios/loop.py.
+        network. Furthermore, a proper example of this variable being used can
+        be found under `specify_types` in flow/networks/loop.py.
 
-        Note that, if the scenario is meant to generate the network from an
+        Note that, if the network is meant to generate the network from an
         OpenStreetMap or template file, this variable is set to None
     connections : list of dict or None
         A variable used to describe how any specific node's incoming and
@@ -148,7 +148,7 @@ class Network(object):
         If the connections attribute is set to None, then the connections
         within the network will be specified by the simulator.
 
-        Note that, if the scenario is meant to generate the network from an
+        Note that, if the network is meant to generate the network from an
         OpenStreetMap or template file, this variable is set to None
     routes : dict
         A variable whose keys are the starting edge of a specific route, and
@@ -172,11 +172,11 @@ class Network(object):
     Example
     -------
     The following examples are derived from the `LoopNetwork` Network class
-    located in flow/scenarios/loop.py, and should serve as an example of the
-    types of outputs to be expected from the different variables of a scenario
+    located in flow/networks/loop.py, and should serve as an example of the
+    types of outputs to be expected from the different variables of a network
     class.
 
-    First of all, the ring road scenario class can be instantiated by running
+    First of all, the ring road network class can be instantiated by running
     the following commands (note if this this unclear please refer to Tutorial
     1):
 
@@ -297,7 +297,7 @@ class Network(object):
     Finally, the loop network does not contain any junctions or intersections,
     and as a result the `internal_edge_starts` and `intersection_edge_starts`
     attributes are both set to None. For an example of a network with junctions
-    and intersections, please refer to: flow/scenarios/figure_eight.py.
+    and intersections, please refer to: flow/networks/figure_eight.py.
 
     >>> print(network.internal_edge_starts)
     >>> [(':', -1)]
@@ -541,13 +541,13 @@ class Network(object):
         Routes can be specified in one of three ways:
 
         * In this case of deterministic routes (as is the case in the ring road
-          scenario), the routes can be specified as dictionary where the key
+          network), the routes can be specified as dictionary where the key
           element represents the starting edge and the element is a single list
           of edges the vehicle must traverse, with the first edge corresponding
           to the edge the vehicle begins on. Note that the edges must be
           connected for the route to be valid.
 
-          For example (from flow/scenarios/loop.py):
+          For example (from flow/networks/loop.py):
 
           >>> def specify_routes(self, net_params):
           >>>     return {
@@ -641,8 +641,8 @@ class Network(object):
 
         Parameters
         ----------
-        cls : flow.core.kernel.scenario.KernelNetwork
-            flow scenario kernel, with all the relevant methods implemented
+        cls : flow.core.kernel.network.KernelNetwork
+            flow network kernel, with all the relevant methods implemented
         net_params : flow.core.params.NetParams
             network-specific parameters
         initial_config : flow.core.params.InitialConfig
@@ -699,7 +699,7 @@ class Network(object):
             # collect the departure properties and routes and vehicles whose
             # properties are instantiated within the .rou.xml file. This will
             # only apply if such data is within the file (it is not implemented
-            # by scenarios in Flow).
+            # by networks in Flow).
             for vehicle in root.findall('vehicle'):
                 # collect the edges the vehicle is meant to traverse
                 route = vehicle.find('route')
@@ -754,7 +754,7 @@ class Network(object):
         root = tree.getroot()
         veh_type = {}
 
-        # this hack is meant to support the LuST scenario and Flow scenarios
+        # this hack is meant to support the LuST network and Flow networks
         root = [root] if len(root.findall('vTypeDistribution')) == 0 \
             else root.findall('vTypeDistribution')
 
@@ -806,6 +806,6 @@ class Network(object):
         return ret
 
     def __str__(self):
-        """Return the name of the scenario and the number of vehicles."""
+        """Return the name of the network and the number of vehicles."""
         return 'Network ' + self.name + ' with ' + \
                str(self.vehicles.num_vehicles) + ' vehicles.'

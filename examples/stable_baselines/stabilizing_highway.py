@@ -92,8 +92,8 @@ flow_params = dict(
     # name of the flow environment the experiment is running on
     env_name="WaveAttenuationMergePOEnv",
 
-    # name of the scenario class the experiment is running on
-    scenario="MergeNetwork",
+    # name of the network class the experiment is running on
+    network="MergeNetwork",
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -119,7 +119,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
         additional_params=additional_net_params,

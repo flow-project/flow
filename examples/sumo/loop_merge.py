@@ -32,7 +32,7 @@ def loop_merge_example(render=None):
     if render is not None:
         sim_params.render = render
 
-    # note that the vehicles are added sequentially by the scenario,
+    # note that the vehicles are added sequentially by the network,
     # so place the merging vehicles after the vehicles in the ring
     vehicles = VehicleParams()
     vehicles.add(
@@ -72,13 +72,13 @@ def loop_merge_example(render=None):
     initial_config = InitialConfig(
         x0=50, spacing="uniform", additional_params={"merge_bunching": 0})
 
-    scenario = TwoLoopsOneMergingNetwork(
+    network = TwoLoopsOneMergingNetwork(
         name="two-loop-one-merging",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = AccelEnv(env_params, sim_params, scenario)
+    env = AccelEnv(env_params, sim_params, network)
 
     return Experiment(env)
 

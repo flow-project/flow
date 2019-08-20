@@ -29,7 +29,7 @@ def minicity_example(render=None,
     -------
     exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
-        vehicles on the minicity scenario.
+        vehicles on the minicity network.
     """
     sim_params = SumoParams(sim_step=0.25)
 
@@ -71,13 +71,13 @@ def minicity_example(render=None,
         spacing="random",
         min_gap=5
     )
-    scenario = MiniCityNetwork(
+    network = MiniCityNetwork(
         name="minicity",
         vehicles=vehicles,
         initial_config=initial_config,
         net_params=net_params)
 
-    env = AccelEnv(env_params, sim_params, scenario)
+    env = AccelEnv(env_params, sim_params, network)
 
     return Experiment(env)
 

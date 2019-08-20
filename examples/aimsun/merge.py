@@ -77,14 +77,14 @@ def merge_example(render=None):
 
     initial_config = params.InitialConfig()
 
-    scenario = MergeNetwork(
+    network = MergeNetwork(
         name="merge-baseline",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
     env = WaveAttenuationMergePOEnv(
-        env_params, sim_params, scenario, simulator='aimsun')
+        env_params, sim_params, network, simulator='aimsun')
 
     return Experiment(env)
 

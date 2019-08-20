@@ -1,6 +1,6 @@
-"""Contains the Bay Bridge toll scenario class."""
+"""Contains the Bay Bridge toll network class."""
 
-from flow.networks.base_scenario import Network
+from flow.networks.base_network import Network
 
 # Use this to ensure that vehicles are only placed in the edges of the Bay
 # Bridge moving from Oakland to San Francisco.
@@ -34,7 +34,7 @@ class BayBridgeTollNetwork(Network):
 
     The bay bridge was originally imported from OpenStreetMap and subsequently
     modified to more closely match the network geometry of the actual Bay
-    Bridge. As opposed to BayBridgeNetwork, this scenario places vehicles on a
+    Bridge. As opposed to BayBridgeNetwork, this network places vehicles on a
     reduced portion of the Bay Bridge in order to reduce the number of vehicles
     that need to be simulated.
 
@@ -45,7 +45,7 @@ class BayBridgeTollNetwork(Network):
     >>> from flow.core.params import InitialConfig
     >>> from flow.networks import BayBridgeTollNetwork
     >>>
-    >>> scenario = BayBridgeTollNetwork(
+    >>> network = BayBridgeTollNetwork(
     >>>     name='bay_bridge_toll',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams()

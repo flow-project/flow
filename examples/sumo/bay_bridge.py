@@ -30,7 +30,7 @@ def bay_bridge_example(render=None,
     use_inflows: bool, optional
         whether to activate inflows from the peripheries of the network
     use_traffic_lights: bool, optional
-        whether to activate the traffic lights in the scenario
+        whether to activate the traffic lights in the network
 
     Returns
     -------
@@ -183,14 +183,14 @@ def bay_bridge_example(render=None,
         min_gap=15,
         edges_distribution=EDGES_DISTRIBUTION.copy())
 
-    scenario = BayBridgeNetwork(
+    network = BayBridgeNetwork(
         name="bay_bridge",
         vehicles=vehicles,
         traffic_lights=traffic_lights,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = BayBridgeEnv(env_params, sim_params, scenario)
+    env = BayBridgeEnv(env_params, sim_params, network)
 
     return Experiment(env)
 

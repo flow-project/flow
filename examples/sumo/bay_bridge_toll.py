@@ -28,7 +28,7 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
     render : bool, optional
         specifies whether to use the gui during execution
     use_traffic_lights: bool, optional
-        whether to activate the traffic lights in the scenario
+        whether to activate the traffic lights in the network
 
     Note
     ----
@@ -112,13 +112,13 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
         min_gap=15,
         edges_distribution=EDGES_DISTRIBUTION.copy())
 
-    scenario = BayBridgeTollNetwork(
+    network = BayBridgeTollNetwork(
         name="bay_bridge_toll",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = BayBridgeEnv(env_params, sim_params, scenario)
+    env = BayBridgeEnv(env_params, sim_params, network)
 
     return Experiment(env)
 

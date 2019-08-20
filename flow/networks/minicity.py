@@ -1,8 +1,8 @@
-"""Contains the bottleneck scenario class."""
+"""Contains the bottleneck network class."""
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
-from flow.networks.base_scenario import Network
+from flow.networks.base_network import Network
 import numpy as np
 from numpy import linspace, pi, sin, cos
 
@@ -23,7 +23,7 @@ class MiniCityNetwork(Network):
     >>> from flow.core.params import InitialConfig
     >>> from flow.networks import MiniCityNetwork
     >>>
-    >>> scenario = MiniCityNetwork(
+    >>> network = MiniCityNetwork(
     >>>     name='minicity',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams()
@@ -36,7 +36,7 @@ class MiniCityNetwork(Network):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Instantiate the scenario class."""
+        """Instantiate the network class."""
         self.nodes_dict = dict()
 
         super().__init__(name, vehicles, net_params,

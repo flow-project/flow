@@ -57,13 +57,13 @@ class MultiAgentHighwayPOEnv(MultiEnv):
         vehicles collide into one another.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter "{}" not supplied'.format(p))
 
-        super().__init__(env_params, sim_params, scenario, simulator)
+        super().__init__(env_params, sim_params, network, simulator)
 
     @property
     def observation_space(self):
@@ -99,8 +99,8 @@ class MultiAgentHighwayPOEnv(MultiEnv):
         obs = {}
 
         # normalizing constants
-        max_speed = self.k.scenario.max_speed()
-        max_length = self.k.scenario.length()
+        max_speed = self.k.network.max_speed()
+        max_length = self.k.network.length()
 
         for rl_id in self.k.vehicle.get_rl_ids():
             this_speed = self.k.vehicle.get_speed(rl_id)

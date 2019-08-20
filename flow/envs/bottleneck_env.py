@@ -191,17 +191,17 @@ class BottleneckEnv(Env):
         array.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
         """Initialize the BottleneckEnv class."""
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter "{}" not supplied'.format(p))
 
-        super().__init__(env_params, sim_params, scenario, simulator)
+        super().__init__(env_params, sim_params, network, simulator)
         env_add_params = self.env_params.additional_params
         # tells how scaled the number of lanes are
-        self.scaling = scenario.net_params.additional_params.get("scaling", 1)
+        self.scaling = network.net_params.additional_params.get("scaling", 1)
         self.edge_dict = dict()
         self.cars_waiting_for_toll = dict()
         self.cars_before_ramp = dict()
@@ -513,23 +513,23 @@ class BottleNeckAccelEnv(BottleneckEnv):
         A rollout is terminated once the time horizon is reached.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
         """Initialize BottleNeckAccelEnv."""
         for p in ADDITIONAL_RL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter "{}" not supplied'.format(p))
 
-        super().__init__(env_params, sim_params, scenario, simulator)
+        super().__init__(env_params, sim_params, network, simulator)
         self.add_rl_if_exit = env_params.get_additional_param("add_rl_if_exit")
         self.num_rl = deepcopy(self.initial_vehicles.num_rl_vehicles)
         self.rl_id_list = deepcopy(self.initial_vehicles.get_rl_ids())
-        self.max_speed = self.k.scenario.max_speed()
+        self.max_speed = self.k.network.max_speed()
 
     @property
     def observation_space(self):
         """See class definition."""
-        num_edges = len(self.k.scenario.get_edge_list())
+        num_edges = len(self.k.network.get_edge_list())
         num_rl_veh = self.num_rl
         num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling \
             * num_rl_veh + 4 * num_rl_veh
@@ -620,12 +620,12 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
         # per edge data (average speed, density
         edge_obs = []
-        for edge in self.k.scenario.get_edge_list():
+        for edge in self.k.network.get_edge_list():
             veh_ids = self.k.vehicle.get_ids_by_edge(edge)
             if len(veh_ids) > 0:
                 avg_speed = (sum(self.k.vehicle.get_speed(veh_ids)) /
                              len(veh_ids)) / self.max_speed
-                density = len(veh_ids) / self.k.scenario.edge_length(edge)
+                density = len(veh_ids) / self.k.network.edge_length(edge)
                 edge_obs += [avg_speed, density]
             else:
                 edge_obs += [0, 0]
@@ -734,9 +734,9 @@ class DesiredVelocityEnv(BottleneckEnv):
         for RL vehicles making forward progress
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
         """Initialize DesiredVelocityEnv."""
-        super().__init__(env_params, sim_params, scenario, simulator)
+        super().__init__(env_params, sim_params, network, simulator)
         for p in ADDITIONAL_VSL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -746,7 +746,7 @@ class DesiredVelocityEnv(BottleneckEnv):
         add_env_params = self.env_params.additional_params
         default = [(str(i), 1, True) for i in range(1, 6)]
         super(DesiredVelocityEnv, self).__init__(env_params, sim_params,
-                                                 scenario)
+                                                 network)
         self.segments = add_env_params.get("controlled_segments", default)
 
         # number of segments for each edge
@@ -779,7 +779,7 @@ class DesiredVelocityEnv(BottleneckEnv):
         # edge (str) -> segment start location (list of int)
         self.slices = {}
         for edge, num_segments, _ in self.segments:
-            edge_length = self.k.scenario.edge_length(edge)
+            edge_length = self.k.network.edge_length(edge)
             self.slices[edge] = np.linspace(0, edge_length, num_segments + 1)
 
         # get info for observed segments
@@ -794,7 +794,7 @@ class DesiredVelocityEnv(BottleneckEnv):
         # edge (str) -> segment start location (list of int)
         self.obs_slices = {}
         for edge, num_segments in self.obs_segments:
-            edge_length = self.k.scenario.edge_length(edge)
+            edge_length = self.k.network.edge_length(edge)
             self.obs_slices[edge] = np.linspace(0, edge_length,
                                                 num_segments + 1)
 
@@ -811,7 +811,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                     self.action_index[i] + segment * controlled
                 ]
             else:
-                num_lanes = self.k.scenario.num_lanes(edge)
+                num_lanes = self.k.network.num_lanes(edge)
                 self.action_index += [
                     self.action_index[i] + segment * controlled * num_lanes
                 ]
@@ -825,7 +825,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                     self.action_index[edge] = [action_list[index]]
                     action_list += [action_list[index] + controlled]
                 else:
-                    num_lanes = self.k.scenario.num_lanes(edge)
+                    num_lanes = self.k.network.num_lanes(edge)
                     self.action_index[edge] = [action_list[index]]
                     action_list += [
                         action_list[index] +
@@ -840,7 +840,7 @@ class DesiredVelocityEnv(BottleneckEnv):
         # density and velocity for rl and non-rl vehicles per segment
         # Last element is the outflow
         for segment in self.obs_segments:
-            num_obs += 4 * segment[1] * self.k.scenario.num_lanes(segment[0])
+            num_obs += 4 * segment[1] * self.k.network.num_lanes(segment[0])
         num_obs += 1
         return Box(low=0.0, high=1.0, shape=(num_obs, ), dtype=np.float32)
 
@@ -853,7 +853,7 @@ class DesiredVelocityEnv(BottleneckEnv):
             action_size = 0.0
             for segment in self.segments:  # iterate over segments
                 if segment[2]:  # if controlled
-                    num_lanes = self.k.scenario.num_lanes(segment[0])
+                    num_lanes = self.k.network.num_lanes(segment[0])
                     action_size += num_lanes * segment[1]
         add_params = self.env_params.additional_params
         max_accel = add_params.get("max_accel")
@@ -888,7 +888,7 @@ class DesiredVelocityEnv(BottleneckEnv):
         vehicle_speeds_list = []
         rl_speeds_list = []
         for i, edge in enumerate(EDGE_LIST):
-            num_lanes = self.k.scenario.num_lanes(edge)
+            num_lanes = self.k.network.num_lanes(edge)
             num_vehicles = np.zeros((self.num_obs_segments[i], num_lanes))
             num_rl_vehicles = np.zeros((self.num_obs_segments[i], num_lanes))
             vehicle_speeds = np.zeros((self.num_obs_segments[i], num_lanes))
@@ -954,7 +954,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                     pos = self.k.vehicle.get_position(rl_id)
 
                     if not self.symmetric:
-                        num_lanes = self.k.scenario.num_lanes(edge)
+                        num_lanes = self.k.network.num_lanes(edge)
                         # find what segment we fall into
                         bucket = np.searchsorted(self.slices[edge], pos) - 1
                         action = rl_actions[int(lane) + bucket * num_lanes +
@@ -989,7 +989,7 @@ class DesiredVelocityEnv(BottleneckEnv):
 
         The diverse set of inflows are used to generate a policy that is more
         robust with respect to the inflow rate. The inflow rate is update by
-        creating a new scenario similar to the previous one, but with a new
+        creating a new network similar to the previous one, but with a new
         Inflow object with a rate within the additional environment parameter
         "inflow_range", which is a list consisting of the smallest and largest
         allowable inflow rates.
@@ -1058,13 +1058,13 @@ class DesiredVelocityEnv(BottleneckEnv):
                         ),
                         num_vehicles=1 * self.scaling)
 
-                    # recreate the scenario object
-                    self.scenario = self.scenario.__class__(
-                        name=self.scenario.orig_name,
+                    # recreate the network object
+                    self.network = self.network.__class__(
+                        name=self.network.orig_name,
                         vehicles=vehicles,
                         net_params=net_params,
                         initial_config=self.initial_config,
-                        traffic_lights=self.scenario.traffic_lights)
+                        traffic_lights=self.network.traffic_lights)
                     observation = super().reset()
 
                     # reset the timer to zero

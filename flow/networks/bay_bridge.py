@@ -1,6 +1,6 @@
-"""Contains the Bay Bridge scenario class."""
+"""Contains the Bay Bridge network class."""
 
-from flow.networks.base_scenario import Network
+from flow.networks.base_network import Network
 
 # Use this to ensure that vehicles are only placed in the edges of the Bay
 # Bridge moving from Oakland to San Francisco.

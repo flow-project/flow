@@ -1,8 +1,8 @@
-"""Contains the bottleneck scenario class."""
+"""Contains the bottleneck network class."""
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
-from flow.networks.base_scenario import Network
+from flow.networks.base_network import Network
 import numpy as np
 
 ADDITIONAL_NET_PARAMS = {
@@ -51,7 +51,7 @@ class BottleneckNetwork(Network):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Instantiate the scenario class."""
+        """Instantiate the network class."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))

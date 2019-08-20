@@ -81,13 +81,13 @@ def merge_example(render=None):
 
     initial_config = InitialConfig(spacing="uniform", perturbation=5.0)
 
-    scenario = MergeNetwork(
+    network = MergeNetwork(
         name="merge-baseline",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = WaveAttenuationMergePOEnv(env_params, sim_params, scenario)
+    env = WaveAttenuationMergePOEnv(env_params, sim_params, network)
 
     return Experiment(env)
 

@@ -1,9 +1,9 @@
-"""Contains all available scenarios in Flow."""
+"""Contains all available networks in Flow."""
 
-# base scenario class
-from flow.networks.base_scenario import Network
+# base network class
+from flow.networks.base_network import Network
 
-# custom scenarios
+# custom networks
 from flow.networks.bay_bridge import BayBridgeNetwork
 from flow.networks.bay_bridge_toll import BayBridgeTollNetwork
 from flow.networks.bottleneck import BottleneckNetwork

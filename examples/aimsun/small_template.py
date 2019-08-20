@@ -22,7 +22,7 @@ vehicles = VehicleParams()
 template_path = os.path.join(config.PROJECT_PATH,
                              "flow/utils/aimsun/small_template.ang")
 
-scenario = Network(
+network = Network(
     name="aimsun_small_template",
     vehicles=vehicles,
     net_params=NetParams(
@@ -31,6 +31,6 @@ scenario = Network(
     )
 )
 
-env = TestEnv(env_params, sim_params, scenario, simulator='aimsun')
+env = TestEnv(env_params, sim_params, network, simulator='aimsun')
 exp = Experiment(env)
 exp.run(1, 3000)

@@ -33,7 +33,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = LoopNetwork(
+        self.network = LoopNetwork(
             name="test_merge",
             vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
@@ -50,7 +50,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
 
     def tearDown(self):
         self.sim_params = None
-        self.scenario = None
+        self.network = None
         self.env_params = None
 
     def test_additional_env_params(self):
@@ -59,7 +59,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
             test_additional_params(
                 env_class=LaneChangeAccelEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 additional_params={
                     "max_accel": 1,
                     "max_decel": 1,
@@ -75,7 +75,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
         # create the environment
         env = LaneChangeAccelEnv(
             sim_params=self.sim_params,
-            scenario=self.scenario,
+            network=self.network,
             env_params=self.env_params
         )
 
@@ -105,7 +105,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
             test_observed(
                 env_class=LaneChangeAccelEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 env_params=self.env_params,
                 expected_observed=["human_0"]
             )
@@ -122,7 +122,7 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = LoopNetwork(
+        self.network = LoopNetwork(
             name="test_merge",
             vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
@@ -139,7 +139,7 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
 
     def tearDown(self):
         self.sim_params = None
-        self.scenario = None
+        self.network = None
         self.env_params = None
 
     def test_additional_env_params(self):
@@ -148,7 +148,7 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
             test_additional_params(
                 env_class=LaneChangeAccelPOEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 additional_params={
                     "max_accel": 1,
                     "max_decel": 1,
@@ -164,7 +164,7 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
         # create the environment
         env = LaneChangeAccelPOEnv(
             sim_params=self.sim_params,
-            scenario=self.scenario,
+            network=self.network,
             env_params=self.env_params
         )
 
@@ -189,7 +189,7 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
             test_observed(
                 env_class=LaneChangeAccelPOEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 env_params=self.env_params,
                 expected_observed=["human_0"]
             )
@@ -206,7 +206,7 @@ class TestAccelEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = LoopNetwork(
+        self.network = LoopNetwork(
             name="test_merge",
             vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
@@ -222,7 +222,7 @@ class TestAccelEnv(unittest.TestCase):
 
     def tearDown(self):
         self.sim_params = None
-        self.scenario = None
+        self.network = None
         self.env_params = None
 
     def test_additional_env_params(self):
@@ -231,7 +231,7 @@ class TestAccelEnv(unittest.TestCase):
             test_additional_params(
                 env_class=AccelEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 additional_params={
                     "max_accel": 1,
                     "max_decel": 1,
@@ -245,7 +245,7 @@ class TestAccelEnv(unittest.TestCase):
         """Tests the observation and action spaces upon initialization."""
         env = AccelEnv(
             sim_params=self.sim_params,
-            scenario=self.scenario,
+            network=self.network,
             env_params=self.env_params
         )
 
@@ -271,7 +271,7 @@ class TestAccelEnv(unittest.TestCase):
             test_observed(
                 env_class=AccelEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 env_params=self.env_params,
                 expected_observed=["human_0"]
             )
@@ -285,11 +285,11 @@ class TestAccelEnv(unittest.TestCase):
         """
         env_params = self.env_params
         env_params.additional_params['sort_vehicles'] = True
-        self.scenario.initial_config.shuffle = True
+        self.network.initial_config.shuffle = True
 
         env = AccelEnv(
             sim_params=self.sim_params,
-            scenario=self.scenario,
+            network=self.network,
             env_params=env_params
         )
 
@@ -309,11 +309,11 @@ class TestAccelEnv(unittest.TestCase):
         # and shuffling so that the vehicles are not sorted by their ids
         env_params = self.env_params
         env_params.additional_params['sort_vehicles'] = False
-        self.scenario.initial_config.shuffle = True
+        self.network.initial_config.shuffle = True
 
         env = AccelEnv(
             sim_params=self.sim_params,
-            scenario=self.scenario,
+            network=self.network,
             env_params=env_params
         )
 
@@ -339,7 +339,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         self.sim_params = SumoParams(
             restart_instance=True
         )
-        self.scenario = LoopNetwork(
+        self.network = LoopNetwork(
             name="test_merge",
             vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
@@ -353,7 +353,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
 
     def tearDown(self):
         self.sim_params = None
-        self.scenario = None
+        self.network = None
         self.env_params = None
 
     def test_additional_env_params(self):
@@ -362,7 +362,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
             test_additional_params(
                 env_class=WaveAttenuationEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 additional_params={
                     "max_accel": 1,
                     "max_decel": 1,
@@ -375,7 +375,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         """Tests the observation and action spaces upon initialization."""
         env = WaveAttenuationEnv(
             sim_params=self.sim_params,
-            scenario=self.scenario,
+            network=self.network,
             env_params=self.env_params
         )
 
@@ -401,7 +401,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
             test_observed(
                 env_class=WaveAttenuationEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 env_params=self.env_params,
                 expected_observed=["human_0"]
             )
@@ -419,16 +419,16 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         # create the environment
         env = WaveAttenuationEnv(
             sim_params=self.sim_params,
-            scenario=self.scenario,
+            network=self.network,
             env_params=self.env_params
         )
 
         # reset the network several times and check its length
-        self.assertEqual(env.k.scenario.length(), 230)
+        self.assertEqual(env.k.network.length(), 230)
         env.reset()
-        self.assertEqual(env.k.scenario.length(), 239)
+        self.assertEqual(env.k.network.length(), 239)
         env.reset()
-        self.assertEqual(env.k.scenario.length(), 256)
+        self.assertEqual(env.k.network.length(), 256)
 
     def test_v_eq_max_function(self):
         """
@@ -456,16 +456,16 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         # create the environment
         env = WaveAttenuationEnv(
             sim_params=self.sim_params,
-            scenario=self.scenario,
+            network=self.network,
             env_params=env_params
         )
 
         # reset the network several times and check its length
-        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        self.assertEqual(env.k.network.length(), LOOP_PARAMS["length"])
         env.reset()
-        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        self.assertEqual(env.k.network.length(), LOOP_PARAMS["length"])
         env.reset()
-        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        self.assertEqual(env.k.network.length(), LOOP_PARAMS["length"])
 
 
 class TestWaveAttenuationPOEnv(unittest.TestCase):
@@ -478,7 +478,7 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = LoopNetwork(
+        self.network = LoopNetwork(
             name="test_merge",
             vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
@@ -493,7 +493,7 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
 
     def tearDown(self):
         self.sim_params = None
-        self.scenario = None
+        self.network = None
         self.env_params = None
 
     def test_additional_env_params(self):
@@ -502,7 +502,7 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
             test_additional_params(
                 env_class=WaveAttenuationPOEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 additional_params={
                     "max_accel": 1,
                     "max_decel": 1,
@@ -516,7 +516,7 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
         # create the environment
         env = WaveAttenuationPOEnv(
             sim_params=self.sim_params,
-            scenario=self.scenario,
+            network=self.network,
             env_params=self.env_params
         )
 
@@ -541,7 +541,7 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
             test_observed(
                 env_class=WaveAttenuationPOEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 env_params=self.env_params,
                 expected_observed=["human_0"]
             )
@@ -557,7 +557,7 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
         # create the environment
         env = WaveAttenuationPOEnv(
             sim_params=self.sim_params,
-            scenario=self.scenario,
+            network=self.network,
             env_params=self.env_params
         )
         env.reset()
@@ -621,7 +621,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = MergeNetwork(
+        self.network = MergeNetwork(
             name="test_merge",
             vehicles=vehicles,
             net_params=NetParams(additional_params=MERGE_PARAMS.copy()),
@@ -637,7 +637,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
 
     def tearDown(self):
         self.sim_params = None
-        self.scenario = None
+        self.network = None
         self.env_params = None
 
     def test_additional_env_params(self):
@@ -646,7 +646,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
             test_additional_params(
                 env_class=WaveAttenuationMergePOEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 additional_params={
                     "max_accel": 1,
                     "max_decel": 1,
@@ -661,7 +661,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
         # create the environment
         env = WaveAttenuationMergePOEnv(
             sim_params=self.sim_params,
-            scenario=self.scenario,
+            network=self.network,
             env_params=self.env_params
         )
 
@@ -683,7 +683,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
             test_observed(
                 env_class=WaveAttenuationMergePOEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 env_params=self.env_params,
                 expected_observed=["human_0"]
             )
@@ -700,10 +700,10 @@ class TestTestEnv(unittest.TestCase):
         net_params = NetParams(additional_params=LOOP_PARAMS)
         env_params = EnvParams()
         sim_params = SumoParams()
-        scenario = LoopNetwork("test_loop",
-                               vehicles=vehicles,
-                               net_params=net_params)
-        self.env = TestEnv(env_params, sim_params, scenario)
+        network = LoopNetwork("test_loop",
+                              vehicles=vehicles,
+                              net_params=net_params)
+        self.env = TestEnv(env_params, sim_params, network)
 
     def tearDown(self):
         self.env.terminate()
@@ -757,12 +757,12 @@ class TestBottleneckEnv(unittest.TestCase):
         net_params = NetParams(
             additional_params={"scaling": 1, "speed_limit": 23})
 
-        self.scenario = BottleneckNetwork(
+        self.network = BottleneckNetwork(
             name="bay_bridge_toll",
             vehicles=vehicles,
             net_params=net_params)
 
-        self.env = BottleneckEnv(env_params, self.sim_params, self.scenario)
+        self.env = BottleneckEnv(env_params, self.sim_params, self.network)
         self.env.reset()
 
     def tearDown(self):
@@ -775,7 +775,7 @@ class TestBottleneckEnv(unittest.TestCase):
             test_additional_params(
                 env_class=BottleneckEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 additional_params={
                     "max_accel": 3,
                     "max_decel": 3,
@@ -833,13 +833,13 @@ class TestBottleneckAccelEnv(unittest.TestCase):
         net_params = NetParams(
             additional_params={"scaling": 1, "speed_limit": 23})
 
-        self.scenario = BottleneckNetwork(
+        self.network = BottleneckNetwork(
             name="bay_bridge_toll",
             vehicles=vehicles,
             net_params=net_params)
 
         self.env = BottleNeckAccelEnv(
-            env_params, self.sim_params, self.scenario)
+            env_params, self.sim_params, self.network)
         self.env.reset()
 
     def tearDown(self):
@@ -852,7 +852,7 @@ class TestBottleneckAccelEnv(unittest.TestCase):
             test_additional_params(
                 env_class=BottleNeckAccelEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 additional_params={
                     "max_accel": 3,
                     "max_decel": 3,
@@ -925,12 +925,12 @@ class TestDesiredVelocityEnv(unittest.TestCase):
             inflows=inflow,
             additional_params={"scaling": 1, "speed_limit": 23})
 
-        scenario = BottleneckNetwork(
+        network = BottleneckNetwork(
             name="bay_bridge_toll",
             vehicles=vehicles,
             net_params=net_params)
 
-        env = DesiredVelocityEnv(env_params, sim_params, scenario)
+        env = DesiredVelocityEnv(env_params, sim_params, network)
 
         # reset the environment and get a new inflow rate
         env.reset()
@@ -954,7 +954,7 @@ class TestMultiAgentHighwayPOEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = HighwayRampsNetwork(
+        self.network = HighwayRampsNetwork(
             name="test_merge",
             vehicles=vehicles,
             net_params=NetParams(additional_params=HIGHWAY_PARAMS.copy()),
@@ -967,7 +967,7 @@ class TestMultiAgentHighwayPOEnv(unittest.TestCase):
 
     def tearDown(self):
         self.sim_params = None
-        self.scenario = None
+        self.network = None
         self.env_params = None
 
     def test_additional_env_params(self):
@@ -976,7 +976,7 @@ class TestMultiAgentHighwayPOEnv(unittest.TestCase):
             test_additional_params(
                 env_class=MultiAgentHighwayPOEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 additional_params={
                     "max_accel": 1,
                     "max_decel": 1,
@@ -990,7 +990,7 @@ class TestMultiAgentHighwayPOEnv(unittest.TestCase):
         # create the environment
         env = MultiAgentHighwayPOEnv(
             sim_params=self.sim_params,
-            scenario=self.scenario,
+            network=self.network,
             env_params=self.env_params
         )
 
@@ -1011,7 +1011,7 @@ class TestMultiAgentHighwayPOEnv(unittest.TestCase):
         # create the environment
         env = MultiAgentHighwayPOEnv(
             sim_params=self.sim_params,
-            scenario=self.scenario,
+            network=self.network,
             env_params=self.env_params
         )
         env.reset()
@@ -1040,7 +1040,7 @@ class TestMultiAgentHighwayPOEnv(unittest.TestCase):
             test_observed(
                 env_class=MultiAgentHighwayPOEnv,
                 sim_params=self.sim_params,
-                scenario=self.scenario,
+                network=self.network,
                 env_params=self.env_params,
                 expected_observed=["human_0"]
             )
@@ -1053,7 +1053,7 @@ class TestMultiAgentHighwayPOEnv(unittest.TestCase):
 
 def test_additional_params(env_class,
                            sim_params,
-                           scenario,
+                           network,
                            additional_params):
     """Test that the environment raises an Error in any param is missing.
 
@@ -1063,8 +1063,8 @@ def test_additional_params(env_class,
         blank
     sim_params : flow.core.params.SumoParams
         sumo-specific parameters
-    scenario : flow.networks.Network
-        scenario that works for the environment
+    network : flow.networks.Network
+        network that works for the environment
     additional_params : dict
         the valid and required additional parameters for the environment in
         EnvParams
@@ -1082,7 +1082,7 @@ def test_additional_params(env_class,
         try:
             env_class(
                 sim_params=sim_params,
-                scenario=scenario,
+                network=network,
                 env_params=EnvParams(additional_params=new_add)
             )
             # if no KeyError is raised, the test has failed, so return False
@@ -1122,7 +1122,7 @@ def test_space(gym_space, expected_size, expected_min, expected_max):
 
 def test_observed(env_class,
                   sim_params,
-                  scenario,
+                  network,
                   env_params,
                   expected_observed):
     """Test that the observed vehicles in the environment are as expected.
@@ -1133,8 +1133,8 @@ def test_observed(env_class,
         blank
     sim_params : flow.core.params.SumoParams
         sumo-specific parameters
-    scenario : flow.networks.Network
-        scenario that works for the environment
+    network : flow.networks.Network
+        network that works for the environment
     env_params : flow.core.params.EnvParams
         environment-specific parameters
     expected_observed : array_like
@@ -1146,7 +1146,7 @@ def test_observed(env_class,
         True if the test passed, False otherwise
     """
     env = env_class(sim_params=sim_params,
-                    scenario=scenario,
+                    network=network,
                     env_params=env_params)
     env.reset()
     env.step(None)

@@ -100,13 +100,13 @@ def highway_ramps_example(render=None):
 
     initial_config = InitialConfig()  # no vehicles initially
 
-    scenario = HighwayRampsNetwork(
+    network = HighwayRampsNetwork(
         name="highway-ramp",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = AccelEnv(env_params, sim_params, scenario)
+    env = AccelEnv(env_params, sim_params, network)
 
     return Experiment(env)
 

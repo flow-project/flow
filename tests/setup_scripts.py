@@ -1,4 +1,4 @@
-"""Specifies several methods for creating scenarios and environments.
+"""Specifies several methods for creating networks and environments.
 
 This allows us to reduce the number of times these features are specified when
 creating new tests, as all tests follow approximately the same format.
@@ -97,8 +97,8 @@ def ring_road_exp_setup(sim_params=None,
         # set default to no traffic lights
         traffic_lights = TrafficLightParams()
 
-    # create the scenario
-    scenario = LoopNetwork(
+    # create the network
+    network = LoopNetwork(
         name="RingRoadTest",
         vehicles=vehicles,
         net_params=net_params,
@@ -107,12 +107,12 @@ def ring_road_exp_setup(sim_params=None,
 
     # create the environment
     env = AccelEnv(
-        env_params=env_params, sim_params=sim_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, network=network)
 
     # reset the environment
     env.reset()
 
-    return env, scenario
+    return env, network
 
 
 def figure_eight_exp_setup(sim_params=None,
@@ -122,7 +122,7 @@ def figure_eight_exp_setup(sim_params=None,
                            initial_config=None,
                            traffic_lights=None):
     """
-    Create an environment and scenario pair for figure eight test experiments.
+    Create an environment and network pair for figure eight test experiments.
 
     Parameters
     ----------
@@ -190,8 +190,8 @@ def figure_eight_exp_setup(sim_params=None,
         # set default to no traffic lights
         traffic_lights = TrafficLightParams()
 
-    # create the scenario
-    scenario = Figure8Network(
+    # create the network
+    network = Figure8Network(
         name="FigureEightTest",
         vehicles=vehicles,
         net_params=net_params,
@@ -200,12 +200,12 @@ def figure_eight_exp_setup(sim_params=None,
 
     # create the environment
     env = AccelEnv(
-        env_params=env_params, sim_params=sim_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, network=network)
 
     # reset the environment
     env.reset()
 
-    return env, scenario
+    return env, network
 
 
 def highway_exp_setup(sim_params=None,
@@ -215,7 +215,7 @@ def highway_exp_setup(sim_params=None,
                       initial_config=None,
                       traffic_lights=None):
     """
-    Create an environment and scenario pair for highway test experiments.
+    Create an environment and network pair for highway test experiments.
 
     Parameters
     ----------
@@ -284,8 +284,8 @@ def highway_exp_setup(sim_params=None,
         # set default to no traffic lights
         traffic_lights = TrafficLightParams()
 
-    # create the scenario
-    scenario = HighwayNetwork(
+    # create the network
+    network = HighwayNetwork(
         name="RingRoadTest",
         vehicles=vehicles,
         net_params=net_params,
@@ -294,12 +294,12 @@ def highway_exp_setup(sim_params=None,
 
     # create the environment
     env = AccelEnv(
-        env_params=env_params, sim_params=sim_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, network=network)
 
     # reset the environment
     env.reset()
 
-    return env, scenario
+    return env, network
 
 
 def grid_mxn_exp_setup(row_num=1,
@@ -311,7 +311,7 @@ def grid_mxn_exp_setup(row_num=1,
                        initial_config=None,
                        tl_logic=None):
     """
-    Create an environment and scenario pair for grid 1x1 test experiments.
+    Create an environment and network pair for grid 1x1 test experiments.
 
     Parameters
     ----------
@@ -409,8 +409,8 @@ def grid_mxn_exp_setup(row_num=1,
         initial_config = InitialConfig(
             spacing="custom", additional_params={"enter_speed": 30})
 
-    # create the scenario
-    scenario = SimpleGridNetwork(
+    # create the network
+    network = SimpleGridNetwork(
         name="Grid1x1Test",
         vehicles=vehicles,
         net_params=net_params,
@@ -419,12 +419,12 @@ def grid_mxn_exp_setup(row_num=1,
 
     # create the environment
     env = GreenWaveTestEnv(
-        env_params=env_params, sim_params=sim_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, network=network)
 
     # reset the environment
     env.reset()
 
-    return env, scenario
+    return env, network
 
 
 def variable_lanes_exp_setup(sim_params=None,
@@ -434,9 +434,9 @@ def variable_lanes_exp_setup(sim_params=None,
                              initial_config=None,
                              traffic_lights=None):
     """
-    Create an environment and scenario variable-lane ring road.
+    Create an environment and network variable-lane ring road.
 
-    Each edge in this scenario can have a different number of lanes. Used for
+    Each edge in this network can have a different number of lanes. Used for
     test purposes.
 
     Parameters
@@ -505,8 +505,8 @@ def variable_lanes_exp_setup(sim_params=None,
         # set default to no traffic lights
         traffic_lights = TrafficLightParams()
 
-    # create the scenario
-    scenario = VariableLanesNetwork(
+    # create the network
+    network = VariableLanesNetwork(
         name="VariableLaneRingRoadTest",
         vehicles=vehicles,
         net_params=net_params,
@@ -515,12 +515,12 @@ def variable_lanes_exp_setup(sim_params=None,
 
     # create the environment
     env = AccelEnv(
-        env_params=env_params, sim_params=sim_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, network=network)
 
     # reset the environment
     env.reset()
 
-    return env, scenario
+    return env, network
 
 
 class VariableLanesNetwork(LoopNetwork):

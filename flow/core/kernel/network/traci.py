@@ -1,6 +1,6 @@
-"""Script containing the TraCI scenario kernel class."""
+"""Script containing the TraCI network kernel class."""
 
-from flow.core.kernel.scenario import KernelNetwork
+from flow.core.kernel.network import KernelNetwork
 from flow.core.util import makexml, printxml, ensure_dir
 import time
 import os
@@ -31,16 +31,16 @@ def _inputs(net=None, rou=None, add=None, gui=None):
 
 
 class TraCINetwork(KernelNetwork):
-    """Base scenario kernel for sumo-based simulations.
+    """Base network kernel for sumo-based simulations.
 
-    This class initializes a new scenario. Networks are used to specify
+    This class initializes a new network. Networks are used to specify
     features of a network, including the positions of nodes, properties of the
     edges and junctions connecting these nodes, properties of vehicles and
     traffic lights, and other features as well.
     """
 
     def __init__(self, master_kernel, sim_params):
-        """Instantiate a sumo scenario kernel.
+        """Instantiate a sumo network kernel.
 
         Parameters
         ----------
@@ -96,7 +96,7 @@ class TraCINetwork(KernelNetwork):
             an object containing relevant network-specific features such as the
             locations and properties of nodes and edges in the network
         """
-        # store the scenario object in the network variable
+        # store the network object in the network variable
         self.network = network
         self.orig_name = network.orig_name
         self.name = network.name
@@ -113,7 +113,7 @@ class TraCINetwork(KernelNetwork):
         self.sumfn = '%s.sumo.cfg' % self.network.name
         self.guifn = '%s.gui.cfg' % self.network.name
 
-        # can only provide one of osm path or template path to the scenario
+        # can only provide one of osm path or template path to the network
         assert self.network.net_params.template is None \
             or self.network.net_params.osm_path is None
 
@@ -206,13 +206,13 @@ class TraCINetwork(KernelNetwork):
         self.cfg = self.cfg_path + cfg_name
 
     def update(self, reset):
-        """Perform no action of value (scenarios are static)."""
+        """Perform no action of value (networks are static)."""
         pass
 
     def close(self):
-        """Close the scenario class.
+        """Close the network class.
 
-        Deletes the xml files that were created by the scenario class. This
+        Deletes the xml files that were created by the network class. This
         is to prevent them from building up in the debug folder. Note that in
         the case of import .net.xml files we do not want to delete them.
         """
@@ -574,7 +574,7 @@ class TraCINetwork(KernelNetwork):
         """Pass relevant data from an already processed .net.xml file.
 
         This method is used to collect the edges and connection data from a
-        network template file and pass it to the scenario class for later use.
+        network template file and pass it to the network class for later use.
 
         Parameters
         ----------

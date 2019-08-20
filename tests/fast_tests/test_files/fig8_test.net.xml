@@ -6,14 +6,14 @@
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
-        <node-files value="/home/aboudy/Documents/flow/flow/core/kernel/scenario/debug/net/figure8_20190508-1315351557346535.7748823.nod.xml"/>
-        <edge-files value="/home/aboudy/Documents/flow/flow/core/kernel/scenario/debug/net/figure8_20190508-1315351557346535.7748823.edg.xml"/>
-        <connection-files value="/home/aboudy/Documents/flow/flow/core/kernel/scenario/debug/net/figure8_20190508-1315351557346535.7748823.con.xml"/>
-        <type-files value="/home/aboudy/Documents/flow/flow/core/kernel/scenario/debug/net/figure8_20190508-1315351557346535.7748823.typ.xml"/>
+        <node-files value="/home/aboudy/Documents/flow/flow/core/kernel/network/debug/net/figure8_20190508-1315351557346535.7748823.nod.xml"/>
+        <edge-files value="/home/aboudy/Documents/flow/flow/core/kernel/network/debug/net/figure8_20190508-1315351557346535.7748823.edg.xml"/>
+        <connection-files value="/home/aboudy/Documents/flow/flow/core/kernel/network/debug/net/figure8_20190508-1315351557346535.7748823.con.xml"/>
+        <type-files value="/home/aboudy/Documents/flow/flow/core/kernel/network/debug/net/figure8_20190508-1315351557346535.7748823.typ.xml"/>
     </input>
 
     <output>
-        <output-file value="/home/aboudy/Documents/flow/flow/core/kernel/scenario/debug/cfg/figure8_20190508-1315351557346535.7748823.net.xml"/>
+        <output-file value="/home/aboudy/Documents/flow/flow/core/kernel/network/debug/cfg/figure8_20190508-1315351557346535.7748823.net.xml"/>
     </output>
 
     <processing>

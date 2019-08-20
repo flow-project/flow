@@ -45,8 +45,8 @@ class MultiAgentAccelEnv(AccelEnv, MultiEnv):
         The adversary state and the agent state are identical.
         """
         state = np.array([[
-            self.k.vehicle.get_speed(veh_id) / self.k.scenario.max_speed(),
-            self.k.vehicle.get_x_by_id(veh_id) / self.k.scenario.length()
+            self.k.vehicle.get_speed(veh_id) / self.k.network.max_speed(),
+            self.k.vehicle.get_x_by_id(veh_id) / self.k.network.length()
         ] for veh_id in self.sorted_ids])
         state = np.ndarray.flatten(state)
         return {'av': state, 'adversary': state}

@@ -1,6 +1,6 @@
-"""Contains the highway scenario class."""
+"""Contains the highway network class."""
 
-from flow.networks.base_scenario import Network
+from flow.networks.base_network import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 import numpy as np
@@ -37,7 +37,7 @@ class HighwayNetwork(Network):
     >>> from flow.core.params import InitialConfig
     >>> from flow.networks import HighwayNetwork
     >>>
-    >>> scenario = HighwayNetwork(
+    >>> network = HighwayNetwork(
     >>>     name='highway',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(

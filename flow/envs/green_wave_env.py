@@ -1,4 +1,4 @@
-"""Environments for scenarios with traffic lights.
+"""Environments for networks with traffic lights.
 
 These environments are used to train traffic lights to regulate traffic flow
 through an n x m grid.
@@ -74,11 +74,11 @@ class TrafficLightGridEnv(Env):
         Array containing information on the grid, such as the length of roads,
         row_num, col_num, number of initial cars
     rows : int
-        Number of rows in this grid scenario
+        Number of rows in this grid network
     cols : int
-        Number of columns in this grid scenario
+        Number of columns in this grid network
     num_traffic_lights : int
-        Number of intersection in this grid scenario
+        Number of intersection in this grid network
     tl_type : str
         Type of traffic lights, either 'actuated' or 'static'
     steps : int
@@ -109,21 +109,21 @@ class TrafficLightGridEnv(Env):
         https://github.com/openai/gym/blob/master/gym/spaces/discrete.py
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
 
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter "{}" not supplied'.format(p))
 
-        self.grid_array = scenario.net_params.additional_params["grid_array"]
+        self.grid_array = network.net_params.additional_params["grid_array"]
         self.rows = self.grid_array["row_num"]
         self.cols = self.grid_array["col_num"]
         # self.num_observed = self.grid_array.get("num_observed", 3)
         self.num_traffic_lights = self.rows * self.cols
         self.tl_type = env_params.additional_params.get('tl_type')
 
-        super().__init__(env_params, sim_params, scenario, simulator)
+        super().__init__(env_params, sim_params, network, simulator)
 
         # Saving env variables for plotting
         self.steps = env_params.horizon
@@ -216,7 +216,7 @@ class TrafficLightGridEnv(Env):
 
         # get the state arrays
         speeds = [
-            self.k.vehicle.get_speed(veh_id) / self.k.scenario.max_speed()
+            self.k.vehicle.get_speed(veh_id) / self.k.network.max_speed()
             for veh_id in self.k.vehicle.get_ids()
         ]
         dist_to_intersec = [
@@ -225,7 +225,7 @@ class TrafficLightGridEnv(Env):
         ]
         edges = [
             self._convert_edge(self.k.vehicle.get_edge(veh_id)) /
-            (self.k.scenario.network.num_edges - 1)
+            (self.k.network.network.num_edges - 1)
             for veh_id in self.k.vehicle.get_ids()
         ]
 
@@ -317,7 +317,7 @@ class TrafficLightGridEnv(Env):
             return -10
         if 'center' in edge_id:
             return 0
-        edge_len = self.k.scenario.edge_length(edge_id)
+        edge_len = self.k.network.edge_length(edge_id)
         relative_pos = self.k.vehicle.get_position(veh_id)
         dist = edge_len - relative_pos
         return dist
@@ -613,8 +613,8 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
 
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
-        super().__init__(env_params, sim_params, scenario, simulator)
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
+        super().__init__(env_params, sim_params, network, simulator)
 
         for p in ADDITIONAL_PO_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -640,7 +640,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
             low=0.,
             high=1,
             shape=(3 * 4 * self.num_observed * self.num_traffic_lights +
-                   2 * len(self.k.scenario.get_edge_list()) +
+                   2 * len(self.k.network.get_edge_list()) +
                    3 * self.num_traffic_lights,),
             dtype=np.float32)
         return tl_box
@@ -656,14 +656,14 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         dist_to_intersec = []
         edge_number = []
         max_speed = max(
-            self.k.scenario.speed_limit(edge)
-            for edge in self.k.scenario.get_edge_list())
+            self.k.network.speed_limit(edge)
+            for edge in self.k.network.get_edge_list())
         grid_array = self.net_params.additional_params["grid_array"]
         max_dist = max(grid_array["short_length"], grid_array["long_length"],
                        grid_array["inner_length"])
         all_observed_ids = []
 
-        for _, edges in self.scenario.node_mapping:
+        for _, edges in self.network.node_mapping:
             for edge in edges:
                 observed_ids = \
                     self.get_closest_to_intersection(edge, self.num_observed)
@@ -676,14 +676,14 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
                     for veh_id in observed_ids
                 ]
                 dist_to_intersec += [
-                    (self.k.scenario.edge_length(
+                    (self.k.network.edge_length(
                         self.k.vehicle.get_edge(veh_id)) -
                         self.k.vehicle.get_position(veh_id)) / max_dist
                     for veh_id in observed_ids
                 ]
                 edge_number += \
                     [self._convert_edge(self.k.vehicle.get_edge(veh_id)) /
-                     (self.k.scenario.network.num_edges - 1)
+                     (self.k.network.network.num_edges - 1)
                      for veh_id in observed_ids]
 
                 if len(observed_ids) < self.num_observed:
@@ -695,11 +695,11 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         # now add in the density and average velocity on the edges
         density = []
         velocity_avg = []
-        for edge in self.k.scenario.get_edge_list():
+        for edge in self.k.network.get_edge_list():
             ids = self.k.vehicle.get_ids_by_edge(edge)
             if len(ids) > 0:
                 # TODO(cathywu) Why is there a 5 here?
-                density += [5 * len(ids) / self.k.scenario.edge_length(edge)]
+                density += [5 * len(ids) / self.k.network.edge_length(edge)]
                 velocity_avg += [np.mean(
                     [self.k.vehicle.get_speed(veh_id) for veh_id in
                      ids]) / max_speed]

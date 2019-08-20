@@ -1,6 +1,6 @@
-"""Contains the merge scenario class."""
+"""Contains the merge network class."""
 
-from flow.networks.base_scenario import Network
+from flow.networks.base_network import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos
@@ -69,7 +69,7 @@ class MergeNetwork(Network):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a merge scenario."""
+        """Initialize a merge network."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))

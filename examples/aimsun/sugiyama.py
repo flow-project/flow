@@ -43,13 +43,13 @@ def sugiyama_example(render=None):
 
     initial_config = InitialConfig(bunching=20)
 
-    scenario = LoopNetwork(
+    network = LoopNetwork(
         name="sugiyama",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = TestEnv(env_params, sim_params, scenario, simulator='aimsun')
+    env = TestEnv(env_params, sim_params, network, simulator='aimsun')
 
     return Experiment(env)
 

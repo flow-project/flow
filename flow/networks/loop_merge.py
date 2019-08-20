@@ -1,6 +1,6 @@
-"""Contains the loop merge scenario class."""
+"""Contains the loop merge network class."""
 
-from flow.networks.base_scenario import Network
+from flow.networks.base_network import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos, linspace
@@ -67,7 +67,7 @@ class TwoLoopsOneMergingNetwork(Network):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a two loop scenario."""
+        """Initialize a two loop network."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))

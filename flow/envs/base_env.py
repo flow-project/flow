@@ -27,7 +27,7 @@ class Env(gym.Env):
 
     Provides the interface for interacting with various aspects of a traffic
     simulation. Using this class, you can start a simulation instance, provide
-    a scenario to specify a configuration and controllers, perform simulation
+    a network to specify a configuration and controllers, perform simulation
     steps, and reset the simulation to an initial configuration.
 
     Env is Serializable to allow for pickling and replaying of the policy.
@@ -53,8 +53,8 @@ class Env(gym.Env):
         see flow/core/params.py
     initial_config : flow.core.params.InitialConfig
         see flow/core/params.py
-    scenario : flow.networks.Network
-        see flow/scenarios/base_scenario.py
+    network : flow.networks.Network
+        see flow/networks/base_network.py
     simulator : str
         the simulator used, one of {'traci', 'aimsun'}
     k : flow.core.kernel.Kernel
@@ -88,14 +88,14 @@ class Env(gym.Env):
     available_routes : dict
         the available_routes variable contains a dictionary of routes vehicles
         can traverse; to be used when routes need to be chosen dynamically.
-        Equivalent to `scenario.rts`.
+        Equivalent to `network.rts`.
     renderer : flow.renderer.pyglet_renderer.PygletRenderer or None
         renderer class, used to collect image-based representations of the
         traffic network. This attribute is set to None if `sim_params.render`
         is set to True or False.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
         """Initialize the environment class.
 
         Parameters
@@ -104,8 +104,8 @@ class Env(gym.Env):
            see flow/core/params.py
         sim_params : flow.core.params.SimParams
            see flow/core/params.py
-        scenario : flow.networks.Network
-            see flow/scenarios/base_scenario.py
+        network : flow.networks.Network
+            see flow/networks/base_network.py
         simulator : str
             the simulator used, one of {'traci', 'aimsun'}. Defaults to 'traci'
 
@@ -115,9 +115,9 @@ class Env(gym.Env):
             if the render mode is not set to a valid value
         """
         self.env_params = env_params
-        self.scenario = scenario
-        self.net_params = scenario.net_params
-        self.initial_config = scenario.initial_config
+        self.network = network
+        self.net_params = network.net_params
+        self.initial_config = network.initial_config
         self.sim_params = sim_params
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
@@ -144,18 +144,18 @@ class Env(gym.Env):
         self.k = Kernel(simulator=self.simulator,
                         sim_params=sim_params)
 
-        # use the scenario class's network parameters to generate the necessary
-        # scenario components within the scenario kernel
-        self.k.scenario.generate_network(scenario)
+        # use the network class's network parameters to generate the necessary
+        # network components within the network kernel
+        self.k.network.generate_network(network)
 
         # initial the vehicles kernel using the VehicleParams object
-        self.k.vehicle.initialize(deepcopy(scenario.vehicles))
+        self.k.vehicle.initialize(deepcopy(network.vehicles))
 
         # initialize the simulation using the simulation kernel. This will use
-        # the scenario kernel as an input in order to determine what network
+        # the network kernel as an input in order to determine what network
         # needs to be simulated.
         kernel_api = self.k.simulation.start_simulation(
-            scenario=self.k.scenario, sim_params=sim_params)
+            network=self.k.network, sim_params=sim_params)
 
         # pass the kernel api to the kernel and it's subclasses
         self.k.pass_api(kernel_api)
@@ -163,10 +163,10 @@ class Env(gym.Env):
         # the available_routes variable contains a dictionary of routes
         # vehicles can traverse; to be used when routes need to be chosen
         # dynamically
-        self.available_routes = self.k.scenario.rts
+        self.available_routes = self.k.network.rts
 
         # store the initial vehicle ids
-        self.initial_ids = deepcopy(scenario.vehicles.ids)
+        self.initial_ids = deepcopy(network.vehicles.ids)
 
         # store the initial state of the vehicles kernel (needed for restarting
         # the simulation)
@@ -187,7 +187,7 @@ class Env(gym.Env):
 
             # get network polygons
             network = []
-            # FIXME: add to scenario kernel instead of hack
+            # FIXME: add to network kernel instead of hack
             for lane_id in self.k.kernel_api.lane.getIDList():
                 _lane_poly = self.k.kernel_api.lane.getShape(lane_id)
                 lane_poly = [i for pt in _lane_poly for i in pt]
@@ -240,10 +240,10 @@ class Env(gym.Env):
             ensure_dir(sim_params.emission_path)
             self.sim_params.emission_path = sim_params.emission_path
 
-        self.k.scenario.generate_network(self.scenario)
-        self.k.vehicle.initialize(deepcopy(self.scenario.vehicles))
+        self.k.network.generate_network(self.network)
+        self.k.vehicle.initialize(deepcopy(self.network.vehicles))
         kernel_api = self.k.simulation.start_simulation(
-            scenario=self.k.scenario, sim_params=self.sim_params)
+            network=self.k.network, sim_params=self.sim_params)
         self.k.pass_api(kernel_api)
 
         self.setup_initial_state()
@@ -260,7 +260,7 @@ class Env(gym.Env):
             random.shuffle(self.initial_ids)
 
         # generate starting position for vehicles in the network
-        start_pos, start_lanes = self.k.scenario.generate_starting_positions(
+        start_pos, start_lanes = self.k.network.generate_starting_positions(
             initial_config=self.initial_config,
             num_vehicles=len(self.initial_ids))
 
@@ -694,7 +694,7 @@ class Env(gym.Env):
         machine_logs = []
         machine_orientations = []
         machine_dynamics = []
-        max_speed = self.k.scenario.max_speed()
+        max_speed = self.k.network.max_speed()
         for id in human_idlist:
             # Force tracking human vehicles by adding "track" in vehicle id.
             # The tracked human vehicles will be treated as machine vehicles.

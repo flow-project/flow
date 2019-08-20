@@ -66,7 +66,7 @@ class AccelEnv(Env):
         metrics to track
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -77,7 +77,7 @@ class AccelEnv(Env):
         self.prev_pos = dict()
         self.absolute_position = dict()
 
-        super().__init__(env_params, sim_params, scenario, simulator)
+        super().__init__(env_params, sim_params, network, simulator)
 
     @property
     def action_space(self):
@@ -115,9 +115,9 @@ class AccelEnv(Env):
 
     def get_state(self):
         """See class definition."""
-        speed = [self.k.vehicle.get_speed(veh_id) / self.k.scenario.max_speed()
+        speed = [self.k.vehicle.get_speed(veh_id) / self.k.network.max_speed()
                  for veh_id in self.sorted_ids]
-        pos = [self.k.vehicle.get_x_by_id(veh_id) / self.k.scenario.length()
+        pos = [self.k.vehicle.get_x_by_id(veh_id) / self.k.network.length()
                for veh_id in self.sorted_ids]
 
         return np.array(speed + pos)
@@ -144,7 +144,7 @@ class AccelEnv(Env):
                 change = this_pos - self.prev_pos.get(veh_id, this_pos)
                 self.absolute_position[veh_id] = \
                     (self.absolute_position.get(veh_id, this_pos) + change) \
-                    % self.k.scenario.length()
+                    % self.k.network.length()
                 self.prev_pos[veh_id] = this_pos
 
     @property

@@ -62,13 +62,13 @@ def highway_example(render=None):
 
     initial_config = InitialConfig(spacing="uniform", shuffle=True)
 
-    scenario = HighwayNetwork(
+    network = HighwayNetwork(
         name="highway",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = LaneChangeAccelEnv(env_params, sim_params, scenario)
+    env = LaneChangeAccelEnv(env_params, sim_params, network)
 
     return Experiment(env)
 

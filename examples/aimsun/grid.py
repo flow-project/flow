@@ -101,14 +101,14 @@ def grid_example(render=None):
 
     initial_config = InitialConfig(spacing='custom')
 
-    scenario = SimpleGridNetwork(
+    network = SimpleGridNetwork(
         name="grid-intersection",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
         traffic_lights=tl_logic)
 
-    env = AccelEnv(env_params, sim_params, scenario, simulator='aimsun')
+    env = AccelEnv(env_params, sim_params, network, simulator='aimsun')
 
     return Experiment(env)
 

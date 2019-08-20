@@ -51,12 +51,12 @@ def figure_eight_example(render=None):
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
     net_params = NetParams(additional_params=additional_net_params)
 
-    scenario = Figure8Network(
+    network = Figure8Network(
         name="figure8",
         vehicles=vehicles,
         net_params=net_params)
 
-    env = AccelEnv(env_params, sim_params, scenario)
+    env = AccelEnv(env_params, sim_params, network)
 
     return Experiment(env)
 

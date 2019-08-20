@@ -42,12 +42,12 @@ def figure_eight_example(render=None):
     net_params = NetParams(
         additional_params=ADDITIONAL_NET_PARAMS.copy())
 
-    scenario = Figure8Network(
+    network = Figure8Network(
         name="figure8",
         vehicles=vehicles,
         net_params=net_params)
 
-    env = TestEnv(env_params, sim_params, scenario, simulator='aimsun')
+    env = TestEnv(env_params, sim_params, network, simulator='aimsun')
 
     return Experiment(env)
 
