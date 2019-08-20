@@ -55,23 +55,23 @@ The content of each exercise is as follows:
 
 **Tutorial 3:** Running RLlib experiments for mixed-autonomy traffic.
 
-**Tutorial 4:** Running rllab experiments for mixed-autonomy traffic.
-
-**Tutorial 5:** Saving and visualizing resuls from non-RL simulations and
+**Tutorial 4:** Saving and visualizing resuls from non-RL simulations and
 testing simulations in the presence of an RLlib/rllab agent.
 
-**Tutorial 6:** Creating custom scenarios.
+**Tutorial 5:** Creating custom scenarios.
 
-**Tutorial 7:** Importing networks from OpenStreetMap.
+**Tutorial 6:** Importing networks from OpenStreetMap.
 
-**Tutorial 8:** Importing networks from simulator-specific template files.
+**Tutorial 7:** Importing networks from simulator-specific template files.
 
-**Tutorial 9:** Creating custom environments.
+**Tutorial 8:** Creating custom environments.
 
-**Tutorial 10:** Creating custom controllers.
+**Tutorial 9:** Creating custom controllers.
 
-**Tutorial 11:** Traffic lights.
+**Tutorial 10:** Traffic lights.
 
-**Tutorial 12:** Running simulations with inflows of vehicles.
+**Tutorial 11:** Running simulations with inflows of vehicles.
 
-**Tutorial 13:** Running rllab experiments on Amazon EC2 instances.
+**Tutorial 13:** Running rllib experiments on Amazon EC2 instances
+
+**Tutorial 14:** Running the bottleneck environment.
