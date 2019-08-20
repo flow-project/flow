@@ -12,7 +12,7 @@ dependencies:
     - cloudpickle==0.5.3
     - setuptools==39.1.0
     - pip:
-        - gym==0.13.1
+        - gym==0.14.0
         - pyprind==2.11.2
         - nose2==0.8.0
         - cached_property

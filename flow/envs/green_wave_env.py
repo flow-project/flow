@@ -9,7 +9,7 @@ import re
 
 from gym.spaces.box import Box
 from gym.spaces.discrete import Discrete
-from gym.spaces.tuple import Tuple
+from gym.spaces import Tuple
 
 from flow.core import rewards
 from flow.envs.base_env import Env
@@ -245,8 +245,9 @@ class TrafficLightGridEnv(Env):
             rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
             rl_mask = [0] * (self.num_traffic_lights - len(rl_mask)) + rl_mask
         else:
-            # convert values less than 0.0 to zero and above to 1. 0's indicate
-            # that we should not switch the direction
+            # convert values less than 0 to zero and above 0 to 1. 0 indicates
+            # that should not switch the direction, and 1 indicates that switch
+            # should happen
             rl_mask = rl_actions > 0.0
 
         for i, action in enumerate(rl_mask):
@@ -690,8 +691,9 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         for edge in self.k.scenario.get_edge_list():
             ids = self.k.vehicle.get_ids_by_edge(edge)
             if len(ids) > 0:
-                # TODO(cathywu) Why is there a 5 here?
-                density += [5 * len(ids) / self.k.scenario.edge_length(edge)]
+                vehicle_length = 5
+                density += [vehicle_length * len(ids) /
+                            self.k.scenario.edge_length(edge)]
                 velocity_avg += [np.mean(
                     [self.k.vehicle.get_speed(veh_id) for veh_id in
                      ids]) / max_speed]
