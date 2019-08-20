@@ -25,14 +25,15 @@ SIM_STEP = 1
 BATCH_SIZE = 20000
 ITR = 100
 N_ROLLOUTS = 40
-exp_tag = "icra_6"  # experiment prefix
+exp_tag = "icra_8"  # experiment prefix
 
 # # Local settings
 # N_CPUS = 1
-# RENDER = True
+# RENDER = False
 # MODE = "local"
 # RESTART_INSTANCE = False
 # SEEDS = [1]
+# LOCAL = True
 
 # Autoscaler settings
 N_CPUS = 10
@@ -40,6 +41,7 @@ RENDER = False
 MODE = "local"
 RESTART_INSTANCE = True
 SEEDS = [1, 2, 5]#, 91, 104, 32] 
+# LOCAL = False
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = VehicleParams()
@@ -80,10 +82,10 @@ vehicles.add(veh_id="rl",
 
 inflow = InFlows()
     
-# inflow.add(veh_type="rl", edge="inflow_0", name="rl", vehs_per_hour=50)
-# inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
-# inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
-# inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
+inflow.add(veh_type="rl", edge="inflow_0", name="rl", vehs_per_hour=50)
+inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
+inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
+inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
 
 inflow.add(veh_type="rl", edge="inflow_1", name="rl", vehs_per_hour=50)
 inflow.add(veh_type="idm", edge="inflow_1", name="idm", vehs_per_hour=50)
@@ -152,9 +154,9 @@ flow_params = dict(
             # number of lanes in the outer loop
             "outer_lanes": 1,
             # max speed limit in the roundabout
-            "roundabout_speed_limit": 10,
+            "roundabout_speed_limit": 8,
             # max speed limit in the rest of the roundabout
-            "outside_speed_limit": 10,
+            "outside_speed_limit": 8,
             # resolution of the curved portions
             "resolution": 100,
             # num lanes
@@ -206,7 +208,10 @@ def setup_exps():
 
 if __name__ == '__main__':
     alg_run, gym_name, config = setup_exps()
-    ray.init(num_cpus=N_CPUS+1)#, object_store_memory=10000000)
+    if LOCAL:
+        ray.init(num_cpus=N_CPUS+1, object_store_memory=10000000)
+    else:
+        ray.init(num_cpus=N_CPUS+1)
     trials = run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,

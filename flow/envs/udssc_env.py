@@ -91,6 +91,7 @@ class UDSSCMergeEnv(Env):
         # Maintain an array of actions to aid penalizing jerkiness
         self.past_actions = deque(maxlen=10)
         self.past_actions_2 = deque(maxlen=10)
+        self.actions = []
 
         super().__init__(env_params, sim_params, scenario)
 
@@ -163,7 +164,8 @@ class UDSSCMergeEnv(Env):
 
         # Curation
         self.curate_rl_stack() # This shouldn't be necessary given the new flow of events
-
+        
+        # self.actions.append(rl_actions[1])
         # Apply RL Actions
         if self.rl_stack:
             rl_id = self.rl_stack[0]
@@ -194,18 +196,19 @@ class UDSSCMergeEnv(Env):
 
         # Use a similar weighting of of the headway reward as the velocity
         # reward
-        # return min_delay + penalty + penalty_2
-        # rew = min_delay + penalty + penalty_2 + penalty_jerk + penalty_speeding
+
         # avg_vel = np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))
         # print('avg_vel: %.2f, min_delay: %.2f, penalty: %.2f, penalty_2: %.2f, penalty_jerk: %.2f, penalty_speed: %.2f' % \
         #       (avg_vel, min_delay, penalty, penalty_2, penalty_jerk, penalty_speeding))
-        # return 2 * min_delay + penalty + penalty_2 + penalty_jerk + penalty_speeding
-        # print('min_delay: %.2f, penalty: %.2f, penalty_2: %.2f' % \
-        #       (min_delay, penalty, penalty_2))
         # print(penalty)
-        return 2 * min_delay + penalty + penalty_2
-        # return min_delay + penalty + penalty_2 + penalty_jerk + penalty_speeding
-        # return 2 * min_delay + penalty + penalty_2 + penalty_speeding
+        # return 2 * min_delay + penalty + penalty_2
+        # import ipdb; ipdb.set_trace()
+        ret = self.temp_enforce_roundabout_traffic()
+        # print(ret)
+        return ret
+
+    def temp_enforce_roundabout_traffic(self):
+        return len(self.k.vehicle.get_ids_by_edge(ROUNDABOUT_EDGES))
 
     def get_state(self, **kwargs):
         """
@@ -285,6 +288,11 @@ class UDSSCMergeEnv(Env):
         * max_speed = 15 
 
         """
+        # speeds = []
+        # for veh_id in self.k.vehicle.get_ids():
+        #     speeds.append(self.k.vehicle.get_speed(veh_id))
+        # print(speeds)
+
         self.curate_rl_stack()
 
         rl_id = None
