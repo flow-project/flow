@@ -1,5 +1,6 @@
 """Script containing the Flow kernel object for interacting with simulators."""
 
+import warnings
 from flow.core.kernel.simulation import TraCISimulation, AimsunKernelSimulation
 from flow.core.kernel.network import TraCINetwork, AimsunKernelNetwork
 from flow.core.kernel.vehicle import TraCIVehicle, AimsunKernelVehicle
@@ -106,3 +107,13 @@ class Kernel(object):
         """Terminate all components within the simulation and network."""
         self.network.close()
         self.simulation.close()
+
+    @property
+    def scenario(self):
+        warnings.simplefilter('always', PendingDeprecationWarning)
+        warnings.warn(
+            "self.k.scenario will be deprecated in a future release. Please "
+            "use self.k.network instead.",
+            PendingDeprecationWarning
+        )
+        return self.network
