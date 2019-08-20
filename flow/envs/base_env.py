@@ -11,30 +11,19 @@ from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
 
 import gym
 from gym.spaces import Box
+from gym.spaces import Tuple
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
 
 import sumolib
 
-try:
-    # Import serializable if rllab is installed
-    from rllab.core.serializable import Serializable
-    serializable_flag = True
-except ImportError:
-    serializable_flag = False
 
 from flow.core.util import ensure_dir
 from flow.core.kernel import Kernel
 from flow.utils.exceptions import FatalFlowError
 
-# pick out the correct class definition
-if serializable_flag:
-    classdef = (gym.Env, Serializable)
-else:
-    classdef = (gym.Env,)
 
-
-class Env(*classdef):
+class Env(gym.Env):
     """Base environment class.
 
     Provides the interface for interacting with various aspects of a traffic
@@ -126,10 +115,6 @@ class Env(*classdef):
         flow.utils.exceptions.FatalFlowError
             if the render mode is not set to a valid value
         """
-        # Invoke serializable if using rllab
-        if serializable_flag:
-            Serializable.quick_init(self, locals())
-
         self.env_params = env_params
         self.scenario = scenario
         self.net_params = scenario.net_params
@@ -394,8 +379,8 @@ class Env(*classdef):
 
         # test if the environment should terminate due to a collision or the
         # time horizon being met
-        done = crash or (self.time_counter >= self.env_params.warmup_steps
-                         + self.env_params.horizon)
+        done = (self.time_counter >= self.env_params.warmup_steps +
+                self.env_params.horizon)  # or crash
 
         # compute the info for each agent
         infos = {}
@@ -464,7 +449,7 @@ class Env(*classdef):
                 try:
                     self.k.vehicle.remove(veh_id)
                 except (FatalTraCIError, TraCIException):
-                    pass
+                    print(traceback.format_exc())
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
@@ -562,11 +547,11 @@ class Env(*classdef):
         Returns
         -------
         array_like
-            The rl_actions clipped according to the box
+            The rl_actions clipped according to the box or boxes
         """
         # ignore if no actions are issued
         if rl_actions is None:
-            return None
+            return
 
         # clip according to the action space requirements
         if isinstance(self.action_space, Box):
@@ -574,6 +559,14 @@ class Env(*classdef):
                 rl_actions,
                 a_min=self.action_space.low,
                 a_max=self.action_space.high)
+        elif isinstance(self.action_space, Tuple):
+            for idx, action in enumerate(rl_actions):
+                subspace = self.action_space[idx]
+                if isinstance(subspace, Box):
+                    rl_actions[idx] = np.clip(
+                        action,
+                        a_min=subspace.low,
+                        a_max=subspace.high)
         return rl_actions
 
     def apply_rl_actions(self, rl_actions=None):
@@ -671,7 +664,7 @@ class Env(*classdef):
                 self.renderer.close()
         except FileNotFoundError:
             # Skip automatic termination. Connection is probably already closed
-            pass
+            print(traceback.format_exc())
 
     def render(self, reset=False, buffer_length=5):
         """Render a frame.

@@ -1,7 +1,7 @@
 Visualization
 *******************
 
-Flow supports visualization of both rllab and RLlib computational experiments.
+Flow supports visualization of RLlib and SUMO computational experiments.
 When using one of the below visualizers, a window will appear similar to the
 one in the figure below. Click on the play button (highlighted in red) and the
 simulation will begin, with the autonomous vehicles exhibiting the behavior
@@ -10,25 +10,6 @@ trained by the reinforcement learning algorithm.
 .. image:: ../img/visualizing.png
    :width: 400
    :align: center
-
-rllab
-=====
-Call the rllab visualizer with
-:: 
-
-	python ./visualizer_rllab.py /result_dir/itr_XXX.pkl
-
-The rllab visualizer also takes some inputs:
-
-- ``--num_rollouts``
-- ``--plotname``
-- ``--use_sumogui``
-- ``--run_long``
-- ``--emission_to_csv``
-
-The ``params.pkl`` file can be used as well.
-
-
 
 RLlib
 =====
@@ -90,7 +71,7 @@ visualization instructions given above with the additional flag
 
 ::
 
-   python ./visualizer_rllab.py /result_dir/itr_XXX.pkl --sumo-web3d
+   python ./visualizer_rllib.py /result_dir/itr_XXX.pkl --sumo-web3d
 
 Then, either from the terminal logs pick out the printed port that has
 num-clients = 2 or you can run

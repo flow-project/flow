@@ -1,4 +1,4 @@
-gym==0.10.5
+gym==0.14.0
 numpy==1.14.0
 scipy==1.1.0
 lxml==4.2.4
@@ -16,7 +16,11 @@ imutils==0.5.1
 numpydoc
 ray==0.6.1
 opencv-python
-
-# theano==0.8.2 # for rllab
-# lasagne # for rllab
-# tensorflow==1.8.0
+dill
+lz4
+setproctitle
+stable_baselines==2.7.0
+psutil
+opencv-python
+boto3==1.4.8
+redis~=2.10.6

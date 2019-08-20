@@ -3,7 +3,7 @@ Evaluation utility methods for testing the performance of controllers.
 
 This file contains a method to perform the evaluation on all benchmarks in
 flow/benchmarks, as well as method for importing neural network controllers
-from rllab and rllib.
+from rllib.
 """
 
 from flow.core.experiment import Experiment
@@ -29,7 +29,6 @@ import ray
 from ray.rllib.agent import get_agent_class
 from ray.tune.registry import get_registry, register_env
 import numpy as np
-import joblib
 
 # number of simulations to execute when computing performance scores
 NUM_RUNS = 10
@@ -134,35 +133,6 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
         rl_actions=_get_actions)
 
     return np.mean(res["returns"]), np.std(res["returns"])
-
-
-def get_compute_action_rllab(path_to_pkl):
-    """Collect the compute_action method from rllab's pkl files.
-
-    Parameters
-    ----------
-    path_to_pkl : str
-        pkl file created by rllab that contains the policy information
-
-    Returns
-    -------
-    method
-        the compute_action method from the algorithm along with the trained
-        parameters
-    """
-    # get the agent/policy
-    data = joblib.load(path_to_pkl)
-    agent = data['policy']
-
-    # restore the trained parameters
-    agent.restore()
-
-    # the compute action return an action and an info_dict, so modify to just
-    # return the action
-    def compute_action(state):
-        return agent.compute_action(state)[0]
-
-    return compute_action
 
 
 def get_compute_action_rllib(path_to_dir, checkpoint_num, alg):
