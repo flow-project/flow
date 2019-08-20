@@ -197,15 +197,14 @@ class UDSSCMergeEnv(Env):
         # Use a similar weighting of of the headway reward as the velocity
         # reward
 
-        # avg_vel = np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))
         # print('avg_vel: %.2f, min_delay: %.2f, penalty: %.2f, penalty_2: %.2f, penalty_jerk: %.2f, penalty_speed: %.2f' % \
         #       (avg_vel, min_delay, penalty, penalty_2, penalty_jerk, penalty_speeding))
-        # print(penalty)
-        # return 2 * min_delay + penalty + penalty_2
-        # import ipdb; ipdb.set_trace()
-        ret = self.temp_enforce_roundabout_traffic()
+        # print('min_delay: %.2f, penalty: %.2f, penalty_2: %.2f, penalty_speed: %.2f' % \
+        #       (min_delay, penalty, penalty_2, penalty_speeding))
+        return 2 * min_delay + penalty + penalty_2 + penalty_speeding
+        # ret = self.temp_enforce_roundabout_traffic()
         # print(ret)
-        return ret
+        # return ret
 
     def temp_enforce_roundabout_traffic(self):
         return len(self.k.vehicle.get_ids_by_edge(ROUNDABOUT_EDGES))

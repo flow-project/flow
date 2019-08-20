@@ -23,9 +23,9 @@ from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 HORIZON = 500
 SIM_STEP = 1
 BATCH_SIZE = 20000
-ITR = 100
+ITR = 101
 N_ROLLOUTS = 40
-exp_tag = "icra_8"  # experiment prefix
+exp_tag = "icra_9"  # experiment prefix
 
 # # Local settings
 # N_CPUS = 1
@@ -41,7 +41,7 @@ RENDER = False
 MODE = "local"
 RESTART_INSTANCE = True
 SEEDS = [1, 2, 5]#, 91, 104, 32] 
-# LOCAL = False
+LOCAL = False
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = VehicleParams()
@@ -154,9 +154,9 @@ flow_params = dict(
             # number of lanes in the outer loop
             "outer_lanes": 1,
             # max speed limit in the roundabout
-            "roundabout_speed_limit": 8,
+            "roundabout_speed_limit": 10,
             # max speed limit in the rest of the roundabout
-            "outside_speed_limit": 8,
+            "outside_speed_limit": 10,
             # resolution of the curved portions
             "resolution": 100,
             # num lanes
