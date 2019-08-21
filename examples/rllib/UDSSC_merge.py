@@ -25,14 +25,13 @@ SIM_STEP = 1
 BATCH_SIZE = 20000
 ITR = 201
 N_ROLLOUTS = 40
-exp_tag = "icra_10"  # experiment prefix
+exp_tag = "icra_11"  # experiment prefix
 
 # # Local settings
 # N_CPUS = 1
-# RENDER = False
+# RENDER = True
 # MODE = "local"
 # RESTART_INSTANCE = False
-# SEEDS = [1]
 # LOCAL = True
 
 # Autoscaler settings
@@ -40,11 +39,11 @@ N_CPUS = 10
 RENDER = False
 MODE = "local"
 RESTART_INSTANCE = True
-SEEDS = [1, 2, 5]#, 91, 104, 32] 
 LOCAL = False
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = VehicleParams()
+
 
 # Inner ring vehicles
 vehicles.add(veh_id="idm",
@@ -57,6 +56,7 @@ vehicles.add(veh_id="idm",
                     decel=1, 
                     tau=1.1,
                     impatience=0.05,
+                    max_speed=8,
                     speed_mode="all_checks",
                 ),
                 lane_change_params=SumoLaneChangeParams(
@@ -73,6 +73,7 @@ vehicles.add(veh_id="rl",
                 car_following_params=SumoCarFollowingParams(
                     tau=1.1,
                     impatience=0.05,
+                    max_speed=8,
                     speed_mode="no_collide",
                 ),
                 lane_change_params=SumoLaneChangeParams(
@@ -193,6 +194,8 @@ def setup_exps():
     config['kl_target'] = 0.02
     config['num_sgd_iter'] = 10
     config['horizon'] = HORIZON
+    config['vf_loss_coeff'] = 1.0
+    config['vf_clip_param'] = 10.0
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -226,6 +229,7 @@ if __name__ == '__main__':
             'stop': {
                 'training_iteration': ITR,
             },
-            'upload_dir': 's3://kathy.experiments/rllib/experiments'
+            'upload_dir': 's3://kathy.experiments/rllib/experiments',
+            'num_samples': 3,
         }
     })
