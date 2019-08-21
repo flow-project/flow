@@ -442,9 +442,11 @@ class Env(*classdef):
                 "**********************************************************\n"
                 "**********************************************************"
             )
+        from flow.envs.udssc_env import UDSSCMergeEnvReset
 
-        if self.sim_params.restart_instance or \
-                (self.step_counter > 2e6 and self.simulator != 'aimsun'):
+        if not isinstance(self, UDSSCMergeEnvReset) and \
+                (self.sim_params.restart_instance or \
+                (self.step_counter > 2e6 and self.simulator != 'aimsun')):
             self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
             self.sim_params.seed = random.randint(0, 1e5)

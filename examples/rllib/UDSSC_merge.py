@@ -22,16 +22,15 @@ from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 # Training settings
 HORIZON = 500
 SIM_STEP = 1
-BATCH_SIZE = 20000
-ITR = 201
+ITR = 101
 N_ROLLOUTS = 40
-exp_tag = "icra_14"  # experiment prefix
+exp_tag = "icra_15"  # experiment prefix
 
 # # Local settings
 # N_CPUS = 1
-# RENDER = True
+# RENDER = False
 # MODE = "local"
-# RESTART_INSTANCE = False
+# RESTART_INSTANCE = True
 # LOCAL = True
 
 # Autoscaler settings
@@ -86,7 +85,6 @@ inflow = InFlows()
 inflow.add(veh_type="rl", edge="inflow_0", name="rl", vehs_per_hour=50)
 inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
 inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
-inflow.add(veh_type="idm", edge="inflow_0", name="idm", vehs_per_hour=50)
 
 inflow.add(veh_type="rl", edge="inflow_1", name="rl", vehs_per_hour=50)
 inflow.add(veh_type="idm", edge="inflow_1", name="idm", vehs_per_hour=50)
@@ -99,7 +97,7 @@ flow_params = dict(
     exp_tag=exp_tag,
 
     # name of the flow environment the experiment is running on
-    env_name='UDSSCMergeEnv',
+    env_name='UDSSCMergeEnvReset',
 
     # name of the scenario class the experiment is running on
     scenario='UDSSCMergingScenario',
@@ -130,12 +128,18 @@ flow_params = dict(
             "n_following": 1, # HAS TO BE 1
             # number of observable merging-in vehicle from the larger loop
             "n_merging_in": 6,
-            # rl action noise
-            "rl_action_noise": 0.5,
-            # noise to add to the state space
-            "state_noise": 0.1,
+            # batch size, for use in UDSSCMergeEnvReset
+            "batch_size": HORIZON * N_ROLLOUTS,
+            # # rl action noise
+            # "rl_action_noise": 0.5,
+            # # noise to add to the state space
+            # "state_noise": 0.1,
             # what portion of the ramp the RL vehicle isn't controlled for 
             "control_length": 0.1,
+            # range of inflow lengths for inflow_0, inclusive
+            "range_inflow_0": [1, 4],
+            # range of inflow lengths for inflow_1, inclusive
+            "range_inflow_1": [1, 7],
         }
     ),
 
