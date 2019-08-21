@@ -24,7 +24,7 @@ HORIZON = 500
 SIM_STEP = 1
 ITR = 101
 N_ROLLOUTS = 40
-exp_tag = "icra_15"  # experiment prefix
+exp_tag = "icra_20"  # experiment prefix
 
 # # Local settings
 # N_CPUS = 1
@@ -55,7 +55,7 @@ vehicles.add(veh_id="idm",
                     decel=1, 
                     tau=1.1,
                     impatience=0.05,
-                    max_speed=8,
+                    # max_speed=8,
                     speed_mode="all_checks",
                 ),
                 lane_change_params=SumoLaneChangeParams(
@@ -72,7 +72,7 @@ vehicles.add(veh_id="rl",
                 car_following_params=SumoCarFollowingParams(
                     tau=1.1,
                     impatience=0.05,
-                    max_speed=8,
+                    # max_speed=8,
                     speed_mode="no_collide",
                 ),
                 lane_change_params=SumoLaneChangeParams(
@@ -97,7 +97,7 @@ flow_params = dict(
     exp_tag=exp_tag,
 
     # name of the flow environment the experiment is running on
-    env_name='UDSSCMergeEnvReset',
+    env_name='UDSSCMergeEnv',
 
     # name of the scenario class the experiment is running on
     scenario='UDSSCMergingScenario',
@@ -137,9 +137,9 @@ flow_params = dict(
             # what portion of the ramp the RL vehicle isn't controlled for 
             "control_length": 0.1,
             # range of inflow lengths for inflow_0, inclusive
-            "range_inflow_0": [1, 4],
+            # "range_inflow_0": [1, 4],
             # range of inflow lengths for inflow_1, inclusive
-            "range_inflow_1": [1, 7],
+            # "range_inflow_1": [1, 7],
         }
     ),
 
@@ -198,8 +198,8 @@ def setup_exps():
     config['kl_target'] = 0.02
     config['num_sgd_iter'] = 10
     config['horizon'] = HORIZON
-    config['vf_loss_coeff'] = 1.0
-    config['vf_clip_param'] = 10.0
+    # config['vf_loss_coeff'] = 1.0
+    # config['vf_clip_param'] = 10.0
 
     # save the flow params for replay
     flow_json = json.dumps(

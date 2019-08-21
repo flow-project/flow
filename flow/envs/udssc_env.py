@@ -77,7 +77,6 @@ class UDSSCMergeEnv(Env):
         self.n_preceding = env_params.additional_params["n_preceding"]
         self.n_following = env_params.additional_params["n_following"]
         self.n_merging_in = env_params.additional_params["n_merging_in"]
-        self.batch_size = env_params.additional_params["batch_size"]
         self.n_obs_vehicles = \
             1 + self.n_preceding + self.n_following + 2*self.n_merging_in
         self.ring_radius = scenario.net_params.additional_params["ring_radius"]
@@ -796,6 +795,7 @@ class UDSSCMergeEnvReset(UDSSCMergeEnv):
         self.range_inflow_0 = env_params.additional_params['range_inflow_0']
         self.range_inflow_1 = env_params.additional_params['range_inflow_1']
         self.max_inflow = max(self.range_inflow_0 + self.range_inflow_1)
+        self.batch_size = env_params.additional_params["batch_size"]
 
         super().__init__(env_params, sim_params, scenario)
 
