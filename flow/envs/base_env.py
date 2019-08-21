@@ -8,6 +8,7 @@ import traceback
 import numpy as np
 import random
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
+from flow.utils.flow_warnings import deprecation_warning
 
 import gym
 from gym.spaces import Box
@@ -96,7 +97,12 @@ class Env(gym.Env):
         is set to True or False.
     """
 
-    def __init__(self, env_params, sim_params, network, simulator='traci'):
+    def __init__(self,
+                 env_params,
+                 sim_params,
+                 network=None,
+                 simulator='traci',
+                 scenario=None):
         """Initialize the environment class.
 
         Parameters
@@ -116,7 +122,9 @@ class Env(gym.Env):
             if the render mode is not set to a valid value
         """
         self.env_params = env_params
-        self.network = network
+        if scenario is not None:
+            deprecation_warning(self, "scenario", "network")
+        self.network = network or scenario
         self.net_params = network.net_params
         self.initial_config = network.initial_config
         self.sim_params = sim_params

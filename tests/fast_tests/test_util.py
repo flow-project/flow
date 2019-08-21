@@ -70,9 +70,9 @@ class TestWarnings(unittest.TestCase):
 
         # check the deprecation warning is printing what is expected
         self.assertWarnsRegex(
-            UserWarning, "The attribute bar_deprecated in Foo is deprecated, "
-            "use bar_new instead.", deprecation_warning, Foo(), dep_from,
-            dep_to)
+            PendingDeprecationWarning,
+            "The attribute bar_deprecated in Foo is deprecated, use bar_new "
+            "instead.", deprecation_warning, Foo(), dep_from, dep_to)
 
 
 class TestRegistry(unittest.TestCase):
