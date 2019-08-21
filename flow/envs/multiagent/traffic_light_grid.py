@@ -1,7 +1,7 @@
 """Multi-agent environments for scenarios with traffic lights.
 
 These environments are used to train traffic lights to regulate traffic flow
-through an n x m grid.
+through an n x m traffic light grid.
 """
 
 import numpy as np

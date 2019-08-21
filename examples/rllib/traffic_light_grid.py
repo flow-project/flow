@@ -26,14 +26,14 @@ N_CPUS = 2
 
 
 def gen_edges(col_num, row_num):
-    """Generate the names of the outer edges in the grid network.
+    """Generate the names of the outer edges in the traffic light grid network.
 
     Parameters
     ----------
     col_num : int
-        number of columns in the grid
+        number of columns in the traffic light grid
     row_num : int
-        number of rows in the grid
+        number of rows in the traffic light grid
 
     Returns
     -------
@@ -59,11 +59,11 @@ def get_flow_params(col_num, row_num, additional_net_params):
     Parameters
     ----------
     col_num : int
-        number of columns in the grid
+        number of columns in the traffic light grid
     row_num : int
-        number of rows in the grid
+        number of rows in the traffic light grid
     additional_net_params : dict
-        network-specific parameters that are unique to the grid
+        network-specific parameters that are unique to the traffic light grid
 
     Returns
     -------
@@ -105,7 +105,7 @@ def get_non_flow_params(enter_speed, add_net_params):
     enter_speed : float
         initial speed of vehicles as they enter the network.
     add_net_params: dict
-        additional network-specific parameters (unique to the grid)
+        additional network-specific parameters (unique to the traffic light grid)
 
     Returns
     -------

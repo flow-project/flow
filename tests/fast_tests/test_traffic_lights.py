@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from tests.setup_scripts import ring_road_exp_setup, grid_mxn_exp_setup
+from tests.setup_scripts import ring_road_exp_setup, traffic_light_grid_mxn_exp_setup
 from flow.core.params import VehicleParams
 from flow.core.params import NetParams
 from flow.core.params import SumoCarFollowingParams
@@ -153,7 +153,7 @@ class TestPOEnv(unittest.TestCase):
                 min_gap=2.5, tau=1.1),
             num_vehicles=16)
 
-        self.env, scenario = grid_mxn_exp_setup(
+        self.env, scenario = traffic_light_grid_mxn_exp_setup(
             row_num=1, col_num=3, vehicles=vehicles)
 
     def tearDown(self):
@@ -228,7 +228,7 @@ class TestItRuns(unittest.TestCase):
                 min_gap=2.5, tau=1.1),
             num_vehicles=16)
 
-        env, scenario = grid_mxn_exp_setup(
+        env, scenario = traffic_light_grid_mxn_exp_setup(
             row_num=1, col_num=3, vehicles=vehicles)
 
         self.exp = Experiment(env)
@@ -285,7 +285,7 @@ class TestIndividualLights(unittest.TestCase):
             file="testindividuallights.xml",
             freq=100)
 
-        env, scenario = grid_mxn_exp_setup(
+        env, scenario = traffic_light_grid_mxn_exp_setup(
             row_num=1, col_num=4, tl_logic=tl_logic)
 
         self.exp = Experiment(env)

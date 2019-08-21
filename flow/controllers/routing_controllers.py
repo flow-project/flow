@@ -83,7 +83,7 @@ class MinicityRouter(BaseRouter):
 
 
 class GridRouter(BaseRouter):
-    """A router used to re-route a vehicle within a grid environment.
+    """A router used to re-route a vehicle in a traffic light grid environment.
 
     Usage
     -----

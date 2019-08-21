@@ -2,13 +2,13 @@ import unittest
 
 from flow.core.experiment import Experiment
 
-from tests.setup_scripts import grid_mxn_exp_setup
+from tests.setup_scripts import traffic_light_grid_mxn_exp_setup
 
 
 class Test1x1Environment(unittest.TestCase):
     def setUp(self):
-        # create the environment and scenario classes for a grid network
-        self.env, _ = grid_mxn_exp_setup()
+        # create the environment and scenario classes for a traffic light grid network
+        self.env, _ = traffic_light_grid_mxn_exp_setup()
         self.env.reset()
 
         # instantiate an experiment class
@@ -93,8 +93,8 @@ class Test1x1Environment(unittest.TestCase):
 
 class Test2x2Environment(unittest.TestCase):
     def setUp(self):
-        # create the environment and scenario classes for a grid network
-        self.env, _ = grid_mxn_exp_setup(row_num=2, col_num=2)
+        # create the environment and scenario classes for a traffic light grid network
+        self.env, _ = traffic_light_grid_mxn_exp_setup(row_num=2, col_num=2)
         self.env.reset()
 
         # instantiate an experiment class

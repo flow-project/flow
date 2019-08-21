@@ -302,7 +302,7 @@ def highway_exp_setup(sim_params=None,
     return env, scenario
 
 
-def grid_mxn_exp_setup(row_num=1,
+def traffic_light_grid_mxn_exp_setup(row_num=1,
                        col_num=1,
                        sim_params=None,
                        vehicles=None,
@@ -311,14 +311,14 @@ def grid_mxn_exp_setup(row_num=1,
                        initial_config=None,
                        tl_logic=None):
     """
-    Create an environment and scenario pair for grid 1x1 test experiments.
+    Create an environment and scenario pair for traffic light grid 1x1 test experiments.
 
     Parameters
     ----------
     row_num: int, optional
-        number of horizontal rows of edges in the grid network
+        number of horizontal rows of edges in the traffic light grid network
     col_num: int, optional
-        number of vertical columns of edges in the grid network
+        number of vertical columns of edges in the traffic light grid network
     sim_params : flow.core.params.SumoParams
         sumo-related configuration parameters, defaults to a time step of 1s
         and no sumo-imposed failsafe on human or rl vehicles
@@ -330,8 +330,8 @@ def grid_mxn_exp_setup(row_num=1,
         environment-specific parameters, defaults to a environment with
         failsafes, where other parameters do not matter for non-rl runs
     net_params : flow.core.params.NetParams
-        network-specific configuration parameters, defaults to a 1x1 grid
-        with traffic lights on
+        network-specific configuration parameters, defaults to a 1x1 traffic
+        light grid with traffic lights on
     initial_config : flow.core.params.InitialConfig
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network

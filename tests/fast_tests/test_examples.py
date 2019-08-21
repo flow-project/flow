@@ -33,7 +33,7 @@ from examples.sumo.bay_bridge_toll import bay_bridge_toll_example
 from examples.sumo.bottlenecks import bottleneck_example
 from examples.sumo.density_exp import run_bottleneck
 from examples.sumo.figure_eight import figure_eight_example
-from examples.sumo.traffic_light_grid import grid_example
+from examples.sumo.traffic_light_grid import traffic_light_grid_example
 from examples.sumo.highway import highway_example
 from examples.sumo.highway_ramps import highway_ramps_example
 from examples.sumo.merge import merge_example
@@ -71,11 +71,11 @@ class TestSumoExamples(unittest.TestCase):
     def test_traffic_light_grid(self):
         """Verifies that examples/sumo/traffic_light_grid.py is working."""
         # test the example in the absence of inflows
-        exp = grid_example(render=False, use_inflows=False)
+        exp = traffic_light_grid_example(render=False, use_inflows=False)
         exp.run(1, 5)
 
         # test the example in the presence of inflows
-        exp = grid_example(render=False, use_inflows=True)
+        exp = traffic_light_grid_example(render=False, use_inflows=True)
         exp.run(1, 5)
 
     def test_highway(self):

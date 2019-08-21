@@ -1,4 +1,4 @@
-"""Grid example."""
+"""Traffic Light Grid example."""
 from flow.core.experiment import Experiment
 from flow.core.params import AimsunParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
@@ -7,9 +7,9 @@ from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.traffic_light_grid import TrafficLightGridScenario
 
 
-def grid_example(render=None):
+def traffic_light_grid_example(render=None):
     """
-    Perform a simulation of vehicles on a grid.
+    Perform a simulation of vehicles on a traffic light grid.
 
     Parameters
     ----------
@@ -20,7 +20,7 @@ def grid_example(render=None):
     -------
     exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
-        vehicles and balanced traffic lights on a grid.
+        vehicles and balanced traffic lights on a traffic light grid.
     """
     inner_length = 300
     long_length = 500
@@ -115,7 +115,7 @@ def grid_example(render=None):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = grid_example()
+    exp = traffic_light_grid_example()
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

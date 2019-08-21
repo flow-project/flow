@@ -1,7 +1,7 @@
 """Environments for scenarios with traffic lights.
 
 These environments are used to train traffic lights to regulate traffic flow
-through an n x m grid.
+through an n x m traffic light grid.
 """
 
 import numpy as np
@@ -71,14 +71,14 @@ class TrafficLightGridEnv(Env):
     Attributes
     ----------
     grid_array : dict
-        Array containing information on the grid, such as the length of roads,
-        row_num, col_num, number of initial cars
+        Array containing information on the traffic light grid, such as the
+        length of roads, row_num, col_num, number of initial cars
     rows : int
-        Number of rows in this grid scenario
+        Number of rows in this traffic light grid scenario
     cols : int
-        Number of columns in this grid scenario
+        Number of columns in this traffic light grid scenario
     num_traffic_lights : int
-        Number of intersection in this grid scenario
+        Number of intersection in this traffic light grid scenario
     tl_type : str
         Type of traffic lights, either 'actuated' or 'static'
     steps : int
@@ -379,8 +379,8 @@ class TrafficLightGridEnv(Env):
     def _get_relative_node(self, agent_id, direction):
         """Yield node number of traffic light agent in a given direction.
 
-        For example, the nodes in a grid with 2 rows and 3 columns are
-        indexed as follows:
+        For example, the nodes in a traffic light grid with 2 rows and 3
+        columns are indexed as follows:
 
             |     |     |
         --- 3 --- 4 --- 5 ---
@@ -727,7 +727,7 @@ class TrafficLightGridTestEnv(TrafficLightGridEnv):
     """
     Class for use in testing.
 
-    This class overrides RL methods of Traffic Light Grid so we can test
+    This class overrides RL methods of traffic light grid so we can test
     construction without needing to specify RL methods
     """
 
