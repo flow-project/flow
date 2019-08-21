@@ -53,7 +53,6 @@ class MultiRingScenario(Scenario):
     >>>             'resolution': 40,
     >>>             'num_rings': 7
     >>>         },
-    >>>         no_internal_links=True  # we do not want junctions
     >>>     )
     >>> )
     """

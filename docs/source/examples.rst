@@ -44,8 +44,8 @@ decelerations and lowers the average velocity of the system. The goal is to trai
 autonomous vehicle to eliminate the shockwave.
 
 The pre-built run script for running this in human-only mode is `examples/sumo/sugiyama.py`.
-The run scripts in rllib and rllab are `examples/rllib/stabilizing_the_ring.py` and
-`examples/rllab/stabilizing_the_ring.py`. These control environments are partially observed:
+The run scripts in rllib and aimsun are `examples/rllib/stabilizing_the_ring.py` and
+`examples/aimsun/stabilizing_the_ring.py`. These control environments are partially observed:
 the autonomous vehicle only observes its own distance to the leading vehicle, its speed,
 and the speed of the leading vehicle.
 

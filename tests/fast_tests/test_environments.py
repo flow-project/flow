@@ -10,11 +10,14 @@ from flow.controllers import IDMController, RLController
 from flow.scenarios import RingScenario, MergeScenario, BottleneckScenario
 from flow.scenarios.ring import ADDITIONAL_NET_PARAMS as Ring_PARAMS
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS as MERGE_PARAMS
+from flow.scenarios import HighwayRampsScenario
+from flow.scenarios.highway_ramps import ADDITIONAL_NET_PARAMS as \
+    HIGHWAY_PARAMS
 from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
     WaveAttenuationEnv, WaveAttenuationPOEnv, MergePOEnv, \
     TestEnv, BottleneckDesiredVelocityEnv, BottleneckEnv, BottleneckAccelEnv
 from flow.envs.ring.wave_attenuation import v_eq_max_function
-
+from flow.envs.multiagent import MultiAgentHighwayPOEnv
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -23,8 +26,10 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
-        vehicles.add("rl", acceleration_controller=(RLController, {}))
-        vehicles.add("human", acceleration_controller=(IDMController, {}))
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
 
         self.sim_params = SumoParams()
         self.scenario = RingScenario(
@@ -110,8 +115,10 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
-        vehicles.add("rl", acceleration_controller=(RLController, {}))
-        vehicles.add("human", acceleration_controller=(IDMController, {}))
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
 
         self.sim_params = SumoParams()
         self.scenario = RingScenario(
@@ -192,8 +199,10 @@ class TestAccelEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
-        vehicles.add("rl", acceleration_controller=(RLController, {}))
-        vehicles.add("human", acceleration_controller=(IDMController, {}))
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
 
         self.sim_params = SumoParams()
         self.scenario = RingScenario(
@@ -321,8 +330,10 @@ class TestWaveAttenuationEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
-        vehicles.add("rl", acceleration_controller=(RLController, {}))
-        vehicles.add("human", acceleration_controller=(IDMController, {}))
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
 
         self.sim_params = SumoParams(
             restart_instance=True
@@ -460,8 +471,10 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
-        vehicles.add("rl", acceleration_controller=(RLController, {}))
-        vehicles.add("human", acceleration_controller=(IDMController, {}))
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
 
         self.sim_params = SumoParams()
         self.scenario = RingScenario(
@@ -601,8 +614,10 @@ class TestMergePOEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
-        vehicles.add("rl", acceleration_controller=(RLController, {}))
-        vehicles.add("human", acceleration_controller=(IDMController, {}))
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
 
         self.sim_params = SumoParams()
         self.scenario = MergeScenario(
@@ -680,7 +695,7 @@ class TestTestEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
-        vehicles.add("test")
+        vehicles.add("test", num_vehicles=1)
         net_params = NetParams(additional_params=Ring_PARAMS)
         env_params = EnvParams()
         sim_params = SumoParams()
@@ -739,7 +754,6 @@ class TestBottleneckEnv(unittest.TestCase):
         )
 
         net_params = NetParams(
-            no_internal_links=False,
             additional_params={"scaling": 1, "speed_limit": 23})
 
         self.scenario = BottleneckScenario(
@@ -816,7 +830,6 @@ class TestBottleneckAccelEnv(unittest.TestCase):
         )
 
         net_params = NetParams(
-            no_internal_links=False,
             additional_params={"scaling": 1, "speed_limit": 23})
 
         self.scenario = BottleneckScenario(
@@ -910,7 +923,6 @@ class TestBottleneckDesiredVelocityEnv(unittest.TestCase):
 
         net_params = NetParams(
             inflows=inflow,
-            no_internal_links=False,
             additional_params={"scaling": 1, "speed_limit": 23})
 
         scenario = BottleneckScenario(
@@ -930,6 +942,109 @@ class TestBottleneckDesiredVelocityEnv(unittest.TestCase):
             env.step(rl_actions=None)
         self.assertAlmostEqual(
             env.k.vehicle.get_inflow_rate(250)/expected_inflow, 1, 1)
+
+
+class TestMultiAgentHighwayPOEnv(unittest.TestCase):
+
+    def setUp(self):
+        vehicles = VehicleParams()
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
+
+        self.sim_params = SumoParams()
+        self.scenario = HighwayRampsScenario(
+            name="test_merge",
+            vehicles=vehicles,
+            net_params=NetParams(additional_params=HIGHWAY_PARAMS.copy()),
+        )
+        self.env_params = EnvParams(
+            additional_params={
+                'max_accel': 1, 'max_decel': 1, "target_velocity": 25
+            }
+        )
+
+    def tearDown(self):
+        self.sim_params = None
+        self.scenario = None
+        self.env_params = None
+
+    def test_additional_env_params(self):
+        """Ensures that not returning the correct params leads to an error."""
+        self.assertTrue(
+            test_additional_params(
+                env_class=MultiAgentHighwayPOEnv,
+                sim_params=self.sim_params,
+                scenario=self.scenario,
+                additional_params={
+                    "max_accel": 1,
+                    "max_decel": 1,
+                    "target_velocity": 10,
+                }
+            )
+        )
+
+    def test_observation_action_space(self):
+        """Tests the observation and action spaces upon initialization."""
+        # create the environment
+        env = MultiAgentHighwayPOEnv(
+            sim_params=self.sim_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+
+        # check the observation space
+        self.assertTrue(test_space(
+            env.observation_space,
+            expected_size=5, expected_min=0, expected_max=1
+        ))
+
+        # check the action space
+        self.assertTrue(test_space(
+            env.action_space,
+            expected_size=1, expected_min=-1, expected_max=1))
+
+        env.terminate()
+
+    def test_compute_reward(self):
+        # create the environment
+        env = MultiAgentHighwayPOEnv(
+            sim_params=self.sim_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+        env.reset()
+
+        # test the no actions case
+        self.assertDictEqual(env.compute_reward(None), {})
+
+        # test the failure case
+        self.assertDictEqual(env.compute_reward({"rl_0": 0}, fail=True),
+                             {"rl_0": 0})
+
+        # test the generic case
+        env.k.vehicle.test_set_speed("rl_0", 5)
+        self.assertDictEqual(env.compute_reward({"rl_0": 0}, fail=False),
+                             {"rl_0": 0.09446148586775807})
+
+        # test the evaluate case
+        env.k.vehicle.test_set_speed("rl_0", 5)
+        env.env_params.evaluate = True
+        self.assertDictEqual(env.compute_reward({"rl_0": 0}, fail=False),
+                             {"rl_0": 5})
+
+    def test_observed(self):
+        """Ensures that the observed ids are returning the correct vehicles."""
+        self.assertTrue(
+            test_observed(
+                env_class=MultiAgentHighwayPOEnv,
+                sim_params=self.sim_params,
+                scenario=self.scenario,
+                env_params=self.env_params,
+                expected_observed=["human_0"]
+            )
+        )
 
 
 ###############################################################################

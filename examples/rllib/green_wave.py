@@ -84,11 +84,10 @@ def get_flow_params(col_num, row_num, additional_net_params):
             edge=outer_edges[i],
             probability=0.25,
             departLane='free',
-            departSpeed=20)
+            departSpeed=10)
 
     net = NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params)
 
     return initial, net
@@ -119,13 +118,12 @@ def get_non_flow_params(enter_speed, add_net_params):
     additional_init_params = {'enter_speed': enter_speed}
     initial = InitialConfig(
         spacing='custom', additional_params=additional_init_params)
-    net = NetParams(
-        no_internal_links=False, additional_params=add_net_params)
+    net = NetParams(additional_params=add_net_params)
 
     return initial, net
 
 
-V_ENTER = 30
+V_ENTER = 15
 INNER_LENGTH = 300
 LONG_LENGTH = 100
 SHORT_LENGTH = 300

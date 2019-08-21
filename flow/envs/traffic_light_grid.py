@@ -7,9 +7,9 @@ through an n x m grid.
 import numpy as np
 import re
 
-from gym.spaces.discrete import Discrete
 from gym.spaces.box import Box
-from gym.spaces.tuple_space import Tuple
+from gym.spaces.discrete import Discrete
+from gym.spaces import Tuple
 
 from flow.core import rewards
 from flow.envs.base import Env
@@ -67,6 +67,46 @@ class TrafficLightGridEnv(Env):
         Vehicles are rerouted to the start of their original routes once they
         reach the end of the network in order to ensure a constant number of
         vehicles.
+
+    Attributes
+    ----------
+    grid_array : dict
+        Array containing information on the grid, such as the length of roads,
+        row_num, col_num, number of initial cars
+    rows : int
+        Number of rows in this grid scenario
+    cols : int
+        Number of columns in this grid scenario
+    num_traffic_lights : int
+        Number of intersection in this grid scenario
+    tl_type : str
+        Type of traffic lights, either 'actuated' or 'static'
+    steps : int
+        Horizon of this experiment, see EnvParams.horion
+    obs_var_labels : dict
+        Referenced in the visualizer. Tells the visualizer which
+        metrics to track
+    node_mapping : dict
+        Dictionary mapping intersections / nodes (nomenclature is used
+        interchangeably here) to the edges that are leading to said
+        intersection / node
+    last_change : np array [num_traffic_lights]x1 np array
+        Multi-dimensional array keeping track, in timesteps, of how much time
+        has passed since the last change to yellow for each traffic light
+    direction : np array [num_traffic_lights]x1 np array
+        Multi-dimensional array keeping track of which direction in traffic
+        light is flowing. 0 indicates flow from top to bottom, and
+        1 indicates flow from left to right
+    currently_yellow : np array [num_traffic_lights]x1 np array
+        Multi-dimensional array keeping track of whether or not each traffic
+        light is currently yellow. 1 if yellow, 0 if not
+    min_switch_time : np array [num_traffic_lights]x1 np array
+        The minimum time in timesteps that a light can be yellow. Serves
+        as a lower bound
+    discrete : bool
+        Indicates whether or not the action space is discrete. See below for
+        more information:
+        https://github.com/openai/gym/blob/master/gym/spaces/discrete.py
     """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
@@ -205,8 +245,9 @@ class TrafficLightGridEnv(Env):
             rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
             rl_mask = [0] * (self.num_traffic_lights - len(rl_mask)) + rl_mask
         else:
-            # convert values less than 0.5 to zero and above to 1. 0's indicate
-            # that should not switch the direction
+            # convert values less than 0 to zero and above 0 to 1. 0 indicates
+            # that should not switch the direction, and 1 indicates that switch
+            # should happen
             rl_mask = rl_actions > 0.0
 
         for i, action in enumerate(rl_mask):
@@ -290,9 +331,9 @@ class TrafficLightGridEnv(Env):
 
         The numbers are assigned along the lowest column, then the lowest row,
         then the second lowest column, etc. Left goes before right, top goes
-        before bot.
+        before bottom.
 
-        The values are are zero indexed.
+        The values are zero indexed.
 
         Parameters
         ----------
@@ -334,6 +375,53 @@ class TrafficLightGridEnv(Env):
                     return edge_num if edge_type == 'left' else edge_num + 1
         else:
             return 0
+
+    def _get_relative_node(self, agent_id, direction):
+        """Yield node number of traffic light agent in a given direction.
+
+        For example, the nodes in a grid with 2 rows and 3 columns are
+        indexed as follows:
+
+            |     |     |
+        --- 3 --- 4 --- 5 ---
+            |     |     |
+        --- 0 --- 1 --- 2 ---
+            |     |     |
+
+        See flow.scenarios.grid for more information.
+
+        Example of function usage:
+        - Seeking the "top" direction to ":center0" would return 3.
+        - Seeking the "bottom" direction to ":center0" would return -1.
+
+        :param agent_id: agent id of the form ":center#"
+        :param direction: top, bottom, left, right
+        :return: node number
+        """
+        ID_IDX = 1
+        agent_id_num = int(agent_id.split("center")[ID_IDX])
+        if direction == "top":
+            node = agent_id_num + self.cols
+            if node >= self.cols * self.rows:
+                node = -1
+        elif direction == "bottom":
+            node = agent_id_num - self.cols
+            if node < 0:
+                node = -1
+        elif direction == "left":
+            if agent_id_num % self.cols == 0:
+                node = -1
+            else:
+                node = agent_id_num - 1
+        elif direction == "right":
+            if agent_id_num % self.cols == self.cols - 1:
+                node = -1
+            else:
+                node = agent_id_num + 1
+        else:
+            raise NotImplementedError
+
+        return node
 
     def additional_command(self):
         """See parent class.
@@ -386,37 +474,101 @@ class TrafficLightGridEnv(Env):
                 pos="0",
                 speed="max")
 
-    # FIXME it doesn't make sense to pass a list of edges since the function
-    # returns a flattened list with no padding, so we would lose information
-    def k_closest_to_intersection(self, edges, k):
-        """Return the vehicle IDs of k closest vehicles to an intersection.
+    def get_closest_to_intersection(self, edges, num_closest, padding=False):
+        """Return the IDs of the vehicles that are closest to an intersection.
 
-        For each edge in edges, return the ids (veh_id) of the k vehicles
-        in edge that are closest to an intersection (the intersection they
-        are heading towards).
+        For each edge in edges, return the IDs (veh_id) of the num_closest
+        vehicles in edge that are closest to an intersection (the intersection
+        they are heading towards).
 
-        - Performs no check on whether or not edge is going towards an
-          intersection or not.
-        - Does no padding if there are less than k vehicles on an edge.
+        This function performs no check on whether or not edges are going
+        towards an intersection or not, it just gets the vehicles that are
+        closest to the end of their edges.
+
+        If there are less than num_closest vehicles on an edge, the function
+        performs padding by adding empty strings "" instead of vehicle ids if
+        the padding parameter is set to True.
+
+        Parameters
+        ----------
+        edges : str | str list
+            ID of an edge or list of edge IDs.
+        num_closest : int (> 0)
+            Number of vehicles to consider on each edge.
+        padding : bool (default False)
+            If there are less than num_closest vehicles on an edge, perform
+            padding by adding empty strings "" instead of vehicle ids if the
+            padding parameter is set to True (note: leaving padding to False
+            while passing a list of several edges as parameter can lead to
+            information loss since you will not know which edge, if any,
+            contains less than num_closest vehicles).
+
+        Usage
+        -----
+        For example, consider the following network, composed of 4 edges
+        whose ids are "edge0", "edge1", "edge2" and "edge3", the numbers
+        being vehicles all headed towards intersection x. The ID of the vehicle
+        with number n is "veh{n}" (edge "veh0", "veh1"...).
+
+                            edge1
+                            |   |
+                            | 7 |
+                            | 8 |
+               -------------|   |-------------
+        edge0    1 2 3 4 5 6  x                 edge2
+               -------------|   |-------------
+                            | 9 |
+                            | 10|
+                            | 11|
+                            edge3
+
+        And consider the following example calls on the previous network:
+
+        >>> get_closest_to_intersection("edge0", 4)
+        ["veh6", "veh5", "veh4", "veh3"]
+
+        >>> get_closest_to_intersection("edge0", 8)
+        ["veh6", "veh5", "veh4", "veh3", "veh2", "veh1"]
+
+        >>> get_closest_to_intersection("edge0", 8, padding=True)
+        ["veh6", "veh5", "veh4", "veh3", "veh2", "veh1", "", ""]
+
+        >>> get_closest_to_intersection(["edge0", "edge1", "edge2", "edge3"],
+                                         3, padding=True)
+        ["veh6", "veh5", "veh4", "veh8", "veh7", "", "", "", "", "veh9",
+         "veh10", "veh11"]
+
+        Returns
+        -------
+        str list
+            If n is the number of edges given as parameters, then the returned
+            list contains n * num_closest vehicle IDs.
+
+        Raises
+        ------
+        ValueError
+            if num_closest <= 0
         """
-        if k < 0:
-            raise ValueError("Function k_closest_to_intersection called with"
-                             "parameter k={}, but k should be non-negative"
-                             .format(k))
+        if num_closest <= 0:
+            raise ValueError("Function get_closest_to_intersection called with"
+                             "parameter num_closest={}, but num_closest should"
+                             "be positive".format(num_closest))
 
         if isinstance(edges, list):
-            ids = [self.k_closest_to_intersection(edge, k) for edge in edges]
-            # flatten the list before returning it
+            ids = [self.get_closest_to_intersection(edge, num_closest)
+                   for edge in edges]
+            # flatten the list and return it
             return [veh_id for sublist in ids for veh_id in sublist]
 
         # get the ids of all the vehicles on the edge 'edges' ordered by
-        # increasing distance to intersection
-        veh_ids_ordered = sorted(
-            self.k.vehicle.get_ids_by_edge(edges),
-            key=self.get_distance_to_intersection)
+        # increasing distance to end of edge (intersection)
+        veh_ids_ordered = sorted(self.k.vehicle.get_ids_by_edge(edges),
+                                 key=self.get_distance_to_intersection)
 
-        # return the ids of the k vehicles closest to the intersection
-        return veh_ids_ordered[:k]
+        # return the ids of the num_closest vehicles closest to the
+        # intersection, potentially with ""-padding.
+        pad_lst = [""] * (num_closest - len(veh_ids_ordered))
+        return veh_ids_ordered[:num_closest] + (pad_lst if padding else [])
 
 
 class TrafficLightGridPOEnv(TrafficLightGridEnv):
@@ -430,10 +582,9 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
       observed in the state space; defaults to 2
 
     States
-        An observation is the number of observe vehicles in each intersection
-        closest to the traffic lights, a
-        number uniquely identifying which edge the vehicle is on, and the speed
-        of the vehicle.
+        An observation is the number of observed vehicles in each intersection
+        closest to the traffic lights, a number uniquely identifying which
+        edge the vehicle is on, and the speed of the vehicle.
 
     Actions
         The action space consist of a list of float variables ranging from 0-1
@@ -475,12 +626,13 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         """State space that is partially observed.
 
         Velocities, distance to intersections, edge number (for nearby
-        vehicles), and traffic light state.
+        vehicles) from each direction, edge information, and traffic light
+        state.
         """
         tl_box = Box(
             low=0.,
             high=1,
-            shape=(12 * self.num_observed * self.num_traffic_lights +
+            shape=(3 * 4 * self.num_observed * self.num_traffic_lights +
                    2 * len(self.k.scenario.get_edge_list()) +
                    3 * self.num_traffic_lights,),
             dtype=np.float32)
@@ -507,7 +659,7 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         for _, edges in self.scenario.node_mapping:
             for edge in edges:
                 observed_ids = \
-                    self.k_closest_to_intersection(edge, self.num_observed)
+                    self.get_closest_to_intersection(edge, self.num_observed)
                 all_observed_ids += observed_ids
 
                 # check which edges we have so we can always pad in the right
@@ -539,12 +691,12 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         for edge in self.k.scenario.get_edge_list():
             ids = self.k.vehicle.get_ids_by_edge(edge)
             if len(ids) > 0:
-                density += [5 * len(ids) / self.k.scenario.edge_length(edge)]
-                velocity_avg += [
-                    np.mean(
-                        [self.k.vehicle.get_speed(veh_id)
-                         for veh_id in ids]) / max_speed
-                ]
+                vehicle_length = 5
+                density += [vehicle_length * len(ids) /
+                            self.k.scenario.edge_length(edge)]
+                velocity_avg += [np.mean(
+                    [self.k.vehicle.get_speed(veh_id) for veh_id in
+                     ids]) / max_speed]
             else:
                 density += [0]
                 velocity_avg += [0]

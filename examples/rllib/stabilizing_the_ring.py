@@ -17,7 +17,7 @@ from ray.tune.registry import register_env
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.params import VehicleParams
+from flow.core.params import VehicleParams, SumoCarFollowingParams
 from flow.controllers import RLController, IDMController, ContinuousRouter
 
 # time horizon of a single rollout
@@ -34,6 +34,9 @@ vehicles.add(
     acceleration_controller=(IDMController, {
         "noise": 0.2
     }),
+    car_following_params=SumoCarFollowingParams(
+        min_gap=0
+    ),
     routing_controller=(ContinuousRouter, {}),
     num_vehicles=21)
 vehicles.add(

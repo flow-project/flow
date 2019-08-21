@@ -28,16 +28,12 @@ micro-simulator Aimsun.
 previous point, but in the present of autonomous vehicle (AV) or traffic light 
 agents being trained through RL algorithms provided by *RLlib*.
 
-**examples/rllab/** provides similar examples as the one above, but where the 
-RL agents are controlled and training the RL library *rllab*. Before running 
-any experiment here, be sure to run `source activate flow`.
-
 
 ## Simulated Examples
 
 The following networks are available for simulation within flow, and 
 specifically the **examples/sumo** folder. Similar networks are available with 
-trainable variants in the examples/rllib and examples/rllab folders; however, 
+trainable variants in the examples/rllib and examples/aimsun folders; however, 
 they may be under different names.
 
 ### bay_bridge.py \& bay_bridge_toll.py

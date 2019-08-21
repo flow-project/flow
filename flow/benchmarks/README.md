@@ -54,8 +54,7 @@ developed by the RL community. The below code snippet presents a sample method
 for importing and training the presented benchmarks on a dummy RL algorithm.
 Techniques of running the benchmarks may vary from algorithm, however, and we 
 provide specific executable implementations of the benchmarks on the RL 
-libraries RLlib and rllab in the folders flow/benchmarks/rllib/ and 
-flow/benchmarks/rllab/ respectively.
+library RLlib in the folder flow/benchmarks/rllib/.
 
 ```python
 # import an RL algorithm for training
@@ -85,16 +84,6 @@ if __name__ == "__main__":
     alg = myAlgorithm(env_name=env_name)
     alg.train()
 ```
-
-## Reporting Optimal Scores
-
-To encourage researchers to build more effective RL controllers for those 
-benchmarks, we post the above results to a leaderboard at 
-https://berkeleyflow.github.io/leaderboard. Anyone can submit solutions to the 
-website. The solutions will then be scored under the same metrics 
-described in the paper below, or at the leaderboard website. Through equal and 
-open competitions, we hope to push the limit of our understanding in 
-controlling mixed-autonomy traffic with deep-RL.
 
 ## Citing Flow Benchmarks
 

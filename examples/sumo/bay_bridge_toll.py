@@ -90,8 +90,7 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
         departLane="random",
         departSpeed=10)
 
-    net_params = NetParams(
-        inflows=inflow, no_internal_links=False, template=TEMPLATE)
+    net_params = NetParams(inflows=inflow, template=TEMPLATE)
 
     # download the template from AWS
     if use_traffic_lights:

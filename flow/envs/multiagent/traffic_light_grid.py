@@ -1,240 +1,267 @@
-"""Environment for training the timinig of the traffic lights in a grid scenario."""
+"""Multi-agent environments for scenarios with traffic lights.
+
+These environments are used to train traffic lights to regulate traffic flow
+through an n x m grid.
+"""
 
 import numpy as np
-from flow.core import rewards
-from flow.envs.multiagent.base import MultiEnv
-
-
-# todo for Ashkan: This needs to be defined for multi-agent RL in grid scenario
-from gym.spaces.discrete import Discrete
 from gym.spaces.box import Box
-from gym.spaces.tuple_space import Tuple
-from flow.envs.traffic_light_grid import TrafficLightGridEnv
+from gym.spaces.discrete import Discrete
+
+from flow.core import rewards
+from flow.envs.green_wave_env import PO_TrafficLightGridEnv
+from flow.multiagent_envs.multiagent_env import MultiEnv
 
 ADDITIONAL_ENV_PARAMS = {
-    # minimum switch time for each traffic light (in seconds)
-    "switch_time": 2.0,
-    # whether the traffic lights should be actuated by sumo or RL
-    # options are "controlled" and "actuated"
-    "tl_type": "controlled",
-    # determines whether the action space is meant to be discrete or continuous
-    "discrete": False,
+    # num of nearby lights the agent can observe {0, ..., num_traffic_lights-1}
+    "num_local_lights": 4,  # FIXME: not implemented yet
+    # num of nearby edges the agent can observe {0, ..., num_edges}
+    "num_local_edges": 4,  # FIXME: not implemented yet
 }
 
+# Index for retrieving ID when splitting node name, e.g. ":center#"
+ID_IDX = 1
 
 
+class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
+    """Multiagent shared model version of PO_TrafficLightGridEnv.
 
-class MultiAgentTrafficLightGrid(TrafficLightGridEnv, MultiEnv):
-    """Grid multi agent env.
+    Required from env_params: See parent class
+
+    States
+        See parent class
+
+    Actions
+        See parent class
+
+    Rewards
+        See parent class
+
+    Termination
+        See parent class
     """
-    
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):       
-        
-        super().__init__(env_params, sim_params, scenario, simulator)
-        self.NUM_FOG_NODES = len(self.k.traffic_light.get_ids())
-        self.agent_name_prefix = 'intersection'
 
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+        super().__init__(env_params, sim_params, scenario, simulator)
+
+        for p in ADDITIONAL_ENV_PARAMS.keys():
+            if p not in env_params.additional_params:
+                raise KeyError(
+                    'Environment parameter "{}" not supplied'.format(p))
+
+        # number of nearest lights to observe, defaults to 4
+        self.num_local_lights = env_params.additional_params.get(
+            "num_local_lights", 4)
+
+        # number of nearest edges to observe, defaults to 4
+        self.num_local_edges = env_params.additional_params.get(
+            "num_local_edges", 4)
+
+    @property
+    def observation_space(self):
+        """State space that is partially observed.
+
+        Velocities, distance to intersections, edge number (for nearby
+        vehicles) from each direction, local edge information, and traffic
+        light state.
+        """
+        tl_box = Box(
+            low=0.,
+            high=1,
+            shape=(3 * 4 * self.num_observed +
+                   2 * self.num_local_edges +
+                   3 * (1 + self.num_local_lights),
+                   ),
+            dtype=np.float32)
+        return tl_box
 
     @property
     def action_space(self):
         """See class definition."""
-        if self.discrete: 
-            # each intersection is an agent, and the action is simply 0 or 1. 0 means no change in the traffic light 
-            # and 1 means switch the direction
-            return Discrete(2)  
+        if self.discrete:
+            return Discrete(2)
         else:
             return Box(
-                low=0,
+                low=-1,
                 high=1,
                 shape=(1,),
                 dtype=np.float32)
 
-    @property
-    def observation_space(self):
-        """
-        Partially and locally observed state space.
-
-        Velocities, distance to intersections, and traffic light state.
-        """
-        self.num_closest_vehicles_onbound = 3 # number of observed vehicles per bound
-        self.num_inbounds = 4
-        speed = Box(
-            low=0,
-            high=1,
-            shape=(self.num_inbounds * self.num_closest_vehicles_onbound,),
-            dtype=np.float32)
-        dist_to_intersec = Box(
-            low=0,
-            high=1,
-            shape=(self.num_inbounds * self.num_closest_vehicles_onbound,),
-            dtype=np.float32)
-        traffic_lights = Box(
-            low=0,
-            high=3,
-            shape=(1,), # the state of this intersection. 4 possibilities. Either left-right, or top-bottom traffic is passing, or it's the yellow light between them
-            dtype=np.float32)
-        return Tuple((speed, dist_to_intersec, traffic_lights))
-
     def get_state(self):
-        """
-        Returns for the self.num_closest_vehicles_onbound number of vehicles on each bound, 
-        closest to each traffic light, its velocity, distance to intersection. And also 
-        returns the state of the 4 traffic lights in the intersection. This is partially observed
-        """
+        """Observations for each traffic light agent.
 
+        :return: dictionary which contains agent-wise observations as follows:
+        - For the self.num_observed number of vehicles closest and incoming
+        towards traffic light agent, gives the vehicle velocity, distance to
+        intersection, edge number.
+        - For edges in the network, gives the density and average velocity.
+        - For the self.num_local_lights number of nearest lights (itself
+        included), gives the traffic light information, including the last
+        change time, light direction (i.e. phase), and a currently_yellow flag.
+        """
+        # Normalization factors
         max_speed = max(
             self.k.scenario.speed_limit(edge)
             for edge in self.k.scenario.get_edge_list())
+        grid_array = self.net_params.additional_params["grid_array"]
+        max_dist = max(grid_array["short_length"], grid_array["long_length"],
+                       grid_array["inner_length"])
 
-        max_dist = max(self.scenario.short_length, self.scenario.long_length,
-                    self.scenario.inner_length)
-        agent_state_dict = {}
-        i = 0
-        for intersection, edges in self.scenario.get_node_mapping():
-            i = i + 1
-            agent_id = self.agent_name_prefix + str(i) 
-            observed_vehicle_ids = self.k_closest_to_intersection_edge(edges, self.num_closest_vehicles_onbound)
+        # TODO(cathywu) refactor PO_TrafficLightGridEnv with convenience
+        # methods for observations, but remember to flatten for single-agent
 
-            speeds = []
-            dist_to_intersec = []
-            traffic_light_states = []
+        # Observed vehicle information
+        speeds = []
+        dist_to_intersec = []
+        edge_number = []
+        all_observed_ids = []
+        for _, edges in self.scenario.node_mapping:
+            local_speeds = []
+            local_dists_to_intersec = []
+            local_edge_numbers = []
+            for edge in edges:
+                observed_ids = \
+                    self.get_closest_to_intersection(edge, self.num_observed)
+                all_observed_ids.append(observed_ids)
 
-            for veh_id in observed_vehicle_ids:
-                if veh_id == 0:
-                    dist_to_intersec.append(-1)
-                    speeds.append(-1)
-                else:
-                    dist_to_intersec.append(
-                        (self.k.scenario.edge_length(
-                            self.k.vehicle.get_edge(veh_id))
-                            - self.k.vehicle.get_position(veh_id)) / max_dist
-                    )
-                    speeds.append(
-                        self.k.vehicle.get_speed(veh_id) / max_speed
-                    )
+                # check which edges we have so we can always pad in the right
+                # positions
+                local_speeds.extend(
+                    [self.k.vehicle.get_speed(veh_id) / max_speed for veh_id in
+                     observed_ids])
+                local_dists_to_intersec.extend([(self.k.scenario.edge_length(
+                    self.k.vehicle.get_edge(
+                        veh_id)) - self.k.vehicle.get_position(
+                    veh_id)) / max_dist for veh_id in observed_ids])
+                local_edge_numbers.extend([self._convert_edge(
+                    self.k.vehicle.get_edge(veh_id)) / (
+                    self.k.scenario.network.num_edges - 1) for veh_id in
+                                           observed_ids])
 
-            traffic_light_states_chars = self.k.traffic_light.get_state(intersection) 
-            
-            
-            if traffic_light_states_chars == 'GrGr' :
-                traffic_light_states.append(1)
-            elif traffic_light_states_chars == 'rGrG': 
-                traffic_light_states.append(0)
-            elif traffic_light_states_chars == 'yryr' :
-                traffic_light_states.append(2) 
-            else: # ryry
-                traffic_light_states.append(3) 
+                if len(observed_ids) < self.num_observed:
+                    diff = self.num_observed - len(observed_ids)
+                    local_speeds.extend([1] * diff)
+                    local_dists_to_intersec.extend([1] * diff)
+                    local_edge_numbers.extend([0] * diff)
 
-            
-            # construct the state (observation) for each agent
-            observation = np.array(
-                np.concatenate([
-                    speeds, dist_to_intersec, traffic_light_states  # or:   speeds, dist_to_intersec, self.last_change.flatten().tolist()
-                ]))
-            # observation = np.ndarray.flatten(observation)
+            speeds.append(local_speeds)
+            dist_to_intersec.append(local_dists_to_intersec)
+            edge_number.append(local_edge_numbers)
 
-            # each intersection is an agent, so we will make a dictionary that maps form "self.agent_name_prefix+'i'" to the state of that agent.
-            agent_state_dict.update({agent_id: observation})
+        # Edge information
+        density = []
+        velocity_avg = []
+        for edge in self.k.scenario.get_edge_list():
+            ids = self.k.vehicle.get_ids_by_edge(edge)
+            if len(ids) > 0:
+                # TODO(cathywu) Why is there a 5 here?
+                density += [5 * len(ids) / self.k.scenario.edge_length(edge)]
+                velocity_avg += [np.mean(
+                    [self.k.vehicle.get_speed(veh_id) for veh_id in
+                     ids]) / max_speed]
+            else:
+                density += [0]
+                velocity_avg += [0]
+        density = np.array(density)
+        velocity_avg = np.array(velocity_avg)
+        self.observed_ids = all_observed_ids
 
-        return agent_state_dict   
+        # Traffic light information
+        last_change = self.last_change.flatten()
+        direction = self.direction.flatten()
+        currently_yellow = self.currently_yellow.flatten()
+        # This is a catch-all for when the relative_node method returns a -1
+        # (when there is no node in the direction sought). We add a last
+        # item to the lists here, which will serve as a default value.
+        # TODO(cathywu) are these values reasonable?
+        last_change = np.append(last_change, [0])
+        direction = np.append(direction, [0])
+        currently_yellow = np.append(currently_yellow, [1])
+
+        obs = {}
+        # TODO(cathywu) allow differentiation between rl and non-rl lights
+        node_to_edges = self.scenario.node_mapping
+        for rl_id in self.k.traffic_light.get_ids():
+            rl_id_num = int(rl_id.split("center")[ID_IDX])
+            local_edges = node_to_edges[rl_id_num][1]
+            local_edge_numbers = [self.k.scenario.get_edge_list().index(e)
+                                  for e in local_edges]
+            local_id_nums = [rl_id_num, self._get_relative_node(rl_id, "top"),
+                             self._get_relative_node(rl_id, "bottom"),
+                             self._get_relative_node(rl_id, "left"),
+                             self._get_relative_node(rl_id, "right")]
+
+            observation = np.array(np.concatenate(
+                [speeds[rl_id_num], dist_to_intersec[rl_id_num],
+                 edge_number[rl_id_num], density[local_edge_numbers],
+                 velocity_avg[local_edge_numbers], last_change[local_id_nums],
+                 direction[local_id_nums], currently_yellow[local_id_nums]
+                 ]))
+            obs.update({rl_id: observation})
+
+        return obs
 
     def _apply_rl_actions(self, rl_actions):
+        """
+        See parent class.
 
-        for agent_name in rl_actions:
-            action = rl_actions[agent_name]
-            # check if the action space is discrete
-            
+        Issues action for each traffic light agent.
+        """
+        for rl_id, rl_action in rl_actions.items():
+            i = int(rl_id.split("center")[ID_IDX])
             if self.discrete:
-                # convert single value (Discrete) to list of 0's and 1's
-                action = [int(x) for x in list('{0:0b}'.format(action))]
+                raise NotImplementedError
             else:
-                # convert values less than 0.5 to zero and above to 1. 0's indicate
-                # that should not switch the direction
-                action = action > 0.5
-            agent_num = agent_name[len(self.agent_name_prefix) : len(agent_name)] # agent_id = '15' if agent_name is 'intersection15'
-            tl_num = int(agent_num, 10) - 1 # the index of traffic lights starts from 0
-           
-            # check if our timer has exceeded the yellow phase, meaning it
-            # should switch to red
-            if self.currently_yellow[tl_num] == 1:  # currently yellow
-                self.last_change[tl_num] += self.sim_step
-                if self.last_change[tl_num] >= self.min_switch_time: # check if our timer has exceeded the yellow phase, meaning it
+                # convert values less than 0.0 to zero and above to 1. 0's
+                # indicate that we should not switch the direction
+                action = rl_action > 0.0
+
+            if self.currently_yellow[i] == 1:  # currently yellow
+                self.last_change[i] += self.sim_step
+                # Check if our timer has exceeded the yellow phase, meaning it
                 # should switch to red
-                    if self.direction[tl_num] == 0:
+                if self.last_change[i] >= self.min_switch_time:
+                    if self.direction[i] == 0:
                         self.k.traffic_light.set_state(
-                            node_id='center{}'.format(tl_num),
-                            state="GrGr")
+                            node_id='center{}'.format(i), state="GrGr")
                     else:
                         self.k.traffic_light.set_state(
-                            node_id='center{}'.format(tl_num),
-                            state='rGrG')
-                    self.currently_yellow[tl_num] = 0
+                            node_id='center{}'.format(i), state='rGrG')
+                    self.currently_yellow[i] = 0
             else:
                 if action:
-                    if self.direction[tl_num] == 0:
+                    if self.direction[i] == 0:
                         self.k.traffic_light.set_state(
-                            node_id='center{}'.format(tl_num),
-                            state='yryr')
+                            node_id='center{}'.format(i), state='yryr')
                     else:
                         self.k.traffic_light.set_state(
-                            node_id='center{}'.format(tl_num),
-                            state='ryry')
-                    self.last_change[tl_num] = 0.0
-                    self.direction[tl_num] = not self.direction[tl_num]
-                    self.currently_yellow[tl_num] = 1
-
+                            node_id='center{}'.format(i), state='ryry')
+                    self.last_change[i] = 0.0
+                    self.direction[i] = not self.direction[i]
+                    self.currently_yellow[i] = 1
 
     def compute_reward(self, rl_actions, **kwargs):
-        """Each agents receives a reward that is with regards
-        to the delay of the vehicles it observers
-        """
-        # in the warmup steps
+        """See class definition."""
         if rl_actions is None:
             return {}
-        i = 0
-        agent_reward_dict = {}
-        for intersection, edges in self.scenario.get_node_mapping():
-            i = i + 1
-            agent_id = self.agent_name_prefix + str(i)
-
-            observed_vehicle_ids = self.k_closest_to_intersection_edge(edges, self.num_closest_vehicles_onbound)
-            # construct the reward for each agent
-            observed_vehicle_ids = [id for id in observed_vehicle_ids if id]
-            reward = np.mean(self.k.vehicle.get_speed(observed_vehicle_ids))    # or:      reward = - rewards.avg_delay_specified_vehicles(self, observed_vehicle_ids)
-            # each intersection is an agent, so we will make a dictionary that maps form "self.agent_name_prefix+'i'" to the reward of that agent.
-            agent_reward_dict.update({agent_id: reward})
 
         if self.env_params.evaluate:
-            return agent_reward_dict
+            rew = -rewards.min_delay_unscaled(self)
         else:
-            reward = rewards.desired_velocity(self, fail=kwargs['fail'])
-            return agent_reward_dict
+            rew = -rewards.min_delay_unscaled(self) \
+                  + rewards.penalize_standstill(self, gain=0.2)
+
+        # each agent receives reward normalized by number of lights
+        rew /= self.num_traffic_lights
+
+        rews = {}
+        for rl_id in rl_actions.keys():
+            rews[rl_id] = rew
+        return rews
 
     def additional_command(self):
-        pass
-
-    def k_closest_to_intersection_edge(self, edges, k):
-        """
-        Return the veh_id of the 4*k closest vehicles to an intersection for
-        each edge (k closest vehicles on each edge). 
-        """
-        if k < 0:
-            raise IndexError("k must be greater than 0")
-        ids = []
-
-        def sort_lambda(veh_id):
-            return self.get_distance_to_intersection(veh_id)
-
-        for edge in edges:
-            vehicles = self.k.vehicle.get_ids_by_edge(edge)
-            veh_ids_per_bound = sorted(
-                vehicles,
-                key=sort_lambda
-            )
-            if len(veh_ids_per_bound) >= k: # we have more than k vehicles, and we need to cut
-                ids += veh_ids_per_bound[:k]
-            else: # we have less than k vehicles, and we need to pad
-                padding = k - len(veh_ids_per_bound)
-                ids += (veh_ids_per_bound + [0]*padding)
-
-        return ids
+        """See class definition."""
+        # specify observed vehicles
+        for veh_ids in self.observed_ids:
+            for veh_id in veh_ids:
+                self.k.vehicle.set_observed(veh_id)

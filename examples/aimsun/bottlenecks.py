@@ -81,7 +81,6 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
     additional_net_params = {"scaling": SCALING, "speed_limit": 30/3.6}
     net_params = NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params)
 
     initial_config = InitialConfig(

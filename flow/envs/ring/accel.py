@@ -54,6 +54,16 @@ class AccelEnv(Env):
     Termination
         A rollout is terminated if the time horizon is reached or if two
         vehicles collide into one another.
+
+    Attributes
+    ----------
+    prev_pos : dict
+        dictionary keeping track of each veh_id's previous position
+    absolute_position : dict
+        dictionary keeping track of each veh_id's absolute position
+    obs_var_labels : list of str
+        referenced in the visualizer. Tells the visualizer which
+        metrics to track
     """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):

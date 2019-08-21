@@ -137,7 +137,7 @@ def figure_eight_exp_setup(sim_params=None,
         failsafes, where other parameters do not matter for non-rl runs
     net_params : flow.core.params.NetParams
         network-specific configuration parameters, defaults to a figure eight
-        with a 30 m radius and "no_internal_links" set to False
+        with a 30 m radius
     initial_config : flow.core.params.InitialConfig
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
@@ -180,8 +180,7 @@ def figure_eight_exp_setup(sim_params=None,
             "speed_limit": 30,
             "resolution": 40
         }
-        net_params = NetParams(
-            no_internal_links=False, additional_params=additional_net_params)
+        net_params = NetParams(additional_params=additional_net_params)
 
     if initial_config is None:
         # set default initial_config configuration
@@ -332,7 +331,7 @@ def grid_mxn_exp_setup(row_num=1,
         failsafes, where other parameters do not matter for non-rl runs
     net_params : flow.core.params.NetParams
         network-specific configuration parameters, defaults to a 1x1 grid
-        which traffic lights on and "no_internal_links" set to False
+        with traffic lights on
     initial_config : flow.core.params.InitialConfig
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
@@ -349,7 +348,9 @@ def grid_mxn_exp_setup(row_num=1,
         sim_params = SumoParams(sim_step=1, render=False)
 
     if vehicles is None:
-        total_vehicles = 20
+        vehicles_per_edge = 5
+        num_edges = 2 * (row_num + col_num)
+        total_vehicles = num_edges * vehicles_per_edge
         vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
@@ -375,6 +376,10 @@ def grid_mxn_exp_setup(row_num=1,
         # set default net_params configuration
         total_vehicles = vehicles.num_vehicles
         num_entries = 2 * row_num + 2 * col_num
+        assert total_vehicles % num_entries == 0, "{} total vehicles should " \
+                                                  "be divisible by {" \
+                                                  "}".format(total_vehicles,
+                                                             num_entries)
         grid_array = {
             "short_length": 100,
             "inner_length": 300,
@@ -397,8 +402,7 @@ def grid_mxn_exp_setup(row_num=1,
             "vertical_lanes": 1
         }
 
-        net_params = NetParams(
-            no_internal_links=False, additional_params=additional_net_params)
+        net_params = NetParams(additional_params=additional_net_params)
 
     if initial_config is None:
         # set default initial_config configuration
@@ -448,7 +452,7 @@ def variable_lanes_exp_setup(sim_params=None,
         failsafes, where other parameters do not matter for non-rl runs
     net_params : flow.core.params.NetParams
         network-specific configuration parameters, defaults to a figure eight
-        with a 30 m radius and "no_internal_links" set to False
+        with a 30 m radius
     initial_config : flow.core.params.InitialConfig
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network

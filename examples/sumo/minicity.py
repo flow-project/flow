@@ -65,7 +65,7 @@ def minicity_example(render=None,
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    net_params = NetParams(no_internal_links=False)
+    net_params = NetParams()
 
     initial_config = InitialConfig(
         spacing="random",

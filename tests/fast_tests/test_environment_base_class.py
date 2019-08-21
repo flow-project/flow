@@ -14,6 +14,7 @@ from flow.envs import Env, TestEnv
 from tests.setup_scripts import ring_road_exp_setup, highway_exp_setup
 import os
 import numpy as np
+import gym.spaces as spaces
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -393,6 +394,109 @@ class TestNotEnoughVehicles(unittest.TestCase):
                           highway_exp_setup,
                           initial_config=initial_config,
                           vehicles=vehicles)
+
+
+class BoxEnv(Env):
+    """A mock-up class to test clipping for Box."""
+
+    def get_state(self):
+        pass
+
+    @property
+    def action_space(self):
+        return spaces.Box(low=0, high=1, shape=(3,))
+
+    @property
+    def observation_space(self):
+        pass
+
+    def _apply_rl_actions(self, rl_actions):
+        pass
+
+
+class TestClipBoxActions(unittest.TestCase):
+    """
+    This tests base environment properly clips box actions per
+    specification.
+    """
+
+    def setUp(self):
+        env, scenario = ring_road_exp_setup()
+        sim_params = SumoParams()
+        env_params = EnvParams()
+        self.env = BoxEnv(
+            sim_params=sim_params,
+            env_params=env_params,
+            scenario=scenario)
+
+    def tearDown(self):
+        self.env.terminate()
+        self.env = None
+
+    def test_clip_box_actions(self):
+        """Test whether box actions get properly clipped."""
+        actions = [0.5, -1, 2]
+        clipped_actions = [0.5, 0, 1]
+        _actions = self.env.clip_actions(actions)
+        self.assertTrue((_actions == clipped_actions).all())
+
+
+class TupleEnv(Env):
+    """A mock-up class to test clipping for Tuple."""
+
+    def get_state(self):
+        pass
+
+    @property
+    def action_space(self):
+        return spaces.Tuple([
+            spaces.Box(low=0, high=255, shape=(1,)),
+            spaces.Box(low=0, high=1, shape=(3,)),
+            spaces.Discrete(3)])
+
+    @property
+    def observation_space(self):
+        pass
+
+    def _apply_rl_actions(self, rl_actions):
+        pass
+
+
+class TestClipTupleActions(unittest.TestCase):
+    """
+    This tests base environment properly clips tuple actions based on
+    specification in each individual Box objects.
+    """
+
+    def setUp(self):
+        env, scenario = ring_road_exp_setup()
+        sim_params = SumoParams()
+        env_params = EnvParams()
+        self.env = TupleEnv(
+            sim_params=sim_params,
+            env_params=env_params,
+            scenario=scenario)
+
+    def tearDown(self):
+        self.env.terminate()
+        self.env = None
+
+    def test_clip_tuple_actions(self):
+        """Test whether tuple actions get properly clipped."""
+        actions = [
+            [-1],
+            [0.5, -1, 2],
+            2
+        ]
+        clipped_actions = [
+            [0],
+            [0.5, 0, 1],
+            2
+        ]
+        _actions = self.env.clip_actions(actions)
+        self.assertEquals(_actions[0], clipped_actions[0])
+        self.assertTrue((_actions[1] == clipped_actions[1]).all())
+        self.assertEquals(_actions[2], clipped_actions[2])
 
 
 if __name__ == '__main__':

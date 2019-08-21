@@ -14,10 +14,11 @@ from flow.scenarios.ring import RingScenario
 from flow.scenarios.merge import MergeScenario
 from flow.scenarios.multi_ring import MultiRingScenario
 from flow.scenarios.minicity import MiniCityScenario
+from flow.scenarios.highway_ramps import HighwayRampsScenario
 
 __all__ = [
     "Scenario", "BayBridgeScenario", "BayBridgeTollScenario",
     "BottleneckScenario", "FigureEightScenario", "TrafficLightGridScenario",
     "HighwayScenario", "RingScenario", "MergeScenario",
-    "MultiRingScenario", "MiniCityScenario"
+    "MultiRingScenario", "MiniCityScenario", "HighwayRampsScenario"
 ]

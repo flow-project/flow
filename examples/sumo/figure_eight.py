@@ -49,8 +49,7 @@ def figure_eight_example(render=None):
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
-    net_params = NetParams(
-        no_internal_links=False, additional_params=additional_net_params)
+    net_params = NetParams(additional_params=additional_net_params)
 
     scenario = FigureEightScenario(
         name="FigureEight",

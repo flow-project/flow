@@ -35,9 +35,6 @@ class FigureEightScenario(Scenario):
     * **lanes** : number of lanes in the network
     * **speed** : max speed of vehicles in the network
 
-    In order for right-of-way dynamics to take place at the intersection,
-    set *no_internal_links* in net_params to False.
-
     Usage
     -----
     >>> from flow.core.params import NetParams
@@ -55,7 +52,6 @@ class FigureEightScenario(Scenario):
     >>>             'speed_limit': 30,
     >>>             'resolution': 40
     >>>         },
-    >>>         no_internal_links=False  # we want junctions
     >>>     )
     >>> )
     """
