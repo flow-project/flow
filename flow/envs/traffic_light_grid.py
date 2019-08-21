@@ -388,7 +388,7 @@ class TrafficLightGridEnv(Env):
         --- 0 --- 1 --- 2 ---
             |     |     |
 
-        See flow.scenarios.grid for more information.
+        See flow.scenarios.traffic_light_grid for more information.
 
         Example of function usage:
         - Seeking the "top" direction to ":center0" would return 3.

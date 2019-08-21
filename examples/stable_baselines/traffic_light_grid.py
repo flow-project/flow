@@ -1,4 +1,4 @@
-"""Grid/green wave example."""
+"""Traffic Light Grid example."""
 
 import argparse
 import json
@@ -172,13 +172,13 @@ vehicles.add(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='green_wave',
+    exp_tag='traffic_light_grid',
 
     # name of the flow environment the experiment is running on
-    env_name='PO_TrafficLightGridEnv',
+    env_name='TrafficLightGridPOEnv',
 
     # name of the scenario class the experiment is running on
-    scenario='SimpleGridScenario',
+    scenario='TrafficLightGridScenario',
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -266,7 +266,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_cpus', type=int, default=1, help='How many CPUs to use')
     parser.add_argument('--num_steps', type=int, default=5000, help='How many total steps to perform learning over')
     parser.add_argument('--rollout_size', type=int, default=1000, help='How many steps are in a training batch.')
-    parser.add_argument('--result_name', type=str, default='green_wave', help='Name of saved model')
+    parser.add_argument('--result_name', type=str, default='traffic_light_grid', help='Name of saved model')
     parser.add_argument('--use_inflows', action='store_true')
     args = parser.parse_args()
     model = run_model(args.num_cpus, args.rollout_size, args.num_steps, args.use_inflows)

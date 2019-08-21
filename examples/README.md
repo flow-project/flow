@@ -61,7 +61,7 @@ average speed of vehicles in the network.
 
 ![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/figure_eight.gif)
 
-### grid.py
+### traffic_light_grid.py
 
 Performs a simulation of vehicles on a grid.
 

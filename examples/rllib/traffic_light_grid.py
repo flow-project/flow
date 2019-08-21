@@ -1,4 +1,4 @@
-"""Grid/green wave example."""
+"""Traffic Light Grid example."""
 
 import json
 
@@ -178,7 +178,7 @@ vehicles.add(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='green_wave',
+    exp_tag='traffic_light_grid',
 
     # name of the flow environment the experiment is running on
     env_name='TrafficLightGridPOEnv',

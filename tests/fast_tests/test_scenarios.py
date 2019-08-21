@@ -51,7 +51,7 @@ class TestFigureEightScenario(unittest.TestCase):
 
 class TestTrafficLightGridScenario(unittest.TestCase):
 
-    """Tests TrafficLightGridScenario in flow/scenarios/grid.py."""
+    """Tests TrafficLightGridScenario in flow/scenarios/traffic_light_grid.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""

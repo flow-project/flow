@@ -1,4 +1,4 @@
-"""Grid example."""
+"""Traffic Light Grid example."""
 from flow.controllers import GridRouter
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
