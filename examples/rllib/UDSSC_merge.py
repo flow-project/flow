@@ -22,9 +22,9 @@ from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 # Training settings
 HORIZON = 500
 SIM_STEP = 1
-ITR = 101
+ITR = 160
 N_ROLLOUTS = 40
-exp_tag = "icra_21"  # experiment prefix
+exp_tag = "icra_22"  # experiment prefix
 
 # # Local settings
 # N_CPUS = 1
@@ -198,8 +198,8 @@ def setup_exps():
     config['kl_target'] = 0.02
     config['num_sgd_iter'] = 10
     config['horizon'] = HORIZON
-    # config['vf_loss_coeff'] = 1.0
-    # config['vf_clip_param'] = 10.0
+    config['vf_loss_coeff'] = 1.0
+    config['vf_clip_param'] = 10.0
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -234,6 +234,6 @@ if __name__ == '__main__':
                 'training_iteration': ITR,
             },
             'upload_dir': 's3://kathy.experiments/rllib/experiments',
-            'num_samples': 3,
+            'num_samples': 2,
         }
     })
