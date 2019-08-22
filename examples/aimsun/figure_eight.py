@@ -42,7 +42,7 @@ def figure_eight_example(render=None):
     net_params = NetParams(
         additional_params=ADDITIONAL_NET_PARAMS.copy())
 
-    scenario = figure_eight_example(
+    scenario = FigureEightScenario(
         name="FigureEight",
         vehicles=vehicles,
         net_params=net_params)

@@ -303,13 +303,13 @@ def highway_exp_setup(sim_params=None,
 
 
 def traffic_light_grid_mxn_exp_setup(row_num=1,
-                       col_num=1,
-                       sim_params=None,
-                       vehicles=None,
-                       env_params=None,
-                       net_params=None,
-                       initial_config=None,
-                       tl_logic=None):
+                                     col_num=1,
+                                     sim_params=None,
+                                     vehicles=None,
+                                     env_params=None,
+                                     net_params=None,
+                                     initial_config=None,
+                                     tl_logic=None):
     """
     Create an environment and scenario pair for traffic light grid 1x1 test experiments.
 

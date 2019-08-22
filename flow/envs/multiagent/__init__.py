@@ -8,7 +8,5 @@ from flow.envs.multiagent.ring.accel import MultiAgentAccelEnv
 from flow.envs.multiagent.traffic_light_grid import MultiTrafficLightGridPOEnv
 from flow.envs.multiagent.highway import MultiAgentHighwayPOEnv
 
-from flow.envs.multiagent.ring.accel import MultiAgentAccelEnv
-
 __all__ = ['MultiEnv', 'MultiAgentAccelEnv', 'MultiWaveAttenuationPOEnv',
            'MultiTrafficLightGridPOEnv', 'MultiAgentHighwayPOEnv']

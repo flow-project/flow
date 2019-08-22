@@ -4,6 +4,7 @@ from flow.scenarios.base import Scenario
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from collections import defaultdict
+import numpy as np
 
 ADDITIONAL_NET_PARAMS = {
     # dictionary of traffic light grid array data
