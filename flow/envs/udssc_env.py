@@ -768,6 +768,8 @@ class UDSSCMergeEnv(Env):
         
 
     def additional_command(self):
+        if isinstance(self, UDSSCMergeEnvReset):
+            self.counter += 1
         try: 
             self.velocities.append(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids())))
         except AttributeError:
@@ -796,6 +798,7 @@ class UDSSCMergeEnvReset(UDSSCMergeEnv):
         self.range_inflow_1 = env_params.additional_params['range_inflow_1']
         self.max_inflow = max(self.range_inflow_0 + self.range_inflow_1)
         self.batch_size = env_params.additional_params["batch_size"]
+        self.counter = 0
 
         super().__init__(env_params, sim_params, scenario)
 
@@ -916,13 +919,20 @@ class UDSSCMergeEnvReset(UDSSCMergeEnv):
         That commented out portion is copied here to restart based on 
         inflows agnostic of RESTART_INSTANCE value
         """
-        if self.step_counter % self.batch_size == 0:
+        if self.counter % self.batch_size == 0: # Restarts after every iteration
             # Add variable number of inflows here.
             inflow = InFlows()
             inflow.add(veh_type="rl", edge="inflow_0", name="rl", vehs_per_hour=50)
             inflow.add(veh_type="rl", edge="inflow_1", name="rl", vehs_per_hour=50)
             self.len_inflow_0 = np.random.randint(self.range_inflow_0[0], self.range_inflow_0[1]+1)
             self.len_inflow_1 = np.random.randint(self.range_inflow_1[0], self.range_inflow_1[1]+1)
+            # print('############################')
+            # print('############################')
+            # print('len_inflow_0: %d' % self.len_inflow_0)
+            # print('len_inflow_1: %d' % self.len_inflow_1)
+            # print('############################')
+            # print('############################')
+
             
             # Forcing the default
             if np.random.random() < 0.2:
@@ -941,23 +951,14 @@ class UDSSCMergeEnvReset(UDSSCMergeEnv):
             self.scenario = self.scenario.__class__(
                 self.scenario.orig_name, self.scenario.vehicles, 
                 net_params, self.scenario.initial_config)
-
+            #------------------------------------------------
             # issue a random seed to induce randomness into the next rollout
-            self.sim_params.seed = np.random.randint(0, 1e5)
+            # self.sim_params.seed = np.random.randint(0, 1e5)
 
-            self.k.vehicle = deepcopy(self.initial_vehicles)
-            self.k.vehicle.master_kernel = self.k
-            # restart the sumo instance
-            self.restart_simulation(self.sim_params)
-            
-
-        # self.step_counter = 0
-        # # issue a random seed to induce randomness into the next rollout
-        # self.sim_params.seed = np.random.randint(0, 1e5)
-        # # modify the vehicles class to match initial data
-        # self.vehicles = deepcopy(self.initial_vehicles)
-        # # restart the simulation instance
-        # self.restart_simulation(self.sim_params)
+            # self.k.vehicle = deepcopy(self.initial_vehicles)
+            # self.k.vehicle.master_kernel = self.k
+            # # restart the sumo instance
+            # self.restart_simulation(self.sim_params)
 
         # perform the generic reset function
         observation = super().reset()

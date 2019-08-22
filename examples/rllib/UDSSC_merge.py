@@ -24,7 +24,7 @@ HORIZON = 500
 SIM_STEP = 1
 ITR = 101
 N_ROLLOUTS = 40
-exp_tag = "icra_20"  # experiment prefix
+exp_tag = "icra_21"  # experiment prefix
 
 # # Local settings
 # N_CPUS = 1
@@ -97,7 +97,7 @@ flow_params = dict(
     exp_tag=exp_tag,
 
     # name of the flow environment the experiment is running on
-    env_name='UDSSCMergeEnv',
+    env_name='UDSSCMergeEnvReset',
 
     # name of the scenario class the experiment is running on
     scenario='UDSSCMergingScenario',
@@ -137,9 +137,9 @@ flow_params = dict(
             # what portion of the ramp the RL vehicle isn't controlled for 
             "control_length": 0.1,
             # range of inflow lengths for inflow_0, inclusive
-            # "range_inflow_0": [1, 4],
+            "range_inflow_0": [1, 4],
             # range of inflow lengths for inflow_1, inclusive
-            # "range_inflow_1": [1, 7],
+            "range_inflow_1": [1, 7],
         }
     ),
 
