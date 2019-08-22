@@ -94,7 +94,7 @@ class AccelEnv(Env):
         self.obs_var_labels = ['Velocity', 'Absolute_pos']
         return Box(
             low=0,
-            high=1,
+            high=2.0,
             shape=(2 * self.initial_vehicles.num_vehicles, ),
             dtype=np.float32)
 
