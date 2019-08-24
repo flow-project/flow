@@ -47,7 +47,7 @@ class MergeNetwork(Network):
     >>> from flow.core.params import InitialConfig
     >>> from flow.networks import MergeNetwork
     >>>
-    >>> network = Network(
+    >>> network = MergeNetwork(
     >>>     name='merge',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
