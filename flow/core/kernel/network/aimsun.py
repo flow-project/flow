@@ -92,13 +92,13 @@ class AimsunKernelNetwork(KernelNetwork):
         aimsun_path = osp.join(osp.expanduser(config.AIMSUN_NEXT_PATH),
                                binary_name)
 
-        # remove scenario data file if if still exists from
+        # remove network data file if if still exists from
         # the previous simulation
-        data_file = 'flow/core/kernel/scenario/scenario_data.json'
+        data_file = 'flow/core/kernel/network/network_data.json'
         data_file_path = os.path.join(config.PROJECT_PATH, data_file)
         if os.path.exists(data_file_path):
             os.remove(data_file_path)
-        check_file = 'flow/core/kernel/scenario/scenario_data_check'
+        check_file = 'flow/core/kernel/network/network_data_check'
         check_file_path = os.path.join(config.PROJECT_PATH, check_file)
         if os.path.exists(check_file_path):
             os.remove(check_file_path)
@@ -150,10 +150,10 @@ class AimsunKernelNetwork(KernelNetwork):
 
             else:
                 # load network from template
-                scenar_file = "flow/core/kernel/scenario/scenario_data.json"
+                scenar_file = "flow/core/kernel/network/network_data.json"
                 scenar_path = os.path.join(config.PROJECT_PATH, scenar_file)
 
-                check_file = "flow/core/kernel/scenario/scenario_data_check"
+                check_file = "flow/core/kernel/network/network_data_check"
                 check_path = os.path.join(config.PROJECT_PATH, check_file)
 
                 # a check file is created when all the network data
@@ -163,7 +163,7 @@ class AimsunKernelNetwork(KernelNetwork):
                     time.sleep(0.1)
                 os.remove(check_path)
 
-                # scenario_data.json has been written, load its content
+                # network_data.json has been written, load its content
                 with open(scenar_path) as f:
                     content = json.load(f)
                 os.remove(scenar_path)

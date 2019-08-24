@@ -124,7 +124,7 @@ class Env(gym.Env):
         self.env_params = env_params
         if scenario is not None:
             deprecation_warning(self, "scenario", "network")
-        self.network = network or scenario
+        self.network = scenario if scenario is not None else network
         self.net_params = network.net_params
         self.initial_config = network.initial_config
         self.sim_params = sim_params

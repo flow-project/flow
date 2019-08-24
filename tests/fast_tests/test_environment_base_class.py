@@ -421,13 +421,13 @@ class TestClipBoxActions(unittest.TestCase):
     """
 
     def setUp(self):
-        env, scenario = ring_road_exp_setup()
+        env, network = ring_road_exp_setup()
         sim_params = SumoParams()
         env_params = EnvParams()
         self.env = BoxEnv(
             sim_params=sim_params,
             env_params=env_params,
-            scenario=scenario)
+            scenario=network)
 
     def tearDown(self):
         self.env.terminate()
