@@ -10,7 +10,7 @@ from flow.utils.exceptions import FatalFlowError
 VEHICLE_LENGTH = 5
 
 
-class KernelNetwork(object):
+class BaseKernelNetwork(object):
     """Base network kernel.
 
     This kernel subclass is responsible for generating any simulation-specific

@@ -641,7 +641,7 @@ class Network(object):
 
         Parameters
         ----------
-        cls : flow.core.kernel.network.KernelNetwork
+        cls : flow.core.kernel.network.BaseKernelNetwork
             flow network kernel, with all the relevant methods implemented
         net_params : flow.core.params.NetParams
             network-specific parameters

@@ -1,7 +1,7 @@
 """Empty init file to ensure documentation for the network is created."""
 
-from flow.core.kernel.network.base import KernelNetwork
-from flow.core.kernel.network.traci import TraCINetwork
+from flow.core.kernel.network.base import BaseKernelNetwork
+from flow.core.kernel.network.traci import TraCIKernelNetwork
 from flow.core.kernel.network.aimsun import AimsunKernelNetwork
 
-__all__ = ["KernelNetwork", "TraCINetwork", "AimsunKernelNetwork"]
+__all__ = ["BaseKernelNetwork", "TraCIKernelNetwork", "AimsunKernelNetwork"]
