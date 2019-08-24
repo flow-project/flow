@@ -319,46 +319,50 @@ class AimsunKernelVehicle(KernelVehicle):
         # store an empty tracking info object
         self.__vehicles[veh_id]['tracking_info'] = InfVeh()
 
-        # TODO Nathan
-        # specify the acceleration controller class
-        accel_controller = \
-            self.type_parameters[type_id]["acceleration_controller"]
-        car_following_params = \
-            self.type_parameters[type_id]["car_following_params"]
-        self.__vehicles[veh_id]["acc_controller"] = \
-            accel_controller[0](veh_id,
-                                car_following_params=car_following_params,
-                                **accel_controller[1])
+        if type_id in self.type_parameters:
+            # specify the acceleration controller class
+            accel_controller = \
+                self.type_parameters[type_id]["acceleration_controller"]
+            car_following_params = \
+                self.type_parameters[type_id]["car_following_params"]
+            self.__vehicles[veh_id]["acc_controller"] = \
+                accel_controller[0](veh_id,
+                                    car_following_params=car_following_params,
+                                    **accel_controller[1])
 
-        # specify the lane-changing controller class
-        lc_controller = \
-            self.type_parameters[type_id]["lane_change_controller"]
-        self.__vehicles[veh_id]["lane_changer"] = \
-            lc_controller[0](veh_id=veh_id, **lc_controller[1])
+            # specify the lane-changing controller class
+            lc_controller = \
+                self.type_parameters[type_id]["lane_change_controller"]
+            self.__vehicles[veh_id]["lane_changer"] = \
+                lc_controller[0](veh_id=veh_id, **lc_controller[1])
 
-        # specify the routing controller class
-        rt_controller = self.type_parameters[type_id]["routing_controller"]
-        if rt_controller is not None:
-            self.__vehicles[veh_id]["router"] = \
-                rt_controller[0](veh_id=veh_id, router_params=rt_controller[1])
-        else:
-            self.__vehicles[veh_id]["router"] = None
+            # specify the routing controller class
+            rt_controller = self.type_parameters[type_id]["routing_controller"]
+            if rt_controller is not None:
+                self.__vehicles[veh_id]["router"] = \
+                    rt_controller[0](veh_id=veh_id,
+                                     router_params=rt_controller[1])
+            else:
+                self.__vehicles[veh_id]["router"] = None
 
-        # add the vehicle's id to the list of vehicle ids
-        if accel_controller[0] == RLController:
-            self.__rl_ids.append(veh_id)
-            self.num_rl_vehicles += 1
-        else:
-            self.__human_ids.append(veh_id)
-            if accel_controller[0] != SimCarFollowingController:
-                self.__controlled_ids.append(veh_id)
-            if lc_controller[0] != SimLaneChangeController:
-                self.__controlled_lc_ids.append(veh_id)
+            # FIXME should add RL controller to RL vehicle added by Aimsun via
+            # load.py
+
+            # add the vehicle's id to the list of vehicle ids
+            if accel_controller[0] == RLController:
+                self.__rl_ids.append(veh_id)
+                self.num_rl_vehicles += 1
+            else:
+                self.__human_ids.append(veh_id)
+                if accel_controller[0] != SimCarFollowingController:
+                    self.__controlled_ids.append(veh_id)
+                if lc_controller[0] != SimLaneChangeController:
+                    self.__controlled_lc_ids.append(veh_id)
 
         # set the "last_lc" parameter of the vehicle
         self.__vehicles[veh_id]["last_lc"] = -float("inf")
 
-        self.__human_ids.append(veh_id)  # FIXME
+        self.__human_ids.append(veh_id)  # FIXME not true for RL vehicles
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
@@ -607,9 +611,10 @@ class AimsunKernelVehicle(KernelVehicle):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_type(veh) for veh in veh_id]
-        return self.__vehicles[veh_id]['type_name']
+        return self.__vehicles.get(veh_id, {}).get('type_name', "")
 
     def get_initial_speed(self, veh_id):
+        """See parent class."""
         return self.__vehicles[veh_id]["initial_speed"]
 
     def get_speed(self, veh_id, error=-1001):

@@ -5,7 +5,10 @@ from flow.controllers.base_lane_changing_controller import \
 
 
 class SimLaneChangeController(BaseLaneChangeController):
-    """A controller used to enforce sumo lane-change dynamics on a vehicle."""
+    """A controller used to enforce sumo lane-change dynamics on a vehicle.
+
+    Usage: See base class for usage example.
+    """
 
     def get_lane_change_action(self, env):
         """See parent class."""
@@ -13,7 +16,10 @@ class SimLaneChangeController(BaseLaneChangeController):
 
 
 class StaticLaneChanger(BaseLaneChangeController):
-    """A lane-changing model used to keep a vehicle in the same lane."""
+    """A lane-changing model used to keep a vehicle in the same lane.
+
+    Usage: See base class for usage example.
+    """
 
     def get_lane_change_action(self, env):
         """See parent class."""

@@ -148,7 +148,7 @@ class Experiment:
         print("Average, std return: {}, {}".format(
             np.mean(rets), np.std(rets)))
         print("Average, std speed: {}, {}".format(
-            np.mean(mean_vels), np.std(std_vels)))
+            np.mean(mean_vels), np.std(mean_vels)))
         self.env.terminate()
 
         if convert_to_csv:
@@ -163,5 +163,8 @@ class Experiment:
 
             # convert the emission file into a csv
             emission_to_csv(emission_path)
+
+            # Delete the .xml version of the emission file.
+            os.remove(emission_path)
 
         return info_dict

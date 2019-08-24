@@ -8,5 +8,4 @@ and as part of this documentation.
    :maxdepth: 1
    :caption: Links:
 
-   rllabec2
    GitHub Tutorials <https://github.com/flow-project/flow/tree/master/tutorials/>
