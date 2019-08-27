@@ -4,6 +4,8 @@ import unittest
 import ray
 from ray.tune import run_experiments
 
+from flow.core.experiment import Experiment
+
 from examples.rllib.cooperative_merge import setup_exps as coop_setup
 from examples.rllib.figure_eight import setup_exps as figure_eight_setup
 from examples.rllib.green_wave import setup_exps as green_wave_setup
@@ -29,136 +31,88 @@ from examples.stable_baselines.stabilizing_highway import run_model as run_stabi
 from examples.stable_baselines.stabilizing_the_ring import run_model as run_stabilizing_ring
 from examples.stable_baselines.velocity_bottleneck import run_model as run_velocity_bottleneck
 
-from examples.sumo.bay_bridge import bay_bridge_example
-from examples.sumo.bay_bridge_toll import bay_bridge_toll_example
-from examples.sumo.bottlenecks import bottleneck_example
-from examples.sumo.density_exp import run_bottleneck
-from examples.sumo.figure_eight import figure_eight_example
-from examples.sumo.grid import grid_example
-from examples.sumo.highway import highway_example
-from examples.sumo.highway_ramps import highway_ramps_example
-from examples.sumo.loop_merge import loop_merge_example
-from examples.sumo.merge import merge_example
-from examples.sumo.minicity import minicity_example
-from examples.sumo.sugiyama import sugiyama_example
+from examples.exp_configs.non_rl.bay_bridge import flow_params as non_rl_bay_bridge
+from examples.exp_configs.non_rl.bay_bridge_toll import flow_params as non_rl_bay_bridge_toll
+from examples.exp_configs.non_rl.bottlenecks import flow_params as non_rl_bottlenecks
+from examples.exp_configs.non_rl.figure_eight import flow_params as non_rl_figure_eight
+from examples.exp_configs.non_rl.grid import flow_params as non_rl_grid
+from examples.exp_configs.non_rl.highway import flow_params as non_rl_highway
+from examples.exp_configs.non_rl.highway_ramps import flow_params as non_rl_highway_ramps
+from examples.exp_configs.non_rl.merge import flow_params as non_rl_merge
+from examples.exp_configs.non_rl.minicity import flow_params as non_rl_minicity
+from examples.exp_configs.non_rl.sugiyama import flow_params as non_rl_sugiyama
 
 os.environ['TEST_FLAG'] = 'True'
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 
-class TestSumoExamples(unittest.TestCase):
-    """Tests the example scripts in examples/sumo.
+class TestNonRLExamples(unittest.TestCase):
+    """Tests the experiment configurations in examples/exp_configs/non_rl.
 
-    This is done by running the experiment function within each script for a
+    This is done by running an experiment form of each config for a
     few time steps. Note that, this does not test for any refactoring changes
     done to the functions within the experiment class.
     """
 
     def test_bottleneck(self):
         """Verifies that examples/sumo/bottlenecks.py is working."""
-        # import the experiment variable from the example
-        exp = bottleneck_example(20, 5, render=False)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        self.run_simulation(non_rl_bottlenecks)
 
     def test_figure_eight(self):
         """Verifies that examples/sumo/figure_eight.py is working."""
-        # import the experiment variable from the example
-        exp = figure_eight_example(render=False)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        self.run_simulation(non_rl_figure_eight)
 
     def test_grid(self):
         """Verifies that examples/sumo/grid.py is working."""
-        # test the example in the absence of inflows
-        exp = grid_example(render=False, use_inflows=False)
-        exp.run(1, 5)
-
-        # test the example in the presence of inflows
-        exp = grid_example(render=False, use_inflows=True)
-        exp.run(1, 5)
+        self.run_simulation(non_rl_grid)
 
     def test_highway(self):
         """Verifies that examples/sumo/highway.py is working."""
         # import the experiment variable from the example
-        exp = highway_example(render=False)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        self.run_simulation(non_rl_highway)
 
     def test_highway_ramps(self):
         """Verifies that examples/sumo/highway_ramps.py is working."""
-        # import the experiment variable from the example
-        exp = highway_ramps_example(render=False)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        self.run_simulation(non_rl_highway_ramps)
 
     def test_merge(self):
         """Verifies that examples/sumo/merge.py is working."""
-        # import the experiment variable from the example
-        exp = merge_example(render=False)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        self.run_simulation(non_rl_merge)
 
     def test_sugiyama(self):
         """Verifies that examples/sumo/sugiyama.py is working."""
-        # import the experiment variable from the example
-        exp = sugiyama_example(render=False)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
-
-    def test_loop_merge(self):
-        """Verify that examples/sumo/two_loops_merge_straight.py is working."""
-        # import the experiment variable from the example
-        exp = loop_merge_example(render=False)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        self.run_simulation(non_rl_sugiyama)
 
     def test_bay_bridge(self):
         """Verifies that examples/sumo/bay_bridge.py is working."""
-        # import the experiment variable from the example
-        exp = bay_bridge_example(render=False)
+        # test without inflows and traffic lights
+        self.run_simulation(non_rl_bay_bridge)
 
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        # test with inflows
+        # FIXME
 
-        # import the experiment variable from the example with inflows
-        exp = bay_bridge_example(render=False, use_inflows=True)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
-
-        # import the experiment variable from the example with traffic lights
-        exp = bay_bridge_example(render=False, use_traffic_lights=True)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        # test with traffic lights
+        # FIXME
 
     def test_bay_bridge_toll(self):
         """Verifies that examples/sumo/bay_bridge_toll.py is working."""
-        # import the experiment variable from the example
-        exp = bay_bridge_toll_example(render=False)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        self.run_simulation(non_rl_bay_bridge_toll)
 
     def test_minicity(self):
         """Verifies that examples/sumo/minicity.py is working."""
-        # import the experiment variable from the example
-        exp = minicity_example(render=False)
+        self.run_simulation(non_rl_minicity)
 
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+    @staticmethod
+    def run_simulation(flow_params):
+        # make the horizon small and set render to False
+        flow_params['sim'].render = False
+        flow_params['env'].horizon = 5
 
-    def test_density_exp(self):
-        """Verifies that examples/sumo/density_exp.py is working."""
-        run_bottleneck.remote(100, 1, 10, render=False)
+        # create an experiment object
+        exp = Experiment(flow_params)
+
+        # run the experiment for one run
+        exp.run(1)
 
 
 class TestStableBaselineExamples(unittest.TestCase):
