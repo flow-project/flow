@@ -125,8 +125,8 @@ class Env(gym.Env):
         if scenario is not None:
             deprecation_warning(self, "scenario", "network")
         self.network = scenario if scenario is not None else network
-        self.net_params = network.net_params
-        self.initial_config = network.initial_config
+        self.net_params = self.network.net_params
+        self.initial_config = self.network.initial_config
         self.sim_params = sim_params
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
@@ -155,10 +155,10 @@ class Env(gym.Env):
 
         # use the network class's network parameters to generate the necessary
         # network components within the network kernel
-        self.k.network.generate_network(network)
+        self.k.network.generate_network(self.network)
 
         # initial the vehicles kernel using the VehicleParams object
-        self.k.vehicle.initialize(deepcopy(network.vehicles))
+        self.k.vehicle.initialize(deepcopy(self.network.vehicles))
 
         # initialize the simulation using the simulation kernel. This will use
         # the network kernel as an input in order to determine what network
@@ -175,7 +175,7 @@ class Env(gym.Env):
         self.available_routes = self.k.network.rts
 
         # store the initial vehicle ids
-        self.initial_ids = deepcopy(network.vehicles.ids)
+        self.initial_ids = deepcopy(self.network.vehicles.ids)
 
         # store the initial state of the vehicles kernel (needed for restarting
         # the simulation)
