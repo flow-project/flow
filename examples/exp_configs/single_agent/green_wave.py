@@ -42,7 +42,7 @@ def gen_edges(col_num, row_num):
     return edges
 
 
-def get_flow_params(col_num, row_num, additional_net_params):
+def get_inflow_params(col_num, row_num, additional_net_params):
     """Define the network and initial params in the presence of inflows.
 
     Parameters
@@ -73,7 +73,7 @@ def get_flow_params(col_num, row_num, additional_net_params):
             edge=outer_edges[i],
             probability=0.25,
             departLane='free',
-            departSpeed=10)
+            departSpeed=20)
 
     net = NetParams(
         inflows=inflow,
@@ -112,7 +112,7 @@ def get_non_flow_params(enter_speed, add_net_params):
     return initial, net
 
 
-V_ENTER = 15
+V_ENTER = 30
 INNER_LENGTH = 300
 LONG_LENGTH = 100
 SHORT_LENGTH = 300
@@ -168,7 +168,7 @@ vehicles.add(
 # collect the initialization and network-specific parameters based on the
 # choice to use inflows or not
 if USE_INFLOWS:
-    initial_config, net_params = get_flow_params(
+    initial_config, net_params = get_inflow_params(
         col_num=N_COLUMNS,
         row_num=N_ROWS,
         additional_net_params=additional_net_params)

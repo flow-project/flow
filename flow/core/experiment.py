@@ -19,7 +19,7 @@ class Experiment:
     the actions of RL agents in the network, type the following:
 
         >>> from flow.envs import Env
-        >>> env = Env(...)
+        >>> flow_params = dict(...)  # see the examples in exp_config
         >>> exp = Experiment(flow_params)  # for some experiment configuration
         >>> exp.run(num_runs=1)
 
@@ -59,7 +59,7 @@ class Experiment:
     def __init__(self, flow_params):
         """Instantiate Experiment."""
         # Get the env name and a creator for the environment.
-        create_env, env_name = make_create_env(flow_params, version=0)
+        create_env, _ = make_create_env(flow_params, version=0)
 
         # Create the environment.
         self.env = create_env()
