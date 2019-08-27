@@ -22,6 +22,6 @@ for run_script in rllib/ppo_runner.py; do
         echo "Training ${benchmark} with ${alg}"
         echo "ray exec ../../scripts/benchmark_autoscale.yaml \"python ./flow/flow/benchmarks/${run_script} --upload_dir=\"flow-benchmark.results/${dt}/\" --benchmark_name=${benchmark} --num_cpus 16\" --start --stop --cluster-name=all_benchmark_${benchmark}_${alg}_$dt --tmux"
         echo "====================================================================="
-        ray exec ../../scripts/benchmark_autoscale.yaml "python ./flow/flow/benchmarks/${run_script} --upload_dir=\"flow-benchmark.results/${dt}/\" --benchmark_name=${benchmark} --num_cpus 16" --start --stop --cluster-name=b_${i}
+        ray exec ../../scripts/benchmark_autoscale.yaml "python ./flow/flow/benchmarks/${run_script} --upload_dir=\"flow-benchmark.results/${dt}/\" --benchmark_name=${benchmark} --num_cpus 14" --start --stop --cluster-name=b_${i}
     done
 done

@@ -57,6 +57,13 @@ parser.add_argument(
     default=2,
     help="The number of cpus to use.")
 
+# optional input parameters
+parser.add_argument(
+    '--num_samples',
+    type=int,
+    default=1,
+    help="The number of times to repeat each experiment.")
+
 if __name__ == "__main__":
     benchmark_name = 'grid0'
     args = parser.parse_args()
@@ -112,7 +119,7 @@ if __name__ == "__main__":
             "checkpoint_freq": 25,
             "max_failures": 999,
             "stop": {"training_iteration": 500},
-            "num_samples": 1,
+            "num_samples": args.num_samples,
         }
 
     if upload_dir:

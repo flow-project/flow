@@ -50,6 +50,13 @@ parser.add_argument(
 
 # optional input parameters
 parser.add_argument(
+    '--num_samples',
+    type=int,
+    default=1,
+    help="The number of times to repeat each experiment.")
+
+# optional input parameters
+parser.add_argument(
     '--num_cpus',
     type=int,
     default=2,
@@ -122,7 +129,7 @@ if __name__ == "__main__":
         "stop": {
             "training_iteration": 500
         },
-        "num_samples": 3,
+        "num_samples": args.num_samples,
 
     }
 

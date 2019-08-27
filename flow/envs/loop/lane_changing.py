@@ -93,7 +93,7 @@ class LaneChangeAccelEnv(AccelEnv):
         """See class definition."""
         return Box(
             low=0,
-            high=1,
+            high=2,
             shape=(3 * self.initial_vehicles.num_vehicles, ),
             dtype=np.float32)
 

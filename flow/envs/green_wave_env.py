@@ -186,7 +186,7 @@ class TrafficLightGridEnv(Env):
         """See class definition."""
         speed = Box(
             low=0,
-            high=1,
+            high=2,
             shape=(self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
         dist_to_intersec = Box(
@@ -196,12 +196,12 @@ class TrafficLightGridEnv(Env):
             dtype=np.float32)
         edge_num = Box(
             low=0.,
-            high=1,
+            high=2,
             shape=(self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
         traffic_lights = Box(
             low=0.,
-            high=1,
+            high=2,
             shape=(3 * self.rows * self.cols,),
             dtype=np.float32)
         return Tuple((speed, dist_to_intersec, edge_num, traffic_lights))

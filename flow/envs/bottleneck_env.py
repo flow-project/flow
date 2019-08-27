@@ -534,7 +534,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
         num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling \
             * num_rl_veh + 4 * num_rl_veh
 
-        return Box(low=0, high=1, shape=(num_obs, ), dtype=np.float32)
+        return Box(low=0, high=2, shape=(num_obs, ), dtype=np.float32)
 
     def get_state(self):
         """See class definition."""
@@ -842,7 +842,7 @@ class DesiredVelocityEnv(BottleneckEnv):
         for segment in self.obs_segments:
             num_obs += 4 * segment[1] * self.k.scenario.num_lanes(segment[0])
         num_obs += 1
-        return Box(low=0.0, high=1.0, shape=(num_obs, ), dtype=np.float32)
+        return Box(low=0.0, high=2.0, shape=(num_obs, ), dtype=np.float32)
 
     @property
     def action_space(self):
