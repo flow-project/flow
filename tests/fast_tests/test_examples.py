@@ -55,36 +55,36 @@ class TestNonRLExamples(unittest.TestCase):
     """
 
     def test_bottleneck(self):
-        """Verifies that examples/sumo/bottlenecks.py is working."""
+        """Verifies that examples/exp_configs/non_rl/bottlenecks.py is working."""
         self.run_simulation(non_rl_bottlenecks)
 
     def test_figure_eight(self):
-        """Verifies that examples/sumo/figure_eight.py is working."""
+        """Verifies that examples/exp_configs/non_rl/figure_eight.py is working."""
         self.run_simulation(non_rl_figure_eight)
 
     def test_grid(self):
-        """Verifies that examples/sumo/grid.py is working."""
+        """Verifies that examples/exp_configs/non_rl/grid.py is working."""
         self.run_simulation(non_rl_grid)
 
     def test_highway(self):
-        """Verifies that examples/sumo/highway.py is working."""
+        """Verifies that examples/exp_configs/non_rl/highway.py is working."""
         # import the experiment variable from the example
         self.run_simulation(non_rl_highway)
 
     def test_highway_ramps(self):
-        """Verifies that examples/sumo/highway_ramps.py is working."""
+        """Verifies that examples/exp_configs/non_rl/highway_ramps.py is working."""
         self.run_simulation(non_rl_highway_ramps)
 
     def test_merge(self):
-        """Verifies that examples/sumo/merge.py is working."""
+        """Verifies that examples/exp_configs/non_rl/merge.py is working."""
         self.run_simulation(non_rl_merge)
 
     def test_sugiyama(self):
-        """Verifies that examples/sumo/sugiyama.py is working."""
+        """Verifies that examples/exp_configs/non_rl/sugiyama.py is working."""
         self.run_simulation(non_rl_sugiyama)
 
     def test_bay_bridge(self):
-        """Verifies that examples/sumo/bay_bridge.py is working."""
+        """Verifies that examples/exp_configs/non_rl/bay_bridge.py is working."""
         # test without inflows and traffic lights
         self.run_simulation(non_rl_bay_bridge)
 
@@ -95,11 +95,11 @@ class TestNonRLExamples(unittest.TestCase):
         # FIXME
 
     def test_bay_bridge_toll(self):
-        """Verifies that examples/sumo/bay_bridge_toll.py is working."""
+        """Verifies that examples/exp_configs/non_rl/bay_bridge_toll.py is working."""
         self.run_simulation(non_rl_bay_bridge_toll)
 
     def test_minicity(self):
-        """Verifies that examples/sumo/minicity.py is working."""
+        """Verifies that examples/exp_configs/non_rl/minicity.py is working."""
         self.run_simulation(non_rl_minicity)
 
     @staticmethod
