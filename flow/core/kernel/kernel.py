@@ -1,7 +1,8 @@
 """Script containing the Flow kernel object for interacting with simulators."""
 
+import warnings
 from flow.core.kernel.simulation import TraCISimulation, AimsunKernelSimulation
-from flow.core.kernel.scenario import TraCIScenario, AimsunKernelScenario
+from flow.core.kernel.network import TraCIKernelNetwork, AimsunKernelNetwork
 from flow.core.kernel.vehicle import TraCIVehicle, AimsunKernelVehicle
 from flow.core.kernel.traffic_light import TraCITrafficLight, \
     AimsunKernelTrafficLight
@@ -16,8 +17,8 @@ class Kernel(object):
 
     * simulation: controls starting, loading, saving, advancing, and resetting
       a simulation in Flow (see flow/core/kernel/simulation/base.py)
-    * scenario: stores network-specific information (see
-      flow/core/kernel/scenario/base.py)
+    * network: stores network-specific information (see
+      flow/core/kernel/network/base.py)
     * vehicle: stores and regularly updates vehicle-specific information. At
       times, this class is optimized to efficiently collect information from
       the simulator (see flow/core/kernel/vehicle/base.py).
@@ -63,12 +64,12 @@ class Kernel(object):
 
         if simulator == "traci":
             self.simulation = TraCISimulation(self)
-            self.scenario = TraCIScenario(self, sim_params)
+            self.network = TraCIKernelNetwork(self, sim_params)
             self.vehicle = TraCIVehicle(self, sim_params)
             self.traffic_light = TraCITrafficLight(self)
         elif simulator == 'aimsun':
             self.simulation = AimsunKernelSimulation(self)
-            self.scenario = AimsunKernelScenario(self, sim_params)
+            self.network = AimsunKernelNetwork(self, sim_params)
             self.vehicle = AimsunKernelVehicle(self, sim_params)
             self.traffic_light = AimsunKernelTrafficLight(self)
         else:
@@ -79,7 +80,7 @@ class Kernel(object):
         """Pass the kernel API to all kernel subclasses."""
         self.kernel_api = kernel_api
         self.simulation.pass_api(kernel_api)
-        self.scenario.pass_api(kernel_api)
+        self.network.pass_api(kernel_api)
         self.vehicle.pass_api(kernel_api)
         self.traffic_light.pass_api(kernel_api)
 
@@ -99,10 +100,21 @@ class Kernel(object):
         """
         self.vehicle.update(reset)
         self.traffic_light.update(reset)
-        self.scenario.update(reset)
+        self.network.update(reset)
         self.simulation.update(reset)
 
     def close(self):
-        """Terminate all components within the simulation and scenario."""
-        self.scenario.close()
+        """Terminate all components within the simulation and network."""
+        self.network.close()
         self.simulation.close()
+
+    @property
+    def scenario(self):
+        """Return network for this deprecated method."""
+        warnings.simplefilter('always', PendingDeprecationWarning)
+        warnings.warn(
+            "self.k.scenario will be deprecated in a future release. Please "
+            "use self.k.network instead.",
+            PendingDeprecationWarning
+        )
+        return self.network

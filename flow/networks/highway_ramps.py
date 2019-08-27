@@ -1,6 +1,6 @@
-"""Contains the highway with ramps scenario class."""
+"""Contains the highway with ramps network class."""
 
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_network import Network
 from flow.core.params import InitialConfig, TrafficLightParams
 from collections import defaultdict
 from numpy import pi, sin, cos
@@ -31,10 +31,10 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class HighwayRampsScenario(Scenario):
-    """Scenario class for a highway section with on and off ramps.
+class HighwayRampsNetwork(Network):
+    """Network class for a highway section with on and off ramps.
 
-    This scenario consists of a single or multi-lane highway network with a
+    This network consists of a single or multi-lane highway network with a
     variable number of on-ramps and off-ramps at arbitrary positions,
     with arbitrary numbers of lanes. It can be used to generate periodic
     perturbation on a more realistic highway.
@@ -62,7 +62,7 @@ class HighwayRampsScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a highway with on and off ramps scenario."""
+        """Initialize a highway with on and off ramps network."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
@@ -104,7 +104,7 @@ class HighwayRampsScenario(Scenario):
         self.ramp_pos.update({x: "off_ramp_{}".format(i)
                              for i, x in enumerate(self.off_ramps_pos)})
 
-        # make sure scenario is constructible
+        # make sure network is constructable
         if (len(self.ramps_pos) > 0 and
            (min(self.ramps_pos) <= 0 or
            max(self.ramps_pos) >= self.highway_length)):

@@ -1,4 +1,4 @@
-"""Contains the base scenario class."""
+"""Contains the base network class."""
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
@@ -17,10 +17,10 @@ DEFAULT_LENGTH = 5
 DEFAULT_VCLASS = 0
 
 
-class Scenario(object):
-    """Base scenario class.
+class Network(object):
+    """Base network class.
 
-    Initializes a new scenario. Scenarios are used to specify features of
+    Initializes a new network. Networks are used to specify features of
     a network, including the positions of nodes, properties of the edges
     and junctions connecting these nodes, properties of vehicles and
     traffic lights, and other features as well. These features can later be
@@ -29,7 +29,7 @@ class Scenario(object):
 
     This class uses network specific features to generate the necessary network
     configuration files needed to initialize a simulation instance. The methods
-    of this class are called by the base scenario class.
+    of this class are called by the base network class.
 
     The network files can be created in one of three ways:
 
@@ -38,10 +38,10 @@ class Scenario(object):
       properties using the ``specify_nodes`` and ``specify_edges`` methods,
       respectively, as well as other properties via methods including
       ``specify_types``, ``specify_connections``, etc... For more on this,
-      see the tutorial on creating custom scenarios or refer to some of the
-      available scenarios.
+      see the tutorial on creating custom networks or refer to some of the
+      available networks.
 
-    * Scenario data can be collected from an OpenStreetMap (.osm) file. The
+    * Network data can be collected from an OpenStreetMap (.osm) file. The
       .osm file is specified in the NetParams object. For example:
 
         >>> from flow.core.params import NetParams
@@ -51,7 +51,7 @@ class Scenario(object):
       needed. However, a ``specify_routes`` method is still needed to specify
       the appropriate routes vehicles can traverse in the network.
 
-    * Scenario data can be collected from an sumo-specific network (.net.xml)
+    * Network data can be collected from an sumo-specific network (.net.xml)
       file. This file is specified in the NetParams object. For example:
 
         >>> from flow.core.params import NetParams
@@ -73,7 +73,7 @@ class Scenario(object):
     name : str
         the variable provided under the `name` parameter to this object upon
         instantiation, appended with a timestamp variable. This timestamp is
-        meant to differentiate generated scenario files during parallelism
+        meant to differentiate generated network files during parallelism
     vehicles : flow.core.params.VehicleParams
         vehicle specific parameters, used to specify the types and number of
         vehicles at the start of a simulation
@@ -81,7 +81,7 @@ class Scenario(object):
         network specific parameters, used primarily to identify properties of a
         network such as the lengths of edges and the number of lanes in each
         edge. This attribute is very network-specific, and should contain the
-        variables denoted by the `ADDITIONAL_NET_PARAMS` dict in each scenario
+        variables denoted by the `ADDITIONAL_NET_PARAMS` dict in each network
         class file
     initial_config : flow.core.params.InitialConfig
         specifies parameters that affect the positioning of vehicle in the
@@ -90,7 +90,7 @@ class Scenario(object):
         used to describe the positions and types of traffic lights in the
         network. For more, see flow/core/params.py
     nodes : list of dict or None
-        list of nodes that are assigned to the scenario via the `specify_nodes`
+        list of nodes that are assigned to the network via the `specify_nodes`
         method. All nodes in this variable are expected to have the following
         properties:
 
@@ -98,10 +98,10 @@ class Scenario(object):
         * **x**: x-coordinate of the node, in meters
         * **y**: y-coordinate of the node, in meters
 
-        If the scenario is meant to generate the network from an OpenStreetMap
+        If the network is meant to generate the network from an OpenStreetMap
         or template file, this variable is set to None
     edges : list of dict or None
-        edges that are assigned to the scenario via the `specify_edges` method.
+        edges that are assigned to the network via the `specify_edges` method.
         This include the shape, position, and properties of all edges in the
         network. These properties include the following mandatory properties:
 
@@ -123,7 +123,7 @@ class Scenario(object):
           shape of an edge. If no shape is specified, then the edge will appear
           as a straight line.
 
-        Note that, if the scenario is meant to generate the network from an
+        Note that, if the network is meant to generate the network from an
         OpenStreetMap or template file, this variable is set to None
     types : list of dict or None
         A variable used to ease the definition of the properties of various
@@ -135,10 +135,10 @@ class Scenario(object):
           of other components of this list, such as "speed" and "numLanes".
 
         If the type variable is None, then no types are available within the
-        scenario. Furthermore, a proper example of this variable being used can
-        be found under `specify_types` in flow/scenarios/loop.py.
+        network. Furthermore, a proper example of this variable being used can
+        be found under `specify_types` in flow/networks/loop.py.
 
-        Note that, if the scenario is meant to generate the network from an
+        Note that, if the network is meant to generate the network from an
         OpenStreetMap or template file, this variable is set to None
     connections : list of dict or None
         A variable used to describe how any specific node's incoming and
@@ -148,7 +148,7 @@ class Scenario(object):
         If the connections attribute is set to None, then the connections
         within the network will be specified by the simulator.
 
-        Note that, if the scenario is meant to generate the network from an
+        Note that, if the network is meant to generate the network from an
         OpenStreetMap or template file, this variable is set to None
     routes : dict
         A variable whose keys are the starting edge of a specific route, and
@@ -171,19 +171,19 @@ class Scenario(object):
 
     Example
     -------
-    The following examples are derived from the `LoopScenario` Scenario class
-    located in flow/scenarios/loop.py, and should serve as an example of the
-    types of outputs to be expected from the different variables of a scenario
+    The following examples are derived from the `LoopNetwork` Network class
+    located in flow/networks/loop.py, and should serve as an example of the
+    types of outputs to be expected from the different variables of a network
     class.
 
-    First of all, the ring road scenario class can be instantiated by running
+    First of all, the ring road network class can be instantiated by running
     the following commands (note if this this unclear please refer to Tutorial
     1):
 
-    >>> from flow.scenarios import LoopScenario
+    >>> from flow.networks import LoopNetwork
     >>> from flow.core.params import NetParams, VehicleParams
     >>>
-    >>> scenario = LoopScenario(
+    >>> network = LoopNetwork(
     >>>     name='test',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
@@ -198,14 +198,14 @@ class Scenario(object):
 
     The various attributes then look as follows:
 
-    >>> print(scenario.nodes)
+    >>> print(network.nodes)
     >>> [{'id': 'bottom', 'x': '0', 'y': '-36.60563691113593'},
     >>>  {'id': 'right', 'x': '36.60563691113593', 'y': '0'},
     >>>  {'id': 'top', 'x': '0', 'y': '36.60563691113593'},
     >>>  {'id': 'left', 'x': '-36.60563691113593', 'y': '0'}]
 
 
-    >>> print(scenario.edges)
+    >>> print(network.edges)
     >>> [
     >>>     {'id': 'bottom',
     >>>      'type': 'edgeType',
@@ -276,13 +276,13 @@ class Scenario(object):
     >>> ]
 
 
-    >>> print(scenario.types)
+    >>> print(network.types)
     >>> [{'id': 'edgeType', 'numLanes': '1', 'speed': '30'}]
 
-    >>> print(scenario.connections)
+    >>> print(network.connections)
     >>> None
 
-    >>> print(scenario.routes)
+    >>> print(network.routes)
     >>> {
     >>>     'top': ['top', 'left', 'bottom', 'right'],
     >>>     'left': ['left', 'bottom', 'right', 'top'],
@@ -291,18 +291,18 @@ class Scenario(object):
     >>> }
 
 
-    >>> print(scenario.edge_starts)
+    >>> print(network.edge_starts)
     >>> [('bottom', 0), ('right', 57.5), ('top', 115.0), ('left', 172.5)]
 
-    Finally, the loop scenario does not contain any junctions or intersections,
+    Finally, the loop network does not contain any junctions or intersections,
     and as a result the `internal_edge_starts` and `intersection_edge_starts`
     attributes are both set to None. For an example of a network with junctions
-    and intersections, please refer to: flow/scenarios/figure_eight.py.
+    and intersections, please refer to: flow/networks/figure_eight.py.
 
-    >>> print(scenario.internal_edge_starts)
+    >>> print(network.internal_edge_starts)
     >>> [(':', -1)]
 
-    >>> print(scenario.intersection_edge_starts)
+    >>> print(network.intersection_edge_starts)
     >>> []
     """
 
@@ -312,12 +312,12 @@ class Scenario(object):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Instantiate the base scenario class.
+        """Instantiate the base network class.
 
         Attributes
         ----------
         name : str
-            A tag associated with the scenario
+            A tag associated with the network
         vehicles : flow.core.params.VehicleParams
             see flow/core/params.py
         net_params : flow.core.params.NetParams
@@ -541,13 +541,13 @@ class Scenario(object):
         Routes can be specified in one of three ways:
 
         * In this case of deterministic routes (as is the case in the ring road
-          scenario), the routes can be specified as dictionary where the key
+          network), the routes can be specified as dictionary where the key
           element represents the starting edge and the element is a single list
           of edges the vehicle must traverse, with the first edge corresponding
           to the edge the vehicle begins on. Note that the edges must be
           connected for the route to be valid.
 
-          For example (from flow/scenarios/loop.py):
+          For example (from flow/networks/loop.py):
 
           >>> def specify_routes(self, net_params):
           >>>     return {
@@ -641,8 +641,8 @@ class Scenario(object):
 
         Parameters
         ----------
-        cls : flow.core.kernel.scenario.KernelScenario
-            flow scenario kernel, with all the relevant methods implemented
+        cls : flow.core.kernel.network.BaseKernelNetwork
+            flow network kernel, with all the relevant methods implemented
         net_params : flow.core.params.NetParams
             network-specific parameters
         initial_config : flow.core.params.InitialConfig
@@ -699,7 +699,7 @@ class Scenario(object):
             # collect the departure properties and routes and vehicles whose
             # properties are instantiated within the .rou.xml file. This will
             # only apply if such data is within the file (it is not implemented
-            # by scenarios in Flow).
+            # by networks in Flow).
             for vehicle in root.findall('vehicle'):
                 # collect the edges the vehicle is meant to traverse
                 route = vehicle.find('route')
@@ -754,7 +754,7 @@ class Scenario(object):
         root = tree.getroot()
         veh_type = {}
 
-        # this hack is meant to support the LuST scenario and Flow scenarios
+        # this hack is meant to support the LuST network and Flow networks
         root = [root] if len(root.findall('vTypeDistribution')) == 0 \
             else root.findall('vTypeDistribution')
 
@@ -806,6 +806,6 @@ class Scenario(object):
         return ret
 
     def __str__(self):
-        """Return the name of the scenario and the number of vehicles."""
-        return 'Scenario ' + self.name + ' with ' + \
+        """Return the name of the network and the number of vehicles."""
+        return 'Network ' + self.name + ' with ' + \
                str(self.vehicles.num_vehicles) + ' vehicles.'

@@ -1,13 +1,11 @@
 """Grid example."""
 from flow.controllers import GridRouter
-from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import InFlows
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.grid import SimpleGridScenario
+from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
 
 USE_INFLOWS = False
 
@@ -85,7 +83,7 @@ def get_flow_params(col_num, row_num, additional_net_params):
         parameters specifying the initial configuration of vehicles in the
         network
     flow.core.params.NetParams
-        network-specific parameters used to generate the scenario
+        network-specific parameters used to generate the network
     """
     initial = InitialConfig(
         spacing='custom', lanes_distribution=float('inf'), shuffle=True)
@@ -127,7 +125,7 @@ def get_non_flow_params(enter_speed, add_net_params):
         parameters specifying the initial configuration of vehicles in the
         network
     flow.core.params.NetParams
-        network-specific parameters used to generate the scenario
+        network-specific parameters used to generate the network
     """
     additional_init_params = {'enter_speed': enter_speed}
     initial = InitialConfig(
@@ -200,8 +198,8 @@ flow_params = dict(
     # name of the flow environment the experiment is running on
     env_name='AccelEnv',
 
-    # name of the scenario class the experiment is running on
-    scenario='SimpleGridScenario',
+    # name of the network class the experiment is running on
+    network='SimpleGridNetwork',
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -219,7 +217,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=net_params,
 
     # vehicles to be placed in the network at the start of a rollout (see

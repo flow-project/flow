@@ -3,9 +3,14 @@
 Trains a a small percentage of rl vehicles to dissipate shockwaves caused by
 on-ramp merge to a single lane open highway network.
 """
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.params import VehicleParams, InFlows, SumoCarFollowingParams
-from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
+from flow.core.params import SumoParams, EnvParams, InitialConfig
+from flow.core.params import NetParams, InFlows, SumoCarFollowingParams
+from flow.networks.merge import ADDITIONAL_NET_PARAMS
+from flow.core.params import VehicleParams
 from flow.controllers import IDMController, RLController
 
 # experiment number
@@ -83,8 +88,8 @@ flow_params = dict(
     # name of the flow environment the experiment is running on
     env_name="WaveAttenuationMergePOEnv",
 
-    # name of the scenario class the experiment is running on
-    scenario="MergeScenario",
+    # name of the network class the experiment is running on
+    network="MergeNetwork",
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -110,7 +115,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
         additional_params=additional_net_params,

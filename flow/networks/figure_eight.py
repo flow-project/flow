@@ -1,11 +1,11 @@
-"""Contains the figure eight scenario class."""
+"""Contains the figure eight network class."""
 
 import numpy as np
 from numpy import pi, sin, cos, linspace
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_network import Network
 
 ADDITIONAL_NET_PARAMS = {
     # radius of the circular components
@@ -19,8 +19,8 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class Figure8Scenario(Scenario):
-    """Figure eight scenario class.
+class Figure8Network(Network):
+    """Figure eight network class.
 
     The figure eight network is an extension of the ring road network: Two
     rings, placed at opposite ends of the network, are connected by an
@@ -40,9 +40,9 @@ class Figure8Scenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import Figure8Scenario
+    >>> from flow.networks import Figure8Network
     >>>
-    >>> scenario = Figure8Scenario(
+    >>> network = Figure8Network(
     >>>     name='figure_eight',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
@@ -62,7 +62,7 @@ class Figure8Scenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a figure 8 scenario."""
+        """Initialize a figure 8 network."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))

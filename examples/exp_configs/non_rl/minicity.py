@@ -39,8 +39,8 @@ flow_params = dict(
     # name of the flow environment the experiment is running on
     env_name='AccelEnv',
 
-    # name of the scenario class the experiment is running on
-    scenario='MiniCityScenario',
+    # name of the network class the experiment is running on
+    network='MiniCityNetwork',
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -62,7 +62,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(),
 
     # vehicles to be placed in the network at the start of a rollout (see

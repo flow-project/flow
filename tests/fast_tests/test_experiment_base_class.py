@@ -20,8 +20,8 @@ class TestNumSteps(unittest.TestCase):
     """
 
     def setUp(self):
-        # create the environment and scenario classes for a ring road
-        env, scenario = ring_road_exp_setup()
+        # create the environment and network classes for a ring road
+        env, _ = ring_road_exp_setup()
 
         # instantiate an experiment class
         self.exp = Experiment(env)
@@ -45,7 +45,7 @@ class TestNumRuns(unittest.TestCase):
     def test_num_runs(self):
         # run the experiment for 1 run and collect the last position of all
         # vehicles
-        env, scenario = ring_road_exp_setup()
+        env, _ = ring_road_exp_setup()
         exp = Experiment(env)
         exp.run(num_runs=1, num_steps=10)
 
@@ -53,7 +53,7 @@ class TestNumRuns(unittest.TestCase):
 
         # run the experiment for 2 runs and collect the last position of all
         # vehicles
-        env, scenario = ring_road_exp_setup()
+        env, _ = ring_road_exp_setup()
         exp = Experiment(env)
         exp.run(num_runs=2, num_steps=10)
 
@@ -84,7 +84,7 @@ class TestRLActions(unittest.TestCase):
             ),
             num_vehicles=1)
 
-        env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
 
         exp = Experiment(env=env)
 
@@ -105,7 +105,7 @@ class TestConvertToCSV(unittest.TestCase):
     def test_convert_to_csv(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         sim_params = SumoParams(emission_path="{}/".format(dir_path))
-        env, scenario = ring_road_exp_setup(sim_params=sim_params)
+        env, network = ring_road_exp_setup(sim_params=sim_params)
         exp = Experiment(env)
         exp.run(num_runs=1, num_steps=10, convert_to_csv=True)
 
@@ -113,15 +113,15 @@ class TestConvertToCSV(unittest.TestCase):
 
         # check that both the csv file exists and the xml file doesn't.
         self.assertFalse(os.path.isfile(dir_path + "/{}-emission.xml".format(
-            scenario.name)))
+            network.name)))
         self.assertTrue(os.path.isfile(dir_path + "/{}-emission.csv".format(
-            scenario.name)))
+            network.name)))
 
         time.sleep(0.1)
 
         # delete the files
         os.remove(os.path.expanduser(dir_path + "/{}-emission.csv".format(
-            scenario.name)))
+            network.name)))
 
 
 if __name__ == '__main__':

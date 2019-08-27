@@ -1,16 +1,16 @@
-"""Contains the bottleneck scenario class."""
+"""Contains the bottleneck network class."""
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_network import Network
 import numpy as np
 from numpy import linspace, pi, sin, cos
 
 SCALING = 40
 
 
-class MiniCityScenario(Scenario):
-    """Scenario class for bottleneck simulations.
+class MiniCityNetwork(Network):
+    """Network class for bottleneck simulations.
 
     This network is a recreation of the blank (get from something). The size of
     the network can be modified by updating the SCALING variable within the
@@ -21,9 +21,9 @@ class MiniCityScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import MiniCityScenario
+    >>> from flow.networks import MiniCityNetwork
     >>>
-    >>> scenario = MiniCityScenario(
+    >>> network = MiniCityNetwork(
     >>>     name='minicity',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams()
@@ -36,7 +36,7 @@ class MiniCityScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Instantiate the scenario class."""
+        """Instantiate the network class."""
         self.nodes_dict = dict()
 
         super().__init__(name, vehicles, net_params,

@@ -1,6 +1,6 @@
-"""Contains the ring road scenario class."""
+"""Contains the ring road network class."""
 
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_network import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos, linspace
@@ -17,8 +17,8 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class LoopScenario(Scenario):
-    """Ring road scenario.
+class LoopNetwork(Network):
+    """Ring road network.
 
     This network consists of nodes at the top, bottom, left, and right
     peripheries of the circles, connected by four 90 degree arcs. It is
@@ -37,9 +37,9 @@ class LoopScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import LoopScenario
+    >>> from flow.networks import LoopNetwork
     >>>
-    >>> scenario = LoopScenario(
+    >>> network = LoopNetwork(
     >>>     name='ring_road',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
@@ -59,7 +59,7 @@ class LoopScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a loop scenario."""
+        """Initialize a loop network."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))

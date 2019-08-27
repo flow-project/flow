@@ -1,7 +1,11 @@
-"""Empty init file to ensure documentation for the scenario is created."""
+"""Empty init file to handle deprecations."""
 
-from flow.core.kernel.scenario.base import KernelScenario
-from flow.core.kernel.scenario.traci import TraCIScenario
-from flow.core.kernel.scenario.aimsun import AimsunKernelScenario
+import warnings
+from flow.core.kernel.network import *  # noqa: F401,F403
 
-__all__ = ["KernelScenario", "TraCIScenario", "AimsunKernelScenario"]
+warnings.simplefilter('always', PendingDeprecationWarning)
+warnings.warn(
+    "flow.core.kernel.scenario will be deprecated in a future release. Please "
+    "use flow.core.kernel.network instead.",
+    PendingDeprecationWarning
+)

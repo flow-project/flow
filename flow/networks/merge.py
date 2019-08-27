@@ -1,6 +1,6 @@
-"""Contains the merge scenario class."""
+"""Contains the merge network class."""
 
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_network import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos
@@ -24,10 +24,10 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class MergeScenario(Scenario):
-    """Scenario class for highways with a single in-merge.
+class MergeNetwork(Network):
+    """Network class for highways with a single in-merge.
 
-    This scenario consists of a single or multi-lane highway network with an
+    This network consists of a single or multi-lane highway network with an
     on-ramp with a variable number of lanes that can be used to generate
     periodic perturbation.
 
@@ -45,9 +45,9 @@ class MergeScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import MergeScenario
+    >>> from flow.networks import MergeNetwork
     >>>
-    >>> scenario = MergeScenario(
+    >>> network = MergeNetwork(
     >>>     name='merge',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
@@ -69,7 +69,7 @@ class MergeScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a merge scenario."""
+        """Initialize a merge network."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))

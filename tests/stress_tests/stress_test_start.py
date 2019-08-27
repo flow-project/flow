@@ -4,7 +4,7 @@ from flow.core.params import SumoParams, EnvParams, \
     InitialConfig, NetParams
 from flow.core.params import VehicleParams
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
+from flow.networks.loop import LoopNetwork, ADDITIONAL_NET_PARAMS
 import ray
 
 
@@ -27,13 +27,13 @@ def start():
 
     initial_config = InitialConfig(bunching=20)
 
-    scenario = LoopScenario(
+    network = LoopNetwork(
         name="sugiyama",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = AccelEnv(env_params, sim_params, scenario)
+    env = AccelEnv(env_params, sim_params, network)
     env._close()
 
 

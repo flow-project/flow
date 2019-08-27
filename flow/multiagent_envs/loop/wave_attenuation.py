@@ -26,7 +26,7 @@ ADDITIONAL_ENV_PARAMS = {
 class MultiWaveAttenuationPOEnv(MultiEnv):
     """Multiagent shared model version of WaveAttenuationPOEnv.
 
-    Intended to work with Lord Of The Rings Scenario.
+    Intended to work with Lord Of The Rings Network.
     Note that this environment current
     only works when there is one autonomous vehicle
     on each ring.

@@ -72,7 +72,7 @@
         "osm_path": null,
         "template": null
     },
-    "scenario": "MergeScenario",
+    "network": "MergeNetwork",
     "sim": {
         "emission_path": null,
         "lateral_resolution": null,

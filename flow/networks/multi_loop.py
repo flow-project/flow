@@ -1,6 +1,6 @@
-"""Contains the ring road scenario class."""
+"""Contains the ring road network class."""
 
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_network import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos, linspace, ceil, sqrt
@@ -21,10 +21,10 @@ ADDITIONAL_NET_PARAMS = {
 VEHICLE_LENGTH = 5  # length of vehicles in the network, in meters
 
 
-class MultiLoopScenario(Scenario):
-    """Ring road scenario.
+class MultiLoopNetwork(Network):
+    """Ring road network.
 
-    This network is similar to `LoopScenario`, but generates multiple separate
+    This network is similar to `LoopNetwork`, but generates multiple separate
     ring roads in the same simulation.
 
     Requires from net_params:
@@ -40,9 +40,9 @@ class MultiLoopScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import MultiLoopScenario
+    >>> from flow.networks import MultiLoopNetwork
     >>>
-    >>> scenario = MultiLoopScenario(
+    >>> network = MultiLoopNetwork(
     >>>     name='multi_ring_road',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
@@ -63,7 +63,7 @@ class MultiLoopScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a loop scenario."""
+        """Initialize a loop network."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))

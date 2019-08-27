@@ -46,8 +46,8 @@ class TestShuffle(unittest.TestCase):
 
         initial_config = InitialConfig(x0=5, shuffle=True)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(
             env_params=env_params,
             initial_config=initial_config,
             vehicles=vehicles)
@@ -86,8 +86,8 @@ class TestEmissionPath(unittest.TestCase):
         # set sim_params to default
         sim_params = SumoParams()
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(sim_params=sim_params)
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(sim_params=sim_params)
 
     def tearDown(self):
         # terminate the traci instance
@@ -132,8 +132,8 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
                 lane_change_mode=0),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(
             net_params=net_params, env_params=env_params, vehicles=vehicles)
 
     def tearDown(self):
@@ -264,7 +264,7 @@ class TestWarmUpSteps(unittest.TestCase):
         # than one
         env_params = EnvParams(
             warmup_steps=warmup_step, additional_params=ADDITIONAL_ENV_PARAMS)
-        env, scenario = ring_road_exp_setup(env_params=env_params)
+        env, _ = ring_road_exp_setup(env_params=env_params)
 
         # time before running a reset
         t1 = 0
@@ -289,7 +289,7 @@ class TestSimsPerStep(unittest.TestCase):
         env_params = EnvParams(
             sims_per_step=sims_per_step,
             additional_params=ADDITIONAL_ENV_PARAMS)
-        env, scenario = ring_road_exp_setup(env_params=env_params)
+        env, _ = ring_road_exp_setup(env_params=env_params)
 
         env.reset()
         # time before running a step
@@ -311,12 +311,12 @@ class TestAbstractMethods(unittest.TestCase):
     """
 
     def setUp(self):
-        env, scenario = ring_road_exp_setup()
+        env, network = ring_road_exp_setup()
         sim_params = SumoParams()  # FIXME: make ambiguous
         env_params = EnvParams()
         self.env = Env(sim_params=sim_params,
                        env_params=env_params,
-                       scenario=scenario)
+                       network=network)
 
     def tearDown(self):
         self.env.terminate()
@@ -343,8 +343,8 @@ class TestVehicleColoring(unittest.TestCase):
         # add an RL vehicle to ensure that its color will be distinct
         vehicles.add("rl", acceleration_controller=(RLController, {}),
                      num_vehicles=1)
-        _, scenario = ring_road_exp_setup(vehicles=vehicles)
-        env = TestEnv(EnvParams(), SumoParams(), scenario)
+        _, network = ring_road_exp_setup(vehicles=vehicles)
+        env = TestEnv(EnvParams(), SumoParams(), network)
         env.reset()
 
         # set one vehicle as observed
@@ -421,13 +421,13 @@ class TestClipBoxActions(unittest.TestCase):
     """
 
     def setUp(self):
-        env, scenario = ring_road_exp_setup()
+        env, network = ring_road_exp_setup()
         sim_params = SumoParams()
         env_params = EnvParams()
         self.env = BoxEnv(
             sim_params=sim_params,
             env_params=env_params,
-            scenario=scenario)
+            scenario=network)
 
     def tearDown(self):
         self.env.terminate()

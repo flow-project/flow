@@ -1,8 +1,8 @@
-"""Contains the grid scenario class."""
+"""Contains the grid network class."""
 
 import numpy as np
 
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_network import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from collections import defaultdict
@@ -42,10 +42,10 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class SimpleGridScenario(Scenario):
-    """Grid scenario class.
+class SimpleGridNetwork(Network):
+    """Grid network class.
 
-    The grid scenario consists of m vertical lanes and n horizontal lanes,
+    The grid network consists of m vertical lanes and n horizontal lanes,
     with a total of nxm intersections where the vertical and horizontal
     edges meet.
 
@@ -77,9 +77,9 @@ class SimpleGridScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import SimpleGridScenario
+    >>> from flow.networks import SimpleGridNetwork
     >>>
-    >>> scenario = SimpleGridScenario(
+    >>> network = SimpleGridNetwork(
     >>>     name='grid',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
@@ -112,7 +112,7 @@ class SimpleGridScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize an n*m grid scenario."""
+        """Initialize an n*m grid network."""
         optional = ["tl_logic"]
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params and p not in optional:
@@ -155,10 +155,10 @@ class SimpleGridScenario(Scenario):
         self.inner_nodes_radius = 2.9 + 3.3 * max(self.vertical_lanes,
                                                   self.horizontal_lanes)
 
-        # total number of edges in the scenario
+        # total number of edges in the network
         self.num_edges = 4 * ((self.col_num + 1) * self.row_num + self.col_num)
 
-        # name of the scenario (DO NOT CHANGE)
+        # name of the network (DO NOT CHANGE)
         self.name = "BobLoblawsLawBlog"
 
         super().__init__(name, vehicles, net_params, initial_config,
@@ -214,7 +214,7 @@ class SimpleGridScenario(Scenario):
 
     @property
     def _inner_nodes(self):
-        """Build out the inner nodes of the scenario.
+        """Build out the inner nodes of the network.
 
         The inner nodes correspond to the intersections between the roads. They
         are numbered from bottom left, increasing first across the columns and
@@ -254,13 +254,13 @@ class SimpleGridScenario(Scenario):
 
     @property
     def _outer_nodes(self):
-        """Build out the outer nodes of the scenario.
+        """Build out the outer nodes of the network.
 
         The outer nodes correspond to the extremities of the roads. There are
-        two at each extremity, one where the vehicles enter the scenario
-        (inflow) and one where the vehicles exit the scenario (outflow).
+        two at each extremity, one where the vehicles enter the network
+        (inflow) and one where the vehicles exit the network (outflow).
 
-        Consider the following scenario with 2 rows and 3 columns, where the
+        Consider the following network with 2 rows and 3 columns, where the
         extremities are marked by 'x', the rows are labeled from 0 to 1 and the
         columns are labeled from 0 to 2:
 
@@ -320,11 +320,11 @@ class SimpleGridScenario(Scenario):
 
     @property
     def _inner_edges(self):
-        """Build out the inner edges of the scenario.
+        """Build out the inner edges of the network.
 
         The inner edges are the edges joining the inner nodes to each other.
 
-        Consider the following scenario with n = 2 rows and m = 3 columns,
+        Consider the following network with n = 2 rows and m = 3 columns,
         where the rows are indexed from 0 to 1 and the columns from 0 to 2, and
         the inner nodes are marked by 'x':
 
@@ -392,12 +392,12 @@ class SimpleGridScenario(Scenario):
 
     @property
     def _outer_edges(self):
-        """Build out the outer edges of the scenario.
+        """Build out the outer edges of the network.
 
         The outer edges are the edges joining the inner nodes to the outer
         nodes.
 
-        Consider the following scenario with n = 2 rows and m = 3 columns,
+        Consider the following network with n = 2 rows and m = 3 columns,
         where the rows are indexed from 0 to 1 and the columns from 0 to 2, the
         inner nodes are marked by 'x' and the outer nodes by 'o':
 

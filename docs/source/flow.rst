@@ -10,7 +10,7 @@ Subpackages
     flow.controllers
     flow.core
     flow.envs
-    flow.scenarios
+    flow.networks
     flow.utils
     flow.visualize
     flow.renderer

@@ -7,7 +7,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams, InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
-from flow.scenarios.bay_bridge import EDGES_DISTRIBUTION
+from flow.networks.bay_bridge import EDGES_DISTRIBUTION
 from flow.controllers import SimCarFollowingController, BayBridgeRouter
 
 USE_TRAFFIC_LIGHTS = False
@@ -149,8 +149,8 @@ flow_params = dict(
     # name of the flow environment the experiment is running on
     env_name='BayBridgeEnv',
 
-    # name of the scenario class the experiment is running on
-    scenario='BayBridgeScenario',
+    # name of the network class the experiment is running on
+    network='BayBridgeNetwork',
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -169,7 +169,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
         template=TEMPLATE,

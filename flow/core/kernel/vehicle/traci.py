@@ -167,11 +167,11 @@ class TraCIVehicle(KernelVehicle):
             self._arrived_ids.clear()
 
             # add vehicles from a network template, if applicable
-            if hasattr(self.master_kernel.scenario.network,
+            if hasattr(self.master_kernel.network.network,
                        "template_vehicles"):
-                for veh_id in self.master_kernel.scenario.network.\
+                for veh_id in self.master_kernel.network.network.\
                         template_vehicles:
-                    vals = deepcopy(self.master_kernel.scenario.network.
+                    vals = deepcopy(self.master_kernel.network.network.
                                     template_vehicles[veh_id])
                     # a step is executed during initialization, so add this sim
                     # step to the departure time of vehicles
@@ -659,14 +659,14 @@ class TraCIVehicle(KernelVehicle):
         leader velocity/follower velocity for all
         vehicles in the network.
         """
-        edge_list = self.master_kernel.scenario.get_edge_list()
-        junction_list = self.master_kernel.scenario.get_junction_list()
+        edge_list = self.master_kernel.network.get_edge_list()
+        junction_list = self.master_kernel.network.get_junction_list()
         tot_list = edge_list + junction_list
-        num_edges = (len(self.master_kernel.scenario.get_edge_list()) + len(
-            self.master_kernel.scenario.get_junction_list()))
+        num_edges = (len(self.master_kernel.network.get_edge_list()) + len(
+            self.master_kernel.network.get_junction_list()))
 
         # maximum number of lanes in the network
-        max_lanes = max([self.master_kernel.scenario.num_lanes(edge_id)
+        max_lanes = max([self.master_kernel.network.num_lanes(edge_id)
                          for edge_id in tot_list])
 
         # Key = edge id
@@ -754,7 +754,7 @@ class TraCIVehicle(KernelVehicle):
         this_pos = self.get_position(veh_id)
         this_edge = self.get_edge(veh_id)
         this_lane = self.get_lane(veh_id)
-        num_lanes = self.master_kernel.scenario.num_lanes(this_edge)
+        num_lanes = self.master_kernel.network.num_lanes(this_edge)
 
         # set default values for all output values
         headway = [1000] * num_lanes
@@ -821,17 +821,17 @@ class TraCIVehicle(KernelVehicle):
         pos = self.get_position(veh_id)
         edge = self.get_edge(veh_id)
 
-        headway = 1000  # env.scenario.length
+        headway = 1000  # env.network.length
         leader = ""
         add_length = 0  # length increment in headway
 
         for _ in range(num_edges):
             # break if there are no edge/lane pairs behind the current one
-            if len(self.master_kernel.scenario.next_edge(edge, lane)) == 0:
+            if len(self.master_kernel.network.next_edge(edge, lane)) == 0:
                 break
 
-            add_length += self.master_kernel.scenario.edge_length(edge)
-            edge, lane = self.master_kernel.scenario.next_edge(edge, lane)[0]
+            add_length += self.master_kernel.network.edge_length(edge)
+            edge, lane = self.master_kernel.network.next_edge(edge, lane)[0]
 
             try:
                 if len(edge_dict[edge][lane]) > 0:
@@ -866,17 +866,17 @@ class TraCIVehicle(KernelVehicle):
         pos = self.get_position(veh_id)
         edge = self.get_edge(veh_id)
 
-        tailway = 1000  # env.scenario.length
+        tailway = 1000  # env.network.length
         follower = ""
         add_length = 0  # length increment in headway
 
         for _ in range(num_edges):
             # break if there are no edge/lane pairs behind the current one
-            if len(self.master_kernel.scenario.prev_edge(edge, lane)) == 0:
+            if len(self.master_kernel.network.prev_edge(edge, lane)) == 0:
                 break
 
-            edge, lane = self.master_kernel.scenario.prev_edge(edge, lane)[0]
-            add_length += self.master_kernel.scenario.edge_length(edge)
+            edge, lane = self.master_kernel.network.prev_edge(edge, lane)[0]
+            add_length += self.master_kernel.network.edge_length(edge)
 
             try:
                 if len(edge_dict[edge][lane]) > 0:
@@ -930,7 +930,7 @@ class TraCIVehicle(KernelVehicle):
             this_edge = self.get_edge(veh_id)
             target_lane = min(
                 max(this_lane + direction[i], 0),
-                self.master_kernel.scenario.num_lanes(this_edge) - 1)
+                self.master_kernel.network.num_lanes(this_edge) - 1)
 
             # perform the requested lane action action in TraCI
             if target_lane != this_lane:
@@ -958,7 +958,7 @@ class TraCIVehicle(KernelVehicle):
         if self.get_edge(veh_id) == '':
             # occurs when a vehicle crashes is teleported for some other reason
             return 0.
-        return self.master_kernel.scenario.get_x(
+        return self.master_kernel.network.get_x(
             self.get_edge(veh_id), self.get_position(veh_id))
 
     def update_vehicle_colors(self):
@@ -1008,13 +1008,13 @@ class TraCIVehicle(KernelVehicle):
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
-        if veh_id in self.master_kernel.scenario.rts:
+        if veh_id in self.master_kernel.network.rts:
             # If the vehicle has its own route, use that route. This is used in
             # the case of network templates.
             route_id = 'route{}_0'.format(veh_id)
         else:
-            num_routes = len(self.master_kernel.scenario.rts[edge])
-            frac = [val[1] for val in self.master_kernel.scenario.rts[edge]]
+            num_routes = len(self.master_kernel.network.rts[edge])
+            frac = [val[1] for val in self.master_kernel.network.rts[edge]]
             route_id = 'route{}_{}'.format(edge, np.random.choice(
                 [i for i in range(num_routes)], size=1, p=frac)[0])
 

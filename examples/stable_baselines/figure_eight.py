@@ -15,7 +15,6 @@ from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 
 
-
 def run_model(num_cpus=1, rollout_size=50, num_steps=50):
     """Run the model for num_steps if provided. The total rollout length is rollout_size."""
     if num_cpus == 1:

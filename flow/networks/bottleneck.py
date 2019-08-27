@@ -1,8 +1,8 @@
-"""Contains the bottleneck scenario class."""
+"""Contains the bottleneck network class."""
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_network import Network
 import numpy as np
 
 ADDITIONAL_NET_PARAMS = {
@@ -13,8 +13,8 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class BottleneckScenario(Scenario):
-    """Scenario class for bottleneck simulations.
+class BottleneckNetwork(Network):
+    """Network class for bottleneck simulations.
 
     This network acts as a scalable representation of the Bay Bridge. It
     consists of a two-stage lane-drop bottleneck where 4n lanes reduce to 2n
@@ -31,9 +31,9 @@ class BottleneckScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import BottleneckScenario
+    >>> from flow.networks import BottleneckNetwork
     >>>
-    >>> scenario = BottleneckScenario(
+    >>> network = BottleneckNetwork(
     >>>     name='bottleneck',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
@@ -51,7 +51,7 @@ class BottleneckScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Instantiate the scenario class."""
+        """Instantiate the network class."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))

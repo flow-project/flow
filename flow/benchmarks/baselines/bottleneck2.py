@@ -65,12 +65,12 @@ def bottleneck2_baseline(num_runs, render=True):
     # set the evaluation flag to True
     env_params.evaluate = True
 
-    # import the scenario class
-    module = __import__('flow.scenarios', fromlist=[flow_params['scenario']])
-    scenario_class = getattr(module, flow_params['scenario'])
+    # import the network class
+    module = __import__('flow.networks', fromlist=[flow_params['network']])
+    network_class = getattr(module, flow_params['network'])
 
-    # create the scenario object
-    scenario = scenario_class(
+    # create the network object
+    network = network_class(
         name=exp_tag,
         vehicles=vehicles,
         net_params=net_params,
@@ -83,7 +83,7 @@ def bottleneck2_baseline(num_runs, render=True):
     env_class = getattr(module, flow_params['env_name'])
 
     # create the environment object
-    env = env_class(env_params, sim_params, scenario)
+    env = env_class(env_params, sim_params, network)
 
     exp = Experiment(env)
 

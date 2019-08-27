@@ -176,7 +176,7 @@ with open(scenario_data_path, 'w') as f:
           scenario_data_path)
 
 # create a check file to announce that we are done
-# writing all the scenario data into the .json file
+# writing all the network data into the .json file
 check_file = 'flow/core/kernel/scenario/scenario_data_check'
 check_file_path = os.path.join(config.PROJECT_PATH, check_file)
 open(check_file_path, 'a').close()

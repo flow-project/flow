@@ -1,6 +1,6 @@
-"""Contains the highway scenario class."""
+"""Contains the highway network class."""
 
-from flow.scenarios.base_scenario import Scenario
+from flow.networks.base_network import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 import numpy as np
@@ -17,8 +17,8 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class HighwayScenario(Scenario):
-    """Highway scenario class.
+class HighwayNetwork(Network):
+    """Highway network class.
 
     This network consists of `num_edges` different straight highway sections
     with a total characteristic length and number of lanes.
@@ -35,9 +35,9 @@ class HighwayScenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import HighwayScenario
+    >>> from flow.networks import HighwayNetwork
     >>>
-    >>> scenario = HighwayScenario(
+    >>> network = HighwayNetwork(
     >>>     name='highway',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
@@ -57,7 +57,7 @@ class HighwayScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a highway scenario."""
+        """Initialize a highway network."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))

@@ -8,7 +8,7 @@ from flow.controllers import IDMController, StaticLaneChanger, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, NetParams
 from flow.core.params import VehicleParams, SumoCarFollowingParams
 from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
-from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
+from flow.networks.figure_eight import ADDITIONAL_NET_PARAMS
 
 vehicles = VehicleParams()
 vehicles.add(
@@ -31,8 +31,8 @@ flow_params = dict(
     # name of the flow environment the experiment is running on
     env_name='AccelEnv',
 
-    # name of the scenario class the experiment is running on
-    scenario='Figure8Scenario',
+    # name of the network class the experiment is running on
+    network='Figure8Network',
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -49,7 +49,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         additional_params=ADDITIONAL_NET_PARAMS.copy(),
     ),

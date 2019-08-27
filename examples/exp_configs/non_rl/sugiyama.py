@@ -7,7 +7,7 @@ from flow.controllers import IDMController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
 from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
-from flow.scenarios.loop import ADDITIONAL_NET_PARAMS
+from flow.networks.loop import ADDITIONAL_NET_PARAMS
 
 
 vehicles = VehicleParams()
@@ -25,8 +25,8 @@ flow_params = dict(
     # name of the flow environment the experiment is running on
     env_name='AccelEnv',
 
-    # name of the scenario class the experiment is running on
-    scenario='LoopScenario',
+    # name of the network class the experiment is running on
+    network='LoopNetwork',
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -44,7 +44,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         additional_params=ADDITIONAL_NET_PARAMS.copy(),
     ),

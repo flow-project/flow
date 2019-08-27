@@ -14,8 +14,8 @@ class Experiment:
     """
     Class for systematically running simulations in any supported simulator.
 
-    This class acts as a runner for a scenario and environment. In order to use
-    it to run an scenario and environment in the absence of a method specifying
+    This class acts as a runner for a network and environment. In order to use
+    it to run an network and environment in the absence of a method specifying
     the actions of RL agents in the network, type the following:
 
         >>> from flow.envs import Env
@@ -65,12 +65,12 @@ class Experiment:
         self.env = create_env()
 
         logging.info(" Starting experiment {} at {}".format(
-            self.env.scenario.name, str(datetime.datetime.utcnow())))
+            self.env.network.name, str(datetime.datetime.utcnow())))
 
         logging.info("Initializing environment.")
 
     def run(self, num_runs, rl_actions=None, convert_to_csv=False):
-        """Run the given scenario for a set number of runs and steps per run.
+        """Run the given network for a set number of runs.
 
         Parameters
         ----------
@@ -158,7 +158,7 @@ class Experiment:
             # collect the location of the emission file
             dir_path = self.env.sim_params.emission_path
             emission_filename = \
-                "{0}-emission.xml".format(self.env.scenario.name)
+                "{0}-emission.xml".format(self.env.network.name)
             emission_path = os.path.join(dir_path, emission_filename)
 
             # convert the emission file into a csv
