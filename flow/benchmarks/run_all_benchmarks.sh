@@ -13,7 +13,7 @@ cd "$parent_path"
 
 dt=$(date '+%Y_%m_%d_%H%M');
 echo $dt
-for run_script in rllib/*_runner.py; do
+for run_script in rllib/ppo_runner.py; do
     declare alg=`echo ${run_script} | cut -d'/' -f 2 | cut -d'_' -f 1`
     for benchmark in "${benchmarks[@]}"; do
 
