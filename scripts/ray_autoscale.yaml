@@ -69,7 +69,8 @@ worker_nodes:
 setup_commands:
     # checkout your desired branch on all worker nodes
     - cd flow && git fetch && git checkout upgrade_ray
-    # set up ray by pip installing and copying over rllib and tune folder
+    - conda install python=3.6.6 -y
+  # set up ray by pip installing and copying over rllib and tune folder
     - pip install --upgrade pyzmq notebook
     - pip install ray==0.7.3
     - pip install lz4

@@ -68,6 +68,7 @@ worker_nodes:
 
 setup_commands:
     # checkout your desired branch on all worker nodes
+    - conda install python=3.6.6 -y
     - pip install --upgrade pyzmq notebook
     - pip install ray==0.7.3
     - pip install lz4
@@ -78,7 +79,7 @@ setup_commands:
     - echo 'export PATH="/home/ubuntu/anaconda3/bin:$PATH"' >> ~/.bashrc
 # Custom commands that will be run on the head node after common setup.
 head_setup_commands:
-    - pip install boto3==1.4.8  # 1.4.8 adds InstanceMarketOptions
+    - conda install boto3==1.4.8  # 1.4.8 adds InstanceMarketOptions
 
 # Custom commands that will be run on worker nodes after common setup.
 worker_setup_commands: []
