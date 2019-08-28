@@ -14,14 +14,13 @@ def parse_args(args):
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="Parse argument used when running a Flow simulation.",
-        epilog="python simulate.py --num_runs INT --render")
+        epilog="python simulate.py EXP_CONFIG --num_runs INT --render")
 
     # required input parameters
     parser.add_argument(
         'exp_config', type=str,
-        help='Name of the gym environment. This environment must either be '
-             'registered in gym, be available in the computation framework '
-             'Flow, or be available within the hbaselines/envs folder.')
+        help='Name of the experiment configuration file, as located in '
+             'exp_configs/non_rl.')
 
     # optional input parameters
     parser.add_argument(
