@@ -6,7 +6,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams, VehicleParams  
 
 from gym.spaces.box import Box
-from gym.spaces.tuple_space import Tuple
+from gym.spaces.tuple import Tuple
 
 from copy import deepcopy
 from math import ceil

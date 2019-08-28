@@ -74,10 +74,7 @@ def visualizer_rllib(args):
 
     flow_params = get_flow_params(config)
 
-    # hack for old pkl files
-    # TODO(ev) remove eventually
     sim_params = flow_params['sim']
-    setattr(sim_params, 'num_clients', 1)
 
     # Determine agent and checkpoint
     config_run = config['env_config']['run'] if 'run' in config['env_config'] \
@@ -124,6 +121,21 @@ def visualizer_rllib(args):
         sim_params.render = 'drgb'
         sim_params.pxpm = 4
         sim_params.save_render = True
+
+    # Go through and switch out the IDM vehicles with Krauss if requested
+    if args.test_transfer:
+        from flow.core.params import VehicleParams
+        temp_vehicles = VehicleParams()
+        from flow.controllers.car_following_models import IDMController
+        from flow.controllers.car_following_models import SimCarFollowingController
+        for veh in flow_params['veh'].initial:
+            # swap the car following params with Krauss
+            if veh['acceleration_controller'][0] == IDMController:
+                veh['acceleration_controller'] = (SimCarFollowingController, veh['acceleration_controller'][1])
+                car_following_param = veh['car_following_params']
+                car_following_param.car_follow_model = "Krauss"
+                veh['car_following_params'] = car_following_param
+            temp_vehicles.add(**veh)
 
     # Create and register a gym+rllib env
     create_env, env_name = make_create_env(params=flow_params, version=0)
@@ -384,6 +396,12 @@ def create_parser():
         '--horizon',
         type=int,
         help='Specifies the horizon.')
+    parser.add_argument(
+        '--test_transfer',
+        action='store_true',
+        help='If true, all of the vehicle driving models are replaced with Krauss models. This is a partial test'
+             'of if your method will transfer.'
+    )
     return parser
 
 
