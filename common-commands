@@ -1,0 +1,11 @@
+In the "flow" main directory:
+
+$tensorboard --logdir /ray_results/experiment_dir/result/directory
+
+
+the "results-directory" contains checkpoint folders
+$python flow/visualize/visualizer_rllib.py ../ray_results/results-directory/ #checkpoint
+
+An example:
+$python flow/visualize/visualizer_rllib.py ../ray_results/stabilizing_the_ring/PPO_WaveAttenuationPOEnv-v0_0_2019-08-28_11-41-13uejpxk43/ 10
+
