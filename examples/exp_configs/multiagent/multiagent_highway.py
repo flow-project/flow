@@ -26,6 +26,21 @@ from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
 from flow.networks.highway_ramps import ADDITIONAL_NET_PARAMS
 
 
+# SET UP RLLIB MULTI-AGENT FEATURES
+
+obs_space = None  # FIXME
+ac_space = None  # FIXME
+
+
+POLICY_GRAPHS = {'av': (PPOPolicyGraph, obs_space, ac_space, {})}
+
+POLICIES_TO_TRAIN = ['av']
+
+
+def policy_mapping_fn(_):
+    return 'av'
+
+
 # SET UP PARAMETERS FOR THE SIMULATION
 
 # number of training iterations
@@ -202,24 +217,6 @@ def setup_exps(flow_params):
 
     # register as rllib env
     register_env(env_name, create_env)
-
-    # multiagent configuration
-    temp_env = create_env()
-    policy_graphs = {'av': (PPOPolicyGraph,
-                            temp_env.observation_space,
-                            temp_env.action_space,
-                            {})}
-
-    def policy_mapping_fn(_):
-        return 'av'
-
-    config.update({
-        'multiagent': {
-            'policy_graphs': policy_graphs,
-            'policy_mapping_fn': tune.function(policy_mapping_fn),
-            'policies_to_train': ['av']
-        }
-    })
 
     return alg_run, env_name, config
 

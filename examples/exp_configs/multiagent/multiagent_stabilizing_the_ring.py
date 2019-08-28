@@ -105,79 +105,20 @@ flow_params = dict(
 )
 
 
-def setup_exps():
-    """Return the relevant components of an RLlib experiment.
-
-    Returns
-    -------
-    str
-        name of the training algorithm
-    str
-        name of the gym environment to be trained
-    dict
-        training configuration parameters
-    """
-    alg_run = 'PPO'
-    agent_cls = get_agent_class(alg_run)
-    config = agent_cls._default_config.copy()
-    config['num_workers'] = N_CPUS
-    config['train_batch_size'] = HORIZON * N_ROLLOUTS
-    config['simple_optimizer'] = True
-    config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [32, 32]})
-    config['lr'] = tune.grid_search([1e-5])
-    config['horizon'] = HORIZON
-    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
-    config['observation_filter'] = 'NoFilter'
-
-    # save the flow params for replay
-    flow_json = json.dumps(
-        flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
-    config['env_config']['flow_params'] = flow_json
-    config['env_config']['run'] = alg_run
-
-    create_env, env_name = make_create_env(params=flow_params, version=0)
-
-    # Register as rllib env
-    register_env(env_name, create_env)
-
-    test_env = create_env()
-    obs_space = test_env.observation_space
-    act_space = test_env.action_space
-
-    def gen_policy():
-        return (PPOPolicyGraph, obs_space, act_space, {})
-
-    # Setup PG with an ensemble of `num_policies` different policy graphs
-    policy_graphs = {'av': gen_policy()}
-
-    def policy_mapping_fn(_):
-        return 'av'
-
-    config.update({
-        'multiagent': {
-            'policy_graphs': policy_graphs,
-            'policy_mapping_fn': tune.function(policy_mapping_fn),
-            'policies_to_train': ['av']
-        }
-    })
-
-    return alg_run, env_name, config
+obs_space = 3
+act_space = 1
 
 
-if __name__ == '__main__':
-    alg_run, env_name, config = setup_exps()
-    ray.init(num_cpus=N_CPUS + 1)
+def gen_policy():
+    return PPOPolicyGraph, obs_space, act_space, {}
 
-    run_experiments({
-        flow_params['exp_tag']: {
-            'run': alg_run,
-            'env': env_name,
-            'checkpoint_freq': 1,
-            'stop': {
-                'training_iteration': 1
-            },
-            'config': config,
-            # 'upload_dir': 's3://<BUCKET NAME>'
-        },
-    })
+
+# Setup PG with an ensemble of `num_policies` different policy graphs
+policy_graphs = {'av': gen_policy()}
+
+
+def policy_mapping_fn(_):
+    return 'av'
+
+
+policies_to_train = ['av']

@@ -46,7 +46,6 @@ def make_flow_params(n_rows, n_columns, edge_inflow):
         number of columns in the grid
     edge_inflow : float
 
-
     Returns
     -------
     dict
@@ -203,7 +202,7 @@ def setup_exps_PPO(flow_params):
     act_space = test_env.action_space
 
     def gen_policy():
-        return (PPOPolicyGraph, obs_space, act_space, {})
+        return PPOPolicyGraph, obs_space, act_space, {}
 
     # Setup PG with a single policy graph for all agents
     policy_graphs = {'av': gen_policy()}

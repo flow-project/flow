@@ -7,6 +7,7 @@ import sys
 import json
 import argparse
 import ray
+from ray import tune
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 from flow.utils.rllib import FlowParamsEncoder
@@ -39,7 +40,12 @@ def parse_args(args):
     return parser.parse_known_args(args)[0]
 
 
-def setup_exps(flow_params, n_cpus, n_rollouts):
+def setup_exps(flow_params,
+               n_cpus,
+               n_rollouts,
+               policy_graphs=None,
+               policy_mapping_fn=None,
+               policies_to_train=None):
     """Return the relevant components of an RLlib experiment.
 
     Parameters
@@ -50,6 +56,12 @@ def setup_exps(flow_params, n_cpus, n_rollouts):
         number of CPUs to run the experiment over
     n_rollouts : int
         number of rollouts per training iteration
+    policy_graphs : dict, optional
+        TODO
+    policy_mapping_fn : function, optional
+        TODO
+    policies_to_train : list of str, optional
+        TODO
 
     Returns
     -------
@@ -83,6 +95,14 @@ def setup_exps(flow_params, n_cpus, n_rollouts):
     config['env_config']['flow_params'] = flow_json
     config['env_config']['run'] = alg_run
 
+    # multiagent configuration
+    if policy_graphs is not None:
+        config.update({'multiagent': {'policy_graphs': policy_graphs}})
+    if policy_mapping_fn is not None:
+        config.update({'multiagent': {'policy_mapping_fn': tune.function(policy_mapping_fn)}})
+    if policies_to_train is not None:
+        config.update({'multiagent': {'policies_to_train': policies_to_train}})
+
     create_env, gym_name = make_create_env(params=flow_params, version=0)
 
     # Register as rllib env
@@ -95,11 +115,18 @@ if __name__ == "__main__":
 
     # import relevant information from the exp_config script
     module = __import__("exp_configs.single_agent", fromlist=[flags.exp_config])
-    flow_params = getattr(module, flags.exp_config).flow_params
-    n_cpus = getattr(module, flags.exp_config).N_CPUS
-    n_rollouts = getattr(module, flags.exp_config).N_ROLLOUTS
+    submodule = getattr(module, flags.exp_config)
+    flow_params = submodule.flow_params
+    n_cpus = submodule.N_CPUS
+    n_rollouts = submodule.N_ROLLOUTS
+    policy_graphs = getattr(submodule, "policy_graphs", None)
+    policy_mapping_fn = getattr(submodule, "policy_mapping_fn", None)
+    policies_to_train = getattr(submodule, "policies_to_train", None)
 
-    alg_run, gym_name, config = setup_exps(flow_params, n_cpus, n_rollouts)
+    alg_run, gym_name, config = setup_exps(
+        flow_params, n_cpus, n_rollouts,
+        policy_graphs, policy_mapping_fn, policies_to_train)
+
     ray.init(num_cpus=n_cpus + 1, redirect_output=False)
     trials = run_experiments({
         flow_params["exp_tag"]: {
