@@ -95,11 +95,11 @@ trials = run_experiments({
 	"run": alg_run,
 	"env": gym_name,
 	"config": {**config},
-	"checkpoint_freq": 1,
+	"checkpoint_freq": 50,
 	"checkpoint_at_end": True,
 	"max_failures": 999,
 	"stop": {
-		"training_iteration": 40, 
+		"training_iteration": 10000, 
 	},
 	},
 })
