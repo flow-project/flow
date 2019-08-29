@@ -3,10 +3,6 @@
 Trains a a small percentage of rl vehicles to dissipate shockwaves caused by
 on-ramp merge to a single lane open highway network.
 """
-try:
-    from ray.rllib.agents.agent import get_agent_class
-except ImportError:
-    from ray.rllib.agents.registry import get_agent_class
 from flow.core.params import SumoParams, EnvParams, InitialConfig
 from flow.core.params import NetParams, InFlows, SumoCarFollowingParams
 from flow.networks.merge import ADDITIONAL_NET_PARAMS

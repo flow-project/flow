@@ -3,19 +3,7 @@
 Creates a set of stabilizing the ring experiments to test if
  more agents -> fewer needed batches
 """
-
-import json
-
-import ray
-try:
-    from ray.rllib.agents.agent import get_agent_class
-except ImportError:
-    from ray.rllib.agents.registry import get_agent_class
 from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
-from ray import tune
-from ray.tune.registry import register_env
-from ray.tune import run_experiments
-
 from flow.controllers import ContinuousRouter
 from flow.controllers import IDMController
 from flow.controllers import RLController
@@ -24,8 +12,6 @@ from flow.core.params import InitialConfig
 from flow.core.params import NetParams
 from flow.core.params import SumoParams
 from flow.core.params import VehicleParams
-from flow.utils.registry import make_create_env
-from flow.utils.rllib import FlowParamsEncoder
 
 # make sure (sample_batch_size * num_workers ~= train_batch_size)
 # time horizon of a single rollout
