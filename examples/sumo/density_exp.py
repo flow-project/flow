@@ -75,10 +75,17 @@ if __name__ == '__main__':
     parser.add_argument('--lc_on', action='store_true')
     parser.add_argument('--clear_data', action='store_true', help='If true, clean the folder where the files are '
                                                                   'stored before running anything')
+    parser.add_argument('--test_run', action='store_true', help='If true, sweep over a tiny grid')
     args = parser.parse_args()
 
+    assert (args.alinea_sweep and args.ramp_meter) or (not args.alinea_sweep and not args.ramp_meter), \
+        "If alinea sweep is on, the ramp meter must be on as well"
+
     path = os.path.dirname(os.path.abspath(__file__))
-    outer_path = '../../flow/visualize/trb_data/human_driving'
+    if args.alinea_sweep:
+        outer_path = '../../flow/visualize/trb_data/alinea_test'
+    else:
+        outer_path = '../../flow/visualize/trb_data/human_driving'
 
     if args.clear_data:
         for the_file in os.listdir(os.path.join(path, outer_path)):
@@ -92,9 +99,12 @@ if __name__ == '__main__':
 
     n_crit_range = list(range(args.ncrit_min, args.ncrit_max + args.ncrit_step_size, args.ncrit_step_size))
     feedback_coef_range = [5, 10, 20, 40, 100]
-
-    # import the experiment variable`
     densities = list(range(args.inflow_min, args.inflow_max + args.step_size, args.step_size))
+    if args.test_run:
+        args.num_trials = 2
+        densities = [500, 600]
+        n_crit_range = [7]
+        feedback_coef_range = [5]
 
     outflows = []
     velocities = []

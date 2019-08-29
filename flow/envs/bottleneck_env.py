@@ -255,8 +255,6 @@ class BottleneckEnv(Env):
             # convert q to cycle time, we keep track of the previous cycle time to let the cycle coplete
             self.prev_cycle_time = self.cycle_time
             self.cycle_time = 7200 * self.scaling * MAX_LANES / self.q
-            print('the q value is {}'.format(self.q))
-            print('the cycle time is {}'.format(self.cycle_time))
 
         # now apply the cycle time to compute if the light should be green or not
         if np.all(self.ramp_state > self.prev_cycle_time):

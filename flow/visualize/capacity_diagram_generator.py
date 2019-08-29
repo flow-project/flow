@@ -17,14 +17,16 @@ Usage
 ::
     python capacity_diagram_generator.py </path/to/file>.csv
 """
+import argparse
 import csv
+import glob
+import os
+
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib import rc
 import numpy as np
-
-import argparse
 
 
 def import_data_from_csv(fp):
@@ -89,7 +91,8 @@ def create_parser():
         description='[Flow] Generates capacity diagrams for the bottleneck.',
         epilog="python capacity_diagram_generator.py </path/to/file>.csv")
 
-    parser.add_argument('file', type=str, help='path to the csv file.')
+    parser.add_argument('file', type=str, help='path to the csv file. If you pass a folder the script will iterate'
+                                               'through every file in the folder.')
 
     return parser
 
@@ -99,22 +102,31 @@ if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
 
-    # import the csv file
-    data = import_data_from_csv(args.file)
-
-    # compute the mean and std of the outflows for all unique inflows
-    unique_inflows, mean_outflows, std_outflows = get_capacity_data(data)
-
     # some plotting parameters
     rc('text', usetex=True)
     font = {'weight': 'bold', 'size': 18}
     rc('font', **font)
-
-    # perform plotting operation
     plt.figure(figsize=(27, 9))
-    plt.plot(unique_inflows, mean_outflows, linewidth=2, color='orange')
-    plt.fill_between(unique_inflows, mean_outflows - std_outflows,
-                     mean_outflows + std_outflows, alpha=0.25, color='orange')
+
+
+    # import the csv file
+    if os.path.isdir(args.file):
+        files = glob.glob(os.path.join(args.file, "*inflows_outflows*"))
+    else:
+        files = [args.file]
+
+    for file in files:
+        data = import_data_from_csv(file)
+
+        # compute the mean and std of the outflows for all unique inflows
+        unique_inflows, mean_outflows, std_outflows = get_capacity_data(data)
+
+
+        # perform plotting operation
+        plt.plot(unique_inflows, mean_outflows, linewidth=2, color='orange')
+        if not os.path.isdir(args.file):
+            plt.fill_between(unique_inflows, mean_outflows - std_outflows,
+                             mean_outflows + std_outflows, alpha=0.25, color='orange')
     plt.xlabel('Inflow' + r'$ \ \frac{vehs}{hour}$')
     plt.ylabel('Outflow' + r'$ \ \frac{vehs}{hour}$')
     plt.tick_params(labelsize=20)

@@ -1,4 +1,4 @@
-"""Visualizer for rllib experiments.
+"""Visualizer for rllib experiments specifically for the bottleneck.
 
 Attributes
 ----------
