@@ -1,7 +1,10 @@
-"""Runner script for single-agent RLlib experiments.
+"""Runner script for single and multi-agent RLlib experiments.
 
 This script performs an RL experiment using the PPO algorithm. Choice of
 hyperparameters can be seen and adjusted from the code below.
+
+Usage
+    python train_rllib.py EXP_CONFIG
 """
 import sys
 import json
@@ -29,7 +32,7 @@ def parse_args(args):
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="Parse argument used when running a Flow simulation.",
-        epilog="python simulate.py EXP_CONFIG")
+        epilog="python train_rllib.py EXP_CONFIG")
 
     # required input parameters
     parser.add_argument(

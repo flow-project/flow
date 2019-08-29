@@ -1,3 +1,8 @@
+"""Runner script for non-RL simulations in flow.
+
+Usage
+    python simulate.py EXP_CONFIG --render
+"""
 import argparse
 import sys
 from flow.core.experiment import Experiment

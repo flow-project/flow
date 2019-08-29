@@ -202,12 +202,14 @@ def setup_exps_PPO(flow_params):
     act_space = test_env.action_space
 
     def gen_policy():
+        """Generate a policy in RLlib."""
         return PPOPolicyGraph, obs_space, act_space, {}
 
     # Setup PG with a single policy graph for all agents
     policy_graphs = {'av': gen_policy()}
 
     def policy_mapping_fn(_):
+        """Map a policy in RLlib."""
         return 'av'
 
     config.update({

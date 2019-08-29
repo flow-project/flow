@@ -38,6 +38,7 @@ POLICIES_TO_TRAIN = ['av']
 
 
 def policy_mapping_fn(_):
+    """Map a policy in RLlib."""
     return 'av'
 
 

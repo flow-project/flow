@@ -109,6 +109,7 @@ act_space = N_AVS
 
 
 def gen_policy():
+    """Generate a policy in RLlib."""
     return PPOPolicyGraph, obs_space, act_space, {}
 
 
@@ -117,4 +118,5 @@ policy_graphs = {'av': gen_policy(), 'adversary': gen_policy()}
 
 
 def policy_mapping_fn(agent_id):
+    """Map a policy in RLlib."""
     return agent_id
