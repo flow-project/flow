@@ -38,11 +38,11 @@ exp_tag = "icra_25"  # experiment prefix
 # LOCAL = True
 
 # Autoscaler settings
-N_CPUS = 10
+N_CPUS = 0
 RENDER = False
 MODE = "local"
 RESTART_INSTANCE = True
-LOCAL = False
+LOCAL = True
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = VehicleParams()
@@ -99,7 +99,7 @@ flow_params = dict(
     exp_tag=exp_tag,
 
     # name of the flow environment the experiment is running on
-    env_name='MultiAgentUDSSCMergeEnvReset',
+    env_name='MultiAgentUDSSCMergeHumanAdversary',
 
     # name of the scenario class the experiment is running on
     scenario='UDSSCMergingScenario',
@@ -188,7 +188,7 @@ flow_params = dict(
 
 if __name__ == '__main__':
     if LOCAL:
-        ray.init(num_cpus=N_CPUS + 1, redirect_output=False)
+        ray.init()
     else:
         ray.init("localhost:6379")
 
@@ -206,8 +206,8 @@ if __name__ == '__main__':
     # <-- Tune
     if not LOCAL:
         config['lr'] = 1e-4 #tune.grid_search([1e-2, 1e-3, 1e-4, 1e-5])
-        config['num_sgd_iter'] = tune.grid_search([10, 30])
-        config['clip_actions'] = False # check this out
+        config['num_sgd_iter'] = 10 #tune.grid_search([10, 30])
+        config['clip_actions'] = True # check this out
     config['vf_loss_coeff'] = 1.0
     config['vf_clip_param'] = 10.0
     # -->
@@ -264,7 +264,7 @@ if __name__ == '__main__':
                 'training_iteration': ITR
             },
             'config': config,
-            'upload_dir': 's3://kathy.experiments/rllib/experiments',
-            'num_samples': 3
+            # 'upload_dir': 's3://kathy.experiments/rllib/experiments',
+            # 'num_samples': 3
         },
     })
