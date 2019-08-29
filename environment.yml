@@ -20,7 +20,7 @@ dependencies:
         - joblib==0.10.3
         - dill
         - lz4
-        - ray==0.7.2
+        - ray==0.7.3
         - setproctitle
         - psutil
         - opencv-python

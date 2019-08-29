@@ -130,18 +130,20 @@ class BottleneckEnv(Env):
 
         # values for the ALINEA ramp meter algorithm
         self.n_crit = env_add_params.get("n_crit", 8)
-        self.q_max = env_add_params.get("q_max", 1100)
-        self.q_min = env_add_params.get("q_min", .25 * 1100)
+        self.q_max = env_add_params.get("q_max", 3000)
+        self.q_min = env_add_params.get("q_min", 900)
         self.feedback_coeff = env_add_params.get("feedback_coeff", 20)
-        self.q = self.q_min  # ramp meter feedback controller
-        self.feedback_update_time = env_add_params.get("feedback_update", 15)
+        self.q = self.q_max  # ramp meter feedback controller
+        self.feedback_update_time = env_add_params.get("feedback_update", 30)
         self.feedback_timer = 0.0
-        self.cycle_time = 6
-        cycle_offset = 8
-        self.ramp_state = np.linspace(0,
-                                      cycle_offset * self.scaling * MAX_LANES,
-                                      self.scaling * MAX_LANES)
+        self.cycle_time = 8
+        self.prev_cycle_time = self.cycle_time
+        # self.ramp_state = np.linspace(0,
+        #                               self.cycle_offset * self.scaling * MAX_LANES,
+        #                               self.scaling * MAX_LANES)
         self.green_time = 4
+        self.ramp_state = np.array([0, -self.green_time] *
+                                   (self.scaling * MAX_LANES // 2)).astype(np.float64)
 
         self.smoothed_num = np.zeros(10)  # averaged number of vehs in '4'
         self.outflow_index = 0
@@ -240,8 +242,8 @@ class BottleneckEnv(Env):
         maximization." Journal of Transportation Engineering 136.1 (2009):
         67-76.
         """
-        self.feedback_timer += self.sim_step
         self.ramp_state += self.sim_step
+        self.feedback_timer += self.sim_step
         if self.feedback_timer > self.feedback_update_time:
             self.feedback_timer = 0
             # now implement the integral controller update
@@ -250,14 +252,23 @@ class BottleneckEnv(Env):
                 self.n_crit - np.average(self.smoothed_num))
             self.q = np.clip(
                 self.q + q_update, a_min=self.q_min, a_max=self.q_max)
-            # convert q to cycle time
-            self.cycle_time = 7200 / self.q
+            # convert q to cycle time, we keep track of the previous cycle time to let the cycle coplete
+            self.prev_cycle_time = self.cycle_time
+            self.cycle_time = 7200 * self.scaling * MAX_LANES / self.q
+            print('the q value is {}'.format(self.q))
+            print('the cycle time is {}'.format(self.cycle_time))
 
-        # now apply the ramp meter
-        self.ramp_state %= self.cycle_time
+        # now apply the cycle time to compute if the light should be green or not
+        if np.all(self.ramp_state > self.prev_cycle_time):
+            self.prev_cycle_time = self.cycle_time
+            self.ramp_state = np.array([0, -self.green_time] *
+                                       (self.scaling * MAX_LANES // 2)).astype(np.float64)
+
         # step through, if the value of tl_state is below self.green_time
         # we should be green, otherwise we should be red
+        time_mask = (self.ramp_state >= 0)
         tl_mask = (self.ramp_state <= self.green_time)
+        tl_mask = tl_mask & time_mask
         colors = ['G' if val else 'r' for val in tl_mask]
         self.k.traffic_light.set_state('3', ''.join(colors))
 
@@ -373,6 +384,18 @@ class BottleneckEnv(Env):
     def get_state(self):
         """See class definition."""
         return np.asarray([1])
+
+    def reset(self):
+        self.q = self.q_max  # ramp meter feedback controller
+        self.feedback_timer = 0.0
+        self.cycle_time = 8
+        self.prev_cycle_time = self.cycle_time
+        self.green_time = 4
+        self.ramp_state = np.array([0, -self.green_time] *
+                                   (self.scaling * MAX_LANES // 2)).astype(np.float64)
+
+        self.smoothed_num = np.zeros(10)  # averaged number of vehs in '4'
+        return super().reset()
 
 
 class BottleNeckAccelEnv(BottleneckEnv):

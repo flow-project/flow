@@ -114,6 +114,8 @@ class BottleneckDensityExperiment(Experiment):
             np.mean(rets), np.std(rets)))
         print('Average, std speed: {}, {}'.format(
             np.mean(mean_vels), np.std(std_vels)))
+        print('Average, std outflow is: {}, {}'.format(
+            np.mean(mean_outflows), np.std(mean_outflows)))
         self.env.terminate()
 
         return info_dict
@@ -121,7 +123,7 @@ class BottleneckDensityExperiment(Experiment):
 
 def bottleneck_example(flow_rate, horizon, restart_instance=False,
                        render=False, scaling=1, disable_ramp_meter=True, disable_tb=True,
-                       lc_on=False, n_crit=8.0, q_max=1100, q_min=275, feedback_coef=20):
+                       lc_on=False, n_crit=8.0, q_max=3000, q_min=900, feedback_coef=20):
     """
     Perform a simulation of vehicles on a bottleneck.
 
@@ -246,6 +248,11 @@ if __name__ == '__main__':
         description='Runs the bottleneck exps')
     parser.add_argument('--inflow', type=int, default=2300, help='inflow value for running the experiment')
     parser.add_argument('--ramp_meter', action='store_true', help='If set, ALINEA is active in this scenario')
+    parser.add_argument('--render', type=int, default=1)
+    parser.add_argument('--num_runs', type=int, default=5)
     args = parser.parse_args()
-    exp = bottleneck_example(args.inflow, 1000, disable_ramp_meter=not args.ramp_meter, render=True)
-    exp.run(5, 1000)
+    if args.render:
+        exp = bottleneck_example(args.inflow, 1000, disable_ramp_meter=not args.ramp_meter, render=True)
+    else:
+        exp = bottleneck_example(args.inflow, 1000, disable_ramp_meter=not args.ramp_meter, render=False)
+    exp.run(args.num_runs, 1000)

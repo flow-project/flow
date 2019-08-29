@@ -399,7 +399,7 @@ class Env(*classdef):
 
         return next_observation, reward, done, infos
 
-    def reset(self, new_inflow_rate=None):
+    def reset(self):
         """Reset the environment.
 
         This method is performed in between rollouts. It resets the state of
