@@ -103,11 +103,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # some plotting parameters
-    rc('text', usetex=True)
-    font = {'weight': 'bold', 'size': 18}
-    rc('font', **font)
+    # rc('text', usetex=True)
+    # font = {'weight': 'bold', 'size': 18}
+    # rc('font', **font)
     plt.figure(figsize=(27, 9))
-
 
     # import the csv file
     if os.path.isdir(args.file):
@@ -115,7 +114,10 @@ if __name__ == '__main__':
     else:
         files = [args.file]
 
-    for file in files:
+    cmap = plt.get_cmap('viridis')
+    colors = cmap(np.linspace(0, 1, len(files)))
+
+    for i, file in enumerate(files):
         data = import_data_from_csv(file)
 
         # compute the mean and std of the outflows for all unique inflows
@@ -123,14 +125,14 @@ if __name__ == '__main__':
 
 
         # perform plotting operation
-        plt.plot(unique_inflows, mean_outflows, linewidth=2, color='orange')
+        plt.plot(unique_inflows, mean_outflows, linewidth=2, c=colors[i])
         if not os.path.isdir(args.file):
             plt.fill_between(unique_inflows, mean_outflows - std_outflows,
-                             mean_outflows + std_outflows, alpha=0.25, color='orange')
+                             mean_outflows + std_outflows, alpha=0.25, c=colors[i])
     plt.xlabel('Inflow' + r'$ \ \frac{vehs}{hour}$')
     plt.ylabel('Outflow' + r'$ \ \frac{vehs}{hour}$')
     plt.tick_params(labelsize=20)
     plt.rcParams['xtick.minor.size'] = 20
     plt.minorticks_on()
-    plt.legend([])
+    plt.legend(files)
     plt.show()

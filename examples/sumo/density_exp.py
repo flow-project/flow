@@ -103,7 +103,7 @@ if __name__ == '__main__':
     if args.test_run:
         args.num_trials = 2
         densities = [500, 600]
-        n_crit_range = [7]
+        n_crit_range = [7, 8]
         feedback_coef_range = [5]
 
     outflows = []
