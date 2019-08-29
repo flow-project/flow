@@ -1,4 +1,5 @@
 from flow.envs.base_env import Env
+from flow.multiagent_envs import MultiEnv
 from flow.core import rewards
 from flow.core.params import InitialConfig, NetParams, InFlows
 from flow.controllers import RLController, IDMController, ContinuousRouter
@@ -970,6 +971,7 @@ class MultiAgentUDSSCMergeEnv(UDSSCMergeEnv):
     Multi-agent env for UDSSC with an adversarial agent perturbing
     the accelerations of the autonomous vehicle
     """
+
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         av_action = rl_actions['av']
@@ -1046,3 +1048,161 @@ class MultiAgentUDSSCMergeEnv(UDSSCMergeEnv):
         
         state = super().get_state(**kwargs)
         return {'av': state, 'adversary': state}
+
+class MultiAgentUDSSCMergeHumanAdversary(MultiEnv, UDSSCMergeEnvReset):
+    """Adversarial multi-agent env.
+    Multi-agent env for UDSSC with an adversarial agent perturbing
+    the accelerations of the autonomous vehicle. There is also an adversary perturbing the accelerations
+    of each of the human drivers
+    """
+
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+        super().__init__(env_params, sim_params, scenario)
+        self.is_action_adversary = env_params.additional_params['action_adversary']
+
+    @property
+    def adv_action_space(self):
+        # self.total_obs = 7 * 2 + \
+        #                  self.n_merging_in * 4 + \
+        #                  2 + \
+        #                  int(self.roundabout_length // 5) * 2 + \
+        #                  2
+
+        box = Box(low=-1.0,
+                  high=1.0,
+                  shape=(2,),
+                  dtype=np.float32)
+        return box
+
+    @property
+    def human_adv_action_space(self):
+        # These are just accelerations that can be provided to every human vehicle
+
+        box = Box(low=-1.0,
+                  high=1.0,
+                  shape=(1,),
+                  dtype=np.float32)
+        return box
+
+    @property
+    def human_adv_obs_space(self):
+        # TODO(@evinitsky) what should they actually observe?
+        box = Box(low=-3.0,
+                  high=3.0,
+                  shape=(3,),
+                  dtype=np.float32)
+        return box
+
+    # <-- ORIGINAL. Commenting out temporarily
+    # TODO(@evinitsky) add ability to perturb the human drivers
+    def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
+        av_action = rl_actions['av']
+        import ipdb; ipdb.set_trace()
+        # TODO(@evinitsky) figure out what this is doing
+        adv_action = rl_actions['action_adversary'][0]
+        if self.is_action_adversary:
+            self.adv_actions = rl_actions['action_adversary']
+        else:
+            self.adv_actions = np.zeros(self.adv_action_space.shape[0])
+
+        adv_action_weight = 0
+        if 'adv_action_weight' in self.env_params.additional_params:
+            adv_action_weight = self.env_params.additional_params['adv_action_weight']
+
+        rl_action_0 = av_action[0] + adv_action_weight * adv_action
+        rl_action_1 = av_action[1] + adv_action_weight * adv_action
+
+        rl_action_0 = np.clip(rl_action_0,
+                              -self.env_params.additional_params["max_decel"],
+                              self.env_params.additional_params["max_accel"])
+        rl_action_1 = np.clip(rl_action_1,
+                              -self.env_params.additional_params["max_decel"],
+                              self.env_params.additional_params["max_accel"])
+        # Curation
+        removal = []
+        removal_2 = []
+        for rl_id in self.rl_stack:
+            if rl_id not in self.vehicles.get_rl_ids():
+                removal.append(rl_id)
+        for rl_id in self.rl_stack_2:
+            if rl_id not in self.vehicles.get_rl_ids():
+                removal_2.append(rl_id)
+        for rl_id in removal:
+            self.rl_stack.remove(rl_id)
+        for rl_id in removal_2:
+            self.rl_stack_2.remove(rl_id)
+
+        # Apply RL Actions
+        if self.rl_stack:
+            rl_id = self.rl_stack[0]
+            if self.in_control(rl_id):
+                self.apply_acceleration([rl_id], [rl_action_0])
+
+        if self.rl_stack_2:
+            rl_id_2 = self.rl_stack_2[0]
+            if self.in_control(rl_id_2):
+                self.apply_acceleration([rl_id_2], [rl_action_1])
+
+        # Now go through the humans in the scene and perturb all of their actions
+        accels = []
+        valid_ids = []
+        for veh_id, accel in rl_actions.items():
+            if veh_id != 'action_adversary' or veh_id != 'av':
+                base_accel = self.k.vehicle.get_acc_controller( veh_id).get_action(self)
+                accels.append(base_accel + accel)
+                valid_ids.append(veh_id)
+        self.k.vehicle.apply_acceleration(valid_ids, accels)
+
+
+    def compute_reward(self, rl_actions, **kwargs):
+        """The agent receives the class definition reward,
+        the adversary recieves the negative of the agent reward
+        """
+        reward = super().compute_reward(rl_actions, **kwargs)
+        reward_dict = {'av': reward, 'human_adversary': -reward}
+        if self.is_action_adversary:
+            reward_dict['action_adversary'] = -reward
+        return reward_dict
+
+    def get_state(self, **kwargs):
+        """See class definition for the state. Both adversary and
+        agent receive the same state
+        """
+        state = super().get_state(**kwargs)
+
+        adv_state_weight = 0
+        if 'adv_state_weight' in self.env_params.additional_params:
+            adv_state_weight = self.env_params.additional_params['adv_state_weight']
+        try:
+            perturb = self.adv_actions[1] * adv_state_weight
+        except:
+            perturb = 0
+
+        state += perturb
+
+        state = np.clip(
+            state,
+            a_min=self.observation_space.low,
+            a_max=self.observation_space.high)
+
+        state_dict = {}
+        state_dict['av'] = state
+        if self.is_action_adversary:
+            state_dict['action_adversary'] = state
+        # the adversary driving the human cars
+        human_ids = self.k.vehicle.get_human_ids()
+        human_state_dict = {human_id: [self.k.vehicle.get_lane_headways(human_id),
+                             self.k.vehicle.get_lane_tailways(human_id),
+                             self.k.vehicle.get_speed(human_id)] for human_id in human_ids}
+        state_dict['human_adversary'] = human_state_dict
+        return state_dict
+
+    def reset(self):
+        """See parent class.
+        The sumo instance is reset with a new ring length, and a number of
+        steps are performed with the rl vehicle acting as a human vehicle.
+        """
+        super().reset()
+        observation = self.get_state()
+        return observation
