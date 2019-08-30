@@ -1100,10 +1100,8 @@ class MultiAgentUDSSCMergeHumanAdversary(UDSSCMergeEnvReset, MultiEnv):
             state_dict['action_adversary'] = state
         # the adversary driving the human cars
         human_ids = self.k.vehicle.get_human_ids()
-        human_state_dict = {human_id: np.array([self.k.vehicle.get_headway(human_id) / 1000.0,
-                             self.k.vehicle.get_speed(human_id) / 60.0]) for human_id in human_ids}
-        if np.any(np.array(self.k.vehicle.get_speed(self.k.vehicle.get_human_ids())) < 0):
-            import ipdb; ipdb.set_trace()
+        human_state_dict = {human_id: np.array([np.clip(self.k.vehicle.get_headway(human_id) / 1000.0, 0, 1),
+                             np.clip(self.k.vehicle.get_speed(human_id) / 60.0, 0, 1)]) for human_id in human_ids}
         state_dict.update(human_state_dict)
 
         # Go through the human drivers and add zeros if the vehicles have left as a final observation
