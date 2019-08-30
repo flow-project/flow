@@ -1048,10 +1048,7 @@ class MultiAgentUDSSCMergeHumanAdversary(UDSSCMergeEnvReset, MultiEnv):
         for veh_id, accel in rl_actions.items():
             if veh_id != 'action_adversary' and veh_id != 'av':
                 base_accel = self.k.vehicle.get_acc_controller(veh_id).get_accel(self)
-                try:
-                    accels.append(base_accel + accel[0])
-                except:
-                    import ipdb; ipdb.set_trace()
+                accels.append(base_accel + accel[0])
                 valid_ids.append(veh_id)
 
         # TODO(@evinitsky) why is the human perturbation the wrong size????
@@ -1068,6 +1065,10 @@ class MultiAgentUDSSCMergeHumanAdversary(UDSSCMergeEnvReset, MultiEnv):
         reward_dict.update(human_dict)
         if self.env_params.additional_params['action_adversary']:
             reward_dict['action_adversary'] = -reward
+        # Go through the human drivers and add zeros if the vehicles have left as a final observation
+        left_vehicles_dict = {veh_id: 0 for veh_id
+                              in self.k.vehicle.get_arrived_ids()}
+        reward_dict.update(left_vehicles_dict)
         return reward_dict
 
     def get_state(self, **kwargs):
@@ -1101,7 +1102,14 @@ class MultiAgentUDSSCMergeHumanAdversary(UDSSCMergeEnvReset, MultiEnv):
         human_ids = self.k.vehicle.get_human_ids()
         human_state_dict = {human_id: np.array([self.k.vehicle.get_headway(human_id) / 1000.0,
                              self.k.vehicle.get_speed(human_id) / 60.0]) for human_id in human_ids}
+        if np.any(np.array(self.k.vehicle.get_speed(self.k.vehicle.get_human_ids())) < 0):
+            import ipdb; ipdb.set_trace()
         state_dict.update(human_state_dict)
+
+        # Go through the human drivers and add zeros if the vehicles have left as a final observation
+        left_vehicles_dict = {veh_id: np.zeros(self.human_adv_obs_space.shape[0]) for veh_id
+                              in self.k.vehicle.get_arrived_ids()}
+        state_dict.update(left_vehicles_dict)
         return state_dict
 
     def reset(self, new_inflow_rate=None):

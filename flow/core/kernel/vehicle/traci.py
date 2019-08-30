@@ -191,7 +191,7 @@ class TraCIVehicle(KernelVehicle):
             self._num_departed.append(
                 len(sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]))
             self._num_arrived.append(len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]))
-            self._departed_ids.append(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
+            self._departed_ids.append(sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS])
             self._arrived_ids.append(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
 
         # update the "headway", "leader", and "follower" variables
@@ -481,14 +481,14 @@ class TraCIVehicle(KernelVehicle):
         if len(self._arrived_ids) > 0:
             return self._arrived_ids[-1]
         else:
-            return 0
+            return ()
 
     def get_departed_ids(self):
         """See parent class."""
         if len(self._departed_ids) > 0:
             return self._departed_ids[-1]
         else:
-            return 0
+            return ()
 
     def get_speed(self, veh_id, error=-1001):
         """See parent class."""
