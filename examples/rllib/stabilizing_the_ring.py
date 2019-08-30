@@ -2,6 +2,8 @@
 
 Trains a single autonomous vehicle to stabilize the flow of 21 human-driven
 vehicles in a variable length ring road.
+
+Super
 """
 
 import json
@@ -146,11 +148,11 @@ if __name__ == "__main__":
             "config": {
                 **config
             },
-            "checkpoint_freq": 10,
+            "checkpoint_freq": 1,
             "checkpoint_at_end": True,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 200,
+                "training_iteration": 10,
             },
         }
     })
