@@ -28,7 +28,7 @@ class Experiment:
         >>> rl_actions = lambda state: 0  # replace with something appropriate
         >>> exp.run(num_runs=1, num_steps=1000, rl_actions=rl_actions)
 
-    Finally, if you would like to like to plot and visualize your results, this
+    Finally, if you would like to plot and visualize your results, this
     class can generate csv files from emission files produced by sumo. These
     files will contain the speeds, positions, edges, etc... of every vehicle
     in the network at every time step.

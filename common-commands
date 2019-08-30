@@ -1,9 +1,11 @@
-In the "flow" main directory:
+--execute the following in the "flow" main directory
+--the "results-directory" contains checkpoint folders
 
-$tensorboard --logdir /ray_results/experiment_dir/result/directory
+visualize rewards
+$tensorboard --logdir /ray_results/experiment_dir/results-directory
 
 
-the "results-directory" contains checkpoint folders
+visualize policy in action
 $python flow/visualize/visualizer_rllib.py ../ray_results/results-directory/ #checkpoint
 
 An example:
