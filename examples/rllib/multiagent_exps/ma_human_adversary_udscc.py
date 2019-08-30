@@ -76,7 +76,7 @@ vehicles.add(veh_id="rl",
                  tau=1.1,
                  impatience=0.05,
                  # max_speed=8,
-                 speed_mode="no_collide",
+                 speed_mode="all_checks",
              ),
              lane_change_params=SumoLaneChangeParams(
                  lane_change_mode="aggressive"
@@ -226,10 +226,11 @@ if __name__ == '__main__':
     obs_space = test_env.observation_space
     act_space = test_env.action_space
     human_adv_action_space = test_env.human_adv_action_space
+    human_adv_obs_space = test_env.human_adv_obs_space
 
     # Setup PG with an ensemble of `num_policies` different policy graphs
     policy_graphs = {'av': (None, obs_space, act_space, {}),
-                     'human_adversary': (None, obs_space, human_adv_action_space, {})}
+                     'human_adversary': (None, human_adv_obs_space, human_adv_action_space, {})}
     policies_to_train = ['av', 'human_adversary']
     if ACTION_ADVERSARY:
         action_adv_action_space = test_env.adv_action_space
@@ -238,7 +239,7 @@ if __name__ == '__main__':
 
     # Everything besides 'av' and 'action_adversary' should get mapped to human adversary
     def policy_mapping_fn(agent_id):
-        if agent_id != 'av' or agent_id != 'action_adversary':
+        if agent_id != 'av' and agent_id != 'action_adversary':
             return 'human_adversary'
         else:
             return agent_id

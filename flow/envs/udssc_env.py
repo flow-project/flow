@@ -984,69 +984,78 @@ class MultiAgentUDSSCMergeHumanAdversary(UDSSCMergeEnvReset, MultiEnv):
         # TODO(@evinitsky) what should they actually observe?
         box = Box(low=-3.0,
                   high=3.0,
-                  shape=(3,),
+                  shape=(2,),
                   dtype=np.float32)
         return box
 
     # <-- ORIGINAL. Commenting out temporarily
-    # TODO(@evinitsky) add ability to perturb the human drivers
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         av_action = rl_actions['av']
-        # TODO(@evinitsky) figure out what this is doing
-        adv_action = rl_actions['action_adversary'][0]
         if self.env_params.additional_params['action_adversary']:
             self.adv_actions = rl_actions['action_adversary']
+            adv_action = rl_actions['action_adversary']
+            adv_action_weight = 0
+            if 'adv_action_weight' in self.env_params.additional_params:
+                adv_action_weight = self.env_params.additional_params['adv_action_weight']
+
+            rl_action_0 = av_action[0] + adv_action_weight * adv_action[0]
+            rl_action_1 = av_action[1] + adv_action_weight * adv_action[1]
+
+            rl_action_0 = np.clip(rl_action_0,
+                                  -self.env_params.additional_params["max_decel"],
+                                  self.env_params.additional_params["max_accel"])
+            rl_action_1 = np.clip(rl_action_1,
+                                  -self.env_params.additional_params["max_decel"],
+                                  self.env_params.additional_params["max_accel"])
+
         else:
             self.adv_actions = np.zeros(self.adv_action_space.shape[0])
+            rl_action_0 = av_action[0]
+            rl_action_1 = av_action[1]
 
-        adv_action_weight = 0
-        if 'adv_action_weight' in self.env_params.additional_params:
-            adv_action_weight = self.env_params.additional_params['adv_action_weight']
-
-        rl_action_0 = av_action[0] + adv_action_weight * adv_action
-        rl_action_1 = av_action[1] + adv_action_weight * adv_action
-
-        rl_action_0 = np.clip(rl_action_0,
-                              -self.env_params.additional_params["max_decel"],
-                              self.env_params.additional_params["max_accel"])
-        rl_action_1 = np.clip(rl_action_1,
-                              -self.env_params.additional_params["max_decel"],
-                              self.env_params.additional_params["max_accel"])
         # Curation
         removal = []
         removal_2 = []
         for rl_id in self.rl_stack:
-            if rl_id not in self.vehicles.get_rl_ids():
+            if rl_id not in self.k.vehicle.get_rl_ids():
                 removal.append(rl_id)
         for rl_id in self.rl_stack_2:
-            if rl_id not in self.vehicles.get_rl_ids():
+            if rl_id not in self.k.vehicle.get_rl_ids():
                 removal_2.append(rl_id)
         for rl_id in removal:
             self.rl_stack.remove(rl_id)
         for rl_id in removal_2:
             self.rl_stack_2.remove(rl_id)
 
+        accels = []
+        valid_ids = []
+
         # Apply RL Actions
         if self.rl_stack:
             rl_id = self.rl_stack[0]
             if self.in_control(rl_id):
-                self.apply_acceleration([rl_id], [rl_action_0])
+                accels.append(rl_action_0)
+                valid_ids.append(rl_id)
 
         if self.rl_stack_2:
             rl_id_2 = self.rl_stack_2[0]
             if self.in_control(rl_id_2):
-                self.apply_acceleration([rl_id_2], [rl_action_1])
+                accels.append(rl_action_1)
+                valid_ids.append(rl_id_2)
 
         # Now go through the humans in the scene and perturb all of their actions
-        accels = []
-        valid_ids = []
         for veh_id, accel in rl_actions.items():
-            if veh_id != 'action_adversary' or veh_id != 'av':
-                base_accel = self.k.vehicle.get_acc_controller( veh_id).get_action(self)
-                accels.append(base_accel + accel)
+            if veh_id != 'action_adversary' and veh_id != 'av':
+                base_accel = self.k.vehicle.get_acc_controller(veh_id).get_accel(self)
+                try:
+                    accels.append(base_accel + accel[0])
+                except:
+                    import ipdb; ipdb.set_trace()
                 valid_ids.append(veh_id)
-        self.k.vehicle.apply_acceleration(valid_ids, accels)
+
+        # TODO(@evinitsky) why is the human perturbation the wrong size????
+        self.k.vehicle.apply_acceleration(valid_ids, np.array(accels))
 
 
     def compute_reward(self, rl_actions, **kwargs):
@@ -1054,7 +1063,9 @@ class MultiAgentUDSSCMergeHumanAdversary(UDSSCMergeEnvReset, MultiEnv):
         the adversary recieves the negative of the agent reward
         """
         reward = super(MultiAgentUDSSCMergeHumanAdversary, self).compute_reward(rl_actions, **kwargs)
-        reward_dict = {'av': reward, 'human_adversary': -reward}
+        human_dict = {veh_id: -reward for veh_id in self.k.vehicle.get_human_ids()}
+        reward_dict = {'av': reward}
+        reward_dict.update(human_dict)
         if self.env_params.additional_params['action_adversary']:
             reward_dict['action_adversary'] = -reward
         return reward_dict
@@ -1064,6 +1075,8 @@ class MultiAgentUDSSCMergeHumanAdversary(UDSSCMergeEnvReset, MultiEnv):
         agent receive the same state
         """
         state = super(MultiAgentUDSSCMergeHumanAdversary, self).get_state(**kwargs)
+        # quick defensive check
+        # assert super(MultiAgentUDSSCMergeHumanAdversary, self).get_state == UDSSCMergeEnvReset.get_state
 
         adv_state_weight = 0
         if 'adv_state_weight' in self.env_params.additional_params:
@@ -1086,10 +1099,9 @@ class MultiAgentUDSSCMergeHumanAdversary(UDSSCMergeEnvReset, MultiEnv):
             state_dict['action_adversary'] = state
         # the adversary driving the human cars
         human_ids = self.k.vehicle.get_human_ids()
-        human_state_dict = {human_id: [self.k.vehicle.get_lane_headways(human_id),
-                             self.k.vehicle.get_lane_tailways(human_id),
-                             self.k.vehicle.get_speed(human_id)] for human_id in human_ids}
-        state_dict['human_adversary'] = human_state_dict
+        human_state_dict = {human_id: np.array([self.k.vehicle.get_headway(human_id) / 1000.0,
+                             self.k.vehicle.get_speed(human_id) / 60.0]) for human_id in human_ids}
+        state_dict.update(human_state_dict)
         return state_dict
 
     def reset(self, new_inflow_rate=None):
