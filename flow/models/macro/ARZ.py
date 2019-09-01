@@ -464,6 +464,9 @@ if __name__ == '__main__':
         # plot current profile during execution
         plt.plot(x, env.obs[0], 'b-')
         plt.axis([0, L, 0.4, 0.8])
+        plt.ylabel('Density')
+        plt.xlabel('Street Length')
+        plt.title("ARZ Evolution of Density")
         plt.draw()
         plt.pause(0.0001)
         plt.clf()
@@ -471,4 +474,7 @@ if __name__ == '__main__':
     # final plot
     plt.plot(x, env.obs[0], 'b-')
     plt.axis([0, L, 0.4, 0.8])
+    plt.ylabel('Density')
+    plt.xlabel('Street Length')
+    plt.title("ARZ Evolution of Density")
     plt.show()
