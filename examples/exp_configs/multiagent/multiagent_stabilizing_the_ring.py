@@ -101,7 +101,7 @@ def gen_policy():
 
 
 # Setup PG with an ensemble of `num_policies` different policy graphs
-policy_graphs = {'av': gen_policy()}
+POLICY_GRAPHS = {'av': gen_policy()}
 
 
 def policy_mapping_fn(_):
@@ -109,4 +109,4 @@ def policy_mapping_fn(_):
     return 'av'
 
 
-policies_to_train = ['av']
+POLICIES_TO_TRAIN = ['av']

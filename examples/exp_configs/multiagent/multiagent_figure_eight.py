@@ -109,7 +109,7 @@ def gen_policy():
 
 
 # Setup PG with an ensemble of `num_policies` different policy graphs
-policy_graphs = {'av': gen_policy(), 'adversary': gen_policy()}
+POLICY_GRAPHS = {'av': gen_policy(), 'adversary': gen_policy()}
 
 
 def policy_mapping_fn(agent_id):
