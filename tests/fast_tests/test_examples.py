@@ -19,6 +19,8 @@ from examples.exp_configs.multiagent.multiagent_stabilizing_the_ring import \
 # from examples.exp_configs.multiagent.multiagent_traffic_light_grid import \
 #     make_flow_params as multi_grid_setup_flow_params
 from examples.exp_configs.multiagent.multiagent_highway import flow_params as multiagent_highway
+
+from examples.train_stable_baselines import run_model as run_stable_baselines_model
 from examples.train_rllib import setup_exps as setup_rllib_exps
 
 from examples.exp_configs.non_rl.bay_bridge import flow_params as non_rl_bay_bridge
@@ -105,26 +107,33 @@ class TestNonRLExamples(unittest.TestCase):
         exp.run(1)
 
 
-# class TestStableBaselineExamples(unittest.TestCase):
-#     """Tests the example scripts in examples/stable_baselines.
-#
-#     This is done by running each experiment in that folder for five time-steps
-#     and confirming that it completes one rollout with two workers.
-#     """
-#     def test_run_green_wave(self):
-#         run_green_wave(num_steps=5)
-#
-#     def test_run_figure_eight(self):
-#         run_figure_eight(num_steps=5)
-#
-#     def test_run_stabilizing_highway(self):
-#         run_stabilizing_highway(num_steps=5)
-#
-#     def test_run_stabilizing_ring(self):
-#         run_stabilizing_ring(num_steps=5)
-#
-#     def test_run_velocity_bottleneck(self):
-#         run_velocity_bottleneck(num_steps=5)
+class TestStableBaselineExamples(unittest.TestCase):
+    """Tests the example scripts in examples/stable_baselines.
+
+    This is done by running each experiment in that folder for five time-steps
+    and confirming that it completes one rollout with two workers.
+    """
+    @staticmethod
+    def run_exp(flow_params):
+        run_stable_baselines_model(flow_params, 2, 5, 5)
+
+    def test_figure_eight(self):
+        self.run_exp(single_agent_figure_eight)
+
+    def test_green_wave(self):
+        pass  # FIXME
+
+    def test_green_wave_inflows(self):
+        pass  # FIXME
+
+    def test_stabilizing_highway(self):
+        self.run_exp(single_agent_stabilizing_highway)
+
+    def test_ring(self):
+        self.run_exp(single_agent_stabilizing_the_ring)
+
+    def test_bottleneck(self):
+        self.run_exp(single_agent_velocity_bottleneck)
 
 
 class TestRllibExamples(unittest.TestCase):
