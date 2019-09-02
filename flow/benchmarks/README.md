@@ -54,8 +54,7 @@ developed by the RL community. The below code snippet presents a sample method
 for importing and training the presented benchmarks on a dummy RL algorithm.
 Techniques of running the benchmarks may vary from algorithm, however, and we 
 provide specific executable implementations of the benchmarks on the RL 
-libraries RLlib and rllab in the folders flow/benchmarks/rllib/ and 
-flow/benchmarks/rllab/ respectively.
+library RLlib in the folder flow/benchmarks/rllib/.
 
 ```python
 # import an RL algorithm for training
