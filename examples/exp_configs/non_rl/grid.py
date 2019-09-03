@@ -5,7 +5,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import InFlows
-from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 
 USE_INFLOWS = False
 
@@ -199,7 +199,7 @@ flow_params = dict(
     env_name='AccelEnv',
 
     # name of the network class the experiment is running on
-    network='SimpleGridNetwork',
+    network='TrafficLightGridNetwork',
 
     # simulator that is used by the experiment
     simulator='traci',

@@ -8,7 +8,7 @@ from flow.controllers import RLController
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
                              VehicleParams, SumoParams, \
                              SumoCarFollowingParams, SumoLaneChangeParams
-from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.networks.highway_ramps import ADDITIONAL_NET_PARAMS
 
 
@@ -135,14 +135,19 @@ for i in range(len(additional_net_params['on_ramps_pos'])):
 # SET UP FLOW PARAMETERS
 
 flow_params = dict(
+    # name of the experiment
     exp_tag='multiagent_highway',
 
+    # name of the flow environment the experiment is running on
     env_name='MultiAgentHighwayPOEnv',
 
+    # name of the network class the experiment is running on
     network='HighwayRampsNetwork',
 
+    # simulator that is used by the experiment
     simulator='traci',
 
+    # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
         warmup_steps=200,
@@ -150,18 +155,25 @@ flow_params = dict(
         additional_params=additional_env_params,
     ),
 
+    # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
         sim_step=0.2,
         render=False,
         restart_instance=True
     ),
 
+    # network-related parameters (see flow.core.params.NetParams and the
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflows,
         additional_params=additional_net_params
     ),
 
+    # vehicles to be placed in the network at the start of a rollout (see
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
+    # parameters specifying the positioning of vehicles upon initialization/
+    # reset (see flow.core.params.InitialConfig)
     initial=InitialConfig(),
 )

@@ -3,8 +3,8 @@ from flow.controllers import IDMController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, \
     InitialConfig, NetParams
 from flow.core.params import VehicleParams
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.networks.loop import LoopNetwork, ADDITIONAL_NET_PARAMS
+from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.networks.ring import RingNetwork, ADDITIONAL_NET_PARAMS
 import ray
 
 
@@ -27,7 +27,7 @@ def start():
 
     initial_config = InitialConfig(bunching=20)
 
-    network = LoopNetwork(
+    network = RingNetwork(
         name="sugiyama",
         vehicles=vehicles,
         net_params=net_params,

@@ -1,7 +1,7 @@
 """Multi-agent environments for networks with traffic lights.
 
 These environments are used to train traffic lights to regulate traffic flow
-through an n x m grid.
+through an n x m traffic light grid.
 """
 
 import numpy as np
@@ -9,8 +9,8 @@ from gym.spaces.box import Box
 from gym.spaces.discrete import Discrete
 
 from flow.core import rewards
-from flow.envs.green_wave_env import PO_TrafficLightGridEnv
-from flow.multiagent_envs.multiagent_env import MultiEnv
+from flow.envs.traffic_light_grid import TrafficLightGridPOEnv
+from flow.envs.multiagent import MultiEnv
 
 ADDITIONAL_ENV_PARAMS = {
     # num of nearby lights the agent can observe {0, ..., num_traffic_lights-1}
@@ -23,8 +23,8 @@ ADDITIONAL_ENV_PARAMS = {
 ID_IDX = 1
 
 
-class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
-    """Multiagent shared model version of PO_TrafficLightGridEnv.
+class MultiTrafficLightGridPOEnv(TrafficLightGridPOEnv, MultiEnv):
+    """Multiagent shared model version of TrafficLightGridPOEnv.
 
     Required from env_params: See parent class
 
@@ -107,7 +107,7 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         max_dist = max(grid_array["short_length"], grid_array["long_length"],
                        grid_array["inner_length"])
 
-        # TODO(cathywu) refactor PO_TrafficLightGridEnv with convenience
+        # TODO(cathywu) refactor TrafficLightGridPOEnv with convenience
         # methods for observations, but remember to flatten for single-agent
 
         # Observed vehicle information

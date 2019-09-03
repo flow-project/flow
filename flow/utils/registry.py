@@ -92,7 +92,7 @@ def make_create_env(params, version=0, render=None):
         if params['env_name'] in single_agent_envs:
             env_loc = 'flow.envs'
         else:
-            env_loc = 'flow.multiagent_envs'
+            env_loc = 'flow.envs.multiagent'
 
         try:
             register(

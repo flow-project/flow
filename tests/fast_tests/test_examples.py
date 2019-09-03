@@ -54,7 +54,7 @@ class TestNonRLExamples(unittest.TestCase):
         """Verify that examples/exp_configs/non_rl/figure_eight.py is working."""
         self.run_simulation(non_rl_figure_eight)
 
-    def test_grid(self):
+    def test_traffic_light_grid(self):
         """Verify that examples/exp_configs/non_rl/grid.py is working."""
         self.run_simulation(non_rl_grid)
 
@@ -120,7 +120,7 @@ class TestStableBaselineExamples(unittest.TestCase):
     def test_figure_eight(self):
         self.run_exp(single_agent_figure_eight)
 
-    def test_green_wave(self):
+    def test_run_traffic_light_grid(self):
         pass  # FIXME
 
     def test_green_wave_inflows(self):
@@ -150,10 +150,10 @@ class TestRllibExamples(unittest.TestCase):
     def test_figure_eight(self):
         self.run_exp(single_agent_figure_eight)
 
-    def test_green_wave(self):
+    def test_traffic_light_grid(self):
         pass  # FIXME
 
-    def test_green_wave_inflows(self):
+    def test_traffic_light_grid_inflows(self):
         pass  # FIXME
 
     def test_stabilizing_highway(self):

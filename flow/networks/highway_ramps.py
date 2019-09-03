@@ -1,6 +1,6 @@
 """Contains the highway with ramps network class."""
 
-from flow.networks.base_network import Network
+from flow.networks.base import Network
 from flow.core.params import InitialConfig, TrafficLightParams
 from collections import defaultdict
 from numpy import pi, sin, cos

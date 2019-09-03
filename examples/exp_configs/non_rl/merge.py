@@ -45,7 +45,7 @@ flow_params = dict(
     exp_tag='merge-baseline',
 
     # name of the flow environment the experiment is running on
-    env_name='WaveAttenuationMergePOEnv',
+    env_name='MergePOEnv',
 
     # name of the network class the experiment is running on
     network='MergeNetwork',

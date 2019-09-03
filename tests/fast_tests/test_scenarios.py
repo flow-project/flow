@@ -2,12 +2,12 @@ import unittest
 import os
 from flow.core.params import VehicleParams
 from flow.core.params import NetParams
-from flow.networks import BottleneckNetwork, Figure8Network, \
-    SimpleGridNetwork, HighwayNetwork, LoopNetwork, MergeNetwork, \
-    TwoLoopsOneMergingNetwork, MiniCityNetwork, MultiLoopNetwork
+from flow.networks import BottleneckNetwork, FigureEightNetwork, \
+    TrafficLightGridNetwork, HighwayNetwork, RingNetwork, MergeNetwork, \
+    MiniCityNetwork, MultiRingNetwork
 
 __all__ = [
-    "MultiLoopNetwork", "MiniCityNetwork"
+    "MultiRingNetwork", "MiniCityNetwork"
 ]
 
 os.environ["TEST_FLAG"] = "True"
@@ -30,15 +30,15 @@ class TestBottleneckNetwork(unittest.TestCase):
         )
 
 
-class TestFigure8Network(unittest.TestCase):
+class TestFigureEightNetwork(unittest.TestCase):
 
-    """Tests Figure8Network in flow/networks/figure_eight.py."""
+    """Tests FigureEightNetwork in flow/networks/figure_eight.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                network_class=Figure8Network,
+                network_class=FigureEightNetwork,
                 additional_params={
                     "radius_ring": 30,
                     "lanes": 1,
@@ -49,15 +49,15 @@ class TestFigure8Network(unittest.TestCase):
         )
 
 
-class TestSimpleGridNetwork(unittest.TestCase):
+class TestTrafficLightGridNetwork(unittest.TestCase):
 
-    """Tests SimpleGridNetwork in flow/networks/grid.py."""
+    """Tests TrafficLightGridNetwork in flow/networks/traffic_light_grid.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                network_class=SimpleGridNetwork,
+                network_class=TrafficLightGridNetwork,
                 additional_params={
                     "grid_array": {
                         "row_num": 3,
@@ -100,39 +100,18 @@ class TestHighwayNetwork(unittest.TestCase):
         )
 
 
-class TestLoopNetwork(unittest.TestCase):
+class TestRingNetwork(unittest.TestCase):
 
-    """Tests LoopNetwork in flow/networks/loop.py."""
+    """Tests LoopNetwork in flow/networks/ring.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                network_class=LoopNetwork,
+                network_class=RingNetwork,
                 additional_params={
                     "length": 230,
                     "lanes": 1,
-                    "speed_limit": 30,
-                    "resolution": 40
-                }
-            )
-        )
-
-
-class TestTwoLoopsOneMergingNetwork(unittest.TestCase):
-
-    """Tests TwoLoopsOneMergingNetwork in flow/networks/loop_merge.py."""
-
-    def test_additional_net_params(self):
-        """Ensures that not returning the correct params leads to an error."""
-        self.assertTrue(
-            test_additional_params(
-                network_class=TwoLoopsOneMergingNetwork,
-                additional_params={
-                    "ring_radius": 50,
-                    "lane_length": 75,
-                    "inner_lanes": 3,
-                    "outer_lanes": 2,
                     "speed_limit": 30,
                     "resolution": 40
                 }
@@ -161,15 +140,15 @@ class TestMergeNetwork(unittest.TestCase):
         )
 
 
-class TestMultiLoopNetwork(unittest.TestCase):
+class TestMultiRingNetwork(unittest.TestCase):
 
-    """Tests MultiLoopNetwork in flow/networks/multi_loop.py."""
+    """Tests MultiLoopNetwork in flow/networks/multi_ring.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                network_class=MultiLoopNetwork,
+                network_class=MultiRingNetwork,
                 additional_params={
                     "length": 230,
                     "lanes": 1,

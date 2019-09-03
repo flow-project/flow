@@ -84,7 +84,7 @@ class TestBenchmarks(unittest.TestCase):
     def test_bottleneck0(self):
         """
         Tests flow/benchmark/baselines/bottleneck0.py
-        env_name='DesiredVelocityEnv',
+        env_name='BottleneckDesiredVelocityEnv',
         """
         # run the bottleneck to make sure it runs
         self.ray_runner(1, bottleneck0.flow_params, 0)
@@ -140,7 +140,7 @@ class TestBenchmarks(unittest.TestCase):
     def test_grid0(self):
         """
         Tests flow/benchmark/baselines/grid0.py
-        env_name='PO_TrafficLightGridEnv',
+        env_name='TrafficLightGridPOEnv',
         """
         # run the bottleneck to make sure it runs
         self.ray_runner(1, grid0.flow_params, 0)
@@ -159,7 +159,7 @@ class TestBenchmarks(unittest.TestCase):
     def test_merge0(self):
         """
         Tests flow/benchmark/baselines/merge{0,1,2}.py
-        env_name='WaveAttenuationMergePOEnv',
+        env_name='MergePOEnv',
         """
         # run the bottleneck to make sure it runs
         self.ray_runner(1, merge0.flow_params, 0)

@@ -3,7 +3,7 @@
 from flow.controllers import IDMController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from flow.core.params import VehicleParams, InFlows
-from flow.envs.loop.lane_changing import ADDITIONAL_ENV_PARAMS
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.networks.highway import ADDITIONAL_NET_PARAMS
 
 vehicles = VehicleParams()

@@ -1,6 +1,6 @@
 """Contains the merge network class."""
 
-from flow.networks.base_network import Network
+from flow.networks.base import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos

@@ -6,8 +6,8 @@ This example consists of 22 IDM cars on a ring creating shockwaves.
 from flow.controllers import IDMController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
-from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
-from flow.networks.loop import ADDITIONAL_NET_PARAMS
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
+from flow.networks.ring import ADDITIONAL_NET_PARAMS
 
 
 vehicles = VehicleParams()
@@ -26,7 +26,7 @@ flow_params = dict(
     env_name='AccelEnv',
 
     # name of the network class the experiment is running on
-    network='LoopNetwork',
+    network='RingNetwork',
 
     # simulator that is used by the experiment
     simulator='traci',

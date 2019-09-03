@@ -1,6 +1,7 @@
-"""Grid/green wave example."""
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.params import VehicleParams, InFlows, SumoCarFollowingParams
+"""Traffic Light Grid example."""
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
+    InFlows, SumoCarFollowingParams
+from flow.core.params import VehicleParams
 from flow.controllers import SimCarFollowingController, GridRouter
 
 # time horizon of a single rollout
@@ -15,14 +16,14 @@ USE_INFLOWS = False
 
 
 def gen_edges(col_num, row_num):
-    """Generate the names of the outer edges in the grid network.
+    """Generate the names of the outer edges in the traffic light grid network.
 
     Parameters
     ----------
     col_num : int
-        number of columns in the grid
+        number of columns in the traffic light grid
     row_num : int
-        number of rows in the grid
+        number of rows in the traffic light grid
 
     Returns
     -------
@@ -48,11 +49,11 @@ def get_inflow_params(col_num, row_num, additional_net_params):
     Parameters
     ----------
     col_num : int
-        number of columns in the grid
+        number of columns in the traffic light grid
     row_num : int
-        number of rows in the grid
+        number of rows in the traffic light grid
     additional_net_params : dict
-        network-specific parameters that are unique to the grid
+        network-specific parameters that are unique to the traffic light grid
 
     Returns
     -------
@@ -73,7 +74,7 @@ def get_inflow_params(col_num, row_num, additional_net_params):
             edge=outer_edges[i],
             probability=0.25,
             departLane='free',
-            departSpeed=20)
+            departSpeed=10)
 
     net = NetParams(
         inflows=inflow,
@@ -94,7 +95,7 @@ def get_non_flow_params(enter_speed, add_net_params):
     enter_speed : float
         initial speed of vehicles as they enter the network.
     add_net_params: dict
-        additional network-specific parameters (unique to the grid)
+        additional network-specific parameters (unique to the traffic light grid)
 
     Returns
     -------
@@ -112,7 +113,7 @@ def get_non_flow_params(enter_speed, add_net_params):
     return initial, net
 
 
-V_ENTER = 30
+V_ENTER = 15
 INNER_LENGTH = 300
 LONG_LENGTH = 100
 SHORT_LENGTH = 300
@@ -180,13 +181,13 @@ else:
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='green_wave',
+    exp_tag='traffic_light_grid',
 
     # name of the flow environment the experiment is running on
-    env_name='PO_TrafficLightGridEnv',
+    env_name='TrafficLightGridPOEnv',
 
     # name of the network class the experiment is running on
-    network='SimpleGridNetwork',
+    network='TrafficLightGridNetwork',
 
     # simulator that is used by the experiment
     simulator='traci',

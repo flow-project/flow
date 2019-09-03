@@ -4,7 +4,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import InFlows, VehicleParams, TrafficLightParams
 from flow.networks.highway_ramps import ADDITIONAL_NET_PARAMS
-from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 
