@@ -1,2 +1,0 @@
-I0830 17:20:18.801133  2238 store.cc:994] Allowing the Plasma store to use up to 20GB of memory.
-I0830 17:20:18.803202  2238 store.cc:1024] Starting object store with directory /dev/shm and huge page support disabled
