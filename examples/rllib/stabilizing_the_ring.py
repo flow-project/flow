@@ -2,10 +2,12 @@
 
 Trains a single autonomous vehicle to stabilize the flow of 21 human-driven
 vehicles in a variable length ring road.
+
+Super
 """
 
 import json
-
+import sys
 import ray
 try:
     from ray.rllib.agents.agent import get_agent_class
@@ -25,7 +27,8 @@ HORIZON = 3000
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-N_CPUS = 2
+#N_CPUS = 2
+N_CPUS = int(sys.argv[1])-1 
 
 # We place one autonomous vehicle and 22 human-driven vehicles in the network
 vehicles = VehicleParams()
@@ -146,11 +149,11 @@ if __name__ == "__main__":
             "config": {
                 **config
             },
-            "checkpoint_freq": 20,
+            "checkpoint_freq": 1,
             "checkpoint_at_end": True,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 200,
+                "training_iteration": 10,
             },
         }
     })

@@ -89,7 +89,7 @@ def average_velocity(env, fail=False):
 
 
 def rl_forward_progress(env, gain=0.1):
-    """Rewared function used to reward the RL vehicles for travelling forward.
+    """Reward function used to reward the RL vehicles for travelling forward.
 
     Parameters
     ----------

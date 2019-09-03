@@ -218,8 +218,8 @@ class WaveAttenuationEnv(Env):
 class WaveAttenuationPOEnv(WaveAttenuationEnv):
     """POMDP version of WaveAttenuationEnv.
 
-    Note that this environment only works when there is one autonomous vehicle
-    on the network.
+    Note that this environment only works when there is at least one autonomous vehicle
+    in the network.
 
     Required from env_params:
 
