@@ -5,7 +5,7 @@ from numpy import pi, sin, cos, linspace
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
-from flow.networks.base_network import Network
+from flow.networks.base import Network
 
 ADDITIONAL_NET_PARAMS = {
     # radius of the circular components
@@ -19,13 +19,13 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class Figure8Network(Network):
+class FigureEightNetwork(Network):
     """Figure eight network class.
 
     The figure eight network is an extension of the ring road network: Two
     rings, placed at opposite ends of the network, are connected by an
     intersection with road segments of length equal to the diameter of the
-    rings. Serves as a simulation of a closed loop intersection.
+    rings. Serves as a simulation of a closed ring intersection.
 
     Requires from net_params:
 
@@ -40,9 +40,9 @@ class Figure8Network(Network):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.networks import Figure8Network
+    >>> from flow.networks import FigureEightNetwork
     >>>
-    >>> network = Figure8Network(
+    >>> network = FigureEightNetwork(
     >>>     name='figure_eight',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(

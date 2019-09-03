@@ -10,7 +10,7 @@ abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 
 import numpy as np
 from gym.spaces.box import Box
-from flow.multiagent_envs.multiagent_env import MultiEnv
+from flow.envs.multiagent.base import MultiEnv
 
 ADDITIONAL_ENV_PARAMS = {
     # maximum acceleration of autonomous vehicles

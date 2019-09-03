@@ -21,7 +21,7 @@ import numpy as np
 from gym.spaces.box import Box
 
 from flow.core import rewards
-from flow.envs.base_env import Env
+from flow.envs.base import Env
 
 MAX_LANES = 4  # base number of largest number of lanes in the network
 EDGE_LIST = ["1", "2", "3", "4", "5"]  # Edge 1 is before the toll booth
@@ -483,8 +483,8 @@ class BottleneckEnv(Env):
         return np.asarray([1])
 
 
-class BottleNeckAccelEnv(BottleneckEnv):
-    """BottleNeckAccelEnv.
+class BottleneckAccelEnv(BottleneckEnv):
+    """BottleneckAccelEnv.
 
     Environment used to train vehicles to effectively pass through a
     bottleneck.
@@ -514,7 +514,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
     """
 
     def __init__(self, env_params, sim_params, network, simulator='traci'):
-        """Initialize BottleNeckAccelEnv."""
+        """Initialize BottleneckAccelEnv."""
         for p in ADDITIONAL_RL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -713,8 +713,8 @@ class BottleNeckAccelEnv(BottleneckEnv):
                     pass
 
 
-class DesiredVelocityEnv(BottleneckEnv):
-    """DesiredVelocityEnv.
+class BottleneckDesiredVelocityEnv(BottleneckEnv):
+    """BottleneckDesiredVelocityEnv.
 
     Environment used to train vehicles to effectively pass through a
     bottleneck by specifying the velocity that RL vehicles should attempt to
@@ -735,7 +735,7 @@ class DesiredVelocityEnv(BottleneckEnv):
     """
 
     def __init__(self, env_params, sim_params, network, simulator='traci'):
-        """Initialize DesiredVelocityEnv."""
+        """Initialize BottleneckDesiredVelocityEnv."""
         super().__init__(env_params, sim_params, network, simulator)
         for p in ADDITIONAL_VSL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -745,8 +745,9 @@ class DesiredVelocityEnv(BottleneckEnv):
         # default (edge, segment, controlled) status
         add_env_params = self.env_params.additional_params
         default = [(str(i), 1, True) for i in range(1, 6)]
-        super(DesiredVelocityEnv, self).__init__(env_params, sim_params,
-                                                 network)
+        super(BottleneckDesiredVelocityEnv, self).__init__(env_params,
+                                                           sim_params,
+                                                           network)
         self.segments = add_env_params.get("controlled_segments", default)
 
         # number of segments for each edge

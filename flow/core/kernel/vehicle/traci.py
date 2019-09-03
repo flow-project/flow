@@ -143,7 +143,7 @@ class TraCIVehicle(KernelVehicle):
             if veh_id in self.get_ids() and vehicle_obs[veh_id] is not None:
                 # this occurs when a vehicle is actively being removed and
                 # placed again in the network to ensure a constant number of
-                # total vehicles (e.g. GreenWaveEnv). In this case, the vehicle
+                # total vehicles (e.g. TrafficLightGridEnv). In this case, the vehicle
                 # is already in the class; its state data just needs to be
                 # updated
                 pass

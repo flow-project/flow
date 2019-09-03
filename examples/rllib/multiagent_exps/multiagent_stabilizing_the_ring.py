@@ -61,7 +61,7 @@ flow_params = dict(
     env_name='MultiWaveAttenuationPOEnv',
 
     # name of the network class the experiment is running on
-    network='MultiLoopNetwork',
+    network='MultiRingNetwork',
 
     # simulator that is used by the experiment
     simulator='traci',

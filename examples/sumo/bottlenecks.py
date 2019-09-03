@@ -7,7 +7,7 @@ from flow.core.params import TrafficLightParams
 
 from flow.networks.bottleneck import BottleneckNetwork
 from flow.controllers import SimLaneChangeController, ContinuousRouter
-from flow.envs.bottleneck_env import BottleneckEnv
+from flow.envs.bottleneck import BottleneckEnv
 from flow.core.experiment import Experiment
 
 import logging

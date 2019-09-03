@@ -1,9 +1,9 @@
-"""Environment for training the acceleration behavior of vehicles in a loop."""
+"""Environment for training the acceleration behavior of vehicles in a ring."""
 
 import numpy as np
 from flow.core import rewards
-from flow.envs.loop.loop_accel import AccelEnv
-from flow.multiagent_envs.multiagent_env import MultiEnv
+from flow.envs.ring.accel import AccelEnv
+from flow.envs.multiagent.base import MultiEnv
 
 
 class MultiAgentAccelEnv(AccelEnv, MultiEnv):

@@ -26,8 +26,8 @@ import argparse
 
 # networks that can be plotted by this method
 ACCEPTABLE_NETWORKS = [
-    'LoopNetwork',
-    'Figure8Network',
+    'RingNetwork',
+    'FigureEightNetwork',
     'MergeNetwork',
 ]
 
@@ -120,9 +120,9 @@ def get_time_space_data(data, params):
 
     # switcher used to compute the positions based on the type of network
     switcher = {
-        'LoopNetwork': _ring_road,
+        'RingNetwork': _ring_road,
         'MergeNetwork': _merge,
-        'Figure8Network': _figure_eight
+        'FigureEightNetwork': _figure_eight
     }
 
     # Collect a list of all the unique times.
@@ -357,14 +357,14 @@ def _figure_eight(data, params, all_time):
             speed[ind, i] = spd
 
     # reorganize data for space-time plot
-    figure8_len = 6*ring_edgelen + 2*intersection + 2*junction + 10*inner
+    figure_eight_len = 6*ring_edgelen + 2*intersection + 2*junction + 10*inner
     intersection_loc = [edgestarts[':center_1'] + intersection / 2,
                         edgestarts[':center_0'] + intersection / 2]
-    pos[pos < intersection_loc[0]] += figure8_len
+    pos[pos < intersection_loc[0]] += figure_eight_len
     pos[np.logical_and(pos > intersection_loc[0], pos < intersection_loc[1])] \
         += - intersection_loc[1]
     pos[pos > intersection_loc[1]] = \
-        - pos[pos > intersection_loc[1]] + figure8_len + intersection_loc[0]
+        - pos[pos > intersection_loc[1]] + figure_eight_len + intersection_loc[0]
 
     return pos, speed
 

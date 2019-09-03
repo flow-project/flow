@@ -53,7 +53,7 @@ flow_params = dict(
     env_name="WaveAttenuationPOEnv",
 
     # name of the network class the experiment is running on
-    network="LoopNetwork",
+    network="RingNetwork",
 
     # simulator that is used by the experiment
     simulator='traci',

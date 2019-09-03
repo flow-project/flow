@@ -7,7 +7,7 @@ from flow.controllers.base_routing_controller import BaseRouter
 
 
 class ContinuousRouter(BaseRouter):
-    """A router used to continuously re-route of the vehicle in a closed loop.
+    """A router used to continuously re-route of the vehicle in a closed ring.
 
     This class is useful if vehicles are expected to continuously follow the
     same route, and repeat said route once it reaches its end.
@@ -83,7 +83,7 @@ class MinicityRouter(BaseRouter):
 
 
 class GridRouter(BaseRouter):
-    """A router used to re-route a vehicle within a grid environment.
+    """A router used to re-route a vehicle in a traffic light grid environment.
 
     Usage
     -----

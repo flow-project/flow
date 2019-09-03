@@ -126,7 +126,7 @@ def threaded_client(conn):
             # convert to integer
             data = int(data)
 
-            # if the simulation step is over, terminate the loop and let
+            # if the simulation step is over, terminate the ring and let
             # the step be executed
             if data == ac.SIMULATION_STEP:
                 send_message(conn, in_format='i', values=(0,))

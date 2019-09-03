@@ -1,4 +1,4 @@
-"""Contains the base network class."""
+"""Contains the base scenario class."""
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
@@ -171,8 +171,8 @@ class Network(object):
 
     Example
     -------
-    The following examples are derived from the `LoopNetwork` Network class
-    located in flow/networks/loop.py, and should serve as an example of the
+    The following examples are derived from the `RingNetwork` Network class
+    located in flow/networks/ring.py, and should serve as an example of the
     types of outputs to be expected from the different variables of a network
     class.
 
@@ -180,10 +180,10 @@ class Network(object):
     the following commands (note if this this unclear please refer to Tutorial
     1):
 
-    >>> from flow.networks import LoopNetwork
+    >>> from flow.networks import RingScenario
     >>> from flow.core.params import NetParams, VehicleParams
     >>>
-    >>> network = LoopNetwork(
+    >>> network = RingNetwork(
     >>>     name='test',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
@@ -294,7 +294,7 @@ class Network(object):
     >>> print(network.edge_starts)
     >>> [('bottom', 0), ('right', 57.5), ('top', 115.0), ('left', 172.5)]
 
-    Finally, the loop network does not contain any junctions or intersections,
+    Finally, the ring network does not contain any junctions or intersections,
     and as a result the `internal_edge_starts` and `intersection_edge_starts`
     attributes are both set to None. For an example of a network with junctions
     and intersections, please refer to: flow/networks/figure_eight.py.
@@ -547,7 +547,7 @@ class Network(object):
           to the edge the vehicle begins on. Note that the edges must be
           connected for the route to be valid.
 
-          For example (from flow/networks/loop.py):
+          For example (from flow/networks/ring.py):
 
           >>> def specify_routes(self, net_params):
           >>>     return {

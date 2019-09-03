@@ -53,7 +53,7 @@ class FollowerStopper(BaseController):
         Parameters
         ----------
         env : flow.envs.Env
-            see flow/envs/base_env.py
+            see flow/envs/base.py
 
         Returns
         -------

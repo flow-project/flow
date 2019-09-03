@@ -1,7 +1,7 @@
 """Environments for networks with traffic lights.
 
 These environments are used to train traffic lights to regulate traffic flow
-through an n x m grid.
+through an n x m traffic light grid.
 """
 
 import numpy as np
@@ -12,7 +12,7 @@ from gym.spaces.discrete import Discrete
 from gym.spaces import Tuple
 
 from flow.core import rewards
-from flow.envs.base_env import Env
+from flow.envs.base import Env
 
 ADDITIONAL_ENV_PARAMS = {
     # minimum switch time for each traffic light (in seconds)
@@ -71,14 +71,14 @@ class TrafficLightGridEnv(Env):
     Attributes
     ----------
     grid_array : dict
-        Array containing information on the grid, such as the length of roads,
-        row_num, col_num, number of initial cars
+        Array containing information on the traffic light grid, such as the
+        length of roads, row_num, col_num, number of initial cars
     rows : int
-        Number of rows in this grid network
+        Number of rows in this traffic light grid network
     cols : int
-        Number of columns in this grid network
+        Number of columns in this traffic light grid network
     num_traffic_lights : int
-        Number of intersection in this grid network
+        Number of intersection in this traffic light grid network
     tl_type : str
         Type of traffic lights, either 'actuated' or 'static'
     steps : int
@@ -379,8 +379,8 @@ class TrafficLightGridEnv(Env):
     def _get_relative_node(self, agent_id, direction):
         """Yield node number of traffic light agent in a given direction.
 
-        For example, the nodes in a grid with 2 rows and 3 columns are
-        indexed as follows:
+        For example, the nodes in a traffic light grid with 2 rows and 3
+        columns are indexed as follows:
 
             |     |     |
         --- 3 --- 4 --- 5 ---
@@ -388,7 +388,7 @@ class TrafficLightGridEnv(Env):
         --- 0 --- 1 --- 2 ---
             |     |     |
 
-        See flow.networks.grid for more information.
+        See flow.networks.traffic_light_grid for more information.
 
         Example of function usage:
         - Seeking the "top" direction to ":center0" would return 3.
@@ -579,7 +579,7 @@ class TrafficLightGridEnv(Env):
         return veh_ids_ordered[:num_closest] + (pad_lst if padding else [])
 
 
-class PO_TrafficLightGridEnv(TrafficLightGridEnv):
+class TrafficLightGridPOEnv(TrafficLightGridEnv):
     """Environment used to train traffic lights.
 
     Required from env_params:
@@ -731,11 +731,11 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         [self.k.vehicle.set_observed(veh_id) for veh_id in self.observed_ids]
 
 
-class GreenWaveTestEnv(TrafficLightGridEnv):
+class TrafficLightGridTestEnv(TrafficLightGridEnv):
     """
     Class for use in testing.
 
-    This class overrides RL methods of green wave so we can test
+    This class overrides RL methods of traffic light grid so we can test
     construction without needing to specify RL methods
     """
 

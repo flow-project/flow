@@ -26,7 +26,7 @@ class KernelVehicle(object):
       would like to get the speed of a vehicle from the environment, that can
       be done by calling:
 
-        >>> from flow.envs.base_env import Env
+        >>> from flow.envs.base import Env
         >>> env = Env(...)
         >>> veh_id = "test_car"  # name of the vehicle
         >>> speed = env.k.vehicle.get_speed(veh_id)

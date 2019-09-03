@@ -8,7 +8,7 @@ from flow.core.experiment import Experiment
 from flow.core.params import AimsunParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
 from flow.envs import TestEnv
-from flow.networks.loop import LoopNetwork, ADDITIONAL_NET_PARAMS
+from flow.networks.ring import RingNetwork, ADDITIONAL_NET_PARAMS
 
 
 def sugiyama_example(render=None):
@@ -43,7 +43,7 @@ def sugiyama_example(render=None):
 
     initial_config = InitialConfig(bunching=20)
 
-    network = LoopNetwork(
+    network = RingNetwork(
         name="sugiyama",
         vehicles=vehicles,
         net_params=net_params,

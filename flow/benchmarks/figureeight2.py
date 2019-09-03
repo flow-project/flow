@@ -38,7 +38,7 @@ flow_params = dict(
     env_name="AccelEnv",
 
     # name of the network class the experiment is running on
-    network="Figure8Network",
+    network="FigureEightNetwork",
 
     # simulator that is used by the experiment
     simulator='traci',

@@ -9,7 +9,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import EnvParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoCarFollowingParams
-from flow.networks.loop import LoopNetwork, ADDITIONAL_NET_PARAMS
+from flow.networks.ring import RingNetwork, ADDITIONAL_NET_PARAMS
 from flow.envs import TestEnv
 from flow.networks import Network
 
@@ -23,7 +23,7 @@ from tests.setup_scripts import variable_lanes_exp_setup
 os.environ["TEST_FLAG"] = "True"
 
 
-class NoRouteNetwork(LoopNetwork):
+class NoRouteNetwork(RingNetwork):
     """A network with no routes.
 
     Used to check for default route assignment.
@@ -95,7 +95,7 @@ class TestGetEdge(unittest.TestCase):
 
 class TestEvenStartPos(unittest.TestCase):
     """
-    Tests the function gen_even_start_pos in base_network.py. This function
+    Tests the function gen_even_start_pos in networks/base.py. This function
     can be used on any network subclass, and therefore may be tested on any of
     these classes. In order to perform this testing, replace the network in
     setUp() with the network to be tested.
@@ -499,7 +499,11 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
 
 class TestRandomStartPos(unittest.TestCase):
     """
+<<<<<<< HEAD
     Tests the function gen_random_start_pos in base_network.py.
+=======
+    Tests the function gen_random_start_pos in scenarios/base.py.
+>>>>>>> 26ed2cf447a0b5d7e3cc3bf164ea5f3b247248a4
     """
 
     def setUp_gen_start_pos(self, initial_config=InitialConfig()):

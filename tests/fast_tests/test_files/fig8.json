@@ -39,7 +39,7 @@
         "osm_path": null,
         "template": null
     },
-    "network": "Figure8Network",
+    "network": "FigureEightNetwork",
     "sim": {
         "emission_path": null,
         "lateral_resolution": null,

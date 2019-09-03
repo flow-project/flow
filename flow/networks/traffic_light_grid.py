@@ -1,20 +1,19 @@
-"""Contains the grid network class."""
+"""Contains the traffic light grid scenario class."""
 
-import numpy as np
-
-from flow.networks.base_network import Network
+from flow.networks.base import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from collections import defaultdict
+import numpy as np
 
 ADDITIONAL_NET_PARAMS = {
-    # dictionary of grid array data
+    # dictionary of traffic light grid array data
     "grid_array": {
         # number of horizontal rows of edges
         "row_num": 3,
         # number of vertical columns of edges
         "col_num": 2,
-        # length of inner edges in the grid network
+        # length of inner edges in the traffic light grid network
         "inner_length": None,
         # length of edges where vehicles enter the network
         "short_length": None,
@@ -42,12 +41,12 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class SimpleGridNetwork(Network):
-    """Grid network class.
+class TrafficLightGridScenario(Network):
+    """Traffic Light Grid network class.
 
-    The grid network consists of m vertical lanes and n horizontal lanes,
-    with a total of nxm intersections where the vertical and horizontal
-    edges meet.
+    The traffic light grid network consists of m vertical lanes and n
+    horizontal lanes, with a total of nxm intersections where the vertical
+    and horizontal edges meet.
 
     Requires from net_params:
 
@@ -55,7 +54,7 @@ class SimpleGridNetwork(Network):
 
       * **row_num** : number of horizontal rows of edges
       * **col_num** : number of vertical columns of edges
-      * **inner_length** : length of inner edges in the grid network
+      * **inner_length** : length of inner edges in traffic light grid network
       * **short_length** : length of edges that vehicles start on
       * **long_length** : length of final edge in route
       * **cars_top** : number of cars starting at the edges heading to the top
@@ -77,9 +76,9 @@ class SimpleGridNetwork(Network):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.networks import SimpleGridNetwork
+    >>> from flow.networks import TrafficLightGridNetwork
     >>>
-    >>> network = SimpleGridNetwork(
+    >>> network = TrafficLightGridNetwork(
     >>>     name='grid',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
@@ -112,7 +111,7 @@ class SimpleGridNetwork(Network):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize an n*m grid network."""
+        """Initialize an n*m traffic light grid network."""
         optional = ["tl_logic"]
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params and p not in optional:
@@ -220,8 +219,8 @@ class SimpleGridNetwork(Network):
         are numbered from bottom left, increasing first across the columns and
         then across the rows.
 
-        For example, the nodes in a grid with 2 rows and 3 columns would be
-        indexed as follows:
+        For example, the nodes in a traffic light grid with 2 rows and 3 columns
+        would be indexed as follows:
 
             |     |     |
         --- 3 --- 4 --- 5 ---

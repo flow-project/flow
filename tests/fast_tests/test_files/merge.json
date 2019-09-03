@@ -12,7 +12,7 @@
         "sims_per_step": 2,
         "warmup_steps": 0
     },
-    "env_name": "WaveAttenuationMergePOEnv",
+    "env_name": "MergePOEnv",
     "exp_tag": "merge_0",
     "initial": {
         "additional_params": {},

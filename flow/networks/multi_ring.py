@@ -1,6 +1,6 @@
 """Contains the ring road network class."""
 
-from flow.networks.base_network import Network
+from flow.networks.base import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos, linspace, ceil, sqrt
@@ -21,10 +21,10 @@ ADDITIONAL_NET_PARAMS = {
 VEHICLE_LENGTH = 5  # length of vehicles in the network, in meters
 
 
-class MultiLoopNetwork(Network):
+class MultiRingNetwork(Network):
     """Ring road network.
 
-    This network is similar to `LoopNetwork`, but generates multiple separate
+    This network is similar to `RingNetwork`, but generates multiple separate
     ring roads in the same simulation.
 
     Requires from net_params:
@@ -40,9 +40,9 @@ class MultiLoopNetwork(Network):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.networks import MultiLoopNetwork
+    >>> from flow.networks import MultiRingNetwork
     >>>
-    >>> network = MultiLoopNetwork(
+    >>> scenario = MultiRingNetwork(
     >>>     name='multi_ring_road',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(

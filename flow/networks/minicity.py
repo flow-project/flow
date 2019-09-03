@@ -2,7 +2,7 @@
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
-from flow.networks.base_network import Network
+from flow.networks.base import Network
 import numpy as np
 from numpy import linspace, pi, sin, cos
 
