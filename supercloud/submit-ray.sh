@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH -o test.out-%j
+#SBATCH -o out-%j
 #SBATCH --job-name=test
-#SBATCH -n 16
+#SBATCH -n 32
 
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
@@ -14,10 +14,14 @@ source /etc/profile
 module load anaconda3-2019a
 unset PYTHONPATH
 
-#export LD_library_path if needed
+export PATH=/home/gridsan/weizili/sumo-1_1_0/bin/:$PATH
+export SUMO_HOME=/home/gridsan/weizili/sumo-1_1_0/
+export PYTHONPATH=/home/gridsan/weizili/flow/:/home/gridsan/weizili/sumo-1_1_0/tools/
+export LD_LIBRARY_PATH=/home/gridsan/weizili/software/proj-6.1.1/build/lib/
 
 eval "$(conda shell.bash hook)"
 conda activate flow
+
 
 nodes=$(scontrol show hostnames $SLURM_JOB_NODELIST) # Getting the node names
 nodes_array=( $nodes )
@@ -43,7 +47,7 @@ sleep 5
 for ((  i=1; i<=$worker_num; i++ ))
 do
     node2=${nodes_array[$i]}
-    workertemp='workertemp-'$node2
+    workertemp='out-temp-'$node2
     #workertemp=$(srun --nodes=1 --ntasks=1 -w $node2 echo $TMPDIR) # used in original Lauren's script
     srun --nodes=1 --ntasks=1 -w $node2 ray start --temp-dir=$workertemp --block --redis-address=$ip_head & # Starting the workers
 done
@@ -52,4 +56,4 @@ which python
 # number of CPUs you want to use or use the environment variable $SLURM_CPUS_ON_NODE
 # but also you need to make sure if the specified number here matches #CPUs specified in your python 
 # script
-python examples/rllib/stabilizing_the_ring.py $SLURM_NTASKS # Pass the total number of allocated CPUs
+python ../examples/rllib/stabilizing_the_ring.py $SLURM_NTASKS # Pass the total number of allocated CPUs

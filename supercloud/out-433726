@@ -1,0 +1,3348 @@
+3
+:6379
+Using IP address 172.31.2.68 for this node.
+Process STDOUT and STDERR is being redirected to /state/partition1/slurm_tmp/433726.4294967294.0/logs.
+Waiting for redis server at 127.0.0.1:6379 to respond...
+Waiting for redis server at 127.0.0.1:10666 to respond...
+Warning: Capping object memory store to 20.0GB. To increase this further, specify `object_store_memory` when calling ray.init() or ray start.
+Starting the Plasma object store with 20.0 GB memory using /dev/shm.
+
+======================================================================
+View the web UI at http://localhost:8888/notebooks/ray_ui.ipynb?token=a953d0de1890d7e4c0ffd11c3d047204a3a081b9474ed5a6
+======================================================================
+
+{'node_ip_address': '172.31.2.68', 'redis_address': '172.31.2.68:6379', 'object_store_addresses': ['/state/partition1/slurm_tmp/433726.4294967294.0/sockets/plasma_store'], 'raylet_socket_names': ['/state/partition1/slurm_tmp/433726.4294967294.0/sockets/raylet'], 'webui_url': 'http://localhost:8888/notebooks/ray_ui.ipynb?token=a953d0de1890d7e4c0ffd11c3d047204a3a081b9474ed5a6'}
+
+Started Ray on this node. You can add additional nodes to the cluster by calling
+
+    ray start --redis-address 172.31.2.68:6379
+
+from the node you wish to add. You can connect a driver to the cluster from Python by running
+
+    import ray
+    ray.init(redis_address="172.31.2.68:6379")
+
+If you have trouble connecting from a different machine, check that your firewall is configured properly. If you wish to terminate the processes that have been started, run
+
+    ray stop
+/home/gridsan/weizili/.conda/envs/flow/bin/python
+Waiting for redis server at 172.31.2.68:6379 to respond...
+Waiting for redis server at 172.31.2.68:6379 to respond...
+Using IP address 172.31.2.84 for this node.
+Process STDOUT and STDERR is being redirected to workertemp-node-129/logs.
+Warning: Capping object memory store to 20.0GB. To increase this further, specify `object_store_memory` when calling ray.init() or ray start.
+Starting the Plasma object store with 20.0 GB memory using /dev/shm.
+Using IP address 172.31.2.69 for this node.
+Process STDOUT and STDERR is being redirected to workertemp-node-111/logs.
+Warning: Capping object memory store to 20.0GB. To increase this further, specify `object_store_memory` when calling ray.init() or ray start.
+Starting the Plasma object store with 20.0 GB memory using /dev/shm.
+Waiting for redis server at 172.31.2.68:6379 to respond...
+Using IP address 172.31.2.85 for this node.
+Process STDOUT and STDERR is being redirected to workertemp-node-130/logs.
+Warning: Capping object memory store to 20.0GB. To increase this further, specify `object_store_memory` when calling ray.init() or ray start.
+Starting the Plasma object store with 20.0 GB memory using /dev/shm.
+{'redis_address': '172.31.2.68:6379', 'node_ip_address': '172.31.2.84', 'redis_shards': ['172.31.2.68:10666'], 'object_store_addresses': ['workertemp-node-129/sockets/plasma_store.1'], 'raylet_socket_names': ['workertemp-node-129/sockets/raylet.1'], 'webui_url': ''}
+
+Started Ray on this node. If you wish to terminate the processes that have been started, run
+
+    ray stop
+{'redis_address': '172.31.2.68:6379', 'node_ip_address': '172.31.2.69', 'redis_shards': ['172.31.2.68:10666'], 'object_store_addresses': ['workertemp-node-111/sockets/plasma_store.1'], 'raylet_socket_names': ['workertemp-node-111/sockets/raylet.1'], 'webui_url': ''}
+
+Started Ray on this node. If you wish to terminate the processes that have been started, run
+
+    ray stop
+{'redis_address': '172.31.2.68:6379', 'node_ip_address': '172.31.2.85', 'redis_shards': ['172.31.2.68:10666'], 'object_store_addresses': ['workertemp-node-130/sockets/plasma_store.1'], 'raylet_socket_names': ['workertemp-node-130/sockets/raylet.1'], 'webui_url': ''}
+
+Started Ray on this node. If you wish to terminate the processes that have been started, run
+
+    ray stop
+Process STDOUT and STDERR is being redirected to /tmp/ray/session_2019-08-30_17-26-26_2487/logs.
+Waiting for redis server at 127.0.0.1:24822 to respond...
+Waiting for redis server at 127.0.0.1:20657 to respond...
+Warning: Capping object memory store to 20.0GB. To increase this further, specify `object_store_memory` when calling ray.init() or ray start.
+Starting the Plasma object store with 20.0 GB memory using /dev/shm.
+I0830 17:26:26.989795  2518 store.cc:994] Allowing the Plasma store to use up to 20GB of memory.
+I0830 17:26:26.990151  2518 store.cc:1024] Starting object store with directory /dev/shm and huge page support disabled
+
+======================================================================
+View the web UI at http://localhost:8889/notebooks/ray_ui.ipynb?token=5b6e70a475d140d7cacbb6316362daf0bfc9d88b0802f3ca
+======================================================================
+
+== Status ==
+Using FIFO scheduling algorithm.
+Resources requested: 0/64 CPUs, 0/0 GPUs
+Memory usage on this node: 3.0/67.4 GB
+
+Created LogSyncer for /home/gridsan/weizili/ray_results/stabilizing_the_ring/PPO_WaveAttenuationPOEnv-v0_0_2019-08-30_17-26-27d9k00iph -> 
+== Status ==
+Using FIFO scheduling algorithm.
+Resources requested: 64/64 CPUs, 0/0 GPUs
+Memory usage on this node: 3.0/67.4 GB
+Result logdir: /home/gridsan/weizili/ray_results/stabilizing_the_ring
+RUNNING trials:
+ - PPO_WaveAttenuationPOEnv-v0_0:	RUNNING
+
+2019-08-30 17:26:38,736	WARNING ppo.py:137 -- By default, observations will be normalized with MeanStdFilter
+Loading configuration... done.
+Success.
+ Starting SUMO on port 49333
+Loading configuration... done.
+2019-08-30 17:26:41,685	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 0 on CPU (please ignore any CUDA init errors)
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+2019-08-30 17:26:45,329	INFO multi_gpu_optimizer.py:74 -- LocalMultiGPUOptimizer devices ['/cpu:0']
+Loading configuration... done.
+Success.
+ Starting SUMO on port 48265
+Loading configuration... done.
+2019-08-30 17:27:29,809	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 2 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54591
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54003
+Success.
+Loading configuration... done.
+ Starting SUMO on port 49697
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 50497
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 23375
+Loading configuration... done.
+2019-08-30 17:27:31,156	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 5 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+Success.
+ Starting SUMO on port 21571
+Loading configuration... done.
+2019-08-30 17:27:31,409	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 6 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:31,428	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 8 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+2019-08-30 17:27:31,636	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 3 on CPU (please ignore any CUDA init errors)
+Success.
+ Starting SUMO on port 16435
+Loading configuration... done.
+Loading configuration... 2019-08-30 17:27:32,026	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 1 on CPU (please ignore any CUDA init errors)
+done.
+Loading configuration... done.
+Success.
+Success.
+ Starting SUMO on port 36027
+ Starting SUMO on port 59511
+Loading configuration... done.
+Loading configuration... done.
+2019-08-30 17:27:32,392	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 12 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+Success.
+ Starting SUMO on port 30337
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 37619
+Loading configuration... done.
+2019-08-30 17:27:32,837	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 11 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+Success.
+ Starting SUMO on port 22179
+Loading configuration... done.
+Loading configuration... done.
+2019-08-30 17:27:33,263	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 15 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:33,269	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 14 on CPU (please ignore any CUDA init errors)
+Success.
+ Starting SUMO on port 40295
+Loading configuration... Loading configuration... done.
+done.
+Loading configuration... done.
+Loading configuration... Success.
+done.
+Success.
+ Starting SUMO on port 28271
+Loading configuration... done.
+ Starting SUMO on port 50365
+Loading configuration... done.
+Success.
+ Starting SUMO on port 34289
+2019-08-30 17:27:33,648	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 13 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+2019-08-30 17:27:33,880	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 7 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+Success.
+ Starting SUMO on port 24257
+Loading configuration... done.
+2019-08-30 17:27:34,348	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 16 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:34,476	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 9 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+2019-08-30 17:27:34,622	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 17 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:34,660	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 18 on CPU (please ignore any CUDA init errors)
+Success.
+ Starting SUMO on port 51223
+Loading configuration... done.
+2019-08-30 17:27:34,793	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 10 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:35,268	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 4 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+Success.
+ Starting SUMO on port 56573
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 55955
+Loading configuration... done.
+Loading configuration... done.
+2019-08-30 17:27:35,839	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 24 on CPU (please ignore any CUDA init errors)
+Success.
+ Starting SUMO on port 55561
+Loading configuration... done.
+Loading configuration... done.
+Success.
+2019-08-30 17:27:36,542	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 25 on CPU (please ignore any CUDA init errors)
+Loading configuration...  Starting SUMO on port 17727
+done.
+Loading configuration... done.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 35317
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 22517
+Loading configuration... 2019-08-30 17:27:36,879	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 26 on CPU (please ignore any CUDA init errors)
+done.
+Success.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 17455
+ Starting SUMO on port 41269
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 33123
+Loading configuration... done.
+2019-08-30 17:27:37,208	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 21 on CPU (please ignore any CUDA init errors)
+Success.
+ Starting SUMO on port 16165
+Loading configuration... done.
+Loading configuration... done.
+2019-08-30 17:27:37,704	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 32 on CPU (please ignore any CUDA init errors)
+Success.
+ Starting SUMO on port 45437
+Loading configuration... done.
+2019-08-30 17:27:37,870	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 31 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+2019-08-30 17:27:37,964	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 23 on CPU (please ignore any CUDA init errors)
+Success.
+2019-08-30 17:27:38,081	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 19 on CPU (please ignore any CUDA init errors)
+ Starting SUMO on port 48571
+2019-08-30 17:27:38,108	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 33 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 29295
+2019-08-30 17:27:38,268	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 37 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+2019-08-30 17:27:38,407	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 20 on CPU (please ignore any CUDA init errors)
+Success.
+Success.
+ Starting SUMO on port 37411
+ Starting SUMO on port 33073
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 18513
+Loading configuration... done.
+Success.
+ Starting SUMO on port 31209
+Loading configuration... done.
+Loading configuration... done.
+Success.
+2019-08-30 17:27:38,930	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 45 on CPU (please ignore any CUDA init errors)
+ Starting SUMO on port 25761
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 16845
+2019-08-30 17:27:39,225	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 29 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+Loading configuration... done.
+Success.
+2019-08-30 17:27:39,370	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 22 on CPU (please ignore any CUDA init errors)
+ Starting SUMO on port 28865
+Loading configuration... done.
+Loading configuration... done.
+2019-08-30 17:27:39,644	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 28 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:39,652	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 30 on CPU (please ignore any CUDA init errors)
+Success.
+ Starting SUMO on port 38481
+Loading configuration... Loading configuration... done.
+done.
+Loading configuration... done.
+Loading configuration... done.
+2019-08-30 17:27:39,874	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 27 on CPU (please ignore any CUDA init errors)
+Success.
+Success.
+ Starting SUMO on port 21831
+Success.
+Loading configuration... 2019-08-30 17:27:39,966	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 35 on CPU (please ignore any CUDA init errors)
+done.
+ Starting SUMO on port 56729
+ Starting SUMO on port 42713
+Loading configuration... done.
+Loading configuration... done.
+2019-08-30 17:27:40,072	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 36 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+Loading configuration... done.
+Success.
+2019-08-30 17:27:40,322	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 44 on CPU (please ignore any CUDA init errors)
+ Starting SUMO on port 42443
+Loading configuration... done.
+Success.
+ Starting SUMO on port 21923
+Loading configuration... Loading configuration... done.
+2019-08-30 17:27:40,507	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 43 on CPU (please ignore any CUDA init errors)
+done.
+Success.
+ Starting SUMO on port 54297
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54531
+2019-08-30 17:27:40,815	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 42 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+Loading configuration... done.
+2019-08-30 17:27:41,048	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 48 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:41,075	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 39 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:41,079	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 41 on CPU (please ignore any CUDA init errors)
+Success.
+Loading configuration...  Starting SUMO on port 32129
+done.
+Loading configuration... done.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 25521
+Loading configuration... done.
+Success.
+Loading configuration...  Starting SUMO on port 48655
+done.
+Loading configuration... done.
+Success.
+2019-08-30 17:27:41,425	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 47 on CPU (please ignore any CUDA init errors)
+ Starting SUMO on port 58891
+Loading configuration... done.
+Loading configuration... done.
+2019-08-30 17:27:41,550	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 46 on CPU (please ignore any CUDA init errors)
+Loading configuration... Success.
+done.
+Loading configuration... Loading configuration... done.
+ Starting SUMO on port 59283
+done.
+Loading configuration... done.
+Success.
+Loading configuration... done.
+Success.
+Success.
+ Starting SUMO on port 47491
+ Starting SUMO on port 48661
+ Starting SUMO on port 30479
+Loading configuration... done.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 43479
+2019-08-30 17:27:41,749	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 34 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 32295
+2019-08-30 17:27:41,895	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 49 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+Loading configuration... done.
+Success.
+2019-08-30 17:27:42,207	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 40 on CPU (please ignore any CUDA init errors)
+ Starting SUMO on port 39315
+Loading configuration... done.
+2019-08-30 17:27:42,343	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 62 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:42,441	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 60 on CPU (please ignore any CUDA init errors)
+Loading configuration... Loading configuration... done.
+Loading configuration... done.
+done.
+2019-08-30 17:27:42,557	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 57 on CPU (please ignore any CUDA init errors)
+Loading configuration... Success.
+done.
+Success.
+ Starting SUMO on port 57265
+Success.
+ Starting SUMO on port 27249
+ Starting SUMO on port 35197
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Loading configuration... done.
+2019-08-30 17:27:42,710	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 38 on CPU (please ignore any CUDA init errors)
+ Starting SUMO on port 21819
+Loading configuration... done.
+2019-08-30 17:27:42,809	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 59 on CPU (please ignore any CUDA init errors)
+Loading configuration... 2019-08-30 17:27:42,820	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 61 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:42,820	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 52 on CPU (please ignore any CUDA init errors)
+done.
+2019-08-30 17:27:42,833	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 53 on CPU (please ignore any CUDA init errors)
+Success.
+ Starting SUMO on port 54313
+2019-08-30 17:27:43,020	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 63 on CPU (please ignore any CUDA init errors)
+Loading configuration... done.
+2019-08-30 17:27:43,314	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 54 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:43,725	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 55 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:43,744	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 51 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:43,783	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 56 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:43,820	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 50 on CPU (please ignore any CUDA init errors)
+2019-08-30 17:27:44,093	INFO policy_evaluator.py:262 -- Creating policy evaluation worker 58 on CPU (please ignore any CUDA init errors)
+Loading configuration... Loading configuration... done.
+done.
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... Loading configuration... Loading configuration... done.
+Loading configuration... done.
+done.
+done.
+Loading configuration... done.
+Loading configuration... Success.
+done.
+Success.
+Success.
+Loading configuration... Success.
+done.
+Success.
+Loading configuration... Loading configuration... /home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 30479
+done.
+done.
+Loading configuration... /home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 59511
+done.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 23375
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 54003
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 37619
+Loading configuration... Loading configuration... done.
+done.
+Loading configuration... done.
+Loading configuration... Success.
+Success.
+Loading configuration... Success.
+Loading configuration... done.
+done.
+done.
+Loading configuration... done.
+Success.
+Success.
+Loading configuration... Success.
+Loading configuration... Success.
+done.
+Loading configuration... done.
+done.
+Loading configuration... done.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 48265
+Loading configuration... done.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 21571
+Success.
+Loading configuration... /home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 33123
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 32129
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 54531
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 43479
+Success.
+Success.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 50497
+Success.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 37411
+done.
+Loading configuration... Loading configuration... done.
+Success.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 22517
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 25761
+done.
+Loading configuration... Loading configuration... Loading configuration... Loading configuration... Loading configuration... Loading configuration... Loading configuration... done.
+Loading configuration... Loading configuration... Loading configuration... done.
+Loading configuration... done.
+done.
+done.
+done.
+done.
+Loading configuration... done.
+done.
+done.
+Loading configuration... Loading configuration... Loading configuration... Loading configuration... Loading configuration... done.
+Success.
+Loading configuration... done.
+Loading configuration... done.
+done.
+done.
+Loading configuration... Loading configuration... Loading configuration... Loading configuration... done.
+done.
+done.
+done.
+Loading configuration... Loading configuration... done.
+Loading configuration... Success.
+done.
+done.
+Loading configuration... Success.
+done.
+Loading configuration... done.
+Success.
+Success.
+done.
+Loading configuration... Loading configuration... Loading configuration... done.
+done.
+done.
+done.
+Success.
+done.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 35197
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 29295
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 50365
+Loading configuration... done.
+done.
+Loading configuration... Loading configuration... Success.
+done.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 27249
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 48661
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 17727
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 42713
+Loading configuration... /home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 55955
+done.
+Loading configuration... Loading configuration... done.
+Success.
+done.
+done.
+Loading configuration... Loading configuration... Loading configuration... done.
+Success.
+Success.
+done.
+Loading configuration... Loading configuration... done.
+done.
+done.
+Success.
+Success.
+Success.
+Loading configuration... done.
+Success.
+Success.
+Success.
+Loading configuration... done.
+Loading configuration... Success.
+Success.
+Success.
+Success.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 36027
+Success.
+done.
+Success.
+Success.
+Success.
+Success.
+Success.
+Success.
+Success.
+Loading configuration... done.
+Success.
+Success.
+Success.
+Success.
+Loading configuration... done.
+Loading configuration... Loading configuration... Success.
+done.
+Loading configuration... done.
+Success.
+Success.
+Loading configuration... done.
+Loading configuration... Loading configuration... done.
+done.
+Loading configuration... done.
+done.
+Success.
+Success.
+Loading configuration... Success.
+Success.
+done.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 42443
+Success.
+Success.
+Loading configuration... /home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 31209
+done.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 54297
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 59283
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 16435
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 45437
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 38481
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 16845
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 33073
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 21923
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 17455
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 18513
+Success.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 24257
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 39315
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 22179
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 16165
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 28271
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 21819
+Loading configuration... /home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 56573
+done.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 21831
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 41269
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 48571
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 56729
+Success.
+Loading configuration... /home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 40295
+done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Success.
+Success.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 55561
+Loading configuration... Loading configuration... Loading configuration... Loading configuration... Loading configuration... Loading configuration... Loading configuration... done.
+done.
+done.
+done.
+done.
+done.
+done.
+Loading configuration... Loading configuration... Loading configuration... Loading configuration... Loading configuration... Loading configuration... Loading configuration... Loading configuration... Loading configuration... Loading configuration... /home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 34289
+Loading configuration... done.
+done.
+done.
+done.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 30337
+done.
+done.
+done.
+done.
+done.
+done.
+done.
+Loading configuration... done.
+Loading configuration... done.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 35317
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 32295
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 54591
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 47491
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 51223
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 28865
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 58891
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 48655
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 54313
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 49697
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 25521
+Loading configuration... Loading configuration... Loading configuration... done.
+done.
+Loading configuration... Loading configuration... done.
+done.
+Loading configuration... Loading configuration... done.
+Loading configuration... Loading configuration... done.
+done.
+done.
+Loading configuration... Loading configuration... Loading configuration... done.
+Loading configuration... done.
+done.
+done.
+done.
+Loading configuration... done.
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:100: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+ Starting SUMO on port 57265
+Loading configuration... done.
+Result for PPO_WaveAttenuationPOEnv-v0_0:
+  custom_metrics: {}
+  date: 2019-08-30_17-30-07
+  done: false
+  episode_len_mean: .nan
+  episode_reward_max: .nan
+  episode_reward_mean: .nan
+  episode_reward_min: .nan
+  episodes_this_iter: 0
+  episodes_total: 0
+  experiment_id: e012e955e6484195bbaa28cd12449ca0
+  hostname: node-110
+  info:
+    default:
+      cur_kl_coeff: 0.20000004768371582
+      cur_lr: 4.999999873689376e-05
+      entropy: 1.3710131645202637
+      kl: 0.010256461799144745
+      policy_loss: -0.010807645507156849
+      total_loss: 5395.76171875
+      vf_explained_var: 0.0033815607894212008
+      vf_loss: 5395.7705078125
+    grad_time_ms: 57358.326
+    load_time_ms: 54.826
+    num_steps_sampled: 60000
+    num_steps_trained: 60000
+    sample_time_ms: 79183.354
+    update_time_ms: 791.71
+  iterations_since_restore: 1
+  node_ip: 172.31.2.68
+  num_metric_batches_dropped: 0
+  pid: 2569
+  policy_reward_mean: {}
+  time_since_restore: 137.7587513923645
+  time_this_iter_s: 137.7587513923645
+  time_total_s: 137.7587513923645
+  timestamp: 1567200607
+  timesteps_since_restore: 60000
+  timesteps_this_iter: 60000
+  timesteps_total: 60000
+  training_iteration: 1
+  
+== Status ==
+Using FIFO scheduling algorithm.
+Resources requested: 64/64 CPUs, 0/0 GPUs
+Memory usage on this node: 16.2/67.4 GB
+Result logdir: /home/gridsan/weizili/ray_results/stabilizing_the_ring
+RUNNING trials:
+ - PPO_WaveAttenuationPOEnv-v0_0:	RUNNING [pid=2569], 137 s, 1 iter, 60000 ts, nan rew
+
+Result for PPO_WaveAttenuationPOEnv-v0_0:
+  custom_metrics: {}
+  date: 2019-08-30_17-31-50
+  done: false
+  episode_len_mean: .nan
+  episode_reward_max: .nan
+  episode_reward_mean: .nan
+  episode_reward_min: .nan
+  episodes_this_iter: 0
+  episodes_total: 0
+  experiment_id: e012e955e6484195bbaa28cd12449ca0
+  hostname: node-110
+  info:
+    default:
+      cur_kl_coeff: 0.20000004768371582
+      cur_lr: 4.999999873689376e-05
+      entropy: 1.3239099979400635
+      kl: 0.010389760136604309
+      policy_loss: -0.010548886843025684
+      total_loss: 4702.15966796875
+      vf_explained_var: 0.003527561202645302
+      vf_loss: 4702.16796875
+    grad_time_ms: 56237.551
+    load_time_ms: 28.439
+    num_steps_sampled: 120000
+    num_steps_trained: 120000
+    sample_time_ms: 63557.675
+    update_time_ms: 406.748
+  iterations_since_restore: 2
+  node_ip: 172.31.2.68
+  num_metric_batches_dropped: 0
+  pid: 2569
+  policy_reward_mean: {}
+  time_since_restore: 241.09933948516846
+  time_this_iter_s: 103.34058809280396
+  time_total_s: 241.09933948516846
+  timestamp: 1567200710
+  timesteps_since_restore: 120000
+  timesteps_this_iter: 60000
+  timesteps_total: 120000
+  training_iteration: 2
+  
+== Status ==
+Using FIFO scheduling algorithm.
+Resources requested: 64/64 CPUs, 0/0 GPUs
+Memory usage on this node: 16.2/67.4 GB
+Result logdir: /home/gridsan/weizili/ray_results/stabilizing_the_ring
+RUNNING trials:
+ - PPO_WaveAttenuationPOEnv-v0_0:	RUNNING [pid=2569], 241 s, 2 iter, 120000 ts, nan rew
+
+Loading configuration... done.
+Success.
+ Starting SUMO on port 30479
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 51223
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 39315
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 21831
+Loading configuration... done.
+Success.
+ Starting SUMO on port 31209
+Loading configuration... Loading configuration... done.
+done.
+Success.
+ Starting SUMO on port 25761
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 47491
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 29295
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Success.
+ Starting SUMO on port 54003
+ Starting SUMO on port 54313
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 23375
+Success.
+Loading configuration... Success.
+done.
+ Starting SUMO on port 28271
+ Starting SUMO on port 48655
+Success.
+ Starting SUMO on port 37619
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... Loading configuration... done.
+done.
+Success.
+ Starting SUMO on port 27249
+Success.
+ Starting SUMO on port 45437
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 18513
+Success.
+Loading configuration... done.
+ Starting SUMO on port 22179
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 41269
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 49697
+Success.
+ Starting SUMO on port 25521
+Loading configuration... done.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 30337
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 48265
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 50497
+Loading configuration... done.
+Loading configuration... Success.
+done.
+Loading configuration... Loading configuration... done.
+done.
+ Starting SUMO on port 16845
+Success.
+ Starting SUMO on port 42713
+Loading configuration... done.
+Success.
+Success.
+Loading configuration... done.
+Loading configuration... done.
+ Starting SUMO on port 55561
+ Starting SUMO on port 48661
+Loading configuration... done.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 50365
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54531
+Loading configuration... Loading configuration... done.
+done.
+Success.
+ Starting SUMO on port 58891
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 34289
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 28865
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 43479
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 16435
+Loading configuration... done.
+Result for PPO_WaveAttenuationPOEnv-v0_0:
+  custom_metrics: {}
+  date: 2019-08-30_17-33-51
+  done: false
+  episode_len_mean: 3000.0
+  episode_reward_max: -6888.978824247886
+  episode_reward_mean: -7457.43910092368
+  episode_reward_min: -8120.753972983905
+  episodes_this_iter: 35
+  episodes_total: 35
+  experiment_id: e012e955e6484195bbaa28cd12449ca0
+  hostname: node-110
+  info:
+    default:
+      cur_kl_coeff: 0.20000004768371582
+      cur_lr: 4.999999873689376e-05
+      entropy: 1.277056336402893
+      kl: 0.011128555051982403
+      policy_loss: -0.01158458273857832
+      total_loss: 3709.704345703125
+      vf_explained_var: 0.00044909579446539283
+      vf_loss: 3709.713623046875
+    grad_time_ms: 56399.539
+    load_time_ms: 19.709
+    num_steps_sampled: 180000
+    num_steps_trained: 180000
+    sample_time_ms: 63664.151
+    update_time_ms: 275.832
+  iterations_since_restore: 3
+  node_ip: 172.31.2.68
+  num_metric_batches_dropped: 0
+  pid: 2569
+  policy_reward_mean: {}
+  time_since_restore: 361.9967739582062
+  time_this_iter_s: 120.89743447303772
+  time_total_s: 361.9967739582062
+  timestamp: 1567200831
+  timesteps_since_restore: 180000
+  timesteps_this_iter: 60000
+  timesteps_total: 180000
+  training_iteration: 3
+  
+== Status ==
+Using FIFO scheduling algorithm.
+Resources requested: 64/64 CPUs, 0/0 GPUs
+Memory usage on this node: 16.2/67.4 GB
+Result logdir: /home/gridsan/weizili/ray_results/stabilizing_the_ring
+RUNNING trials:
+ - PPO_WaveAttenuationPOEnv-v0_0:	RUNNING [pid=2569], 361 s, 3 iter, 180000 ts, -7.46e+03 rew
+
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54297
+Success.
+Loading configuration... done.
+ Starting SUMO on port 57265
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 22517
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 21923
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Success.
+ Starting SUMO on port 42443
+ Starting SUMO on port 37411
+Loading configuration... Loading configuration... done.
+done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 55955
+Success.
+ Starting SUMO on port 16165
+Loading configuration... done.
+ Starting SUMO on port 21819
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Success.
+ Starting SUMO on port 59283
+Success.
+ Starting SUMO on port 40295
+Loading configuration... Loading configuration... done.
+done.
+ Starting SUMO on port 32129
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 17455
+Success.
+Loading configuration... done.
+ Starting SUMO on port 59511
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 56573
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 56729
+Loading configuration... done.
+Loading configuration... Loading configuration... done.
+done.
+Success.
+Success.
+ Starting SUMO on port 24257
+ Starting SUMO on port 33073
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 32295
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54591
+Loading configuration... done.
+Success.
+Success.
+ Starting SUMO on port 21571
+ Starting SUMO on port 38481
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... Loading configuration... done.
+done.
+Success.
+ Starting SUMO on port 33123
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Success.
+ Starting SUMO on port 17727
+ Starting SUMO on port 36027
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 35197
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 35317
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 48571
+Loading configuration... done.
+Result for PPO_WaveAttenuationPOEnv-v0_0:
+  custom_metrics: {}
+  date: 2019-08-30_17-35-48
+  done: false
+  episode_len_mean: 3000.0
+  episode_reward_max: -5552.606976794963
+  episode_reward_mean: -7113.560239950464
+  episode_reward_min: -8120.753972983905
+  episodes_this_iter: 28
+  episodes_total: 63
+  experiment_id: e012e955e6484195bbaa28cd12449ca0
+  hostname: node-110
+  info:
+    default:
+      cur_kl_coeff: 0.20000004768371582
+      cur_lr: 4.999999873689376e-05
+      entropy: 1.2342575788497925
+      kl: 0.012320204637944698
+      policy_loss: -0.011838988400995731
+      total_loss: 2673.31005859375
+      vf_explained_var: -2.464155295456294e-05
+      vf_loss: 2673.3193359375
+    grad_time_ms: 56838.001
+    load_time_ms: 15.705
+    num_steps_sampled: 240000
+    num_steps_trained: 240000
+    sample_time_ms: 62439.916
+    update_time_ms: 210.447
+  iterations_since_restore: 4
+  node_ip: 172.31.2.68
+  num_metric_batches_dropped: 0
+  pid: 2569
+  policy_reward_mean: {}
+  time_since_restore: 479.2038929462433
+  time_this_iter_s: 117.20711898803711
+  time_total_s: 479.2038929462433
+  timestamp: 1567200948
+  timesteps_since_restore: 240000
+  timesteps_this_iter: 60000
+  timesteps_total: 240000
+  training_iteration: 4
+  
+== Status ==
+Using FIFO scheduling algorithm.
+Resources requested: 64/64 CPUs, 0/0 GPUs
+Memory usage on this node: 16.2/67.4 GB
+Result logdir: /home/gridsan/weizili/ray_results/stabilizing_the_ring
+RUNNING trials:
+ - PPO_WaveAttenuationPOEnv-v0_0:	RUNNING [pid=2569], 479 s, 4 iter, 240000 ts, -7.11e+03 rew
+
+Result for PPO_WaveAttenuationPOEnv-v0_0:
+  custom_metrics: {}
+  date: 2019-08-30_17-37-34
+  done: false
+  episode_len_mean: 3000.0
+  episode_reward_max: -5552.606976794963
+  episode_reward_mean: -7113.560239950465
+  episode_reward_min: -8120.753972983905
+  episodes_this_iter: 0
+  episodes_total: 63
+  experiment_id: e012e955e6484195bbaa28cd12449ca0
+  hostname: node-110
+  info:
+    default:
+      cur_kl_coeff: 0.20000004768371582
+      cur_lr: 4.999999873689376e-05
+      entropy: 1.174518346786499
+      kl: 0.012957106344401836
+      policy_loss: -0.011987988837063313
+      total_loss: 2125.055908203125
+      vf_explained_var: -1.1308835382806137e-05
+      vf_loss: 2125.065185546875
+    grad_time_ms: 56959.776
+    load_time_ms: 12.945
+    num_steps_sampled: 300000
+    num_steps_trained: 300000
+    sample_time_ms: 59535.83
+    update_time_ms: 171.414
+  iterations_since_restore: 5
+  node_ip: 172.31.2.68
+  num_metric_batches_dropped: 0
+  pid: 2569
+  policy_reward_mean: {}
+  time_since_restore: 584.8426821231842
+  time_this_iter_s: 105.63878917694092
+  time_total_s: 584.8426821231842
+  timestamp: 1567201054
+  timesteps_since_restore: 300000
+  timesteps_this_iter: 60000
+  timesteps_total: 300000
+  training_iteration: 5
+  
+== Status ==
+Using FIFO scheduling algorithm.
+Resources requested: 64/64 CPUs, 0/0 GPUs
+Memory usage on this node: 16.3/67.4 GB
+Result logdir: /home/gridsan/weizili/ray_results/stabilizing_the_ring
+RUNNING trials:
+ - PPO_WaveAttenuationPOEnv-v0_0:	RUNNING [pid=2569], 584 s, 5 iter, 300000 ts, -7.11e+03 rew
+
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54313
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54003
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 50365
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 55561
+ Starting SUMO on port 37619
+Loading configuration... done.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 16435
+Success.
+Loading configuration... done.
+ Starting SUMO on port 30479
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 31209
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54531
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 22179
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 48265
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 16845
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 50497
+Loading configuration... Loading configuration... done.
+done.
+Loading configuration... done.
+Success.
+Success.
+ Starting SUMO on port 42713
+ Starting SUMO on port 49697
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 51223
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 41269
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 43479
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 28865
+Loading configuration... done.
+Success.
+ Starting SUMO on port 23375
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 34289
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 18513
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 27249
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 39315
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Success.
+ Starting SUMO on port 29295
+ Starting SUMO on port 48655
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 45437
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 48661
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 47491
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 28271
+Success.
+Loading configuration... done.
+ Starting SUMO on port 25521
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 21831
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Success.
+ Starting SUMO on port 30337
+ Starting SUMO on port 58891
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 25761
+Loading configuration... done.
+Result for PPO_WaveAttenuationPOEnv-v0_0:
+  custom_metrics: {}
+  date: 2019-08-30_17-39-37
+  done: false
+  episode_len_mean: 3000.0
+  episode_reward_max: -3988.066849209694
+  episode_reward_mean: -6374.79412246054
+  episode_reward_min: -8120.753972983905
+  episodes_this_iter: 35
+  episodes_total: 98
+  experiment_id: e012e955e6484195bbaa28cd12449ca0
+  hostname: node-110
+  info:
+    default:
+      cur_kl_coeff: 0.20000004768371582
+      cur_lr: 4.999999873689376e-05
+      entropy: 1.116575002670288
+      kl: 0.012632490135729313
+      policy_loss: -0.011423217132687569
+      total_loss: 1563.6654052734375
+      vf_explained_var: 3.234316181988106e-06
+      vf_loss: 1563.67431640625
+    grad_time_ms: 56940.299
+    load_time_ms: 11.281
+    num_steps_sampled: 360000
+    num_steps_trained: 360000
+    sample_time_ms: 60522.192
+    update_time_ms: 145.193
+  iterations_since_restore: 6
+  node_ip: 172.31.2.68
+  num_metric_batches_dropped: 0
+  pid: 2569
+  policy_reward_mean: {}
+  time_since_restore: 707.4264254570007
+  time_this_iter_s: 122.58374333381653
+  time_total_s: 707.4264254570007
+  timestamp: 1567201177
+  timesteps_since_restore: 360000
+  timesteps_this_iter: 60000
+  timesteps_total: 360000
+  training_iteration: 6
+  
+== Status ==
+Using FIFO scheduling algorithm.
+Resources requested: 64/64 CPUs, 0/0 GPUs
+Memory usage on this node: 16.3/67.4 GB
+Result logdir: /home/gridsan/weizili/ray_results/stabilizing_the_ring
+RUNNING trials:
+ - PPO_WaveAttenuationPOEnv-v0_0:	RUNNING [pid=2569], 707 s, 6 iter, 360000 ts, -6.37e+03 rew
+
+Loading configuration... done.
+Success.
+ Starting SUMO on port 21819
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 40295
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 59511
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 42443
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 22517
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 57265
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 33073
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 56573
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54591
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 55955
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 21923
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 17455
+Loading configuration... done.
+Success.
+ Starting SUMO on port 17727
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54297
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 37411
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 32129
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 16165
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 59283
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 21571
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 38481
+Loading configuration... done.
+Success.
+ Starting SUMO on port 36027
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 24257
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 33123
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 32295
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 56729
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 48571
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 35317
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 35197
+Loading configuration... done.
+Result for PPO_WaveAttenuationPOEnv-v0_0:
+  custom_metrics: {}
+  date: 2019-08-30_17-41-37
+  done: false
+  episode_len_mean: 3000.0
+  episode_reward_max: -3094.3517126619686
+  episode_reward_mean: -5525.049347145191
+  episode_reward_min: -8120.753972983905
+  episodes_this_iter: 28
+  episodes_total: 126
+  experiment_id: e012e955e6484195bbaa28cd12449ca0
+  hostname: node-110
+  info:
+    default:
+      cur_kl_coeff: 0.20000004768371582
+      cur_lr: 4.999999873689376e-05
+      entropy: 1.0574060678482056
+      kl: 0.015962615609169006
+      policy_loss: -0.013864213600754738
+      total_loss: 917.2327880859375
+      vf_explained_var: -3.486234845695435e-06
+      vf_loss: 917.243408203125
+    grad_time_ms: 56862.056
+    load_time_ms: 9.954
+    num_steps_sampled: 420000
+    num_steps_trained: 420000
+    sample_time_ms: 60917.543
+    update_time_ms: 126.675
+  iterations_since_restore: 7
+  node_ip: 172.31.2.68
+  num_metric_batches_dropped: 0
+  pid: 2569
+  policy_reward_mean: {}
+  time_since_restore: 827.3842616081238
+  time_this_iter_s: 119.95783615112305
+  time_total_s: 827.3842616081238
+  timestamp: 1567201297
+  timesteps_since_restore: 420000
+  timesteps_this_iter: 60000
+  timesteps_total: 420000
+  training_iteration: 7
+  
+== Status ==
+Using FIFO scheduling algorithm.
+Resources requested: 64/64 CPUs, 0/0 GPUs
+Memory usage on this node: 16.3/67.4 GB
+Result logdir: /home/gridsan/weizili/ray_results/stabilizing_the_ring
+RUNNING trials:
+ - PPO_WaveAttenuationPOEnv-v0_0:	RUNNING [pid=2569], 827 s, 7 iter, 420000 ts, -5.53e+03 rew
+
+Result for PPO_WaveAttenuationPOEnv-v0_0:
+  custom_metrics: {}
+  date: 2019-08-30_17-43-26
+  done: false
+  episode_len_mean: 3000.0
+  episode_reward_max: -3094.3517126619686
+  episode_reward_mean: -5525.049347145189
+  episode_reward_min: -8120.753972983905
+  episodes_this_iter: 0
+  episodes_total: 126
+  experiment_id: e012e955e6484195bbaa28cd12449ca0
+  hostname: node-110
+  info:
+    default:
+      cur_kl_coeff: 0.20000004768371582
+      cur_lr: 4.999999873689376e-05
+      entropy: 0.9943732023239136
+      kl: 0.016419528052210808
+      policy_loss: -0.014271177351474762
+      total_loss: 565.482666015625
+      vf_explained_var: -1.7462377854826627e-06
+      vf_loss: 565.49365234375
+    grad_time_ms: 57320.078
+    load_time_ms: 8.934
+    num_steps_sampled: 480000
+    num_steps_trained: 480000
+    sample_time_ms: 59316.467
+    update_time_ms: 112.584
+  iterations_since_restore: 8
+  node_ip: 172.31.2.68
+  num_metric_batches_dropped: 0
+  pid: 2569
+  policy_reward_mean: {}
+  time_since_restore: 936.2981953620911
+  time_this_iter_s: 108.91393375396729
+  time_total_s: 936.2981953620911
+  timestamp: 1567201406
+  timesteps_since_restore: 480000
+  timesteps_this_iter: 60000
+  timesteps_total: 480000
+  training_iteration: 8
+  
+== Status ==
+Using FIFO scheduling algorithm.
+Resources requested: 64/64 CPUs, 0/0 GPUs
+Memory usage on this node: 16.3/67.4 GB
+Result logdir: /home/gridsan/weizili/ray_results/stabilizing_the_ring
+RUNNING trials:
+ - PPO_WaveAttenuationPOEnv-v0_0:	RUNNING [pid=2569], 936 s, 8 iter, 480000 ts, -5.53e+03 rew
+
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54531
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 31209
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Success.
+ Starting SUMO on port 28865
+ Starting SUMO on port 50365
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 45437
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 25521
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 48265
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Success.
+ Starting SUMO on port 54003
+ Starting SUMO on port 21831
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 28271
+Success.
+Loading configuration... done.
+ Starting SUMO on port 43479
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 27249
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 49697
+Success.
+Loading configuration... done.
+ Starting SUMO on port 30479
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 37619
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 34289
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 48661
+Loading configuration... done.
+Success.
+ Starting SUMO on port 18513
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 41269
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 58891
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54313
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 42713
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 16435
+Success.
+Loading configuration... Loading configuration... done.
+done.
+ Starting SUMO on port 23375
+Loading configuration... done.
+Success.
+ Starting SUMO on port 55561
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 50497
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... Success.
+done.
+ Starting SUMO on port 30337
+Loading configuration... done.
+Success.
+ Starting SUMO on port 25761
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 29295
+Loading configuration... done.
+Result for PPO_WaveAttenuationPOEnv-v0_0:
+  custom_metrics: {}
+  date: 2019-08-30_17-45-29
+  done: false
+  episode_len_mean: 3000.0
+  episode_reward_max: -1922.0075924327882
+  episode_reward_mean: -4307.836141211016
+  episode_reward_min: -7444.999114183588
+  episodes_this_iter: 29
+  episodes_total: 155
+  experiment_id: e012e955e6484195bbaa28cd12449ca0
+  hostname: node-110
+  info:
+    default:
+      cur_kl_coeff: 0.20000004768371582
+      cur_lr: 4.999999873689376e-05
+      entropy: 0.9328557848930359
+      kl: 0.015194155275821686
+      policy_loss: -0.013243090361356735
+      total_loss: 324.65325927734375
+      vf_explained_var: -4.993799507246877e-07
+      vf_loss: 324.6634521484375
+    grad_time_ms: 57406.934
+    load_time_ms: 8.185
+    num_steps_sampled: 540000
+    num_steps_trained: 540000
+    sample_time_ms: 59875.996
+    update_time_ms: 101.72
+  iterations_since_restore: 9
+  node_ip: 172.31.2.68
+  num_metric_batches_dropped: 0
+  pid: 2569
+  policy_reward_mean: {}
+  time_since_restore: 1059.0282633304596
+  time_this_iter_s: 122.73006796836853
+  time_total_s: 1059.0282633304596
+  timestamp: 1567201529
+  timesteps_since_restore: 540000
+  timesteps_this_iter: 60000
+  timesteps_total: 540000
+  training_iteration: 9
+  
+== Status ==
+Using FIFO scheduling algorithm.
+Resources requested: 64/64 CPUs, 0/0 GPUs
+Memory usage on this node: 16.3/67.4 GB
+Result logdir: /home/gridsan/weizili/ray_results/stabilizing_the_ring
+RUNNING trials:
+ - PPO_WaveAttenuationPOEnv-v0_0:	RUNNING [pid=2569], 1059 s, 9 iter, 540000 ts, -4.31e+03 rew
+
+Loading configuration... done.
+Success.
+ Starting SUMO on port 16845
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 48655
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 51223
+Success.
+Loading configuration... done.
+ Starting SUMO on port 39315
+Success.
+Success.
+ Starting SUMO on port 22179
+Loading configuration... done.
+ Starting SUMO on port 47491
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 21819
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 56573
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 21571
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 57265
+Loading configuration... done.
+Loading configuration... Loading configuration... done.
+done.
+Success.
+ Starting SUMO on port 17455
+Loading configuration... done.
+Success.
+ Starting SUMO on port 17727
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 42443
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 59511
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 22517
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 40295
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 55955
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 37411
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 56729
+Loading configuration... done.
+Loading configuration... Loading configuration... done.
+done.
+Success.
+Success.
+ Starting SUMO on port 59283
+ Starting SUMO on port 16165
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54297
+Success.
+Loading configuration... done.
+ Starting SUMO on port 38481
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 21923
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Loading configuration... done.
+ Starting SUMO on port 48571
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 35197
+Success.
+Loading configuration... done.
+ Starting SUMO on port 35317
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 33123
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 54591
+Success.
+ Starting SUMO on port 33073
+Loading configuration... done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+Loading configuration...  Starting SUMO on port 24257
+done.
+Loading configuration... done.
+Loading configuration... done.
+Success.
+ Starting SUMO on port 32295
+Success.
+Loading configuration... done.
+ Starting SUMO on port 36027
+Loading configuration... done.
+Result for PPO_WaveAttenuationPOEnv-v0_0:
+  custom_metrics: {}
+  date: 2019-08-30_17-47-30
+  done: true
+  episode_len_mean: 3000.0
+  episode_reward_max: -925.1373797104773
+  episode_reward_mean: -3123.250428764409
+  episode_reward_min: -5650.81931112833
+  episodes_this_iter: 33
+  episodes_total: 188
+  experiment_id: e012e955e6484195bbaa28cd12449ca0
+  hostname: node-110
+  info:
+    default:
+      cur_kl_coeff: 0.20000004768371582
+      cur_lr: 4.999999873689376e-05
+      entropy: 0.8813333511352539
+      kl: 0.015433603897690773
+      policy_loss: -0.012087834998965263
+      total_loss: 239.8202667236328
+      vf_explained_var: -1.2048289477206708e-07
+      vf_loss: 239.8292694091797
+    grad_time_ms: 57460.694
+    load_time_ms: 7.568
+    num_steps_sampled: 600000
+    num_steps_trained: 600000
+    sample_time_ms: 60174.986
+    update_time_ms: 93.25
+  iterations_since_restore: 10
+  node_ip: 172.31.2.68
+  num_metric_batches_dropped: 0
+  pid: 2569
+  policy_reward_mean: {}
+  time_since_restore: 1180.116336107254
+  time_this_iter_s: 121.08807277679443
+  time_total_s: 1180.116336107254
+  timestamp: 1567201650
+  timesteps_since_restore: 600000
+  timesteps_this_iter: 60000
+  timesteps_total: 600000
+  training_iteration: 10
+  
+
+-----------------------
+ring length: 230
+v_max: 3.7136148111012934
+-----------------------
+
+-----------------------
+ring length: 227
+v_max: 3.570869368805752
+-----------------------
+
+-----------------------
+ring length: 263
+v_max: 5.282212215151455
+-----------------------
+
+-----------------------
+ring length: 260
+v_max: 5.139779427502188
+-----------------------
+
+-----------------------
+ring length: 233
+v_max: 3.856343201216534
+-----------------------
+
+-----------------------
+ring length: 231
+v_max: 3.761192925277308
+-----------------------
+
+-----------------------
+ring length: 243
+v_max: 4.331956438196479
+-----------------------
+
+-----------------------
+ring length: 249
+v_max: 4.617190445131122
+-----------------------
+
+-----------------------
+ring length: 252
+v_max: 4.759762049824181
+-----------------------
+
+-----------------------
+ring length: 237
+v_max: 4.04661795519353
+-----------------------
+
+-----------------------
+ring length: 251
+v_max: 4.71224180704279
+-----------------------
+
+-----------------------
+ring length: 256
+v_max: 4.949804327743507
+-----------------------
+
+-----------------------
+ring length: 258
+v_max: 5.044800727535787
+-----------------------
+
+-----------------------
+ring length: 237
+v_max: 4.04661795519353
+-----------------------
+
+-----------------------
+ring length: 234
+v_max: 3.903915223349057
+-----------------------
+
+-----------------------
+ring length: 237
+v_max: 4.04661795519353
+-----------------------
+
+-----------------------
+ring length: 270
+v_max: 5.6143732387852054
+-----------------------
+
+-----------------------
+ring length: 222
+v_max: 3.3329270738617227
+-----------------------
+
+-----------------------
+ring length: 258
+v_max: 5.044800727535787
+-----------------------
+
+-----------------------
+ring length: 240
+v_max: 4.189299083856172
+-----------------------
+
+-----------------------
+ring length: 246
+v_max: 4.474587708995648
+-----------------------
+
+-----------------------
+ring length: 229
+v_max: 3.666034803266416
+-----------------------
+
+-----------------------
+ring length: 265
+v_max: 5.37714246265477
+-----------------------
+
+-----------------------
+ring length: 249
+v_max: 4.617190445131122
+-----------------------
+
+-----------------------
+ring length: 230
+v_max: 3.7136148111012934
+-----------------------
+
+-----------------------
+ring length: 228
+v_max: 3.618452967700356
+-----------------------
+
+-----------------------
+ring length: 225
+v_max: 3.4756971311168834
+-----------------------
+
+-----------------------
+ring length: 237
+v_max: 4.04661795519353
+-----------------------
+
+-----------------------
+ring length: 236
+v_max: 3.999052674951912
+-----------------------
+
+-----------------------
+ring length: 225
+v_max: 3.4756971311168834
+-----------------------
+
+-----------------------
+ring length: 244
+v_max: 4.379503211387676
+-----------------------
+
+-----------------------
+ring length: 236
+v_max: 3.999052674951912
+-----------------------
+
+-----------------------
+ring length: 241
+v_max: 4.236854288051661
+-----------------------
+
+-----------------------
+ring length: 238
+v_max: 4.094180836186086
+-----------------------
+
+-----------------------
+ring length: 246
+v_max: 4.474587708995648
+-----------------------
+
+-----------------------
+ring length: 245
+v_max: 4.427046998576354
+-----------------------
+
+-----------------------
+ring length: 256
+v_max: 4.949804327743507
+-----------------------
+
+-----------------------
+ring length: 221
+v_max: 3.285334164169417
+-----------------------
+
+-----------------------
+ring length: 233
+v_max: 3.856343201216534
+-----------------------
+
+-----------------------
+ring length: 266
+v_max: 5.42459972166245
+-----------------------
+
+-----------------------
+ring length: 268
+v_max: 5.5194978538368025
+-----------------------
+
+-----------------------
+ring length: 249
+v_max: 4.617190445131122
+-----------------------
+
+-----------------------
+ring length: 248
+v_max: 4.569659527528101
+-----------------------
+
+-----------------------
+ring length: 233
+v_max: 3.856343201216534
+-----------------------
+
+-----------------------
+ring length: 233
+v_max: 3.856343201216534
+-----------------------
+
+-----------------------
+ring length: 222
+v_max: 3.3329270738617227
+-----------------------
+
+-----------------------
+ring length: 262
+v_max: 5.234739483008334
+-----------------------
+
+-----------------------
+ring length: 263
+v_max: 5.282212215151455
+-----------------------
+
+-----------------------
+ring length: 231
+v_max: 3.761192925277308
+-----------------------
+
+-----------------------
+ring length: 226
+v_max: 3.5232840694769565
+-----------------------
+
+-----------------------
+ring length: 226
+v_max: 3.5232840694769565
+-----------------------
+
+-----------------------
+ring length: 232
+v_max: 3.8087690783250063
+-----------------------
+
+-----------------------
+ring length: 240
+v_max: 4.189299083856172
+-----------------------
+
+-----------------------
+ring length: 248
+v_max: 4.569659527528101
+-----------------------
+
+-----------------------
+ring length: 258
+v_max: 5.044800727535787
+-----------------------
+
+-----------------------
+ring length: 222
+v_max: 3.3329270738617227
+-----------------------
+
+-----------------------
+ring length: 259
+v_max: 5.092292348291853
+-----------------------
+
+-----------------------
+ring length: 220
+v_max: 3.2377399006821497
+-----------------------
+
+-----------------------
+ring length: 224
+v_max: 3.4281086136538996
+-----------------------
+
+-----------------------
+ring length: 232
+v_max: 3.8087690783250063
+-----------------------
+
+-----------------------
+ring length: 224
+v_max: 3.4281086136538996
+-----------------------
+
+-----------------------
+ring length: 264
+v_max: 5.329679917416892
+-----------------------
+
+-----------------------
+ring length: 261
+v_max: 5.187261846097525
+-----------------------
+
+-----------------------
+ring length: 249
+v_max: 4.617190445131122
+-----------------------
+
+-----------------------
+ring length: 238
+v_max: 4.094180836186086
+-----------------------
+
+-----------------------
+ring length: 235
+v_max: 3.9514850725282584
+-----------------------
+
+-----------------------
+ring length: 238
+v_max: 4.094180836186086
+-----------------------
+
+-----------------------
+ring length: 232
+v_max: 3.8087690783250063
+-----------------------
+
+-----------------------
+ring length: 223
+v_max: 3.3805185755587788
+-----------------------
+
+-----------------------
+ring length: 270
+v_max: 5.6143732387852054
+-----------------------
+
+-----------------------
+ring length: 262
+v_max: 5.234739483008334
+-----------------------
+
+-----------------------
+ring length: 237
+v_max: 4.04661795519353
+-----------------------
+
+-----------------------
+ring length: 267
+v_max: 5.472051563171826
+-----------------------
+
+-----------------------
+ring length: 253
+v_max: 4.807278529691987
+-----------------------
+
+-----------------------
+ring length: 245
+v_max: 4.427046998576354
+-----------------------
+
+-----------------------
+ring length: 263
+v_max: 5.282212215151455
+-----------------------
+
+-----------------------
+ring length: 223
+v_max: 3.3805185755587788
+-----------------------
+
+-----------------------
+ring length: 246
+v_max: 4.474587708995648
+-----------------------
+
+-----------------------
+ring length: 220
+v_max: 3.2377399006821497
+-----------------------
+
+-----------------------
+ring length: 230
+v_max: 3.7136148111012934
+-----------------------
+
+-----------------------
+ring length: 260
+v_max: 5.139779427502188
+-----------------------
+
+-----------------------
+ring length: 258
+v_max: 5.044800727535787
+-----------------------
+
+-----------------------
+ring length: 234
+v_max: 3.903915223349057
+-----------------------
+
+-----------------------
+ring length: 238
+v_max: 4.094180836186086
+-----------------------
+
+-----------------------
+ring length: 266
+v_max: 5.42459972166245
+-----------------------
+
+-----------------------
+ring length: 248
+v_max: 4.569659527528101
+-----------------------
+
+-----------------------
+ring length: 270
+v_max: 5.6143732387852054
+-----------------------
+
+-----------------------
+ring length: 258
+v_max: 5.044800727535787
+-----------------------
+
+-----------------------
+ring length: 269
+v_max: 5.566938458220921
+-----------------------
+
+-----------------------
+ring length: 231
+v_max: 3.761192925277308
+-----------------------
+
+-----------------------
+ring length: 235
+v_max: 3.9514850725282584
+-----------------------
+
+-----------------------
+ring length: 268
+v_max: 5.5194978538368025
+-----------------------
+
+-----------------------
+ring length: 256
+v_max: 4.949804327743507
+-----------------------
+
+-----------------------
+ring length: 227
+v_max: 3.570869368805752
+-----------------------
+
+-----------------------
+ring length: 248
+v_max: 4.569659527528101
+-----------------------
+
+-----------------------
+ring length: 267
+v_max: 5.472051563171826
+-----------------------
+
+-----------------------
+ring length: 230
+v_max: 3.7136148111012934
+-----------------------
+
+-----------------------
+ring length: 244
+v_max: 4.379503211387676
+-----------------------
+
+-----------------------
+ring length: 231
+v_max: 3.761192925277308
+-----------------------
+
+-----------------------
+ring length: 244
+v_max: 4.379503211387676
+-----------------------
+
+-----------------------
+ring length: 260
+v_max: 5.139779427502188
+-----------------------
+
+-----------------------
+ring length: 241
+v_max: 4.236854288051661
+-----------------------
+
+-----------------------
+ring length: 270
+v_max: 5.6143732387852054
+-----------------------
+
+-----------------------
+ring length: 234
+v_max: 3.903915223349057
+-----------------------
+
+-----------------------
+ring length: 254
+v_max: 4.854791141191876
+-----------------------
+
+-----------------------
+ring length: 227
+v_max: 3.570869368805752
+-----------------------
+
+-----------------------
+ring length: 254
+v_max: 4.854791141191876
+-----------------------
+
+-----------------------
+ring length: 258
+v_max: 5.044800727535787
+-----------------------
+
+-----------------------
+ring length: 253
+v_max: 4.807278529691987
+-----------------------
+
+-----------------------
+ring length: 221
+v_max: 3.285334164169417
+-----------------------
+
+-----------------------
+ring length: 234
+v_max: 3.903915223349057
+-----------------------
+
+-----------------------
+ring length: 261
+v_max: 5.187261846097525
+-----------------------
+
+-----------------------
+ring length: 260
+v_max: 5.139779427502188
+-----------------------
+
+-----------------------
+ring length: 270
+v_max: 5.6143732387852054
+-----------------------
+
+-----------------------
+ring length: 241
+v_max: 4.236854288051661
+-----------------------
+
+-----------------------
+ring length: 251
+v_max: 4.71224180704279
+-----------------------
+
+-----------------------
+ring length: 227
+v_max: 3.570869368805752
+-----------------------
+
+-----------------------
+ring length: 234
+v_max: 3.903915223349057
+-----------------------
+
+-----------------------
+ring length: 249
+v_max: 4.617190445131122
+-----------------------
+
+-----------------------
+ring length: 235
+v_max: 3.9514850725282584
+-----------------------
+
+-----------------------
+ring length: 230
+v_max: 3.7136148111012934
+-----------------------
+
+-----------------------
+ring length: 222
+v_max: 3.3329270738617227
+-----------------------
+
+-----------------------
+ring length: 251
+v_max: 4.71224180704279
+-----------------------
+
+-----------------------
+ring length: 225
+v_max: 3.4756971311168834
+-----------------------
+
+-----------------------
+ring length: 261
+v_max: 5.187261846097525
+-----------------------
+
+-----------------------
+ring length: 238
+v_max: 4.094180836186086
+-----------------------
+
+-----------------------
+ring length: 243
+v_max: 4.331956438196479
+-----------------------
+
+-----------------------
+ring length: 252
+v_max: 4.759762049824181
+-----------------------
+
+-----------------------
+ring length: 257
+v_max: 4.997304682316517
+-----------------------
+
+-----------------------
+ring length: 246
+v_max: 4.474587708995648
+-----------------------
+
+-----------------------
+ring length: 233
+v_max: 3.856343201216534
+-----------------------
+
+-----------------------
+ring length: 240
+v_max: 4.189299083856172
+-----------------------
+
+-----------------------
+ring length: 221
+v_max: 3.285334164169417
+-----------------------
+
+-----------------------
+ring length: 239
+v_max: 4.141741239205832
+-----------------------
+
+-----------------------
+ring length: 256
+v_max: 4.949804327743507
+-----------------------
+
+-----------------------
+ring length: 234
+v_max: 3.903915223349057
+-----------------------
+
+-----------------------
+ring length: 227
+v_max: 3.570869368805752
+-----------------------
+
+-----------------------
+ring length: 229
+v_max: 3.666034803266416
+-----------------------
+
+-----------------------
+ring length: 221
+v_max: 3.285334164169417
+-----------------------
+
+-----------------------
+ring length: 223
+v_max: 3.3805185755587788
+-----------------------
+
+-----------------------
+ring length: 234
+v_max: 3.903915223349057
+-----------------------
+
+-----------------------
+ring length: 267
+v_max: 5.472051563171826
+-----------------------
+
+-----------------------
+ring length: 263
+v_max: 5.282212215151455
+-----------------------
+
+-----------------------
+ring length: 250
+v_max: 4.664717904914125
+-----------------------
+
+-----------------------
+ring length: 264
+v_max: 5.329679917416892
+-----------------------
+
+-----------------------
+ring length: 253
+v_max: 4.807278529691987
+-----------------------
+
+-----------------------
+ring length: 267
+v_max: 5.472051563171826
+-----------------------
+
+-----------------------
+ring length: 231
+v_max: 3.761192925277308
+-----------------------
+
+-----------------------
+ring length: 261
+v_max: 5.187261846097525
+-----------------------
+
+-----------------------
+ring length: 249
+v_max: 4.617190445131122
+-----------------------
+
+-----------------------
+ring length: 234
+v_max: 3.903915223349057
+-----------------------
+
+-----------------------
+ring length: 269
+v_max: 5.566938458220921
+-----------------------
+
+-----------------------
+ring length: 240
+v_max: 4.189299083856172
+-----------------------
+
+-----------------------
+ring length: 220
+v_max: 3.2377399006821497
+-----------------------
+
+-----------------------
+ring length: 252
+v_max: 4.759762049824181
+-----------------------
+
+-----------------------
+ring length: 241
+v_max: 4.236854288051661
+-----------------------
+
+-----------------------
+ring length: 252
+v_max: 4.759762049824181
+-----------------------
+
+-----------------------
+ring length: 228
+v_max: 3.618452967700356
+-----------------------
+
+-----------------------
+ring length: 268
+v_max: 5.5194978538368025
+-----------------------
+
+-----------------------
+ring length: 256
+v_max: 4.949804327743507
+-----------------------
+
+-----------------------
+ring length: 240
+v_max: 4.189299083856172
+-----------------------
+
+-----------------------
+ring length: 226
+v_max: 3.5232840694769565
+-----------------------
+
+-----------------------
+ring length: 251
+v_max: 4.71224180704279
+-----------------------
+
+-----------------------
+ring length: 231
+v_max: 3.761192925277308
+-----------------------
+
+-----------------------
+ring length: 224
+v_max: 3.4281086136538996
+-----------------------
+
+-----------------------
+ring length: 267
+v_max: 5.472051563171826
+-----------------------
+
+-----------------------
+ring length: 229
+v_max: 3.666034803266416
+-----------------------
+
+-----------------------
+ring length: 249
+v_max: 4.617190445131122
+-----------------------
+
+-----------------------
+ring length: 266
+v_max: 5.42459972166245
+-----------------------
+
+-----------------------
+ring length: 222
+v_max: 3.3329270738617227
+-----------------------
+
+-----------------------
+ring length: 228
+v_max: 3.618452967700356
+-----------------------
+
+-----------------------
+ring length: 240
+v_max: 4.189299083856172
+-----------------------
+
+-----------------------
+ring length: 256
+v_max: 4.949804327743507
+-----------------------
+
+-----------------------
+ring length: 221
+v_max: 3.285334164169417
+-----------------------
+
+-----------------------
+ring length: 256
+v_max: 4.949804327743507
+-----------------------
+
+-----------------------
+ring length: 248
+v_max: 4.569659527528101
+-----------------------
+
+-----------------------
+ring length: 234
+v_max: 3.903915223349057
+-----------------------
+
+-----------------------
+ring length: 228
+v_max: 3.618452967700356
+-----------------------
+
+-----------------------
+ring length: 226
+v_max: 3.5232840694769565
+-----------------------
+
+-----------------------
+ring length: 245
+v_max: 4.427046998576354
+-----------------------
+
+-----------------------
+ring length: 227
+v_max: 3.570869368805752
+-----------------------
+
+-----------------------
+ring length: 240
+v_max: 4.189299083856172
+-----------------------
+
+-----------------------
+ring length: 236
+v_max: 3.999052674951912
+-----------------------
+
+-----------------------
+ring length: 239
+v_max: 4.141741239205832
+-----------------------
+
+-----------------------
+ring length: 264
+v_max: 5.329679917416892
+-----------------------
+
+-----------------------
+ring length: 231
+v_max: 3.761192925277308
+-----------------------
+
+-----------------------
+ring length: 253
+v_max: 4.807278529691987
+-----------------------
+
+-----------------------
+ring length: 231
+v_max: 3.761192925277308
+-----------------------
+
+-----------------------
+ring length: 221
+v_max: 3.285334164169417
+-----------------------
+
+-----------------------
+ring length: 224
+v_max: 3.4281086136538996
+-----------------------
+
+-----------------------
+ring length: 220
+v_max: 3.2377399006821497
+-----------------------
+
+-----------------------
+ring length: 232
+v_max: 3.8087690783250063
+-----------------------
+
+-----------------------
+ring length: 222
+v_max: 3.3329270738617227
+-----------------------
+
+-----------------------
+ring length: 256
+v_max: 4.949804327743507
+-----------------------
+
+-----------------------
+ring length: 247
+v_max: 4.522125250095652
+-----------------------
+
+-----------------------
+ring length: 246
+v_max: 4.474587708995648
+-----------------------
+
+-----------------------
+ring length: 250
+v_max: 4.664717904914125
+-----------------------
+
+-----------------------
+ring length: 243
+v_max: 4.331956438196479
+-----------------------
+
+-----------------------
+ring length: 247
+v_max: 4.522125250095652
+-----------------------
+
+-----------------------
+ring length: 224
+v_max: 3.4281086136538996
+-----------------------
+
+-----------------------
+ring length: 248
+v_max: 4.569659527528101
+-----------------------
+
+-----------------------
+ring length: 230
+v_max: 3.7136148111012934
+-----------------------
+
+-----------------------
+ring length: 240
+v_max: 4.189299083856172
+-----------------------
+
+-----------------------
+ring length: 258
+v_max: 5.044800727535787
+-----------------------
+
+-----------------------
+ring length: 257
+v_max: 4.997304682316517
+-----------------------
+
+-----------------------
+ring length: 226
+v_max: 3.5232840694769565
+-----------------------
+
+-----------------------
+ring length: 228
+v_max: 3.618452967700356
+-----------------------
+
+-----------------------
+ring length: 239
+v_max: 4.141741239205832
+-----------------------
+Error during start: no element found (line 0)
+Retrying in 1 seconds...
+
+-----------------------
+ring length: 257
+v_max: 4.997304682316517
+-----------------------
+
+-----------------------
+ring length: 224
+v_max: 3.4281086136538996
+-----------------------
+
+-----------------------
+ring length: 221
+v_max: 3.285334164169417
+-----------------------
+
+-----------------------
+ring length: 222
+v_max: 3.3329270738617227
+-----------------------
+
+-----------------------
+ring length: 235
+v_max: 3.9514850725282584
+-----------------------
+
+-----------------------
+ring length: 267
+v_max: 5.472051563171826
+-----------------------
+
+-----------------------
+ring length: 263
+v_max: 5.282212215151455
+-----------------------
+
+-----------------------
+ring length: 226
+v_max: 3.5232840694769565
+-----------------------
+
+-----------------------
+ring length: 240
+v_max: 4.189299083856172
+-----------------------
+
+-----------------------
+ring length: 225
+v_max: 3.4756971311168834
+-----------------------
+
+-----------------------
+ring length: 235
+v_max: 3.9514850725282584
+-----------------------
+
+-----------------------
+ring length: 228
+v_max: 3.618452967700356
+-----------------------
+
+-----------------------
+ring length: 256
+v_max: 4.949804327743507
+-----------------------
+
+-----------------------
+ring length: 265
+v_max: 5.37714246265477
+-----------------------
+
+-----------------------
+ring length: 232
+v_max: 3.8087690783250063
+-----------------------
+
+-----------------------
+ring length: 270
+v_max: 5.6143732387852054
+-----------------------
+
+-----------------------
+ring length: 265
+v_max: 5.37714246265477
+-----------------------
+
+-----------------------
+ring length: 262
+v_max: 5.234739483008334
+-----------------------
+
+-----------------------
+ring length: 223
+v_max: 3.3805185755587788
+-----------------------
+
+-----------------------
+ring length: 237
+v_max: 4.04661795519353
+-----------------------
+
+-----------------------
+ring length: 230
+v_max: 3.7136148111012934
+-----------------------
+
+-----------------------
+ring length: 237
+v_max: 4.04661795519353
+-----------------------
+
+-----------------------
+ring length: 226
+v_max: 3.5232840694769565
+-----------------------
+
+-----------------------
+ring length: 231
+v_max: 3.761192925277308
+-----------------------
+
+-----------------------
+ring length: 242
+v_max: 4.2844067680020546
+-----------------------
+
+-----------------------
+ring length: 235
+v_max: 3.9514850725282584
+-----------------------
+
+-----------------------
+ring length: 263
+v_max: 5.282212215151455
+-----------------------
+
+-----------------------
+ring length: 270
+v_max: 5.6143732387852054
+-----------------------
+
+-----------------------
+ring length: 249
+v_max: 4.617190445131122
+-----------------------
+
+-----------------------
+ring length: 262
+v_max: 5.234739483008334
+-----------------------
+
+-----------------------
+ring length: 257
+v_max: 4.997304682316517
+-----------------------
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/numpy/core/fromnumeric.py:2957: RuntimeWarning: Mean of empty slice.
+  out=out, **kwargs)
+/home/gridsan/weizili/.conda/envs/flow/lib/python3.6/site-packages/numpy/core/_methods.py:80: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+
+-----------------------
+ring length: 241
+v_max: 4.236854288051661
+-----------------------
+
+-----------------------
+ring length: 267
+v_max: 5.472051563171826
+-----------------------
+
+-----------------------
+ring length: 262
+v_max: 5.234739483008334
+-----------------------
+
+-----------------------
+ring length: 254
+v_max: 4.854791141191876
+-----------------------
+
+-----------------------
+ring length: 231
+v_max: 3.761192925277308
+-----------------------
+
+-----------------------
+ring length: 239
+v_max: 4.141741239205832
+-----------------------
+
+-----------------------
+ring length: 241
+v_max: 4.236854288051661
+-----------------------
+
+-----------------------
+ring length: 222
+v_max: 3.3329270738617227
+-----------------------
+
+-----------------------
+ring length: 262
+v_max: 5.234739483008334
+-----------------------
+
+-----------------------
+ring length: 245
+v_max: 4.427046998576354
+-----------------------
+
+-----------------------
+ring length: 269
+v_max: 5.566938458220921
+-----------------------
+
+-----------------------
+ring length: 238
+v_max: 4.094180836186086
+-----------------------
+== Status ==
+Using FIFO scheduling algorithm.
+Resources requested: 0/64 CPUs, 0/0 GPUs
+Memory usage on this node: 16.3/67.4 GB
+Result logdir: /home/gridsan/weizili/ray_results/stabilizing_the_ring
+TERMINATED trials:
+ - PPO_WaveAttenuationPOEnv-v0_0:	TERMINATED [pid=2569], 1180 s, 10 iter, 600000 ts, -3.12e+03 rew
+
+== Status ==
+Using FIFO scheduling algorithm.
+Resources requested: 0/64 CPUs, 0/0 GPUs
+Memory usage on this node: 16.3/67.4 GB
+Result logdir: /home/gridsan/weizili/ray_results/stabilizing_the_ring
+TERMINATED trials:
+ - PPO_WaveAttenuationPOEnv-v0_0:	TERMINATED [pid=2569], 1180 s, 10 iter, 600000 ts, -3.12e+03 rew
+
+I0830 17:47:30.506621  2518 store.cc:599] Disconnecting client on fd 10
+*** Aborted at 1567201650 (unix time) try "date -d @1567201650" if you are using GNU date ***
+PC: @                0x0 (unknown)
+*** SIGTERM (@0xecf8000009b7) received by PID 2516 (TID 0x1520b544e740) from PID 2487; stack trace: ***
+    @     0x1520b504b420 (unknown)
+    @     0x1520b42b8093 __epoll_wait_nocancel
+    @           0x454698 boost::asio::detail::epoll_reactor::run()
+    @           0x455169 boost::asio::detail::scheduler::run()
+    @           0x4512d8 main
+    @     0x1520b41c788a __libc_start_main
+    @           0x4528f1 (unknown)
+I0830 17:47:30.542953  2518 store.cc:599] Disconnecting client on fd 25
+I0830 17:47:30.546572  2518 store.cc:599] Disconnecting client on fd 46
+I0830 17:47:30.549809  2518 store.cc:599] Disconnecting client on fd 19
+I0830 17:47:30.572665  2518 store.cc:599] Disconnecting client on fd 94
+I0830 17:47:30.572767  2518 store.cc:599] Disconnecting client on fd 84
+I0830 17:47:30.573730  2518 store.cc:599] Disconnecting client on fd 86
+I0830 17:47:30.583097  2518 store.cc:599] Disconnecting client on fd 26
+I0830 17:47:30.583196  2518 store.cc:599] Disconnecting client on fd 87
+I0830 17:47:30.583231  2518 store.cc:599] Disconnecting client on fd 90
+I0830 17:47:30.583262  2518 store.cc:599] Disconnecting client on fd 80
+I0830 17:47:30.583290  2518 store.cc:599] Disconnecting client on fd 91
+I0830 17:47:30.583317  2518 store.cc:599] Disconnecting client on fd 92
+I0830 17:47:30.583346  2518 store.cc:599] Disconnecting client on fd 20
+I0830 17:47:30.589246  2518 store.cc:599] Disconnecting client on fd 89
+I0830 17:47:30.589336  2518 store.cc:599] Disconnecting client on fd 17
+I0830 17:47:30.593695  2518 store.cc:599] Disconnecting client on fd 82
+I0830 17:47:30.593812  2518 store.cc:599] Disconnecting client on fd 40
+I0830 17:47:30.593856  2518 store.cc:599] Disconnecting client on fd 79
+I0830 17:47:30.593885  2518 store.cc:599] Disconnecting client on fd 22
+I0830 17:47:30.593966  2518 store.cc:599] Disconnecting client on fd 81
+I0830 17:47:30.593999  2518 store.cc:599] Disconnecting client on fd 83
+I0830 17:47:30.594029  2518 store.cc:599] Disconnecting client on fd 93
+I0830 17:47:30.594058  2518 store.cc:599] Disconnecting client on fd 85
+I0830 17:47:30.594791  2518 store.cc:599] Disconnecting client on fd 88
+I0830 17:47:30.603536  2518 store.cc:599] Disconnecting client on fd 41
+I0830 17:47:30.603637  2518 store.cc:599] Disconnecting client on fd 13
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+E0830 17:47:30.672799  2873 raylet_client.cc:345] IOError: [RayletClient] Connection closed unexpectedly. [RayletClient] Failed to push profile events.
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+E0830 17:47:30.749778  2837 raylet_client.cc:345] IOError: [RayletClient] Connection closed unexpectedly. [RayletClient] Failed to push profile events.

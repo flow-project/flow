@@ -1,0 +1,68 @@
+3
+:6379
+/home/gridsan/weizili/.conda/envs/flow/bin/python
+Waiting for redis server at 172.31.2.68:6379 to respond...
+Waiting for redis server at 172.31.2.68:6379 to respond...
+Waiting for redis server at 172.31.2.68:6379 to respond...
+Using IP address 172.31.2.68 for this node.
+Process STDOUT and STDERR is being redirected to /state/partition1/slurm_tmp/433725.4294967294.0/logs.
+Waiting for redis server at 127.0.0.1:6379 to respond...
+Waiting for redis server at 127.0.0.1:19730 to respond...
+Warning: Capping object memory store to 20.0GB. To increase this further, specify `object_store_memory` when calling ray.init() or ray start.
+Starting the Plasma object store with 20.0 GB memory using /dev/shm.
+
+======================================================================
+View the web UI at http://localhost:8888/notebooks/ray_ui.ipynb?token=eee686d584bdec4af68c0eb54adb24fa2343ccc3da11e211
+======================================================================
+
+{'node_ip_address': '172.31.2.68', 'redis_address': '172.31.2.68:6379', 'object_store_addresses': ['/state/partition1/slurm_tmp/433725.4294967294.0/sockets/plasma_store'], 'raylet_socket_names': ['/state/partition1/slurm_tmp/433725.4294967294.0/sockets/raylet'], 'webui_url': 'http://localhost:8888/notebooks/ray_ui.ipynb?token=eee686d584bdec4af68c0eb54adb24fa2343ccc3da11e211'}
+
+Started Ray on this node. You can add additional nodes to the cluster by calling
+
+    ray start --redis-address 172.31.2.68:6379
+
+from the node you wish to add. You can connect a driver to the cluster from Python by running
+
+    import ray
+    ray.init(redis_address="172.31.2.68:6379")
+
+If you have trouble connecting from a different machine, check that your firewall is configured properly. If you wish to terminate the processes that have been started, run
+
+    ray stop
+Failed to connect to the redis server, retrying.
+Waiting for redis server at 172.31.2.68:6379 to respond...
+Failed to connect to the redis server, retrying.
+Waiting for redis server at 172.31.2.68:6379 to respond...
+Failed to connect to the redis server, retrying.
+Waiting for redis server at 172.31.2.68:6379 to respond...
+Using IP address 172.31.2.85 for this node.
+Using IP address 172.31.2.84 for this node.
+Using IP address 172.31.2.69 for this node.
+Process STDOUT and STDERR is being redirected to workertemp-node-130/logs.
+Process STDOUT and STDERR is being redirected to workertemp-node-129/logs.
+Process STDOUT and STDERR is being redirected to workertemp-node-111/logs.
+Warning: Capping object memory store to 20.0GB. To increase this further, specify `object_store_memory` when calling ray.init() or ray start.
+Starting the Plasma object store with 20.0 GB memory using /dev/shm.
+Warning: Capping object memory store to 20.0GB. To increase this further, specify `object_store_memory` when calling ray.init() or ray start.
+Starting the Plasma object store with 20.0 GB memory using /dev/shm.
+Warning: Capping object memory store to 20.0GB. To increase this further, specify `object_store_memory` when calling ray.init() or ray start.
+Starting the Plasma object store with 20.0 GB memory using /dev/shm.
+{'redis_address': '172.31.2.68:6379', 'node_ip_address': '172.31.2.69', 'redis_shards': ['172.31.2.68:19730'], 'object_store_addresses': ['workertemp-node-111/sockets/plasma_store'], 'raylet_socket_names': ['workertemp-node-111/sockets/raylet'], 'webui_url': ''}
+
+Started Ray on this node. If you wish to terminate the processes that have been started, run
+
+    ray stop
+{'redis_address': '172.31.2.68:6379', 'node_ip_address': '172.31.2.85', 'redis_shards': ['172.31.2.68:19730'], 'object_store_addresses': ['workertemp-node-130/sockets/plasma_store'], 'raylet_socket_names': ['workertemp-node-130/sockets/raylet'], 'webui_url': ''}
+
+Started Ray on this node. If you wish to terminate the processes that have been started, run
+
+    ray stop
+{'redis_address': '172.31.2.68:6379', 'node_ip_address': '172.31.2.84', 'redis_shards': ['172.31.2.68:19730'], 'object_store_addresses': ['workertemp-node-129/sockets/plasma_store'], 'raylet_socket_names': ['workertemp-node-129/sockets/raylet'], 'webui_url': ''}
+
+Started Ray on this node. If you wish to terminate the processes that have been started, run
+
+    ray stop
+Traceback (most recent call last):
+  File "../examples/rllib/stabilizing_the_ring.py", line 19, in <module>
+    from flow.utils.registry import make_create_env
+ModuleNotFoundError: No module named 'flow'
