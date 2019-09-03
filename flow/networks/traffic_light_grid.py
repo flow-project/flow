@@ -41,7 +41,7 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class TrafficLightGridScenario(Network):
+class TrafficLightGridNetwork(Network):
     """Traffic Light Grid network class.
 
     The traffic light grid network consists of m vertical lanes and n
