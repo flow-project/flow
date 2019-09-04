@@ -5,16 +5,16 @@ cluster_name: test #<YOUR NAME>
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
-min_workers: 1 #<NUM WORKERS IN CLUSTER>
+min_workers: 0 #<NUM WORKERS IN CLUSTER>
 
 # The maximum number of workers nodes to launch in addition to the head
 # node. This takes precedence over min_workers.
-max_workers: 1
+max_workers: 0
 
 # The initial number of worker nodes to launch in addition to the head
 # node. When the cluster is first brought up (or when it is refreshed with a
 # subsequent `ray up`) this number of nodes will be started.
-initial_workers: 1
+initial_workers: 0
 
 # The autoscaler will scale up the cluster to this target fraction of resource
 # usage. For example, if a cluster of 10 nodes is 100% busy and
@@ -44,8 +44,8 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: c4.4xlarge
-    ImageId: ami-0736ea82fcf4e8629  # Flow AMI (Ubuntu)
+    InstanceType: m4.10xlarge
+    ImageId: ami-09544298704576518  # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -64,8 +64,8 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
-    InstanceType: c4.4xlarge
-    ImageId: ami-0736ea82fcf4e8629 # Flow AMI (Ubuntu)
+    InstanceType: m4.10xlarge
+    ImageId: ami-09544298704576518 # Flow AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
@@ -76,29 +76,16 @@ worker_nodes:
 
     # Additional options in the boto docs.
 
-setup_commands:
+setup_commands: []
     # checkout your desired branch on all worker nodes
-    - cd flow && git fetch && git checkout flow_merge && git pull
+    - cd flow && git remote add cdc_bottlenecks https://github.com/eugenevinitsky/cdc_bottlenecks.git
+    - git fetch cdc_bottlenecks && git checkout cdc_bottlenecks/flow_merge && git pull
     # set up ray by pip installing and copying over rllib and tune folder
     - pip install --upgrade pyzmq notebook
-    - pip install psutil
-#    - git clone https://github.com/flow-project/ray.git
-#    - cd ray && git fetch && git checkout centralized_vf_pr3
-#    # soft link in rllib
-#    - echo "y" | python ray/python/ray/rllib/setup-rllib-dev.py
-#    # replace tune correctly
-#    - rm /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune/util.py
-#    - cd ray && cp python/ray/tune/util.py /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune
-#    # replace autoscaler correctly
-#    - rm /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/autoscaler/autoscaler.py
-#    - cd ray && cp python/ray/autoscaler/autoscaler.py /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/autoscaler/autoscaler.py
-    # set up sumo and anaconda
-    - pip install ray==0.7.2
-    - pip install botocore==1.12.195
+    - pip install ray==0.7.3
 
 # Custom commands that will be run on the head node after common setup.
-head_setup_commands:
-    - pip install boto3
+head_setup_commands: []
 
 # Custom commands that will be run on worker nodes after common setup.
 worker_setup_commands: []
@@ -106,13 +93,7 @@ worker_setup_commands: []
 # Command to start ray on the head node. You don't need to change this.
 head_start_ray_commands:
     - ray stop
-    - >-
-      ulimit -n 65536;
-      ray start
-      --head
-      --redis-port=6379
-      --object-manager-port=8076
-      --autoscaling-config=~/ray_bootstrap_config.yaml
+    - ulimit -n 65536; ray start --head --redis-port=6379 --object-manager-port=8076 --autoscaling-config=~/ray_bootstrap_config.yaml
       # --object-store-memory=80000000000
 # Command to start ray on worker nodes. You don't need to change this.
 worker_start_ray_commands:

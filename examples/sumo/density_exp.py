@@ -83,7 +83,10 @@ if __name__ == '__main__':
 
     path = os.path.dirname(os.path.abspath(__file__))
     if args.alinea_sweep:
-        outer_path = '../../flow/visualize/trb_data/alinea_test'
+        if args.test_run:
+            outer_path = '../../flow/visualize/trb_data/alinea_test'
+        else:
+            outer_path = '../../flow/visualize/trb_data/alinea_data'
     else:
         outer_path = '../../flow/visualize/trb_data/human_driving'
 
