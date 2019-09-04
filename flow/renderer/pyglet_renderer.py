@@ -211,15 +211,6 @@ class PygletRenderer(object):
         machine_logs : list
             A list contains the timestep (ms), timedelta (ms), and id of
             all RL vehicles
-        save_render : bool
-            Specify whether to Specify whether to save rendering data to
-            disk
-        sight_radius : int
-            Set the radius of observation for RL vehicles (meter)
-        show_radius : bool
-            Specify whether to render the radius of RL observation
-        sleep : float
-            Specify the rendering delay in second
         """
         if self.save_render:
             _human_orientations = copy.deepcopy(human_orientations)
@@ -275,6 +266,8 @@ class PygletRenderer(object):
                 [100, 100, 100, int(255*self.alpha)] for d in human_dynamics]
             machine_conditions = [
                 [150, 150, 150, int(255*self.alpha)] for d in machine_dynamics]
+        else:
+            raise ValueError("Unknown mode: {}".format(self.mode))
 
         self._add_vehicle_polys(
             human_orientations,
@@ -321,16 +314,14 @@ class PygletRenderer(object):
         print('Goodbye!')
         return save_path
 
-    def get_sight(self,
-                  orientation,
-                  id):
+    def get_sight(self, orientation, veh_id):
         """Return the local observation of a vehicle.
 
         Parameters
         ----------
         orientation : list
             An orientation is a list contains [x, y, angle]
-        id : str
+        veh_id : str
             The vehicle to observe for
         """
         x, y, ang = orientation
@@ -353,7 +344,7 @@ class PygletRenderer(object):
 
         if self.save_render:
             cv2.imwrite("%s/sight_%s_%06d.png" %
-                        (self.path, id, self.time),
+                        (self.path, veh_id, self.time),
                         rotated_sight)
         if "gray" in self.mode:
             return rotated_sight[:, :, 0]
@@ -365,10 +356,7 @@ class PygletRenderer(object):
         for lane_poly, lane_color in zip(self.lane_polys, self.lane_colors):
             self._add_line(lane_poly, lane_color)
 
-    def _add_vehicle_polys(self,
-                           orientations,
-                           colors,
-                           sight_radius):
+    def _add_vehicle_polys(self, orientations, colors, sight_radius):
         """Render vehicle polygons.
 
         Parameters
@@ -388,9 +376,7 @@ class PygletRenderer(object):
             self._add_triangle((x, y), ang, 5, color)
             self._add_circle((x, y), sight_radius, color)
 
-    def _add_line(self,
-                  lane_poly,
-                  lane_color):
+    def _add_line(self, lane_poly, lane_color):
         """Render road network polygons.
 
         Parameters
@@ -407,11 +393,7 @@ class PygletRenderer(object):
             num, pyglet.gl.GL_LINE_STRIP, group, index,
             ("v2f", lane_poly), ("c4B", lane_color))
 
-    def _add_triangle(self,
-                      center,
-                      angle,
-                      size,
-                      color):
+    def _add_triangle(self, center, angle, size, color):
         """Render a vehicle as a triangle.
 
         Parameters
@@ -446,10 +428,7 @@ class PygletRenderer(object):
             3, pyglet.gl.GL_POLYGON, group, index,
             ("v2f", vertex_list), ("c4B", vertex_color))
 
-    def _add_circle(self,
-                    center,
-                    radius,
-                    color):
+    def _add_circle(self, center, radius, color):
         """Render a vehicle as a circle or render its observation radius.
 
         Parameters
@@ -480,11 +459,8 @@ class PygletRenderer(object):
             pxpm, pyglet.gl.GL_LINE_LOOP, group, index,
             ("v2f", vertex_list), ("c4B", vertex_color))
 
-    def _truncate_colormap(self,
-                           cmap,
-                           minval=0.25,
-                           maxval=0.75,
-                           n=100):
+    @staticmethod
+    def _truncate_colormap(cmap, minval=0.25, maxval=0.75, n=100):
         """Truncate a matplotlib colormap.
 
         Parameters
@@ -497,6 +473,11 @@ class PygletRenderer(object):
             Maximum value of the truncated colormap
         n : int
             Number of RGB quantization levels of the truncated colormap
+
+        Returns
+        -------
+        matplotlib.colors.LinearSegmentedColormap
+            truncated colormap
         """
         new_cmap = colors.LinearSegmentedColormap.from_list(
             'trunc({n},{a:.2f},{b:.2f})'

@@ -30,13 +30,15 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
 
     States
         See parent class
+
     Actions
         See parent class
+
     Rewards
         See parent class
+
     Termination
         See parent class
-
     """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):

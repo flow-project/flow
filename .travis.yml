@@ -30,6 +30,11 @@ before_install:
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - export TEST_FLAG="True"
+  - conda config --append channels https://repo.anaconda.com/pkgs/free
+  - conda config --append channels https://repo.anaconda.com/pkgs/pro
+
+  # Requirements for stable baselines
+  - sudo apt-get update && sudo apt-get install cmake libopenmpi-dev python3-dev zlib1g-dev
 
   # Set up requirements for flow
   - conda env create -f environment.yml
@@ -56,6 +61,7 @@ install:
   - pip install -e .
   - pip install coveralls
   - pip install jupyter
+  - pip install stable_baselines==2.7.0
 
 script:
   - nose2 --with-coverage

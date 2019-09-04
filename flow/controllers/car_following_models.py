@@ -17,6 +17,10 @@ from flow.controllers.base_controller import BaseController
 class CFMController(BaseController):
     """CFM controller.
 
+    Usage
+    -----
+    See BaseController for usage example.
+
     Attributes
     ----------
     veh_id : str
@@ -88,6 +92,10 @@ class BCMController(BaseController):
     """Bilateral car-following model controller.
 
     This model looks ahead and behind when computing its acceleration.
+
+    Usage
+    -----
+    See BaseController for usage example.
 
     Attributes
     ----------
@@ -240,6 +248,10 @@ class LACController(BaseController):
 class OVMController(BaseController):
     """Optimal Vehicle Model controller.
 
+    Usage
+    -----
+    See BaseController for usage example.
+
     Attributes
     ----------
     veh_id : str
@@ -319,6 +331,10 @@ class OVMController(BaseController):
 class LinearOVM(BaseController):
     """Linear OVM controller.
 
+    Usage
+    -----
+    See BaseController for usage example.
+
     Attributes
     ----------
     veh_id : str
@@ -388,6 +404,10 @@ class IDMController(BaseController):
     Treiber, Martin, Ansgar Hennecke, and Dirk Helbing. "Congested traffic
     states in empirical observations and microscopic simulations." Physical
     review E 62.2 (2000): 1805.
+
+    Usage
+    -----
+    See BaseController for usage example.
 
     Attributes
     ----------
@@ -472,6 +492,8 @@ class SimCarFollowingController(BaseController):
     Note that methods for implementing noise and failsafes through
     BaseController, are not available here. However, similar methods are
     available through sumo when initializing the parameters of the vehicle.
+
+    Usage: See BaseController for usage example.
     """
 
     def get_accel(self, env):

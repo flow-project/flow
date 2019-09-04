@@ -10,6 +10,10 @@ class FollowerStopper(BaseController):
     Dissipation of stop-and-go waves via control of autonomous vehicles:
     Field experiments https://arxiv.org/abs/1705.01693
 
+    Usage
+    -----
+    See base class for example.
+
     Parameters
     ----------
     veh_id : str
@@ -117,6 +121,10 @@ class PISaturation(BaseController):
 
     Dissipation of stop-and-go waves via control of autonomous vehicles:
     Field experiments https://arxiv.org/abs/1705.01693
+
+    Usage
+    -----
+    See base class for example.
 
     Parameters
     ----------

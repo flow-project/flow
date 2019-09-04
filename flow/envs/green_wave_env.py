@@ -9,7 +9,7 @@ import re
 
 from gym.spaces.box import Box
 from gym.spaces.discrete import Discrete
-from gym.spaces.tuple_space import Tuple
+from gym.spaces import Tuple
 
 from flow.core import rewards
 from flow.envs.base_env import Env
@@ -67,6 +67,46 @@ class TrafficLightGridEnv(Env):
         Vehicles are rerouted to the start of their original routes once they
         reach the end of the network in order to ensure a constant number of
         vehicles.
+
+    Attributes
+    ----------
+    grid_array : dict
+        Array containing information on the grid, such as the length of roads,
+        row_num, col_num, number of initial cars
+    rows : int
+        Number of rows in this grid scenario
+    cols : int
+        Number of columns in this grid scenario
+    num_traffic_lights : int
+        Number of intersection in this grid scenario
+    tl_type : str
+        Type of traffic lights, either 'actuated' or 'static'
+    steps : int
+        Horizon of this experiment, see EnvParams.horion
+    obs_var_labels : dict
+        Referenced in the visualizer. Tells the visualizer which
+        metrics to track
+    node_mapping : dict
+        Dictionary mapping intersections / nodes (nomenclature is used
+        interchangeably here) to the edges that are leading to said
+        intersection / node
+    last_change : np array [num_traffic_lights]x1 np array
+        Multi-dimensional array keeping track, in timesteps, of how much time
+        has passed since the last change to yellow for each traffic light
+    direction : np array [num_traffic_lights]x1 np array
+        Multi-dimensional array keeping track of which direction in traffic
+        light is flowing. 0 indicates flow from top to bottom, and
+        1 indicates flow from left to right
+    currently_yellow : np array [num_traffic_lights]x1 np array
+        Multi-dimensional array keeping track of whether or not each traffic
+        light is currently yellow. 1 if yellow, 0 if not
+    min_switch_time : np array [num_traffic_lights]x1 np array
+        The minimum time in timesteps that a light can be yellow. Serves
+        as a lower bound
+    discrete : bool
+        Indicates whether or not the action space is discrete. See below for
+        more information:
+        https://github.com/openai/gym/blob/master/gym/spaces/discrete.py
     """
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
@@ -205,8 +245,9 @@ class TrafficLightGridEnv(Env):
             rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
             rl_mask = [0] * (self.num_traffic_lights - len(rl_mask)) + rl_mask
         else:
-            # convert values less than 0.0 to zero and above to 1. 0's indicate
-            # that we should not switch the direction
+            # convert values less than 0 to zero and above 0 to 1. 0 indicates
+            # that should not switch the direction, and 1 indicates that switch
+            # should happen
             rl_mask = rl_actions > 0.0
 
         for i, action in enumerate(rl_mask):
@@ -650,8 +691,9 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         for edge in self.k.scenario.get_edge_list():
             ids = self.k.vehicle.get_ids_by_edge(edge)
             if len(ids) > 0:
-                # TODO(cathywu) Why is there a 5 here?
-                density += [5 * len(ids) / self.k.scenario.edge_length(edge)]
+                vehicle_length = 5
+                density += [vehicle_length * len(ids) /
+                            self.k.scenario.edge_length(edge)]
                 velocity_avg += [np.mean(
                     [self.k.vehicle.get_speed(veh_id) for veh_id in
                      ids]) / max_speed]
