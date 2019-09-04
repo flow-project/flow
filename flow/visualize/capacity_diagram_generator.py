@@ -103,9 +103,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # some plotting parameters
-    # rc('text', usetex=True)
-    # font = {'weight': 'bold', 'size': 18}
-    # rc('font', **font)
+    #rc('text', usetex=True)
+    #font = {'weight': 'bold', 'size': 18}
+    #rc('font', **font)
     plt.figure(figsize=(27, 9))
 
     # import the csv file
@@ -128,11 +128,15 @@ if __name__ == '__main__':
         plt.plot(unique_inflows, mean_outflows, linewidth=2, c=colors[i])
         if not os.path.isdir(args.file):
             plt.fill_between(unique_inflows, mean_outflows - std_outflows,
-                             mean_outflows + std_outflows, alpha=0.25, c=colors[i])
+                             mean_outflows + std_outflows, alpha=0.25, color=colors[i])
+    legend_names = [file.split('outflows_')[1].split('.')[0] for file in files]
     plt.xlabel('Inflow' + r'$ \ \frac{vehs}{hour}$')
     plt.ylabel('Outflow' + r'$ \ \frac{vehs}{hour}$')
     plt.tick_params(labelsize=20)
     plt.rcParams['xtick.minor.size'] = 20
     plt.minorticks_on()
-    plt.legend(files)
-    plt.show()
+    plt.legend(legend_names, loc='upper left')
+    if len(files) > 1:
+    	plt.savefig('trb_data/alinea_data/alinea_comp.png')
+    else:
+        plt.savefig('trb_data/alinea_data/{}.png'.format(legend_names[0]))
