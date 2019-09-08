@@ -9,7 +9,7 @@ from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines import TRPO
 
 from flow.utils.registry import env_constructor
-from flow.utils.rllib import FlowParamsEncoder, get_flow_params
+from flow.utils.rllib import FlowParamsEncoder
 from flow.core.util import ensure_dir
 
 
