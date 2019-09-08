@@ -223,6 +223,9 @@ class TestTRPORunner(unittest.TestCase):
                         if isfile(join("./baseline_results", f))])
         self.assertListEqual(files, ['flow_params.json', 'model.pkl'])
 
+        # delete the generated files
+        shutil.rmtree('./baseline_results')
+
 
 if __name__ == '__main__':
     unittest.main()
