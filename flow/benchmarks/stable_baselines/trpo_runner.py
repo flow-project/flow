@@ -46,11 +46,13 @@ def parse_args(args):
     return parser.parse_known_args(args)[0]
 
 
-def run_model(rollout_size=50, num_steps=50):
+def run_model(params, rollout_size=50, num_steps=50):
     """Perform the training operation.
 
     Parameters
     ----------
+    params : dict
+        flow-specific parameters (see flow/utils/registry.py)
     rollout_size : int
         length of a single rollout
     num_steps : int
@@ -61,7 +63,7 @@ def run_model(rollout_size=50, num_steps=50):
     stable_baselines.*
         the trained model
     """
-    constructor = env_constructor(params=flow_params, version=0)()
+    constructor = env_constructor(params, version=0)()
     env = DummyVecEnv([lambda: constructor])
 
     model = TRPO(
@@ -87,7 +89,7 @@ def save_model(model, params, save_path):
     model : stable_baselines.*
         the trained model
     params : dict
-        flow-specific parameters (see flow/
+        flow-specific parameters (see flow/utils/registry.py)
     save_path : str
         path to saved model and experiment configuration files
     """
@@ -100,33 +102,6 @@ def save_model(model, params, save_path):
     with open(os.path.join(save_path, 'flow_params.json'), 'w') as outfile:
         json.dump(
             params, outfile, cls=FlowParamsEncoder, sort_keys=True, indent=4)
-
-
-def replay_model(save_path):
-    """Execute a rollout of the simulation with the trained controller.
-
-    Parameters
-    ----------
-    save_path : str
-        path to saved model and experiment configuration files
-    """
-    print('Loading the trained model and testing it out!')
-    model = TRPO.load(os.path.join(save_path, "model"))
-    params = get_flow_params(os.path.join(save_path, 'flow_params.json'))
-    params['sim'].render = True
-    constructor = env_constructor(params=flow_params, version=0)()
-
-    # The algorithms require a vectorized environment to run.
-    env = DummyVecEnv([lambda: constructor])
-
-    obs = env.reset()
-    reward = 0
-    for i in range(flow_params['env'].horizon):
-        action, _states = model.predict(obs)
-        obs, rewards, dones, info = env.step(action)
-        reward += rewards
-
-    print('the final reward is {}'.format(reward))
 
 
 if __name__ == "__main__":
@@ -147,11 +122,8 @@ if __name__ == "__main__":
     path = os.path.join(dir_path, result_name)
 
     # Perform the training operation.
-    train_model = run_model(flags.rollout_size, flags.num_steps)
+    train_model = run_model(flow_params, flags.rollout_size, flags.num_steps)
 
     # Save the model to a desired folder and then delete it to demonstrate
     # loading.
     save_model(train_model, flow_params, path)
-
-    # Replay the result by loading the model
-    replay_model(path)
