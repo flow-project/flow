@@ -41,7 +41,7 @@ class MultiTrafficLightGridPOEnv(PO_TrafficLightGridEnv, MultiEnv):
         See parent class
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, scenario, simulator='sumo'):
         super().__init__(env_params, sim_params, scenario, simulator)
 
         for p in ADDITIONAL_ENV_PARAMS.keys():

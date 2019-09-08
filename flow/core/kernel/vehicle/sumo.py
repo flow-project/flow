@@ -1,4 +1,4 @@
-"""Script containing the TraCI vehicle kernel class."""
+"""Script containing the sumo vehicle kernel class."""
 import traceback
 
 from flow.core.kernel.vehicle import KernelVehicle
@@ -20,7 +20,7 @@ CYAN = (0, 255, 255)
 RED = (255, 0, 0)
 
 
-class TraCIVehicle(KernelVehicle):
+class SumoVehicle(KernelVehicle):
     """Flow kernel for the TraCI API.
 
     Extends flow.core.kernel.vehicle.base.KernelVehicle

@@ -1,10 +1,10 @@
-"""Script containing the TraCI traffic light kernel class."""
+"""Script containing the sumo traffic light kernel class."""
 
 from flow.core.kernel.traffic_light import KernelTrafficLight
 import traci.constants as tc
 
 
-class TraCITrafficLight(KernelTrafficLight):
+class SumoTrafficLight(KernelTrafficLight):
     """Sumo traffic light kernel.
 
     Implements all methods discussed in the base traffic light kernel class.

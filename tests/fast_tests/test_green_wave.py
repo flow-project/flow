@@ -15,7 +15,7 @@ class Test1x1Environment(unittest.TestCase):
         self.exp = Experiment(self.env)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free up used memory
@@ -101,7 +101,7 @@ class Test2x2Environment(unittest.TestCase):
         self.exp = Experiment(self.env)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free up used memory

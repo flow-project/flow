@@ -47,7 +47,7 @@ class TestCFMController(unittest.TestCase):
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -96,7 +96,7 @@ class TestBCMController(unittest.TestCase):
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -151,7 +151,7 @@ class TestOVMController(unittest.TestCase):
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -201,7 +201,7 @@ class TestLinearOVM(unittest.TestCase):
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -248,7 +248,7 @@ class TestIDMController(unittest.TestCase):
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -423,7 +423,7 @@ class TestStaticLaneChanger(unittest.TestCase):
         self.env, scenario = ring_road_exp_setup(net_params=net_params)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -481,7 +481,7 @@ class TestFollowerStopper(unittest.TestCase):
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -556,7 +556,7 @@ class TestPISaturation(unittest.TestCase):
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -611,7 +611,7 @@ class TestLACController(unittest.TestCase):
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class

@@ -136,7 +136,7 @@ flow_params = dict(
     exp_tag='multiagent_highway',
     env_name='MultiAgentHighwayPOEnv',
     scenario='HighwayRampsScenario',
-    simulator='traci',
+    simulator='sumo',
 
     env=EnvParams(
         horizon=HORIZON,

@@ -173,7 +173,7 @@ class MultiEnv(MultiAgentEnv, Env):
             self.setup_initial_state()
 
         # clear all vehicles from the network and the vehicles class
-        if self.simulator == 'traci':
+        if self.simulator == 'sumo':
             for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
                 try:
                     self.k.vehicle.remove(veh_id)
@@ -209,7 +209,7 @@ class MultiEnv(MultiAgentEnv, Env):
                 # if a vehicle was not removed in the first attempt, remove it
                 # now and then reintroduce it
                 self.k.vehicle.remove(veh_id)
-                if self.simulator == 'traci':
+                if self.simulator == 'sumo':
                     self.k.kernel_api.vehicle.remove(veh_id)  # FIXME: hack
                 self.k.vehicle.add(
                     veh_id=veh_id,

@@ -82,7 +82,7 @@ flow_params = dict(
     scenario="MergeScenario",
 
     # simulator that is used by the experiment
-    simulator='traci',
+    simulator='sumo',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(

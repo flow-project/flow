@@ -53,7 +53,7 @@ class TestShuffle(unittest.TestCase):
             vehicles=vehicles)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -90,7 +90,7 @@ class TestEmissionPath(unittest.TestCase):
         self.env, scenario = ring_road_exp_setup(sim_params=sim_params)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -137,7 +137,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
             net_params=net_params, env_params=env_params, vehicles=vehicles)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class

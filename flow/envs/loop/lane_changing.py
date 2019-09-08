@@ -69,7 +69,7 @@ class LaneChangeAccelEnv(AccelEnv):
         vehicles collide into one another.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, scenario, simulator='sumo'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -195,7 +195,7 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
         lists of visible vehicles, used for visualization purposes
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, scenario, simulator='sumo'):
         super().__init__(env_params, sim_params, scenario, simulator)
 
         self.num_lanes = max(self.k.scenario.num_lanes(edge)

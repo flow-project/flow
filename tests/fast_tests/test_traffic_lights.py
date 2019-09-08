@@ -19,7 +19,7 @@ class TestUpdateGetState(unittest.TestCase):
     """
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -100,7 +100,7 @@ class TestSetState(unittest.TestCase):
             net_params=net_params, traffic_lights=traffic_lights)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -157,7 +157,7 @@ class TestPOEnv(unittest.TestCase):
             row_num=1, col_num=3, vehicles=vehicles)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -334,7 +334,7 @@ class TestCustomization(unittest.TestCase):
             net_params=net_params, traffic_lights=traffic_lights)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class

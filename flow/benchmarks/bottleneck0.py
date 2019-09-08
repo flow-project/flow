@@ -104,7 +104,7 @@ flow_params = dict(
     scenario="BottleneckScenario",
 
     # simulator that is used by the experiment
-    simulator='traci',
+    simulator='sumo',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(

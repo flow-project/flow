@@ -1,4 +1,4 @@
-"""Script containing the TraCI simulation kernel class."""
+"""Script containing the sumo simulation kernel class."""
 
 from flow.core.kernel.simulation import KernelSimulation
 from flow.core.util import ensure_dir
@@ -17,7 +17,7 @@ import signal
 RETRIES_ON_ERROR = 10
 
 
-class TraCISimulation(KernelSimulation):
+class SumoSimulation(KernelSimulation):
     """Sumo simulation kernel.
 
     Extends flow.core.kernel.simulation.KernelSimulation

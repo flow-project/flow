@@ -98,7 +98,7 @@ def make_flow_params(n_rows, n_columns, edge_inflow):
         scenario="SimpleGridScenario",
 
         # simulator that is used by the experiment
-        simulator='traci',
+        simulator='sumo',
 
         # sumo-related parameters (see flow.core.params.SumoParams)
         sim=SumoParams(

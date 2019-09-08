@@ -57,7 +57,7 @@ class Env(gym.Env):
     scenario : flow.scenarios.Scenario
         see flow/scenarios/base_scenario.py
     simulator : str
-        the simulator used, one of {'traci', 'aimsun'}
+        the simulator used, one of {'sumo', 'aimsun'}
     k : flow.core.kernel.Kernel
         Flow kernel object, using for state acquisition and issuing commands to
         the certain components of the simulator. For more information, see:
@@ -96,7 +96,7 @@ class Env(gym.Env):
         is set to True or False.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, scenario, simulator='sumo'):
         """Initialize the environment class.
 
         Parameters
@@ -108,7 +108,7 @@ class Env(gym.Env):
         scenario : flow.scenarios.Scenario
             see flow/scenarios/base_scenario.py
         simulator : str
-            the simulator used, one of {'traci', 'aimsun'}. Defaults to 'traci'
+            the simulator used, one of {'sumo', 'aimsun'}. Defaults to 'sumo'
 
         Raises
         ------
@@ -231,7 +231,7 @@ class Env(gym.Env):
         self.k.close()
 
         # killed the sumo process if using sumo/TraCI
-        if self.simulator == 'traci':
+        if self.simulator == 'sumo':
             self.k.simulation.sumo_proc.kill()
 
         if render is not None:
@@ -444,7 +444,7 @@ class Env(gym.Env):
             self.setup_initial_state()
 
         # clear all vehicles from the network and the vehicles class
-        if self.simulator == 'traci':
+        if self.simulator == 'sumo':
             for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
                 try:
                     self.k.vehicle.remove(veh_id)
@@ -480,7 +480,7 @@ class Env(gym.Env):
                 # if a vehicle was not removed in the first attempt, remove it
                 # now and then reintroduce it
                 self.k.vehicle.remove(veh_id)
-                if self.simulator == 'traci':
+                if self.simulator == 'sumo':
                     self.k.kernel_api.vehicle.remove(veh_id)  # FIXME: hack
                 self.k.vehicle.add(
                     veh_id=veh_id,
@@ -500,7 +500,7 @@ class Env(gym.Env):
         if self.sim_params.render:
             self.k.vehicle.update_vehicle_colors()
 
-        if self.simulator == 'traci':
+        if self.simulator == 'sumo':
             initial_ids = self.k.kernel_api.vehicle.getIDList()
         else:
             initial_ids = self.initial_ids

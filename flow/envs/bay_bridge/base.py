@@ -61,7 +61,7 @@ class BayBridgeEnv(Env):
         vehicles collide into one another.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, scenario, simulator='sumo'):
         super().__init__(env_params, sim_params, scenario, simulator)
         self.edge_dict = defaultdict(list)
         self.cars_waiting_for_toll = dict()
@@ -120,7 +120,7 @@ class BayBridgeEnv(Env):
         cars_that_have_left = []
         for veh_id in self.cars_before_ramp:
             if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_RAMP_METER:
-                if self.simulator == 'traci':
+                if self.simulator == 'sumo':
                     lane_change_mode = self.cars_before_ramp[veh_id][
                         'lane_change_mode']
                     self.k.kernel_api.vehicle.setLaneChangeMode(
@@ -140,7 +140,7 @@ class BayBridgeEnv(Env):
                 veh_id, pos = car
                 if pos > RAMP_METER_AREA:
                     if veh_id not in self.cars_waiting_for_toll:
-                        if self.simulator == 'traci':
+                        if self.simulator == 'sumo':
                             # Disable lane changes inside Toll Area
                             lane_change_mode = self.k.kernel_api.vehicle.\
                                 getLaneChangeMode(veh_id)
@@ -161,7 +161,7 @@ class BayBridgeEnv(Env):
         for veh_id in self.cars_waiting_for_toll:
             if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_TOLL:
                 lane = self.k.vehicle.get_lane(veh_id)
-                if self.simulator == 'traci':
+                if self.simulator == 'sumo':
                     lane_change_mode = \
                         self.cars_waiting_for_toll[veh_id]["lane_change_mode"]
                     self.k.kernel_api.vehicle.setLaneChangeMode(
@@ -196,7 +196,7 @@ class BayBridgeEnv(Env):
                 veh_id, pos = car
                 if pos > TOLL_BOOTH_AREA:
                     if veh_id not in self.cars_waiting_for_toll:
-                        if self.simulator == 'traci':
+                        if self.simulator == 'sumo':
                             # Disable lane changes inside Toll Area
                             lc_mode = self.k.kernel_api.vehicle.\
                                 getLaneChangeMode(veh_id)

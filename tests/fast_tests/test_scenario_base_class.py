@@ -134,7 +134,7 @@ class TestEvenStartPos(unittest.TestCase):
             vehicles=vehicles)
 
     def tearDown_gen_start_pos(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -457,7 +457,7 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
             initial_config=initial_config, vehicles=vehicles)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -533,7 +533,7 @@ class TestRandomStartPos(unittest.TestCase):
             vehicles=vehicles)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class
@@ -613,7 +613,7 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
             vehicles=vehicles, initial_config=initial_config)
 
     def tearDown(self):
-        # terminate the traci instance
+        # terminate the sumo instance
         self.env.terminate()
 
         # free data used by the class

@@ -1,9 +1,9 @@
 """Script containing the Flow kernel object for interacting with simulators."""
 
-from flow.core.kernel.simulation import TraCISimulation, AimsunKernelSimulation
-from flow.core.kernel.scenario import TraCIScenario, AimsunKernelScenario
-from flow.core.kernel.vehicle import TraCIVehicle, AimsunKernelVehicle
-from flow.core.kernel.traffic_light import TraCITrafficLight, \
+from flow.core.kernel.simulation import SumoSimulation, AimsunKernelSimulation
+from flow.core.kernel.scenario import SumoScenario, AimsunKernelScenario
+from flow.core.kernel.vehicle import SumoVehicle, AimsunKernelVehicle
+from flow.core.kernel.traffic_light import SumoTrafficLight, \
     AimsunKernelTrafficLight
 from flow.utils.exceptions import FatalFlowError
 
@@ -50,7 +50,7 @@ class Kernel(object):
         Parameters
         ----------
         simulator : str
-            simulator type, must be one of {"traci"}
+            simulator type, must be one of {"sumo"}
         sim_params : flow.core.params.SimParams
             simulation-specific parameters
 
@@ -61,11 +61,11 @@ class Kernel(object):
         """
         self.kernel_api = None
 
-        if simulator == "traci":
-            self.simulation = TraCISimulation(self)
-            self.scenario = TraCIScenario(self, sim_params)
-            self.vehicle = TraCIVehicle(self, sim_params)
-            self.traffic_light = TraCITrafficLight(self)
+        if simulator == "sumo":
+            self.simulation = SumoSimulation(self)
+            self.scenario = SumoScenario(self, sim_params)
+            self.vehicle = SumoVehicle(self, sim_params)
+            self.traffic_light = SumoTrafficLight(self)
         elif simulator == 'aimsun':
             self.simulation = AimsunKernelSimulation(self)
             self.scenario = AimsunKernelScenario(self, sim_params)
@@ -88,7 +88,7 @@ class Kernel(object):
 
         This is meant to support optimizations in the performance of some
         simulators. For example, this step allows the vehicle subclass in the
-        "traci" simulator uses the ``update`` method to collect and store
+        "sumo" simulator uses the ``update`` method to collect and store
         subscription information.
 
         Parameters

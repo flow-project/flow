@@ -58,7 +58,7 @@
         "sim_step": 1.0,
         "teleport_time": -1
     },
-    "simulator": "traci",
+    "simulator": "sumo",
     "veh": [
         {
             "acceleration_controller": [

@@ -109,7 +109,7 @@ class TrafficLightGridEnv(Env):
         https://github.com/openai/gym/blob/master/gym/spaces/discrete.py
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, scenario, simulator='sumo'):
 
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -606,7 +606,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
 
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, scenario, simulator='sumo'):
         super().__init__(env_params, sim_params, scenario, simulator)
 
         for p in ADDITIONAL_PO_ENV_PARAMS.keys():

@@ -191,7 +191,7 @@ class BottleneckEnv(Env):
         array.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, scenario, simulator='sumo'):
         """Initialize the BottleneckEnv class."""
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -285,7 +285,7 @@ class BottleneckEnv(Env):
             if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_RAMP_METER:
                 color = self.cars_before_ramp[veh_id]['color']
                 self.k.vehicle.set_color(veh_id, color)
-                if self.simulator == 'traci':
+                if self.simulator == 'sumo':
                     lane_change_mode = self.cars_before_ramp[veh_id][
                         'lane_change_mode']
                     self.k.kernel_api.vehicle.setLaneChangeMode(
@@ -301,7 +301,7 @@ class BottleneckEnv(Env):
             for veh_id, pos in cars_in_lane:
                 if pos > RAMP_METER_AREA:
                     if veh_id not in self.cars_waiting_for_toll:
-                        if self.simulator == 'traci':
+                        if self.simulator == 'sumo':
                             # Disable lane changes inside Toll Area
                             lane_change_mode = \
                                 self.k.kernel_api.vehicle.getLaneChangeMode(
@@ -377,7 +377,7 @@ class BottleneckEnv(Env):
                 lane = self.k.vehicle.get_lane(veh_id)
                 color = self.cars_waiting_for_toll[veh_id]["color"]
                 self.k.vehicle.set_color(veh_id, color)
-                if self.simulator == 'traci':
+                if self.simulator == 'sumo':
                     lane_change_mode = \
                         self.cars_waiting_for_toll[veh_id]["lane_change_mode"]
                     self.k.kernel_api.vehicle.setLaneChangeMode(
@@ -409,7 +409,7 @@ class BottleneckEnv(Env):
                 if pos > TOLL_BOOTH_AREA:
                     if veh_id not in self.cars_waiting_for_toll:
                         # Disable lane changes inside Toll Area
-                        if self.simulator == 'traci':
+                        if self.simulator == 'sumo':
                             lane_change_mode = self.k.kernel_api.vehicle.\
                                 getLaneChangeMode(veh_id)
                             self.k.kernel_api.vehicle.setLaneChangeMode(
@@ -513,7 +513,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
         A rollout is terminated once the time horizon is reached.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, scenario, simulator='sumo'):
         """Initialize BottleNeckAccelEnv."""
         for p in ADDITIONAL_RL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -734,7 +734,7 @@ class DesiredVelocityEnv(BottleneckEnv):
         for RL vehicles making forward progress
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, scenario, simulator='sumo'):
         """Initialize DesiredVelocityEnv."""
         super().__init__(env_params, sim_params, scenario, simulator)
         for p in ADDITIONAL_VSL_ENV_PARAMS.keys():
