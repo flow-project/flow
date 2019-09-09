@@ -267,4 +267,6 @@ class FigureEightScenario(Scenario):
 @deprecated('flow.scenarios.figure_eight',
             'flow.scenarios.figure_eight.FigureEightScenario')
 class Figure8Scenario(FigureEightScenario):
+    """See parent class."""
+
     pass
