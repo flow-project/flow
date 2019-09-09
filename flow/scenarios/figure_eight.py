@@ -3,6 +3,7 @@
 import numpy as np
 from numpy import pi, sin, cos, linspace
 
+from flow.utils.flow_warnings import deprecated
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from flow.scenarios.base import Scenario
@@ -261,3 +262,9 @@ class FigureEightScenario(Scenario):
         ]
 
         return internal_edgestarts
+
+
+@deprecated('flow.scenarios.figure_eight',
+            'flow.scenarios.figure_eight.FigureEightScenario')
+class Figure8Scenario(FigureEightScenario):
+    pass
