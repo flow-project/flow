@@ -11,16 +11,22 @@ from flow.envs.bottleneck import BottleneckDesiredVelocityEnv as BDVEnv
 @deprecated('flow.envs.bottleneck_env',
             'flow.envs.bottleneck.BottleneckEnv')
 class BottleneckEnv(BEnv):
+    """See parent class."""
+
     pass
 
 
 @deprecated('flow.envs.bottleneck_env',
             'flow.envs.bottleneck.BottleneckAccelEnv')
 class BottleNeckAccelEnv(BAEnv):
+    """See parent class."""
+
     pass
 
 
 @deprecated('flow.envs.bottleneck_env',
             'flow.envs.bottleneck.BottleneckDesiredVelocityEnv')
 class DesiredVelocityEnv(BDVEnv):
+    """See parent class."""
+
     pass
