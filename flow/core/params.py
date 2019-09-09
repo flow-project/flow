@@ -978,7 +978,7 @@ class SumoLaneChangeParams:
         # check for deprecations (lcSpeedGainRight)
         if "lcSpeedGainRight" in kwargs:
             deprecated_attribute(self, "lcSpeedGainRight",
-                                "lc_speed_gain_right")
+                                 "lc_speed_gain_right")
             lc_speed_gain_right = kwargs["lcSpeedGainRight"]
 
         # check for deprecations (lcSublane)
@@ -1009,7 +1009,7 @@ class SumoLaneChangeParams:
         # check for deprecations (lcTimeToImpatience)
         if "lcTimeToImpatience" in kwargs:
             deprecated_attribute(self, "lcTimeToImpatience",
-                                "lc_time_to_impatience")
+                                 "lc_time_to_impatience")
             lc_time_to_impatience = kwargs["lcTimeToImpatience"]
 
         # check for deprecations (lcAccelLat)
