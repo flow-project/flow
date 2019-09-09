@@ -19,6 +19,14 @@ SPEED_MODES = {
 
 LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 1621}
 
+SUPPORTED_BASELINES = ['actuated', 'static']
+SUPPORTED_TL_TYPES = SUPPORTED_BASELINES + ['rl']
+SUPPORTED_NODE_TYPES = ["priority", "traffic_light",
+                        "right_before_left", "unregulated",
+                        "priority_stop", "traffic_light_unregulated",
+                        "allway_stop", "rail_signal", "zipper",
+                        "traffic_light_right_on_red", "rail_crossing"]
+
 # Traffic light defaults
 PROGRAM_ID = 1
 MAX_GAP = 3.0
@@ -29,9 +37,11 @@ SHOW_DETECTORS = True
 class TrafficLightParams:
     """Base traffic light.
 
-    This class is used to place traffic lights in the network and describe
-    the state of these traffic lights. In addition, this class supports
-    modifying the states of certain lights via TraCI.
+    This class is used to place customized traffic lights in the network
+    and describe the state of these traffic lights. In addition, this class
+    supports modifying the states of certain lights via TraCI. Lastly, this
+    class enables a baseline in which all nodes are set to either actuated
+    or static traffic lights.
     """
 
     def __init__(self, baseline=False):
@@ -44,8 +54,70 @@ class TrafficLightParams:
         # traffic light xml properties
         self.__tls_properties = dict()
 
-        # all traffic light parameters are set to default baseline values
+        # all traffic light parameters are set to default baseline values.
+        # NOTE: This overrides all customization, i.e. if you use the add
+        # function to add customized traffic lights, turning the baseline
+        # on will replace the tl_type with the argument specified in the
+        # toggle_baseline function as well as the default parameters of
+        # the baseline.
+        # supported types in SUPPORTED_BASELINES
+        self.baseline = False
+        if baseline:
+            self.toggle_baseline(baseline)
+
+        # shortcut variable to indicate that the scenario should set
+        # all nodes to type: "traffic_light". Ideal for use if the user
+        # doesn't want a baseline, but wants all to be i.e. RL-controlled
+        # supported types in NODE_TYPES
+        self.all_type = None
+
+    def toggle_baseline(self, baseline, tl_type='static'):
+        """Toggle baseline on or off.
+
+        Currently supports a static or actuated traffic light baseline.
+
+        Parameters
+        ----------
+        status : bool
+            True if baseline, False if not
+        tl_type : string
+            specifies 'actuated' or 'static' baseline
+        """
+        if tl_type not in SUPPORTED_TL_TYPES:
+            raise KeyError(
+                    'Unsupported traffic light type: "{}".'
+                    'Must be of type: \
+                        {}'.format(tl_type,
+                                   ', '.join(SUPPORTED_TL_TYPES)))
+
         self.baseline = baseline
+        self.all_type = tl_type
+
+    def toggle_all_nodes(self, node_type='traffic_light'):
+        """Designate all nodes to be of node_type.
+
+        This tells the scenario to specify all nodes as type traffic_light.
+        For RL experiments with full RL control over traffic lights,
+        no further modification needs to be done.
+
+        Be aware that node_type is NOT the same as tl_type (traffic light type)
+
+        Parameters
+        ----------
+        node_type : string
+            one of 'traffic_light', 'priority', or other. See Note.
+
+        Note:
+        _____
+        https://sumo.dlr.de/wiki/Networks/PlainXML#Node_Descriptions
+        """
+        if node_type not in SUPPORTED_NODE_TYPES:
+            raise KeyError(
+                    'Unsupported traffic light type: "{}".'
+                    'Must be of type: \
+                        {}'.format(node_type,
+                                   ', '.join(SUPPORTED_NODE_TYPES)))
+        self.all_type = node_type
 
     def add(self,
             node_id,
@@ -148,6 +220,18 @@ class TrafficLightParams:
         """
         return self.__tls_properties
 
+    def get_node_type(self, node_id):
+        """Return tl_type of node_id.
+
+        Return False if node_id does not exist in the class
+        This is used in scenario construction. See
+        SimpleGridScenario for example.
+        """
+        if node_id not in self.__tls_properties:
+            return False
+        else:
+            return self.__tls_properties[node_id]['type']
+
     def actuated_default(self):
         """Return the default values for an actuated scenario.
 
@@ -159,7 +243,6 @@ class TrafficLightParams:
         tl_logic : dict
             traffic light logic
         """
-        tl_type = "actuated"
         program_id = 1
         max_gap = 3.0
         detector_gap = 0.8
@@ -187,12 +270,29 @@ class TrafficLightParams:
         }]
 
         return {
-            "tl_type": str(tl_type),
             "program_id": str(program_id),
             "max_gap": str(max_gap),
             "detector_gap": str(detector_gap),
             "show_detectors": show_detectors,
             "phases": phases
+        }
+
+    def static_default(self):
+        """
+        Return config for static default.
+        
+        Return the default values to be used for the scenario
+        for a system where all junctions are static traffic lights.
+        Currently this defaults to SUMO's default values.
+
+        Returns
+        -------
+        tl_logic : dict
+            traffic light logic
+        """
+        program_id = 1
+        return {
+            "program_id": str(program_id)
         }
 
 

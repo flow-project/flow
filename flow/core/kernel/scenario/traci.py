@@ -649,39 +649,43 @@ class TraCIScenario(KernelScenario):
         num_traffic_lights = len(list(traffic_lights.get_properties().keys()))
         if num_traffic_lights > 0:
             if traffic_lights.baseline:
-                tl_params = traffic_lights.actuated_default()
-                tl_type = str(tl_params['tl_type'])
-                program_id = str(tl_params['program_id'])
-                phases = tl_params['phases']
-                max_gap = str(tl_params['max_gap'])
-                detector_gap = str(tl_params['detector_gap'])
-                show_detector = tl_params['show_detectors']
+                # If the baseline with actuated traffic lights
+                # is selected.
+                if traffic_lights.all_type == 'actuated':
+                    tl_params = traffic_lights.actuated_default()
+                    program_id = str(tl_params['program_id'])
+                    phases = tl_params['phases']
+                    max_gap = str(tl_params['max_gap'])
+                    detector_gap = str(tl_params['detector_gap'])
+                    show_detector = tl_params['show_detectors']
 
-                detectors = {'key': 'detector-gap', 'value': detector_gap}
-                gap = {'key': 'max-gap', 'value': max_gap}
+                    detectors = {'key': 'detector-gap', 'value': detector_gap}
+                    gap = {'key': 'max-gap', 'value': max_gap}
+                    show_detector = {'key': 'show-detectors',
+                                     'value': str(show_detector).lower()}
 
-                if show_detector:
-                    show_detector = {'key': 'show-detectors', 'value': 'true'}
-                else:
-                    show_detector = {'key': 'show-detectors', 'value': 'false'}
+                    # FIXME(ak): add abstract method
+                    nodes = self.network.specify_tll(net_params)
+                    for node in nodes:
+                        elem = {
+                            'id': node['id'],
+                            'type': traffic_lights.all_type,
+                            'programID': program_id
+                        }
 
-                nodes = self._inner_nodes  # nodes where there's traffic lights
-                tll = []
-                for node in nodes:
-                    tll.append({
-                        'id': node['id'],
-                        'type': tl_type,
-                        'programID': program_id
-                    })
+                        e = E('tlLogic', **elem)
+                        e.append(E('param', **show_detector))
+                        e.append(E('param', **gap))
+                        e.append(E('param', **detectors))
+                        for phase in phases:
+                            e.append(E('phase', **phase))
+                        add.append(e)
 
-                for elem in tll:
-                    e = E('tlLogic', **elem)
-                    e.append(E('param', **show_detector))
-                    e.append(E('param', **gap))
-                    e.append(E('param', **detectors))
-                    for phase in phases:
-                        e.append(E('phase', **phase))
-                    add.append(e)
+                if traffic_lights.all_type == 'static':
+                    # Don't need to do anything. SUMO detects that
+                    # the node is a traffic light type and defaults
+                    # it to the default program.
+                    pass
 
             else:
                 tl_properties = traffic_lights.get_properties()

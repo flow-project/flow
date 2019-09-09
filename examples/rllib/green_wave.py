@@ -13,16 +13,16 @@ from ray.tune.registry import register_env
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows, SumoCarFollowingParams
+    InFlows, SumoCarFollowingParams, TrafficLightParams
 from flow.core.params import VehicleParams
 from flow.controllers import SimCarFollowingController, GridRouter
 
 # time horizon of a single rollout
-HORIZON = 200
+HORIZON = 100
 # number of rollouts per training iteration
-N_ROLLOUTS = 20
+N_ROLLOUTS = 30
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 1
 
 
 def gen_edges(col_num, row_num):
@@ -127,12 +127,12 @@ V_ENTER = 15
 INNER_LENGTH = 300
 LONG_LENGTH = 100
 SHORT_LENGTH = 300
-N_ROWS = 3
-N_COLUMNS = 3
+N_ROWS = 1
+N_COLUMNS = 1
 NUM_CARS_LEFT = 1
 NUM_CARS_RIGHT = 1
-NUM_CARS_TOP = 1
-NUM_CARS_BOT = 1
+NUM_CARS_TOP = 5
+NUM_CARS_BOT = 5
 tot_cars = (NUM_CARS_LEFT + NUM_CARS_RIGHT) * N_COLUMNS \
            + (NUM_CARS_BOT + NUM_CARS_TOP) * N_ROWS
 
@@ -176,6 +176,9 @@ vehicles.add(
     routing_controller=(GridRouter, {}),
     num_vehicles=tot_cars)
 
+traffic_lights = TrafficLightParams()
+traffic_lights.toggle_all_nodes('traffic_light')
+
 flow_params = dict(
     # name of the experiment
     exp_tag='green_wave',
@@ -214,6 +217,7 @@ flow_params = dict(
     # reset (see flow.core.params.InitialConfig). This is filled in by the
     # setup_exps method below.
     initial=None,
+    tls=traffic_lights,
 )
 
 
@@ -289,10 +293,10 @@ if __name__ == '__main__':
             'config': {
                 **config
             },
-            'checkpoint_freq': 20,
+            'checkpoint_freq': 10,
             'max_failures': 999,
             'stop': {
-                'training_iteration': 200,
+                'training_iteration': 100,
             },
         }
     })
