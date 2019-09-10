@@ -41,7 +41,7 @@
         "osm_path": null,
         "template": null
     },
-    "scenario": "LoopScenario",
+    "scenario": "RingScenario",
     "sim": {
         "emission_path": null,
         "lateral_resolution": null,

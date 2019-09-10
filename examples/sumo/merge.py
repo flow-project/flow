@@ -11,7 +11,7 @@ from flow.core.params import VehicleParams
 from flow.core.experiment import Experiment
 from flow.scenarios.merge import MergeScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers import IDMController
-from flow.envs.merge import WaveAttenuationMergePOEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.merge import MergePOEnv, ADDITIONAL_ENV_PARAMS
 
 # inflow rate at the highway
 FLOW_RATE = 2000
@@ -87,7 +87,7 @@ def merge_example(render=None):
         net_params=net_params,
         initial_config=initial_config)
 
-    env = WaveAttenuationMergePOEnv(env_params, sim_params, scenario)
+    env = MergePOEnv(env_params, sim_params, scenario)
 
     return Experiment(env)
 

@@ -1,32 +1,39 @@
-"""Grid/green wave example."""
+"""Traffic Light Grid example."""
 
-import argparse
 import json
-import os
 
-from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
-from stable_baselines import PPO2
+import ray
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
+from ray.tune import run_experiments
+from ray.tune.registry import register_env
 
+from flow.utils.registry import make_create_env
+from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    SumoCarFollowingParams, InFlows
+    InFlows, SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.controllers import SimCarFollowingController, GridRouter
-from flow.utils.registry import env_constructor
-from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 
 # time horizon of a single rollout
 HORIZON = 200
+# number of rollouts per training iteration
+N_ROLLOUTS = 20
+# number of parallel workers
+N_CPUS = 2
 
 
 def gen_edges(col_num, row_num):
-    """Generate the names of the outer edges in the grid network.
+    """Generate the names of the outer edges in the traffic light grid network.
 
     Parameters
     ----------
     col_num : int
-        number of columns in the grid
+        number of columns in the traffic light grid
     row_num : int
-        number of rows in the grid
+        number of rows in the traffic light grid
 
     Returns
     -------
@@ -38,7 +45,7 @@ def gen_edges(col_num, row_num):
         edges += ['left' + str(row_num) + '_' + str(i)]
         edges += ['right' + '0' + '_' + str(i)]
 
-    # build the left and then the right edgesØ
+    # build the left and then the right edges
     for i in range(row_num):
         edges += ['bot' + str(i) + '_' + '0']
         edges += ['top' + str(i) + '_' + str(col_num)]
@@ -46,17 +53,17 @@ def gen_edges(col_num, row_num):
     return edges
 
 
-def get_inflow_params(col_num, row_num, additional_net_params):
+def get_flow_params(col_num, row_num, additional_net_params):
     """Define the network and initial params in the presence of inflows.
 
     Parameters
     ----------
     col_num : int
-        number of columns in the grid
+        number of columns in the traffic light grid
     row_num : int
-        number of rows in the grid
+        number of rows in the traffic light grid
     additional_net_params : dict
-        network-specific parameters that are unique to the grid
+        network-specific parameters that are unique to the traffic light grid
 
     Returns
     -------
@@ -77,7 +84,7 @@ def get_inflow_params(col_num, row_num, additional_net_params):
             edge=outer_edges[i],
             probability=0.25,
             departLane='free',
-            departSpeed=20)
+            departSpeed=10)
 
     net = NetParams(
         inflows=inflow,
@@ -98,7 +105,7 @@ def get_non_flow_params(enter_speed, add_net_params):
     enter_speed : float
         initial speed of vehicles as they enter the network.
     add_net_params: dict
-        additional network-specific parameters (unique to the grid)
+        additional network-specific parameters (unique to the traffic light grid)
 
     Returns
     -------
@@ -111,13 +118,12 @@ def get_non_flow_params(enter_speed, add_net_params):
     additional_init_params = {'enter_speed': enter_speed}
     initial = InitialConfig(
         spacing='custom', additional_params=additional_init_params)
-    net = NetParams(
-        additional_params=add_net_params)
+    net = NetParams(additional_params=add_net_params)
 
     return initial, net
 
 
-V_ENTER = 30
+V_ENTER = 15
 INNER_LENGTH = 300
 LONG_LENGTH = 100
 SHORT_LENGTH = 300
@@ -172,13 +178,13 @@ vehicles.add(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='green_wave',
+    exp_tag='traffic_light_grid',
 
     # name of the flow environment the experiment is running on
-    env_name='PO_TrafficLightGridEnv',
+    env_name='TrafficLightGridPOEnv',
 
     # name of the scenario class the experiment is running on
-    scenario='SimpleGridScenario',
+    scenario='TrafficLightGridScenario',
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -232,7 +238,7 @@ def setup_exps(use_inflows=False):
     # collect the initialization and network-specific parameters based on the
     # choice to use inflows or not
     if use_inflows:
-        initial_config, net_params = get_inflow_params(
+        initial_config, net_params = get_flow_params(
             col_num=N_COLUMNS,
             row_num=N_ROWS,
             additional_net_params=additional_net_params)
@@ -240,60 +246,53 @@ def setup_exps(use_inflows=False):
         initial_config, net_params = get_non_flow_params(
             enter_speed=V_ENTER,
             add_net_params=additional_net_params)
-    return initial_config, net_params
 
-
-def run_model(num_cpus=1, rollout_size=50, num_steps=50, use_inflows=False):
-    """Run the model for num_steps if provided. The total rollout length is rollout_size."""
-    initial_config, net_params = setup_exps(use_inflows)
     # add the new parameters to flow_params
     flow_params['initial'] = initial_config
     flow_params['net'] = net_params
 
-    if num_cpus == 1:
-        constructor = env_constructor(params=flow_params, version=0)()
-        env = DummyVecEnv([lambda: constructor])  # The algorithms require a vectorized environment to run
-    else:
-        env = SubprocVecEnv([env_constructor(params=flow_params, version=i) for i in range(num_cpus)])
+    alg_run = 'PPO'
 
-    model = PPO2('MlpPolicy', env, verbose=1, n_steps=rollout_size)
-    model.learn(total_timesteps=num_steps)
-    return model
+    agent_cls = get_agent_class(alg_run)
+    config = agent_cls._default_config.copy()
+    config['num_workers'] = N_CPUS
+    config['train_batch_size'] = HORIZON * N_ROLLOUTS
+    config['gamma'] = 0.999  # discount rate
+    config['model'].update({'fcnet_hiddens': [32, 32]})
+    config['use_gae'] = True
+    config['lambda'] = 0.97
+    config['kl_target'] = 0.02
+    config['num_sgd_iter'] = 10
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
+    config['horizon'] = HORIZON
+
+    # save the flow params for replay
+    flow_json = json.dumps(
+        flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
+    config['env_config']['flow_params'] = flow_json
+    config['env_config']['run'] = alg_run
+
+    create_env, gym_name = make_create_env(params=flow_params, version=0)
+
+    # Register as rllib env
+    register_env(gym_name, create_env)
+    return alg_run, gym_name, config
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--num_cpus', type=int, default=1, help='How many CPUs to use')
-    parser.add_argument('--num_steps', type=int, default=5000, help='How many total steps to perform learning over')
-    parser.add_argument('--rollout_size', type=int, default=1000, help='How many steps are in a training batch.')
-    parser.add_argument('--result_name', type=str, default='green_wave', help='Name of saved model')
-    parser.add_argument('--use_inflows', action='store_true')
-    args = parser.parse_args()
-    model = run_model(args.num_cpus, args.rollout_size, args.num_steps, args.use_inflows)
-    # Save the model to a desired folder and then delete it to demonstrate loading
-    if not os.path.exists(os.path.realpath(os.path.expanduser('~/baseline_results'))):
-        os.makedirs(os.path.realpath(os.path.expanduser('~/baseline_results')))
-    path = os.path.realpath(os.path.expanduser('~/baseline_results'))
-    save_path = os.path.join(path, args.result_name)
-    # dump the model
-    model.save(save_path)
-    # dump the flow params
-    with open(os.path.join(path, args.result_name) + '.json', 'w') as outfile:
-        json.dump(flow_params, outfile,  cls=FlowParamsEncoder, sort_keys=True, indent=4)
-    del model
-    del flow_params
-
-    # Replay the result by loading the model
-    print('Loading the trained model and testing it out!')
-    model = PPO2.load(save_path)
-    flow_params = get_flow_params(os.path.join(path, args.result_name) + '.json')
-    flow_params['sim'].render = True
-    env_constructor = env_constructor(params=flow_params, version=0)()
-    env = DummyVecEnv([lambda: env_constructor])  # The algorithms require a vectorized environment to run
-    obs = env.reset()
-    reward = 0
-    for i in range(flow_params['env'].horizon):
-        action, _states = model.predict(obs)
-        obs, rewards, dones, info = env.step(action)
-        reward += rewards
-    print('the final reward is {}'.format(reward))
+if __name__ == '__main__':
+    alg_run, gym_name, config = setup_exps()
+    ray.init(num_cpus=N_CPUS + 1, redirect_output=False)
+    trials = run_experiments({
+        flow_params['exp_tag']: {
+            'run': alg_run,
+            'env': gym_name,
+            'config': {
+                **config
+            },
+            'checkpoint_freq': 20,
+            'max_failures': 999,
+            'stop': {
+                'training_iteration': 200,
+            },
+        }
+    })

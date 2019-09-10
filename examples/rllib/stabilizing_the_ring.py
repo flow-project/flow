@@ -53,7 +53,7 @@ flow_params = dict(
     env_name="WaveAttenuationPOEnv",
 
     # name of the scenario class the experiment is running on
-    scenario="LoopScenario",
+    scenario="RingScenario",
 
     # simulator that is used by the experiment
     simulator='traci',

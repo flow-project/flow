@@ -56,7 +56,7 @@ flow_params = dict(
     env_name='AccelEnv',
 
     # name of the scenario class the experiment is running on
-    scenario='Figure8Scenario',
+    scenario='FigureEightScenario',
 
     # simulator that is used by the experiment
     simulator='traci',

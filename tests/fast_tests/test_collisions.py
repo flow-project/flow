@@ -7,7 +7,7 @@ from flow.core.params import VehicleParams
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.routing_controllers import GridRouter
 
-from tests.setup_scripts import grid_mxn_exp_setup
+from tests.setup_scripts import traffic_light_grid_mxn_exp_setup
 
 
 class TestCollisions(unittest.TestCase):
@@ -50,7 +50,7 @@ class TestCollisions(unittest.TestCase):
 
         net_params = NetParams(additional_params=additional_net_params)
 
-        env, _ = grid_mxn_exp_setup(
+        env, _ = traffic_light_grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
             sim_params=sim_params,
@@ -111,7 +111,7 @@ class TestCollisions(unittest.TestCase):
             inflows=inflows,
             additional_params=additional_net_params)
 
-        env, _ = grid_mxn_exp_setup(
+        env, _ = traffic_light_grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
             sim_params=sim_params,

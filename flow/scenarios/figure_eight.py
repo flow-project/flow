@@ -3,9 +3,10 @@
 import numpy as np
 from numpy import pi, sin, cos, linspace
 
+from flow.utils.flow_warnings import deprecated
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
-from flow.scenarios.base_scenario import Scenario
+from flow.scenarios.base import Scenario
 
 ADDITIONAL_NET_PARAMS = {
     # radius of the circular components
@@ -19,13 +20,13 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class Figure8Scenario(Scenario):
+class FigureEightScenario(Scenario):
     """Figure eight scenario class.
 
     The figure eight network is an extension of the ring road network: Two
     rings, placed at opposite ends of the network, are connected by an
     intersection with road segments of length equal to the diameter of the
-    rings. Serves as a simulation of a closed loop intersection.
+    rings. Serves as a simulation of a closed ring intersection.
 
     Requires from net_params:
 
@@ -40,9 +41,9 @@ class Figure8Scenario(Scenario):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.scenarios import Figure8Scenario
+    >>> from flow.scenarios import FigureEightScenario
     >>>
-    >>> scenario = Figure8Scenario(
+    >>> scenario = FigureEightScenario(
     >>>     name='figure_eight',
     >>>     vehicles=VehicleParams(),
     >>>     net_params=NetParams(
@@ -261,3 +262,11 @@ class Figure8Scenario(Scenario):
         ]
 
         return internal_edgestarts
+
+
+@deprecated('flow.scenarios.figure_eight',
+            'flow.scenarios.figure_eight.FigureEightScenario')
+class Figure8Scenario(FigureEightScenario):
+    """See parent class."""
+
+    pass

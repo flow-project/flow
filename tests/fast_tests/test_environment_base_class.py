@@ -7,7 +7,7 @@ from flow.core.params import VehicleParams
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
 from flow.controllers import RLController
-from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.utils.exceptions import FatalFlowError
 from flow.envs import Env, TestEnv
 
@@ -103,7 +103,7 @@ class TestEmissionPath(unittest.TestCase):
 class TestApplyingActionsWithSumo(unittest.TestCase):
     """
     Tests the apply_acceleration, apply_lane_change, and choose_routes
-    functions in base_env.py
+    functions in base.py
     """
 
     def setUp(self):

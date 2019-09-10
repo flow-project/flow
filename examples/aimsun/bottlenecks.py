@@ -6,7 +6,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 
 from flow.scenarios.bottleneck import BottleneckScenario
-from flow.envs.bottleneck_env import BottleneckEnv
+from flow.envs.bottleneck import BottleneckEnv
 from flow.core.experiment import Experiment
 
 SCALING = 1

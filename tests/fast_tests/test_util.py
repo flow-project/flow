@@ -10,7 +10,7 @@ from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoCarFollowingParams
 from flow.core.util import emission_to_csv
-from flow.utils.flow_warnings import deprecation_warning
+from flow.utils.flow_warnings import deprecated_attribute
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 
@@ -59,7 +59,7 @@ class TestEmissionToCSV(unittest.TestCase):
 class TestWarnings(unittest.TestCase):
     """Tests warning functions located in flow.utils.warnings"""
 
-    def test_deprecation_warning(self):
+    def test_deprecated_attribute(self):
         # dummy class
         class Foo(object):
             pass
@@ -71,7 +71,7 @@ class TestWarnings(unittest.TestCase):
         # check the deprecation warning is printing what is expected
         self.assertWarnsRegex(
             UserWarning, "The attribute bar_deprecated in Foo is deprecated, "
-            "use bar_new instead.", deprecation_warning, Foo(), dep_from,
+            "use bar_new instead.", deprecated_attribute, Foo(), dep_from,
             dep_to)
 
 
@@ -105,7 +105,7 @@ class TestRegistry(unittest.TestCase):
         flow_params = dict(
             exp_tag="figure_eight_0",
             env_name="AccelEnv",
-            scenario="Figure8Scenario",
+            scenario="FigureEightScenario",
             simulator='traci',
             sim=SumoParams(
                 sim_step=0.1,
@@ -217,7 +217,7 @@ class TestRllib(unittest.TestCase):
 
         flow_params = dict(
             exp_tag="merge_0",
-            env_name="WaveAttenuationMergePOEnv",
+            env_name="MergePOEnv",
             scenario="MergeScenario",
             sim=SumoParams(
                 restart_instance=True,

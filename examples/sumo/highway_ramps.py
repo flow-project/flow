@@ -7,7 +7,7 @@ from flow.core.params import VehicleParams
 from flow.core.experiment import Experiment
 from flow.scenarios.highway_ramps import HighwayRampsScenario, \
     ADDITIONAL_NET_PARAMS
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()

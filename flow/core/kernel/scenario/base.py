@@ -17,7 +17,7 @@ class KernelScenario(object):
     components needed to simulate a traffic network. This may include network
     creating configuration files that support the generating of certain traffic
     networks in a simulator (e.g. sumo), or may be as simple as passing network
-    features from the scenario class (see flow/scenarios/base_scenario.py) and
+    features from the scenario class (see flow/scenarios/base.py) and
     transferring them to the simulator kernel later on.
 
     In addition to generating files for network initialization, the scenario
@@ -31,7 +31,7 @@ class KernelScenario(object):
       travel within the network, this can be done by calling the following
       command:
 
-        >>> from flow.envs.base_env import Env
+        >>> from flow.envs.base import Env
         >>> env = Env(...)
         >>> max_speed = env.k.scenario.max_speed()
 

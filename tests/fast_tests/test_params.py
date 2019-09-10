@@ -2,7 +2,7 @@ import unittest
 from flow.core.params import EnvParams, SumoParams, SumoLaneChangeParams, \
     SumoCarFollowingParams, VehicleParams, NetParams
 from flow.envs import Env
-from flow.scenarios import LoopScenario
+from flow.scenarios import RingScenario
 import os
 import numpy as np
 from gym.spaces import Box
@@ -46,7 +46,7 @@ class TestEnvParams(unittest.TestCase):
             "resolution": 40
         }
         net_params = NetParams(additional_params=additional_net_params)
-        scenario = LoopScenario(
+        scenario = RingScenario(
             name="RingRoadTest",
             vehicles=vehicles,
             net_params=net_params)

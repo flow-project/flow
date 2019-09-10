@@ -76,7 +76,7 @@ flow_params = dict(
     exp_tag="merge_0",
 
     # name of the flow environment the experiment is running on
-    env_name="WaveAttenuationMergePOEnv",
+    env_name="MergePOEnv",
 
     # name of the scenario class the experiment is running on
     scenario="MergeScenario",

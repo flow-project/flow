@@ -511,7 +511,7 @@ _flags_getFlagInfo() {
     # See if the _flags_gFI_usName_ variable is a string as strings can be
     # empty...
     # Note: the DRY principle would say to have this function call itself for
-    # the next three lines, but doing so results in an infinite loop as an
+    # the next three lines, but doing so results in an infinite ring as an
     # invalid _flags_name_ will also not have the associated _type variable.
     # Because it doesn't (it will evaluate to an empty string) the logic will
     # try to find the _type variable of the _type variable, and so on. Not so

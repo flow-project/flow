@@ -5,7 +5,7 @@ This environment was used in:
 TODO(ak): add paper after it has been published.
 """
 
-from flow.envs.base_env import Env
+from flow.envs.base import Env
 from flow.core import rewards
 
 from gym.spaces.box import Box
@@ -25,7 +25,7 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 
-class WaveAttenuationMergePOEnv(Env):
+class MergePOEnv(Env):
     """Partially observable merge environment.
 
     This environment is used to train autonomous vehicles to attenuate the
