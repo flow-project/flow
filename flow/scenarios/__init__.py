@@ -20,6 +20,7 @@ from flow.scenarios.highway_ramps import HighwayRampsScenario
 from flow.scenarios.figure_eight import Figure8Scenario
 from flow.scenarios.loop import LoopScenario
 from flow.scenarios.grid import SimpleGridScenario
+from flow.scenarios.multi_loop import MultiLoopScenario
 
 
 __all__ = [
@@ -39,4 +40,5 @@ __all__ = [
     "Figure8Scenario",
     "LoopScenario",
     "SimpleGridScenario",
+    "MultiLoopScenario",
 ]

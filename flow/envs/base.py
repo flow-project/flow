@@ -8,7 +8,7 @@ import traceback
 import numpy as np
 import random
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
-from flow.utils.flow_warnings import deprecation_warning
+from flow.utils.flow_warnings import deprecated_attribute
 
 import gym
 from gym.spaces import Box
@@ -55,8 +55,13 @@ class Env(gym.Env):
         see flow/core/params.py
     initial_config : flow.core.params.InitialConfig
         see flow/core/params.py
+<<<<<<< HEAD
     network : flow.networks.Network
         see flow/networks/base.py
+=======
+    scenario : flow.scenarios.Scenario
+        see flow/scenarios/base.py
+>>>>>>> f4ed943661f7d098813de759432b210136da7508
     simulator : str
         the simulator used, one of {'traci', 'aimsun'}
     k : flow.core.kernel.Kernel
@@ -123,7 +128,7 @@ class Env(gym.Env):
         """
         self.env_params = env_params
         if scenario is not None:
-            deprecation_warning(self, "scenario", "network")
+            deprecated_attribute(self, "scenario", "network")
         self.network = scenario if scenario is not None else network
         self.net_params = self.network.net_params
         self.initial_config = self.network.initial_config
