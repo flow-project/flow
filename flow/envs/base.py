@@ -55,13 +55,8 @@ class Env(gym.Env):
         see flow/core/params.py
     initial_config : flow.core.params.InitialConfig
         see flow/core/params.py
-<<<<<<< HEAD
     network : flow.networks.Network
         see flow/networks/base.py
-=======
-    scenario : flow.scenarios.Scenario
-        see flow/scenarios/base.py
->>>>>>> f4ed943661f7d098813de759432b210136da7508
     simulator : str
         the simulator used, one of {'traci', 'aimsun'}
     k : flow.core.kernel.Kernel
