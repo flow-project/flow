@@ -3,6 +3,7 @@
 import numpy as np
 from numpy import pi, sin, cos, linspace
 
+from flow.utils.flow_warnings import deprecated
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from flow.networks.base import Network
