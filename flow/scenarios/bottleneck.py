@@ -2,7 +2,7 @@
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
-from flow.scenarios.base_scenario import Scenario
+from flow.scenarios.base import Scenario
 import numpy as np
 
 ADDITIONAL_NET_PARAMS = {

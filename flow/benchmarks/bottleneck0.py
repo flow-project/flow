@@ -98,7 +98,7 @@ flow_params = dict(
     exp_tag="bottleneck_0",
 
     # name of the flow environment the experiment is running on
-    env_name="DesiredVelocityEnv",
+    env_name="BottleneckDesiredVelocityEnv",
 
     # name of the scenario class the experiment is running on
     scenario="BottleneckScenario",

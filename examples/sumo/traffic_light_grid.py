@@ -1,4 +1,4 @@
-"""Grid example."""
+"""Traffic Light Grid example."""
 from flow.controllers import GridRouter
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -6,19 +6,19 @@ from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import InFlows
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.grid import SimpleGridScenario
+from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.scenarios.traffic_light_grid import TrafficLightGridScenario
 
 
 def gen_edges(col_num, row_num):
-    """Generate the names of the outer edges in the grid network.
+    """Generate the names of the outer edges in the traffic light grid network.
 
     Parameters
     ----------
     col_num : int
-        number of columns in the grid
+        number of columns in the traffic light grid
     row_num : int
-        number of rows in the grid
+        number of rows in the traffic light grid
 
     Returns
     -------
@@ -46,11 +46,11 @@ def get_flow_params(col_num, row_num, additional_net_params):
     Parameters
     ----------
     col_num : int
-        number of columns in the grid
+        number of columns in the traffic light grid
     row_num : int
-        number of rows in the grid
+        number of rows in the traffic light grid
     additional_net_params : dict
-        network-specific parameters that are unique to the grid
+        network-specific parameters that are unique to the traffic light grid
 
     Returns
     -------
@@ -92,7 +92,7 @@ def get_non_flow_params(enter_speed, add_net_params):
     enter_speed : float
         initial speed of vehicles as they enter the network.
     add_net_params: dict
-        additional network-specific parameters (unique to the grid)
+        additional network-specific parameters (unique to the traffic light grid)
 
     Returns
     -------
@@ -110,9 +110,9 @@ def get_non_flow_params(enter_speed, add_net_params):
     return initial, net
 
 
-def grid_example(render=None, use_inflows=False):
+def traffic_light_grid_example(render=None, use_inflows=False):
     """
-    Perform a simulation of vehicles on a grid.
+    Perform a simulation of vehicles on a traffic light grid.
 
     Parameters
     ----------
@@ -126,7 +126,7 @@ def grid_example(render=None, use_inflows=False):
     -------
     exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
-        vehicles and balanced traffic lights on a grid.
+        vehicles and balanced traffic lights on a traffic light grid.
     """
     v_enter = 10
     inner_length = 300
@@ -213,7 +213,7 @@ def grid_example(render=None, use_inflows=False):
             enter_speed=v_enter,
             add_net_params=additional_net_params)
 
-    scenario = SimpleGridScenario(
+    scenario = TrafficLightGridScenario(
         name="grid-intersection",
         vehicles=vehicles,
         net_params=net_params,
@@ -227,7 +227,7 @@ def grid_example(render=None, use_inflows=False):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = grid_example()
+    exp = traffic_light_grid_example()
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

@@ -27,7 +27,7 @@ N_CPUS = 63  # number of parallel workers
 # Environment parameters
 HORIZON = 400  # time horizon of a single rollout
 V_ENTER = 30  # enter speed for departing vehicles
-INNER_LENGTH = 300  # length of inner edges in the grid network
+INNER_LENGTH = 300  # length of inner edges in the traffic light grid network
 LONG_LENGTH = 100  # length of final edge in route
 SHORT_LENGTH = 300  # length of edges that vehicles start on
 # number of vehicles originating in the left, right, top, and bottom edges
@@ -41,9 +41,9 @@ def make_flow_params(n_rows, n_columns, edge_inflow):
     Parameters
     ----------
     n_rows : int
-        number of rows in the grid
+        number of rows in the traffic light grid
     n_columns : int
-        number of columns in the grid
+        number of columns in the traffic light grid
     edge_inflow : float
 
 
@@ -95,7 +95,7 @@ def make_flow_params(n_rows, n_columns, edge_inflow):
         env_name='MultiTrafficLightGridPOEnv',
 
         # name of the scenario class the experiment is running on
-        scenario="SimpleGridScenario",
+        scenario="TrafficLightGridScenario",
 
         # simulator that is used by the experiment
         simulator='traci',
@@ -243,9 +243,9 @@ if __name__ == '__main__':
     parser.add_argument('--algo', type=str, default='PPO',
                         help="RL method to use (PPO)")
     parser.add_argument('--num_rows', type=int, default=3,
-                        help="The number of rows in the grid network.")
+                        help="The number of rows in the traffic light grid network.")
     parser.add_argument('--num_cols', type=int, default=3,
-                        help="The number of columns in the grid network.")
+                        help="The number of columns in the traffic light grid network.")
     parser.add_argument('--inflow_rate', type=int, default=300,
                         help="The inflow rate (veh/hr) per edge.")
     args = parser.parse_args()

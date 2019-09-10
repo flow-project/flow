@@ -7,18 +7,17 @@ from copy import deepcopy
 from flow.core.params import VehicleParams
 from flow.core.params import NetParams, EnvParams, SumoParams, InFlows
 from flow.controllers import IDMController, RLController
-from flow.scenarios import LoopScenario, MergeScenario, BottleneckScenario
-from flow.scenarios import HighwayRampsScenario
-from flow.scenarios.loop import ADDITIONAL_NET_PARAMS as LOOP_PARAMS
+from flow.scenarios import RingScenario, MergeScenario, BottleneckScenario
+from flow.scenarios.ring import ADDITIONAL_NET_PARAMS as Ring_PARAMS
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS as MERGE_PARAMS
+from flow.scenarios import HighwayRampsScenario
 from flow.scenarios.highway_ramps import ADDITIONAL_NET_PARAMS as \
     HIGHWAY_PARAMS
 from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
-    WaveAttenuationEnv, WaveAttenuationPOEnv, WaveAttenuationMergePOEnv, \
-    TestEnv, DesiredVelocityEnv, BottleneckEnv, BottleNeckAccelEnv
-from flow.envs.loop.wave_attenuation import v_eq_max_function
-from flow.multiagent_envs import MultiAgentHighwayPOEnv
-
+    WaveAttenuationEnv, WaveAttenuationPOEnv, MergePOEnv, \
+    TestEnv, BottleneckDesiredVelocityEnv, BottleneckEnv, BottleneckAccelEnv
+from flow.envs.ring.wave_attenuation import v_eq_max_function
+from flow.envs.multiagent import MultiAgentHighwayPOEnv
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -33,10 +32,10 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = LoopScenario(
+        self.scenario = RingScenario(
             name="test_merge",
             vehicles=vehicles,
-            net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
+            net_params=NetParams(additional_params=Ring_PARAMS.copy()),
         )
         self.env_params = EnvParams(
             additional_params={
@@ -122,10 +121,10 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = LoopScenario(
+        self.scenario = RingScenario(
             name="test_merge",
             vehicles=vehicles,
-            net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
+            net_params=NetParams(additional_params=Ring_PARAMS.copy()),
         )
         self.env_params = EnvParams(
             additional_params={
@@ -206,10 +205,10 @@ class TestAccelEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = LoopScenario(
+        self.scenario = RingScenario(
             name="test_merge",
             vehicles=vehicles,
-            net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
+            net_params=NetParams(additional_params=Ring_PARAMS.copy()),
         )
         self.env_params = EnvParams(
             additional_params={
@@ -339,10 +338,10 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         self.sim_params = SumoParams(
             restart_instance=True
         )
-        self.scenario = LoopScenario(
+        self.scenario = RingScenario(
             name="test_merge",
             vehicles=vehicles,
-            net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
+            net_params=NetParams(additional_params=Ring_PARAMS.copy()),
         )
         params = {
             "max_accel": 1,
@@ -461,11 +460,11 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         )
 
         # reset the network several times and check its length
-        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        self.assertEqual(env.k.scenario.length(), Ring_PARAMS["length"])
         env.reset()
-        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        self.assertEqual(env.k.scenario.length(), Ring_PARAMS["length"])
         env.reset()
-        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        self.assertEqual(env.k.scenario.length(), Ring_PARAMS["length"])
 
 
 class TestWaveAttenuationPOEnv(unittest.TestCase):
@@ -478,10 +477,10 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
                      num_vehicles=1)
 
         self.sim_params = SumoParams()
-        self.scenario = LoopScenario(
+        self.scenario = RingScenario(
             name="test_merge",
             vehicles=vehicles,
-            net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
+            net_params=NetParams(additional_params=Ring_PARAMS.copy()),
         )
         self.env_params = EnvParams(
             additional_params={
@@ -611,7 +610,7 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
         )
 
 
-class TestWaveAttenuationMergePOEnv(unittest.TestCase):
+class TestMergePOEnv(unittest.TestCase):
 
     def setUp(self):
         vehicles = VehicleParams()
@@ -644,7 +643,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                env_class=WaveAttenuationMergePOEnv,
+                env_class=MergePOEnv,
                 sim_params=self.sim_params,
                 scenario=self.scenario,
                 additional_params={
@@ -659,7 +658,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
         # create the environment
-        env = WaveAttenuationMergePOEnv(
+        env = MergePOEnv(
             sim_params=self.sim_params,
             scenario=self.scenario,
             env_params=self.env_params
@@ -681,7 +680,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
         """Ensures that the observed ids are returning the correct vehicles."""
         self.assertTrue(
             test_observed(
-                env_class=WaveAttenuationMergePOEnv,
+                env_class=MergePOEnv,
                 sim_params=self.sim_params,
                 scenario=self.scenario,
                 env_params=self.env_params,
@@ -697,10 +696,10 @@ class TestTestEnv(unittest.TestCase):
     def setUp(self):
         vehicles = VehicleParams()
         vehicles.add("test", num_vehicles=1)
-        net_params = NetParams(additional_params=LOOP_PARAMS)
+        net_params = NetParams(additional_params=Ring_PARAMS)
         env_params = EnvParams()
         sim_params = SumoParams()
-        scenario = LoopScenario("test_loop",
+        scenario = RingScenario("test_ring",
                                 vehicles=vehicles,
                                 net_params=net_params)
         self.env = TestEnv(env_params, sim_params, scenario)
@@ -736,7 +735,7 @@ class TestTestEnv(unittest.TestCase):
 
 class TestBottleneckEnv(unittest.TestCase):
 
-    """Tests the BottleneckEnv environment in flow/envs/bottleneck_env.py"""
+    """Tests the BottleneckEnv environment in flow/envs/bottleneck.py"""
 
     def setUp(self):
         self.sim_params = SumoParams(sim_step=0.5, restart_instance=True)
@@ -810,7 +809,7 @@ class TestBottleneckEnv(unittest.TestCase):
 
 class TestBottleneckAccelEnv(unittest.TestCase):
 
-    """Tests BottleneckAccelEnv in flow/envs/bottleneck_env.py."""
+    """Tests BottleneckAccelEnv in flow/envs/bottleneck.py."""
 
     def setUp(self):
         self.sim_params = SumoParams(sim_step=0.5, restart_instance=True)
@@ -838,7 +837,7 @@ class TestBottleneckAccelEnv(unittest.TestCase):
             vehicles=vehicles,
             net_params=net_params)
 
-        self.env = BottleNeckAccelEnv(
+        self.env = BottleneckAccelEnv(
             env_params, self.sim_params, self.scenario)
         self.env.reset()
 
@@ -850,7 +849,7 @@ class TestBottleneckAccelEnv(unittest.TestCase):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                env_class=BottleNeckAccelEnv,
+                env_class=BottleneckAccelEnv,
                 sim_params=self.sim_params,
                 scenario=self.scenario,
                 additional_params={
@@ -876,9 +875,10 @@ class TestBottleneckAccelEnv(unittest.TestCase):
         )
 
 
-class TestDesiredVelocityEnv(unittest.TestCase):
+class TestBottleneckDesiredVelocityEnv(unittest.TestCase):
 
-    """Tests the DesiredVelocityEnv environment in flow/envs/bottleneck.py"""
+    """Tests the BottleneckDesiredVelocityEnv environment in
+       flow/envs/bottleneck.py"""
 
     def test_reset_inflows(self):
         """Tests that the inflow  change within the expected range when calling
@@ -930,7 +930,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
             vehicles=vehicles,
             net_params=net_params)
 
-        env = DesiredVelocityEnv(env_params, sim_params, scenario)
+        env = BottleneckDesiredVelocityEnv(env_params, sim_params, scenario)
 
         # reset the environment and get a new inflow rate
         env.reset()

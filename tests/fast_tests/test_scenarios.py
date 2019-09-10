@@ -2,12 +2,12 @@ import unittest
 import os
 from flow.core.params import VehicleParams
 from flow.core.params import NetParams
-from flow.scenarios import BottleneckScenario, Figure8Scenario, \
-    SimpleGridScenario, HighwayScenario, LoopScenario, MergeScenario, \
-    TwoLoopsOneMergingScenario, MiniCityScenario, MultiLoopScenario
+from flow.scenarios import BottleneckScenario, FigureEightScenario, \
+    TrafficLightGridScenario, HighwayScenario, RingScenario, MergeScenario, \
+    MiniCityScenario, MultiRingScenario
 
 __all__ = [
-    "MultiLoopScenario", "MiniCityScenario"
+    "MultiRingScenario", "MiniCityScenario"
 ]
 
 os.environ["TEST_FLAG"] = "True"
@@ -30,15 +30,15 @@ class TestBottleneckScenario(unittest.TestCase):
         )
 
 
-class TestFigure8Scenario(unittest.TestCase):
+class TestFigureEightScenario(unittest.TestCase):
 
-    """Tests Figure8Scenario in flow/scenarios/figure_eight.py."""
+    """Tests FigureEightScenario in flow/scenarios/figure_eight.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                scenario_class=Figure8Scenario,
+                scenario_class=FigureEightScenario,
                 additional_params={
                     "radius_ring": 30,
                     "lanes": 1,
@@ -49,15 +49,15 @@ class TestFigure8Scenario(unittest.TestCase):
         )
 
 
-class TestSimpleGridScenario(unittest.TestCase):
+class TestTrafficLightGridScenario(unittest.TestCase):
 
-    """Tests SimpleGridScenario in flow/scenarios/grid.py."""
+    """Tests TrafficLightGridScenario in flow/scenarios/traffic_light_grid.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                scenario_class=SimpleGridScenario,
+                scenario_class=TrafficLightGridScenario,
                 additional_params={
                     "grid_array": {
                         "row_num": 3,
@@ -100,39 +100,18 @@ class TestHighwayScenario(unittest.TestCase):
         )
 
 
-class TestLoopScenario(unittest.TestCase):
+class TestRingScenario(unittest.TestCase):
 
-    """Tests LoopScenario in flow/scenarios/loop.py."""
+    """Tests RingScenario in flow/scenarios/ring.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                scenario_class=LoopScenario,
+                scenario_class=RingScenario,
                 additional_params={
                     "length": 230,
                     "lanes": 1,
-                    "speed_limit": 30,
-                    "resolution": 40
-                }
-            )
-        )
-
-
-class TestTwoLoopsOneMergingScenario(unittest.TestCase):
-
-    """Tests TwoLoopsOneMergingScenario in flow/scenarios/loop_merge.py."""
-
-    def test_additional_net_params(self):
-        """Ensures that not returning the correct params leads to an error."""
-        self.assertTrue(
-            test_additional_params(
-                scenario_class=TwoLoopsOneMergingScenario,
-                additional_params={
-                    "ring_radius": 50,
-                    "lane_length": 75,
-                    "inner_lanes": 3,
-                    "outer_lanes": 2,
                     "speed_limit": 30,
                     "resolution": 40
                 }
@@ -161,15 +140,15 @@ class TestMergeScenario(unittest.TestCase):
         )
 
 
-class TestMultiLoopScenario(unittest.TestCase):
+class TestMultiRingScenario(unittest.TestCase):
 
-    """Tests MultiLoopScenario in flow/scenarios/multi_loop.py."""
+    """Tests MultiRingScenario in flow/scenarios/multi_ring.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                scenario_class=MultiLoopScenario,
+                scenario_class=MultiRingScenario,
                 additional_params={
                     "length": 230,
                     "lanes": 1,

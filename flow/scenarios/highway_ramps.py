@@ -1,6 +1,6 @@
 """Contains the highway with ramps scenario class."""
 
-from flow.scenarios.base_scenario import Scenario
+from flow.scenarios.base import Scenario
 from flow.core.params import InitialConfig, TrafficLightParams
 from collections import defaultdict
 from numpy import pi, sin, cos

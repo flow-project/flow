@@ -26,8 +26,8 @@ import argparse
 
 # scenarios that can be plotted by this method
 ACCEPTABLE_SCENARIOS = [
-    'LoopScenario',
-    'Figure8Scenario',
+    'RingScenario',
+    'FigureEightScenario',
     'MergeScenario',
 ]
 
@@ -120,9 +120,9 @@ def get_time_space_data(data, params):
 
     # switcher used to compute the positions based on the type of scenario
     switcher = {
-        'LoopScenario': _ring_road,
+        'RingScenario': _ring_road,
         'MergeScenario': _merge,
-        'Figure8Scenario': _figure_eight
+        'FigureEightScenario': _figure_eight
     }
 
     # Collect a list of all the unique times.
@@ -357,14 +357,14 @@ def _figure_eight(data, params, all_time):
             speed[ind, i] = spd
 
     # reorganize data for space-time plot
-    figure8_len = 6*ring_edgelen + 2*intersection + 2*junction + 10*inner
+    figure_eight_len = 6*ring_edgelen + 2*intersection + 2*junction + 10*inner
     intersection_loc = [edgestarts[':center_1'] + intersection / 2,
                         edgestarts[':center_0'] + intersection / 2]
-    pos[pos < intersection_loc[0]] += figure8_len
+    pos[pos < intersection_loc[0]] += figure_eight_len
     pos[np.logical_and(pos > intersection_loc[0], pos < intersection_loc[1])] \
         += - intersection_loc[1]
     pos[pos > intersection_loc[1]] = \
-        - pos[pos > intersection_loc[1]] + figure8_len + intersection_loc[0]
+        - pos[pos > intersection_loc[1]] + figure_eight_len + intersection_loc[0]
 
     return pos, speed
 

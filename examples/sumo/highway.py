@@ -5,7 +5,7 @@ from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows
 from flow.core.params import VehicleParams
-from flow.envs.loop.lane_changing import LaneChangeAccelEnv, \
+from flow.envs.ring.lane_change_accel import LaneChangeAccelEnv, \
     ADDITIONAL_ENV_PARAMS
 from flow.scenarios.highway import HighwayScenario, ADDITIONAL_NET_PARAMS
 
