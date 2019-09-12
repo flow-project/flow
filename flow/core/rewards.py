@@ -135,8 +135,8 @@ def min_delay(env):
 
     vel = vel[vel >= -1e-6]
     v_top = max(
-        env.k.scenario.speed_limit(edge)
-        for edge in env.k.scenario.get_edge_list())
+        env.k.network.speed_limit(edge)
+        for edge in env.k.network.get_edge_list())
     time_step = env.sim_step
 
     max_cost = time_step * sum(vel.shape)
@@ -164,9 +164,9 @@ def avg_delay_specified_vehicles(env, veh_ids):
         average delay
     """
     sum = 0
-    for edge in env.k.scenario.get_edge_list():
+    for edge in env.k.network.get_edge_list():
         for veh_id in env.k.vehicle.get_ids_by_edge(edge):
-            v_top = env.k.scenario.speed_limit(edge)
+            v_top = env.k.network.speed_limit(edge)
             sum += (v_top - env.k.vehicle.get_speed(veh_id)) / v_top
     time_step = env.sim_step
     try:
@@ -194,8 +194,8 @@ def min_delay_unscaled(env):
 
     vel = vel[vel >= -1e-6]
     v_top = max(
-        env.k.scenario.speed_limit(edge)
-        for edge in env.k.scenario.get_edge_list())
+        env.k.network.speed_limit(edge)
+        for edge in env.k.network.get_edge_list())
     time_step = env.sim_step
 
     # epsilon term (to deal with ZeroDivisionError exceptions)

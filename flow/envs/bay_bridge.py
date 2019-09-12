@@ -42,7 +42,7 @@ FAST_TRACK_ON = range(6, 11)
 
 
 class BayBridgeEnv(Env):
-    """Base environment class for Bay Bridge scenarios.
+    """Base environment class for Bay Bridge networks.
 
     This class is responsible for mimicking the effects of the
 
@@ -61,8 +61,8 @@ class BayBridgeEnv(Env):
         vehicles collide into one another.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
-        super().__init__(env_params, sim_params, scenario, simulator)
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
+        super().__init__(env_params, sim_params, network, simulator)
         self.edge_dict = defaultdict(list)
         self.cars_waiting_for_toll = dict()
         self.cars_before_ramp = dict()

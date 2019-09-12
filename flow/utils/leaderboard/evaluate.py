@@ -94,14 +94,14 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
     initial_config = flow_params.get("initial", InitialConfig())
     traffic_lights = flow_params.get("tls", TrafficLightParams())
 
-    # import the environment and scenario classes
+    # import the environment and network classes
     module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
     env_class = getattr(module, flow_params["env_name"])
-    module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
-    scenario_class = getattr(module, flow_params["scenario"])
+    module = __import__("flow.networks", fromlist=[flow_params["network"]])
+    network_class = getattr(module, flow_params["network"])
 
-    # recreate the scenario and environment
-    scenario = scenario_class(
+    # recreate the network and environment
+    network = network_class(
         name=exp_tag,
         vehicles=vehicles,
         net_params=net_params,
@@ -119,7 +119,7 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
         env_class = _env_class
 
     env = env_class(
-        env_params=env_params, sim_params=sim_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, network=network)
 
     # create a Experiment object with the "rl_actions" method as
     # described in the inputs. Note that the state may not be that which is

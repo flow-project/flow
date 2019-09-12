@@ -61,7 +61,7 @@ def visualizer_rllib(args):
     except Exception:
         pass
 
-    # check if we have a multiagent scenario but in a
+    # check if we have a multiagent environment but in a
     # backwards compatible way
     if config.get('multiagent', {}).get('policy_graphs', {}):
         multiagent = True
@@ -303,7 +303,7 @@ def visualizer_rllib(args):
         time.sleep(0.1)
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        emission_filename = '{0}-emission.xml'.format(env.scenario.name)
+        emission_filename = '{0}-emission.xml'.format(env.network.name)
 
         emission_path = \
             '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)

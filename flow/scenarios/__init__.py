@@ -1,4 +1,4 @@
-"""Contains all available scenarios in Flow."""
+"""Empty init file to handle deprecations."""
 
 # base scenario class
 from flow.scenarios.base import Scenario

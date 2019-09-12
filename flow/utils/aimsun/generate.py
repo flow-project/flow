@@ -794,8 +794,8 @@ def set_sim_step(experiment, sim_step):
     experiment.setDataValue(col_sim, sim_step)
 
 
-# collect the scenario-specific data
-data_file = 'flow/core/kernel/scenario/data.json'
+# collect the network-specific data
+data_file = 'flow/core/kernel/network/data.json'
 with open(os.path.join(config.PROJECT_PATH, data_file)) as f:
     data = json.load(f)
 

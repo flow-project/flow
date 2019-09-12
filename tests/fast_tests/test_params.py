@@ -2,7 +2,7 @@ import unittest
 from flow.core.params import EnvParams, SumoParams, SumoLaneChangeParams, \
     SumoCarFollowingParams, VehicleParams, NetParams
 from flow.envs import Env
-from flow.scenarios import RingScenario
+from flow.networks import RingNetwork
 import os
 import numpy as np
 from gym.spaces import Box
@@ -46,7 +46,7 @@ class TestEnvParams(unittest.TestCase):
             "resolution": 40
         }
         net_params = NetParams(additional_params=additional_net_params)
-        scenario = RingScenario(
+        network = RingNetwork(
             name="RingRoadTest",
             vehicles=vehicles,
             net_params=net_params)
@@ -54,7 +54,7 @@ class TestEnvParams(unittest.TestCase):
         # when set to False
         env_params = EnvParams(clip_actions=False)
         env = RLActionsEnv(
-            env_params=env_params, sim_params=sim_params, scenario=scenario)
+            env_params=env_params, sim_params=sim_params, network=network)
         env.reset()
         _, ret, _, _ = env.step(rl_actions=[5])
         self.assertEqual(np.mean(ret), 5)
@@ -62,7 +62,7 @@ class TestEnvParams(unittest.TestCase):
         # when set to True
         env_params = EnvParams(clip_actions=True)
         env = RLActionsEnv(
-            env_params=env_params, sim_params=sim_params, scenario=scenario)
+            env_params=env_params, sim_params=sim_params, network=network)
         env.reset()
 
         _, ret, _, _ = env.step(rl_actions=[0.5])
