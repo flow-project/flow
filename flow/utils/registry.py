@@ -30,7 +30,9 @@ def make_create_env(params, version=0, render=None):
         flow-related parameters, consisting of the following keys:
 
          - exp_tag: name of the experiment
-         - env_name: name of the flow environment the experiment is running on
+         - env_name: name of the flow environment the experiment is running on.
+           can also be the environment class itself (note: environment must be 
+           imported from a separate file from your main instance.)
          - scenario: name of the scenario class the experiment uses
          - simulator: simulator that is used by the experiment (e.g. aimsun)
          - sim: simulation-related parameters (see flow.core.params.SimParams)
@@ -59,7 +61,10 @@ def make_create_env(params, version=0, render=None):
     """
     exp_tag = params["exp_tag"]
 
-    env_name = params["env_name"] + '-v{}'.format(version)
+    try:
+        env_name = params["env_name"].__name__ + '-v{}'.format(version)
+    except AttributeError:
+        env_name = params["env_name"] + '-v{}'.format(version)
 
     module = __import__("flow.scenarios", fromlist=[params["scenario"]])
     scenario_class = getattr(module, params["scenario"])
@@ -89,15 +94,19 @@ def make_create_env(params, version=0, render=None):
         single_agent_envs = [env for env in dir(flow.envs)
                              if not env.startswith('__')]
 
-        if params['env_name'] in single_agent_envs:
-            env_loc = 'flow.envs'
-        else:
-            env_loc = 'flow.envs.multiagent'
+        try:
+            entry_point = params["env_name"].__module__ + ':' + params["env_name"].__name__
+        except AttributeError:
+            if params['env_name'] in single_agent_envs:
+                env_loc = 'flow.envs'
+            else:
+                env_loc = 'flow.envs.multiagent'
+            entry_point = env_loc + ':{}'.format(params["env_name"])
 
         try:
             register(
                 id=env_name,
-                entry_point=env_loc + ':{}'.format(params["env_name"]),
+                entry_point=entry_point,
                 kwargs={
                     "env_params": env_params,
                     "sim_params": sim_params,
