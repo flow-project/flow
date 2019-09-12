@@ -31,7 +31,7 @@ def make_create_env(params, version=0, render=None):
 
          - exp_tag: name of the experiment
          - env_name: name of the flow environment the experiment is running on.
-           can also be the environment class itself (note: environment must be 
+           can also be the environment class itself (note: environment must be
            imported from a separate file from your main instance.)
          - scenario: name of the scenario class the experiment uses
          - simulator: simulator that is used by the experiment (e.g. aimsun)
