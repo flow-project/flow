@@ -2,26 +2,26 @@ import unittest
 import os
 from flow.core.params import VehicleParams
 from flow.core.params import NetParams
-from flow.scenarios import BottleneckScenario, FigureEightScenario, \
-    TrafficLightGridScenario, HighwayScenario, RingScenario, MergeScenario, \
-    MiniCityScenario, MultiRingScenario
+from flow.networks import BottleneckNetwork, FigureEightNetwork, \
+    TrafficLightGridNetwork, HighwayNetwork, RingNetwork, MergeNetwork, \
+    MiniCityNetwork, MultiRingNetwork
 
 __all__ = [
-    "MultiRingScenario", "MiniCityScenario"
+    "MultiRingNetwork", "MiniCityNetwork"
 ]
 
 os.environ["TEST_FLAG"] = "True"
 
 
-class TestBottleneckScenario(unittest.TestCase):
+class TestBottleneckNetwork(unittest.TestCase):
 
-    """Tests BottleneckScenario in flow/scenarios/bottleneck.py."""
+    """Tests BottleneckNetwork in flow/networks/bottleneck.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                scenario_class=BottleneckScenario,
+                network_class=BottleneckNetwork,
                 additional_params={
                     "scaling": 1,
                     'speed_limit': 23
@@ -30,15 +30,15 @@ class TestBottleneckScenario(unittest.TestCase):
         )
 
 
-class TestFigureEightScenario(unittest.TestCase):
+class TestFigureEightNetwork(unittest.TestCase):
 
-    """Tests FigureEightScenario in flow/scenarios/figure_eight.py."""
+    """Tests FigureEightNetwork in flow/networks/figure_eight.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                scenario_class=FigureEightScenario,
+                network_class=FigureEightNetwork,
                 additional_params={
                     "radius_ring": 30,
                     "lanes": 1,
@@ -49,15 +49,15 @@ class TestFigureEightScenario(unittest.TestCase):
         )
 
 
-class TestTrafficLightGridScenario(unittest.TestCase):
+class TestTrafficLightGridNetwork(unittest.TestCase):
 
-    """Tests TrafficLightGridScenario in flow/scenarios/traffic_light_grid.py."""
+    """Tests TrafficLightGridNetwork in flow/networks/traffic_light_grid.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                scenario_class=TrafficLightGridScenario,
+                network_class=TrafficLightGridNetwork,
                 additional_params={
                     "grid_array": {
                         "row_num": 3,
@@ -81,15 +81,15 @@ class TestTrafficLightGridScenario(unittest.TestCase):
         )
 
 
-class TestHighwayScenario(unittest.TestCase):
+class TestHighwayNetwork(unittest.TestCase):
 
-    """Tests HighwayScenario in flow/scenarios/highway.py."""
+    """Tests HighwayNetwork in flow/networks/highway.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                scenario_class=HighwayScenario,
+                network_class=HighwayNetwork,
                 additional_params={
                     "length": 1000,
                     "lanes": 4,
@@ -100,15 +100,15 @@ class TestHighwayScenario(unittest.TestCase):
         )
 
 
-class TestRingScenario(unittest.TestCase):
+class TestRingNetwork(unittest.TestCase):
 
-    """Tests RingScenario in flow/scenarios/ring.py."""
+    """Tests LoopNetwork in flow/networks/ring.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                scenario_class=RingScenario,
+                network_class=RingNetwork,
                 additional_params={
                     "length": 230,
                     "lanes": 1,
@@ -119,15 +119,15 @@ class TestRingScenario(unittest.TestCase):
         )
 
 
-class TestMergeScenario(unittest.TestCase):
+class TestMergeNetwork(unittest.TestCase):
 
-    """Tests MergeScenario in flow/scenarios/merge.py."""
+    """Tests MergeNetwork in flow/networks/merge.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                scenario_class=MergeScenario,
+                network_class=MergeNetwork,
                 additional_params={
                     "merge_length": 100,
                     "pre_merge_length": 200,
@@ -140,15 +140,15 @@ class TestMergeScenario(unittest.TestCase):
         )
 
 
-class TestMultiRingScenario(unittest.TestCase):
+class TestMultiRingNetwork(unittest.TestCase):
 
-    """Tests MultiRingScenario in flow/scenarios/multi_ring.py."""
+    """Tests MultiLoopNetwork in flow/networks/multi_ring.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
         self.assertTrue(
             test_additional_params(
-                scenario_class=MultiRingScenario,
+                network_class=MultiRingNetwork,
                 additional_params={
                     "length": 230,
                     "lanes": 1,
@@ -165,14 +165,14 @@ class TestMultiRingScenario(unittest.TestCase):
 ###############################################################################
 
 
-def test_additional_params(scenario_class,
+def test_additional_params(network_class,
                            additional_params):
     """Test that the environment raises an Error in any param is missing.
 
     Parameters
     ----------
-    scenario_class : flow.scenarios.*
-        the scenario class that this method will try to instantiate
+    network_class : flow.networks.*
+        the network class that this method will try to instantiate
     additional_params : dict
         the valid and required additional parameters for the environment in
         NetParams
@@ -188,7 +188,7 @@ def test_additional_params(scenario_class,
         del new_add[key]
 
         try:
-            scenario_class(
+            network_class(
                 name='test',
                 vehicles=VehicleParams(),
                 net_params=NetParams(additional_params=new_add)

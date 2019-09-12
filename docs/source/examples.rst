@@ -1,5 +1,5 @@
-Built-in Traffic Scenarios
-==========================
+Built-in Traffic Networks
+=========================
 
 We provide a quick introduction to the traffic examples and tools that Flow comes pre-built with.
 For further details, please examine the documentation provided in the examples folder.

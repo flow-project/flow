@@ -45,7 +45,7 @@ setup(
                 'continuous road traffic simulation package designed to '
                 'handle large road networks. It allows for intermodal '
                 'simulation including pedestrians and comes with a large set '
-                'of tools for scenario creation. http://sumo.dlr.de',
+                'of tools for network creation. http://sumo.dlr.de',
 
     # This is an optional longer description of your project that represents
     # the body of text which users will see when they visit PyPI.

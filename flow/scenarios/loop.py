@@ -1,15 +1,15 @@
 """Pending deprecation file.
 
-To view the actual content, go to: flow/scenarios/ring.py
+To view the actual content, go to: flow/networks/ring.py
 """
 from flow.utils.flow_warnings import deprecated
-from flow.scenarios.ring import RingScenario
-from flow.scenarios.ring import ADDITIONAL_NET_PARAMS  # noqa: F401
+from flow.networks.ring import RingNetwork
+from flow.networks.ring import ADDITIONAL_NET_PARAMS  # noqa: F401
 
 
 @deprecated('flow.scenarios.loop',
-            'flow.scenarios.ring.RingScenario')
-class LoopScenario(RingScenario):
+            'flow.networks.ring.RingNetwork')
+class LoopScenario(RingNetwork):
     """See parent class."""
 
     pass

@@ -3,13 +3,13 @@
 To view the actual content, go to: flow/scenarios/multi_ring.py
 """
 from flow.utils.flow_warnings import deprecated
-from flow.scenarios.multi_ring import MultiRingScenario
-from flow.scenarios.multi_ring import ADDITIONAL_NET_PARAMS  # noqa: F401
+from flow.networks.multi_ring import MultiRingNetwork
+from flow.networks.multi_ring import ADDITIONAL_NET_PARAMS  # noqa: F401
 
 
 @deprecated('flow.scenarios.multi_loop',
-            'flow.scenarios.multi_ring.MultiRingScenario')
-class MultiLoopScenario(MultiRingScenario):
+            'flow.networks.multi_ring.MultiRingNetwork')
+class MultiLoopScenario(MultiRingNetwork):
     """See parent class."""
 
     pass

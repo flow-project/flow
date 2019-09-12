@@ -70,9 +70,9 @@ class TestWarnings(unittest.TestCase):
 
         # check the deprecation warning is printing what is expected
         self.assertWarnsRegex(
-            UserWarning, "The attribute bar_deprecated in Foo is deprecated, "
-            "use bar_new instead.", deprecated_attribute, Foo(), dep_from,
-            dep_to)
+            PendingDeprecationWarning,
+            "The attribute bar_deprecated in Foo is deprecated, use bar_new "
+            "instead.", deprecated_attribute, Foo(), dep_from, dep_to)
 
 
 class TestRegistry(unittest.TestCase):
@@ -105,7 +105,7 @@ class TestRegistry(unittest.TestCase):
         flow_params = dict(
             exp_tag="figure_eight_0",
             env_name="AccelEnv",
-            scenario="FigureEightScenario",
+            network="FigureEightNetwork",
             simulator='traci',
             sim=SumoParams(
                 sim_step=0.1,
@@ -154,15 +154,15 @@ class TestRegistry(unittest.TestCase):
                          flow_params["env"].__dict__)
         self.assertEqual(env.sim_params.__dict__,
                          flow_params["sim"].__dict__)
-        self.assertEqual(env.scenario.traffic_lights.__dict__,
+        self.assertEqual(env.network.traffic_lights.__dict__,
                          flow_params["tls"].__dict__)
         self.assertEqual(env.net_params.__dict__,
                          flow_params["net"].__dict__)
         self.assertEqual(env.initial_config.__dict__,
                          flow_params["initial"].__dict__)
         self.assertEqual(env.__class__.__name__, flow_params["env_name"])
-        self.assertEqual(env.scenario.__class__.__name__,
-                         flow_params["scenario"])
+        self.assertEqual(env.network.__class__.__name__,
+                         flow_params["network"])
 
 
 class TestRllib(unittest.TestCase):
@@ -218,7 +218,7 @@ class TestRllib(unittest.TestCase):
         flow_params = dict(
             exp_tag="merge_0",
             env_name="MergePOEnv",
-            scenario="MergeScenario",
+            network="MergeNetwork",
             sim=SumoParams(
                 restart_instance=True,
                 sim_step=0.5,
@@ -299,7 +299,7 @@ class TestRllib(unittest.TestCase):
         self.assertTrue(
             imported_flow_params["env_name"] == flow_params["env_name"])
         self.assertTrue(
-            imported_flow_params["scenario"] == flow_params["scenario"])
+            imported_flow_params["network"] == flow_params["network"])
 
         def search_dicts(obj1, obj2):
             """Searches through dictionaries as well as lists of dictionaries

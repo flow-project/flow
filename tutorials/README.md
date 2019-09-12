@@ -58,7 +58,7 @@ The content of each exercise is as follows:
 **Tutorial 4:** Saving and visualizing resuls from non-RL simulations and
 testing simulations in the presence of an RLlib/rllab agent.
 
-**Tutorial 5:** Creating custom scenarios.
+**Tutorial 5:** Creating custom networks.
 
 **Tutorial 6:** Importing networks from OpenStreetMap.
 

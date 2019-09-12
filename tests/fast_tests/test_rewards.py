@@ -23,8 +23,8 @@ class TestRewards(unittest.TestCase):
             "target_velocity": np.sqrt(10), "max_accel": 1, "max_decel": 1,
             "sort_vehicles": False})
 
-        env, scenario = ring_road_exp_setup(vehicles=vehicles,
-                                            env_params=env_params)
+        env, _ = ring_road_exp_setup(vehicles=vehicles,
+                                     env_params=env_params)
 
         # check that the fail attribute leads to a zero return
         self.assertEqual(desired_velocity(env, fail=True), 0)
@@ -61,7 +61,7 @@ class TestRewards(unittest.TestCase):
         vehicles = VehicleParams()
         vehicles.add("test", num_vehicles=10)
 
-        env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
 
         # check that the fail attribute leads to a zero return
         self.assertEqual(average_velocity(env, fail=True), 0)
@@ -77,7 +77,7 @@ class TestRewards(unittest.TestCase):
 
         # recreate the environment with no vehicles
         vehicles = VehicleParams()
-        env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
 
         # check that the reward function return 0 in the case of no vehicles
         self.assertEqual(average_velocity(env, fail=False), 0)
@@ -86,7 +86,7 @@ class TestRewards(unittest.TestCase):
         """Test the min_delay method."""
         # try the case of an environment with no vehicles
         vehicles = VehicleParams()
-        env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
 
         # check that the reward function return 0 in the case of no vehicles
         self.assertEqual(min_delay(env), 0)
@@ -94,7 +94,7 @@ class TestRewards(unittest.TestCase):
         # try the case of multiple vehicles
         vehicles = VehicleParams()
         vehicles.add("test", num_vehicles=10)
-        env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
 
         # check the min_delay upon reset
         self.assertAlmostEqual(min_delay(env), 0)
@@ -114,8 +114,8 @@ class TestRewards(unittest.TestCase):
             "target_velocity": 10, "max_accel": 1, "max_decel": 1,
             "sort_vehicles": False})
 
-        env, scenario = ring_road_exp_setup(vehicles=vehicles,
-                                            env_params=env_params)
+        env, _ = ring_road_exp_setup(vehicles=vehicles,
+                                     env_params=env_params)
 
         # check the penalty is acknowledging all vehicles
         self.assertEqual(penalize_standstill(env, gain=1), -10)
@@ -137,8 +137,8 @@ class TestRewards(unittest.TestCase):
             "target_velocity": 10, "max_accel": 1, "max_decel": 1,
             "sort_vehicles": False})
 
-        env, scenario = ring_road_exp_setup(vehicles=vehicles,
-                                            env_params=env_params)
+        env, _ = ring_road_exp_setup(vehicles=vehicles,
+                                     env_params=env_params)
 
         # check the penalty is acknowledging all vehicles
         self.assertEqual(penalize_near_standstill(env, gain=1), -10)

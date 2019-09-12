@@ -59,7 +59,7 @@ class WaveAttenuationEnv(Env):
     * max_decel: maximum deceleration of autonomous vehicles
     * ring_length: bounds on the ranges of ring road lengths the autonomous
       vehicle is trained on. If set to None, the environment sticks to the ring
-      road specified in the original scenario definition.
+      road specified in the original network definition.
 
     States
         The state consists of the velocities and absolute position of all
@@ -78,13 +78,13 @@ class WaveAttenuationEnv(Env):
         vehicles collide into one another.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter \'{}\' not supplied'.format(p))
 
-        super().__init__(env_params, sim_params, scenario, simulator)
+        super().__init__(env_params, sim_params, network, simulator)
 
     @property
     def action_space(self):
@@ -140,9 +140,9 @@ class WaveAttenuationEnv(Env):
 
     def get_state(self):
         """See class definition."""
-        speed = [self.k.vehicle.get_speed(veh_id) / self.k.scenario.max_speed()
+        speed = [self.k.vehicle.get_speed(veh_id) / self.k.network.max_speed()
                  for veh_id in self.k.vehicle.get_ids()]
-        pos = [self.k.vehicle.get_x_by_id(veh_id) / self.k.scenario.length()
+        pos = [self.k.vehicle.get_x_by_id(veh_id) / self.k.network.length()
                for veh_id in self.k.vehicle.get_ids()]
 
         return np.array(speed + pos)
@@ -167,7 +167,7 @@ class WaveAttenuationEnv(Env):
         # reset the step counter
         self.step_counter = 0
 
-        # update the scenario
+        # update the network
         initial_config = InitialConfig(bunching=50, min_gap=0)
         length = random.randint(
             self.env_params.additional_params['ring_length'][0],
@@ -184,8 +184,8 @@ class WaveAttenuationEnv(Env):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        self.scenario = self.scenario.__class__(
-            self.scenario.orig_name, self.scenario.vehicles,
+        self.network = self.network.__class__(
+            self.network.orig_name, self.network.vehicles,
             net_params, initial_config)
         self.k.vehicle = deepcopy(self.initial_vehicles)
         self.k.vehicle.kernel_api = self.k.kernel_api
@@ -260,14 +260,14 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
         if self.env_params.additional_params['ring_length'] is not None:
             max_length = self.env_params.additional_params['ring_length'][1]
         else:
-            max_length = self.k.scenario.length()
+            max_length = self.k.network.length()
 
         observation = np.array([
             self.k.vehicle.get_speed(rl_id) / max_speed,
             (self.k.vehicle.get_speed(lead_id) -
              self.k.vehicle.get_speed(rl_id)) / max_speed,
             (self.k.vehicle.get_x_by_id(lead_id) -
-             self.k.vehicle.get_x_by_id(rl_id)) % self.k.scenario.length()
+             self.k.vehicle.get_x_by_id(rl_id)) % self.k.network.length()
             / max_length
         ])
 

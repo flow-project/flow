@@ -54,7 +54,7 @@ class AimsunKernelSimulation(KernelSimulation):
         """See parent class."""
         self.kernel_api = kernel_api
 
-    def start_simulation(self, scenario, sim_params):
+    def start_simulation(self, network, sim_params):
         """See parent class.
 
         This method calls the aimsun generator to generate the network, starts
@@ -119,7 +119,7 @@ class AimsunKernelSimulation(KernelSimulation):
         """See parent class."""
         # save the emission data to a csv
         if self.emission_path is not None:
-            name = "%s_emission.csv" % self.master_kernel.scenario.network.name
+            name = "%s_emission.csv" % self.master_kernel.network.network.name
             with open(osp.join(self.emission_path, name), "w") as f:
                 writer = csv.writer(f, delimiter=',')
                 writer.writerow(self.stored_data.keys())
@@ -128,7 +128,7 @@ class AimsunKernelSimulation(KernelSimulation):
         # close the API and simulation process
         try:
             self.kernel_api.stop_simulation()
-            self.master_kernel.scenario.aimsun_proc.kill()
+            self.master_kernel.network.aimsun_proc.kill()
         except OSError:
             # in case no simulation originally existed (used by the visualizer)
             pass

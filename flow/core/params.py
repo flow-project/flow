@@ -149,9 +149,9 @@ class TrafficLightParams:
         return self.__tls_properties
 
     def actuated_default(self):
-        """Return the default values for an actuated scenario.
+        """Return the default values for an actuated network.
 
-        An actuated scenario is a scenario for a system where
+        An actuated network is a network for a system where
         all junctions are actuated traffic lights.
 
         Returns
@@ -446,7 +446,7 @@ class AimsunParams(SimParams):
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
     scenario_name : str, optional
-        name of the scenario generated in Aimsun.
+        name of the network generated in Aimsun.
     experiment_name : str, optional
         name of the experiment generated in Aimsun
     replication_name : str, optional
@@ -652,8 +652,8 @@ class NetParams:
     lanes, and speed limit.
 
     In order to determine which additional_params variable may be needed
-    for a specific scenario, refer to the ADDITIONAL_NET_PARAMS variable
-    located in the scenario file.
+    for a specific network, refer to the ADDITIONAL_NET_PARAMS variable
+    located in the network file.
 
     Attributes
     ----------
@@ -662,13 +662,10 @@ class NetParams:
         entering the network from these edges
     osm_path : str, optional
         path to the .osm file that should be used to generate the network
-        configuration files. This parameter is only needed / used if the
-        OpenStreetMapScenario class is used.
+        configuration files
     template : str, optional
-        path to the .net.xml file that should be passed to SUMO. This is
-        only needed / used if the NetFileScenario class is used, such as
-        in the case of Bay Bridge experiments (which use a custom net.xml
-        file)
+        path to the network template file that can be used to instantiate a
+        netowrk in the simulator of choice
     additional_params : dict, optional
         network specific parameters; see each subclass for a description of
         what is needed

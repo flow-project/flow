@@ -94,8 +94,8 @@ def make_flow_params(n_rows, n_columns, edge_inflow):
         # name of the flow environment the experiment is running on
         env_name='MultiTrafficLightGridPOEnv',
 
-        # name of the scenario class the experiment is running on
-        scenario="TrafficLightGridScenario",
+        # name of the network class the experiment is running on
+        network="TrafficLightGridNetwork",
 
         # simulator that is used by the experiment
         simulator='traci',
@@ -122,7 +122,7 @@ def make_flow_params(n_rows, n_columns, edge_inflow):
         ),
 
         # network-related parameters (see flow.core.params.NetParams and the
-        # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+        # network's documentation or ADDITIONAL_NET_PARAMS component)
         net=NetParams(
             inflows=inflow,
             additional_params={
