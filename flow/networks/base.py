@@ -180,7 +180,7 @@ class Network(object):
     the following commands (note if this this unclear please refer to Tutorial
     1):
 
-    >>> from flow.networks import RingScenario
+    >>> from flow.networks import RingNetwork
     >>> from flow.core.params import NetParams, VehicleParams
     >>>
     >>> network = RingNetwork(

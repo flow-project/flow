@@ -27,7 +27,7 @@ from examples.exp_configs.non_rl.bay_bridge import flow_params as non_rl_bay_bri
 from examples.exp_configs.non_rl.bay_bridge_toll import flow_params as non_rl_bay_bridge_toll
 from examples.exp_configs.non_rl.bottlenecks import flow_params as non_rl_bottlenecks
 from examples.exp_configs.non_rl.figure_eight import flow_params as non_rl_figure_eight
-from examples.exp_configs.non_rl.grid import flow_params as non_rl_grid
+from examples.exp_configs.non_rl.traffic_light_grid import flow_params as non_rl_traffic_light_grid
 from examples.exp_configs.non_rl.highway import flow_params as non_rl_highway
 from examples.exp_configs.non_rl.highway_ramps import flow_params as non_rl_highway_ramps
 from examples.exp_configs.non_rl.merge import flow_params as non_rl_merge
@@ -55,8 +55,8 @@ class TestNonRLExamples(unittest.TestCase):
         self.run_simulation(non_rl_figure_eight)
 
     def test_traffic_light_grid(self):
-        """Verify that examples/exp_configs/non_rl/grid.py is working."""
-        self.run_simulation(non_rl_grid)
+        """Verify that examples/exp_configs/non_rl/traffic_light_grid.py is working."""
+        self.run_simulation(non_rl_traffic_light_grid)
 
     def test_highway(self):
         """Verify that examples/exp_configs/non_rl/highway.py is working."""

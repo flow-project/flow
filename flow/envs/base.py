@@ -8,7 +8,7 @@ import traceback
 import numpy as np
 import random
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
-from flow.utils.flow_warnings import deprecation_warning
+from flow.utils.flow_warnings import deprecated_attribute
 
 import gym
 from gym.spaces import Box
@@ -123,7 +123,7 @@ class Env(gym.Env):
         """
         self.env_params = env_params
         if scenario is not None:
-            deprecation_warning(self, "scenario", "network")
+            deprecated_attribute(self, "scenario", "network")
         self.network = scenario if scenario is not None else network
         self.net_params = self.network.net_params
         self.initial_config = self.network.initial_config

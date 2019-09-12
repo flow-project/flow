@@ -499,11 +499,7 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
 
 class TestRandomStartPos(unittest.TestCase):
     """
-<<<<<<< HEAD
-    Tests the function gen_random_start_pos in base_network.py.
-=======
-    Tests the function gen_random_start_pos in scenarios/base.py.
->>>>>>> 26ed2cf447a0b5d7e3cc3bf164ea5f3b247248a4
+    Tests the function gen_random_start_pos in networks/base.py.
     """
 
     def setUp_gen_start_pos(self, initial_config=InitialConfig()):
