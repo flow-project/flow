@@ -11,9 +11,9 @@ from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
     SumoParams, InitialConfig, EnvParams, NetParams, InFlows
 from flow.core.params import TrafficLightParams
 from flow.core.params import VehicleParams
-
+from flow.envs import Env
 from ray.cloudpickle import cloudpickle
-
+import inspect
 
 class FlowParamsEncoder(json.JSONEncoder):
     """
@@ -44,6 +44,9 @@ class FlowParamsEncoder(json.JSONEncoder):
                             (res_i["routing_controller"][0].__name__,
                              res_i["routing_controller"][1])
                 return res
+            if inspect.isclass(obj):
+                if issubclass(obj, Env):
+                    return "{}.{}".format(obj.__module__, obj.__name__)
             if hasattr(obj, '__name__'):
                 return obj.__name__
             else:
