@@ -7,7 +7,7 @@ point before exiting the network.
 
 import flow.core.params as params
 from flow.core.experiment import Experiment
-from flow.scenarios.merge import MergeScenario, ADDITIONAL_NET_PARAMS
+from flow.networks.merge import MergeNetwork, ADDITIONAL_NET_PARAMS
 from flow.controllers import IDMController
 from flow.envs.merge import MergePOEnv, ADDITIONAL_ENV_PARAMS
 
@@ -77,14 +77,13 @@ def merge_example(render=None):
 
     initial_config = params.InitialConfig()
 
-    scenario = MergeScenario(
+    network = MergeNetwork(
         name="merge-baseline",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = MergePOEnv(
-        env_params, sim_params, scenario, simulator='aimsun')
+    env = MergePOEnv(env_params, sim_params, network, simulator='aimsun')
 
     return Experiment(env)
 

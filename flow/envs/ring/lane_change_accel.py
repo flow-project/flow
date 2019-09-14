@@ -69,13 +69,13 @@ class LaneChangeAccelEnv(AccelEnv):
         vehicles collide into one another.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter "{}" not supplied'.format(p))
 
-        super().__init__(env_params, sim_params, scenario, simulator)
+        super().__init__(env_params, sim_params, network, simulator)
 
     @property
     def action_space(self):
@@ -114,11 +114,11 @@ class LaneChangeAccelEnv(AccelEnv):
     def get_state(self):
         """See class definition."""
         # normalizers
-        max_speed = self.k.scenario.max_speed()
-        length = self.k.scenario.length()
+        max_speed = self.k.network.max_speed()
+        length = self.k.network.length()
         max_lanes = max(
-            self.k.scenario.num_lanes(edge)
-            for edge in self.k.scenario.get_edge_list())
+            self.k.network.num_lanes(edge)
+            for edge in self.k.network.get_edge_list())
 
         speed = [self.k.vehicle.get_speed(veh_id) / max_speed
                  for veh_id in self.sorted_ids]
@@ -195,11 +195,11 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
         lists of visible vehicles, used for visualization purposes
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
-        super().__init__(env_params, sim_params, scenario, simulator)
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
+        super().__init__(env_params, sim_params, network, simulator)
 
-        self.num_lanes = max(self.k.scenario.num_lanes(edge)
-                             for edge in self.k.scenario.get_edge_list())
+        self.num_lanes = max(self.k.network.num_lanes(edge)
+                             for edge in self.k.network.get_edge_list())
         self.visible = []
 
     @property
@@ -222,8 +222,8 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
         self.visible = []
         for i, rl_id in enumerate(self.k.vehicle.get_rl_ids()):
             # normalizers
-            max_length = self.k.scenario.length()
-            max_speed = self.k.scenario.max_speed()
+            max_length = self.k.network.length()
+            max_speed = self.k.network.max_speed()
 
             # set to 1000 since the absence of a vehicle implies a large
             # headway

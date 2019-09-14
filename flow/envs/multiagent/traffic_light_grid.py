@@ -1,4 +1,4 @@
-"""Multi-agent environments for scenarios with traffic lights.
+"""Multi-agent environments for networks with traffic lights.
 
 These environments are used to train traffic lights to regulate traffic flow
 through an n x m traffic light grid.
@@ -41,8 +41,8 @@ class MultiTrafficLightGridPOEnv(TrafficLightGridPOEnv, MultiEnv):
         See parent class
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
-        super().__init__(env_params, sim_params, scenario, simulator)
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
+        super().__init__(env_params, sim_params, network, simulator)
 
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -101,8 +101,8 @@ class MultiTrafficLightGridPOEnv(TrafficLightGridPOEnv, MultiEnv):
         """
         # Normalization factors
         max_speed = max(
-            self.k.scenario.speed_limit(edge)
-            for edge in self.k.scenario.get_edge_list())
+            self.k.network.speed_limit(edge)
+            for edge in self.k.network.get_edge_list())
         grid_array = self.net_params.additional_params["grid_array"]
         max_dist = max(grid_array["short_length"], grid_array["long_length"],
                        grid_array["inner_length"])
@@ -115,7 +115,7 @@ class MultiTrafficLightGridPOEnv(TrafficLightGridPOEnv, MultiEnv):
         dist_to_intersec = []
         edge_number = []
         all_observed_ids = []
-        for _, edges in self.scenario.node_mapping:
+        for _, edges in self.network.node_mapping:
             local_speeds = []
             local_dists_to_intersec = []
             local_edge_numbers = []
@@ -129,13 +129,13 @@ class MultiTrafficLightGridPOEnv(TrafficLightGridPOEnv, MultiEnv):
                 local_speeds.extend(
                     [self.k.vehicle.get_speed(veh_id) / max_speed for veh_id in
                      observed_ids])
-                local_dists_to_intersec.extend([(self.k.scenario.edge_length(
+                local_dists_to_intersec.extend([(self.k.network.edge_length(
                     self.k.vehicle.get_edge(
                         veh_id)) - self.k.vehicle.get_position(
                     veh_id)) / max_dist for veh_id in observed_ids])
                 local_edge_numbers.extend([self._convert_edge(
                     self.k.vehicle.get_edge(veh_id)) / (
-                    self.k.scenario.network.num_edges - 1) for veh_id in
+                    self.k.network.network.num_edges - 1) for veh_id in
                                            observed_ids])
 
                 if len(observed_ids) < self.num_observed:
@@ -151,11 +151,11 @@ class MultiTrafficLightGridPOEnv(TrafficLightGridPOEnv, MultiEnv):
         # Edge information
         density = []
         velocity_avg = []
-        for edge in self.k.scenario.get_edge_list():
+        for edge in self.k.network.get_edge_list():
             ids = self.k.vehicle.get_ids_by_edge(edge)
             if len(ids) > 0:
                 # TODO(cathywu) Why is there a 5 here?
-                density += [5 * len(ids) / self.k.scenario.edge_length(edge)]
+                density += [5 * len(ids) / self.k.network.edge_length(edge)]
                 velocity_avg += [np.mean(
                     [self.k.vehicle.get_speed(veh_id) for veh_id in
                      ids]) / max_speed]
@@ -180,11 +180,11 @@ class MultiTrafficLightGridPOEnv(TrafficLightGridPOEnv, MultiEnv):
 
         obs = {}
         # TODO(cathywu) allow differentiation between rl and non-rl lights
-        node_to_edges = self.scenario.node_mapping
+        node_to_edges = self.network.node_mapping
         for rl_id in self.k.traffic_light.get_ids():
             rl_id_num = int(rl_id.split("center")[ID_IDX])
             local_edges = node_to_edges[rl_id_num][1]
-            local_edge_numbers = [self.k.scenario.get_edge_list().index(e)
+            local_edge_numbers = [self.k.network.get_edge_list().index(e)
                                   for e in local_edges]
             local_id_nums = [rl_id_num, self._get_relative_node(rl_id, "top"),
                              self._get_relative_node(rl_id, "bottom"),

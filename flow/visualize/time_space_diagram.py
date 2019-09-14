@@ -9,7 +9,7 @@ If the number of simulation steps is too dense, you can plot every nth step in
 the plot by setting the input `--steps=n`.
 
 Note: This script assumes that the provided network has only one lane on the
-each edge, or one lane on the main highway in the case of MergeScenario.
+each edge, or one lane on the main highway in the case of MergeNetwork.
 
 Usage
 -----
@@ -24,11 +24,11 @@ import matplotlib.colors as colors
 import numpy as np
 import argparse
 
-# scenarios that can be plotted by this method
-ACCEPTABLE_SCENARIOS = [
-    'RingScenario',
-    'FigureEightScenario',
-    'MergeScenario',
+# networks that can be plotted by this method
+ACCEPTABLE_NETWORKS = [
+    'RingNetwork',
+    'FigureEightNetwork',
+    'MergeNetwork',
 ]
 
 
@@ -88,9 +88,9 @@ def get_time_space_data(data, params):
     params : dict
         flow-specific parameters, including:
 
-        * "scenario" (str): name of the scenario that was used when generating
-          the emission file. Must be one of the scenario names mentioned in
-          ACCEPTABLE_SCENARIOS,
+        * "network" (str): name of the network that was used when generating
+          the emission file. Must be one of the network names mentioned in
+          ACCEPTABLE_NETWORKS,
         * "net_params" (flow.core.params.NetParams): network-specific
           parameters. This is used to collect the lengths of various network
           links.
@@ -112,17 +112,17 @@ def get_time_space_data(data, params):
     Raises
     ------
     AssertionError
-        if the specified scenario is not supported by this method
+        if the specified network is not supported by this method
     """
-    # check that the scenario is appropriate
-    assert params['scenario'] in ACCEPTABLE_SCENARIOS, \
-        'Scenario must be one of: ' + ', '.join(ACCEPTABLE_SCENARIOS)
+    # check that the network is appropriate
+    assert params['network'] in ACCEPTABLE_NETWORKS, \
+        'Network must be one of: ' + ', '.join(ACCEPTABLE_NETWORKS)
 
-    # switcher used to compute the positions based on the type of scenario
+    # switcher used to compute the positions based on the type of network
     switcher = {
-        'RingScenario': _ring_road,
-        'MergeScenario': _merge,
-        'FigureEightScenario': _figure_eight
+        'RingNetwork': _ring_road,
+        'MergeNetwork': _merge,
+        'FigureEightNetwork': _figure_eight
     }
 
     # Collect a list of all the unique times.
@@ -132,7 +132,7 @@ def get_time_space_data(data, params):
     all_time = np.sort(np.unique(all_time))
 
     # Get the function from switcher dictionary
-    func = switcher[params['scenario']]
+    func = switcher[params['network']]
 
     # Execute the function
     pos, speed = func(data, params, all_time)
@@ -487,8 +487,8 @@ if __name__ == '__main__':
     plt.yticks(fontsize=18)
 
     ###########################################################################
-    #                      Note: For MergeScenario only                       #
-    if flow_params['scenario'] == 'MergeScenario':                            #
+    #                       Note: For MergeNetwork only                       #
+    if flow_params['network'] == 'MergeNetwork':                              #
         plt.plot(time, [0] * pos.shape[0], linewidth=3, color="white")        #
         plt.plot(time, [-0.1] * pos.shape[0], linewidth=3, color="white")     #
     ###########################################################################

@@ -52,8 +52,8 @@ flow_params = dict(
     # name of the flow environment the experiment is running on
     env_name="WaveAttenuationPOEnv",
 
-    # name of the scenario class the experiment is running on
-    scenario="RingScenario",
+    # name of the network class the experiment is running on
+    network="RingNetwork",
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -77,7 +77,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         additional_params={
             "length": 260,

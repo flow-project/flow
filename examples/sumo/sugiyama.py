@@ -9,7 +9,7 @@ from flow.core.params import SumoParams, EnvParams, \
     InitialConfig, NetParams, SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.ring import RingScenario, ADDITIONAL_NET_PARAMS
+from flow.networks.ring import RingNetwork, ADDITIONAL_NET_PARAMS
 
 
 def sugiyama_example(render=None):
@@ -49,13 +49,13 @@ def sugiyama_example(render=None):
 
     initial_config = InitialConfig(bunching=20)
 
-    scenario = RingScenario(
+    network = RingNetwork(
         name="sugiyama",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = AccelEnv(env_params, sim_params, scenario)
+    env = AccelEnv(env_params, sim_params, network)
 
     return Experiment(env)
 

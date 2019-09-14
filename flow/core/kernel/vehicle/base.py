@@ -630,7 +630,7 @@ class KernelVehicle(object):
         """Provide a 1-D representation of the position of a vehicle.
 
         Note: These values are only meaningful if the specify_edge_starts
-        method in the scenario is set appropriately; otherwise, a value of 0 is
+        method in the network is set appropriately; otherwise, a value of 0 is
         returned for all vehicles.
 
         Parameters
