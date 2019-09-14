@@ -5,7 +5,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 
-from flow.scenarios.bottleneck import BottleneckScenario
+from flow.networks.bottleneck import BottleneckNetwork
 from flow.controllers import SimLaneChangeController, ContinuousRouter
 from flow.envs.bottleneck import BottleneckEnv
 from flow.core.experiment import Experiment
@@ -183,14 +183,14 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
         lanes_distribution=float("inf"),
         edges_distribution=["2", "3", "4", "5"])
 
-    scenario = BottleneckScenario(
+    network = BottleneckNetwork(
         name="bay_bridge_toll",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
         traffic_lights=traffic_lights)
 
-    env = BottleneckEnv(env_params, sim_params, scenario)
+    env = BottleneckEnv(env_params, sim_params, network)
 
     return BottleneckDensityExperiment(env)
 

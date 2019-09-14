@@ -43,8 +43,8 @@ class TestCFMController(unittest.TestCase):
                 accel=20, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -92,8 +92,8 @@ class TestBCMController(unittest.TestCase):
                 accel=15, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -147,8 +147,8 @@ class TestOVMController(unittest.TestCase):
                 accel=15, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -197,8 +197,8 @@ class TestLinearOVM(unittest.TestCase):
                 accel=15, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -244,8 +244,8 @@ class TestIDMController(unittest.TestCase):
                 tau=1, accel=1, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -310,8 +310,8 @@ class TestInstantaneousFailsafe(unittest.TestCase):
 
         initial_config = InitialConfig(bunching=10)
 
-        # create the environment and scenario classes for a ring road
-        env, scenario = ring_road_exp_setup(
+        # create the environment and network classes for a ring road
+        env, _ = ring_road_exp_setup(
             vehicles=vehicles,
             env_params=env_params,
             net_params=net_params,
@@ -419,8 +419,8 @@ class TestStaticLaneChanger(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(net_params=net_params)
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(net_params=net_params)
 
     def tearDown(self):
         # terminate the traci instance
@@ -477,8 +477,8 @@ class TestFollowerStopper(unittest.TestCase):
                 accel=20, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -552,8 +552,8 @@ class TestPISaturation(unittest.TestCase):
                 accel=20, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -607,8 +607,8 @@ class TestLACController(unittest.TestCase):
                 accel=15, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance

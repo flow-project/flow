@@ -67,7 +67,7 @@ class FollowerStopper(BaseController):
             return -10
         if 'center' in edge_id:
             return 0
-        edge_len = env.k.scenario.edge_length(edge_id)
+        edge_len = env.k.network.edge_length(edge_id)
         relative_pos = env.k.vehicle.get_position(self.veh_id)
         dist = edge_len - relative_pos
         return dist

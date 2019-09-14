@@ -9,10 +9,10 @@ flow.core.kernel module
     :undoc-members:
     :show-inheritance:
 
-flow.core.kernel.scenario module
+flow.core.kernel.network module
 --------------------------------
 
-.. automodule:: flow.core.kernel.scenario
+.. automodule:: flow.core.kernel.network
     :members:
     :undoc-members:
     :show-inheritance:

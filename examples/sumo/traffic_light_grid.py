@@ -7,7 +7,7 @@ from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import InFlows
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.traffic_light_grid import TrafficLightGridScenario
+from flow.networks import TrafficLightGridNetwork
 
 
 def gen_edges(col_num, row_num):
@@ -58,7 +58,7 @@ def get_flow_params(col_num, row_num, additional_net_params):
         parameters specifying the initial configuration of vehicles in the
         network
     flow.core.params.NetParams
-        network-specific parameters used to generate the scenario
+        network-specific parameters used to generate the network
     """
     initial = InitialConfig(
         spacing='custom', lanes_distribution=float('inf'), shuffle=True)
@@ -100,7 +100,7 @@ def get_non_flow_params(enter_speed, add_net_params):
         parameters specifying the initial configuration of vehicles in the
         network
     flow.core.params.NetParams
-        network-specific parameters used to generate the scenario
+        network-specific parameters used to generate the network
     """
     additional_init_params = {'enter_speed': enter_speed}
     initial = InitialConfig(
@@ -213,14 +213,14 @@ def traffic_light_grid_example(render=None, use_inflows=False):
             enter_speed=v_enter,
             add_net_params=additional_net_params)
 
-    scenario = TrafficLightGridScenario(
+    network = TrafficLightGridNetwork(
         name="grid-intersection",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
         traffic_lights=tl_logic)
 
-    env = AccelEnv(env_params, sim_params, scenario)
+    env = AccelEnv(env_params, sim_params, network)
 
     return Experiment(env)
 

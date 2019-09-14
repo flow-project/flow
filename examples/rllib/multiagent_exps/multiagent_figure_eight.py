@@ -29,7 +29,7 @@ from flow.core.params import NetParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import VehicleParams
-from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
+from flow.networks.figure_eight import ADDITIONAL_NET_PARAMS
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
@@ -68,8 +68,8 @@ flow_params = dict(
     # name of the flow environment the experiment is running on
     env_name='MultiAgentAccelEnv',
 
-    # name of the scenario class the experiment is running on
-    scenario='FigureEightScenario',
+    # name of the network class the experiment is running on
+    network='FigureEightNetwork',
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -93,7 +93,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         additional_params=deepcopy(ADDITIONAL_NET_PARAMS),
     ),

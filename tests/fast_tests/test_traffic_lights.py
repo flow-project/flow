@@ -39,8 +39,8 @@ class TestUpdateGetState(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(
             net_params=net_params, traffic_lights=traffic_lights)
 
         self.env.reset()
@@ -64,8 +64,8 @@ class TestUpdateGetState(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(
             net_params=net_params, traffic_lights=traffic_lights)
 
         self.env.reset()
@@ -95,8 +95,8 @@ class TestSetState(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(
             net_params=net_params, traffic_lights=traffic_lights)
 
     def tearDown(self):
@@ -153,7 +153,7 @@ class TestPOEnv(unittest.TestCase):
                 min_gap=2.5, tau=1.1),
             num_vehicles=16)
 
-        self.env, scenario = traffic_light_grid_mxn_exp_setup(
+        self.env, _ = traffic_light_grid_mxn_exp_setup(
             row_num=1, col_num=3, vehicles=vehicles)
 
     def tearDown(self):
@@ -178,7 +178,7 @@ class TestPOEnv(unittest.TestCase):
         # reset the environment
         self.env.reset()
 
-        node_mapping = self.env.scenario.node_mapping
+        node_mapping = self.env.network.node_mapping
         nodes = [elem[0] for elem in node_mapping]
         ordering = [elem[1] for elem in node_mapping]
 
@@ -187,7 +187,7 @@ class TestPOEnv(unittest.TestCase):
 
     def test_k_closest(self):
         self.env.step(None)
-        node_mapping = self.env.scenario.node_mapping
+        node_mapping = self.env.network.node_mapping
 
         # get the node mapping for node center0
         c0_edges = node_mapping[0][1]
@@ -228,7 +228,7 @@ class TestItRuns(unittest.TestCase):
                 min_gap=2.5, tau=1.1),
             num_vehicles=16)
 
-        env, scenario = traffic_light_grid_mxn_exp_setup(
+        env, _ = traffic_light_grid_mxn_exp_setup(
             row_num=1, col_num=3, vehicles=vehicles)
 
         self.exp = Experiment(env)
@@ -285,7 +285,7 @@ class TestIndividualLights(unittest.TestCase):
             file="testindividuallights.xml",
             freq=100)
 
-        env, scenario = traffic_light_grid_mxn_exp_setup(
+        env, _ = traffic_light_grid_mxn_exp_setup(
             row_num=1, col_num=4, tl_logic=tl_logic)
 
         self.exp = Experiment(env)
@@ -329,8 +329,8 @@ class TestCustomization(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(
             net_params=net_params, traffic_lights=traffic_lights)
 
     def tearDown(self):

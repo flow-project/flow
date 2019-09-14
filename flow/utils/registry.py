@@ -15,7 +15,7 @@ def make_create_env(params, version=0, render=None):
 
     This environment creation method allows for the specification of several
     key parameters when creating any flow environment, including the requested
-    environment and scenario classes, and the inputs needed to make these
+    environment and network classes, and the inputs needed to make these
     classes generalizable to networks of varying sizes and shapes, and well as
     varying forms of control (e.g. AVs, automated traffic lights, etc...).
 
@@ -33,12 +33,12 @@ def make_create_env(params, version=0, render=None):
          - env_name: name of the flow environment the experiment is running on.
            can also be the environment class itself (note: environment must be
            imported from a separate file from your main instance.)
-         - scenario: name of the scenario class the experiment uses
+         - network: name of the network class the experiment uses
          - simulator: simulator that is used by the experiment (e.g. aimsun)
          - sim: simulation-related parameters (see flow.core.params.SimParams)
          - env: environment related parameters (see flow.core.params.EnvParams)
          - net: network-related parameters (see flow.core.params.NetParams and
-           the scenario's documentation or ADDITIONAL_NET_PARAMS component)
+           the network's documentation or ADDITIONAL_NET_PARAMS component)
          - veh: vehicles to be placed in the network at the start of a rollout
            (see flow.core.params.VehicleParams)
          - initial (optional): parameters affecting the positioning of vehicles
@@ -66,8 +66,8 @@ def make_create_env(params, version=0, render=None):
     except AttributeError:
         env_name = params["env_name"] + '-v{}'.format(version)
 
-    module = __import__("flow.scenarios", fromlist=[params["scenario"]])
-    scenario_class = getattr(module, params["scenario"])
+    module = __import__("flow.networks", fromlist=[params["network"]])
+    network_class = getattr(module, params["network"])
 
     env_params = params['env']
     net_params = params['net']
@@ -78,7 +78,7 @@ def make_create_env(params, version=0, render=None):
         sim_params = deepcopy(params['sim'])
         vehicles = deepcopy(params['veh'])
 
-        scenario = scenario_class(
+        network = network_class(
             name=exp_tag,
             vehicles=vehicles,
             net_params=net_params,
@@ -110,7 +110,7 @@ def make_create_env(params, version=0, render=None):
                 kwargs={
                     "env_params": env_params,
                     "sim_params": sim_params,
-                    "scenario": scenario,
+                    "network": network,
                     "simulator": params['simulator']
                 })
         except Exception:

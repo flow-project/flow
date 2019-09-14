@@ -1,7 +1,7 @@
 """Multi-agent highway with ramps example.
 
 Trains a non-constant number of agents, all sharing the same policy, on the
-highway with ramps scenario.
+highway with ramps network.
 """
 import json
 import ray
@@ -23,7 +23,7 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
-from flow.scenarios.highway_ramps import ADDITIONAL_NET_PARAMS
+from flow.networks.highway_ramps import ADDITIONAL_NET_PARAMS
 
 
 # SET UP PARAMETERS FOR THE SIMULATION
@@ -45,7 +45,7 @@ ON_RAMPS_INFLOW_RATE = 450
 PENETRATION_RATE = 20
 
 
-# SET UP PARAMETERS FOR THE SCENARIO
+# SET UP PARAMETERS FOR THE NETWORK
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
@@ -135,7 +135,7 @@ for i in range(len(additional_net_params['on_ramps_pos'])):
 flow_params = dict(
     exp_tag='multiagent_highway',
     env_name='MultiAgentHighwayPOEnv',
-    scenario='HighwayRampsScenario',
+    network='HighwayRampsNetwork',
     simulator='traci',
 
     env=EnvParams(

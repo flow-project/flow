@@ -1,4 +1,4 @@
-"""Script containing the base scenario kernel class."""
+"""Script containing the base network kernel class."""
 import flow.config as config
 import json
 import subprocess
@@ -6,25 +6,25 @@ import os.path as osp
 import os
 import platform
 import time
-from flow.core.kernel.scenario.base import KernelScenario
+from flow.core.kernel.network.base import BaseKernelNetwork
 from copy import deepcopy
 
 # length of vehicles in the network, in meters
 VEHICLE_LENGTH = 5
 
 
-class AimsunKernelScenario(KernelScenario):
-    """Scenario kernel for Aimsun-based simulations.
+class AimsunKernelNetwork(BaseKernelNetwork):
+    """Network kernel for Aimsun-based simulations.
 
     This class is responsible for passing features to and calling the
     "generate.py" file within flow/utils/aimsun/. All other features are
-    designed to extend KernelScenario.
+    designed to extend BaseKernelNetwork.
 
     Attributes
     ----------
     kernel_api : any
         an API that may be used to interact with the simulator
-    network : flow.scenarios.Scenario
+    network : flow.networks.Network
         an object containing relevant network-specific features such as the
         locations and properties of nodes and edges in the network
     rts : dict
@@ -36,7 +36,7 @@ class AimsunKernelScenario(KernelScenario):
 
     def __init__(self, master_kernel, sim_params):
         """See parent class."""
-        KernelScenario.__init__(self, master_kernel, sim_params)
+        BaseKernelNetwork.__init__(self, master_kernel, sim_params)
 
         self.kernel_api = None
         self.network = None
@@ -50,18 +50,18 @@ class AimsunKernelScenario(KernelScenario):
         self._edge_aimsun2flow = {}
         self.aimsun_proc = None
 
-    def generate_network(self, scenario):
+    def generate_network(self, network):
         """See parent class."""
-        self.network = scenario
+        self.network = network
 
         output = {
-            "edges": scenario.edges,
-            "nodes": scenario.nodes,
-            "types": scenario.types,
-            "connections": scenario.connections,
+            "edges": network.edges,
+            "nodes": network.nodes,
+            "types": network.types,
+            "connections": network.connections,
             "inflows": None,
-            "vehicle_types": scenario.vehicles.types,
-            "osm_path": scenario.net_params.osm_path,
+            "vehicle_types": network.vehicles.types,
+            "osm_path": network.net_params.osm_path,
             'render': self.sim_params.render,
             "sim_step": self.sim_params.sim_step,
             "traffic_lights": None,
@@ -72,14 +72,14 @@ class AimsunKernelScenario(KernelScenario):
             "subnetwork_name": self.sim_params.subnetwork_name
         }
 
-        if scenario.net_params.inflows is not None:
-            output["inflows"] = scenario.net_params.inflows.__dict__
+        if network.net_params.inflows is not None:
+            output["inflows"] = network.net_params.inflows.__dict__
 
-        if scenario.traffic_lights is not None:
-            output["traffic_lights"] = scenario.traffic_lights.__dict__
+        if network.traffic_lights is not None:
+            output["traffic_lights"] = network.traffic_lights.__dict__
 
         cur_dir = os.path.join(config.PROJECT_PATH,
-                               'flow/core/kernel/scenario')
+                               'flow/core/kernel/network')
         # TODO: add current time
         with open(os.path.join(cur_dir, 'data.json'), 'w') as outfile:
             json.dump(output, outfile, sort_keys=True, indent=4)
@@ -92,20 +92,20 @@ class AimsunKernelScenario(KernelScenario):
         aimsun_path = osp.join(osp.expanduser(config.AIMSUN_NEXT_PATH),
                                binary_name)
 
-        # remove scenario data file if if still exists from
+        # remove network data file if if still exists from
         # the previous simulation
-        data_file = 'flow/core/kernel/scenario/scenario_data.json'
+        data_file = 'flow/core/kernel/network/network_data.json'
         data_file_path = os.path.join(config.PROJECT_PATH, data_file)
         if os.path.exists(data_file_path):
             os.remove(data_file_path)
-        check_file = 'flow/core/kernel/scenario/scenario_data_check'
+        check_file = 'flow/core/kernel/network/network_data_check'
         check_file_path = os.path.join(config.PROJECT_PATH, check_file)
         if os.path.exists(check_file_path):
             os.remove(check_file_path)
 
         # path to the supplementary file that is used to generate an aimsun
         # network from a template
-        template_path = scenario.net_params.template
+        template_path = network.net_params.template
         if template_path is None:
             script_path = osp.join(config.PROJECT_PATH,
                                    'flow/utils/aimsun/generate.py')
@@ -122,19 +122,19 @@ class AimsunKernelScenario(KernelScenario):
         self.aimsun_proc = subprocess.Popen(aimsun_call)
 
         # merge types into edges
-        if scenario.net_params.osm_path is None:
-            if scenario.net_params.template is None:
-                for i in range(len(scenario.edges)):
-                    if 'type' in scenario.edges[i]:
-                        for typ in scenario.types:
-                            if typ['id'] == scenario.edges[i]['type']:
+        if network.net_params.osm_path is None:
+            if network.net_params.template is None:
+                for i in range(len(network.edges)):
+                    if 'type' in network.edges[i]:
+                        for typ in network.types:
+                            if typ['id'] == network.edges[i]['type']:
                                 new_dict = deepcopy(typ)
                                 new_dict.pop("id")
-                                scenario.edges[i].update(new_dict)
+                                network.edges[i].update(new_dict)
                                 break
 
                 self._edges = {}
-                for edge in deepcopy(scenario.edges):
+                for edge in deepcopy(network.edges):
                     edge_name = edge['id']
                     self._edges[edge_name] = {}
                     del edge['id']
@@ -149,21 +149,21 @@ class AimsunKernelScenario(KernelScenario):
                     set(self._edges.keys()) - set(self._edge_list))
 
             else:
-                # load scenario from template
-                scenar_file = "flow/core/kernel/scenario/scenario_data.json"
+                # load network from template
+                scenar_file = "flow/core/kernel/network/network_data.json"
                 scenar_path = os.path.join(config.PROJECT_PATH, scenar_file)
 
-                check_file = "flow/core/kernel/scenario/scenario_data_check"
+                check_file = "flow/core/kernel/network/network_data_check"
                 check_path = os.path.join(config.PROJECT_PATH, check_file)
 
-                # a check file is created when all the scenario data
+                # a check file is created when all the network data
                 # have been written ; it is necessary since writing
-                # all the data can take several seconds for large scenarios
+                # all the data can take several seconds for large networks
                 while not os.path.exists(check_path):
                     time.sleep(0.1)
                 os.remove(check_path)
 
-                # scenario_data.json has been written, load its content
+                # network_data.json has been written, load its content
                 with open(scenar_path) as f:
                     content = json.load(f)
                 os.remove(scenar_path)
@@ -171,7 +171,7 @@ class AimsunKernelScenario(KernelScenario):
                 self._edges = content['sections']
                 self._edge_list = self._edges.keys()
                 self._junction_list = content['turnings']
-                # TODO load everything that is in content into the scenario
+                # TODO load everything that is in content into the network
 
         else:
             data_file = 'flow/utils/aimsun/osm_edges.json'
@@ -254,9 +254,9 @@ class AimsunKernelScenario(KernelScenario):
 
     def close(self):
         """See parent class."""
-        # delete the json file that was used to read the scenario data
+        # delete the json file that was used to read the network data
         cur_dir = os.path.join(config.PROJECT_PATH,
-                               'flow/core/kernel/scenario')
+                               'flow/core/kernel/network')
         os.remove(os.path.join(cur_dir, 'data.json'))
 
     ###########################################################################

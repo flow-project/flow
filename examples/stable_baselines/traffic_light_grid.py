@@ -64,7 +64,7 @@ def get_inflow_params(col_num, row_num, additional_net_params):
         parameters specifying the initial configuration of vehicles in the
         network
     flow.core.params.NetParams
-        network-specific parameters used to generate the scenario
+        network-specific parameters used to generate the network
     """
     initial = InitialConfig(
         spacing='custom', lanes_distribution=float('inf'), shuffle=True)
@@ -106,7 +106,7 @@ def get_non_flow_params(enter_speed, add_net_params):
         parameters specifying the initial configuration of vehicles in the
         network
     flow.core.params.NetParams
-        network-specific parameters used to generate the scenario
+        network-specific parameters used to generate the network
     """
     additional_init_params = {'enter_speed': enter_speed}
     initial = InitialConfig(
@@ -177,8 +177,8 @@ flow_params = dict(
     # name of the flow environment the experiment is running on
     env_name='TrafficLightGridPOEnv',
 
-    # name of the scenario class the experiment is running on
-    scenario='TrafficLightGridScenario',
+    # name of the network class the experiment is running on
+    network='TrafficLightGridNetwork',
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -196,7 +196,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component). This is
+    # network's documentation or ADDITIONAL_NET_PARAMS component). This is
     # filled in by the setup_exps method below.
     net=None,
 
