@@ -64,6 +64,8 @@ def make_create_env(params, version=0, render=None):
     try:
         env_name = params["env_name"].__name__ + '-v{}'.format(version)
     except AttributeError:
+        if "." in params['env_name']:
+            env_name = params['env_name'].split(".")[-1] + '-v{}'.format(version)
         env_name = params["env_name"] + '-v{}'.format(version)
 
     module = __import__("flow.networks", fromlist=[params["network"]])
@@ -97,11 +99,16 @@ def make_create_env(params, version=0, render=None):
         try:
             entry_point = params["env_name"].__module__ + ':' + params["env_name"].__name__
         except AttributeError:
-            if params['env_name'] in single_agent_envs:
-                env_loc = 'flow.envs'
+            # When loading a trained policy, it will be serielized back to a string
+            if "." in params['env_name']:
+                env_loc = ".".join(params['env_name'].split(".")[:-1])
+                entry_point = env_loc + ':{}'.format(params['env_name'].split(".")[-1])
             else:
-                env_loc = 'flow.envs.multiagent'
-            entry_point = env_loc + ':{}'.format(params["env_name"])
+                if params['env_name'] in single_agent_envs:
+                    env_loc = 'flow.envs'
+                else:
+                    env_loc = 'flow.envs.multiagent'
+                entry_point = env_loc + ':{}'.format(params["env_name"])
 
         try:
             register(
