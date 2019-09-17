@@ -1,33 +1,33 @@
 # Flow Examples
 
 Before continuing to the Flow examples, we recommend **installing Flow** by 
-executing the following [installation instructions](
+following the [installation instructions](
 https://flow.readthedocs.io/en/latest/flow_setup.html).
 
 The **examples** folder provides several examples demonstrating how 
-both simulation and RL-oriented experiments can be setup and executed within 
-the Flow framework on a variety of traffic problems. These examples are .py 
-files that may be executed  either from terminal or via an editor. For example,
-in order to execute the  sugiyama example in *examples/sumo*, we run:
+both non-RL simulation and RL-oriented simulatons can be setup and executed 
+within the Flow framework on a variety of traffic problems. These examples are 
+python files that may be executed either from terminal or via a text editor (or 
+Python IDE). For example, in order to execute the non-RL Ring example we run:
 
 ```shell
-python <flow-path>/examples/sumo/sugiyama.py
+python simulate.py EXP_CONFIG --render
 ```
 
-The examples are distributed into the following sections:
+The examples are categorized into the following 3 sections:
 
-**examples/sumo/** contains examples of transportation network with vehicles
+**non-RL examples** contains examples of transportation network with vehicles
 following human-dynamical models of driving behavior using the traffic 
-micro-simulator sumo.
+micro-simulator sumo and traffic macro-simualtor Aimsun.
 
-**examples/aimsun/** contains examples of transportation network with vehicles
-following human-dynamical models of driving behavior using the traffic 
-micro-simulator Aimsun.
+**RL examples based on RLlib* provides similar networks as those presented in 
+the first point, but in the present of autonomous vehicle (AV) or traffic light agents 
+being trained through RL algorithms provided by *RLlib*.
 
-**examples/rllib/** provides similar networks as those presented in the 
-previous point, but in the present of autonomous vehicle (AV) or traffic light 
-agents being trained through RL algorithms provided by *RLlib*.
-
+**RL examples based on "stable" baselines* provides similar networks as those 
+presented in the first point, but in the present of autonomous vehicle (AV) or traffic 
+light agents being trained through RL algorithms provided by OpenAI *stable 
+baselines*.
 
 ## Simulated Examples
 
