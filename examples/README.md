@@ -11,30 +11,53 @@ python files that may be executed either from terminal or via a text editor (or
 Python IDE). For example, in order to execute the non-RL Ring example we run:
 
 ```shell
-python simulate.py EXP_CONFIG --render
+python simulate.py sugiyama
 ```
 
 The examples are categorized into the following 3 sections:
 
 **non-RL examples** contains examples of transportation network with vehicles
 following human-dynamical models of driving behavior using the traffic 
-micro-simulator sumo and traffic macro-simualtor Aimsun.
+micro-simulator sumo and traffic macro-simulator Aimsun.
+
+To execute these examples, run
+
+```shell
+python simulate.py EXP_CONFIG --render
+```
+`EXP_CONFIG` is the name of the experiment configuration file, as located in 
+`exp_configs/non_rl.`
 
 **RL examples based on RLlib* provides similar networks as those presented in 
 the first point, but in the present of autonomous vehicle (AV) or traffic light agents 
 being trained through RL algorithms provided by *RLlib*.
+
+To execute these examples, run
+
+```shell
+ python train_rllib.py EXP_CONFIG
+```
+`EXP_CONFIG` is the name of the experiment configuration file, as located in 
+`exp_configs/single_agent.`
 
 **RL examples based on "stable" baselines* provides similar networks as those 
 presented in the first point, but in the present of autonomous vehicle (AV) or traffic 
 light agents being trained through RL algorithms provided by OpenAI *stable 
 baselines*.
 
+```shell
+ python train_stable_baselines.py EXP_CONFIG
+```
+`EXP_CONFIG` is the name of the experiment configuration file, as located in 
+`exp_configs/single_agent.`
+
+
 ## Simulated Examples
 
-The following networks are available for simulation within flow, and 
-specifically the **examples/sumo** folder. Similar networks are available with 
-trainable variants in the examples/rllib and examples/aimsun folders; however, 
-they may be under different names.
+The following networks are available for simulation within flow. These examples are 
+all available as non-RL examples, while some of them are also available (with 
+trainable variants) as RL examples, with RLlib or Stable Baselines.
+
 
 ### bay_bridge.py \& bay_bridge_toll.py
 
@@ -73,9 +96,15 @@ Example of an open multi-lane network with human-driven vehicles.
 
 ![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/highway.gif)
 
+### highway_ramps.py
+
+Example of a highway section network with on/off ramps
+
+![](picture to be added)
+
 ### merge.py
 
-Example of a merge network with human-driven vehicles.
+Example of a straight road with merge-in with human-driven vehicles.
 
 In the absence of autonomous vehicles, the network exhibits properties of
 convective instability, with perturbations propagating upstream from the merge
@@ -85,15 +114,15 @@ point before exiting the network.
 
 ### minicity.py
 
-Example of modified minicity of University of Delaware network with 
-human-driven vehicles.
+Example of modified mini city developed under a [collaboration with University of Delaware]
+(https://sites.google.com/view/iccps-policy-transfer), with human-driven vehicles.
 
 ![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/minicity.gif)
 
 ### sugiyama.py
 
-Used as an example of sugiyama experiment.
+Used as an example of a ring experiment.
 
-This example consists of 22 IDM cars on a ring road creating shockwaves.
+This example consists of 22 IDM cars driving on a ring road creating shockwaves.
 
 ![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/sugiyama.gif)
