@@ -1,76 +1,168 @@
-"""Example of a simple intersection network with human-driven vehicles.
+"""Contains the intersection scenario class."""
 
-Right-of-way dynamics near the intersection causes vehicles to queue up on
-either side of the intersection, leading to a significant reduction in the
-average speed of vehicles in the network.
-"""
+import numpy as np
+from numpy import linspace
 
-from flow.controllers import IDMController
-from flow.core.experiment import Experiment
-from flow.core.params import SumoParams, AimsunParams, EnvParams, NetParams
-from flow.core.params import VehicleParams, InFlows
-from flow.envs import TestEnv
-from flow.scenarios.intersection import SimpleIntScenario, ADDITIONAL_NET_PARAMS
+from flow.core.params import InitialConfig
+from flow.core.params import TrafficLightParams
+from flow.scenarios.base_scenario import Scenario
 
-
-def simple_intersection_example(render=None):
-    """Perform a simulation of vehicles on an intersection.
-
-    Parameters
-    ----------
-    render: bool, optional
-        specifies whether to use the gui during execution
-
-    Returns
-    -------
-    exp: flow.core.experiment.Experiment
-        A non-rl experiment demonstrating the performance of human-driven
-        vehicles on an intersection.
-    """
-    sim_params = AimsunParams(sim_step=0.5, render=True, emission_path='data')
-
-    if render is not None:
-        sim_params.render = render
-
-    vehicles = VehicleParams()
-    vehicles.add(
-        veh_id="human",
-        acceleration_controller=(IDMController, {}),
-        num_vehicles=0)
-
-    env_params = EnvParams()
-
-    inflow = InFlows()
-    inflow.add(
-        veh_type="human",
-        edge="left",
-        vehs_per_hour=1000,
-        departLane="free",
-        departSpeed=0)
-
-    inflow.add(
-        veh_type="human",
-        edge="bottom",
-        vehs_per_hour=1000,
-        departLane="free",
-        departSpeed=0)
-
-    net_params = NetParams(inflows=inflow,
-        additional_params=ADDITIONAL_NET_PARAMS.copy())
-
-    scenario = SimpleIntScenario(
-        name="intersection",
-        vehicles=vehicles,
-        net_params=net_params)
-
-    env = TestEnv(env_params, sim_params, scenario, simulator='aimsun')
-
-    return Experiment(env)
+ADDITIONAL_NET_PARAMS = {
+    # number of lanes
+    "lanes": 1,
+    # speed limit for all edges
+    "speed_limit": 30,
+    # length of the four edges
+    "edge_length": 100
+}
 
 
-if __name__ == "__main__":
-    # import the experiment variable
-    exp = simple_intersection_example()
+class SimpleIntScenario(Scenario):
+    """Intersection scenario class."""
 
-    # run for a set number of rollouts / time steps
-    exp.run(1, 1500)
+    def __init__(self,
+                 name,
+                 vehicles,
+                 net_params,
+                 initial_config=InitialConfig(),
+                 traffic_lights=TrafficLightParams()):
+        """Initialize an intersection scenario.
+
+        Requires from net_params:
+        - lanes: number of lanes in the network
+        - speed_limit: max speed of vehicles in the network
+        - edge_length: length of the four edges
+
+        In order for right-of-way dynamics to take place at the intersection,
+        set "no_internal_links" in net_params to False.
+
+        See flow/scenarios/base_scenario.py for description of params.
+        """
+        for p in ADDITIONAL_NET_PARAMS.keys():
+            if p not in net_params.additional_params:
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
+
+        self.lanes = net_params.additional_params["lanes"]        
+        self.speed_limit = net_params.additional_params["lanes"]
+        self.edge_length = net_params.additional_params["edge_length"]
+        self.junction_radius = (2.9 + 3.3 * self.lanes) / 2
+        
+        super().__init__(name, vehicles, net_params, initial_config,
+                         traffic_lights)
+
+    def specify_nodes(self, net_params):
+        """See parent class."""
+       
+        nodes = [{
+            "id": "center",
+            "x": 0,
+            "y": 0,
+            "radius": self.junction_radius,
+            "type": "priority"
+        }, {
+            "id": "right",
+            "x": self.edge_length,
+            "y": 0,
+            "type": "priority"
+        }, {
+            "id": "top",
+            "x": 0,
+            "y": self.edge_length,
+            "type": "priority"
+        }, {
+            "id": "left",
+            "x": -self.edge_length,
+            "y": 0,
+            "type": "priority"
+        }, {
+            "id": "bottom",
+            "x": 0,
+            "y": -self.edge_length,
+            "type": "priority"
+        }]
+
+        return nodes
+
+    def specify_edges(self, net_params):
+        """See parent class."""
+
+        edges = [{
+            "id": "bottom",
+            "type": "edgeType",
+            "priority": "78",
+            "from": "bottom",
+            "to": "center",
+            "length": self.edge_length
+        }, {
+            "id": "top",
+            "type": "edgeType",
+            "priority": 78,
+            "from": "center",
+            "to": "top",
+            "length": self.edge_length
+        }, {
+            "id": "right",
+            "type": "edgeType",
+            "priority": 46,
+            "from": "center",
+            "to": "right",
+            "length": self.edge_length
+        }, {
+            "id": "left",
+            "type": "edgeType",
+            "priority": 46,
+            "from": "left",
+            "to": "center",
+            "length": self.edge_length
+        }]
+
+        return edges
+
+    def specify_types(self, net_params):
+        """See parent class."""
+        types = [{
+            "id": "edgeType",
+            "numLanes": self.lanes,
+            "speed": self.speed_limit
+        }]
+
+        return types
+
+    def specify_routes(self, net_params):
+        """See parent class."""
+        rts = {
+            "bottom": ["bottom", "top"],
+            "left": ["left", "right"]                
+        }
+
+        return rts
+
+    def specify_connections(self, net_params):
+        """See parent class."""
+        conn = []
+        for i in range(self.lanes):
+            conn += [{"from": "bottom",
+                      "to": "top",
+                      "fromLane": str(i),
+                      "toLane": str(i)}]
+            conn += [{"from": "left",
+                      "to": "right",
+                      "fromLane": str(i),
+                      "toLane": str(i)}]
+        return { "center": conn }
+
+    def specify_edge_starts(self):
+        """See base class."""
+        edgestarts = [
+            ("bottom", self.edge_length),
+            ("top", 2 * self.edge_length),
+            ("right", 3 * self.edge_length),
+            ("left", 4 * self.edge_length)]
+
+        return edgestarts
+
+    def specify_intersection_edge_starts(self):
+        """See parent class."""
+        intersection_edgestarts = \
+            [(":center", 0)]
+        return intersection_edgestarts
