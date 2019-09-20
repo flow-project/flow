@@ -79,8 +79,8 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         self._edge_list = None
         self._junction_list = None
         self.__max_speed = None
-        self.__length = None # total length
-        self.__non_internal_length = None # total length of non-internal edges
+        self.__length = None  # total length
+        self.__non_internal_length = None  # total length of non-internal edges
         self.rts = None
         self.cfg = None
 
@@ -194,7 +194,6 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         self.__length = sum(
             self._edges['length'] for edge_id in self._edges
         )
-
 
         if self.network.routes is None:
             print("No routes specified, defaulting to single edge routes.")
