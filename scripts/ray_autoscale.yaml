@@ -67,8 +67,8 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands:
-    - cd flow && git fetch && git checkout origin/kparvate/upgrade_ray
-    
+    - cd flow && git fetch && git checkout master
+
 head_setup_commands:
     - pip install boto3==1.4.8  # 1.4.8 adds InstanceMarketOptions
 
