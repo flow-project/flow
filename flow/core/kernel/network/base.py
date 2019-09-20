@@ -344,7 +344,7 @@ class BaseKernelNetwork(object):
 
             # ensures that you are in an acceptable edge
             while pos[0] not in available_edges:
-                x = (x + self.edge_length(pos[0])) % self.length()
+                x = (x + self.edge_length(pos[0])) % self.non_internal_length()
                 pos = self.get_edge(x)
 
             # ensure that in variable lane settings vehicles always start a
@@ -366,7 +366,7 @@ class BaseKernelNetwork(object):
                 if car_count == num_vehicles:
                     break
 
-            x = (x + increment + VEHICLE_LENGTH + min_gap) % self.length()
+            x = (x + increment + VEHICLE_LENGTH + min_gap) % self.non_internal_length()
 
         # add a perturbation to each vehicle, while not letting the vehicle
         # leave its current edge

@@ -161,7 +161,7 @@ class TestEvenStartPos(unittest.TestCase):
         # of it
         nth_headway = np.mod(
             np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-            self.env.k.network.length())
+            self.env.k.network.non_internal_length())
 
         # check that the position of the first vehicle is at 0
         self.assertEqual(veh_pos[0], 0)
@@ -194,10 +194,10 @@ class TestEvenStartPos(unittest.TestCase):
         # of it
         nth_headway = np.mod(
             np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-            self.env.k.network.length())
+            self.env.k.network.non_internal_length())
 
         # check that the position of the first vehicle is at 0
-        self.assertEqual(veh_pos[0], x0 % self.env.k.network.length())
+        self.assertEqual(veh_pos[0], x0 % self.env.k.network.non_internal_length())
 
         # if all element are equal, there should only be one unique value
         self.assertEqual(np.unique(np.around(nth_headway, 2)).size, 1)
@@ -225,7 +225,7 @@ class TestEvenStartPos(unittest.TestCase):
         # of it
         nth_headway = np.mod(
             np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-            self.env.k.network.length())
+            self.env.k.network.non_internal_length())
 
         # check that all vehicles except the last vehicle have the same spacing
         self.assertEqual(np.unique(np.around(nth_headway[:-1], 2)).size, 1)
@@ -260,7 +260,7 @@ class TestEvenStartPos(unittest.TestCase):
         # of it
         nth_headway = np.mod(
             np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-            self.env.k.network.length())
+            self.env.k.network.non_internal_length())
 
         # check that all vehicles, including the last vehicle, have the same
         # spacing
@@ -300,7 +300,7 @@ class TestEvenStartPos(unittest.TestCase):
             # ahead of it
             nth_headway = \
                 np.mod(np.append(veh_pos[i][1:], veh_pos[i][0]) - veh_pos[i],
-                       self.env.k.network.length())
+                       self.env.k.network.non_internal_length())
 
             self.assertEqual(np.unique(np.around(nth_headway[:-1], 2)).size, 1)
 
@@ -361,7 +361,7 @@ class TestEvenStartPos(unittest.TestCase):
             # ahead of it
             nth_headway = \
                 np.mod(np.append(veh_pos[i][1:], veh_pos[i][0]) - veh_pos[i],
-                       self.env.k.network.length())
+                       self.env.k.network.non_internal_length())
 
             self.assertEqual(np.unique(np.around(nth_headway[:-1], 2)).size, 1)
 
@@ -473,7 +473,7 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
         # of it
         nth_headway = np.mod(
             np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-            self.env.k.network.length())
+            self.env.k.network.non_internal_length())
 
         try:
             # if all element are equal, there should only be one unique value
