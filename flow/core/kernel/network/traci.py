@@ -192,7 +192,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         self.total_edgestarts_dict = dict(self.total_edgestarts)
 
         self.__length = sum(
-            self._edges['length'] for edge_id in self._edges
+            self._edges[edge_id]['length'] for edge_id in self._edges
         )
 
         if self.network.routes is None:
