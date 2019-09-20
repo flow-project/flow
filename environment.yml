@@ -9,7 +9,7 @@ dependencies:
     - path.py
     - python-dateutil==2.7.3
     - tensorflow==1.9.0
-    - cloudpickle==0.5.3
+    - cloudpickle==1.2.1
     - setuptools==39.1.0
     - pip:
         - gym==0.14.0
@@ -20,7 +20,7 @@ dependencies:
         - matplotlib==3.0.0
         - dill
         - lz4
-        - ray==0.6.1
+        - ray==0.7.3
         - setproctitle
         - psutil
         - opencv-python
