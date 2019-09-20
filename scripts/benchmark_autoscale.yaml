@@ -67,7 +67,7 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands: 
-    - cd flow && git fetch && git checkout master
+    - cd flow && git fetch && git checkout origin/master
 
 # Custom commands that will be run on the head node after common setup.
 head_setup_commands:
