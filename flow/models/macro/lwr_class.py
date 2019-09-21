@@ -172,14 +172,11 @@ class LWR(gym.Env):
         #     Initialize rl_actions (self.v_max) to some value
         if rl_actions == None:
             # advance the state of the simulation by one step
-            # self.v_max = 0.1
-            self.dt = CFL * dx / self.v_max
-            self.obs = IBVP(self.obs, self.boundary_right, self.boundary_left, V_max=self.v_max, dt=self.dt)
+            self.obs = IBVP(self.obs, self.boundary_right, self.boundary_left, V_max=self.v_max, dt=dt)
 
         else:
             self.v_max = rl_actions
-            self.dt = CFL * dx / self.v_max
-            self.obs = IBVP(self.obs, self.boundary_right, self.boundary_left, V_max=self.v_max, dt=self.dt)
+            self.obs = IBVP(self.obs, self.boundary_right, self.boundary_left, V_max=self.v_max, dt=dt)
 
         # check if reward is 0
         # if so, do nothing and advance to the next state with the same previous V_max
@@ -249,7 +246,6 @@ if __name__ == "__main__":
     ?? Time: double
         specify time horizon in seconds (is theoretical and depends on speed of code (dt, N and CFL) )
     """
-    global CLF, dx
     # Length of road
     L = 100000
 
@@ -269,7 +265,7 @@ if __name__ == "__main__":
     x = np.arange(0.5 * dx, (L - 0.5 * dx), dx)
 
     # dt = change in time
-    # dt = CFL * dx / V_max
+    dt = CFL * dx / V_max
     # initial density Points
     U = initial(x)
 
