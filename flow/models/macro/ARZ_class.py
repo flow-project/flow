@@ -241,7 +241,7 @@ def arz_update_points(fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_ha
     return rho_next, y_next
 
 
-def myfun(y_next, tau=0.1, V_max=1, rho_max=1):
+def myfun(y_next):
     """helper function to help fsolve update our relative flow data
 
     Parameters
@@ -254,6 +254,11 @@ def myfun(y_next, tau=0.1, V_max=1, rho_max=1):
     func: array_like or tuple
         functions to be minimized/maximized based on initial values
     """
+
+    tau = env.tau
+    V_max = env.v_max
+    rho_max = env.rho_max
+
     func = y_next + ((dt / tau) * (rho_next * u(rho_next, y_next, V_max, rho_max)) - rhs)
     return func
 
