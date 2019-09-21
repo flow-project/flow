@@ -216,7 +216,7 @@ class LWR(gym.Env):
             the initial observation of the space. The initial reward is assumed
             to be zero.
         """
-        self.v_max = 1
+        self.v_max = 27.5
         self.obs = self.init
 
         return self.obs
@@ -289,7 +289,6 @@ if __name__ == "__main__":
 
     for _ in range(int(iterations)):
 
-        #we are controlling V_max
         action = V_max # agent.compute(obs)
         obs, rew, done, _ = env.step(action)
         plot_points(L, x, env.obs, env.speed_info(), R, V_max)
