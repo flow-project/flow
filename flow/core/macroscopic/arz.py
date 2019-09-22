@@ -220,7 +220,7 @@ class ARZ(MacroModelEnv):
         return Box(low=0, high=v_max_max, shape=(1,), dtype=np.float32)
 
     def step(self, action):
-        """Fill in. todo."""
+        """See parent class."""
         # TODO: fill in
         # Note: if action is set to None, v_max should simply not change from
         # it's last value

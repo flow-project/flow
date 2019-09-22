@@ -47,35 +47,52 @@ class MacroModelEnv(gym.Env):
 
         Returns
         -------
-        todo
-            todo
-        todo
-            todo
-        todo
-            todo
-        todo
-            todo
+        array_like
+            agent's observation of the current environment
+        float
+            amount of reward associated with the previous state/action pair
+        bool
+            indicates whether the episode has ended
+        dict
+            contains other diagnostic information from the previous action
         """
         raise NotImplementedError
 
     def reset(self):
-        """Fill in . todo.
+        """Reset the simulation.
 
         Returns
         -------
-        todo
-            todo
+        array_like
+            the initial observation of the space
         """
         raise NotImplementedError
 
     @property
     def action_space(self):
-        """Fill in . todo."""
+        """Identify the dimensions and bounds of the action space.
+
+        MUST BE implemented in new environments.
+
+        Returns
+        -------
+        gym Box or Tuple
+            a bounded box depicting the shape and bounds of the action space
+        """
         raise NotImplementedError
 
     @property
     def observation_space(self):
-        """Fill in . todo."""
+        """Identify the dimensions and bounds of the observation space.
+
+        MUST BE implemented in new environments.
+
+        Returns
+        -------
+        gym Box or Tuple
+            a bounded box depicting the shape and bounds of the observation
+            space
+        """
         raise NotImplementedError
 
     def render(self, mode='human'):
