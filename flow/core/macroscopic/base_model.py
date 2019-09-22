@@ -1,4 +1,4 @@
-"""Script containing the base macro-model object.
+"""Script containing the base macroscopic traffic environment object.
 
 This class provides an environmental configuration for generating trainable /
 simulate-able models of traffic at a macroscopic scale.
@@ -9,8 +9,8 @@ and microscopic models.
 import gym
 
 
-class MacroModel(gym.Env):
-    """Base macro-model object.
+class MacroModelEnv(gym.Env):
+    """Base macroscopic traffic environment object.
 
     This class provides an environmental configuration for generating
     trainable / simulate-able models of traffic at a macroscopic scale.
@@ -20,24 +20,64 @@ class MacroModel(gym.Env):
 
     Attributes
     ----------
-    net_params : dict
-        network-specific features. See the definition of the separate models
-        for more.
+    params : dict
+        environment-specific features. See the definition of the separate
+        models for more.
     """
 
-    def __init__(self, net_params):
+    def __init__(self, params):
         """Instantiate the macro-model object.
 
         Parameters
         ----------
-        net_params : dict
-            network-specific features. See the definition of the separate
+        params : dict
+            environment-specific features. See the definition of the separate
             models for more.
         """
-        self.net_params = net_params
+        self.params = params
 
     def step(self, action):
+        """Advance the simulation by one step.
+
+        Parameters
+        ----------
+        action : Any, optional
+            specifies that action to be performed by trainable agents in the
+            environment. If set to None, no new action is performed.
+
+        Returns
+        -------
+        TODO
+            TODO
+        TODO
+            TODO
+        TODO
+            TODO
+        TODO
+            TODO
+        """
         raise NotImplementedError
 
     def reset(self):
+        """TODO.
+
+        Returns
+        -------
+        TODO
+            TODO
+        """
         raise NotImplementedError
+
+    @property
+    def action_space(self):
+        """TODO."""
+        raise NotImplementedError
+
+    @property
+    def observation_space(self):
+        """TODO."""
+        raise NotImplementedError
+
+    def render(self, mode='human'):
+        """See parent class."""
+        pass

@@ -1,26 +1,36 @@
+"""Contains the non-local traffic flow model class.
+
+TODO: add citation
 """
-
-"""
-from flow.core.macroscopic.base_model import MacroModel
-
-NET_PARAMS = {
-    # length of the stretch of highway
-    "length": 10000,
-    # length of individual sections on the highway. Speeds and densities are
-    # computed on these sections. Must be a factor of the length
-    "dx": 100,
-    # tuple of (speed, density) initial conditions. Each element of the tuple
-    # must be a list of length int(length/dx)
-    "initial_conditions": [0 for _ in range(100)],
-    # boundary conditions  TODO: define what that is
-    "boundary_conditions": None,  # FIXME
-    # TODO: add model parameters
-}
+from flow.core.macroscopic.base_model import MacroModelEnv
+from flow.core.macroscopic.utils import DictDescriptor
 
 
-class NonLocalModel(MacroModel):
-    """
+NET_PARAMS = DictDescriptor(
 
+)
+
+
+class NonLocalModel(MacroModelEnv):
+    """Non-local traffic flow model class.
+
+    TODO: add citation
+
+    States
+        The observation consists of the normalized densities and speeds of the
+        individual nodes in the network.
+
+    Actions
+        The actions update the v_max values of the nodes of the network. If set
+        to None, the v_max values is not updated.
+
+    Rewards
+        The reward function is the average L2 distance between the speeds of
+        the individual nodes and the maximum achievable speed, weighted by the
+        densities of the individual nodes.
+
+    Termination
+        A rollout is terminated if the time horizon.
     """
 
     def __init__(self, net_params):
@@ -36,11 +46,13 @@ class NonLocalModel(MacroModel):
         # TODO: fill in
 
     def step(self, action):
+        """TODO."""
         # TODO: fill in
         # Note: if action is set to None, v_max should simply not change from
         # it's last value
         raise NotImplementedError
 
     def reset(self):
+        """TODO."""
         # TODO: fill in
         raise NotImplementedError

@@ -18,8 +18,8 @@ Other, common, trainable arguments include:
 """
 
 
-def run_training(n_itr, n_rollouts, env_name, env_params, net_params):
-    """
+def run_training(n_itr, n_rollouts, alg, alg_params, env_name, env_params):
+    """Perform a training operation.
 
     Parameters
     ----------
@@ -27,11 +27,33 @@ def run_training(n_itr, n_rollouts, env_name, env_params, net_params):
         number of training epochs before the operation is exited
     n_rollouts : int
         number of rollouts per training iteration
+    alg : str
+        name of the RLlib algorithm
+    alg_params : dict
+        algorithm specific features
+    env_name : str
+        name of the model/environment. Must be one of: {"ARZ", "LWR",
+        "NonLocal"}
+    env_params : dict
+        environment-specific features. See the definition of the separate
+        models for more.
     """
     pass
 
 
 def rollout():
+    """TODO.
+
+    Parameters
+    ----------
+    TODO
+        TODO
+
+    Returns
+    -------
+    TODO
+        TODO
+    """
     pass  # FIXME
 
 
