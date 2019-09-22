@@ -11,7 +11,7 @@ python files that may be executed either from terminal or via a text editor (or
 Python IDE). For example, in order to execute the non-RL Ring example we run:
 
 ```shell
-python simulate.py sugiyama
+python simulate.py ring
 ```
 
 The examples are categorized into the following 3 sections:
@@ -38,7 +38,7 @@ To execute these examples, run
  python train_rllib.py EXP_CONFIG
 ```
 `EXP_CONFIG` is the name of the experiment configuration file, as located in 
-`exp_configs/single_agent.`
+`exp_configs/singleagent` or  `exp_configs/multiagent.`
 
 **RL examples based on "stable" baselines* provides similar networks as those 
 presented in the first point, but in the present of autonomous vehicle (AV) or traffic 
@@ -49,7 +49,7 @@ baselines*.
  python train_stable_baselines.py EXP_CONFIG
 ```
 `EXP_CONFIG` is the name of the experiment configuration file, as located in 
-`exp_configs/single_agent.`
+`exp_configs/singleagent.`
 
 
 ## Simulated Examples
@@ -68,7 +68,7 @@ only on the toll booth and sections of the road leading up to it.
 
 ![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/bay_bridge.gif)
 
-### bottlenecks.py
+### bottleneck.py
 
 Example demonstrating formation of congestion in bottleneck
 
@@ -119,7 +119,7 @@ Example of modified mini city developed under a [collaboration with University o
 
 ![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/minicity.gif)
 
-### sugiyama.py
+### ring.py
 
 Used as an example of a ring experiment.
 

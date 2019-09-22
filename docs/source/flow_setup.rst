@@ -124,7 +124,7 @@ Let’s see some traffic action:
 
 ::
 
-    python examples/sumo/sugiyama.py
+    python simulate.py ring
 
 Running the following should result in the loading of the SUMO GUI.
 Click the run button and you should see unstable traffic form after a
@@ -234,7 +234,7 @@ You can test your installation by running
 
 ::
 
-    python examples/stable_baselines/stabilizing_the_ring.py
+    python examples/stable_baselines/singleagent_ring.py
 
 Testing your installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -251,7 +251,7 @@ In order to test run an Flow experiment in RLlib, try the following command:
 
 ::
 
-    python examples/rllib/stabilizing_the_ring.py
+    python examples/rllib/singleagent_ring.py
 
 If it does not fail, this means that you have Flow properly configured with
 RLlib.
@@ -293,7 +293,7 @@ command:
 
 ::
 
-    python examples/rllib/stabilizing_the_ring.py
+    python examples/rllib/singleagent_ring.py
 
 If it does not fail, this means that you have Flow properly configured with
 rllib.

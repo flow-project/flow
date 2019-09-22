@@ -1,4 +1,4 @@
-"""Used as an example of sugiyama experiment.
+"""Used as an example of ring experiment.
 
 This example consists of 22 IDM cars on a ring creating shockwaves.
 """
@@ -20,7 +20,7 @@ vehicles.add(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='sugiyama',
+    exp_tag='ring',
 
     # name of the flow environment the experiment is running on
     env_name='AccelEnv',

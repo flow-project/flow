@@ -6,15 +6,15 @@ from ray.tune import run_experiments
 
 from flow.core.experiment import Experiment
 
-from examples.exp_configs.single_agent.figure_eight import flow_params as single_agent_figure_eight
-# from examples.exp_configs.single_agent.green_wave import flow_params as single_agent_green_wave
-from examples.exp_configs.single_agent.stabilizing_highway import flow_params as single_agent_stabilizing_highway
-from examples.exp_configs.single_agent.stabilizing_the_ring import flow_params as single_agent_stabilizing_the_ring
-from examples.exp_configs.single_agent.velocity_bottleneck import flow_params as single_agent_velocity_bottleneck
+from examples.exp_configs.singleagent.singleagent_figure_eight import flow_params as singleagent_figure_eight
+# from examples.exp_configs.singleagent.green_wave import flow_params as singleagent_green_wave
+from examples.exp_configs.singleagent.singleagent_highway import flow_params as singleagent_highway
+from examples.exp_configs.singleagent.singleagent_ring import flow_params as singleagent_ring
+from examples.exp_configs.singleagent.singleagent_bottleneck import flow_params as singleagent_bottleneck
 
 from examples.exp_configs.multiagent.multiagent_figure_eight import flow_params as multiagent_figure_eight
-from examples.exp_configs.multiagent.multiagent_stabilizing_the_ring import \
-    flow_params as multiagent_stabilizing_the_ring
+from examples.exp_configs.multiagent.multiagent_ring import \
+    flow_params as multiagent_ring
 # from examples.exp_configs.multiagent.multiagent_traffic_light_grid import setup_exps_PPO as multi_grid_setup
 # from examples.exp_configs.multiagent.multiagent_traffic_light_grid import \
 #     make_flow_params as multi_grid_setup_flow_params
@@ -25,14 +25,14 @@ from examples.train_rllib import setup_exps as setup_rllib_exps
 
 from examples.exp_configs.non_rl.bay_bridge import flow_params as non_rl_bay_bridge
 from examples.exp_configs.non_rl.bay_bridge_toll import flow_params as non_rl_bay_bridge_toll
-from examples.exp_configs.non_rl.bottlenecks import flow_params as non_rl_bottlenecks
+from examples.exp_configs.non_rl.bottleneck import flow_params as non_rl_bottleneck
 from examples.exp_configs.non_rl.figure_eight import flow_params as non_rl_figure_eight
 from examples.exp_configs.non_rl.traffic_light_grid import flow_params as non_rl_traffic_light_grid
 from examples.exp_configs.non_rl.highway import flow_params as non_rl_highway
 from examples.exp_configs.non_rl.highway_ramps import flow_params as non_rl_highway_ramps
 from examples.exp_configs.non_rl.merge import flow_params as non_rl_merge
 from examples.exp_configs.non_rl.minicity import flow_params as non_rl_minicity
-from examples.exp_configs.non_rl.sugiyama import flow_params as non_rl_sugiyama
+from examples.exp_configs.non_rl.ring import flow_params as non_rl_ring
 
 os.environ['TEST_FLAG'] = 'True'
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -47,8 +47,8 @@ class TestNonRLExamples(unittest.TestCase):
     """
 
     def test_bottleneck(self):
-        """Verify that examples/exp_configs/non_rl/bottlenecks.py is working."""
-        self.run_simulation(non_rl_bottlenecks)
+        """Verify that examples/exp_configs/non_rl/bottleneck.py is working."""
+        self.run_simulation(non_rl_bottleneck)
 
     def test_figure_eight(self):
         """Verify that examples/exp_configs/non_rl/figure_eight.py is working."""
@@ -71,9 +71,9 @@ class TestNonRLExamples(unittest.TestCase):
         """Verify that examples/exp_configs/non_rl/merge.py is working."""
         self.run_simulation(non_rl_merge)
 
-    def test_sugiyama(self):
-        """Verify that examples/exp_configs/non_rl/sugiyama.py is working."""
-        self.run_simulation(non_rl_sugiyama)
+    def test_ring(self):
+        """Verify that examples/exp_configs/non_rl/ring.py is working."""
+        self.run_simulation(non_rl_ring)
 
     def test_bay_bridge(self):
         """Verify that examples/exp_configs/non_rl/bay_bridge.py is working."""
@@ -117,8 +117,8 @@ class TestStableBaselineExamples(unittest.TestCase):
     def run_exp(flow_params):
         run_stable_baselines_model(flow_params, 2, 5, 5)
 
-    def test_figure_eight(self):
-        self.run_exp(single_agent_figure_eight)
+    def test_singleagent_figure_eight(self):
+        self.run_exp(singleagent_figure_eight)
 
     def test_run_traffic_light_grid(self):
         pass  # FIXME
@@ -126,14 +126,14 @@ class TestStableBaselineExamples(unittest.TestCase):
     def test_green_wave_inflows(self):
         pass  # FIXME
 
-    def test_stabilizing_highway(self):
-        self.run_exp(single_agent_stabilizing_highway)
+    def test_singleagent_highway(self):
+        self.run_exp(singleagent_highway)
 
     def test_ring(self):
-        self.run_exp(single_agent_stabilizing_the_ring)
+        self.run_exp(singleagent_ring)
 
     def test_bottleneck(self):
-        self.run_exp(single_agent_velocity_bottleneck)
+        self.run_exp(singleagent_bottleneck)
 
 
 class TestRllibExamples(unittest.TestCase):
@@ -147,8 +147,8 @@ class TestRllibExamples(unittest.TestCase):
         if not ray.is_initialized():
             ray.init(num_cpus=1)
 
-    def test_figure_eight(self):
-        self.run_exp(single_agent_figure_eight)
+    def test_singleagent_figure_eight(self):
+        self.run_exp(singleagent_figure_eight)
 
     def test_traffic_light_grid(self):
         pass  # FIXME
@@ -156,14 +156,14 @@ class TestRllibExamples(unittest.TestCase):
     def test_traffic_light_grid_inflows(self):
         pass  # FIXME
 
-    def test_stabilizing_highway(self):
-        self.run_exp(single_agent_stabilizing_highway)
+    def test_singleagent_highway(self):
+        self.run_exp(singleagent_highway)
 
     def test_ring(self):
-        self.run_exp(single_agent_stabilizing_the_ring)
+        self.run_exp(singleagent_ring)
 
     def test_bottleneck(self):
-        self.run_exp(single_agent_velocity_bottleneck)
+        self.run_exp(singleagent_bottleneck)
 
     def test_multi_figure_eight(self):
         from examples.exp_configs.multiagent.multiagent_figure_eight import POLICY_GRAPHS
@@ -176,16 +176,16 @@ class TestRllibExamples(unittest.TestCase):
         self.run_exp(multiagent_figure_eight, **kwargs)
 
     def test_multi_ring(self):
-        from examples.exp_configs.multiagent.multiagent_stabilizing_the_ring import POLICY_GRAPHS
-        from examples.exp_configs.multiagent.multiagent_stabilizing_the_ring import POLICIES_TO_TRAIN
-        from examples.exp_configs.multiagent.multiagent_stabilizing_the_ring import policy_mapping_fn
+        from examples.exp_configs.multiagent.multiagent_ring import POLICY_GRAPHS
+        from examples.exp_configs.multiagent.multiagent_ring import POLICIES_TO_TRAIN
+        from examples.exp_configs.multiagent.multiagent_ring import policy_mapping_fn
 
         kwargs = {
             "policy_graphs": POLICY_GRAPHS,
             "policies_to_train": POLICIES_TO_TRAIN,
             "policy_mapping_fn": policy_mapping_fn
         }
-        self.run_exp(multiagent_stabilizing_the_ring, **kwargs)
+        self.run_exp(multiagent_ring, **kwargs)
 
     def test_multi_grid(self):
         pass  # FIXME
