@@ -1,11 +1,11 @@
-"""TODO: fill in."""
+"""Fill in . todo."""
 import numpy as np
 import matplotlib.pyplot as plt
 from flow.core.macroscopic.lwr import LWR
 
 
 def plot_points(length, x, density, speed, rho_max, v_max):
-    """TODO: fill in."""
+    """Fill in . todo."""
     # plot current profile during execution
     fig, plots = plt.subplots(2)
     plots[0].plot(x, density, 'b-')

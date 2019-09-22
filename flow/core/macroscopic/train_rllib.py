@@ -42,18 +42,7 @@ def run_training(n_itr, n_rollouts, alg, alg_params, env_name, env_params):
 
 
 def rollout():
-    """TODO.
-
-    Parameters
-    ----------
-    TODO
-        TODO
-
-    Returns
-    -------
-    TODO
-        TODO
-    """
+    """Fill in. todo."""
     pass  # FIXME
 
 

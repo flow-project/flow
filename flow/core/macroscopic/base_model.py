@@ -47,35 +47,35 @@ class MacroModelEnv(gym.Env):
 
         Returns
         -------
-        TODO
-            TODO
-        TODO
-            TODO
-        TODO
-            TODO
-        TODO
-            TODO
+        todo
+            todo
+        todo
+            todo
+        todo
+            todo
+        todo
+            todo
         """
         raise NotImplementedError
 
     def reset(self):
-        """TODO.
+        """Fill in . todo.
 
         Returns
         -------
-        TODO
-            TODO
+        todo
+            todo
         """
         raise NotImplementedError
 
     @property
     def action_space(self):
-        """TODO."""
+        """Fill in . todo."""
         raise NotImplementedError
 
     @property
     def observation_space(self):
-        """TODO."""
+        """Fill in . todo."""
         raise NotImplementedError
 
     def render(self, mode='human'):
