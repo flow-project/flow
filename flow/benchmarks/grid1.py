@@ -39,6 +39,7 @@ vehicles.add(
     car_following_params=SumoCarFollowingParams(
         min_gap=2.5,
         max_speed=V_ENTER,
+        decel=7.5,  # avoid collisions at emergency stops
         speed_mode="right_of_way",
     ),
     routing_controller=(GridRouter, {}),
@@ -59,17 +60,17 @@ for edge in outer_edges:
         edge=edge,
         vehs_per_hour=EDGE_INFLOW,
         departLane="free",
-        departSpeed="max")
+        departSpeed=V_ENTER)
 
 flow_params = dict(
     # name of the experiment
     exp_tag="grid_1",
 
     # name of the flow environment the experiment is running on
-    env_name="PO_TrafficLightGridEnv",
+    env_name="TrafficLightGridPOEnv",
 
-    # name of the scenario class the experiment is running on
-    scenario="SimpleGridScenario",
+    # name of the network class the experiment is running on
+    network="TrafficLightGridNetwork",
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -86,7 +87,7 @@ flow_params = dict(
         horizon=HORIZON,
         additional_params={
             "target_velocity": 50,
-            "switch_time": 2,
+            "switch_time": 3,
             "num_observed": 2,
             "discrete": False,
             "tl_type": "actuated"
@@ -94,10 +95,9 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params={
             "speed_limit": V_ENTER + 5,
             "grid_array": {
@@ -117,7 +117,7 @@ flow_params = dict(
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/

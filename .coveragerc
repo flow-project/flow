@@ -12,7 +12,10 @@ omit =
     *aimsun/run.py
     *aimsun/api.py
     *aimsun/generate.py
+    *aimsun/load.py
 
 exclude_lines =
     if __name__ == .__main__.:
     raise NotImplementedError
+    @ray.remote
+    def policy_mapping_fn*

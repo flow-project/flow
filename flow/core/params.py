@@ -3,7 +3,7 @@
 import logging
 import collections
 
-from flow.utils.flow_warnings import deprecation_warning
+from flow.utils.flow_warnings import deprecated_attribute
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
@@ -37,7 +37,7 @@ class TrafficLightParams:
     def __init__(self, baseline=False):
         """Instantiate base traffic light.
 
-        Parameters
+        Attributes
         ----------
         baseline: bool
         """
@@ -149,9 +149,10 @@ class TrafficLightParams:
         return self.__tls_properties
 
     def actuated_default(self):
-        """
-        Return the default values to be used for the scenario
-        for a system where all junctions are actuated traffic lights.
+        """Return the default values for an actuated network.
+
+        An actuated network is a network for a system where
+        all junctions are actuated traffic lights.
 
         Returns
         -------
@@ -167,22 +168,22 @@ class TrafficLightParams:
             "duration": "31",
             "minDur": "8",
             "maxDur": "45",
-            "state": "GGGrrrGGGrrr"
+            "state": "GrGr"
         }, {
             "duration": "6",
             "minDur": "3",
             "maxDur": "6",
-            "state": "yyyrrryyyrrr"
+            "state": "yryr"
         }, {
             "duration": "31",
             "minDur": "8",
             "maxDur": "45",
-            "state": "rrrGGGrrrGGG"
+            "state": "rGrG"
         }, {
             "duration": "6",
             "minDur": "3",
             "maxDur": "6",
-            "state": "rrryyyrrryyy"
+            "state": "ryry"
         }]
 
         return {
@@ -238,7 +239,7 @@ class VehicleParams:
             lane_change_controller=(SimLaneChangeController, {}),
             routing_controller=None,
             initial_speed=0,
-            num_vehicles=1,
+            num_vehicles=0,
             car_following_params=None,
             lane_change_params=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
@@ -279,12 +280,6 @@ class VehicleParams:
         type_params = {}
         type_params.update(car_following_params.controller_params)
         type_params.update(lane_change_params.controller_params)
-
-        # If a vehicle is not sumo or RL, let the minGap be zero so that it
-        # does not tamper with the dynamics of the controller
-        if acceleration_controller[0] != SimCarFollowingController \
-                and acceleration_controller[0] != RLController:
-            type_params["minGap"] = 0.0
 
         # This dict will be used when trying to introduce new vehicles into
         # the network via a Flow. It is passed to the vehicle kernel object
@@ -344,6 +339,13 @@ class VehicleParams:
         self.types.append({"veh_id": veh_id, "type_params": type_params})
 
     def get_type(self, veh_id):
+        """Return the type of a specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str
+            vehicle ID whose type the user is querying
+        """
         return self.__vehicles[veh_id]["type"]
 
 
@@ -352,7 +354,7 @@ class SimParams(object):
 
     All subsequent parameters of the same type must extend this.
 
-    Parameters
+    Attributes
     ----------
     sim_step : float optional
         seconds per simulation step; 0.1 by default
@@ -382,6 +384,8 @@ class SimParams(object):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
+    color_vehicles : bool, optional
+        whether or not to automatically color vehicles according to their types
     """
 
     def __init__(self,
@@ -392,7 +396,8 @@ class SimParams(object):
                  save_render=False,
                  sight_radius=25,
                  show_radius=False,
-                 pxpm=2):
+                 pxpm=2,
+                 color_vehicles=True):
         """Instantiate SimParams."""
         self.sim_step = sim_step
         self.render = render
@@ -402,6 +407,7 @@ class SimParams(object):
         self.sight_radius = sight_radius
         self.pxpm = pxpm
         self.show_radius = show_radius
+        self.color_vehicles = color_vehicles
 
 
 class AimsunParams(SimParams):
@@ -409,7 +415,7 @@ class AimsunParams(SimParams):
 
     Extends SimParams.
 
-    Parameters
+    Attributes
     ----------
     sim_step : float optional
         seconds per simulation step; 0.1 by default
@@ -440,7 +446,7 @@ class AimsunParams(SimParams):
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
     scenario_name : str, optional
-        name of the scenario generated in Aimsun.
+        name of the network generated in Aimsun.
     experiment_name : str, optional
         name of the experiment generated in Aimsun
     replication_name : str, optional
@@ -460,6 +466,7 @@ class AimsunParams(SimParams):
         the objects contained in this subnetwork. If set to None or if the
         specified subnetwork does not exist, the whole network will be loaded.
     """
+
     def __init__(self,
                  sim_step=0.1,
                  render=False,
@@ -498,7 +505,7 @@ class SumoParams(SimParams):
     specifying whether to use sumo's gui during a run, and other features
     described in the Attributes below.
 
-    Parameters
+    Attributes
     ----------
     port : int, optional
         Port for Traci to connect to; finds an empty port by default
@@ -589,7 +596,7 @@ class EnvParams:
     coefficients to the reward function, as well as specifying how the
     positions of vehicles are modified in between rollouts.
 
-    Parameters
+    Attributes
     ----------
     additional_params : dict, optional
         Specify additional environment params for a specific
@@ -645,43 +652,32 @@ class NetParams:
     lanes, and speed limit.
 
     In order to determine which additional_params variable may be needed
-    for a specific scenario, refer to the ADDITIONAL_NET_PARAMS variable
-    located in the scenario file.
+    for a specific network, refer to the ADDITIONAL_NET_PARAMS variable
+    located in the network file.
 
-    Parameters
+    Attributes
     ----------
-    no_internal_links : bool, optional
-        determines whether the space between edges is finite. Important
-        when using networks with intersections; default is False
     inflows : InFlows type, optional
         specifies the inflows of specific edges and the types of vehicles
         entering the network from these edges
     osm_path : str, optional
         path to the .osm file that should be used to generate the network
-        configuration files. This parameter is only needed / used if the
-        OpenStreetMapScenario class is used.
+        configuration files
     template : str, optional
-        path to the .net.xml file that should be passed to SUMO. This is
-        only needed / used if the NetFileScenario class is used, such as
-        in the case of Bay Bridge experiments (which use a custom net.xml
-        file)
+        path to the network template file that can be used to instantiate a
+        netowrk in the simulator of choice
     additional_params : dict, optional
         network specific parameters; see each subclass for a description of
         what is needed
     """
 
     def __init__(self,
-                 no_internal_links=True,
                  inflows=None,
                  osm_path=None,
                  template=None,
                  additional_params=None):
         """Instantiate NetParams."""
-        self.no_internal_links = no_internal_links
-        if inflows is None:
-            self.inflows = InFlows()
-        else:
-            self.inflows = inflows
+        self.inflows = inflows or InFlows()
         self.osm_path = osm_path
         self.template = template
         self.additional_params = additional_params or {}
@@ -694,7 +690,7 @@ class InitialConfig:
     network at the start of a rollout. By default, vehicles are uniformly
     distributed in the network.
 
-    Parameters
+    Attributes
     ----------
     shuffle : bool, optional  # TODO: remove
         specifies whether the ordering of vehicles in the Vehicles class
@@ -761,7 +757,7 @@ class InitialConfig:
 class SumoCarFollowingParams:
     """Parameters for sumo-controlled acceleration behavior.
 
-    Parameters
+    Attributes
     ----------
     speed_mode : str or int, optional
         may be one of the following:
@@ -815,8 +811,8 @@ class SumoCarFollowingParams:
     def __init__(
             self,
             speed_mode='right_of_way',
-            accel=1.0,
-            decel=1.5,
+            accel=2.6,
+            decel=4.5,
             sigma=0.5,
             tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
             min_gap=2.5,
@@ -829,27 +825,27 @@ class SumoCarFollowingParams:
         """Instantiate SumoCarFollowingParams."""
         # check for deprecations (minGap)
         if "minGap" in kwargs:
-            deprecation_warning(self, "minGap", "min_gap")
+            deprecated_attribute(self, "minGap", "min_gap")
             min_gap = kwargs["minGap"]
 
         # check for deprecations (maxSpeed)
         if "maxSpeed" in kwargs:
-            deprecation_warning(self, "maxSpeed", "max_speed")
+            deprecated_attribute(self, "maxSpeed", "max_speed")
             max_speed = kwargs["maxSpeed"]
 
         # check for deprecations (speedFactor)
         if "speedFactor" in kwargs:
-            deprecation_warning(self, "speedFactor", "speed_factor")
+            deprecated_attribute(self, "speedFactor", "speed_factor")
             speed_factor = kwargs["speedFactor"]
 
         # check for deprecations (speedDev)
         if "speedDev" in kwargs:
-            deprecation_warning(self, "speedDev", "speed_dev")
+            deprecated_attribute(self, "speedDev", "speed_dev")
             speed_dev = kwargs["speedDev"]
 
         # check for deprecations (carFollowModel)
         if "carFollowModel" in kwargs:
-            deprecation_warning(self, "carFollowModel", "car_follow_model")
+            deprecated_attribute(self, "carFollowModel", "car_follow_model")
             car_follow_model = kwargs["carFollowModel"]
 
         # create a controller_params dict with all the specified parameters
@@ -880,7 +876,7 @@ class SumoCarFollowingParams:
 class SumoLaneChangeParams:
     """Parameters for sumo-controlled lane change behavior.
 
-    Parameters
+    Attributes
     ----------
     lane_change_mode : str or int, optional
         may be one of the following:
@@ -953,69 +949,69 @@ class SumoLaneChangeParams:
         """Instantiate SumoLaneChangeParams."""
         # check for deprecations (lcStrategic)
         if "lcStrategic" in kwargs:
-            deprecation_warning(self, "lcStrategic", "lc_strategic")
+            deprecated_attribute(self, "lcStrategic", "lc_strategic")
             lc_strategic = kwargs["lcStrategic"]
 
         # check for deprecations (lcCooperative)
         if "lcCooperative" in kwargs:
-            deprecation_warning(self, "lcCooperative", "lc_cooperative")
+            deprecated_attribute(self, "lcCooperative", "lc_cooperative")
             lc_cooperative = kwargs["lcCooperative"]
 
         # check for deprecations (lcSpeedGain)
         if "lcSpeedGain" in kwargs:
-            deprecation_warning(self, "lcSpeedGain", "lc_speed_gain")
+            deprecated_attribute(self, "lcSpeedGain", "lc_speed_gain")
             lc_speed_gain = kwargs["lcSpeedGain"]
 
         # check for deprecations (lcKeepRight)
         if "lcKeepRight" in kwargs:
-            deprecation_warning(self, "lcKeepRight", "lc_keep_right")
+            deprecated_attribute(self, "lcKeepRight", "lc_keep_right")
             lc_keep_right = kwargs["lcKeepRight"]
 
         # check for deprecations (lcLookaheadLeft)
         if "lcLookaheadLeft" in kwargs:
-            deprecation_warning(self, "lcLookaheadLeft", "lc_look_ahead_left")
+            deprecated_attribute(self, "lcLookaheadLeft", "lc_look_ahead_left")
             lc_look_ahead_left = kwargs["lcLookaheadLeft"]
 
         # check for deprecations (lcSpeedGainRight)
         if "lcSpeedGainRight" in kwargs:
-            deprecation_warning(self, "lcSpeedGainRight",
-                                "lc_speed_gain_right")
+            deprecated_attribute(self, "lcSpeedGainRight",
+                                 "lc_speed_gain_right")
             lc_speed_gain_right = kwargs["lcSpeedGainRight"]
 
         # check for deprecations (lcSublane)
         if "lcSublane" in kwargs:
-            deprecation_warning(self, "lcSublane", "lc_sublane")
+            deprecated_attribute(self, "lcSublane", "lc_sublane")
             lc_sublane = kwargs["lcSublane"]
 
         # check for deprecations (lcPushy)
         if "lcPushy" in kwargs:
-            deprecation_warning(self, "lcPushy", "lc_pushy")
+            deprecated_attribute(self, "lcPushy", "lc_pushy")
             lc_pushy = kwargs["lcPushy"]
 
         # check for deprecations (lcPushyGap)
         if "lcPushyGap" in kwargs:
-            deprecation_warning(self, "lcPushyGap", "lc_pushy_gap")
+            deprecated_attribute(self, "lcPushyGap", "lc_pushy_gap")
             lc_pushy_gap = kwargs["lcPushyGap"]
 
         # check for deprecations (lcAssertive)
         if "lcAssertive" in kwargs:
-            deprecation_warning(self, "lcAssertive", "lc_assertive")
+            deprecated_attribute(self, "lcAssertive", "lc_assertive")
             lc_assertive = kwargs["lcAssertive"]
 
         # check for deprecations (lcImpatience)
         if "lcImpatience" in kwargs:
-            deprecation_warning(self, "lcImpatience", "lc_impatience")
+            deprecated_attribute(self, "lcImpatience", "lc_impatience")
             lc_impatience = kwargs["lcImpatience"]
 
         # check for deprecations (lcTimeToImpatience)
         if "lcTimeToImpatience" in kwargs:
-            deprecation_warning(self, "lcTimeToImpatience",
-                                "lc_time_to_impatience")
+            deprecated_attribute(self, "lcTimeToImpatience",
+                                 "lc_time_to_impatience")
             lc_time_to_impatience = kwargs["lcTimeToImpatience"]
 
         # check for deprecations (lcAccelLat)
         if "lcAccelLat" in kwargs:
-            deprecation_warning(self, "lcAccelLat", "lc_accel_lat")
+            deprecated_attribute(self, "lcAccelLat", "lc_accel_lat")
             lc_accel_lat = kwargs["lcAccelLat"]
 
         # check for valid model
@@ -1070,74 +1066,142 @@ class InFlows:
 
     def __init__(self):
         """Instantiate Inflows."""
-        self.num_flows = 0
         self.__flows = []
 
     def add(self,
-            veh_type,
             edge,
-            name="flow",
-            begin=1,
-            end=2e6,
+            veh_type,
             vehs_per_hour=None,
             probability=None,
+            period=None,
+            depart_lane="first",
+            depart_speed=0,
+            name="flow",
+            begin=1,
+            end=86400,
+            number=None,
             **kwargs):
         r"""Specify a new inflow for a given type of vehicles and edge.
 
         Parameters
         ----------
-        veh_type: str
-            type of vehicles entering the edge, must match one of the types set
-            in the Vehicles class.
-        edge: str
-            starting edge for vehicles in this inflow.
+        edge : str
+            starting edge for the vehicles in this inflow
+        veh_type : str
+            type of the vehicles entering the edge. Must match one of the types
+            set in the Vehicles class
+        vehs_per_hour : float, optional
+            number of vehicles per hour, equally spaced (in vehicles/hour).
+            Cannot be specified together with probability or period
+        probability : float, optional
+            probability for emitting a vehicle each second (between 0 and 1).
+            Cannot be specified together with vehs_per_hour or period
+        period : float, optional
+            insert equally spaced vehicles at that period (in seconds). Cannot
+            be specified together with vehs_per_hour or probability
+        depart_lane : int or str
+            the lane on which the vehicle shall be inserted. Can be either one
+            of:
+
+            * int >= 0: index of the lane (starting with rightmost = 0)
+            * "random": a random lane is chosen, but the vehicle insertion is
+              not retried if it could not be inserted
+            * "free": the most free (least occupied) lane is chosen
+            * "best": the "free" lane (see above) among those who allow the
+              vehicle the longest ride without the need to change lane
+            * "first": the rightmost lane the vehicle may use
+
+            Defaults to "first".
+        depart_speed : float or str
+            the speed with which the vehicle shall enter the network (in m/s)
+            can be either one of:
+
+            - float >= 0: the vehicle is tried to be inserted using the given
+              speed; if that speed is unsafe, departure is delayed
+            - "random": vehicles enter the edge with a random speed between 0
+              and the speed limit on the edge; the entering speed may be
+              adapted to ensure a safe distance to the leading vehicle is kept
+            - "speedLimit": vehicles enter the edge with the maximum speed that
+              is allowed on this edge; if that speed is unsafe, departure is
+              delayed
+
+            Defaults to 0.
         name : str, optional
-            prefix for inflow vehicles
-        begin: float, optional
-            see Note
-        end: float, optional
-            see Note
-        vehs_per_hour: float, optional
-            see vehsPerHour in Note
-        probability: float, optional
-            see Note
-        kwargs: dict, optional
+            prefix for the id of the vehicles entering via this inflow.
+            Defaults to "flow"
+        begin : float, optional
+            first vehicle departure time (in seconds, minimum 1 second).
+            Defaults to 1 second
+        end : float, optional
+            end of departure interval (in seconds). This parameter is not taken
+            into account if 'number' is specified. Defaults to 24 hours
+        number : int, optional
+            total number of vehicles the inflow should create (due to rounding
+            up, this parameter may not be exactly enforced and shouldn't be set
+            too small). Default: infinite (c.f. 'end' parameter)
+        kwargs : dict, optional
             see Note
 
         Note
         ----
-        For information on the parameters start, end, vehs_per_hour, period,
-        probability, number, as well as other vehicle type and routing
+        For information on the parameters start, end, vehs_per_hour,
+        probability, period, number, as well as other vehicle type and routing
         parameters that may be added via \*\*kwargs, refer to:
         http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
-
         """
-        # check for deprecations (vehsPerHour)
+        # check for deprecations
+        def deprecate(old, new):
+            deprecated_attribute(self, old, new)
+            new_val = kwargs[old]
+            del kwargs[old]
+            return new_val
+
         if "vehsPerHour" in kwargs:
-            deprecation_warning(self, "vehsPerHour", "vehs_per_hour")
-            vehs_per_hour = kwargs["vehsPerHour"]
-            # delete since all parameters in kwargs are used again later
-            del kwargs["vehsPerHour"]
+            vehs_per_hour = deprecate("vehsPerHour", "vehs_per_hour")
+        if "departLane" in kwargs:
+            depart_lane = deprecate("departLane", "depart_lane")
+        if "departSpeed" in kwargs:
+            depart_speed = deprecate("departSpeed", "depart_speed")
 
         new_inflow = {
-            "name": "%s_%d" % (name, self.num_flows),
+            "name": "%s_%d" % (name, len(self.__flows)),
             "vtype": veh_type,
             "edge": edge,
+            "departLane": depart_lane,
+            "departSpeed": depart_speed,
+            "begin": begin,
             "end": end
         }
-
         new_inflow.update(kwargs)
 
-        if begin is not None:
-            new_inflow["begin"] = begin
+        inflow_params = [vehs_per_hour, probability, period]
+        n_inflow_params = len(inflow_params) - inflow_params.count(None)
+        if n_inflow_params != 1:
+            raise ValueError(
+                "Exactly one among the three parameters 'vehs_per_hour', "
+                "'probability' and 'period' must be specified in InFlows.add. "
+                "{} were specified.".format(n_inflow_params))
+        if probability is not None and (probability < 0 or probability > 1):
+            raise ValueError(
+                "Inflow.add called with parameter 'probability' set to {}, but"
+                " probability should be between 0 and 1.".format(probability))
+        if begin is not None and begin < 1:
+            raise ValueError(
+                "Inflow.add called with parameter 'begin' set to {}, but begin"
+                " should be greater or equal than 1 second.".format(begin))
+
+        if number is not None:
+            del new_inflow["end"]
+            new_inflow["number"] = number
+
         if vehs_per_hour is not None:
             new_inflow["vehsPerHour"] = vehs_per_hour
         if probability is not None:
             new_inflow["probability"] = probability
+        if period is not None:
+            new_inflow["period"] = period
 
         self.__flows.append(new_inflow)
-
-        self.num_flows += 1
 
     def get(self):
         """Return the inflows of each edge."""

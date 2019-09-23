@@ -57,17 +57,37 @@ def get_flow_params(config):
 
     Parameters
     ----------
-    config : dict
-        stored RLlib configuration dict
+    config : dict < dict > or str
+        May be one of two things:
+
+        * If it is a dict, then it is the stored RLlib configuration dict.
+        * If it is a string, then it is the path to a flow_params json file.
 
     Returns
     -------
     dict
-        Dict of flow parameters, like net_params, env_params, vehicle
-        characteristics, etc
+        flow-related parameters, consisting of the following keys:
+
+         * exp_tag: name of the experiment
+         * env_name: name of the flow environment the experiment is running on
+         * network: name of the network class the experiment uses
+         * simulator: simulator that is used by the experiment (e.g. aimsun)
+         * sim: simulation-related parameters (see flow.core.params.SimParams)
+         * env: environment related parameters (see flow.core.params.EnvParams)
+         * net: network-related parameters (see flow.core.params.NetParams and
+           the network's documentation or ADDITIONAL_NET_PARAMS component)
+         * veh: vehicles to be placed in the network at the start of a rollout
+           (see flow.core.params.VehicleParams)
+         * initial: parameters affecting the positioning of vehicles upon
+           initialization/reset (see flow.core.params.InitialConfig)
+         * tls: traffic lights to be introduced to specific nodes (see
+           flow.core.params.TrafficLightParams)
     """
     # collect all data from the json file
-    flow_params = json.loads(config['env_config']['flow_params'])
+    if type(config) == dict:
+        flow_params = json.loads(config['env_config']['flow_params'])
+    else:
+        flow_params = json.load(open(config, 'r'))
 
     # reinitialize the vehicles class from stored data
     veh = VehicleParams()

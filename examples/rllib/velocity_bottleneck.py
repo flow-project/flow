@@ -78,7 +78,7 @@ additional_env_params = {
 }
 
 # flow rate
-flow_rate = 1900 * SCALING
+flow_rate = 2300 * SCALING
 
 # percentage of flow coming out of each lane
 inflow = InFlows()
@@ -104,7 +104,6 @@ if not DISABLE_RAMP_METER:
 additional_net_params = {"scaling": SCALING, "speed_limit": 23}
 net_params = NetParams(
     inflows=inflow,
-    no_internal_links=False,
     additional_params=additional_net_params)
 
 flow_params = dict(
@@ -112,10 +111,10 @@ flow_params = dict(
     exp_tag="DesiredVelocity",
 
     # name of the flow environment the experiment is running on
-    env_name="DesiredVelocityEnv",
+    env_name="BottleneckDesiredVelocityEnv",
 
-    # name of the scenario class the experiment is running on
-    scenario="BottleneckScenario",
+    # name of the network class the experiment is running on
+    network="BottleneckNetwork",
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -137,15 +136,14 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params,
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/
@@ -164,7 +162,17 @@ flow_params = dict(
 
 
 def setup_exps():
+    """Return the relevant components of an RLlib experiment.
 
+    Returns
+    -------
+    str
+        name of the training algorithm
+    str
+        name of the gym environment to be trained
+    dict
+        training configuration parameters
+    """
     alg_run = "PPO"
 
     agent_cls = get_agent_class(alg_run)
@@ -195,7 +203,7 @@ def setup_exps():
 
 if __name__ == "__main__":
     alg_run, gym_name, config = setup_exps()
-    ray.init(num_cpus=N_CPUS + 1, redirect_output=False)
+    ray.init(num_cpus=N_CPUS + 1)
     trials = run_experiments({
         flow_params["exp_tag"]: {
             "run": alg_run,
@@ -204,6 +212,7 @@ if __name__ == "__main__":
                 **config
             },
             "checkpoint_freq": 20,
+            "checkpoint_at_end": True,
             "max_failures": 999,
             "stop": {
                 "training_iteration": 200,

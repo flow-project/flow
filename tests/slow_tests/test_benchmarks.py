@@ -1,5 +1,7 @@
 import unittest
 import os
+from os import listdir
+from os.path import isfile, join
 import json
 import shutil
 
@@ -14,6 +16,7 @@ from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
+from flow.core.util import ensure_dir
 
 import flow.benchmarks.bottleneck0 as bottleneck0
 import flow.benchmarks.bottleneck1 as bottleneck1
@@ -27,8 +30,12 @@ import flow.benchmarks.merge0 as merge0
 import flow.benchmarks.merge1 as merge1
 import flow.benchmarks.merge2 as merge2
 
+from flow.benchmarks.stable_baselines.trpo_runner import run_model
+from flow.benchmarks.stable_baselines.trpo_runner import parse_args
+from flow.benchmarks.stable_baselines.trpo_runner import save_model
+
 N_CPUS = 1
-ray.init(num_cpus=N_CPUS, redirect_output=True)
+ray.init(num_cpus=N_CPUS)
 
 os.environ['TEST_FLAG'] = 'True'
 
@@ -41,7 +48,7 @@ class TestBenchmarks(unittest.TestCase):
     reported on the website, or other).
     """
 
-    def setup(self):
+    def setUp(self):
         if not os.path.exists('./benchmark_tmp'):
             os.mkdir('benchmark_tmp')
 
@@ -84,7 +91,7 @@ class TestBenchmarks(unittest.TestCase):
     def test_bottleneck0(self):
         """
         Tests flow/benchmark/baselines/bottleneck0.py
-        env_name='DesiredVelocityEnv',
+        env_name='BottleneckDesiredVelocityEnv',
         """
         # run the bottleneck to make sure it runs
         self.ray_runner(1, bottleneck0.flow_params, 0)
@@ -140,7 +147,7 @@ class TestBenchmarks(unittest.TestCase):
     def test_grid0(self):
         """
         Tests flow/benchmark/baselines/grid0.py
-        env_name='PO_TrafficLightGridEnv',
+        env_name='TrafficLightGridPOEnv',
         """
         # run the bottleneck to make sure it runs
         self.ray_runner(1, grid0.flow_params, 0)
@@ -159,7 +166,7 @@ class TestBenchmarks(unittest.TestCase):
     def test_merge0(self):
         """
         Tests flow/benchmark/baselines/merge{0,1,2}.py
-        env_name='WaveAttenuationMergePOEnv',
+        env_name='MergePOEnv',
         """
         # run the bottleneck to make sure it runs
         self.ray_runner(1, merge0.flow_params, 0)
@@ -181,6 +188,43 @@ class TestBenchmarks(unittest.TestCase):
         """
         # run the bottleneck to make sure it runs
         self.ray_runner(1, merge2.flow_params, 2)
+
+
+class TestTRPORunner(unittest.TestCase):
+
+    def test_parse_args(self):
+        # test the base case
+        flags = parse_args(['figureeight0'])
+        self.assertEqual(flags.benchmark_name, 'figureeight0')
+        self.assertEqual(flags.num_steps, 9e6)
+        self.assertEqual(flags.rollout_size, 3e4)
+        self.assertEqual(flags.num_cpus, 1)
+
+        # test num_cpus
+        flags = parse_args(['figureeight0', '--num_cpus', '3'])
+        self.assertEqual(flags.num_cpus, 3)
+
+        # test rollout_size
+        flags = parse_args(['figureeight0', '--rollout_size', '2'])
+        self.assertEqual(flags.rollout_size, 2)
+
+        # test num_steps
+        flags = parse_args(['figureeight0', '--num_steps', '1'])
+        self.assertEqual(flags.num_steps, 1)
+
+    def test_trpo_runner(self):
+        # test run_model on figure eight 0
+        model = run_model(figureeight0.flow_params, 5, 5)
+
+        # test save model
+        ensure_dir("./baseline_results")
+        save_model(model, figureeight0.flow_params, "./baseline_results")
+        files = sorted([f for f in listdir("./baseline_results")
+                        if isfile(join("./baseline_results", f))])
+        self.assertListEqual(files, ['flow_params.json', 'model.pkl'])
+
+        # delete the generated files
+        shutil.rmtree('./baseline_results')
 
 
 if __name__ == '__main__':

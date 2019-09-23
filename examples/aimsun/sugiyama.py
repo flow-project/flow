@@ -8,7 +8,7 @@ from flow.core.experiment import Experiment
 from flow.core.params import AimsunParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
 from flow.envs import TestEnv
-from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
+from flow.networks.ring import RingNetwork, ADDITIONAL_NET_PARAMS
 
 
 def sugiyama_example(render=None):
@@ -25,7 +25,7 @@ def sugiyama_example(render=None):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a ring road.
     """
-    sim_params = AimsunParams(sim_step=0.1, render=True, emission_path='data')
+    sim_params = AimsunParams(sim_step=0.5, render=True, emission_path='data')
 
     if render is not None:
         sim_params.render = render
@@ -43,13 +43,13 @@ def sugiyama_example(render=None):
 
     initial_config = InitialConfig(bunching=20)
 
-    scenario = LoopScenario(
+    network = RingNetwork(
         name="sugiyama",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = TestEnv(env_params, sim_params, scenario, simulator='aimsun')
+    env = TestEnv(env_params, sim_params, network, simulator='aimsun')
 
     return Experiment(env)
 

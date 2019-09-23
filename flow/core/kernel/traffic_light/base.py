@@ -12,7 +12,7 @@ class KernelTrafficLight(object):
       certain traffic lights at a given time step. This can be done by calling
       the following method:
 
-        >>> from flow.envs.base_env import Env
+        >>> from flow.envs.base import Env
         >>> env = Env(...)
         >>> node_id = 'test_intersection'  # name of the node
         >>> env.k.traffic_light.set_state(node_id, 'r')

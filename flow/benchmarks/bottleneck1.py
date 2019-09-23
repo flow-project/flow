@@ -16,7 +16,7 @@ from flow.core.params import VehicleParams
 from flow.controllers import RLController, ContinuousRouter
 
 # time horizon of a single rollout
-HORIZON = 1000
+HORIZON = 1500
 
 SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
@@ -61,11 +61,11 @@ additional_env_params = {
     "lane_change_duration": 5,
     "max_accel": 3,
     "max_decel": 3,
-    "inflow_range": [1000, 2000]
+    "inflow_range": [1200, 2500]
 }
 
 # flow rate
-flow_rate = 1900 * SCALING
+flow_rate = 2000 * SCALING
 
 # percentage of flow coming out of each lane
 inflow = InFlows()
@@ -91,7 +91,6 @@ if not DISABLE_RAMP_METER:
 additional_net_params = {"scaling": SCALING, "speed_limit": 23}
 net_params = NetParams(
     inflows=inflow,
-    no_internal_links=False,
     additional_params=additional_net_params)
 
 flow_params = dict(
@@ -99,10 +98,10 @@ flow_params = dict(
     exp_tag="bottleneck_1",
 
     # name of the flow environment the experiment is running on
-    env_name="DesiredVelocityEnv",
+    env_name="BottleneckDesiredVelocityEnv",
 
-    # name of the scenario class the experiment is running on
-    scenario="BottleneckScenario",
+    # name of the network class the experiment is running on
+    network="BottleneckNetwork",
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -124,15 +123,14 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params,
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/

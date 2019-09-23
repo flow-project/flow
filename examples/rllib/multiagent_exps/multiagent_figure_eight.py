@@ -1,6 +1,8 @@
-"""Example of a multi-agent environment containing a figure eight with
-one autonomous vehicle and an adversary that is allowed to perturb
-the accelerations of figure eight."""
+"""Example of a multi-agent environment containing a figure eight.
+
+This example consists of one autonomous vehicle and an adversary that is
+allowed to perturb the accelerations of figure eight.
+"""
 
 # WARNING: Expected total reward is zero as adversary reward is
 # the negative of the AV reward
@@ -13,7 +15,7 @@ try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
-from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
+from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 from ray import tune
 from ray.tune.registry import register_env
 from ray.tune import run_experiments
@@ -27,7 +29,7 @@ from flow.core.params import NetParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import VehicleParams
-from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
+from flow.networks.figure_eight import ADDITIONAL_NET_PARAMS
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
@@ -66,8 +68,8 @@ flow_params = dict(
     # name of the flow environment the experiment is running on
     env_name='MultiAgentAccelEnv',
 
-    # name of the scenario class the experiment is running on
-    scenario='Figure8Scenario',
+    # name of the network class the experiment is running on
+    network='FigureEightNetwork',
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -91,14 +93,13 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        no_internal_links=False,
         additional_params=deepcopy(ADDITIONAL_NET_PARAMS),
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/
@@ -108,7 +109,17 @@ flow_params = dict(
 
 
 def setup_exps():
+    """Return the relevant components of an RLlib experiment.
 
+    Returns
+    -------
+    str
+        name of the training algorithm
+    str
+        name of the gym environment to be trained
+    dict
+        training configuration parameters
+    """
     alg_run = 'PPO'
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
@@ -142,7 +153,7 @@ def setup_exps():
     act_space = test_env.action_space
 
     def gen_policy():
-        return (PPOPolicyGraph, obs_space, act_space, {})
+        return PPOTFPolicy, obs_space, act_space, {}
 
     # Setup PG with an ensemble of `num_policies` different policy graphs
     policy_graphs = {'av': gen_policy(), 'adversary': gen_policy()}
@@ -152,7 +163,7 @@ def setup_exps():
 
     config.update({
         'multiagent': {
-            'policy_graphs': policy_graphs,
+            'policies': policy_graphs,
             'policy_mapping_fn': tune.function(policy_mapping_fn)
         }
     })

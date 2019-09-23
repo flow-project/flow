@@ -1,10 +1,10 @@
-"""This script contains of series of reward functions."""
+"""A series of reward functions."""
 
 import numpy as np
 
 
 def desired_velocity(env, fail=False, edge_list=None):
-    """Encourage proximity to a desired velocity.
+    r"""Encourage proximity to a desired velocity.
 
     This function measures the deviation of a system of vehicles from a
     user-specified desired velocity peaking when all vehicles in the ring
@@ -60,6 +60,24 @@ def desired_velocity(env, fail=False, edge_list=None):
 
 
 def average_velocity(env, fail=False):
+    """Encourage proximity to an average velocity.
+
+    This reward function returns the average velocity of all
+    vehicles in the system.
+
+    Parameters
+    ----------
+    env : flow.envs.Env
+        the environment variable, which contains information on the current
+        state of the system.
+    fail : bool, optional
+        specifies if any crash or other failure occurred in the system
+
+    Returns
+    -------
+    float
+        reward value
+    """
     vel = np.array(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
 
     if any(vel < -100) or fail:
@@ -70,17 +88,8 @@ def average_velocity(env, fail=False):
     return np.mean(vel)
 
 
-def total_velocity(env, fail=False):
-    vel = np.array(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
-
-    if any(vel < -100) or fail:
-        return 0.
-    if len(vel) != 0:
-        return sum(vel)
-
-
 def rl_forward_progress(env, gain=0.1):
-    """A reward function used to reward the RL vehicles travelling forward.
+    """Rewared function used to reward the RL vehicles for travelling forward.
 
     Parameters
     ----------
@@ -101,12 +110,12 @@ def rl_forward_progress(env, gain=0.1):
 
 
 def boolean_action_penalty(discrete_actions, gain=1.0):
-    """Penalize boolean actions that indicate a switch"""
+    """Penalize boolean actions that indicate a switch."""
     return gain * np.sum(discrete_actions)
 
 
 def min_delay(env):
-    """A reward function used to encourage minimization of total delay.
+    """Reward function used to encourage minimization of total delay.
 
     This function measures the deviation of a system of vehicles from all the
     vehicles smoothly travelling at a fixed speed to their destinations.
@@ -126,8 +135,8 @@ def min_delay(env):
 
     vel = vel[vel >= -1e-6]
     v_top = max(
-        env.k.scenario.speed_limit(edge)
-        for edge in env.k.scenario.get_edge_list())
+        env.k.network.speed_limit(edge)
+        for edge in env.k.network.get_edge_list())
     time_step = env.sim_step
 
     max_cost = time_step * sum(vel.shape)
@@ -139,8 +148,36 @@ def min_delay(env):
     return max((max_cost - cost) / (max_cost + eps), 0)
 
 
+def avg_delay_specified_vehicles(env, veh_ids):
+    """Calculate the average delay for a set of vehicles in the system.
+
+    Parameters
+    ----------
+    env: flow.envs.Env
+        the environment variable, which contains information on the current
+        state of the system.
+    veh_ids: a list of the ids of the vehicles, for which we are calculating
+        average delay
+    Returns
+    -------
+    float
+        average delay
+    """
+    sum = 0
+    for edge in env.k.network.get_edge_list():
+        for veh_id in env.k.vehicle.get_ids_by_edge(edge):
+            v_top = env.k.network.speed_limit(edge)
+            sum += (v_top - env.k.vehicle.get_speed(veh_id)) / v_top
+    time_step = env.sim_step
+    try:
+        cost = time_step * sum
+        return cost / len(veh_ids)
+    except ZeroDivisionError:
+        return 0
+
+
 def min_delay_unscaled(env):
-    """The average delay for all vehicles in the system
+    """Return the average delay for all vehicles in the system.
 
     Parameters
     ----------
@@ -157,8 +194,8 @@ def min_delay_unscaled(env):
 
     vel = vel[vel >= -1e-6]
     v_top = max(
-        env.k.scenario.speed_limit(edge)
-        for edge in env.k.scenario.get_edge_list())
+        env.k.network.speed_limit(edge)
+        for edge in env.k.network.get_edge_list())
     time_step = env.sim_step
 
     # epsilon term (to deal with ZeroDivisionError exceptions)
@@ -169,7 +206,7 @@ def min_delay_unscaled(env):
 
 
 def penalize_standstill(env, gain=1):
-    """A reward function that penalizes vehicle standstill
+    """Reward function that penalizes vehicle standstill.
 
     Is it better for this to be:
         a) penalize standstill in general?
@@ -196,6 +233,22 @@ def penalize_standstill(env, gain=1):
 
 
 def penalize_near_standstill(env, thresh=0.3, gain=1):
+    """Reward function which penalizes vehicles at a low velocity.
+
+    This reward function is used to penalize vehicles below a
+    specified threshold. This assists with discouraging RL from
+    gamifying a scenario, which can result in standstill behavior
+    or similarly bad, near-zero velocities.
+
+    Parameters
+    ----------
+    env : flow.envs.Env
+        the environment variable, which contains information on the current
+    thresh : float
+        the velocity threshold below which penalties are applied
+    gain : float
+        multiplicative factor on the action penalty
+    """
     veh_ids = env.k.vehicle.get_ids()
     vel = np.array(env.k.vehicle.get_speed(veh_ids))
     penalize = len(vel[vel < thresh])
@@ -208,7 +261,7 @@ def penalize_headway_variance(vehicles,
                               normalization=1,
                               penalty_gain=1,
                               penalty_exponent=1):
-    """A reward function used to train rl vehicles to encourage large headways
+    """Reward function used to train rl vehicles to encourage large headways.
 
     Parameters
     ----------
@@ -231,37 +284,6 @@ def penalize_headway_variance(vehicles,
     return -np.var(headways)
 
 
-def punish_small_rl_headways(env,
-                             headway_threshold=5,
-                             penalty_gain=1,
-                             penalty_exponent=1):
-    """A reward function used to train rl vehicles to avoid small headways.
-
-    A penalty is issued whenever rl vehicles are below a pre-defined desired
-    headway.
-
-    Parameters
-    ----------
-    env : flow.envs.Env
-        the environment variable, which contains information on the current
-        state of the system.
-    headway_threshold : float
-        the maximum headway allowed for rl vehicles before being penalized
-    penalty_gain : float, optional
-        sets the penalty for each rl vehicle between 0 and this value
-    penalty_exponent : float, optional
-        used to allow exponential punishing of smaller headways
-    """
-    headway_penalty = 0
-    for veh_id in env.k.vehicle.get_rl_ids():
-        if env.k.vehicle.get_headway(veh_id) < headway_threshold:
-            headway_penalty += \
-                (((headway_threshold - env.k.vehicle.get_headway(veh_id)) /
-                  headway_threshold) ** penalty_exponent) * penalty_gain
-
-    return -np.abs(headway_penalty)
-
-
 def punish_rl_lane_changes(env, penalty=1):
     """Penalize an RL vehicle performing lane changes.
 
@@ -282,66 +304,3 @@ def punish_rl_lane_changes(env, penalty=1):
             total_lane_change_penalty -= penalty
 
     return total_lane_change_penalty
-
-
-def punish_queues_in_lane(env, edge, lane, penalty_gain=1, penalty_exponent=1):
-    """Punish queues in certain lanes of edge '3'.
-
-    TODO: specify what scenario this is used by
-
-    Parameters
-    ----------
-    env : flow.envs.Env
-        contains the state of the environment at a time-step
-    edge: str
-        The edge on which to penalize queues
-    lane : int
-        The lane in which to penalize queues
-    penalty_gain : int, optional
-        Multiplier on number of cars in the lane
-    penalty_exponent : int, optional
-        Exponent on number of cars in the lane
-
-    Returns
-    -------
-    float
-        total reward (in this case a negative cost) corresponding to the queues
-        in the lane in question
-    """
-    # IDs of all vehicles in passed-in lane
-    lane_ids = [
-        veh_id for veh_id in env.k.vehicle.get_ids_by_edge(edge)
-        if env.k.vehicle.get_lane(veh_id) == lane
-    ]
-
-    return -1 * (len(lane_ids) ** penalty_exponent) * penalty_gain
-
-
-def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
-    """Reward RL vehicles opening large headways.
-
-    Parameters
-    ----------
-    env : flow.envs.Env
-        contains the state of the environment at a time-step
-    reward_gain : int, optional
-        Multiplicative gain on reward
-    reward_exponent : int, optional
-        Exponent gain on reward
-
-    Returns
-    -------
-    float
-        Reward value
-    """
-    total_reward = 0
-    for rl_id in env.k.vehicle.get_rl_ids():
-        follower_id = env.k.vehicle.get_follower(rl_id)
-        if not follower_id:
-            continue
-        follower_headway = env.k.vehicle.get_headway(follower_id)
-        if follower_headway < 0:
-            continue
-        total_reward += follower_headway ** reward_exponent
-
-    return total_reward * reward_gain

@@ -38,13 +38,13 @@ def grid1_baseline(num_runs, render=True):
     # define the traffic light logic
     tl_logic = TrafficLightParams(baseline=False)
     phases = [{'duration': '31', 'minDur': '5', 'maxDur': '45',
-               'state': 'GGGrrrGGGrrr'},
+               "state": "GrGr"},
               {'duration': '2', 'minDur': '2', 'maxDur': '2',
-               'state': 'yyyrrryyyrrr'},
+               "state": "yryr"},
               {'duration': '31', 'minDur': '5', 'maxDur': '45',
-               'state': 'rrrGGGrrrGGG'},
+               "state": "rGrG"},
               {'duration': '2', 'minDur': '2', 'maxDur': '2',
-               'state': 'rrryyyrrryyy'}]
+               "state": "ryry"}]
     for i in range(N_ROWS*N_COLUMNS):
         tl_logic.add('center'+str(i), tls_type='actuated', phases=phases,
                      programID=1)
@@ -55,12 +55,12 @@ def grid1_baseline(num_runs, render=True):
     # set the evaluation flag to True
     env_params.evaluate = True
 
-    # import the scenario class
-    module = __import__('flow.scenarios', fromlist=[flow_params['scenario']])
-    scenario_class = getattr(module, flow_params['scenario'])
+    # import the network class
+    module = __import__('flow.networks', fromlist=[flow_params['network']])
+    network_class = getattr(module, flow_params['network'])
 
-    # create the scenario object
-    scenario = scenario_class(
+    # create the network object
+    network = network_class(
         name=exp_tag,
         vehicles=vehicles,
         net_params=net_params,
@@ -73,7 +73,7 @@ def grid1_baseline(num_runs, render=True):
     env_class = getattr(module, flow_params['env_name'])
 
     # create the environment object
-    env = env_class(env_params, sim_params, scenario)
+    env = env_class(env_params, sim_params, network)
 
     exp = Experiment(env)
 

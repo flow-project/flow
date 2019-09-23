@@ -1,4 +1,5 @@
 """Runs the environments located in flow/benchmarks.
+
 The environment file can be modified in the imports to change the environment
 this runner script is executed on. This file runs the PPO algorithm in rllib
 and utilizes the hyper-parameters specified in:
@@ -75,7 +76,7 @@ if __name__ == "__main__":
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
     # initialize a ray instance
-    ray.init(redirect_output=True)
+    ray.init()
 
     alg_run = "PPO"
 

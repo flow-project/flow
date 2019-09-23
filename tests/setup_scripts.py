@@ -1,4 +1,4 @@
-"""Specifies several methods for creating scenarios and environments.
+"""Specifies several methods for creating networks and environments.
 
 This allows us to reduce the number of times these features are specified when
 creating new tests, as all tests follow approximately the same format.
@@ -14,12 +14,12 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import VehicleParams
-from flow.envs.green_wave_env import GreenWaveTestEnv
-from flow.envs.loop.loop_accel import AccelEnv
-from flow.scenarios.figure_eight import Figure8Scenario
-from flow.scenarios.grid import SimpleGridScenario
-from flow.scenarios.highway import HighwayScenario
-from flow.scenarios.loop import LoopScenario
+from flow.envs.traffic_light_grid import TrafficLightGridTestEnv
+from flow.envs.ring.accel import AccelEnv
+from flow.networks.figure_eight import FigureEightNetwork
+from flow.networks.traffic_light_grid import TrafficLightGridNetwork
+from flow.networks.highway import HighwayNetwork
+from flow.networks.ring import RingNetwork
 
 
 def ring_road_exp_setup(sim_params=None,
@@ -29,7 +29,7 @@ def ring_road_exp_setup(sim_params=None,
                         initial_config=None,
                         traffic_lights=None):
     """
-    Create an environment and scenario pair for ring road test experiments.
+    Create an environment and network pair for ring road test experiments.
 
     Parameters
     ----------
@@ -97,8 +97,8 @@ def ring_road_exp_setup(sim_params=None,
         # set default to no traffic lights
         traffic_lights = TrafficLightParams()
 
-    # create the scenario
-    scenario = LoopScenario(
+    # create the network
+    network = RingNetwork(
         name="RingRoadTest",
         vehicles=vehicles,
         net_params=net_params,
@@ -107,12 +107,12 @@ def ring_road_exp_setup(sim_params=None,
 
     # create the environment
     env = AccelEnv(
-        env_params=env_params, sim_params=sim_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, network=network)
 
     # reset the environment
     env.reset()
 
-    return env, scenario
+    return env, network
 
 
 def figure_eight_exp_setup(sim_params=None,
@@ -122,7 +122,7 @@ def figure_eight_exp_setup(sim_params=None,
                            initial_config=None,
                            traffic_lights=None):
     """
-    Create an environment and scenario pair for figure eight test experiments.
+    Create an environment and network pair for figure eight test experiments.
 
     Parameters
     ----------
@@ -137,7 +137,7 @@ def figure_eight_exp_setup(sim_params=None,
         failsafes, where other parameters do not matter for non-rl runs
     net_params : flow.core.params.NetParams
         network-specific configuration parameters, defaults to a figure eight
-        with a 30 m radius and "no_internal_links" set to False
+        with a 30 m radius
     initial_config : flow.core.params.InitialConfig
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
@@ -180,8 +180,7 @@ def figure_eight_exp_setup(sim_params=None,
             "speed_limit": 30,
             "resolution": 40
         }
-        net_params = NetParams(
-            no_internal_links=False, additional_params=additional_net_params)
+        net_params = NetParams(additional_params=additional_net_params)
 
     if initial_config is None:
         # set default initial_config configuration
@@ -191,9 +190,9 @@ def figure_eight_exp_setup(sim_params=None,
         # set default to no traffic lights
         traffic_lights = TrafficLightParams()
 
-    # create the scenario
-    scenario = Figure8Scenario(
-        name="RingRoadTest",
+    # create the network
+    network = FigureEightNetwork(
+        name="FigureEightTest",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -201,12 +200,12 @@ def figure_eight_exp_setup(sim_params=None,
 
     # create the environment
     env = AccelEnv(
-        env_params=env_params, sim_params=sim_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, network=network)
 
     # reset the environment
     env.reset()
 
-    return env, scenario
+    return env, network
 
 
 def highway_exp_setup(sim_params=None,
@@ -216,7 +215,7 @@ def highway_exp_setup(sim_params=None,
                       initial_config=None,
                       traffic_lights=None):
     """
-    Create an environment and scenario pair for highway test experiments.
+    Create an environment and network pair for highway test experiments.
 
     Parameters
     ----------
@@ -285,8 +284,8 @@ def highway_exp_setup(sim_params=None,
         # set default to no traffic lights
         traffic_lights = TrafficLightParams()
 
-    # create the scenario
-    scenario = HighwayScenario(
+    # create the network
+    network = HighwayNetwork(
         name="RingRoadTest",
         vehicles=vehicles,
         net_params=net_params,
@@ -295,31 +294,31 @@ def highway_exp_setup(sim_params=None,
 
     # create the environment
     env = AccelEnv(
-        env_params=env_params, sim_params=sim_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, network=network)
 
     # reset the environment
     env.reset()
 
-    return env, scenario
+    return env, network
 
 
-def grid_mxn_exp_setup(row_num=1,
-                       col_num=1,
-                       sim_params=None,
-                       vehicles=None,
-                       env_params=None,
-                       net_params=None,
-                       initial_config=None,
-                       tl_logic=None):
+def traffic_light_grid_mxn_exp_setup(row_num=1,
+                                     col_num=1,
+                                     sim_params=None,
+                                     vehicles=None,
+                                     env_params=None,
+                                     net_params=None,
+                                     initial_config=None,
+                                     tl_logic=None):
     """
-    Create an environment and scenario pair for grid 1x1 test experiments.
+    Create an environment and network pair for traffic light grid 1x1 test experiments.
 
     Parameters
     ----------
     row_num: int, optional
-        number of horizontal rows of edges in the grid network
+        number of horizontal rows of edges in the traffic light grid network
     col_num: int, optional
-        number of vertical columns of edges in the grid network
+        number of vertical columns of edges in the traffic light grid network
     sim_params : flow.core.params.SumoParams
         sumo-related configuration parameters, defaults to a time step of 1s
         and no sumo-imposed failsafe on human or rl vehicles
@@ -331,8 +330,8 @@ def grid_mxn_exp_setup(row_num=1,
         environment-specific parameters, defaults to a environment with
         failsafes, where other parameters do not matter for non-rl runs
     net_params : flow.core.params.NetParams
-        network-specific configuration parameters, defaults to a 1x1 grid
-        which traffic lights on and "no_internal_links" set to False
+        network-specific configuration parameters, defaults to a 1x1 traffic
+        light grid with traffic lights on
     initial_config : flow.core.params.InitialConfig
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
@@ -349,7 +348,9 @@ def grid_mxn_exp_setup(row_num=1,
         sim_params = SumoParams(sim_step=1, render=False)
 
     if vehicles is None:
-        total_vehicles = 20
+        vehicles_per_edge = 5
+        num_edges = 2 * (row_num + col_num)
+        total_vehicles = num_edges * vehicles_per_edge
         vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
@@ -375,6 +376,10 @@ def grid_mxn_exp_setup(row_num=1,
         # set default net_params configuration
         total_vehicles = vehicles.num_vehicles
         num_entries = 2 * row_num + 2 * col_num
+        assert total_vehicles % num_entries == 0, "{} total vehicles should " \
+                                                  "be divisible by {" \
+                                                  "}".format(total_vehicles,
+                                                             num_entries)
         grid_array = {
             "short_length": 100,
             "inner_length": 300,
@@ -397,16 +402,15 @@ def grid_mxn_exp_setup(row_num=1,
             "vertical_lanes": 1
         }
 
-        net_params = NetParams(
-            no_internal_links=False, additional_params=additional_net_params)
+        net_params = NetParams(additional_params=additional_net_params)
 
     if initial_config is None:
         # set default initial_config configuration
         initial_config = InitialConfig(
             spacing="custom", additional_params={"enter_speed": 30})
 
-    # create the scenario
-    scenario = SimpleGridScenario(
+    # create the network
+    network = TrafficLightGridNetwork(
         name="Grid1x1Test",
         vehicles=vehicles,
         net_params=net_params,
@@ -414,13 +418,13 @@ def grid_mxn_exp_setup(row_num=1,
         traffic_lights=tl_logic)
 
     # create the environment
-    env = GreenWaveTestEnv(
-        env_params=env_params, sim_params=sim_params, scenario=scenario)
+    env = TrafficLightGridTestEnv(
+        env_params=env_params, sim_params=sim_params, network=network)
 
     # reset the environment
     env.reset()
 
-    return env, scenario
+    return env, network
 
 
 def variable_lanes_exp_setup(sim_params=None,
@@ -430,9 +434,9 @@ def variable_lanes_exp_setup(sim_params=None,
                              initial_config=None,
                              traffic_lights=None):
     """
-    Create an environment and scenario variable-lane ring road.
+    Create an environment and network variable-lane ring road.
 
-    Each edge in this scenario can have a different number of lanes. Used for
+    Each edge in this network can have a different number of lanes. Used for
     test purposes.
 
     Parameters
@@ -448,7 +452,7 @@ def variable_lanes_exp_setup(sim_params=None,
         failsafes, where other parameters do not matter for non-rl runs
     net_params : flow.core.params.NetParams
         network-specific configuration parameters, defaults to a figure eight
-        with a 30 m radius and "no_internal_links" set to False
+        with a 30 m radius
     initial_config : flow.core.params.InitialConfig
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
@@ -501,8 +505,8 @@ def variable_lanes_exp_setup(sim_params=None,
         # set default to no traffic lights
         traffic_lights = TrafficLightParams()
 
-    # create the scenario
-    scenario = VariableLanesScenario(
+    # create the network
+    network = VariableLanesNetwork(
         name="VariableLaneRingRoadTest",
         vehicles=vehicles,
         net_params=net_params,
@@ -511,15 +515,15 @@ def variable_lanes_exp_setup(sim_params=None,
 
     # create the environment
     env = AccelEnv(
-        env_params=env_params, sim_params=sim_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, network=network)
 
     # reset the environment
     env.reset()
 
-    return env, scenario
+    return env, network
 
 
-class VariableLanesScenario(LoopScenario):
+class VariableLanesNetwork(RingNetwork):
     """Instantiate a ring road with variable number of lanes per edge."""
 
     def specify_edges(self, net_params):

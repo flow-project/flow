@@ -5,8 +5,8 @@ from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.minicity import MiniCityScenario
+from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.networks.minicity import MiniCityNetwork
 from flow.controllers.routing_controllers import MinicityRouter
 import numpy as np
 
@@ -18,9 +18,7 @@ def minicity_example(render=None,
                      sight_radius=None,
                      pxpm=None,
                      show_radius=None):
-    """
-    Perform a simulation of vehicles on modified minicity of University of
-    Delaware.
+    """Perform a simulation of modified minicity of University of Delaware.
 
     Parameters
     ----------
@@ -31,7 +29,7 @@ def minicity_example(render=None,
     -------
     exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
-        vehicles on the minicity scenario.
+        vehicles on the minicity network.
     """
     sim_params = SumoParams(sim_step=0.25)
 
@@ -67,19 +65,19 @@ def minicity_example(render=None,
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    net_params = NetParams(no_internal_links=False)
+    net_params = NetParams()
 
     initial_config = InitialConfig(
         spacing="random",
         min_gap=5
     )
-    scenario = MiniCityScenario(
+    network = MiniCityNetwork(
         name="minicity",
         vehicles=vehicles,
         initial_config=initial_config,
         net_params=net_params)
 
-    env = AccelEnv(env_params, sim_params, scenario)
+    env = AccelEnv(env_params, sim_params, network)
 
     return Experiment(env)
 

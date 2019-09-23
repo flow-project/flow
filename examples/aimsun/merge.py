@@ -7,9 +7,9 @@ point before exiting the network.
 
 import flow.core.params as params
 from flow.core.experiment import Experiment
-from flow.scenarios.merge import MergeScenario, ADDITIONAL_NET_PARAMS
+from flow.networks.merge import MergeNetwork, ADDITIONAL_NET_PARAMS
 from flow.controllers import IDMController
-from flow.envs.merge import WaveAttenuationMergePOEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.merge import MergePOEnv, ADDITIONAL_ENV_PARAMS
 
 # inflow rate at the highway
 HIGHWAY_RATE = 2000
@@ -34,7 +34,7 @@ def merge_example(render=None):
     sim_params = params.AimsunParams(
         render=True,
         emission_path="./data/",
-        sim_step=0.2,
+        sim_step=0.5,
         restart_instance=False)
 
     if render is not None:
@@ -73,19 +73,17 @@ def merge_example(render=None):
     additional_net_params["pre_merge_length"] = 500
     net_params = params.NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params)
 
     initial_config = params.InitialConfig()
 
-    scenario = MergeScenario(
+    network = MergeNetwork(
         name="merge-baseline",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = WaveAttenuationMergePOEnv(
-        env_params, sim_params, scenario, simulator='aimsun')
+    env = MergePOEnv(env_params, sim_params, network, simulator='aimsun')
 
     return Experiment(env)
 

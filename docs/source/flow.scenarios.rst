@@ -1,7 +1,7 @@
-flow.scenarios package
+flow.networks package
 ======================
 
-.. automodule:: flow.scenarios
+.. automodule:: flow.networks
     :members:
     :undoc-members:
     :show-inheritance:

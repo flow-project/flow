@@ -1,15 +1,15 @@
-"""Grid example."""
+"""Traffic Light Grid example."""
 from flow.core.experiment import Experiment
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import AimsunParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.grid import SimpleGridScenario
+from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.networks import TrafficLightGridNetwork
 
 
-def grid_example(render=None):
+def traffic_light_grid_example(render=None):
     """
-    Perform a simulation of vehicles on a grid.
+    Perform a simulation of vehicles on a traffic light grid.
 
     Parameters
     ----------
@@ -20,7 +20,7 @@ def grid_example(render=None):
     -------
     exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
-        vehicles and balanced traffic lights on a grid.
+        vehicles and balanced traffic lights on a traffic light grid.
     """
     inner_length = 300
     long_length = 500
@@ -46,7 +46,7 @@ def grid_example(render=None):
         "cars_bot": num_cars_bot
     }
 
-    sim_params = SumoParams(sim_step=0.1, render=True)
+    sim_params = AimsunParams(sim_step=0.5, render=True)
 
     if render is not None:
         sim_params.render = render
@@ -97,26 +97,25 @@ def grid_example(render=None):
         "horizontal_lanes": 1,
         "vertical_lanes": 1
     }
-    net_params = NetParams(
-        no_internal_links=False, additional_params=additional_net_params)
+    net_params = NetParams(additional_params=additional_net_params)
 
     initial_config = InitialConfig(spacing='custom')
 
-    scenario = SimpleGridScenario(
+    network = TrafficLightGridNetwork(
         name="grid-intersection",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
         traffic_lights=tl_logic)
 
-    env = AccelEnv(env_params, sim_params, scenario, simulator='aimsun')
+    env = AccelEnv(env_params, sim_params, network, simulator='aimsun')
 
     return Experiment(env)
 
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = grid_example()
+    exp = traffic_light_grid_example()
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

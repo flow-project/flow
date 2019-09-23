@@ -1,19 +1,20 @@
 import unittest
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, \
-    NetParams, SumoCarFollowingParams
+    NetParams, SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
 from flow.controllers import RLController
-from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.utils.exceptions import FatalFlowError
 from flow.envs import Env, TestEnv
 
 from tests.setup_scripts import ring_road_exp_setup, highway_exp_setup
 import os
 import numpy as np
+import gym.spaces as spaces
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -45,8 +46,8 @@ class TestShuffle(unittest.TestCase):
 
         initial_config = InitialConfig(x0=5, shuffle=True)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(
             env_params=env_params,
             initial_config=initial_config,
             vehicles=vehicles)
@@ -85,8 +86,8 @@ class TestEmissionPath(unittest.TestCase):
         # set sim_params to default
         sim_params = SumoParams()
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(sim_params=sim_params)
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(sim_params=sim_params)
 
     def tearDown(self):
         # terminate the traci instance
@@ -102,7 +103,7 @@ class TestEmissionPath(unittest.TestCase):
 class TestApplyingActionsWithSumo(unittest.TestCase):
     """
     Tests the apply_acceleration, apply_lane_change, and choose_routes
-    functions in base_env.py
+    functions in base.py
     """
 
     def setUp(self):
@@ -127,10 +128,12 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
             routing_controller=(ContinuousRouter, {}),
             car_following_params=SumoCarFollowingParams(
                 accel=1000, decel=1000),
+            lane_change_params=SumoLaneChangeParams(
+                lane_change_mode=0),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(
             net_params=net_params, env_params=env_params, vehicles=vehicles)
 
     def tearDown(self):
@@ -261,7 +264,7 @@ class TestWarmUpSteps(unittest.TestCase):
         # than one
         env_params = EnvParams(
             warmup_steps=warmup_step, additional_params=ADDITIONAL_ENV_PARAMS)
-        env, scenario = ring_road_exp_setup(env_params=env_params)
+        env, _ = ring_road_exp_setup(env_params=env_params)
 
         # time before running a reset
         t1 = 0
@@ -286,7 +289,7 @@ class TestSimsPerStep(unittest.TestCase):
         env_params = EnvParams(
             sims_per_step=sims_per_step,
             additional_params=ADDITIONAL_ENV_PARAMS)
-        env, scenario = ring_road_exp_setup(env_params=env_params)
+        env, _ = ring_road_exp_setup(env_params=env_params)
 
         env.reset()
         # time before running a step
@@ -308,12 +311,12 @@ class TestAbstractMethods(unittest.TestCase):
     """
 
     def setUp(self):
-        env, scenario = ring_road_exp_setup()
+        env, network = ring_road_exp_setup()
         sim_params = SumoParams()  # FIXME: make ambiguous
         env_params = EnvParams()
         self.env = Env(sim_params=sim_params,
                        env_params=env_params,
-                       scenario=scenario)
+                       network=network)
 
     def tearDown(self):
         self.env.terminate()
@@ -340,8 +343,8 @@ class TestVehicleColoring(unittest.TestCase):
         # add an RL vehicle to ensure that its color will be distinct
         vehicles.add("rl", acceleration_controller=(RLController, {}),
                      num_vehicles=1)
-        _, scenario = ring_road_exp_setup(vehicles=vehicles)
-        env = TestEnv(EnvParams(), SumoParams(), scenario)
+        _, network = ring_road_exp_setup(vehicles=vehicles)
+        env = TestEnv(EnvParams(), SumoParams(), network)
         env.reset()
 
         # set one vehicle as observed
@@ -391,6 +394,109 @@ class TestNotEnoughVehicles(unittest.TestCase):
                           highway_exp_setup,
                           initial_config=initial_config,
                           vehicles=vehicles)
+
+
+class BoxEnv(Env):
+    """A mock-up class to test clipping for Box."""
+
+    def get_state(self):
+        pass
+
+    @property
+    def action_space(self):
+        return spaces.Box(low=0, high=1, shape=(3,))
+
+    @property
+    def observation_space(self):
+        pass
+
+    def _apply_rl_actions(self, rl_actions):
+        pass
+
+
+class TestClipBoxActions(unittest.TestCase):
+    """
+    This tests base environment properly clips box actions per
+    specification.
+    """
+
+    def setUp(self):
+        env, network = ring_road_exp_setup()
+        sim_params = SumoParams()
+        env_params = EnvParams()
+        self.env = BoxEnv(
+            sim_params=sim_params,
+            env_params=env_params,
+            scenario=network)
+
+    def tearDown(self):
+        self.env.terminate()
+        self.env = None
+
+    def test_clip_box_actions(self):
+        """Test whether box actions get properly clipped."""
+        actions = [0.5, -1, 2]
+        clipped_actions = [0.5, 0, 1]
+        _actions = self.env.clip_actions(actions)
+        self.assertTrue((_actions == clipped_actions).all())
+
+
+class TupleEnv(Env):
+    """A mock-up class to test clipping for Tuple."""
+
+    def get_state(self):
+        pass
+
+    @property
+    def action_space(self):
+        return spaces.Tuple([
+            spaces.Box(low=0, high=255, shape=(1,)),
+            spaces.Box(low=0, high=1, shape=(3,)),
+            spaces.Discrete(3)])
+
+    @property
+    def observation_space(self):
+        pass
+
+    def _apply_rl_actions(self, rl_actions):
+        pass
+
+
+class TestClipTupleActions(unittest.TestCase):
+    """
+    This tests base environment properly clips tuple actions based on
+    specification in each individual Box objects.
+    """
+
+    def setUp(self):
+        env, scenario = ring_road_exp_setup()
+        sim_params = SumoParams()
+        env_params = EnvParams()
+        self.env = TupleEnv(
+            sim_params=sim_params,
+            env_params=env_params,
+            scenario=scenario)
+
+    def tearDown(self):
+        self.env.terminate()
+        self.env = None
+
+    def test_clip_tuple_actions(self):
+        """Test whether tuple actions get properly clipped."""
+        actions = [
+            [-1],
+            [0.5, -1, 2],
+            2
+        ]
+        clipped_actions = [
+            [0],
+            [0.5, 0, 1],
+            2
+        ]
+        _actions = self.env.clip_actions(actions)
+        self.assertEquals(_actions[0], clipped_actions[0])
+        self.assertTrue((_actions[1] == clipped_actions[1]).all())
+        self.assertEquals(_actions[2], clipped_actions[2])
 
 
 if __name__ == '__main__':

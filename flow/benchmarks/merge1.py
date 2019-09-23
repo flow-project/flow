@@ -12,7 +12,7 @@ is 25%.
 from copy import deepcopy
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
-from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
+from flow.networks.merge import ADDITIONAL_NET_PARAMS
 from flow.core.params import VehicleParams
 from flow.controllers import SimCarFollowingController, RLController
 
@@ -38,14 +38,14 @@ vehicles.add(
     veh_id="human",
     acceleration_controller=(SimCarFollowingController, {}),
     car_following_params=SumoCarFollowingParams(
-        speed_mode="obey_safe_speed",
+        speed_mode=9,
     ),
     num_vehicles=5)
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
     car_following_params=SumoCarFollowingParams(
-        speed_mode="obey_safe_speed",
+        speed_mode=9,
     ),
     num_vehicles=0)
 
@@ -76,10 +76,10 @@ flow_params = dict(
     exp_tag="merge_1",
 
     # name of the flow environment the experiment is running on
-    env_name="WaveAttenuationMergePOEnv",
+    env_name="MergePOEnv",
 
-    # name of the scenario class the experiment is running on
-    scenario="MergeScenario",
+    # name of the network class the experiment is running on
+    network="MergeNetwork",
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -105,15 +105,14 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params,
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/

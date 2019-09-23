@@ -5,9 +5,9 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 
-from flow.scenarios.bottleneck import BottleneckScenario
+from flow.networks.bottleneck import BottleneckNetwork
 from flow.controllers import SimLaneChangeController, ContinuousRouter
-from flow.envs.bottleneck_env import BottleneckEnv
+from flow.envs.bottleneck import BottleneckEnv
 from flow.core.experiment import Experiment
 
 import logging
@@ -15,17 +15,24 @@ import logging
 import numpy as np
 SCALING = 1
 DISABLE_TB = True
+
 # If set to False, ALINEA will control the ramp meter
 DISABLE_RAMP_METER = True
-INFLOW = 1800
+INFLOW = 2300
 
 
 class BottleneckDensityExperiment(Experiment):
+    """Experiment object for bottleneck-specific simulations.
+
+    Extends flow.core.experiment.Experiment
+    """
 
     def __init__(self, env):
+        """Instantiate the bottleneck experiment."""
         super().__init__(env)
 
     def run(self, num_runs, num_steps, rl_actions=None, convert_to_csv=False):
+        """See parent class."""
         info_dict = {}
         if rl_actions is None:
 
@@ -168,7 +175,6 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
     additional_net_params = {"scaling": SCALING, "speed_limit": 23}
     net_params = NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params)
 
     initial_config = InitialConfig(
@@ -177,14 +183,14 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
         lanes_distribution=float("inf"),
         edges_distribution=["2", "3", "4", "5"])
 
-    scenario = BottleneckScenario(
+    network = BottleneckNetwork(
         name="bay_bridge_toll",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
         traffic_lights=traffic_lights)
 
-    env = BottleneckEnv(env_params, sim_params, scenario)
+    env = BottleneckEnv(env_params, sim_params, network)
 
     return BottleneckDensityExperiment(env)
 

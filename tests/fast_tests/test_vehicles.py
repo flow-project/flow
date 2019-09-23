@@ -79,20 +79,6 @@ class TestVehiclesClass(unittest.TestCase):
         Ensure that, if a vehicle is not a sumo vehicle, then minGap is set to
         zero so that all headway values are correct.
         """
-        # check that, if the vehicle is not a SimCarFollowingController
-        # vehicle, then its minGap is equal to 0
-        vehicles = VehicleParams()
-        vehicles.add(
-            "typeA",
-            acceleration_controller=(IDMController, {}),
-            car_following_params=SumoCarFollowingParams(
-                speed_mode="obey_safe_speed",
-            ),
-            lane_change_params=SumoLaneChangeParams(
-                lane_change_mode="no_lat_collide",
-            ))
-        self.assertEqual(vehicles.types[0]["type_params"]["minGap"], 0)
-
         # check that, if the vehicle is a SimCarFollowingController vehicle,
         # then its minGap, accel, and decel are set to default
         vehicles = VehicleParams()
@@ -239,7 +225,7 @@ class TestMultiLaneData(unittest.TestCase):
 
         initial_config = InitialConfig(lanes_distribution=float("inf"))
 
-        env, scenario = ring_road_exp_setup(
+        env, _ = ring_road_exp_setup(
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -262,7 +248,7 @@ class TestMultiLaneData(unittest.TestCase):
 
         # check the lane tailways is outputting the right values
         actual_lane_tail = env.k.vehicle.get_lane_tailways("test_0")
-        expected_lane_tail = [27.85714285714286] * 3
+        expected_lane_tail = [28.577143] * 3
         np.testing.assert_array_almost_equal(actual_lane_tail,
                                              expected_lane_tail)
 
@@ -293,7 +279,7 @@ class TestMultiLaneData(unittest.TestCase):
                        "start_lanes": [1, 2, 0]}
         initial_config.additional_params = initial_pos
 
-        env, scenario = highway_exp_setup(
+        env, _ = highway_exp_setup(
             sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
@@ -369,7 +355,7 @@ class TestMultiLaneData(unittest.TestCase):
                        "start_lanes": [0, 0, 0, 1, 1, 2, 2, 3, 3]}
         initial_config.additional_params = initial_pos
 
-        env, scenario = highway_exp_setup(
+        env, _ = highway_exp_setup(
             sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
@@ -433,7 +419,7 @@ class TestMultiLaneData(unittest.TestCase):
                        "start_lanes": [1, 2, 0]}
         initial_config.additional_params = initial_pos
 
-        env, scenario = highway_exp_setup(
+        env, _ = highway_exp_setup(
             sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
@@ -449,7 +435,7 @@ class TestMultiLaneData(unittest.TestCase):
         expected_lane_leaders = ["", "", "test_1"]
         self.assertTrue(actual_lane_leaders == expected_lane_leaders)
         actual_lane_headways = env.k.vehicle.get_lane_headways("test_0")
-        expected_lane_headways = [1000, 1000, 19.996667]
+        expected_lane_headways = [1000, 1000, 22.996667]
         np.testing.assert_array_almost_equal(actual_lane_headways,
                                              expected_lane_headways)
 
@@ -457,7 +443,7 @@ class TestMultiLaneData(unittest.TestCase):
         expected_lane_followers = ["test_2", "", ""]
         self.assertTrue(actual_lane_followers == expected_lane_followers)
         actual_lane_tailways = env.k.vehicle.get_lane_tailways("test_0")
-        expected_lane_tailways = [19.996667, 1000, 1000]
+        expected_lane_tailways = [20.096667, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
 
@@ -500,7 +486,7 @@ class TestMultiLaneData(unittest.TestCase):
                        "start_lanes": [0, 0, 0]}
         initial_config.additional_params = initial_pos
 
-        env, scenario = highway_exp_setup(
+        env, _ = highway_exp_setup(
             sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
@@ -515,7 +501,7 @@ class TestMultiLaneData(unittest.TestCase):
         expected_lane_leaders = ["test_1", "", ""]
         self.assertTrue(actual_lane_leaders == expected_lane_leaders)
         actual_lane_headways = env.k.vehicle.get_lane_headways("test_0")
-        expected_lane_headways = [19.996667, 1000, 1000]
+        expected_lane_headways = [22.996667, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_headways,
                                              expected_lane_headways)
 
@@ -523,7 +509,7 @@ class TestMultiLaneData(unittest.TestCase):
         expected_lane_followers = ["test_2", "", ""]
         self.assertTrue(actual_lane_followers == expected_lane_followers)
         actual_lane_tailways = env.k.vehicle.get_lane_tailways("test_0")
-        expected_lane_tailways = [19.996667, 1000, 1000]
+        expected_lane_tailways = [20.096667, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
 
@@ -552,11 +538,11 @@ class TestIdsByEdge(unittest.TestCase):
     """
 
     def setUp(self):
-        # create the environment and scenario classes for a figure eight
+        # create the environment and network classes for a figure eight
         vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=20)
 
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        self.env, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # free data used by the class

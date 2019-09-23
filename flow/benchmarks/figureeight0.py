@@ -14,7 +14,7 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.controllers import IDMController, ContinuousRouter, RLController
-from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
+from flow.networks.figure_eight import ADDITIONAL_NET_PARAMS
 
 # time horizon of a single rollout
 HORIZON = 1500
@@ -29,6 +29,7 @@ vehicles.add(
     routing_controller=(ContinuousRouter, {}),
     car_following_params=SumoCarFollowingParams(
         speed_mode="obey_safe_speed",
+        decel=1.5,
     ),
     num_vehicles=13)
 vehicles.add(
@@ -47,8 +48,8 @@ flow_params = dict(
     # name of the flow environment the experiment is running on
     env_name="AccelEnv",
 
-    # name of the scenario class the experiment is running on
-    scenario="Figure8Scenario",
+    # name of the network class the experiment is running on
+    network="FigureEightNetwork",
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -71,14 +72,13 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        no_internal_links=False,
         additional_params=deepcopy(ADDITIONAL_NET_PARAMS),
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.vehicles.Vehicles)
+    # flow.core.params.VehicleParams)
     veh=vehicles,
 
     # parameters specifying the positioning of vehicles upon initialization/

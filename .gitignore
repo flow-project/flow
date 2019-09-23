@@ -88,8 +88,13 @@ ENV/
 # Rope project settings
 .ropeproject
 
-# Don't add xml
+# VSCode project settings
+.vscode
+
+# Don't add xml/csv/png
 *.xml
+*.csv
+*.png
 .DS_Store
 
 # Custom for learning-traffic
@@ -100,9 +105,9 @@ debug/
 .vs/**
 
 # Custom for Aimsun
-*flow.ang
-*flow.ang.lck
-*flow.sqlite
-*Aimsun_Flow.ang
-*Aimsun_Flow.ang.old
-*Aimsun_Flow.sang
+flow.ang
+*.ang.lck
+*.sqlite
+*.ang.old
+*.sang
+

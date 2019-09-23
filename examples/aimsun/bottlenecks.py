@@ -5,8 +5,8 @@ from flow.core.params import AimsunParams, EnvParams, NetParams, \
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 
-from flow.scenarios.bottleneck import BottleneckScenario
-from flow.envs.bottleneck_env import BottleneckEnv
+from flow.networks.bottleneck import BottleneckNetwork
+from flow.envs.bottleneck import BottleneckEnv
 from flow.core.experiment import Experiment
 
 SCALING = 1
@@ -42,7 +42,7 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
         render = False
 
     sim_params = AimsunParams(
-        sim_step=0.8,
+        sim_step=0.5,
         render=render,
         restart_instance=restart_instance)
 
@@ -81,7 +81,6 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
     additional_net_params = {"scaling": SCALING, "speed_limit": 30/3.6}
     net_params = NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params)
 
     initial_config = InitialConfig(
@@ -90,14 +89,14 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
         lanes_distribution=float("inf"),
         edges_distribution=["2", "3", "4", "5"])
 
-    scenario = BottleneckScenario(
+    network = BottleneckNetwork(
         name="bay_bridge_toll",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
         traffic_lights=traffic_lights)
 
-    env = BottleneckEnv(env_params, sim_params, scenario, simulator='aimsun')
+    env = BottleneckEnv(env_params, sim_params, network, simulator='aimsun')
 
     return Experiment(env)
 

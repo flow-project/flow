@@ -10,6 +10,22 @@ class AimsunKernelSimulation(KernelSimulation):
     """Aimsun simulation kernel.
 
     Extends KernelSimulation.
+
+    Attributes
+    ----------
+    master_kernel : flow.core.kernel.Kernel
+        the higher level kernel (used to call methods from other sub-kernels)
+    kernel_api : any
+        an API that may be used to interact with the simulator
+    sim_step : float
+        seconds per simulation step; 0.5 by default
+    emission_path : str
+        Path to the folder in which to create the emissions output.
+        Emissions output is not generated if this value is not specified
+    time : float
+        used to internally keep track of the simulation time
+    stored_data : dict
+        a file used to store data if an emission file is provided
     """
 
     def __init__(self, master_kernel):
@@ -20,11 +36,7 @@ class AimsunKernelSimulation(KernelSimulation):
         self.kernel_api = None
         self.sim_step = None
         self.emission_path = None
-
-        # used to internally keep track of the simulation time
         self.time = 0
-
-        # a file used to store data if an emission file is provided
         self.stored_data = {
             'time': [],
             'x': [],
@@ -42,7 +54,7 @@ class AimsunKernelSimulation(KernelSimulation):
         """See parent class."""
         self.kernel_api = kernel_api
 
-    def start_simulation(self, scenario, sim_params):
+    def start_simulation(self, network, sim_params):
         """See parent class.
 
         This method calls the aimsun generator to generate the network, starts
@@ -107,7 +119,7 @@ class AimsunKernelSimulation(KernelSimulation):
         """See parent class."""
         # save the emission data to a csv
         if self.emission_path is not None:
-            name = "%s_emission.csv" % self.master_kernel.scenario.network.name
+            name = "%s_emission.csv" % self.master_kernel.network.network.name
             with open(osp.join(self.emission_path, name), "w") as f:
                 writer = csv.writer(f, delimiter=',')
                 writer.writerow(self.stored_data.keys())
@@ -116,7 +128,7 @@ class AimsunKernelSimulation(KernelSimulation):
         # close the API and simulation process
         try:
             self.kernel_api.stop_simulation()
-            self.master_kernel.scenario.aimsun_proc.kill()
+            self.master_kernel.network.aimsun_proc.kill()
         except OSError:
             # in case no simulation originally existed (used by the visualizer)
             pass

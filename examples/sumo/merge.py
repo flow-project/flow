@@ -9,9 +9,9 @@ from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows, SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.core.experiment import Experiment
-from flow.scenarios.merge import MergeScenario, ADDITIONAL_NET_PARAMS
+from flow.networks.merge import MergeNetwork, ADDITIONAL_NET_PARAMS
 from flow.controllers import IDMController
-from flow.envs.merge import WaveAttenuationMergePOEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.merge import MergePOEnv, ADDITIONAL_ENV_PARAMS
 
 # inflow rate at the highway
 FLOW_RATE = 2000
@@ -77,18 +77,17 @@ def merge_example(render=None):
     additional_net_params["pre_merge_length"] = 500
     net_params = NetParams(
         inflows=inflow,
-        no_internal_links=False,
         additional_params=additional_net_params)
 
     initial_config = InitialConfig(spacing="uniform", perturbation=5.0)
 
-    scenario = MergeScenario(
+    network = MergeNetwork(
         name="merge-baseline",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = WaveAttenuationMergePOEnv(env_params, sim_params, scenario)
+    env = MergePOEnv(env_params, sim_params, network)
 
     return Experiment(env)
 

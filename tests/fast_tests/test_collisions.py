@@ -7,7 +7,7 @@ from flow.core.params import VehicleParams
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.routing_controllers import GridRouter
 
-from tests.setup_scripts import grid_mxn_exp_setup
+from tests.setup_scripts import traffic_light_grid_mxn_exp_setup
 
 
 class TestCollisions(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestCollisions(unittest.TestCase):
 
     def test_collide(self):
         """Tests collisions in the absence of inflows."""
-        # create the environment and scenario classes for a ring road
+        # create the environment and network classes for a ring road
         sim_params = SumoParams(sim_step=1, render=False)
         total_vehicles = 20
         vehicles = VehicleParams()
@@ -48,10 +48,9 @@ class TestCollisions(unittest.TestCase):
             "vertical_lanes": 1
         }
 
-        net_params = NetParams(
-            no_internal_links=False, additional_params=additional_net_params)
+        net_params = NetParams(additional_params=additional_net_params)
 
-        env, _ = grid_mxn_exp_setup(
+        env, _ = traffic_light_grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
             sim_params=sim_params,
@@ -70,7 +69,7 @@ class TestCollisions(unittest.TestCase):
 
     def test_collide_inflows(self):
         """Tests collisions in the presence of inflows."""
-        # create the environment and scenario classes for a ring road
+        # create the environment and network classes for a ring road
         sim_params = SumoParams(sim_step=1, render=False)
         total_vehicles = 0
         vehicles = VehicleParams()
@@ -109,11 +108,10 @@ class TestCollisions(unittest.TestCase):
         inflows.add(veh_type="idm", edge="right0_0", vehs_per_hour=1000)
 
         net_params = NetParams(
-            no_internal_links=False,
             inflows=inflows,
             additional_params=additional_net_params)
 
-        env, _ = grid_mxn_exp_setup(
+        env, _ = traffic_light_grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
             sim_params=sim_params,
