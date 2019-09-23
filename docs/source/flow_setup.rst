@@ -123,7 +123,7 @@ sure to enter your conda environment by typing:
 Let’s see some traffic action:
 
 ::
-
+    python setup.py develop
     python examples/sumo/sugiyama.py
 
 Running the following should result in the loading of the SUMO GUI.
