@@ -997,7 +997,9 @@ class TestMultiAgentHighwayPOEnv(unittest.TestCase):
         # check the observation space
         self.assertTrue(test_space(
             env.observation_space,
-            expected_size=5, expected_min=0, expected_max=1
+            expected_size=5,
+            expected_min=-float('inf'),
+            expected_max=float('inf')
         ))
 
         # check the action space
