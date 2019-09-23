@@ -75,7 +75,7 @@ def get_flow_params(config):
         flow-related parameters, consisting of the following keys:
 
          * exp_tag: name of the experiment
-         * env_name: environment class of the flow environment the experiment 
+         * env_name: environment class of the flow environment the experiment
            is running on. (note: must be in an importable module.)
          * network: network class the experiment uses.
          * simulator: simulator that is used by the experiment (e.g. aimsun)
