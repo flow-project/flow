@@ -1,4 +1,4 @@
-"""Runner script for RLlib experiments with macroscopic models.
+r"""Runner script for RLlib experiments with macroscopic models.
 
 To run an experiment with this script, type:
 
