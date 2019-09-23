@@ -1,5 +1,5 @@
 gym==0.14.0
-numpy==1.14.0
+numpy==1.16.0
 scipy==1.1.0
 lxml==4.2.4
 pyprind==2.11.2
