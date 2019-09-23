@@ -94,7 +94,19 @@ from time import strftime
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from scipy.interpolate import griddata
+
+import gym
+from gym.envs.registration import register
+
 from flow.core.util import ensure_dir
+
+import ray
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
+from ray.tune import run_experiments
+from ray.tune.registry import register_env
 
 cdict = {'red': ((0., 0., 0.), (0.2, 1., 1.), (0.6, 1., 1.), (1., 0., 0.)),
          'green': ((0., 0., 0.), (0.2, 0., 0.), (0.6, 1., 1.), (1., 1., 1.)),
@@ -103,7 +115,14 @@ cdict = {'red': ((0., 0., 0.), (0.2, 1., 1.), (0.6, 1., 1.), (1., 0., 0.)),
 my_cmap = colors.LinearSegmentedColormap('my_colormap', cdict, 1024)
 
 
-def run_training(n_itr, n_rollouts, alg, alg_params, env_name, env_params):
+def run_training(n_itr,
+                 n_rollouts,
+                 alg="PPO",
+                 alg_params=None,
+                 n_cpus=1,
+                 seed=None,
+                 env_name="LWR",
+                 env_params=None):
     """Perform a training operation.
 
     Parameters
@@ -114,16 +133,89 @@ def run_training(n_itr, n_rollouts, alg, alg_params, env_name, env_params):
         number of rollouts per training iteration
     alg : str
         name of the RLlib algorithm
-    alg_params : dict
+    alg_params : dict or None
         algorithm specific features
+    n_cpus : int
+        number of workers to you during training
+    seed : int or None
+        sets the seed for numpy, tensorflow, and random. If set to None, a
+        random seed is chosen
     env_name : str
         name of the model/environment. Must be one of: {"ARZ", "LWR",
         "NonLocal"}
-    env_params : dict
+    env_params : dict or None
         environment-specific features. See the definition of the separate
         models for more.
     """
-    pass
+    # import the PARAMS object from the given model
+    module = __import__("flow.core.macroscopic.{}".format(env_name.lower()),
+                        fromlist=['PARAMS'])
+    params = getattr(module, 'PARAMS').copy()
+
+    # if no environment parameters are passed, use the default values
+    if env_params is not None:
+        params.update(env_params)
+
+    env_params = params.copy()
+
+    # compute the horizon
+    horizon = int(env_params['total_time'] / env_params['dt'])
+
+    # collect the algorithm class from RLlib
+    agent_cls = get_agent_class(alg)
+
+    # default algorithm parameters (assuming you are using PPO)
+    if alg_params is None:
+        alg_params = agent_cls._default_config.copy()
+        alg_params['train_batch_size'] = horizon * n_rollouts
+        alg_params['gamma'] = 0.999  # discount rate
+        alg_params['model'].update({'fcnet_hiddens': [32, 32]})
+        alg_params['use_gae'] = True
+        alg_params['lambda'] = 0.97
+        alg_params['kl_target'] = 0.02
+        alg_params['num_sgd_iter'] = 10
+        alg_params['clip_actions'] = False  # FIXME(ev) temporary ray bug
+        alg_params['horizon'] = horizon
+
+    # update a few common algorithm parameters
+    alg_params['num_workers'] = n_cpus
+    alg_params['seed'] = seed
+
+    # save the environment parameters for replay
+    alg_params['env_config']['env_name'] = env_name
+    alg_params['env_config']['env_params'] = env_params
+    alg_params['env_config']['run'] = alg
+
+    # register as a gym environment
+    gym_name = "{}-v0".format(env_name)
+
+    def create_env(*_):
+        register(id=gym_name,
+                 entry_point='flow.core.macroscopic:{}'.format(env_name),
+                 kwargs={"params": env_params})
+        return gym.envs.make(gym_name)
+
+    # Register as rllib env
+    register_env(gym_name, create_env)
+
+    # initialize a ray instance
+    ray.init(num_cpus=n_cpus + 1)
+
+    _ = run_experiments({
+        gym_name: {
+            'run': alg,
+            'env': gym_name,
+            'config': {
+                **alg_params
+            },
+            'checkpoint_freq': 20,
+            "checkpoint_at_end": True,
+            'max_failures': 999,
+            'stop': {
+                'training_iteration': n_itr,
+            },
+        }
+    })
 
 
 def rollout(env,
@@ -218,12 +310,14 @@ def rollout(env,
             plot_speed_or_density(
                 vel_gridded, env.v_max, "Speed Plot",
                 plot_results, save_results,
-                save_path=os.path.join(save_path, "speed_{}".format(indx))
+                env=env,
+                save_path=os.path.join(save_path, "speed_{}".format(indx)),
             )
             plot_speed_or_density(
                 rho_gridded, env.rho_max, "Density Plot",
                 plot_results, save_results,
-                save_path=os.path.join(save_path, "density_{}".format(indx))
+                env=env,
+                save_path=os.path.join(save_path, "density_{}".format(indx)),
             )
 
 
@@ -232,6 +326,7 @@ def plot_speed_or_density(gridded_data,
                           title,
                           plot_results,
                           save_results,
+                          env,
                           save_path):
     """Perform the plotting operation for the rollout method.
 
@@ -249,6 +344,8 @@ def plot_speed_or_density(gridded_data,
         the simulations are done
     save_results : bool
         whether to save the speed and density plots before exiting
+    env : flow.core.macroscopic.MacroModelEnv
+        the environment that is being plotted
     save_path : str
         path to save the results. If not define, the images will be saved in
         flow/core/macro/results/.
@@ -258,8 +355,8 @@ def plot_speed_or_density(gridded_data,
     plt.title(title, fontsize=25)
     plt.xlabel("time (s)", fontsize=20)
     plt.ylabel("position (m)", fontsize=20)
-    plt.imshow(gridded_data, extent=(0, 3600, 0, 708), origin='lower',
-               aspect='auto', cmap=my_cmap, norm=norm)
+    plt.imshow(gridded_data, extent=(0, env.total_time, 0, env.length),
+               origin='lower', aspect='auto', cmap=my_cmap, norm=norm)
     cbar = plt.colorbar()
     # FIXME: this is hacky
     if "speed" in save_path:
@@ -504,7 +601,16 @@ def main():
         )
 
     elif flags.train:
-        pass
+        run_training(
+            n_itr=flags.n_itr,
+            n_rollouts=flags.n_rollouts,
+            alg="PPO",  # TODO: parameter?
+            alg_params=None,  # TODO: parameter?
+            n_cpus=flags.n_cpus,
+            seed=flags.seed,
+            env_name="LWR",
+            env_params=vars(model_flags)
+        )
 
 
 if __name__ == "__main__":
