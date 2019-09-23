@@ -10,6 +10,8 @@ from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoCarFollowingParams
 from flow.core.util import emission_to_csv
+from flow.envs import MergePOEnv
+from flow.networks import MergeNetwork
 from flow.utils.flow_warnings import deprecated_attribute
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
@@ -217,8 +219,8 @@ class TestRllib(unittest.TestCase):
 
         flow_params = dict(
             exp_tag="merge_0",
-            env_name="MergePOEnv",
-            network="MergeNetwork",
+            env_name=MergePOEnv,
+            network=MergeNetwork,
             sim=SumoParams(
                 restart_instance=True,
                 sim_step=0.5,
