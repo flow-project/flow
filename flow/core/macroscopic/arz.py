@@ -5,6 +5,7 @@ traffic flow." SIAM journal on applied mathematics 60.3 (2000): 916-938.
 """
 from gym.spaces import Box
 import numpy as np
+from scipy.optimize import fsolve
 from flow.core.macroscopic.base_model import MacroModelEnv
 from flow.core.macroscopic.utils import DictDescriptor
 
@@ -53,12 +54,50 @@ PARAMS = DictDescriptor(
     # ======================================================================= #
 
     ("initial_conditions", ([0 for _ in range(100)], [0 for _ in range(100)]),
-     None,  # FIXME
+     None,
      "tuple of (density, speed) initial conditions. Each element of the tuple"
      " must be a list of length int(length/dx)"),
 
     ("boundary_conditions", (0, 0), None, "TODO: define what that is"),
 )
+
+
+def boundary_right(data):
+    """Calculate right boundary condition.
+
+    Parameters
+    ----------
+    data : tuple -> (density, relative flow)
+        density: array_like
+            density data points on the road length
+       relative flow: array_ike
+           relative flow data points on the road length
+
+    Returns
+    -------
+    tuple -> (double, double)
+        right boundary conditions for Data -> (density, relative flow)
+    """
+    return data[0][len(data[1]) - 1], data[1][len(data[1]) - 1]
+
+
+def boundary_left(data):
+    """Calculate left boundary condition.
+
+    Parameters
+    ----------
+    data : tuple -> (density, relative flow)
+        density: array_like
+            density data points on the road length
+        relative flow: array_ike
+           relative flow data points on the road length
+
+    Returns
+    -------
+    tuple -> (double, double)
+        left boundary conditions for Data -> (density, relative flow)
+    """
+    return data[0][0], data[1][0]
 
 
 class ARZ(MacroModelEnv):
@@ -124,6 +163,10 @@ class ARZ(MacroModelEnv):
         current observation
     num_steps : int
         number of simulation steps since the start of the most recent rollout
+    rho_next : array_like
+        the next density value
+    rhs : TODO
+        right hand side constant for the relative flow (used during fsolve)
     """
 
     def __init__(self, params):
@@ -206,6 +249,8 @@ class ARZ(MacroModelEnv):
 
         self.obs = None
         self.num_steps = None
+        self.rho_next = None
+        self.rhs = None
 
     @property
     def observation_space(self):
@@ -219,12 +264,29 @@ class ARZ(MacroModelEnv):
         v_max_max = self.params['v_max_max']
         return Box(low=0, high=v_max_max, shape=(1,), dtype=np.float32)
 
-    def step(self, action):
+    def step(self, rl_actions):
         """See parent class."""
-        # TODO: fill in
-        # Note: if action is set to None, v_max should simply not change from
-        # it's last value
-        raise NotImplementedError
+        # increment the step counter
+        self.num_steps += 1
+
+        # update the v_max value is an action is provided
+        if rl_actions is not None:
+            self.v_max = rl_actions
+
+        # advance the state of the simulation by one step
+        rho, relative_flow = self.arz_solve(self.obs)
+        speed = self.u(rho, relative_flow)
+
+        # compute the new observation
+        self.obs = np.concatenate((rho / self.rho_max_max, speed / self.v_max))
+
+        # compute the reward value
+        rew = np.mean(np.square(speed - self.v_max) * rho)
+
+        # compute the done mask
+        done = self.num_steps >= self.horizon
+
+        return self.obs.copy(), rew, done, {}
 
     def reset(self):
         """Reset the environment.
@@ -242,9 +304,275 @@ class ARZ(MacroModelEnv):
         self.v_max = self.params['v_max']
 
         # reset the observation to match the initial condition
-        initial_conditions = np.asarray(self.initial_conditions)
-        rho_init = np.asarray(initial_conditions[0]) / self.rho_max_max
-        v_init = np.asarray(initial_conditions[1]) / self.v_max_max
-        self.obs = np.concatenate((rho_init, v_init))
+        # FIXME
 
         return self.obs.copy()
+
+    def arz_solve(self, u_full):
+        """Implement Godunov Semi-Implicit scheme for multi-populations.
+
+        Fan, Shimao et al. “Comparative model accuracy of a data-fitted
+        generalized Aw-Rascle-Zhang model.” NHM 9 (2014): 239-268.
+
+        Parameters
+        ----------
+        u_full : tuple -> (density, relative flow)
+            density: array_like
+                density data points on the road length
+            relative flow: array_ike
+               relative flow data points on the road length
+            Note: at time = 0, u_full = initial density data
+
+        Returns
+        -------
+        array_like
+            next density data points as calculated by the Semi-Implicit Godunov
+            scheme
+        array_ike
+            next relative flow data points as calculated by the Semi-Implicit
+            Godunov scheme
+        """
+        # we are extrapolating our boundary conditions
+        u_left = self.boundary_left(u_full)
+        u_right = self.boundary_right(u_full)
+
+        # full array with boundary conditions
+        u_all = (np.insert(np.append(u_full[0], u_right[0]), 0, u_left[0]),
+                 np.insert(np.append(u_full[1], u_right[1]), 0, u_left[1]))
+
+        # compute flux
+        fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, \
+            rho_init, y_init = self.compute_flux(u_all)
+
+        # update new points
+        new_points = self.arz_update_points(
+            fp_higher_half,
+            fp_lower_half,
+            fy_higher_half,
+            fy_lower_half,
+            rho_init,
+            y_init,
+        )
+
+        return new_points
+
+    def function_rho(self, density, y_value):
+        """Calculate flux associated with density using density Flux function.
+
+        Fan, Shimao et al. “Comparative model accuracy of a data-fitted
+        generalized Aw-Rascle-Zhang model.” NHM 9 (2014): 239-268.
+
+        Parameters
+        ----------
+        density : array_like
+            density data points at every specified point on the road
+        y_value : array_like
+            relative flow data points at every specified point on the road
+
+        Returns
+        -------
+        array_like
+            density flux values
+        """
+        # Flux equation for density (rho)
+        return y_value + density * self.ve(density)
+
+    def function_y(self, density, y_value):
+        """Calculate flux associated with relative flow.
+
+        Fan, Shimao et al. “Comparative model accuracy of a data-fitted
+        generalized Aw-Rascle-Zhang model.” NHM 9 (2014): 239-268.
+
+        Parameters
+        ----------
+        density : array_like
+            density data points at every specified point on the road
+        y_value : array_like
+            relative flow data points at every specified point on the road
+
+        Returns
+        -------
+        array_like
+            relative flow flux values
+        """
+        return y_value ** 2 / density + y_value * self.ve(density)
+
+    def compute_flux(self, u_all):
+        """Implement the 'The Lax-Friedrichs Method' for Flux calculations.
+
+        "Finite-Volume Methods for Hyperbolic Problems", Chapter 4 (p71),
+        Randal J. Leveque.
+
+        Parameters
+        ----------
+        u_all : tuple -> (density, relative flow)
+            density : array_like
+                density data points on the road length with boundary conditions
+            relative flow : array_ike
+               relative flow data points on the road length with boundary
+               conditions
+
+            Note: at time = 0, U_all = initial density data
+
+        Returns
+        -------
+        array_like
+            density flux at right boundary of each cell
+        array_like
+            density flux at left boundary of each cell
+        array_like
+            relative flow flux at right boundary of each cell
+        array_like
+            relative flow flux at left boundary of each cell
+        array_like
+            current values for density at each point on the road (midpoint of
+            cell)
+        array_like
+            current values for relative flow at each point on the road
+            (midpoint of cell)
+        """
+        rho_full = u_all[0]
+        y_full = u_all[1]
+
+        # left cell boundary data to be considered -> entire row except last
+        # two
+        rho_l = rho_full[:-2]
+        y_l = y_full[:-2]
+
+        # midpoint cell boundary data to be considered -> all expect first and
+        # last
+        rho_init = rho_full[1:-1]
+        y_init = y_full[1:-1]
+
+        # right cell boundary data to be considered -> entire row except first
+        # two
+        rho_r = rho_full[2:]
+        y_r = y_full[2:]
+
+        # left fluxes
+        fp_lower_half = 0.5 \
+            * (self.function_rho(rho_l, y_l)
+               + self.function_rho(rho_init, y_init)) \
+            - ((0.5 * self.dt / self.dx) * (rho_init - rho_l))
+
+        fy_lower_half = 0.5 \
+            * (self.function_y(rho_l, y_l)
+               + self.function_y(rho_init, y_init)) \
+            - ((0.5 * self.dt / self.dx) * (y_init - y_l))
+
+        # right fluxes
+        fp_higher_half = 0.5 \
+            * (self.function_rho(rho_r, y_r)
+               + self.function_rho(rho_init, y_init)) \
+            - ((0.5 * self.dt / self.dx) * (rho_r - rho_init))
+
+        fy_higher_half = 0.5 \
+            * (self.function_y(rho_r, y_r)
+               + self.function_y(rho_init, y_init)) \
+            - ((0.5 * self.dt / self.dx) * (y_r - y_init))
+
+        return fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, \
+            rho_init, y_init
+
+    def arz_update_points(self,
+                          fp_higher_half,
+                          fp_lower_half,
+                          fy_higher_half,
+                          fy_lower_half,
+                          rho_init,
+                          y_init):
+        """Update our current density and relative flow values.
+
+        Parameters
+        ----------
+        fp_higher_half : array_like
+            density flux at right boundary of each cell
+        fp_lower_half : array_like
+            density flux at left boundary of each cell
+        fy_higher_half : array_like
+            relative flow flux at right boundary of each cell
+        fy_lower_half : array_like
+            relative flow flux at left boundary of each cell
+        rho_init : array_like
+            current values for density at each point on the road (midpoint of
+            cell)
+        y_init : array_like
+            current values for relative flow at each point on the road
+            (midpoint of cell)
+
+        Returns
+        -------
+        array_like
+            next density values at each point on the road
+        array_like
+            next relative flow values at each point on the road
+        """
+        # time and cell step
+        step = self.dt / self.dx  # where are we referencing this?
+
+        # updating density
+        self.rho_next = rho_init + (step * (fp_lower_half - fp_higher_half))
+
+        # updating relative flow
+        # right hand side constant -> we use fsolve to find our roots
+        self.rhs = y_init + (step * (fy_lower_half - fy_higher_half)) \
+            + (self.dt / self.tau) * self.rho_next * self.ve(self.rho_next)
+        x0 = y_init
+        y_next = fsolve(self.myfun, x0)
+
+        return self.rho_next, y_next
+
+    def myfun(self, y_next):
+        """Help fsolve update our relative flow data.
+
+        Parameters
+        ----------
+        y_next : array_like
+            array whose values to be determined
+
+        Returns
+        -------
+        array_like or tuple
+            functions to be minimized/maximized based on initial values
+        """
+        func = y_next + ((self.dt / self.tau) *
+                         (self.rho_next * self.u(self.rho_next, y_next)) -
+                         self.rhs)
+
+        return func
+
+    def ve(self, density):
+        """Implement the 'Greenshields model for the equilibrium velocity'.
+
+        Fan, Shimao et al. “Comparative model accuracy of a data-fitted
+        generalized Aw-Rascle-Zhang model.” NHM 9 (2014): 239-268.
+
+        Parameters
+        ----------
+        density : array_like
+            density data at every specified point on road
+
+        Returns
+        -------
+        array_like
+            equilibrium velocity at every specified point on road
+        """
+        return self.v_max * (1 - (density / self.rho_max))
+
+    def u(self, density, y_value):
+        """Calculate actual velocity from density and relative flow.
+
+        Parameters
+        ----------
+        density : array_like
+            density data at every specified point on road
+        y_value : array_like
+            relative flow data at every specified point on road
+
+        Returns
+        -------
+        array_like
+            velocity at every specified point on road
+        """
+        return (y_value / density) + self.ve(density)
+pass

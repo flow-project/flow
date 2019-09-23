@@ -81,33 +81,51 @@ if __name__ == "__main__":
     # R = dx/5
     # change in length and points on road we are plotting against
     dx = L / N
-    R = dx/5
-    x = np.arange(0.5 * dx, (L - 0.5 * dx), dx)
+    R = 0.2
+    # x = np.arange(0.5 * dx, (L - 0.5 * dx), dx)
+    x = np.arange(0, (L - 0.5 * dx), dx)
 
     # dt = change in time
-    dt = CFL * dx / V_max
+    dt = 2
+    # dt = CFL * dx / V_max
     # initial density Points
     U = initial(x)
+    print(U, len(U))
 
     # right and left boundary conditions
     u_r = 0
     u_l = 0
 
     # specify time horizon
-    iterations = 50
+    iterations = 100
 
-    env = LWR(
-        initial_conditions=U,
-        length=L,
-        boundary_data=(u_l, u_r),
-        max_density=R,
-        V_max=V_max
-    )
+    env = LWR({
+        "length": L,
+        "dx": dx,
+        "rho_max": R,
+        "rho_max_max": 0.2,
+        "v_max": V_max,
+        "v_max_max": 27.5,
+        "CFL": CFL,
+        "total_time": iterations * dt,
+        "dt": dt,
+        "initial_conditions": U,
+        "boundary_conditions": (u_l, u_r),
+    })
 
     # run a single roll out of the environment
     obs = env.reset()
 
+    densities = np.array([obs[:int(len(obs)/2)] * R])
+    speeds = np.array([obs[int(len(obs)/2):] * V_max])
+    print(speeds.shape, densities.shape)
     for _ in range(int(iterations)):
         action = V_max  # agent.compute(obs)
         obs, rew, done, _ = env.step(action)
-        plot_points(L, x, env.obs, env.speed_info(), R, V_max)
+        print(obs.shape)
+        densities = np.concatenate((densities, [obs[:int(len(obs)/2)] * R]), axis=0)
+        speeds = np.concatenate((speeds, [obs[int(len(obs)/2):] * V_max]), axis=0)
+
+    print(speeds.shape, densities.shape)
+
+    plot_points(L, x, obs[:N] * R, obs[N:] * V_max, R, V_max)

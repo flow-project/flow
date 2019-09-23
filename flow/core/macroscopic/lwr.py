@@ -167,9 +167,9 @@ class LWR(MacroModelEnv):
         assert params['dt'] <= params['CFL'] * params['dx']/params['v_max'], \
             "CFL condition not satisfied. Make sure dt <= CFL * dx / v_max"
 
-        assert len(params['initial_conditions']) == \
-            int(params['length'] / params['dx']), \
-            "Initial conditions must be a list of size: length/dx."
+        # assert len(params['initial_conditions']) == \
+        #     int(params['length'] / params['dx']), \
+        #     "Initial conditions must be a list of size: length/dx."
 
         self.params = params.copy()
         self.length = params['length']
@@ -229,7 +229,7 @@ class LWR(MacroModelEnv):
 
         # advance the state of the simulation by one step
         rho = self.ibvp(
-            self.obs,
+            self.obs[:int(self.length/self.dx)],
             self.boundary_right,
             self.boundary_left,
         )
@@ -246,18 +246,13 @@ class LWR(MacroModelEnv):
 
         return self.obs.copy(), rew, done, {}
 
-    @staticmethod
-    def godunov_flux(u, v, r):
+    def godunov_flux(self, rho_t):
         """Calculate the Godunov numerical flux vector of our data.
 
         Parameters
         ----------
-        u: array_like
-           data containing boundary conditions to be analysed
-        v: double
-           maximum velocity
-        r: double
-           maximum density
+        rho_t : array_like
+           densities containing boundary conditions to be analysed
 
         Returns
         -------
@@ -265,16 +260,20 @@ class LWR(MacroModelEnv):
             array of fluxes calibrated at every point of our data
         """
         # demand
-        d = v * u * (1 - u / r) * (u < 0.5 * r) + 0.25 * v * r * (u >= 0.5 * r)
+        d = self.v_max * rho_t * (1 - rho_t / self.rho_max) \
+            * (rho_t < 0.5 * self.rho_max) \
+            + 0.25 * self.v_max * self.rho_max * (rho_t >= 0.5 * self.rho_max)
 
         # supply
-        s = v * u * (1 - u / r) * (u > 0.5 * r) + 0.25 * v * r * (u <= 0.5 * r)
+        s = self.v_max * rho_t * (1 - rho_t / self.rho_max) \
+            * (rho_t > 0.5 * self.rho_max) \
+            + 0.25 * self.v_max * self.rho_max * (rho_t <= 0.5 * self.rho_max)
         s = np.append(s[1:], s[len(s) - 1])
 
         # Godunov flux
         return np.minimum(d, s)
 
-    def ibvp(self, u, u_right, u_left):
+    def ibvp(self, rho_t, u_right, u_left):
         """Implement Godunov scheme for multi-populations.
 
         Friedrich, Jan & Kolb, Oliver & Goettlich, Simone. (2018). A Godunov
@@ -283,10 +282,10 @@ class LWR(MacroModelEnv):
 
         Parameters
         ----------
-        u : array_like
+        rho_t : array_like
             density data to be analyzed and calculate next points for this data
             using Godunov scheme.
-            Note: at time = 0, u = initial density data
+            Note: at time = 0, rho_t = initial density data
         u_right : double
             right boundary condition
         u_left : double
@@ -295,25 +294,28 @@ class LWR(MacroModelEnv):
         Returns
         -------
         array_like
-              next density data point points as culculated by the Godunov
-              scheme
+              next density data points as calculated by the Godunov scheme
         """
         # lam = time/distance step
         lam = self.dt / self.dx
 
-        u = np.insert(np.append(u, u_right), 0, u_left)
+        rho_t = np.insert(np.append(rho_t, u_right), 0, u_left)
 
         # Godunov numerical flux
-        f = self.godunov_flux(u, self.v_max, self.rho_max)
+        f = self.godunov_flux(rho_t)
 
         fm = np.insert(f[0:len(f) - 1], 0, f[0])
 
-        # Godunov scheme  (updating u)
-        u = u - lam * (f - fm)
+        # Godunov scheme (updating rho_t)
+        rho_t = rho_t - lam * (f - fm)
 
-        u = np.insert(np.append(u[1:len(u) - 1], u_right), 0, u_left)
+        rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], u_right),
+                          0, u_left)
 
-        return u[1:len(u) - 1]
+        # remove the boundary conditions from the output
+        rho_t = rho_t[1:len(rho_t) - 1]
+
+        return rho_t
 
     def speed_info(self, density):
         """Implement the Greenshields model for the equilibrium velocity.
