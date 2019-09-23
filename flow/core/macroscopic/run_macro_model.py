@@ -26,7 +26,7 @@ Simulation-based arguments that can be passed to this script include:
   * save_results (stores True): whether to save the speed and density plots
     before exiting
   * save_path (str): path to save the results. If not define, the images will
-    be saved in flow/core/macroscopic/results/.
+    be saved in flow/core/macroscopic/results/YYYY-MM-DD-hh:mm:ss.
 
 
 Visualizing Trained Results
@@ -90,6 +90,7 @@ import os
 import sys
 import numpy as np
 import argparse
+from time import strftime
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from scipy.interpolate import griddata
@@ -126,8 +127,8 @@ def run_training(n_itr, n_rollouts, alg, alg_params, env_name, env_params):
 
 
 def rollout(env,
-            n_itr,
-            agent=None,
+            agent,
+            n_itr=1,
             plot_results=False,
             save_results=False,
             save_path=''):
@@ -137,11 +138,11 @@ def rollout(env,
     ----------
     env : flow.core.macroscopic.MacroModelEnv
         the environment that will be simulated
-    n_itr : int
-        number of simulations to be performed
     agent : Any
         the RL agent that is used to perform actions. If set to None, no
         actions are specified
+    n_itr : int
+        number of simulations to be performed
     plot_results : bool
         whether to plot and speed and density values as a function of time once
         the simulations are done
@@ -184,14 +185,18 @@ def rollout(env,
         # add the default save path is none was specified
         if save_path is None:
             save_path = os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                'results/'
+                os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)),
+                    'results/'
+                ),
+                strftime("%Y-%m-%d-%H:%M:%S")
             )
 
         # ensure that the directory exists
-        ensure_dir(save_path)
+        if save_results:
+            ensure_dir(save_path)
 
-        for rho, vel in zip(all_densities, all_speeds):
+        for indx, (rho, vel) in enumerate(zip(all_densities, all_speeds)):
             # bins of length and time
             x = np.array([np.repeat(i * env.dx, vel.shape[0])
                           for i in range(vel.shape[1])]).flatten()
@@ -210,10 +215,16 @@ def rollout(env,
             rho_gridded = griddata(points, rho, (grid_x, grid_y))
 
             # create a plot for the next data
-            plot_speed_or_density(vel_gridded, env.v_max, "Speed Plot",
-                                  plot_results, save_results, save_path)
-            plot_speed_or_density(rho_gridded, env.rho_max, "Density Plot",
-                                  plot_results, save_results, save_path)
+            plot_speed_or_density(
+                vel_gridded, env.v_max, "Speed Plot",
+                plot_results, save_results,
+                save_path=os.path.join(save_path, "speed_{}".format(indx))
+            )
+            plot_speed_or_density(
+                rho_gridded, env.rho_max, "Density Plot",
+                plot_results, save_results,
+                save_path=os.path.join(save_path, "density_{}".format(indx))
+            )
 
 
 def plot_speed_or_density(gridded_data,
@@ -226,18 +237,21 @@ def plot_speed_or_density(gridded_data,
 
     Parameters
     ----------
-    gridded_data : TODO
-        TODO
+    gridded_data : np.ndarray
+        (x,y,z) data representing the position, time, and intensity of separate
+        points. Intensity in this case is either speed for density
     max_val : float
-        TODO
+        the clipping term for the colormap on the plot
     title : str
         a title for the plot
     plot_results : bool
-        TODO
+        whether to plot and speed and density values as a function of time once
+        the simulations are done
     save_results : bool
-        TODO
+        whether to save the speed and density plots before exiting
     save_path : str
-        TODO
+        path to save the results. If not define, the images will be saved in
+        flow/core/macro/results/.
     """
     plt.figure(figsize=(16, 9))
     norm = plt.Normalize(0, max_val)
@@ -247,7 +261,11 @@ def plot_speed_or_density(gridded_data,
     plt.imshow(gridded_data, extent=(0, 3600, 0, 708), origin='lower',
                aspect='auto', cmap=my_cmap, norm=norm)
     cbar = plt.colorbar()
-    cbar.set_label('speed (m/s)', fontsize=20)  # FIXME
+    # FIXME: this is hacky
+    if "speed" in save_path:
+        cbar.set_label('speed (m/s)', fontsize=20)
+    elif "density" in save_path:
+        cbar.set_label('density (veh/m)', fontsize=20)
     cbar.ax.tick_params(labelsize=18)
     plt.xticks(fontsize=18)
     plt.yticks(fontsize=18)
@@ -255,8 +273,8 @@ def plot_speed_or_density(gridded_data,
     if plot_results:
         plt.show()
 
-    # FIXME: add save results
-    pass
+    if save_results:
+        plt.savefig(save_path)
 
 
 def load_model_env(model_name,
@@ -468,19 +486,22 @@ def main():
 
     if flags.simulate:
         # create the environment
-        env, agent = load_model_env(flags.model_name,
-                                    checkpoint_path=flags.checkpoint_path,
-                                    checkpoint_num=flags.checkpoint_num,
-                                    include_params=flags.include_params,
-                                    model_params=vars(model_flags))
+        env, agent = load_model_env(
+            flags.model_name,
+            checkpoint_path=flags.checkpoint_path,
+            checkpoint_num=flags.checkpoint_num,
+            include_params=flags.include_params,
+            model_params=vars(model_flags)
+        )
 
         # perform the simulations and (optionally) save results
-        rollout(env,
-                n_itr=flags.n_itr,
-                agent=agent,
-                plot_results=flags.plot_results,
-                save_results=flags.save_results,
-                save_path=flags.save_path)
+        rollout(
+            env, agent,
+            n_itr=flags.n_itr,
+            plot_results=flags.plot_results,
+            save_results=flags.save_results,
+            save_path=flags.save_path
+        )
 
     elif flags.train:
         pass

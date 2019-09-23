@@ -575,4 +575,3 @@ class ARZ(MacroModelEnv):
             velocity at every specified point on road
         """
         return (y_value / density) + self.ve(density)
-pass
