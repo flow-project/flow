@@ -2,6 +2,7 @@ import gym
 from scipy.optimize import fsolve
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 def boundary_right(data):
     """Calculate right boundary condition
@@ -425,13 +426,13 @@ if __name__ == '__main__':
     """
 
     # maximum velocity
-    V_max = 27.5
+    V_max = 1
 
     # length of road
-    L = 100000
+    L = 10
 
     # spacial grid resolution /  cell space should be atleast n = 300
-    N = 1500
+    N = 150
 
     # CFL condition
     CFL = 0.99
@@ -440,7 +441,7 @@ if __name__ == '__main__':
     dx = L / N
 
     # maximum_density
-    rho_max = dx/5
+    rho_max = 1
 
     x = np.arange(0.5 * dx, (L - 0.5 * dx), dx)
 
@@ -475,10 +476,21 @@ if __name__ == '__main__':
     # run a single roll out of the environment
     obs = env.reset()
 
-    for _ in range(50):
+    results_dir = "~/flow/flow/models/macro/results/"
+    data = {"Position_on_street": x}
+
+    for i in range(50):
 
         action = 1  # agent.compute(obs)
         obs, rew, done, _ = env.step(action)
+
+        new_densities = {"Densities at t = " + str(i): env.obs[0]}
+        new_relative_flow = {"Relative flow at t = " + str(i): env.obs[1]}
+        new_speeds = {"Velocities at t = " + str(i): u(env.obs[0], env.obs[1], V_max, rho_max)}
+
+        data.update(new_densities)
+        data.update(new_speeds)
+        data.update(new_relative_flow)
 
         # plot current profile during execution
         plt.plot(x, env.obs[0], 'b-')
@@ -497,3 +509,7 @@ if __name__ == '__main__':
     plt.xlabel('Street Length')
     plt.title("ARZ Evolution of Density")
     plt.show()
+
+    # save file to csv
+    path_for_results = results_dir + "arz_results.csv"
+    pd.DataFrame(data).to_csv(path_for_results, index=False)
