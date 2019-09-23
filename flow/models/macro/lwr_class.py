@@ -296,14 +296,13 @@ if __name__ == "__main__":
         action = V_max # agent.compute(obs)
         obs, rew, done, _ = env.step(action)
 
-        #store in dictionary and write to csv
+        # store in dictionary and write to csv
         new_densities = {"Densities at t = " + str(i): env.obs}
         new_speeds = {"Velocities at t = " + str(i): env.speed_info()}
         data.update(new_densities)
         data.update(new_speeds)
-
         plot_points(L, x, env.obs, env.speed_info(), R, V_max)
-        # time_step
+
     path_for_results = results_dir + "lwr_results.csv"
     pd.DataFrame(data).to_csv(path_for_results, index=False)
 
