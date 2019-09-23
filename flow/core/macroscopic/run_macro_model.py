@@ -99,6 +99,7 @@ import gym
 from gym.envs.registration import register
 
 from flow.core.util import ensure_dir
+from flow.utils.rllib import get_rllib_config
 
 import ray
 try:
@@ -410,22 +411,29 @@ def load_model_env(model_name,
                         fromlist=[model_name, 'PARAMS'])
     env_class = getattr(module, model_name)
 
+    # import the default environment parameters
+    params = getattr(module, 'PARAMS').copy()
+
+    # update the parameters to match the inputs
+    params.update(model_params)
+
     if checkpoint_path is None:
-        # import the default environment parameters
-        params = getattr(module, 'PARAMS').copy()
-
-        # update the parameters to match the inputs
-        params.update(model_params)
-
         # we assume there is no agent in this case
         agent = None
-
     else:
-        # collect the environment parameters from the results directory
-        params = {}  # FIXME
+        # get the RLlib configuration files
+        config = get_rllib_config(checkpoint_path)
+        agent_cls = get_agent_class(config['env_config']['run'])
 
-        # load the agent
-        agent = None  # FIXME
+        # collect the environment parameters from the results directory
+        if include_params:
+            params = config['env_config']['env_params']
+
+        # create the agent that will be used to compute the actions
+        agent = agent_cls(env=model_name, config=config)
+        checkpoint = checkpoint_path + '/checkpoint_{}'.format(checkpoint_num)
+        checkpoint = checkpoint + '/checkpoint-{}'.format(checkpoint_num)
+        agent.restore(checkpoint)
 
     # create the environment
     env = env_class(params)
