@@ -1,6 +1,8 @@
 import gym
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+
 
 def plot_points(Length, x , Density, Speed, R, V_max):
     # plot current profile during execution
@@ -247,22 +249,23 @@ if __name__ == "__main__":
         specify time horizon in seconds (is theoretical and depends on speed of code (dt, N and CFL) )
     """
     # Length of road
-    L = 100000
+    L = 35
 
     # Spacial Grid Resolution
-    N = 1500
+    N = 150
 
     # CFL condition
     CFL = 0.95
 
     # maximum velocity and maximum Density
 
-    V_max = 27.5
+    V_max = 1
+    R = 4
     # R = dx/5
     # change in length and points on road we are plotting against
     dx = L / N
-    R = dx/5
-    x = np.arange(0.5 * dx, (L - 0.5 * dx), dx)
+    # R = dx/5
+    x = np.arange(0, L, dx)
 
     # dt = change in time
     dt = CFL * dx / V_max
@@ -282,10 +285,27 @@ if __name__ == "__main__":
 
     # run a single roll out of the environment
     obs = env.reset()
+    time_step = 0
 
-    for _ in range(int(iterations)):
+    #set the directory to save csv file.
+    results_dir = "~/flow/flow/models/macro/results/"
+    data = {"Position_on_street": x}
+
+    for i in range(int(iterations)):
 
         action = V_max # agent.compute(obs)
         obs, rew, done, _ = env.step(action)
+
+        #store in dictionary and write to csv
+        new_densities = {"Densities at t = " + str(i): env.obs}
+        new_speeds = {"Velocities at t = " + str(i): env.speed_info()}
+        data.update(new_densities)
+        data.update(new_speeds)
+
         plot_points(L, x, env.obs, env.speed_info(), R, V_max)
+        # time_step
+    path_for_results = results_dir + "lwr_results.csv"
+    pd.DataFrame(data).to_csv(path_for_results, index=False)
+
+
 
