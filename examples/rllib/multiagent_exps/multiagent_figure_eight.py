@@ -15,7 +15,7 @@ try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
-from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
+from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 from ray import tune
 from ray.tune.registry import register_env
 from ray.tune import run_experiments
@@ -153,7 +153,7 @@ def setup_exps():
     act_space = test_env.action_space
 
     def gen_policy():
-        return (PPOPolicyGraph, obs_space, act_space, {})
+        return PPOTFPolicy, obs_space, act_space, {}
 
     # Setup PG with an ensemble of `num_policies` different policy graphs
     policy_graphs = {'av': gen_policy(), 'adversary': gen_policy()}
@@ -163,7 +163,7 @@ def setup_exps():
 
     config.update({
         'multiagent': {
-            'policy_graphs': policy_graphs,
+            'policies': policy_graphs,
             'policy_mapping_fn': tune.function(policy_mapping_fn)
         }
     })

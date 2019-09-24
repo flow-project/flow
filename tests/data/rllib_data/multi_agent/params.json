@@ -4,6 +4,7 @@
     "on_episode_end": null,
     "on_episode_start": null,
     "on_episode_step": null,
+    "on_postprocess_traj": null,
     "on_sample_end": null,
     "on_train_result": null
   },
@@ -14,27 +15,38 @@
   "compress_observations": false,
   "custom_resources_per_worker": {},
   "entropy_coeff": 0.0,
+  "entropy_coeff_schedule": null,
   "env": "MultiWaveAttenuationPOEnv-v0",
   "env_config": {
     "flow_params": "{\n    \"env\": {\n        \"additional_params\": {\n            \"max_accel\": 1,\n            \"max_decel\": 1,\n            \"ring_length\": [\n                230,\n                230\n            ],\n            \"target_velocity\": 4\n        },\n        \"clip_actions\": true,\n        \"evaluate\": false,\n        \"horizon\": 3000,\n        \"sims_per_step\": 1,\n        \"warmup_steps\": 750\n    },\n    \"env_name\": \"MultiWaveAttenuationPOEnv\",\n    \"exp_tag\": \"lord_of_numrings1\",\n    \"initial\": {\n        \"additional_params\": {},\n        \"bunching\": 20.0,\n        \"edges_distribution\": \"all\",\n        \"lanes_distribution\": Infinity,\n        \"min_gap\": 0,\n        \"perturbation\": 0.0,\n        \"shuffle\": false,\n        \"spacing\": \"custom\",\n        \"x0\": 0\n    },\n    \"net\": {\n        \"additional_params\": {\n            \"lanes\": 1,\n            \"length\": 230,\n            \"num_rings\": 1,\n            \"resolution\": 40,\n            \"speed_limit\": 30\n        },\n        \"inflows\": {\n            \"_InFlows__flows\": []\n        },\n        \"osm_path\": null,\n        \"template\": null\n    },\n    \"network\": \"MultiRingNetwork\",\n    \"sim\": {\n        \"color_vehicles\": true,\n        \"emission_path\": null,\n        \"lateral_resolution\": null,\n        \"no_step_log\": true,\n        \"num_clients\": 1,\n        \"overtake_right\": false,\n        \"port\": null,\n        \"print_warnings\": true,\n        \"pxpm\": 2,\n        \"render\": false,\n        \"restart_instance\": false,\n        \"save_render\": false,\n        \"seed\": null,\n        \"show_radius\": false,\n        \"sight_radius\": 25,\n        \"sim_step\": 0.1,\n        \"teleport_time\": -1\n    },\n    \"simulator\": \"traci\",\n    \"veh\": [\n        {\n            \"acceleration_controller\": [\n                \"IDMController\",\n                {\n                    \"noise\": 0.2\n                }\n            ],\n            \"car_following_params\": {\n                \"controller_params\": {\n                    \"accel\": 2.6,\n                    \"carFollowModel\": \"IDM\",\n                    \"decel\": 4.5,\n                    \"impatience\": 0.5,\n                    \"maxSpeed\": 30,\n                    \"minGap\": 2.5,\n                    \"sigma\": 0.5,\n                    \"speedDev\": 0.1,\n                    \"speedFactor\": 1.0,\n                    \"tau\": 1.0\n                },\n                \"speed_mode\": 25\n            },\n            \"initial_speed\": 0,\n            \"lane_change_controller\": [\n                \"SimLaneChangeController\",\n                {}\n            ],\n            \"lane_change_params\": {\n                \"controller_params\": {\n                    \"laneChangeModel\": \"LC2013\",\n                    \"lcCooperative\": \"1.0\",\n                    \"lcKeepRight\": \"1.0\",\n                    \"lcSpeedGain\": \"1.0\",\n                    \"lcStrategic\": \"1.0\"\n                },\n                \"lane_change_mode\": 512\n            },\n            \"num_vehicles\": 21,\n            \"routing_controller\": [\n                \"ContinuousRouter\",\n                {}\n            ],\n            \"veh_id\": \"human_0\"\n        },\n        {\n            \"acceleration_controller\": [\n                \"RLController\",\n                {}\n            ],\n            \"car_following_params\": {\n                \"controller_params\": {\n                    \"accel\": 2.6,\n                    \"carFollowModel\": \"IDM\",\n                    \"decel\": 4.5,\n                    \"impatience\": 0.5,\n                    \"maxSpeed\": 30,\n                    \"minGap\": 2.5,\n                    \"sigma\": 0.5,\n                    \"speedDev\": 0.1,\n                    \"speedFactor\": 1.0,\n                    \"tau\": 1.0\n                },\n                \"speed_mode\": 25\n            },\n            \"initial_speed\": 0,\n            \"lane_change_controller\": [\n                \"SimLaneChangeController\",\n                {}\n            ],\n            \"lane_change_params\": {\n                \"controller_params\": {\n                    \"laneChangeModel\": \"LC2013\",\n                    \"lcCooperative\": \"1.0\",\n                    \"lcKeepRight\": \"1.0\",\n                    \"lcSpeedGain\": \"1.0\",\n                    \"lcStrategic\": \"1.0\"\n                },\n                \"lane_change_mode\": 512\n            },\n            \"num_vehicles\": 1,\n            \"routing_controller\": [\n                \"ContinuousRouter\",\n                {}\n            ],\n            \"veh_id\": \"rl_0\"\n        }\n    ]\n}",
     "run": "PPO"
   },
+  "evaluation_config": {},
+  "evaluation_interval": null,
+  "evaluation_num_episodes": 10,
   "gamma": 0.999,
+  "grad_clip": null,
   "horizon": 3000,
+  "ignore_worker_failures": false,
   "input": "sampler",
-  "input_evaluation": null,
+  "input_evaluation": [
+    "is",
+    "wis"
+  ],
   "kl_coeff": 0.2,
   "kl_target": 0.01,
   "lambda": 1.0,
-  "local_evaluator_tf_session_args": {
+  "local_tf_session_args": {
     "inter_op_parallelism_threads": 8,
     "intra_op_parallelism_threads": 8
   },
   "log_level": "INFO",
+  "log_sys_usage": true,
   "lr": 1e-05,
   "lr_schedule": null,
+  "metrics_smoothing_episodes": 100,
+  "min_iter_time_s": 0,
   "model": {
-    "channel_major": false,
     "conv_activation": "relu",
     "conv_filters": null,
     "custom_model": null,
@@ -52,24 +64,26 @@
     "lstm_cell_size": 256,
     "lstm_use_prev_action_reward": false,
     "max_seq_len": 20,
-    "squash_to_range": false,
+    "no_final_linear": false,
+    "state_shape": null,
     "use_lstm": false,
+    "vf_share_layers": true,
     "zero_mean": true
   },
   "monitor": false,
   "multiagent": {
-    "policies_to_train": [
-      "av"
-    ],
-    "policy_graphs": {
+    "policies": {
       "av": [
-        "<class 'ray.rllib.agents.ppo.ppo_policy_graph.PPOPolicyGraph'>",
+        "<class 'ray.rllib.policy.tf_policy_template.PPOTFPolicy'>",
         "Box(3,)",
         "Box(1,)",
         {}
       ]
     },
-    "policy_mapping_fn": "<ray.tune.suggest.variant_generator.function object at 0x7fee7808a0b8>"
+    "policies_to_train": [
+      "av"
+    ],
+    "policy_mapping_fn": "tune.function(<function setup_exps.<locals>.policy_mapping_fn at 0x7fda132e6c80>)"
   },
   "num_cpus_for_driver": 1,
   "num_cpus_per_worker": 1,
@@ -86,12 +100,18 @@
     "new_obs"
   ],
   "output_max_file_size": 67108864,
+  "postprocess_inputs": false,
   "preprocessor_pref": "deepmind",
+  "remote_env_batch_wait_ms": 0,
+  "remote_worker_envs": false,
   "sample_async": false,
   "sample_batch_size": 200,
+  "seed": null,
   "sgd_minibatch_size": 128,
+  "shuffle_buffer_size": 0,
+  "shuffle_sequences": true,
   "simple_optimizer": true,
-  "straggler_mitigation": false,
+  "soft_horizon": false,
   "synchronize_filters": true,
   "tf_session_args": {
     "allow_soft_placement": true,
@@ -105,6 +125,7 @@
     "intra_op_parallelism_threads": 2,
     "log_device_placement": false
   },
+  "timesteps_per_iteration": 0,
   "train_batch_size": 60000,
   "use_gae": true,
   "vf_clip_param": 10.0,
