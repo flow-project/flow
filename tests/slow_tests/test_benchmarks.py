@@ -35,7 +35,7 @@ from flow.benchmarks.stable_baselines.trpo_runner import parse_args
 from flow.benchmarks.stable_baselines.trpo_runner import save_model
 
 N_CPUS = 1
-ray.init(num_cpus=N_CPUS, redirect_output=True)
+ray.init(num_cpus=N_CPUS)
 
 os.environ['TEST_FLAG'] = 'True'
 
