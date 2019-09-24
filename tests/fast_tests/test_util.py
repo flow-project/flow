@@ -144,7 +144,8 @@ class TestRegistry(unittest.TestCase):
         create_env, env_name = make_create_env(params=flow_params, version=v)
 
         # check that the name is correct
-        self.assertEqual(env_name, '{}-v{}'.format(flow_params["env_name"], v))
+        self.assertEqual(env_name,
+                         '{}-v{}'.format(flow_params["env_name"].__name__, v))
 
         # create the gym environment
         env = create_env()
@@ -164,9 +165,10 @@ class TestRegistry(unittest.TestCase):
                          flow_params["net"].__dict__)
         self.assertEqual(env.initial_config.__dict__,
                          flow_params["initial"].__dict__)
-        self.assertEqual(env.__class__.__name__, flow_params["env_name"])
+        self.assertEqual(env.__class__.__name__,
+                         flow_params["env_name"].__name__)
         self.assertEqual(env.network.__class__.__name__,
-                         flow_params["network"])
+                         flow_params["network"].__name__)
 
 
 class TestRllib(unittest.TestCase):
