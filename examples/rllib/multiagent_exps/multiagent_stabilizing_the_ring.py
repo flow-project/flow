@@ -16,6 +16,8 @@ from ray import tune
 from ray.tune.registry import register_env
 from ray.tune import run_experiments
 
+from flow.envs.multiagent import MultiWaveAttenuationPOEnv
+from flow.networks import MultiRingNetwork
 from flow.controllers import ContinuousRouter
 from flow.controllers import IDMController
 from flow.controllers import RLController
@@ -58,10 +60,10 @@ flow_params = dict(
     exp_tag='lord_of_numrings{}'.format(NUM_RINGS),
 
     # name of the flow environment the experiment is running on
-    env_name='MultiWaveAttenuationPOEnv',
+    env_name=MultiWaveAttenuationPOEnv,
 
     # name of the network class the experiment is running on
-    network='MultiRingNetwork',
+    network=MultiRingNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

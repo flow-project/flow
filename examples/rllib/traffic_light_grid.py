@@ -10,6 +10,8 @@ except ImportError:
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
+from flow.envs import TrafficLightGridPOEnv
+from flow.networks import TrafficLightGridNetwork
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
@@ -181,10 +183,10 @@ flow_params = dict(
     exp_tag='traffic_light_grid',
 
     # name of the flow environment the experiment is running on
-    env_name='TrafficLightGridPOEnv',
+    env_name=TrafficLightGridPOEnv,
 
     # name of the network class the experiment is running on
-    network='TrafficLightGridNetwork',
+    network=TrafficLightGridNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

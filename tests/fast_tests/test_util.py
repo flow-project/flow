@@ -4,6 +4,8 @@ import os
 import json
 import collections
 
+from flow.envs import AccelEnv
+from flow.networks import FigureEightNetwork
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.controllers import IDMController, ContinuousRouter, RLController
@@ -106,8 +108,8 @@ class TestRegistry(unittest.TestCase):
 
         flow_params = dict(
             exp_tag="figure_eight_0",
-            env_name="AccelEnv",
-            network="FigureEightNetwork",
+            env_name=AccelEnv,
+            network=FigureEightNetwork,
             simulator='traci',
             sim=SumoParams(
                 sim_step=0.1,

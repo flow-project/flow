@@ -13,6 +13,8 @@ from ray import tune
 from ray.tune.registry import register_env
 from ray.tune import run_experiments
 
+from flow.envs.multiagent import MultiTrafficLightGridPOEnv
+from flow.networks import TrafficLightGridNetwork
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import InFlows, SumoCarFollowingParams, VehicleParams
 from flow.controllers import SimCarFollowingController, GridRouter
@@ -92,10 +94,10 @@ def make_flow_params(n_rows, n_columns, edge_inflow):
                                                      edge_inflow),
 
         # name of the flow environment the experiment is running on
-        env_name='MultiTrafficLightGridPOEnv',
+        env_name=MultiTrafficLightGridPOEnv,
 
         # name of the network class the experiment is running on
-        network="TrafficLightGridNetwork",
+        network=TrafficLightGridNetwork,
 
         # simulator that is used by the experiment
         simulator='traci',
