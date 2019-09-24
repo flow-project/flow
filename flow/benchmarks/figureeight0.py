@@ -8,7 +8,8 @@ network is an autonomous vehicle.
 - **Observation Dimension**: (28, )
 - **Horizon**: 1500 steps
 """
-
+from flow.envs import AccelEnv
+from flow.networks import FigureEightNetwork
 from copy import deepcopy
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
@@ -46,10 +47,10 @@ flow_params = dict(
     exp_tag="figure_eight_0",
 
     # name of the flow environment the experiment is running on
-    env_name="AccelEnv",
+    env_name=AccelEnv,
 
     # name of the network class the experiment is running on
-    network="FigureEightNetwork",
+    network=FigureEightNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

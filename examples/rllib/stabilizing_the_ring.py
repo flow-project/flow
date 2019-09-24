@@ -14,6 +14,8 @@ except ImportError:
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
+from flow.envs import WaveAttenuationPOEnv
+from flow.networks import RingNetwork
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -50,10 +52,10 @@ flow_params = dict(
     exp_tag="stabilizing_the_ring",
 
     # name of the flow environment the experiment is running on
-    env_name="WaveAttenuationPOEnv",
+    env_name=WaveAttenuationPOEnv,
 
     # name of the network class the experiment is running on
-    network="RingNetwork",
+    network=RingNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

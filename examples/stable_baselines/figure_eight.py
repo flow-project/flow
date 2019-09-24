@@ -11,8 +11,10 @@ import os
 from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines import PPO2
 
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    SumoCarFollowingParams
+from flow.envs import AccelEnv
+from flow.networks import FigureEightNetwork
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.networks.figure_eight import ADDITIONAL_NET_PARAMS
@@ -51,10 +53,10 @@ flow_params = dict(
     exp_tag='figure_eight_intersection_control',
 
     # name of the flow environment the experiment is running on
-    env_name='AccelEnv',
+    env_name=AccelEnv,
 
     # name of the network class the experiment is running on
-    network='FigureEightNetwork',
+    network=FigureEightNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
