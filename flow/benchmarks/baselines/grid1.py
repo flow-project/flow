@@ -56,8 +56,7 @@ def grid1_baseline(num_runs, render=True):
     env_params.evaluate = True
 
     # import the network class
-    module = __import__('flow.networks', fromlist=[flow_params['network']])
-    network_class = getattr(module, flow_params['network'])
+    network_class = flow_params['network']
 
     # create the network object
     network = network_class(
@@ -69,8 +68,7 @@ def grid1_baseline(num_runs, render=True):
     )
 
     # import the environment class
-    module = __import__('flow.envs', fromlist=[flow_params['env_name']])
-    env_class = getattr(module, flow_params['env_name'])
+    env_class = flow_params['env_name']
 
     # create the environment object
     env = env_class(env_params, sim_params, network)
