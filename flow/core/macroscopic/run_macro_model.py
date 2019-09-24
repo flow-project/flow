@@ -415,7 +415,8 @@ def load_model_env(model_name,
     params = getattr(module, 'PARAMS').copy()
 
     # update the parameters to match the inputs
-    params.update(model_params)
+    if model_params is not None:
+        params.update(model_params)
 
     if checkpoint_path is None:
         # we assume there is no agent in this case
