@@ -79,7 +79,8 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         self._edge_list = None
         self._junction_list = None
         self.__max_speed = None
-        self.__length = None
+        self.__length = None  # total length
+        self.__non_internal_length = None  # total length of non-internal edges
         self.rts = None
         self.cfg = None
 
@@ -158,7 +159,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
 
         # length of the network, or the portion of the network in
         # which cars are meant to be distributed
-        self.__length = sum(
+        self.__non_internal_length = sum(
             self.edge_length(edge_id) for edge_id in self.get_edge_list()
         )
 
@@ -189,6 +190,10 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         self.total_edgestarts.sort(key=lambda tup: tup[1])
 
         self.total_edgestarts_dict = dict(self.total_edgestarts)
+
+        self.__length = sum(
+            self._edges[edge_id]['length'] for edge_id in self._edges
+        )
 
         if self.network.routes is None:
             print("No routes specified, defaulting to single edge routes.")
@@ -277,6 +282,10 @@ class TraCIKernelNetwork(BaseKernelNetwork):
     def length(self):
         """See parent class."""
         return self.__length
+
+    def non_internal_length(self):
+        """See parent class."""
+        return self.__non_internal_length
 
     def speed_limit(self, edge_id):
         """See parent class."""

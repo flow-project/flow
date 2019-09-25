@@ -9,7 +9,7 @@ try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
-from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
+from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 from ray import tune
 from ray.tune.registry import register_env
 from ray.tune import run_experiments
@@ -205,7 +205,7 @@ def setup_exps(flow_params):
 
     # multiagent configuration
     temp_env = create_env()
-    policy_graphs = {'av': (PPOPolicyGraph,
+    policy_graphs = {'av': (PPOTFPolicy,
                             temp_env.observation_space,
                             temp_env.action_space,
                             {})}
@@ -215,7 +215,7 @@ def setup_exps(flow_params):
 
     config.update({
         'multiagent': {
-            'policy_graphs': policy_graphs,
+            'policies': policy_graphs,
             'policy_mapping_fn': tune.function(policy_mapping_fn),
             'policies_to_train': ['av']
         }

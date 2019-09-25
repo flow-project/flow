@@ -423,11 +423,11 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         )
 
         # reset the network several times and check its length
-        self.assertEqual(env.k.network.length(), 230)
+        self.assertEqual(env.k.network.non_internal_length(), 230)
         env.reset()
-        self.assertEqual(env.k.network.length(), 239)
+        self.assertEqual(env.k.network.non_internal_length(), 239)
         env.reset()
-        self.assertEqual(env.k.network.length(), 256)
+        self.assertEqual(env.k.network.non_internal_length(), 256)
 
     def test_v_eq_max_function(self):
         """
@@ -460,11 +460,11 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         )
 
         # reset the network several times and check its length
-        self.assertEqual(env.k.network.length(), RING_PARAMS["length"])
+        self.assertEqual(env.k.network.non_internal_length(), RING_PARAMS["length"])
         env.reset()
-        self.assertEqual(env.k.network.length(), RING_PARAMS["length"])
+        self.assertEqual(env.k.network.non_internal_length(), RING_PARAMS["length"])
         env.reset()
-        self.assertEqual(env.k.network.length(), RING_PARAMS["length"])
+        self.assertEqual(env.k.network.non_internal_length(), RING_PARAMS["length"])
 
 
 class TestWaveAttenuationPOEnv(unittest.TestCase):
@@ -997,7 +997,9 @@ class TestMultiAgentHighwayPOEnv(unittest.TestCase):
         # check the observation space
         self.assertTrue(test_space(
             env.observation_space,
-            expected_size=5, expected_min=0, expected_max=1
+            expected_size=5,
+            expected_min=-float('inf'),
+            expected_max=float('inf')
         ))
 
         # check the action space
