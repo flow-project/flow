@@ -350,6 +350,7 @@ class Env(gym.Env):
                         veh_id)
                     routing_actions.append(route_contr.choose_route(self))
 
+
             self.k.vehicle.choose_routes(routing_ids, routing_actions)
 
             self.apply_rl_actions(rl_actions)

@@ -1,11 +1,11 @@
-"""Contains the intersection scenario class."""
+"""Contains the intersection network class."""
 
 import numpy as np
 from numpy import linspace
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
-from flow.scenarios.base_scenario import Scenario
+from flow.networks import Network
 
 ADDITIONAL_NET_PARAMS = {
     # number of lanes
@@ -16,9 +16,10 @@ ADDITIONAL_NET_PARAMS = {
     "edge_length": 100
 }
 
+# Note: To add turns, edit the 
 
-class SimpleIntScenario(Scenario):
-    """Intersection scenario class."""
+class SimpleIntNetwork(Network):
+    """Intersection network class."""
 
     def __init__(self,
                  name,
@@ -26,7 +27,7 @@ class SimpleIntScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize an intersection scenario.
+        """Initialize an intersection network.
 
         Requires from net_params:
         - lanes: number of lanes in the network
@@ -36,7 +37,7 @@ class SimpleIntScenario(Scenario):
         In order for right-of-way dynamics to take place at the intersection,
         set "no_internal_links" in net_params to False.
 
-        See flow/scenarios/base_scenario.py for description of params.
+        See flow/network/base.py for description of params.
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
@@ -46,6 +47,7 @@ class SimpleIntScenario(Scenario):
         self.speed_limit = net_params.additional_params["lanes"]
         self.edge_length = net_params.additional_params["edge_length"]
         self.junction_radius = (2.9 + 3.3 * self.lanes) / 2
+        self.turns = net_params.additional_params["turns_on"] 
         
         super().__init__(name, vehicles, net_params, initial_config,
                          traffic_lights)
@@ -129,12 +131,27 @@ class SimpleIntScenario(Scenario):
         return types
 
     def specify_routes(self, net_params):
-        """See parent class."""
-        rts = {
-            "bottom": ["bottom", "top"],
-            "left": ["left", "right"]                
-        }
-
+        """See parent class.
+        
+        
+        """
+        if self.turns:
+            # Probability that cars coming from the bottom road will turn right onto right road
+            prob_right = 0.5
+            # Probability that cars coming from the left road will turn left onto top road
+            prob_left = 0.5
+            rts = {
+                "bottom": [(["bottom", "top"], 1-prob_right),
+                        (["bottom", "right"], prob_right)],
+                "left": [(["left", "right"], 1-prob_left),
+                        (["left", "top"], prob_left)]              
+            }
+        else:
+            # Do no turns
+            rts = {
+                "bottom":["bottom", "top"],
+                "left": ["left", "right"]
+            }
         return rts
 
     def specify_connections(self, net_params):
@@ -149,6 +166,16 @@ class SimpleIntScenario(Scenario):
                       "to": "right",
                       "fromLane": str(i),
                       "toLane": str(i)}]
+            if self.turns:
+                # This network has specific turns
+                conn += [{"from": "left",
+                          "to": "top",
+                          "fromLane": str(i),
+                          "toLane": str(i)}]
+                conn += [{"from": "bottom",
+                          "to": "right",
+                          "fromLane": str(i),
+                          "toLane": str(i)}]       
         return { "center": conn }
 
     def specify_edge_starts(self):

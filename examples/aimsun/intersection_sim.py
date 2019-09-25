@@ -10,8 +10,18 @@ from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, AimsunParams, EnvParams, NetParams
 from flow.core.params import VehicleParams, InFlows
 from flow.envs import TestEnv
-from flow.scenarios.intersection import SimpleIntScenario, ADDITIONAL_NET_PARAMS
+from flow.networks import SimpleIntNetwork
 
+ADDITIONAL_NET_PARAMS = {
+    # number of lanes
+    "lanes": 1,
+    # speed limit for all edges
+    "speed_limit": 30,
+    # length of the four edges
+    "edge_length": 100, 
+    ### Specify if we want turns to be on
+    "turns_on": True
+}
 
 def simple_intersection_example(render=None):
     """Perform a simulation of vehicles on an intersection.
@@ -27,7 +37,9 @@ def simple_intersection_example(render=None):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on an intersection.
     """
+    ### Change the following lines to change between aimsun and traci
     sim_params = AimsunParams(sim_step=0.5, render=True, emission_path='data')
+    simulator= 'aimsun'  #'traci'
 
     if render is not None:
         sim_params.render = render
@@ -58,12 +70,12 @@ def simple_intersection_example(render=None):
     net_params = NetParams(inflows=inflow,
         additional_params=ADDITIONAL_NET_PARAMS.copy())
 
-    scenario = SimpleIntScenario(
+    network = SimpleIntNetwork(
         name="intersection",
         vehicles=vehicles,
         net_params=net_params)
 
-    env = TestEnv(env_params, sim_params, scenario, simulator='aimsun')
+    env = TestEnv(env_params, sim_params, network, simulator=simulator)
 
     return Experiment(env)
 
