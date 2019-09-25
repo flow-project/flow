@@ -17,6 +17,7 @@ Usage
     python time_space_diagram.py </path/to/emission>.csv </path/to/params>.json
 """
 from flow.utils.rllib import get_flow_params
+from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork
 import csv
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
@@ -26,9 +27,9 @@ import argparse
 
 # networks that can be plotted by this method
 ACCEPTABLE_NETWORKS = [
-    'RingNetwork',
-    'FigureEightNetwork',
-    'MergeNetwork',
+    RingNetwork,
+    FigureEightNetwork,
+    MergeNetwork,
 ]
 
 
@@ -120,9 +121,9 @@ def get_time_space_data(data, params):
 
     # switcher used to compute the positions based on the type of network
     switcher = {
-        'RingNetwork': _ring_road,
-        'MergeNetwork': _merge,
-        'FigureEightNetwork': _figure_eight
+        RingNetwork: _ring_road,
+        MergeNetwork: _merge,
+        FigureEightNetwork: _figure_eight
     }
 
     # Collect a list of all the unique times.

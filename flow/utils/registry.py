@@ -30,8 +30,9 @@ def make_create_env(params, version=0, render=None):
         flow-related parameters, consisting of the following keys:
 
          - exp_tag: name of the experiment
-         - env_name: name of the flow environment the experiment is running on
-         - network: name of the network class the experiment uses
+         - env_name: environment class of the flow environment the experiment
+           is running on. (note: must be in an importable module.)
+         - network: network class the experiment uses.
          - simulator: simulator that is used by the experiment (e.g. aimsun)
          - sim: simulation-related parameters (see flow.core.params.SimParams)
          - env: environment related parameters (see flow.core.params.EnvParams)
@@ -59,10 +60,20 @@ def make_create_env(params, version=0, render=None):
     """
     exp_tag = params["exp_tag"]
 
-    env_name = params["env_name"] + '-v{}'.format(version)
+    if isinstance(params["env_name"], str):
+        print("""Passing of strings for env_name will be deprecated.
+        Please pass the Env instance instead.""")
+        env_name = params["env_name"] + '-v{}'.format(version)
+    else:
+        env_name = params["env_name"].__name__ + '-v{}'.format(version)
 
-    module = __import__("flow.networks", fromlist=[params["network"]])
-    network_class = getattr(module, params["network"])
+    if isinstance(params["network"], str):
+        print("""Passing of strings for network will be deprecated.
+        Please pass the Network instance instead.""")
+        module = __import__("flow.networks", fromlist=[params["network"]])
+        network_class = getattr(module, params["network"])
+    else:
+        network_class = params["network"]
 
     env_params = params['env']
     net_params = params['net']
@@ -89,15 +100,19 @@ def make_create_env(params, version=0, render=None):
         single_agent_envs = [env for env in dir(flow.envs)
                              if not env.startswith('__')]
 
-        if params['env_name'] in single_agent_envs:
-            env_loc = 'flow.envs'
+        if isinstance(params["env_name"], str):
+            if params['env_name'] in single_agent_envs:
+                env_loc = 'flow.envs'
+            else:
+                env_loc = 'flow.envs.multiagent'
+            entry_point = env_loc + ':{}'.format(params["env_name"])
         else:
-            env_loc = 'flow.envs.multiagent'
+            entry_point = params["env_name"].__module__ + ':' + params["env_name"].__name__
 
         try:
             register(
                 id=env_name,
-                entry_point=env_loc + ':{}'.format(params["env_name"]),
+                entry_point=entry_point,
                 kwargs={
                     "env_params": env_params,
                     "sim_params": sim_params,

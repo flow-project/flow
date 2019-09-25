@@ -10,6 +10,8 @@ import os
 from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines import PPO2
 
+from flow.envs import MergePOEnv
+from flow.networks import MergeNetwork
 from flow.core.params import SumoParams, EnvParams, InitialConfig, InFlows, NetParams
 from flow.core.params import VehicleParams, SumoCarFollowingParams
 from flow.controllers import RLController, IDMController
@@ -90,10 +92,10 @@ flow_params = dict(
     exp_tag="stabilizing_open_network_merges",
 
     # name of the flow environment the experiment is running on
-    env_name="MergePOEnv",
+    env_name=MergePOEnv,
 
     # name of the network class the experiment is running on
-    network="MergeNetwork",
+    network=MergeNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
