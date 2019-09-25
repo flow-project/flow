@@ -10,6 +10,8 @@ import os
 from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines import PPO2
 
+from flow.envs import BottleneckDesiredVelocityEnv
+from flow.networks import BottleneckNetwork
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import TrafficLightParams
@@ -108,10 +110,10 @@ flow_params = dict(
     exp_tag="DesiredVelocity",
 
     # name of the flow environment the experiment is running on
-    env_name="BottleneckDesiredVelocityEnv",
+    env_name=BottleneckDesiredVelocityEnv,
 
     # name of the network class the experiment is running on
-    network="BottleneckNetwork",
+    network=BottleneckNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
