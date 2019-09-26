@@ -43,11 +43,10 @@ In this scenario, human drivers placed on a ring develop a travelling wave that 
 decelerations and lowers the average velocity of the system. The goal is to train a single
 autonomous vehicle to eliminate the shockwave.
 
-The experiment config for this in human-only mode is `examples/exp_configs/non_rl/ring.py`.
-The run scripts in rllib and aimsun are `examples/exp_configs/singleagent/singleagent_ring.py` 
-and `examples/aimsun/singleagent_ring.py`. These control environments are partially observed:
-the autonomous vehicle only observes its own distance to the leading vehicle, its speed,
-and the speed of the leading vehicle.
+The experiment config for this in human-only mode (non-RL) is `examples/exp_configs/non_rl/ring.py`.
+The experiment config for RL-based is `examples/exp_configs/singleagent/singleagent_ring.py`. 
+These control environments are partially observed: the autonomous vehicle only observes its own 
+distance to the leading vehicle, its speed, and the speed of the leading vehicle.
 
 To make this task more difficult, the environment has a configurable parameter, `ring_length`, which
 can be set to a list containing the minimum and maximum ring-size. The autonomous vehicle must

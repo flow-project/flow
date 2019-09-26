@@ -38,7 +38,7 @@ def parse_args(args):
     parser.add_argument(
         'exp_config', type=str,
         help='Name of the experiment configuration file, as located in '
-             'exp_configs/singleagent.')
+             'exp_configs/singleagent' or or 'exp_configs/multiagent.')
 
     return parser.parse_known_args(args)[0]
 

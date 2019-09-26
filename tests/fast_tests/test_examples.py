@@ -108,7 +108,7 @@ class TestNonRLExamples(unittest.TestCase):
 
 
 class TestStableBaselineExamples(unittest.TestCase):
-    """Tests the example scripts in examples/stable_baselines.
+    """Tests the example scripts in examples/exp_configs/singleagent for stable_baselines.
 
     This is done by running each experiment in that folder for five time-steps
     and confirming that it completes one rollout with two workers.
@@ -137,7 +137,8 @@ class TestStableBaselineExamples(unittest.TestCase):
 
 
 class TestRllibExamples(unittest.TestCase):
-    """Tests the example scripts in examples/rllib.
+    """Tests the example scripts in examples/exp_configs/singleagent and
+    examples/exp_configs/multiagent for RLlib.
 
     This is done by running each experiment in that folder for five time-steps
     and confirming that it completes one rollout with two workers.

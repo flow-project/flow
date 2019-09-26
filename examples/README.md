@@ -23,12 +23,19 @@ micro-simulator sumo and traffic macro-simulator Aimsun.
 To execute these examples, run
 
 ```shell
-python simulate.py EXP_CONFIG --render
+python simulate.py EXP_CONFIG 
 ```
-`EXP_CONFIG` is the name of the experiment configuration file, as located in 
+where `EXP_CONFIG` is the name of the experiment configuration file, as located in 
 `exp_configs/non_rl.`
 
-**RL examples based on RLlib* provides similar networks as those presented in 
+There are several *optional* arguments that can be added to the above command:
+
+```shell
+ python simulate.py EXP_CONFIG --num_runs n --render --aimsun --gen_emission
+```
+where `--num_runs` indicates the number of simulations to run (default of `n` is 1), `--render` indicates whether to run the simulation during runtime (default is False), `--aimsun` indicates whether to run the simulation using the simulator Aimsun (the default simulator is SUMO), and `--gen_emission` indicates whether to generate an emission file from the simulation.
+
+**RL examples based on RLlib** provides similar networks as those presented in 
 the first point, but in the present of autonomous vehicle (AV) or traffic light agents 
 being trained through RL algorithms provided by *RLlib*.
 
@@ -37,20 +44,29 @@ To execute these examples, run
 ```shell
  python train_rllib.py EXP_CONFIG
 ```
-`EXP_CONFIG` is the name of the experiment configuration file, as located in 
+where `EXP_CONFIG` is the name of the experiment configuration file, as located in 
 `exp_configs/singleagent` or  `exp_configs/multiagent.`
 
-**RL examples based on "stable" baselines* provides similar networks as those 
+
+**RL examples based on "stable" baselines** provides similar networks as those 
 presented in the first point, but in the present of autonomous vehicle (AV) or traffic 
 light agents being trained through RL algorithms provided by OpenAI *stable 
 baselines*.
 
+To execute these examples, run
+
 ```shell
  python train_stable_baselines.py EXP_CONFIG
 ```
-`EXP_CONFIG` is the name of the experiment configuration file, as located in 
+where `EXP_CONFIG` is the name of the experiment configuration file, as located in 
 `exp_configs/singleagent.`
 
+There are several *optional* arguments that can be added to the above command:
+
+```shell
+ python train_stable_baselines.py EXP_CONFIG --num_cpus n1 --num_steps n2 --rollout_size r
+```
+where `--num_cpus` indicates the number of CPUs to use (default of `n1` is 1), `--num_steps` indicates the total steps to perform the learning (default of `n2` is 5000), and `--rollout_size` indicates the number of steps in a training batch (default of `r` is 1000)
 
 ## Simulated Examples
 
