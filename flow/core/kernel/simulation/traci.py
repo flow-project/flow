@@ -36,6 +36,15 @@ class TraCISimulation(KernelSimulation):
         # contains the subprocess.Popen instance used to start traci
         self.sumo_proc = None
 
+        # counter of simulation steps
+        self.sim_step_num = 0
+
+        # which rollout (for saving screenshots)
+        self.rollout = 0
+
+        # whether or not to save screenshots of frames
+        self.save_screenshots = False
+
     def pass_api(self, kernel_api):
         """See parent class.
 
@@ -53,7 +62,18 @@ class TraCISimulation(KernelSimulation):
 
     def simulation_step(self):
         """See parent class."""
+        # print("step: " + str(self.sim_step_num))
         self.kernel_api.simulationStep()
+        self.sim_step_num += 1
+
+        print("taking screenshot at step %d" % self.sim_step_num)
+        if (self.save_screenshots): # and self.sim_step_num % 10 == 0:
+            self.take_screenshot("snapshots2/sugiyama_rand_screenshots/roll%dstep%d.png" % (self.rollout, self.sim_step_num))
+
+    def take_screenshot(self, filename):
+        with open(filename, "w+") as f:
+            f.write("")
+        self.kernel_api.gui.screenshot("View #0", filename)
 
     def update(self, reset):
         """See parent class."""
@@ -131,6 +151,9 @@ class TraCISimulation(KernelSimulation):
                 sumo_call.append("--collision.check-junctions")
                 sumo_call.append("true")
 
+                # force sumo start (play) automatically
+                sumo_call.append("--start")
+
                 logging.info(" Starting SUMO on port " + str(port))
                 logging.debug(" Cfg file: " + str(scenario.cfg))
                 if sim_params.num_clients > 1:
@@ -149,6 +172,11 @@ class TraCISimulation(KernelSimulation):
                     time.sleep(0.1)
                 else:
                     time.sleep(config.SUMO_SLEEP)
+
+                # set self.rollouts for saving screenshots for world models training
+                if sim_params.rollout:
+                    # print("rollout set to " + str(sim_params.rollout))
+                    self.rollout = sim_params.rollout
 
                 traci_connection = traci.connect(port, numRetries=100)
                 traci_connection.setOrder(0)

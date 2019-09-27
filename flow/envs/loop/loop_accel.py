@@ -94,6 +94,7 @@ class AccelEnv(Env):
             veh_id for veh_id in self.sorted_ids
             if veh_id in self.k.vehicle.get_rl_ids()
         ]
+        print(rl_actions)
         self.k.vehicle.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, rl_actions, **kwargs):

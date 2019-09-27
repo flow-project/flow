@@ -67,6 +67,10 @@ class TraCIVehicle(KernelVehicle):
         self._num_arrived = []
         self._arrived_ids = []
 
+        self.save_actions = True
+        if self.save_actions:
+            self.actions_saved = np.array([])
+
     def initialize(self, vehicles):
         """
 
@@ -817,6 +821,8 @@ class TraCIVehicle(KernelVehicle):
     def apply_acceleration(self, veh_ids, acc):
         """See parent class."""
         for i, vid in enumerate(veh_ids):
+            if self.save_actions and vid in self.get_rl_ids():
+                self.actions_saved = np.append(self.actions_saved, self.actions_saved)
             if acc[i] is not None and vid in self.get_ids():
                 this_vel = self.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
