@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 ############ values tested ###
 
 L = L = 10
-
 N = 150
 
 # CFL condition

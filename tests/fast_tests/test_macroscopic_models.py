@@ -39,7 +39,7 @@ class TestDictDescriptor(unittest.TestCase):
 #         params['total_time'] = 10
 #         params['dt'] = 3
 #         self.assertRaises(AssertionError, LWR, params=params)
-#
+
 #         # test the dx/length assertion
 #         params = LWR_PARAMS.copy()
 #         params['length'] = 10
