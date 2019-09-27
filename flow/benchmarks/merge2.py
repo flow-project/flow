@@ -8,7 +8,8 @@ is 33.3%.
 - **Observation Dimension**: (85, )
 - **Horizon**: 750 steps
 """
-
+from flow.envs import MergePOEnv
+from flow.networks import MergeNetwork
 from copy import deepcopy
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
@@ -76,10 +77,10 @@ flow_params = dict(
     exp_tag="merge_2",
 
     # name of the flow environment the experiment is running on
-    env_name="MergePOEnv",
+    env_name=MergePOEnv,
 
     # name of the network class the experiment is running on
-    network="MergeNetwork",
+    network=MergeNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

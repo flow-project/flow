@@ -7,8 +7,10 @@ import os
 from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines import PPO2
 
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    SumoCarFollowingParams, InFlows
+from flow.envs import TrafficLightGridPOEnv
+from flow.networks import TrafficLightGridNetwork
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoCarFollowingParams, InFlows
 from flow.core.params import VehicleParams
 from flow.controllers import SimCarFollowingController, GridRouter
 from flow.utils.registry import env_constructor
@@ -175,10 +177,10 @@ flow_params = dict(
     exp_tag='traffic_light_grid',
 
     # name of the flow environment the experiment is running on
-    env_name='TrafficLightGridPOEnv',
+    env_name=TrafficLightGridPOEnv,
 
     # name of the network class the experiment is running on
-    network='TrafficLightGridNetwork',
+    network=TrafficLightGridNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
