@@ -51,7 +51,8 @@ before_install:
   -     ./flow/scripts/setup_aimsun.sh
   - popd
   - source ~/.bashrc
-  - sed -i 's/\/path\/to\/envs\/aimsun_flow/\/home\/travis\/miniconda\/envs\/aimsun_flow/g' flow/config.py
+  - export AIMSUN_SITEPACKAGES="/home/travis/miniconda/envs/aimsun_flow"
+  - export AIMSUN_NEXT_PATH="/home/user/Aimsun_Next_XXX"
 
   - ls ../
 
