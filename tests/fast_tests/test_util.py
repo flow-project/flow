@@ -4,12 +4,16 @@ import os
 import json
 import collections
 
+from flow.envs import AccelEnv
+from flow.networks import FigureEightNetwork
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoCarFollowingParams
 from flow.core.util import emission_to_csv
+from flow.envs import MergePOEnv
+from flow.networks import MergeNetwork
 from flow.utils.flow_warnings import deprecated_attribute
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
@@ -104,8 +108,8 @@ class TestRegistry(unittest.TestCase):
 
         flow_params = dict(
             exp_tag="figure_eight_0",
-            env_name="AccelEnv",
-            network="FigureEightNetwork",
+            env_name=AccelEnv,
+            network=FigureEightNetwork,
             simulator='traci',
             sim=SumoParams(
                 sim_step=0.1,
@@ -140,7 +144,8 @@ class TestRegistry(unittest.TestCase):
         create_env, env_name = make_create_env(params=flow_params, version=v)
 
         # check that the name is correct
-        self.assertEqual(env_name, '{}-v{}'.format(flow_params["env_name"], v))
+        self.assertEqual(env_name,
+                         '{}-v{}'.format(flow_params["env_name"].__name__, v))
 
         # create the gym environment
         env = create_env()
@@ -160,9 +165,10 @@ class TestRegistry(unittest.TestCase):
                          flow_params["net"].__dict__)
         self.assertEqual(env.initial_config.__dict__,
                          flow_params["initial"].__dict__)
-        self.assertEqual(env.__class__.__name__, flow_params["env_name"])
+        self.assertEqual(env.__class__.__name__,
+                         flow_params["env_name"].__name__)
         self.assertEqual(env.network.__class__.__name__,
-                         flow_params["network"])
+                         flow_params["network"].__name__)
 
 
 class TestRllib(unittest.TestCase):
@@ -217,8 +223,8 @@ class TestRllib(unittest.TestCase):
 
         flow_params = dict(
             exp_tag="merge_0",
-            env_name="MergePOEnv",
-            network="MergeNetwork",
+            env_name=MergePOEnv,
+            network=MergeNetwork,
             sim=SumoParams(
                 restart_instance=True,
                 sim_step=0.5,

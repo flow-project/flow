@@ -10,6 +10,8 @@ except ImportError:
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
+from flow.envs import AccelEnv
+from flow.networks import FigureEightNetwork
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
@@ -53,10 +55,10 @@ flow_params = dict(
     exp_tag='figure_eight_intersection_control',
 
     # name of the flow environment the experiment is running on
-    env_name='AccelEnv',
+    env_name=AccelEnv,
 
     # name of the network class the experiment is running on
-    network='FigureEightNetwork',
+    network=FigureEightNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
