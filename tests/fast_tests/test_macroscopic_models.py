@@ -29,71 +29,71 @@ class TestDictDescriptor(unittest.TestCase):
         self.assertEqual(test_dict.type("foo"), float)
         self.assertEqual(test_dict.type("bar"), bool)
 
-
-class TestLWR(unittest.TestCase):
-    """Unit tests for the flow.core.macroscopic.lwr.LWR class."""
-
-    def test_init(self):
-        # test the dt/total_time assertion
-        params = LWR_PARAMS.copy()
-        params['total_time'] = 10
-        params['dt'] = 3
-        self.assertRaises(AssertionError, LWR, params=params)
-
-        # test the dx/length assertion
-        params = LWR_PARAMS.copy()
-        params['length'] = 10
-        params['dx'] = 3
-        self.assertRaises(AssertionError, LWR, params=params)
-
-        # test the v_max/v_max_max assertion
-        params = LWR_PARAMS.copy()
-        params['v_max'] = 10
-        params['v_max_max'] = 3
-        self.assertRaises(AssertionError, LWR, params=params)
-
-        # test the rho_max/rho_max_max assertion
-        params = LWR_PARAMS.copy()
-        params['rho_max'] = 10
-        params['rho_max_max'] = 3
-        self.assertRaises(AssertionError, LWR, params=params)
-
-        # test the dt/dx/CFL/v_max assertion
-        pass
-
-        # check the action space
-        pass
-
-        # check the observation space
-        pass
-
-        # validate that all the inputs properly match the expected values
-        pass
-
-    def test_speed_info(self):
-        # test the implementation of the Greenshields model
-        pass
-
-    def test_IBVP(self):
-        # test the implementation of the Godunov scheme for multi-populations
-        pass
-
-    def test_step(self):
-        # check that the output from the step method matches expected values
-        pass
-
-    def test_reset(self):
-        env = LWR(LWR_PARAMS.copy())
-
-        # check that the initial v_max value matches the expected term and it
-        # had been initially changed to another value
-        env.v_max = 5
-        env.reset()
-        self.assertEqual(env.v_max, 27.5)
-
-        # check that the initial density and observations match the expected
-        # values
-        pass
+#
+# class TestLWR(unittest.TestCase):
+#     """Unit tests for the flow.core.macroscopic.lwr.LWR class."""
+#
+#     def test_init(self):
+#         # test the dt/total_time assertion
+#         params = LWR_PARAMS.copy()
+#         params['total_time'] = 10
+#         params['dt'] = 3
+#         self.assertRaises(AssertionError, LWR, params=params)
+#
+#         # test the dx/length assertion
+#         params = LWR_PARAMS.copy()
+#         params['length'] = 10
+#         params['dx'] = 3
+#         self.assertRaises(AssertionError, LWR, params=params)
+#
+#         # test the v_max/v_max_max assertion
+#         params = LWR_PARAMS.copy()
+#         params['v_max'] = 10
+#         params['v_max_max'] = 3
+#         self.assertRaises(AssertionError, LWR, params=params)
+#
+#         # test the rho_max/rho_max_max assertion
+#         params = LWR_PARAMS.copy()
+#         params['rho_max'] = 10
+#         params['rho_max_max'] = 3
+#         self.assertRaises(AssertionError, LWR, params=params)
+#
+#         # test the dt/dx/CFL/v_max assertion
+#         pass
+#
+#         # check the action space
+#         pass
+#
+#         # check the observation space
+#         pass
+#
+#         # validate that all the inputs properly match the expected values
+#         pass
+#
+#     def test_speed_info(self):
+#         # test the implementation of the Greenshields model
+#         pass
+#
+#     def test_IBVP(self):
+#         # test the implementation of the Godunov scheme for multi-populations
+#         pass
+#
+#     def test_step(self):
+#         # check that the output from the step method matches expected values
+#         pass
+#
+#     def test_reset(self):
+#         env = LWR(LWR_PARAMS.copy())
+#
+#         # check that the initial v_max value matches the expected term and it
+#         # had been initially changed to another value
+#         env.v_max = 5
+#         env.reset()
+#         self.assertEqual(env.v_max, 27.5)
+#
+#         # check that the initial density and observations match the expected
+#         # values
+#         pass
 
 
 class TestARZ(unittest.TestCase):

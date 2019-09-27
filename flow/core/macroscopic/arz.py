@@ -8,31 +8,68 @@ import numpy as np
 from scipy.optimize import fsolve
 from flow.core.macroscopic.base_model import MacroModelEnv
 from flow.core.macroscopic.utils import DictDescriptor
+import matplotlib.pyplot as plt
 
+############ values tested ###
+
+L = L = 10
+
+N = 150
+
+# CFL condition
+CFL = 0.99
+
+# change in length and points on road we are plotting against
+dx = L / N
+dt = CFL * dx / 1
+
+x = np.arange(0.5 * dx, (L - 0.5 * dx), dx)
+
+# density initial_data
+rho_L_side= 0.5 * (x < max(x) / 2)
+rho_R_side = 0.5 * (x > max(x) / 2)
+
+# velocity initial_data
+u_L_side = 0.7 * (x < max(x) / 2)
+u_R_side = 0.1 * (x > max(x) / 2)
+
+u_data_rho_rho = rho_L_side + rho_R_side
+u_data_rho_velocity = u_L_side + u_R_side
+
+# calculate relative flow (transform u to y)
+def ve(density, V_max=1, rho_max=1):
+    return V_max * (1 - (density / rho_max))
+y_vector = (u_data_rho_rho * (u_data_rho_velocity - ve(u_data_rho_rho,1, 1)))
+
+# full initial data
+initial_data = u_data_rho_rho, y_vector
+
+
+############################################
 
 PARAMS = DictDescriptor(
     # ======================================================================= #
     #                           Network parameters                            #
     # ======================================================================= #
 
-    ("length", 10000, float, "length of the stretch of highway"),
+    ("length", 10, float, "length of the stretch of highway"),
 
-    ("dx", 100, float, "length of individual sections on the highway. Speeds "
+    ("dx", 10/150, float, "length of individual sections on the highway. Speeds "
                        "and densities are computed on these sections. Must be "
                        "a factor of the length"),
 
-    ("rho_max", 0.2, float, "maximum density term in the LWR model (in "
+    ("rho_max", 1, float, "maximum density term in the LWR model (in "
                             "veh/m)"),
 
-    ("rho_max_max", 0.2, float, "maximum possible density of the network (in "
+    ("rho_max_max", 1, float, "maximum possible density of the network (in "
                                 "veh/m)"),
 
-    ("v_max", 27.5, float, "initial speed limit of the LWR model. If not "
+    ("v_max", 1, float, "initial speed limit of the LWR model. If not "
                            "actions are provided during the simulation "
                            "procedure, this value is kept constant throughout "
                            "the simulation."),
 
-    ("v_max_max", 27.5, float, "max speed limit that the network can be "
+    ("v_max_max", 1, float, "max speed limit that the network can be "
                                "assigned"),
 
     ("CFL", 0.95, float, "Courant-Friedrichs-Lewy (CFL) condition. Must be a "
@@ -47,18 +84,20 @@ PARAMS = DictDescriptor(
 
     ("total_time", 500, float, "time horizon (in seconds)"),
 
-    ("dt", 1, float, "time discretization (in seconds/step)"),
+    # dt*iterations = time_horizon ; iterations = int(time_hor/dt);
+    # dt = CFL * dx / v_max
+    ("dt", 0.05, float, "time discretization (in seconds/step)"),
 
     # ======================================================================= #
     #                      Initial / boundary conditions                      #
     # ======================================================================= #
 
-    ("initial_conditions", ([0 for _ in range(100)], [0 for _ in range(100)]),
+    ("initial_conditions", (u_data_rho_rho, y_vector),
      None,
      "tuple of (density, speed) initial conditions. Each element of the tuple"
      " must be a list of length int(length/dx)"),
 
-    ("boundary_conditions", (0, 0), None, "TODO: define what that is"),
+    ("boundary_conditions", ((1, 1), (1, 1)), None, "TODO: define what that is"),
 )
 
 
@@ -220,12 +259,14 @@ class ARZ(MacroModelEnv):
         assert params['dt'] <= params['CFL'] * params['dx']/params['v_max'], \
             "CFL condition not satisfied. Make sure dt <= CFL * dx / v_max"
 
+        # Initial conditions must be a list of size: (length/dx) - 1
         assert len(params['initial_conditions'][0]) == \
-            int(params['length'] / params['dx']), \
-            "Initial conditions must be a list of size: length/dx."
+            int(params['length'] / params['dx']) - 1, \
+            "Initial conditions must be a list of size: (length/dx) - 1."
 
+        # Initial conditions must be a list of size: (length/dx) - 1
         assert len(params['initial_conditions'][1]) == \
-            int(params['length'] / params['dx']), \
+            int(params['length'] / params['dx']) - 1, \
             "Initial conditions must be a list of size: length/dx."
 
         assert (params['length'] / params['dx']).is_integer(), \
@@ -275,18 +316,19 @@ class ARZ(MacroModelEnv):
 
         # advance the state of the simulation by one step
         rho, relative_flow = self.arz_solve(self.obs)
-        speed = self.u(rho, relative_flow)
+        self.speed = self.u(rho, relative_flow)
 
         # compute the new observation
-        self.obs = np.concatenate((rho / self.rho_max_max, speed / self.v_max))
-
+        # self.obs takes in density and relative_velocity
+        # obs should be tuple (list, list) for ease of plotting and calculate
+        self.obs = (rho / self.rho_max_max,  self.relative_flow(rho, self.speed / self.v_max))
         # compute the reward value
-        rew = np.mean(np.square(speed - self.v_max) * rho)
+        rew = np.mean(np.square(self.speed - self.v_max) * rho)
 
         # compute the done mask
         done = self.num_steps >= self.horizon
 
-        return self.obs.copy(), rew, done, {}
+        return self.obs, rew, done, {}
 
     def reset(self):
         """Reset the environment.
@@ -304,9 +346,9 @@ class ARZ(MacroModelEnv):
         self.v_max = self.params['v_max']
 
         # reset the observation to match the initial condition
-        # FIXME
+        self.obs = self.initial_conditions
 
-        return self.obs.copy()
+        return self.obs
 
     def arz_solve(self, u_full):
         """Implement Godunov Semi-Implicit scheme for multi-populations.
@@ -333,8 +375,9 @@ class ARZ(MacroModelEnv):
             Godunov scheme
         """
         # we are extrapolating our boundary conditions
-        u_left = self.boundary_left(u_full)
-        u_right = self.boundary_right(u_full)
+        #removes self
+        u_left = boundary_left(u_full)
+        u_right = boundary_right(u_full)
 
         # full array with boundary conditions
         u_all = (np.insert(np.append(u_full[0], u_right[0]), 0, u_left[0]),
@@ -575,3 +618,61 @@ class ARZ(MacroModelEnv):
             velocity at every specified point on road
         """
         return (y_value / density) + self.ve(density)
+
+    def relative_flow(self, density, velocity):
+        """Calculate actual relative flow from density and  velocity.
+
+        Parameters
+        ----------
+        density : array_like
+            density data at every specified point on road
+        velocity : array_like
+            velocity at every specified point on road
+
+        Returns
+        -------
+        array_like
+            relative flow at every specified point on road
+        """
+        return (velocity - self.ve(density)) * density
+
+# Testing the code out:
+if __name__ == '__main__':
+    env = ARZ(PARAMS.copy())
+
+    #visualize what every method is giving me
+    # run a single roll out of the environment
+    obs = env.reset()
+
+    # results_dir = "~/Desktop/MS Lab Project/Python Code/results/"
+    # data = {"Position_on_street": x}
+
+    for i in range(50):
+        action = 1  # agent.compute(obs)
+        obs, rew, done, _ = env.step(action)
+
+        # new_densities = {"Densities at t = " + str(i): env.obs[0]}
+        # new_relative_flow = {"Relative flow at t = " + str(i): env.obs[1]}
+        # new_speeds = {"Velocities at t = " + str(i): u(env.obs[0], env.obs[1], V_max, rho_max)}
+
+        # data.update(new_densities)
+        # data.update(new_speeds)
+        # data.update(new_relative_flow)
+        #
+        # plot current profile during execution
+        plt.plot(x, env.obs[0], 'b-')
+        plt.axis([0, L, 0.4, 0.8])
+        plt.ylabel('Density')
+        plt.xlabel('Street Length')
+        plt.title("ARZ Evolution of Density")
+        plt.draw()
+        plt.pause(0.0001)
+        plt.clf()
+
+    # final plot
+    plt.plot(x, env.obs[0], 'b-')
+    plt.axis([0, L, 0.4, 0.8])
+    plt.ylabel('Density')
+    plt.xlabel('Street Length')
+    plt.title("ARZ Evolution of Density")
+    plt.show()
