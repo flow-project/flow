@@ -38,7 +38,7 @@ def parse_args(args):
     parser.add_argument(
         'exp_config', type=str,
         help='Name of the experiment configuration file, as located in '
-             'exp_configs/singleagent' or or 'exp_configs/multiagent.')
+             'exp_configs/singleagent' or 'exp_configs/multiagent.')
 
     return parser.parse_known_args(args)[0]
 
@@ -130,7 +130,7 @@ if __name__ == "__main__":
         flow_params, n_cpus, n_rollouts,
         policy_graphs, policy_mapping_fn, policies_to_train)
 
-    ray.init(num_cpus=n_cpus + 1, redirect_output=False)
+    ray.init(num_cpus=n_cpus + 1)
     trials = run_experiments({
         flow_params["exp_tag"]: {
             "run": alg_run,
