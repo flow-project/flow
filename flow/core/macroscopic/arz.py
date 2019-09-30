@@ -8,43 +8,6 @@ import numpy as np
 from scipy.optimize import fsolve
 from flow.core.macroscopic.base_model import MacroModelEnv
 from flow.core.macroscopic.utils import DictDescriptor
-import matplotlib.pyplot as plt
-
-############ values tested ###
-
-L  = 10
-N = 150
-
-# CFL condition
-CFL = 0.99
-
-# change in length and points on road we are plotting against
-dx = L / N
-dt = CFL * dx / 1
-
-x = np.arange(0.5 * dx, (L - 0.5 * dx), dx)
-
-# density initial_data
-rho_L_side= 0.5 * (x < max(x) / 2)
-rho_R_side = 0.5 * (x > max(x) / 2)
-
-# velocity initial_data
-u_L_side = 0.7 * (x < max(x) / 2)
-u_R_side = 0.1 * (x > max(x) / 2)
-
-u_data_rho_rho = rho_L_side + rho_R_side
-u_data_rho_velocity = u_L_side + u_R_side
-
-# calculate relative flow (transform u to y)
-def ve(density, V_max=1, rho_max=1):
-    return V_max * (1 - (density / rho_max))
-y_vector = (u_data_rho_rho * (u_data_rho_velocity - ve(u_data_rho_rho,1, 1)))
-
-# full initial data
-initial_data = u_data_rho_rho, y_vector
-
-
-############################################
 
 PARAMS = DictDescriptor(
     # ======================================================================= #
@@ -71,7 +34,7 @@ PARAMS = DictDescriptor(
     ("v_max_max", 1, float, "max speed limit that the network can be "
                                "assigned"),
 
-    ("CFL", 0.95, float, "Courant-Friedrichs-Lewy (CFL) condition. Must be a "
+    ("CFL", 0.99, float, "Courant-Friedrichs-Lewy (CFL) condition. Must be a "
                          "value between 0 and 1."),
 
     ("tau", 0.1, float, "time needed to adjust the velocity of a vehicle from "
@@ -81,26 +44,26 @@ PARAMS = DictDescriptor(
     #                          Simulation parameters                          #
     # ======================================================================= #
 
-    ("total_time", 500, float, "time horizon (in seconds)"),
+    ("total_time", 660, float, "time horizon (in seconds)"),
 
-    # dt*iterations = time_horizon ; iterations = int(time_hor/dt);
-    # dt = CFL * dx / v_max
-    ("dt", 0.05, float, "time discretization (in seconds/step)"),
+    ("dt", 0.066, float, "time discretization (in seconds/step)"),
 
     # ======================================================================= #
     #                      Initial / boundary conditions                      #
     # ======================================================================= #
 
-    ("initial_conditions", (u_data_rho_rho, y_vector),
+    ("initial_conditions", ([0], [0]),
      None,
      "tuple of (density, speed) initial conditions. Each element of the tuple"
      " must be a list of length int(length/dx)"),
 
-    ("boundary_conditions", ((1, 1), (1, 1)), None, "TODO: define what that is"),
+    ("boundary_conditions", (None, None), None, "tuple of ((density, speed),tuple of (density, speed))"
+                                                "Specify values for "
+                                                "left boundary and right boundary"),
 )
 
 
-def boundary_right(data):
+def boundary_right_solve(data):
     """Calculate right boundary condition.
 
     Parameters
@@ -119,7 +82,7 @@ def boundary_right(data):
     return data[0][len(data[1]) - 1], data[1][len(data[1]) - 1]
 
 
-def boundary_left(data):
+def boundary_left_solve(data):
     """Calculate left boundary condition.
 
     Parameters
@@ -136,7 +99,6 @@ def boundary_left(data):
         left boundary conditions for Data -> (density, relative flow)
     """
     return data[0][0], data[1][0]
-
 
 class ARZ(MacroModelEnv):
     """Aw–Rascle–Zhang traffic flow model.
@@ -258,18 +220,13 @@ class ARZ(MacroModelEnv):
         assert params['dt'] <= params['CFL'] * params['dx']/params['v_max'], \
             "CFL condition not satisfied. Make sure dt <= CFL * dx / v_max"
 
-        # Initial conditions must be a list of size: (length/dx) - 1
         assert len(params['initial_conditions'][0]) == \
             int(params['length'] / params['dx']) - 1, \
             "Initial conditions must be a list of size: (length/dx) - 1."
 
-        # Initial conditions must be a list of size: (length/dx) - 1
         assert len(params['initial_conditions'][1]) == \
             int(params['length'] / params['dx']) - 1, \
             "Initial conditions must be a list of size: length/dx."
-
-        assert (params['length'] / params['dx']).is_integer(), \
-            "The 'length' variable in params must be divisible by 'dx'."
 
         self.params = params.copy()
         self.length = params['length']
@@ -283,10 +240,18 @@ class ARZ(MacroModelEnv):
         self.total_time = params['total_time']
         self.dt = params['dt']
         self.horizon = int(self.total_time / self.dt)
-        self.initial_conditions = params['initial_conditions']
+        self.initial_conditions_density = params['initial_conditions'][0]
+        self.initial_conditions_velocity = params['initial_conditions'][1]
+        # calculate relative flow (transform velocity (u) to relative flow (y))
+        self.initial_conditions_relative_flow = self.relative_flow(self.initial_conditions_density,
+                                                                   self.initial_conditions_velocity)
+        self.initial_conditions = (self.initial_conditions_density,
+                                   self.initial_conditions_relative_flow)
+        self.list_values = []
         self.boundary_left = params['boundary_conditions'][0]
         self.boundary_right = params['boundary_conditions'][1]
 
+        self.speed = None
         self.obs = None
         self.num_steps = None
         self.rho_next = None
@@ -318,8 +283,6 @@ class ARZ(MacroModelEnv):
         self.speed = self.u(rho, relative_flow)
 
         # compute the new observation
-        # self.obs takes in density and relative_velocity
-        # obs should be tuple (list, list) for ease of plotting and calculate
         self.obs = (rho / self.rho_max_max,  self.relative_flow(rho, self.speed / self.v_max))
         # compute the reward value
         rew = np.mean(np.square(self.speed - self.v_max) * rho)
@@ -374,13 +337,12 @@ class ARZ(MacroModelEnv):
             Godunov scheme
         """
         # we are extrapolating our boundary conditions
-        #removes self
-        u_left = boundary_left(u_full)
-        u_right = boundary_right(u_full)
+        self.boundary_left = boundary_left_solve(u_full)
+        self.boundary_right = boundary_right_solve(u_full)
 
         # full array with boundary conditions
-        u_all = (np.insert(np.append(u_full[0], u_right[0]), 0, u_left[0]),
-                 np.insert(np.append(u_full[1], u_right[1]), 0, u_left[1]))
+        u_all = (np.insert(np.append(u_full[0], self.boundary_right[0]), 0, self.boundary_left[0]),
+                 np.insert(np.append(u_full[1], self.boundary_right[1]), 0,self.boundary_left[1]))
 
         # compute flux
         fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, \
@@ -513,6 +475,9 @@ class ARZ(MacroModelEnv):
                + self.function_y(rho_init, y_init)) \
             - ((0.5 * self.dt / self.dx) * (y_r - y_init))
 
+        self.list_values = self.list_values + [[fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, \
+                                                rho_init, y_init]]
+
         return fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, \
             rho_init, y_init
 
@@ -635,43 +600,3 @@ class ARZ(MacroModelEnv):
         """
         return (velocity - self.ve(density)) * density
 
-# Testing the code out:
-if __name__ == '__main__':
-    env = ARZ(PARAMS.copy())
-
-    #visualize what every method is giving me
-    # run a single roll out of the environment
-    obs = env.reset()
-
-    # results_dir = "~/Desktop/MS Lab Project/Python Code/results/"
-    # data = {"Position_on_street": x}
-
-    for i in range(50):
-        action = 1  # agent.compute(obs)
-        obs, rew, done, _ = env.step(action)
-
-        # new_densities = {"Densities at t = " + str(i): env.obs[0]}
-        # new_relative_flow = {"Relative flow at t = " + str(i): env.obs[1]}
-        # new_speeds = {"Velocities at t = " + str(i): u(env.obs[0], env.obs[1], V_max, rho_max)}
-
-        # data.update(new_densities)
-        # data.update(new_speeds)
-        # data.update(new_relative_flow)
-        #
-        # plot current profile during execution
-        plt.plot(x, env.obs[0], 'b-')
-        plt.axis([0, L, 0.4, 0.8])
-        plt.ylabel('Density')
-        plt.xlabel('Street Length')
-        plt.title("ARZ Evolution of Density")
-        plt.draw()
-        plt.pause(0.0001)
-        plt.clf()
-
-    # final plot
-    plt.plot(x, env.obs[0], 'b-')
-    plt.axis([0, L, 0.4, 0.8])
-    plt.ylabel('Density')
-    plt.xlabel('Street Length')
-    plt.title("ARZ Evolution of Density")
-    plt.show()

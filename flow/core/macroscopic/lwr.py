@@ -15,24 +15,24 @@ PARAMS = DictDescriptor(
     #                           Network parameters                            #
     # ======================================================================= #
 
-    ("length", 10000, float, "length of the stretch of highway"),
+    ("length", 35, float, "length of the stretch of highway"),
 
-    ("dx", 100, float, "length of individual sections on the highway. Speeds "
+    ("dx", 35/150, float, "length of individual sections on the highway. Speeds "
                        "and densities are computed on these sections. Must be "
                        "a factor of the length"),
 
-    ("rho_max", 0.2, float, "maximum density term in the LWR model (in "
+    ("rho_max", 4, float, "maximum density term in the LWR model (in "
                             "veh/m)"),
 
-    ("rho_max_max", 0.2, float, "maximum possible density of the network (in "
+    ("rho_max_max", 4, float, "maximum possible density of the network (in "
                                 "veh/m)"),
 
-    ("v_max", 27.5, float, "initial speed limit of the LWR model. If not "
+    ("v_max", 1, float, "initial speed limit of the LWR model. If not "
                            "actions are provided during the simulation "
                            "procedure, this value is kept constant throughout "
                            "the simulation."),
 
-    ("v_max_max", 27.5, float, "max speed limit that the network can be "
+    ("v_max_max", 1, float, "max speed limit that the network can be "
                                "assigned"),
 
     ("CFL", 0.95, float, "Courant-Friedrichs-Lewy (CFL) condition. Must be a "
@@ -42,18 +42,18 @@ PARAMS = DictDescriptor(
     #                          Simulation parameters                          #
     # ======================================================================= #
 
-    ("total_time", 500, float, "time horizon (in seconds)"),
+    ("total_time", 110.5, float, "time horizon (in seconds)"),
 
-    ("dt", 1, float, "time discretization (in seconds/step)"),
+    ("dt", 0.221, float, "time discretization (in seconds/step)"),
 
     # ======================================================================= #
     #                      Initial / boundary conditions                      #
     # ======================================================================= #
 
-    ("initial_conditions", [0 for _ in range(100)], None,  # FIXME
+    ("initial_conditions", [0], None,  # FIXME
      "list of initial densities. Must be of length int(length/dx)"),
 
-    ("boundary_conditions", (0, 0), None, "TODO: define what that is"),
+    ("boundary_conditions", (None, None), None, "TODO: define what that is"),
 )
 
 
@@ -167,9 +167,9 @@ class LWR(MacroModelEnv):
         assert params['dt'] <= params['CFL'] * params['dx']/params['v_max'], \
             "CFL condition not satisfied. Make sure dt <= CFL * dx / v_max"
 
-        # assert len(params['initial_conditions']) == \
-        #     int(params['length'] / params['dx']), \
-        #     "Initial conditions must be a list of size: length/dx."
+        assert len(params['initial_conditions']) == \
+            int(params['length'] / params['dx']), \
+            "Initial conditions must be a list of size: length/dx."
 
         self.params = params.copy()
         self.length = params['length']
@@ -185,6 +185,7 @@ class LWR(MacroModelEnv):
         self.initial_conditions = params['initial_conditions']
         self.boundary_left = params['boundary_conditions'][0]
         self.boundary_right = params['boundary_conditions'][1]
+        self.speeds = None
 
         self.obs = None
         self.num_steps = None
@@ -236,7 +237,7 @@ class LWR(MacroModelEnv):
         speed = self.speed_info(rho)
 
         # compute the new observation
-        self.obs = np.concatenate((rho / self.rho_max_max, speed / self.v_max))
+        self.obs = np.concatenate((rho / 1, speed / 1))
 
         # compute the reward value
         rew = np.mean(np.square(speed - self.v_max) * rho)
@@ -334,7 +335,8 @@ class LWR(MacroModelEnv):
         array_like
             equilibrium velocity at every specified point on road
         """
-        return self.v_max * (1 - (density / self.rho_max))
+        self.speeds = self.v_max * (1 - (density / self.rho_max))
+        return self.speeds
 
     def reset(self):
         """Reset the environment.
@@ -353,8 +355,8 @@ class LWR(MacroModelEnv):
 
         # reset the observation to match the initial condition
         initial_conditions = np.asarray(self.initial_conditions)
-        rho_init = initial_conditions / self.rho_max_max
-        v_init = self.speed_info(initial_conditions) / self.v_max_max
+        rho_init = initial_conditions
+        v_init = self.speed_info(initial_conditions)
         self.obs = np.concatenate((rho_init, v_init))
 
         return self.obs.copy()
