@@ -3,6 +3,8 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.controllers import SimCarFollowingController, GridRouter
+from flow.envs import TrafficLightGridPOEnv
+from flow.networks import TrafficLightGridNetwork
 
 # time horizon of a single rollout
 HORIZON = 200
@@ -184,10 +186,10 @@ flow_params = dict(
     exp_tag='traffic_light_grid',
 
     # name of the flow environment the experiment is running on
-    env_name='TrafficLightGridPOEnv',
+    env_name=TrafficLightGridPOEnv,
 
     # name of the network class the experiment is running on
-    network='TrafficLightGridNetwork',
+    network=TrafficLightGridNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

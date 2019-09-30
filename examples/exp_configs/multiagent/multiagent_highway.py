@@ -3,12 +3,14 @@
 Trains a non-constant number of agents, all sharing the same policy, on the
 highway with ramps network.
 """
-from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
+from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 from flow.controllers import RLController
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
                              VehicleParams, SumoParams, \
                              SumoCarFollowingParams, SumoLaneChangeParams
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
+from flow.networks import HighwayRampsNetwork
+from flow.envs.multiagent import MultiAgentHighwayPOEnv
 from flow.networks.highway_ramps import ADDITIONAL_NET_PARAMS
 
 
@@ -18,7 +20,7 @@ obs_space = None  # FIXME
 ac_space = None  # FIXME
 
 
-POLICY_GRAPHS = {'av': (PPOPolicyGraph, obs_space, ac_space, {})}
+POLICY_GRAPHS = {'av': (PPOTFPolicy, obs_space, ac_space, {})}
 
 POLICIES_TO_TRAIN = ['av']
 
@@ -137,14 +139,8 @@ for i in range(len(additional_net_params['on_ramps_pos'])):
 flow_params = dict(
     # name of the experiment
     exp_tag='multiagent_highway',
-
-    # name of the flow environment the experiment is running on
-    env_name='MultiAgentHighwayPOEnv',
-
-    # name of the network class the experiment is running on
-    network='HighwayRampsNetwork',
-
-    # simulator that is used by the experiment
+    env_name=MultiAgentHighwayPOEnv,
+    network=HighwayRampsNetwork,
     simulator='traci',
 
     # environment related parameters (see flow.core.params.EnvParams)

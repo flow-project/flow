@@ -6,6 +6,8 @@ vehicles in a variable length ring road.
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams, SumoCarFollowingParams
 from flow.controllers import RLController, IDMController, ContinuousRouter
+from flow.envs import WaveAttenuationPOEnv
+from flow.networks import RingNetwork
 
 # time horizon of a single rollout
 HORIZON = 3000
@@ -37,10 +39,10 @@ flow_params = dict(
     exp_tag="stabilizing_the_ring",
 
     # name of the flow environment the experiment is running on
-    env_name="WaveAttenuationPOEnv",
+    env_name=WaveAttenuationPOEnv,
 
     # name of the network class the experiment is running on
-    network="RingNetwork",
+    network=RingNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

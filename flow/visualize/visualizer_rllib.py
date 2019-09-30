@@ -55,16 +55,12 @@ def visualizer_rllib(args):
         else args.result_dir[:-1]
 
     config = get_rllib_config(result_dir)
-    # TODO(ev) backwards compatibility hack
-    try:
-        pkl = get_rllib_pkl(result_dir)
-    except Exception:
-        pass
 
     # check if we have a multiagent environment but in a
     # backwards compatible way
-    if config.get('multiagent', {}).get('policy_graphs', {}):
+    if config.get('multiagent', {}).get('policies', None):
         multiagent = True
+        pkl = get_rllib_pkl(result_dir)
         config['multiagent'] = pkl['multiagent']
     else:
         multiagent = False
@@ -167,7 +163,7 @@ def visualizer_rllib(args):
         rets = {}
         # map the agent id to its policy
         policy_map_fn = config['multiagent']['policy_mapping_fn'].func
-        for key in config['multiagent']['policy_graphs'].keys():
+        for key in config['multiagent']['policies'].keys():
             rets[key] = []
     else:
         rets = []
@@ -179,10 +175,9 @@ def visualizer_rllib(args):
             # map the agent id to its policy
             policy_map_fn = config['multiagent']['policy_mapping_fn'].func
             size = config['model']['lstm_cell_size']
-            for key in config['multiagent']['policy_graphs'].keys():
+            for key in config['multiagent']['policies'].keys():
                 state_init[key] = [np.zeros(size, np.float32),
-                                   np.zeros(size, np.float32)
-                                   ]
+                                   np.zeros(size, np.float32)]
         else:
             state_init = [
                 np.zeros(config['model']['lstm_cell_size'], np.float32),

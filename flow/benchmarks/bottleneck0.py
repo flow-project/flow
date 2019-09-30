@@ -7,7 +7,8 @@ of space. The autonomous penetration rate in this example is 10%.
 - **Observation Dimension**: (?, )
 - **Horizon**: 1000 steps
 """
-
+from flow.envs import BottleneckDesiredVelocityEnv
+from flow.networks import BottleneckNetwork
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import TrafficLightParams
@@ -98,10 +99,10 @@ flow_params = dict(
     exp_tag="bottleneck_0",
 
     # name of the flow environment the experiment is running on
-    env_name="BottleneckDesiredVelocityEnv",
+    env_name=BottleneckDesiredVelocityEnv,
 
     # name of the network class the experiment is running on
-    network="BottleneckNetwork",
+    network=BottleneckNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

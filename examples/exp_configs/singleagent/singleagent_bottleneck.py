@@ -9,6 +9,8 @@ from flow.core.params import TrafficLightParams
 from flow.core.params import VehicleParams
 from flow.controllers import RLController, ContinuousRouter, \
     SimLaneChangeController
+from flow.envs import BottleneckDesiredVelocityEnv
+from flow.networks import BottleneckNetwork
 
 # time horizon of a single rollout
 HORIZON = 1000
@@ -99,10 +101,10 @@ flow_params = dict(
     exp_tag="DesiredVelocity",
 
     # name of the flow environment the experiment is running on
-    env_name="BottleneckDesiredVelocityEnv",
+    env_name=BottleneckDesiredVelocityEnv,
 
     # name of the network class the experiment is running on
-    network="BottleneckNetwork",
+    network=BottleneckNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

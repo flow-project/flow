@@ -3,7 +3,7 @@
 Creates a set of stabilizing the ring experiments to test if
  more agents -> fewer needed batches
 """
-from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
+from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 from flow.controllers import ContinuousRouter
 from flow.controllers import IDMController
 from flow.controllers import RLController
@@ -12,6 +12,8 @@ from flow.core.params import InitialConfig
 from flow.core.params import NetParams
 from flow.core.params import SumoParams
 from flow.core.params import VehicleParams
+from flow.envs.multiagent import MultiWaveAttenuationPOEnv
+from flow.networks import MultiRingNetwork
 
 # make sure (sample_batch_size * num_workers ~= train_batch_size)
 # time horizon of a single rollout
@@ -44,10 +46,10 @@ flow_params = dict(
     exp_tag='lord_of_numrings{}'.format(NUM_RINGS),
 
     # name of the flow environment the experiment is running on
-    env_name='MultiWaveAttenuationPOEnv',
+    env_name=MultiWaveAttenuationPOEnv,
 
     # name of the network class the experiment is running on
-    network='MultiRingNetwork',
+    network=MultiRingNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -97,7 +99,7 @@ act_space = 1
 
 def gen_policy():
     """Generate a policy in RLlib."""
-    return PPOPolicyGraph, obs_space, act_space, {}
+    return PPOTFPolicy, obs_space, act_space, {}
 
 
 # Setup PG with an ensemble of `num_policies` different policy graphs

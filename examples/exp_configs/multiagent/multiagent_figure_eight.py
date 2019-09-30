@@ -8,7 +8,7 @@ allowed to perturb the accelerations of figure eight.
 # the negative of the AV reward
 
 from copy import deepcopy
-from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
+from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 from flow.controllers import ContinuousRouter
 from flow.controllers import IDMController
 from flow.controllers import RLController
@@ -19,6 +19,8 @@ from flow.core.params import SumoParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.networks.figure_eight import ADDITIONAL_NET_PARAMS
+from flow.envs.multiagent import MultiAgentAccelEnv
+from flow.networks import FigureEightNetwork
 
 # time horizon of a single rollout
 HORIZON = 1500
@@ -57,10 +59,10 @@ flow_params = dict(
     exp_tag='multiagent_figure_eight',
 
     # name of the flow environment the experiment is running on
-    env_name='MultiAgentAccelEnv',
+    env_name=MultiAgentAccelEnv,
 
     # name of the network class the experiment is running on
-    network='FigureEightNetwork',
+    network=FigureEightNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -105,7 +107,7 @@ act_space = N_AVS
 
 def gen_policy():
     """Generate a policy in RLlib."""
-    return PPOPolicyGraph, obs_space, act_space, {}
+    return PPOTFPolicy, obs_space, act_space, {}
 
 
 # Setup PG with an ensemble of `num_policies` different policy graphs
