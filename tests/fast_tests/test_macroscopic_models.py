@@ -152,13 +152,14 @@ class TestARZ(unittest.TestCase):
         x = np.arange(0.5 * dx, (length - 0.5 * dx), dx)
 
         # density initial_data
-        rho_L_side = 0.5 * (x < max(x) / 2)
-        rho_R_side = 0.5 * (x > max(x) / 2)
-        u_data_rho_rho = rho_L_side + rho_R_side
+        rho_left_side = 0.5 * (x < max(x) / 2)
+        rho_right_side = 0.5 * (x > max(x) / 2)
+        u_data_rho_rho = rho_left_side + rho_right_side
+
         # velocity initial_data
-        u_L_side = 0.7 * (x < max(x) / 2)
-        u_R_side = 0.1 * (x > max(x) / 2)
-        u_data_rho_velocity = u_L_side + u_R_side
+        u_left_side = 0.7 * (x < max(x) / 2)
+        u_right_side = 0.1 * (x > max(x) / 2)
+        u_data_rho_velocity = u_left_side + u_right_side
 
         params["dx"] = dx
         params['initial_conditions'] = (u_data_rho_rho, u_data_rho_velocity)
