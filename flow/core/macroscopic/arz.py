@@ -16,23 +16,21 @@ PARAMS = DictDescriptor(
 
     ("length", 10, float, "length of the stretch of highway"),
 
-    ("dx", 10/150, float, "length of individual sections on the highway. Speeds "
-                       "and densities are computed on these sections. Must be "
-                       "a factor of the length"),
+    ("dx", 10/150, float, "length of individual sections on the highway. "
+                          "Speeds and densities are computed on these "
+                          "sections. Must be a factor of the length"),
 
-    ("rho_max", 1, float, "maximum density term in the LWR model (in "
-                            "veh/m)"),
+    ("rho_max", 1, float, "maximum density term in the LWR model (in veh/m)"),
 
     ("rho_max_max", 1, float, "maximum possible density of the network (in "
-                                "veh/m)"),
+                              "veh/m)"),
 
-    ("v_max", 1, float, "initial speed limit of the LWR model. If not "
-                           "actions are provided during the simulation "
-                           "procedure, this value is kept constant throughout "
-                           "the simulation."),
+    ("v_max", 1, float, "initial speed limit of the LWR model. If not actions "
+                        "are provided during the simulation procedure, this "
+                        "value is kept constant throughout the simulation."),
 
     ("v_max_max", 1, float, "max speed limit that the network can be "
-                               "assigned"),
+                            "assigned"),
 
     ("CFL", 0.99, float, "Courant-Friedrichs-Lewy (CFL) condition. Must be a "
                          "value between 0 and 1."),
@@ -57,9 +55,9 @@ PARAMS = DictDescriptor(
      "tuple of (density, speed) initial conditions. Each element of the tuple"
      " must be a list of length int(length/dx)"),
 
-    ("boundary_conditions", (None, None), None, "tuple of ((density, speed),tuple of (density, speed))"
-                                                "Specify values for "
-                                                "left boundary and right boundary"),
+    ("boundary_conditions", (None, None), None,
+     "tuple of ((density, speed),tuple of (density, speed)). Specify values "
+     "for left boundary and right boundary"),
 )
 
 
@@ -99,6 +97,7 @@ def boundary_left_solve(data):
         left boundary conditions for Data -> (density, relative flow)
     """
     return data[0][0], data[1][0]
+
 
 class ARZ(MacroModelEnv):
     """Aw–Rascle–Zhang traffic flow model.
@@ -243,8 +242,8 @@ class ARZ(MacroModelEnv):
         self.initial_conditions_density = params['initial_conditions'][0]
         self.initial_conditions_velocity = params['initial_conditions'][1]
         # calculate relative flow (transform velocity (u) to relative flow (y))
-        self.initial_conditions_relative_flow = self.relative_flow(self.initial_conditions_density,
-                                                                   self.initial_conditions_velocity)
+        self.initial_conditions_relative_flow = self.relative_flow(
+            self.initial_conditions_density, self.initial_conditions_velocity)
         self.initial_conditions = (self.initial_conditions_density,
                                    self.initial_conditions_relative_flow)
         self.list_values = []
@@ -283,7 +282,8 @@ class ARZ(MacroModelEnv):
         self.speed = self.u(rho, relative_flow)
 
         # compute the new observation
-        self.obs = (rho / self.rho_max_max,  self.relative_flow(rho, self.speed / self.v_max))
+        self.obs = (rho / self.rho_max_max,
+                    self.relative_flow(rho, self.speed / self.v_max))
         # compute the reward value
         rew = np.mean(np.square(self.speed - self.v_max) * rho)
 
@@ -341,8 +341,10 @@ class ARZ(MacroModelEnv):
         self.boundary_right = boundary_right_solve(u_full)
 
         # full array with boundary conditions
-        u_all = (np.insert(np.append(u_full[0], self.boundary_right[0]), 0, self.boundary_left[0]),
-                 np.insert(np.append(u_full[1], self.boundary_right[1]), 0,self.boundary_left[1]))
+        u_all = (np.insert(np.append(u_full[0], self.boundary_right[0]),
+                           0, self.boundary_left[0]),
+                 np.insert(np.append(u_full[1], self.boundary_right[1]),
+                           0, self.boundary_left[1]))
 
         # compute flux
         fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, \
@@ -475,8 +477,10 @@ class ARZ(MacroModelEnv):
                + self.function_y(rho_init, y_init)) \
             - ((0.5 * self.dt / self.dx) * (y_r - y_init))
 
-        self.list_values = self.list_values + [[fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, \
-                                                rho_init, y_init]]
+        self.list_values = self.list_values + [
+            [fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half,
+             rho_init, y_init]
+        ]
 
         return fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, \
             rho_init, y_init
@@ -599,4 +603,3 @@ class ARZ(MacroModelEnv):
             relative flow at every specified point on road
         """
         return (velocity - self.ve(density)) * density
-

@@ -1,7 +1,9 @@
+"""Ignore since removing."""
 import numpy as np
 import matplotlib.pyplot as plt
 from flow.core.macroscopic import ARZ
-from flow.core.macroscopic.arz import PARAMS as ARZ_PARAMS, boundary_left_solve, boundary_right_solve
+from flow.core.macroscopic.arz import PARAMS as ARZ_PARAMS, \
+    boundary_left_solve, boundary_right_solve
 
 params = ARZ_PARAMS.copy()
 
@@ -21,8 +23,9 @@ u_data_rho_velocity = u_L_side + u_R_side
 
 params["dx"] = dx
 params['initial_conditions'] = (u_data_rho_rho, u_data_rho_velocity)
-params['boundary_conditions'] = boundary_left_solve(params['initial_conditions']), \
-                                boundary_right_solve(params['initial_conditions'])
+params['boundary_conditions'] = \
+    boundary_left_solve(params['initial_conditions']), \
+    boundary_right_solve(params['initial_conditions'])
 
 env = ARZ(params)
 
@@ -41,7 +44,8 @@ if __name__ == '__main__':
         # uncomment to store the data
         # new_densities = {"Densities at t = " + str(i): env.obs[0]}
         # new_relative_flow = {"Relative flow at t = " + str(i): env.obs[1]}
-        # new_speeds = {"Velocities at t = " + str(i): u(env.obs[0], env.obs[1], V_max, rho_max)}
+        # new_speeds = {"Velocities at t = " + str(i):
+        #               u(env.obs[0], env.obs[1], V_max, rho_max)}
         # data.update(new_densities)
         # data.update(new_speeds)
         # data.update(new_relative_flow)

@@ -17,23 +17,21 @@ PARAMS = DictDescriptor(
 
     ("length", 35, float, "length of the stretch of highway"),
 
-    ("dx", 35/150, float, "length of individual sections on the highway. Speeds "
-                       "and densities are computed on these sections. Must be "
-                       "a factor of the length"),
+    ("dx", 35/150, float, "length of individual sections on the highway. "
+                          "Speeds and densities are computed on these "
+                          "sections. Must be a factor of the length"),
 
-    ("rho_max", 4, float, "maximum density term in the LWR model (in "
-                            "veh/m)"),
+    ("rho_max", 4, float, "maximum density term in the LWR model (in veh/m)"),
 
     ("rho_max_max", 4, float, "maximum possible density of the network (in "
-                                "veh/m)"),
+                              "veh/m)"),
 
-    ("v_max", 1, float, "initial speed limit of the LWR model. If not "
-                           "actions are provided during the simulation "
-                           "procedure, this value is kept constant throughout "
-                           "the simulation."),
+    ("v_max", 1, float, "initial speed limit of the LWR model. If not actions "
+                        "are provided during the simulation procedure, this "
+                        "value is kept constant throughout the simulation."),
 
     ("v_max_max", 1, float, "max speed limit that the network can be "
-                               "assigned"),
+                            "assigned"),
 
     ("CFL", 0.95, float, "Courant-Friedrichs-Lewy (CFL) condition. Must be a "
                          "value between 0 and 1."),

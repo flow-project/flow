@@ -1,9 +1,12 @@
+"""Ignore since removing."""
 import numpy as np
 import matplotlib.pyplot as plt
 from flow.core.macroscopic import LWR
 from flow.core.macroscopic.lwr import PARAMS as LWR_PARAMS
 
-def plot_points(Length, x , Density, Speed, R, V_max):
+
+def plot_points(Length, x, Density, Speed, R, V_max):
+    """Ignore since removing."""
     # plot current profile during execution
     fig, plots = plt.subplots(2)
     plots[0].plot(x, Density, 'b-')
@@ -16,11 +19,12 @@ def plot_points(Length, x , Density, Speed, R, V_max):
     plots[1].set(xlabel='Street Length (m)', ylabel='Velocities(m/s)')
     plots[1].set_title("LWR Evolution of Velocities ")
     plt.show()
-def initial(points):
-    """Note: This is a calibration that's used just an example"""
 
-    """ Calculate the initial density data at each
-        specified point on the road length
+
+def initial(points):
+    """Calculate the initial density data at each specified point on the road.
+
+    Note: This is a calibration that's used just an example.
 
     Parameters
     ----------
@@ -32,11 +36,13 @@ def initial(points):
     values: array_like
             calculated initial density data
     """
+    values = 1 * (points <= 5) + (-4 + points) * (points > 5) \
+        * (points <= 6) + 2 * (points > 6) * (points < 15) \
+        + (2 * points - 28) * (points > 15) * (points <= 16) \
+        + 4 * (points > 16) * (points < 25) + 1 * (points >= 25)
 
-    values = 1 * (points <= 5) + (-4 + points) * (points > 5) * (points <= 6) + 2 * (points > 6) * (
-            points < 15) + (2 * points - 28) * (points > 15) * (points <= 16) + 4 * (
-                     points > 16) * (points < 25) + 1 * (points >= 25)
     return values
+
 
 params = LWR_PARAMS.copy()
 
@@ -54,8 +60,8 @@ U = initial(x)
 params["initial_conditions"] = U
 params["boundary_conditions"] = (0, 0)
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     env = LWR(params)
     # run a single roll out of the environment
     obs = env.reset()
@@ -65,8 +71,7 @@ if __name__ == "__main__":
     # data = {"Position_on_street": x}
 
     for i in range(50):
-
-        action = 1 # agent.compute(obs)
+        action = 1  # agent.compute(obs)
         obs, rew, done, _ = env.step(action)
 
         # store in dictionary and write to csv
@@ -81,4 +86,3 @@ if __name__ == "__main__":
     # write to csv file
     # path_for_results = results_dir + "lwr_results.csv"
     # pd.DataFrame(data).to_csv(path_for_results, index=False)
-
