@@ -9,7 +9,7 @@ from flow.core.macroscopic.arz import boundary_left_solve, boundary_right_solve
 from flow.core.macroscopic.utils import DictDescriptor
 from flow.core.macroscopic.run_macro_model import parse_args
 from flow.core.macroscopic.run_macro_model import parse_model_args
-from flow.core.macroscopic.run_macro_model import load_model_env
+# from flow.core.macroscopic.run_macro_model import load_model_env
 
 os.environ["TEST_FLAG"] = "True"
 
