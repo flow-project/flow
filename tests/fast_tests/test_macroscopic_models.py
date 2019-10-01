@@ -1,9 +1,11 @@
 """Unit tests for macroscopic models."""
+import numpy as np
 import unittest
 import os
 from flow.core.macroscopic import LWR, ARZ
 from flow.core.macroscopic.lwr import PARAMS as LWR_PARAMS
 from flow.core.macroscopic.arz import PARAMS as ARZ_PARAMS
+from flow.core.macroscopic.arz import boundary_left_solve, boundary_right_solve
 from flow.core.macroscopic.utils import DictDescriptor
 
 os.environ["TEST_FLAG"] = "True"
@@ -33,27 +35,66 @@ class TestDictDescriptor(unittest.TestCase):
 class TestLWR(unittest.TestCase):
     """Unit tests for the flow.core.macroscopic.lwr.LWR class."""
 
+    @staticmethod
+    def initial(points):
+        """Calculate the initial density data at each point on the road.
+
+        Note: This is a calibration that's used just an example.
+
+        Parameters
+        ----------
+        points : array_like
+            points on the road length from 0 to road length
+
+        Returns
+        -------
+        values: array_like
+                calculated initial density data
+        """
+        values = 1 * (points <= 5) + (-4 + points) * (points > 5) \
+            * (points <= 6) + 2 * (points > 6) * (points < 15) \
+            + (2 * points - 28) * (points > 15) * (points <= 16) \
+            + 4 * (points > 16) * (points < 25) + 1 * (points >= 25)
+
+        return values
+
+    def get_lwr_params(self):
+        params = LWR_PARAMS.copy()
+        # Length of road
+        length = 35
+        # Spacial Grid Resolution
+        grid_resolution = 150
+        dx = length / grid_resolution
+        x = np.arange(0, length, dx)
+        # initial density Points
+        u = self.initial(x)
+
+        params["initial_conditions"] = u
+        params["boundary_conditions"] = (0, 0)
+
+        return params
+
     def test_init(self):
         # test the dt/total_time assertion
-        params = LWR_PARAMS.copy()
+        params = self.get_lwr_params()
         params['total_time'] = 10
         params['dt'] = 3
         self.assertRaises(AssertionError, LWR, params=params)
 
         # test the dx/length assertion
-        params = LWR_PARAMS.copy()
+        params = self.get_lwr_params()
         params['length'] = 10
         params['dx'] = 3
         self.assertRaises(AssertionError, LWR, params=params)
 
         # test the v_max/v_max_max assertion
-        params = LWR_PARAMS.copy()
+        params = self.get_lwr_params()
         params['v_max'] = 10
         params['v_max_max'] = 3
         self.assertRaises(AssertionError, LWR, params=params)
 
         # test the rho_max/rho_max_max assertion
-        params = LWR_PARAMS.copy()
+        params = self.get_lwr_params()
         params['rho_max'] = 10
         params['rho_max_max'] = 3
         self.assertRaises(AssertionError, LWR, params=params)
@@ -83,13 +124,15 @@ class TestLWR(unittest.TestCase):
         pass
 
     def test_reset(self):
-        env = LWR(LWR_PARAMS.copy())
+        # create the environment
+        params = self.get_lwr_params()
+        env = LWR(params)
 
         # check that the initial v_max value matches the expected term and it
         # had been initially changed to another value
         env.v_max = 5
         env.reset()
-        self.assertEqual(env.v_max, 27.5)
+        self.assertEqual(env.v_max, params['v_max'])
 
         # check that the initial density and observations match the expected
         # values
@@ -99,39 +142,64 @@ class TestLWR(unittest.TestCase):
 class TestARZ(unittest.TestCase):
     """Unit tests for the flow.core.macroscopic.arz.ARZ class."""
 
-    def test_init(self):
-
-        # test the dt/total_time assertion
+    @staticmethod
+    def get_arz_params():
         params = ARZ_PARAMS.copy()
+
+        length = 10
+        grid_resolution = 150
+        dx = length / grid_resolution
+        x = np.arange(0.5 * dx, (length - 0.5 * dx), dx)
+
+        # density initial_data
+        rho_L_side = 0.5 * (x < max(x) / 2)
+        rho_R_side = 0.5 * (x > max(x) / 2)
+        u_data_rho_rho = rho_L_side + rho_R_side
+        # velocity initial_data
+        u_L_side = 0.7 * (x < max(x) / 2)
+        u_R_side = 0.1 * (x > max(x) / 2)
+        u_data_rho_velocity = u_L_side + u_R_side
+
+        params["dx"] = dx
+        params['initial_conditions'] = (u_data_rho_rho, u_data_rho_velocity)
+        params['boundary_conditions'] = \
+            boundary_left_solve(params['initial_conditions']), \
+            boundary_right_solve(params['initial_conditions'])
+
+        return params
+
+    def test_init(self):
+        # test the dt/total_time assertion
+        params = self.get_arz_params()
         params['total_time'] = 500
         params['dt'] = 0.06
         self.assertRaises(AssertionError, ARZ, params=params)
 
         # test the dx/length assertion
-        params = ARZ_PARAMS.copy()
+        params = self.get_arz_params()
         params['length'] = 10
         params['dx'] = 11/150
         self.assertRaises(AssertionError, ARZ, params=params)
 
         # test the v_max/v_max_max assertion
-        params = ARZ_PARAMS.copy()
+        params = self.get_arz_params()
         params['v_max'] = 2
         params['v_max_max'] = 1
         self.assertRaises(AssertionError, ARZ, params=params)
 
         # test the rho_max/rho_max_max assertion
-        params = ARZ_PARAMS.copy()
+        params = self.get_arz_params()
         params['rho_max'] = 2
         params['rho_max_max'] = 1
         self.assertRaises(AssertionError, ARZ, params=params)
 
         # test the CFL condition
-        params = ARZ_PARAMS.copy()
+        params = self.get_arz_params()
         params['CFL'] = 2
         self.assertRaises(AssertionError, ARZ, params=params)
 
         # test the dt <= CFL * dx / v_max assertion
-        params = ARZ_PARAMS.copy()
+        params = self.get_arz_params()
         params['dt'] = 1
         self.assertRaises(AssertionError, ARZ, params=params)
 
@@ -149,7 +217,9 @@ class TestARZ(unittest.TestCase):
         pass
 
     def test_reset(self):
-        env = ARZ(ARZ_PARAMS.copy())
+        # create the environment
+        params = self.get_arz_params()
+        env = ARZ(params)
 
         # check that the initial v_max value matches the expected term and it
         # had been initially changed to another value
