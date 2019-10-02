@@ -278,15 +278,23 @@ class ARZ(MacroModelEnv):
         if rl_actions is not None:
             self.v_max = rl_actions
 
+        # extract the densities and relative speed
+        obs = self.obs.copy()
+        rho = obs[:int(obs.shape[0]/2)] * self.rho_max_max
+        speed = obs[int(obs.shape[0]/2):] * self.v_max_max
+        relative_flow = self.relative_flow(rho, speed)
+
         # advance the state of the simulation by one step
-        rho, relative_flow = self.arz_solve(self.obs)
-        self.speed = self.u(rho, relative_flow)
+        rho, rel_flow = self.arz_solve((rho, relative_flow))
+
+        # compute the speed at the current time step
+        self.speed = self.u(rho, rel_flow)
 
         # compute the new observation
-        self.obs = (rho / self.rho_max_max,
-                    self.relative_flow(rho, self.speed / self.v_max))
+        self.obs = np.concatenate((rho / self.rho_max_max,
+                                   self.speed / self.v_max_max))
         # compute the reward value
-        rew = np.mean(np.square(self.speed - self.v_max) * rho)
+        rew = np.mean(np.square(self.speed - self.v_max_max) * rho)
 
         # compute the done mask
         done = self.num_steps >= self.horizon
@@ -309,7 +317,10 @@ class ARZ(MacroModelEnv):
         self.v_max = self.params['v_max']
 
         # reset the observation to match the initial condition
-        self.obs = self.initial_conditions
+        densities, relative_flows = self.initial_conditions
+        speeds = self.u(densities, relative_flows)
+        self.obs = np.concatenate((densities / self.rho_max_max,
+                                   speeds / self.v_max_max))
 
         return self.obs
 
