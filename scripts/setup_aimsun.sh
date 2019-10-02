@@ -1,11 +1,8 @@
 #!/bin/bash
 
-# If the following error is encountered upon installation:
-# 'PackagesNotFoundError: The following packages are not available from current channels: - python=2.7.4'
-# Run the two lines of code below:
-
-# conda config --append channels https://repo.anaconda.com/pkgs/free
-# conda config --append channels https://repo.anaconda.com/pkgs/pro
+# allows you to access python 2.7.4 which is needed for creating the aimsun_flow environment
+conda config --append channels https://repo.anaconda.com/pkgs/free
+conda config --append channels https://repo.anaconda.com/pkgs/pro
 
 # create the conda environment
 conda create -y -n aimsun_flow python=2.7.4
