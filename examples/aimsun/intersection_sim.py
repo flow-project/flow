@@ -20,7 +20,9 @@ ADDITIONAL_NET_PARAMS = {
     # length of the four edges
     "edge_length": 100, 
     ### Specify if we want turns to be on
-    "turns_on": True
+    "turns_on": True,
+    # One way or Two Way?
+    "one_way": False
 }
 
 def simple_intersection_example(render=None):
@@ -38,8 +40,8 @@ def simple_intersection_example(render=None):
         vehicles on an intersection.
     """
     ### Change the following lines to change between aimsun and traci
-    sim_params = AimsunParams(sim_step=0.5, render=True, emission_path='data')
-    simulator= 'aimsun'  #'traci'
+    sim_params = SumoParams(sim_step=0.5, render=True, emission_path='data')
+    simulator = 'traci'  #'traci' or 'aimsun'
 
     if render is not None:
         sim_params.render = render
@@ -55,17 +57,32 @@ def simple_intersection_example(render=None):
     inflow = InFlows()
     inflow.add(
         veh_type="human",
-        edge="left",
+        edge="left_center",
         vehs_per_hour=1000,
         departLane="free",
         departSpeed=0)
 
     inflow.add(
         veh_type="human",
-        edge="bottom",
+        edge="bottom_center",
         vehs_per_hour=1000,
         departLane="free",
         departSpeed=0)
+
+    if not ADDITIONAL_NET_PARAMS["one_way"]:
+        inflow.add(
+            veh_type="human",
+            edge="right_center",
+            vehs_per_hour=1000,
+            departLane="free",
+            departSpeed=0)
+
+        inflow.add(
+            veh_type="human",
+            edge="top_center",
+            vehs_per_hour=1000,
+            departLane="free",
+            departSpeed=0)
 
     net_params = NetParams(inflows=inflow,
         additional_params=ADDITIONAL_NET_PARAMS.copy())
