@@ -46,7 +46,8 @@ script. Be sure to run the below commands from ``/path/to/flow``.
 
     # create a conda environment
     conda env create -f environment.yml
-    source activate flow
+    conda activate flow
+    python setup.py develop
 
 If the conda install fails, you can also install the requirements using pip by calling
 
@@ -118,7 +119,7 @@ sure to enter your conda environment by typing:
 
 ::
 
-    source activate flow
+    conda activate flow
 
 Let’s see some traffic action:
 
@@ -234,7 +235,7 @@ To run any of the RL examples, make sure to run
 
 ::
 
-    source activate flow
+    conda activate flow
 
 In order to test run an Flow experiment in RLlib, try the following command:
 
