@@ -19,10 +19,10 @@ TEMPLATE = os.path.join(
 
 # download the template from AWS
 if USE_TRAFFIC_LIGHTS:
-    my_url = "https://s3-us-west-1.amazonaws.com/flow.netfiles/" \
+    my_url = "http://s3-us-west-1.amazonaws.com/flow.netfiles/" \
              "bay_bridge_TL_all_green.net.xml"
 else:
-    my_url = "https://s3-us-west-1.amazonaws.com/flow.netfiles/" \
+    my_url = "http://s3-us-west-1.amazonaws.com/flow.netfiles/" \
              "bay_bridge_junction_fix.net.xml"
 my_file = urllib.request.urlopen(my_url)
 data_to_write = my_file.read()

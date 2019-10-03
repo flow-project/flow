@@ -118,7 +118,13 @@ if __name__ == "__main__":
 
     # import relevant information from the exp_config script
     module = __import__("exp_configs.singleagent", fromlist=[flags.exp_config])
-    submodule = getattr(module, flags.exp_config)
+    module_ma = __import__("exp_configs.multiagent", fromlist=[flags.exp_config])
+    if hasattr(module, flags.exp_config):
+        submodule = getattr(module, flags.exp_config)
+    elif hasattr(module_ma, flags.exp_config):
+        submodule = getattr(module_ma, flags.exp_config)
+    else:
+        assert False, "Unable to find experiment config!"
     flow_params = submodule.flow_params
     n_cpus = submodule.N_CPUS
     n_rollouts = submodule.N_ROLLOUTS
