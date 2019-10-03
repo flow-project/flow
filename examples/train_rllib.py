@@ -81,6 +81,7 @@ def setup_exps(flow_params,
 
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
+
     config["num_workers"] = n_cpus
     config["train_batch_size"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate
@@ -100,11 +101,12 @@ def setup_exps(flow_params,
 
     # multiagent configuration
     if policy_graphs is not None:
-        config.update({'multiagent': {'policy_graphs': policy_graphs}})
+        print("policy_graphs", policy_graphs)
+        config['multiagent'].update({'policies': policy_graphs})
     if policy_mapping_fn is not None:
-        config.update({'multiagent': {'policy_mapping_fn': tune.function(policy_mapping_fn)}})
+        config['multiagent'].update({'policy_mapping_fn': tune.function(policy_mapping_fn)})
     if policies_to_train is not None:
-        config.update({'multiagent': {'policies_to_train': policies_to_train}})
+        config['multiagent'].update({'policies_to_train': policies_to_train})
 
     create_env, gym_name = make_create_env(params=flow_params, version=0)
 
@@ -128,7 +130,7 @@ if __name__ == "__main__":
     flow_params = submodule.flow_params
     n_cpus = submodule.N_CPUS
     n_rollouts = submodule.N_ROLLOUTS
-    policy_graphs = getattr(submodule, "policy_graphs", None)
+    policy_graphs = getattr(submodule, "POLICY_GRAPHS", None)
     policy_mapping_fn = getattr(submodule, "policy_mapping_fn", None)
     policies_to_train = getattr(submodule, "policies_to_train", None)
 
