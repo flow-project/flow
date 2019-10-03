@@ -94,6 +94,7 @@ from time import strftime
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from scipy.interpolate import griddata
+import json
 
 import gym
 from gym.envs.registration import register
@@ -416,6 +417,15 @@ def load_model_env(model_name,
 
     # update the parameters to match the inputs
     if model_params is not None:
+
+        # load data from json file
+        args_list = sys.argv[1:]
+        if "--additional_params" in args_list:
+            file_directory = sys.argv[1:][args_list.index("--additional_params") + 1]
+            json_params = json.load(open(file_directory, 'r'))
+            model_params['initial_conditions'] = np.array(json_params['initial_conditions'])
+            model_params['boundary_conditions'] = np.array(json_params['boundary_conditions'])
+
         params.update(model_params)
 
     if checkpoint_path is None:
