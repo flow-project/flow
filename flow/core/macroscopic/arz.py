@@ -471,23 +471,23 @@ class ARZ(MacroModelEnv):
         fp_lower_half = 0.5 \
             * (self.function_rho(rho_l, y_l)
                + self.function_rho(rho_init, y_init)) \
-            - ((0.5 * self.dt / self.dx) * (rho_init - rho_l))
+            - ((0.5 * self.dx / self.dt) * (rho_init - rho_l))
 
         fy_lower_half = 0.5 \
             * (self.function_y(rho_l, y_l)
                + self.function_y(rho_init, y_init)) \
-            - ((0.5 * self.dt / self.dx) * (y_init - y_l))
+            - ((0.5 * self.dx / self.dt) * (y_init - y_l))
 
         # right fluxes
         fp_higher_half = 0.5 \
             * (self.function_rho(rho_r, y_r)
                + self.function_rho(rho_init, y_init)) \
-            - ((0.5 * self.dt / self.dx) * (rho_r - rho_init))
+            - ((0.5 * self.dx / self.dt) * (rho_r - rho_init))
 
         fy_higher_half = 0.5 \
             * (self.function_y(rho_r, y_r)
                + self.function_y(rho_init, y_init)) \
-            - ((0.5 * self.dt / self.dx) * (y_r - y_init))
+            - ((0.5 * self.dx / self.dt) * (y_r - y_init))
 
         self.list_values = self.list_values + [
             [fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half,
