@@ -1,0 +1,209 @@
+{
+    "centroids": {
+        "911": {
+            "type": "out"
+        }, 
+        "913": {
+            "type": "in"
+        }, 
+        "914": {
+            "type": "out"
+        }, 
+        "915": {
+            "type": "in"
+        }, 
+        "941": {
+            "type": "out"
+        }
+    }, 
+    "connections": {
+        "918": {
+            "from_id": 872, 
+            "from_name": "output_east", 
+            "to_id": 914, 
+            "to_name": "centroid_east"
+        }, 
+        "920": {
+            "from_id": 877, 
+            "from_name": "output_west", 
+            "to_id": 911, 
+            "to_name": "centroid_west_top"
+        }, 
+        "945": {
+            "from_id": 938, 
+            "from_name": "output_north", 
+            "to_id": 941, 
+            "to_name": "centroid_north"
+        }, 
+        "979": {
+            "from_id": 915, 
+            "from_name": "centroid_south", 
+            "to_id": 948, 
+            "to_name": "input_south"
+        }, 
+        "980": {
+            "from_id": 913, 
+            "from_name": "centroid_west_bottom", 
+            "to_id": 947, 
+            "to_name": "input_west"
+        }
+    }, 
+    "nodes": {
+        "942": {
+            "name": "intersection_east", 
+            "nb_turnings": 2
+        }, 
+        "974": {
+            "name": "intersection_west", 
+            "nb_turnings": 4
+        }, 
+        "991": {
+            "name": "turning_top", 
+            "nb_turnings": 1
+        }
+    }, 
+    "sections": {
+        "862": {
+            "length": 19.679744845634033, 
+            "max_speed": 50.0, 
+            "name": "link_left", 
+            "numLanes": 2
+        }, 
+        "864": {
+            "length": 20.304643481001637, 
+            "max_speed": 50.0, 
+            "name": "middle", 
+            "numLanes": 2
+        }, 
+        "872": {
+            "length": 34.43661797558986, 
+            "max_speed": 50.0, 
+            "name": "output_east", 
+            "numLanes": 2
+        }, 
+        "877": {
+            "length": 35.80870019458666, 
+            "max_speed": 50.0, 
+            "name": "output_west", 
+            "numLanes": 2
+        }, 
+        "938": {
+            "length": 49.90080592863791, 
+            "max_speed": 50.0, 
+            "name": "output_north", 
+            "numLanes": 2
+        }, 
+        "947": {
+            "length": 94.26587272883015, 
+            "max_speed": 50.0, 
+            "name": "input_west", 
+            "numLanes": 1
+        }, 
+        "948": {
+            "length": 35.37207850047003, 
+            "max_speed": 50.0, 
+            "name": "input_south", 
+            "numLanes": 2
+        }
+    }, 
+    "turnings": {
+        "943": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 938, 
+            "dest_section_name": "output_north", 
+            "dest_to_lane": 2, 
+            "length": 27.76457771664472, 
+            "max_speed": 38.35094048192262, 
+            "name": "", 
+            "node_id": 942, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 864, 
+            "origin_section_name": "middle", 
+            "origin_to_lane": 0
+        }, 
+        "944": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 872, 
+            "dest_section_name": "output_east", 
+            "dest_to_lane": 1, 
+            "length": 27.99397122260955, 
+            "max_speed": 50.0, 
+            "name": "", 
+            "node_id": 942, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 864, 
+            "origin_section_name": "middle", 
+            "origin_to_lane": 1
+        }, 
+        "975": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 862, 
+            "dest_section_name": "link_left", 
+            "dest_to_lane": 1, 
+            "length": 33.832625938421415, 
+            "max_speed": 43.58440679147004, 
+            "name": "", 
+            "node_id": 974, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 947, 
+            "origin_section_name": "input_west", 
+            "origin_to_lane": 0
+        }, 
+        "976": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 864, 
+            "dest_section_name": "middle", 
+            "dest_to_lane": 1, 
+            "length": 45.27272846196305, 
+            "max_speed": 50.0, 
+            "name": "", 
+            "node_id": 974, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 947, 
+            "origin_section_name": "input_west", 
+            "origin_to_lane": 1
+        }, 
+        "977": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 862, 
+            "dest_section_name": "link_left", 
+            "dest_to_lane": 1, 
+            "length": 31.847880546781823, 
+            "max_speed": 50.0, 
+            "name": "", 
+            "node_id": 974, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 948, 
+            "origin_section_name": "input_south", 
+            "origin_to_lane": 1
+        }, 
+        "978": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 864, 
+            "dest_section_name": "middle", 
+            "dest_to_lane": 1, 
+            "length": 24.56752978545223, 
+            "max_speed": 40.18650025327064, 
+            "name": "", 
+            "node_id": 974, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 948, 
+            "origin_section_name": "input_south", 
+            "origin_to_lane": 1
+        }, 
+        "992": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 877, 
+            "dest_section_name": "output_west", 
+            "dest_to_lane": 1, 
+            "length": 20.6124541712257, 
+            "max_speed": 35.760656026966075, 
+            "name": "", 
+            "node_id": 991, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 862, 
+            "origin_section_name": "link_left", 
+            "origin_to_lane": 1
+        }
+    }
+}

@@ -276,6 +276,11 @@ class AimsunKernelNetwork(BaseKernelNetwork):
         return sum(self.edge_length(edge_id)
                    for edge_id in self.get_edge_list())
 
+    def non_internal_length(self):
+        """See parent class."""
+        return sum(self.edge_length(edge_id)
+                   for edge_id in self.get_edge_list())
+
     def speed_limit(self, edge_id):
         """See parent class."""
         try:
