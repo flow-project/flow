@@ -56,10 +56,16 @@ def get_dict_from_objects(sections, nodes, turnings, cen_connections):
     if not centroid_config:
         print('[load.py] ERROR: Centroid configuration ' +
               centroid_config_name + ' does not exist.')
-    for c in centroid_config.origin_centroids:
-        scenario_data['centroids'][c.id] = {'type': 'in'}
-    for c in centroid_config.destination_centroids:
-        scenario_data['centroids'][c.id] = {'type': 'out'}
+    else:
+        # load origin centroids only if they exist
+        if centroid_config.origin_centroids:
+            for c in centroid_config.origin_centroids:
+                scenario_data['centroids'][c.id] = {'type': 'in'}
+
+        # load destination centroids only if they exist
+        if centroid_config.destination_centroids:
+            for c in centroid_config.destination_centroids:
+                scenario_data['centroids'][c.id] = {'type': 'out'}
 
     # load sections
     for s in sections:
@@ -132,7 +138,7 @@ model = AimsunTemplate(GKSystem, GKGUISystem)
 model.load(template_path)
 
 # collect the simulation parameters
-params_file = 'flow/core/kernel/scenario/data.json'
+params_file = 'flow/core/kernel/network/data.json'
 params_path = os.path.join(config.PROJECT_PATH, params_file)
 with open(params_path) as f:
     data = json.load(f)
@@ -168,7 +174,7 @@ else:
     scenario_data = load_network()
 
 # save template's scenario into a file to be loaded into Flow's scenario
-scenario_data_file = 'flow/core/kernel/scenario/scenario_data.json'
+scenario_data_file = 'flow/core/kernel/network/scenario_data.json'
 scenario_data_path = os.path.join(config.PROJECT_PATH, scenario_data_file)
 with open(scenario_data_path, 'w') as f:
     json.dump(scenario_data, f, sort_keys=True, indent=4)
@@ -177,7 +183,7 @@ with open(scenario_data_path, 'w') as f:
 
 # create a check file to announce that we are done
 # writing all the network data into the .json file
-check_file = 'flow/core/kernel/scenario/scenario_data_check'
+check_file = 'flow/core/kernel/network/scenario_data_check'
 check_file_path = os.path.join(config.PROJECT_PATH, check_file)
 open(check_file_path, 'a').close()
 
