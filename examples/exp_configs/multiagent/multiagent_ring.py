@@ -105,7 +105,6 @@ obs_space = test_env.observation_space
 act_space = test_env.action_space
 
 
-
 def gen_policy():
     """Generate a policy in RLlib."""
     return PPOTFPolicy, obs_space, act_space, {}
