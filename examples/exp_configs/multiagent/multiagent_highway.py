@@ -12,22 +12,8 @@ from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.networks import HighwayRampsNetwork
 from flow.envs.multiagent import MultiAgentHighwayPOEnv
 from flow.networks.highway_ramps import ADDITIONAL_NET_PARAMS
-
-
-# SET UP RLLIB MULTI-AGENT FEATURES
-
-obs_space = None  # FIXME
-ac_space = None  # FIXME
-
-
-POLICY_GRAPHS = {'av': (PPOTFPolicy, obs_space, ac_space, {})}
-
-POLICIES_TO_TRAIN = ['av']
-
-
-def policy_mapping_fn(_):
-    """Map a policy in RLlib."""
-    return 'av'
+from flow.utils.registry import make_create_env
+from ray.tune.registry import register_env
 
 
 # SET UP PARAMETERS FOR THE SIMULATION
@@ -173,3 +159,26 @@ flow_params = dict(
     # reset (see flow.core.params.InitialConfig)
     initial=InitialConfig(),
 )
+
+
+# SET UP RLLIB MULTI-AGENT FEATURES
+
+create_env, env_name = make_create_env(params=flow_params, version=0)
+
+# register as rllib env
+register_env(env_name, create_env)
+
+# multiagent configuration
+test_env = create_env()
+obs_space = test_env.observation_space
+act_space = test_env.action_space
+
+
+POLICY_GRAPHS = {'av': (PPOTFPolicy, obs_space, act_space, {})}
+
+POLICIES_TO_TRAIN = ['av']
+
+
+def policy_mapping_fn(_):
+    """Map a policy in RLlib."""
+    return 'av'

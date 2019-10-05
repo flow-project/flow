@@ -21,6 +21,8 @@ from flow.core.params import VehicleParams
 from flow.networks.figure_eight import ADDITIONAL_NET_PARAMS
 from flow.envs.multiagent import MultiAgentAccelEnv
 from flow.networks import FigureEightNetwork
+from flow.utils.registry import make_create_env
+from ray.tune.registry import register_env
 
 # time horizon of a single rollout
 HORIZON = 1500
@@ -101,8 +103,14 @@ flow_params = dict(
 )
 
 
-obs_space = 2 * (N_HUMANS + N_AVS)
-act_space = N_AVS
+create_env, env_name = make_create_env(params=flow_params, version=0)
+
+# Register as rllib env
+register_env(env_name, create_env)
+
+test_env = create_env()
+obs_space = test_env.observation_space
+act_space = test_env.action_space
 
 
 def gen_policy():

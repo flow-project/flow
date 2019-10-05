@@ -14,6 +14,8 @@ from flow.core.params import SumoParams
 from flow.core.params import VehicleParams
 from flow.envs.multiagent import MultiWaveAttenuationPOEnv
 from flow.networks import MultiRingNetwork
+from flow.utils.registry import make_create_env
+from ray.tune.registry import register_env
 
 # make sure (sample_batch_size * num_workers ~= train_batch_size)
 # time horizon of a single rollout
@@ -93,8 +95,15 @@ flow_params = dict(
 )
 
 
-obs_space = 3
-act_space = 1
+create_env, env_name = make_create_env(params=flow_params, version=0)
+
+# Register as rllib env
+register_env(env_name, create_env)
+
+test_env = create_env()
+obs_space = test_env.observation_space
+act_space = test_env.action_space
+
 
 
 def gen_policy():
