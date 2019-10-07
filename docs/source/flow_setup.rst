@@ -178,7 +178,7 @@ The latter command should return an output similar to:
 
     /path/to/envs/aimsun_flow/bin/python
 
-Copy the path up until right before /bin (i.e. /path/to/envs/aimsun_flow) and
+Copy the path up until right before /lib (i.e. /path/to/envs/aimsun_flow/bin/python) and
 place it under the `AIMSUN_SITEPACKAGES` variable in your bashrc, like this:
 
 ::

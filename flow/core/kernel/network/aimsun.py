@@ -65,7 +65,7 @@ class AimsunKernelNetwork(BaseKernelNetwork):
             'render': self.sim_params.render,
             "sim_step": self.sim_params.sim_step,
             "traffic_lights": None,
-            "scenario_name": self.sim_params.scenario_name,
+            "network_name": self.sim_params.network_name,
             "experiment_name": self.sim_params.experiment_name,
             "replication_name": self.sim_params.replication_name,
             "centroid_config_name": self.sim_params.centroid_config_name,
