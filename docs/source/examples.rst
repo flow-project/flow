@@ -39,7 +39,7 @@ many vehicles simultaneously.
 Stabilizing the Ring
 --------------------
 This example builds on the famous spontaneously forming shockwave from Sugiyama (2008).
-In this network, human drivers placed on a ring develop a travelling wave that causes
+In this scenario, human drivers placed on a ring develop a travelling wave that causes
 decelerations and lowers the average velocity of the system. The goal is to train a single
 autonomous vehicle to eliminate the shockwave.
 

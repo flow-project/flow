@@ -10,7 +10,7 @@
 
 [Flow](https://flow-project.github.io/) is a computational framework for deep RL and control experiments for traffic microsimulation.
 
-See [our website](https://flow-project.github.io/) for more information on the application of Flow to several mixed-autonomy traffic network. Other [results and videos](https://sites.google.com/view/ieee-tro-flow/home) are available as well.
+See [our website](https://flow-project.github.io/) for more information on the application of Flow to several mixed-autonomy traffic scenarios. Other [results and videos](https://sites.google.com/view/ieee-tro-flow/home) are available as well.
 
 # More information
 
