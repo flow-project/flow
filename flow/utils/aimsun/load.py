@@ -174,7 +174,7 @@ else:
     scenario_data = load_network()
 
 # save template's scenario into a file to be loaded into Flow's scenario
-scenario_data_file = 'flow/core/kernel/network/scenario_data.json'
+scenario_data_file = 'flow/core/kernel/network/network_data.json'
 scenario_data_path = os.path.join(config.PROJECT_PATH, scenario_data_file)
 with open(scenario_data_path, 'w') as f:
     json.dump(scenario_data, f, sort_keys=True, indent=4)
@@ -183,7 +183,7 @@ with open(scenario_data_path, 'w') as f:
 
 # create a check file to announce that we are done
 # writing all the network data into the .json file
-check_file = 'flow/core/kernel/network/scenario_data_check'
+check_file = 'flow/core/kernel/network/network_data_check'
 check_file_path = os.path.join(config.PROJECT_PATH, check_file)
 open(check_file_path, 'a').close()
 
