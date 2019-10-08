@@ -237,7 +237,7 @@ def penalize_near_standstill(env, thresh=0.3, gain=1):
 
     This reward function is used to penalize vehicles below a
     specified threshold. This assists with discouraging RL from
-    gamifying a scenario, which can result in standstill behavior
+    gamifying a network, which can result in standstill behavior
     or similarly bad, near-zero velocities.
 
     Parameters

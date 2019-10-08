@@ -9,7 +9,7 @@ A few points of clarification:
 
 * Occasionally we describe environments as *fully observed*. By this we mean that all relevant pieces of information (speed, relative positions, traffic light states) of the system are available to the controller. *Partially observed* refers to only a subset being available. This is the default configuration of the environment and the set of observations can be customized.
 
-* Each environment has customizable environment/network parameters that can be used to configure it beyond what is described here. Particularly pertinent parameters are described. Additional parameters can be found by examining the documentation in the relevant scenario and environment files.
+* Each environment has customizable environment/network parameters that can be used to configure it beyond what is described here. Particularly pertinent parameters are described. Additional parameters can be found by examining the documentation in the relevant network and environment files.
 
 * In the figures below, the following key is used for vehicle colors, where AV stands for autonomous vehicle.
 
@@ -22,12 +22,12 @@ Figure Eight
 The figure-eight is a closed-ring version of an intersection. The goal is to maximize
 the system-wide velocity for fourteen vehicles,
 which necessitates spacing the vehicles so that they don't
-run into conflicts at the merging points. The scenario is fully observed: all vehicles
+run into conflicts at the merging points. The network is fully observed: all vehicles
 speeds and positions are visible to the controller.
-This scenario is also a benchmark, and has been
+This network is also a benchmark, and has been
 extensively tested at three penetration rates: 1 AV 13 humans, 7 AVs 7 humans, 14 AVs.
 
-The scenario, pictured below,
+The network, pictured below,
 is relatively light-weight and can be trained the quickest. It can serve both as a test
 that the training process is working correctly and as a study of the difficulty of controlling
 many vehicles simultaneously.
@@ -51,7 +51,7 @@ and the speed of the leading vehicle.
 
 To make this task more difficult, the environment has a configurable parameter, `ring_length`, which
 can be set to a list containing the minimum and maximum ring-size. The autonomous vehicle must
-learn to distinguish these scenarios from each other and pick the appropriate driving behavior.
+learn to distinguish these networks from each other and pick the appropriate driving behavior.
 
 .. image:: ../img/stabilizing_the_ring.png
    :width: 400
