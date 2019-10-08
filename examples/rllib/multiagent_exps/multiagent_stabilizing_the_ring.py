@@ -11,11 +11,13 @@ try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
-from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
+from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 from ray import tune
 from ray.tune.registry import register_env
 from ray.tune import run_experiments
 
+from flow.envs.multiagent import MultiWaveAttenuationPOEnv
+from flow.networks import MultiRingNetwork
 from flow.controllers import ContinuousRouter
 from flow.controllers import IDMController
 from flow.controllers import RLController
@@ -58,10 +60,10 @@ flow_params = dict(
     exp_tag='lord_of_numrings{}'.format(NUM_RINGS),
 
     # name of the flow environment the experiment is running on
-    env_name='MultiWaveAttenuationPOEnv',
+    env_name=MultiWaveAttenuationPOEnv,
 
-    # name of the scenario class the experiment is running on
-    scenario='MultiLoopScenario',
+    # name of the network class the experiment is running on
+    network=MultiRingNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -85,7 +87,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         additional_params={
             'length': 230,
@@ -146,7 +148,7 @@ def setup_exps():
     act_space = test_env.action_space
 
     def gen_policy():
-        return (PPOPolicyGraph, obs_space, act_space, {})
+        return PPOTFPolicy, obs_space, act_space, {}
 
     # Setup PG with an ensemble of `num_policies` different policy graphs
     policy_graphs = {'av': gen_policy()}
@@ -156,7 +158,7 @@ def setup_exps():
 
     config.update({
         'multiagent': {
-            'policy_graphs': policy_graphs,
+            'policies': policy_graphs,
             'policy_mapping_fn': tune.function(policy_mapping_fn),
             'policies_to_train': ['av']
         }

@@ -8,13 +8,14 @@ network is an autonomous vehicle.
 - **Observation Dimension**: (28, )
 - **Horizon**: 1500 steps
 """
-
+from flow.envs import AccelEnv
+from flow.networks import FigureEightNetwork
 from copy import deepcopy
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.controllers import IDMController, ContinuousRouter, RLController
-from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
+from flow.networks.figure_eight import ADDITIONAL_NET_PARAMS
 
 # time horizon of a single rollout
 HORIZON = 1500
@@ -46,10 +47,10 @@ flow_params = dict(
     exp_tag="figure_eight_0",
 
     # name of the flow environment the experiment is running on
-    env_name="AccelEnv",
+    env_name=AccelEnv,
 
-    # name of the scenario class the experiment is running on
-    scenario="Figure8Scenario",
+    # name of the network class the experiment is running on
+    network=FigureEightNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -72,7 +73,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         additional_params=deepcopy(ADDITIONAL_NET_PARAMS),
     ),

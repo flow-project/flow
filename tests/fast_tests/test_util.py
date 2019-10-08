@@ -4,13 +4,17 @@ import os
 import json
 import collections
 
+from flow.envs import AccelEnv
+from flow.networks import FigureEightNetwork
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoCarFollowingParams
 from flow.core.util import emission_to_csv
-from flow.utils.flow_warnings import deprecation_warning
+from flow.envs import MergePOEnv
+from flow.networks import MergeNetwork
+from flow.utils.flow_warnings import deprecated_attribute
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 
@@ -59,7 +63,7 @@ class TestEmissionToCSV(unittest.TestCase):
 class TestWarnings(unittest.TestCase):
     """Tests warning functions located in flow.utils.warnings"""
 
-    def test_deprecation_warning(self):
+    def test_deprecated_attribute(self):
         # dummy class
         class Foo(object):
             pass
@@ -70,9 +74,9 @@ class TestWarnings(unittest.TestCase):
 
         # check the deprecation warning is printing what is expected
         self.assertWarnsRegex(
-            UserWarning, "The attribute bar_deprecated in Foo is deprecated, "
-            "use bar_new instead.", deprecation_warning, Foo(), dep_from,
-            dep_to)
+            PendingDeprecationWarning,
+            "The attribute bar_deprecated in Foo is deprecated, use bar_new "
+            "instead.", deprecated_attribute, Foo(), dep_from, dep_to)
 
 
 class TestRegistry(unittest.TestCase):
@@ -104,8 +108,8 @@ class TestRegistry(unittest.TestCase):
 
         flow_params = dict(
             exp_tag="figure_eight_0",
-            env_name="AccelEnv",
-            scenario="Figure8Scenario",
+            env_name=AccelEnv,
+            network=FigureEightNetwork,
             simulator='traci',
             sim=SumoParams(
                 sim_step=0.1,
@@ -140,7 +144,8 @@ class TestRegistry(unittest.TestCase):
         create_env, env_name = make_create_env(params=flow_params, version=v)
 
         # check that the name is correct
-        self.assertEqual(env_name, '{}-v{}'.format(flow_params["env_name"], v))
+        self.assertEqual(env_name,
+                         '{}-v{}'.format(flow_params["env_name"].__name__, v))
 
         # create the gym environment
         env = create_env()
@@ -154,15 +159,16 @@ class TestRegistry(unittest.TestCase):
                          flow_params["env"].__dict__)
         self.assertEqual(env.sim_params.__dict__,
                          flow_params["sim"].__dict__)
-        self.assertEqual(env.scenario.traffic_lights.__dict__,
+        self.assertEqual(env.network.traffic_lights.__dict__,
                          flow_params["tls"].__dict__)
         self.assertEqual(env.net_params.__dict__,
                          flow_params["net"].__dict__)
         self.assertEqual(env.initial_config.__dict__,
                          flow_params["initial"].__dict__)
-        self.assertEqual(env.__class__.__name__, flow_params["env_name"])
-        self.assertEqual(env.scenario.__class__.__name__,
-                         flow_params["scenario"])
+        self.assertEqual(env.__class__.__name__,
+                         flow_params["env_name"].__name__)
+        self.assertEqual(env.network.__class__.__name__,
+                         flow_params["network"].__name__)
 
 
 class TestRllib(unittest.TestCase):
@@ -217,8 +223,8 @@ class TestRllib(unittest.TestCase):
 
         flow_params = dict(
             exp_tag="merge_0",
-            env_name="WaveAttenuationMergePOEnv",
-            scenario="MergeScenario",
+            env_name=MergePOEnv,
+            network=MergeNetwork,
             sim=SumoParams(
                 restart_instance=True,
                 sim_step=0.5,
@@ -299,7 +305,7 @@ class TestRllib(unittest.TestCase):
         self.assertTrue(
             imported_flow_params["env_name"] == flow_params["env_name"])
         self.assertTrue(
-            imported_flow_params["scenario"] == flow_params["scenario"])
+            imported_flow_params["network"] == flow_params["network"])
 
         def search_dicts(obj1, obj2):
             """Searches through dictionaries as well as lists of dictionaries

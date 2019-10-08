@@ -1,4 +1,4 @@
-"""Grid/green wave example."""
+"""Traffic Light Grid example."""
 
 import json
 
@@ -10,6 +10,8 @@ except ImportError:
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
+from flow.envs import TrafficLightGridPOEnv
+from flow.networks import TrafficLightGridNetwork
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
@@ -26,14 +28,14 @@ N_CPUS = 2
 
 
 def gen_edges(col_num, row_num):
-    """Generate the names of the outer edges in the grid network.
+    """Generate the names of the outer edges in the traffic light grid network.
 
     Parameters
     ----------
     col_num : int
-        number of columns in the grid
+        number of columns in the traffic light grid
     row_num : int
-        number of rows in the grid
+        number of rows in the traffic light grid
 
     Returns
     -------
@@ -59,11 +61,11 @@ def get_flow_params(col_num, row_num, additional_net_params):
     Parameters
     ----------
     col_num : int
-        number of columns in the grid
+        number of columns in the traffic light grid
     row_num : int
-        number of rows in the grid
+        number of rows in the traffic light grid
     additional_net_params : dict
-        network-specific parameters that are unique to the grid
+        network-specific parameters that are unique to the traffic light grid
 
     Returns
     -------
@@ -71,7 +73,7 @@ def get_flow_params(col_num, row_num, additional_net_params):
         parameters specifying the initial configuration of vehicles in the
         network
     flow.core.params.NetParams
-        network-specific parameters used to generate the scenario
+        network-specific parameters used to generate the network
     """
     initial = InitialConfig(
         spacing='custom', lanes_distribution=float('inf'), shuffle=True)
@@ -105,7 +107,7 @@ def get_non_flow_params(enter_speed, add_net_params):
     enter_speed : float
         initial speed of vehicles as they enter the network.
     add_net_params: dict
-        additional network-specific parameters (unique to the grid)
+        additional network-specific parameters (unique to the traffic light grid)
 
     Returns
     -------
@@ -113,7 +115,7 @@ def get_non_flow_params(enter_speed, add_net_params):
         parameters specifying the initial configuration of vehicles in the
         network
     flow.core.params.NetParams
-        network-specific parameters used to generate the scenario
+        network-specific parameters used to generate the network
     """
     additional_init_params = {'enter_speed': enter_speed}
     initial = InitialConfig(
@@ -178,13 +180,13 @@ vehicles.add(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='green_wave',
+    exp_tag='traffic_light_grid',
 
     # name of the flow environment the experiment is running on
-    env_name='PO_TrafficLightGridEnv',
+    env_name=TrafficLightGridPOEnv,
 
-    # name of the scenario class the experiment is running on
-    scenario='SimpleGridScenario',
+    # name of the network class the experiment is running on
+    network=TrafficLightGridNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -202,7 +204,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component). This is
+    # network's documentation or ADDITIONAL_NET_PARAMS component). This is
     # filled in by the setup_exps method below.
     net=None,
 
@@ -281,7 +283,7 @@ def setup_exps(use_inflows=False):
 
 if __name__ == '__main__':
     alg_run, gym_name, config = setup_exps()
-    ray.init(num_cpus=N_CPUS + 1, redirect_output=False)
+    ray.init(num_cpus=N_CPUS + 1)
     trials = run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,

@@ -267,9 +267,9 @@ def generate_net(nodes,
     set_vehicles_color(model)
 
     # set API
-    scenario_name = data["scenario_name"]
+    network_name = data["network_name"]
     scenario = model.getCatalog().findByName(
-        scenario_name, model.getType("GKScenario"))  # find scenario
+        network_name, model.getType("GKScenario"))  # find scenario
     scenario_data = scenario.getInputData()
     scenario_data.addExtension(os.path.join(
         config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
@@ -366,9 +366,9 @@ def generate_net_osm(file_name, inflows, veh_types):
     set_vehicles_color(model)
 
     # set API
-    scenario_name = data["scenario_name"]
+    network_name = data["network_name"]
     scenario = model.getCatalog().findByName(
-        scenario_name, model.getType("GKScenario"))  # find scenario
+        network_name, model.getType("GKScenario"))  # find scenario
     scenario_data = scenario.getInputData()
     scenario_data.addExtension(os.path.join(
         config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
@@ -794,8 +794,8 @@ def set_sim_step(experiment, sim_step):
     experiment.setDataValue(col_sim, sim_step)
 
 
-# collect the scenario-specific data
-data_file = 'flow/core/kernel/scenario/data.json'
+# collect the network-specific data
+data_file = 'flow/core/kernel/network/data.json'
 with open(os.path.join(config.PROJECT_PATH, data_file)) as f:
     data = json.load(f)
 

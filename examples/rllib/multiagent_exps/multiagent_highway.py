@@ -1,7 +1,7 @@
 """Multi-agent highway with ramps example.
 
 Trains a non-constant number of agents, all sharing the same policy, on the
-highway with ramps scenario.
+highway with ramps network.
 """
 import json
 import ray
@@ -9,7 +9,7 @@ try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
-from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
+from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 from ray import tune
 from ray.tune.registry import register_env
 from ray.tune import run_experiments
@@ -22,8 +22,10 @@ from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
-from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
-from flow.scenarios.highway_ramps import ADDITIONAL_NET_PARAMS
+from flow.envs.multiagent import MultiAgentHighwayPOEnv
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
+from flow.networks import HighwayRampsNetwork
+from flow.networks.highway_ramps import ADDITIONAL_NET_PARAMS
 
 
 # SET UP PARAMETERS FOR THE SIMULATION
@@ -45,7 +47,7 @@ ON_RAMPS_INFLOW_RATE = 450
 PENETRATION_RATE = 20
 
 
-# SET UP PARAMETERS FOR THE SCENARIO
+# SET UP PARAMETERS FOR THE NETWORK
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
@@ -134,8 +136,8 @@ for i in range(len(additional_net_params['on_ramps_pos'])):
 
 flow_params = dict(
     exp_tag='multiagent_highway',
-    env_name='MultiAgentHighwayPOEnv',
-    scenario='HighwayRampsScenario',
+    env_name=MultiAgentHighwayPOEnv,
+    network=HighwayRampsNetwork,
     simulator='traci',
 
     env=EnvParams(
@@ -205,7 +207,7 @@ def setup_exps(flow_params):
 
     # multiagent configuration
     temp_env = create_env()
-    policy_graphs = {'av': (PPOPolicyGraph,
+    policy_graphs = {'av': (PPOTFPolicy,
                             temp_env.observation_space,
                             temp_env.action_space,
                             {})}
@@ -215,7 +217,7 @@ def setup_exps(flow_params):
 
     config.update({
         'multiagent': {
-            'policy_graphs': policy_graphs,
+            'policies': policy_graphs,
             'policy_mapping_fn': tune.function(policy_mapping_fn),
             'policies_to_train': ['av']
         }

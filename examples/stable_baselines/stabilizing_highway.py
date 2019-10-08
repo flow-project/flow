@@ -10,10 +10,12 @@ import os
 from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines import PPO2
 
+from flow.envs import MergePOEnv
+from flow.networks import MergeNetwork
 from flow.core.params import SumoParams, EnvParams, InitialConfig, InFlows, NetParams
 from flow.core.params import VehicleParams, SumoCarFollowingParams
 from flow.controllers import RLController, IDMController
-from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
+from flow.networks.merge import ADDITIONAL_NET_PARAMS
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 
@@ -90,10 +92,10 @@ flow_params = dict(
     exp_tag="stabilizing_open_network_merges",
 
     # name of the flow environment the experiment is running on
-    env_name="WaveAttenuationMergePOEnv",
+    env_name=MergePOEnv,
 
-    # name of the scenario class the experiment is running on
-    scenario="MergeScenario",
+    # name of the network class the experiment is running on
+    network=MergeNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -119,7 +121,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
         additional_params=additional_net_params,

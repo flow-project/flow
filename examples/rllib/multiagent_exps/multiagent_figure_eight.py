@@ -15,11 +15,13 @@ try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
-from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
+from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 from ray import tune
 from ray.tune.registry import register_env
 from ray.tune import run_experiments
 
+from flow.envs.multiagent import MultiAgentAccelEnv
+from flow.networks import FigureEightNetwork
 from flow.controllers import ContinuousRouter
 from flow.controllers import IDMController
 from flow.controllers import RLController
@@ -29,7 +31,7 @@ from flow.core.params import NetParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import VehicleParams
-from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
+from flow.networks.figure_eight import ADDITIONAL_NET_PARAMS
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
@@ -66,10 +68,10 @@ flow_params = dict(
     exp_tag='multiagent_figure_eight',
 
     # name of the flow environment the experiment is running on
-    env_name='MultiAgentAccelEnv',
+    env_name=MultiAgentAccelEnv,
 
-    # name of the scenario class the experiment is running on
-    scenario='Figure8Scenario',
+    # name of the network class the experiment is running on
+    network=FigureEightNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -93,7 +95,7 @@ flow_params = dict(
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
-    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         additional_params=deepcopy(ADDITIONAL_NET_PARAMS),
     ),
@@ -153,7 +155,7 @@ def setup_exps():
     act_space = test_env.action_space
 
     def gen_policy():
-        return (PPOPolicyGraph, obs_space, act_space, {})
+        return PPOTFPolicy, obs_space, act_space, {}
 
     # Setup PG with an ensemble of `num_policies` different policy graphs
     policy_graphs = {'av': gen_policy(), 'adversary': gen_policy()}
@@ -163,7 +165,7 @@ def setup_exps():
 
     config.update({
         'multiagent': {
-            'policy_graphs': policy_graphs,
+            'policies': policy_graphs,
             'policy_mapping_fn': tune.function(policy_mapping_fn)
         }
     })

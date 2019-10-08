@@ -55,16 +55,12 @@ def visualizer_rllib(args):
         else args.result_dir[:-1]
 
     config = get_rllib_config(result_dir)
-    # TODO(ev) backwards compatibility hack
-    try:
-        pkl = get_rllib_pkl(result_dir)
-    except Exception:
-        pass
 
-    # check if we have a multiagent scenario but in a
+    # check if we have a multiagent environment but in a
     # backwards compatible way
-    if config.get('multiagent', {}).get('policy_graphs', {}):
+    if config.get('multiagent', {}).get('policies', None):
         multiagent = True
+        pkl = get_rllib_pkl(result_dir)
         config['multiagent'] = pkl['multiagent']
     else:
         multiagent = False
@@ -137,7 +133,7 @@ def visualizer_rllib(args):
     # if flow_params['env_name'] in single_agent_envs:
     #     env_loc = 'flow.envs'
     # else:
-    #     env_loc = 'flow.multiagent_envs'
+    #     env_loc = 'flow.envs.multiagent'
 
     # Start the environment with the gui turned on and a path for the
     # emission file
@@ -167,7 +163,7 @@ def visualizer_rllib(args):
         rets = {}
         # map the agent id to its policy
         policy_map_fn = config['multiagent']['policy_mapping_fn'].func
-        for key in config['multiagent']['policy_graphs'].keys():
+        for key in config['multiagent']['policies'].keys():
             rets[key] = []
     else:
         rets = []
@@ -179,10 +175,9 @@ def visualizer_rllib(args):
             # map the agent id to its policy
             policy_map_fn = config['multiagent']['policy_mapping_fn'].func
             size = config['model']['lstm_cell_size']
-            for key in config['multiagent']['policy_graphs'].keys():
+            for key in config['multiagent']['policies'].keys():
                 state_init[key] = [np.zeros(size, np.float32),
-                                   np.zeros(size, np.float32)
-                                   ]
+                                   np.zeros(size, np.float32)]
         else:
             state_init = [
                 np.zeros(config['model']['lstm_cell_size'], np.float32),
@@ -303,7 +298,7 @@ def visualizer_rllib(args):
         time.sleep(0.1)
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        emission_filename = '{0}-emission.xml'.format(env.scenario.name)
+        emission_filename = '{0}-emission.xml'.format(env.network.name)
 
         emission_path = \
             '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)

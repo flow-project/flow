@@ -25,13 +25,13 @@ tasked with the objective of dissipating the formation and propagation of
 - `flow.benchmarks.merge1` 25% CAV penetration rate, S=(65,), A=(13,), T=750.
 - `flow.benchmarks.merge2` 33.3% CAV penetration rate, S=(85,), A=(17,), T=750.
 
-**Grid (improving traffic signal timing schedules):** Traffic lights in a an 
-idealized representation of a city with a grid-like structure such as Manhattan
-are controlled in intervals of 2 seconds, with the objective of minimizing 
-delays for drivers.
-- `flow.benchmarks.grid0` 3x3 grid (9 traffic lights), 
+**Traffic Light Grid (improving traffic signal timing schedules):** Traffic
+lights in a an idealized representation of a city with a grid-like structure
+such as Manhattan are controlled in intervals of 2 seconds, with the objective
+of minimizing delays for drivers.
+- `flow.benchmarks.grid0` 3x3 traffic light grid (9 traffic lights), 
 inflow = 300 veh/hour/lane S=(339,), A=(9,), T=400.
-- `flow.benchmarks.grid1` 5x5 grid (25 traffic lights), 
+- `flow.benchmarks.grid1` 5x5 traffic light grid (25 traffic lights), 
 inflow = 300 veh/hour/lane S=(915,), A=(25,), T=400.
 
 **Bottleneck (maximizing throughput in a bottleneck structure):** The goal of 
