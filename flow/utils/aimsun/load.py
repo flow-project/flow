@@ -56,10 +56,16 @@ def get_dict_from_objects(sections, nodes, turnings, cen_connections):
     if not centroid_config:
         print('[load.py] ERROR: Centroid configuration ' +
               centroid_config_name + ' does not exist.')
-    for c in centroid_config.origin_centroids:
-        scenario_data['centroids'][c.id] = {'type': 'in'}
-    for c in centroid_config.destination_centroids:
-        scenario_data['centroids'][c.id] = {'type': 'out'}
+    else:
+        # load origin centroids only if they exist
+        if centroid_config.origin_centroids:
+            for c in centroid_config.origin_centroids:
+                scenario_data['centroids'][c.id] = {'type': 'in'}
+
+        # load destination centroids only if they exist
+        if centroid_config.destination_centroids:
+            for c in centroid_config.destination_centroids:
+                scenario_data['centroids'][c.id] = {'type': 'out'}
 
     # load sections
     for s in sections:
