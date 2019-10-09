@@ -70,7 +70,7 @@ def get_dict_from_objects(sections, nodes, turnings, cen_connections):
             # (bc they don't have to be all of the same size)
             # it may not be 100% accurate
             'length': s.lanes_length_2D / s.nb_full_lanes,
-            'max_speed': s.speed
+            'speed': s.speed
         }
 
     # load nodes
@@ -90,7 +90,7 @@ def get_dict_from_objects(sections, nodes, turnings, cen_connections):
             'dest_section_name': t.destination.name,
             'dest_section_id': t.destination.id,
             'node_id': t.node.id,
-            'max_speed': t.speed,
+            'speed': t.speed,
             'origin_from_lane': t.origin_from_lane,
             'origin_to_lane': t.origin_to_lane,
             'dest_from_lane': t.destination_from_lane,
