@@ -275,7 +275,7 @@ def generate_net(nodes,
         config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
 
     # save
-    gui.saveAs('flow.ang')
+    gui.save(model, 'flow.ang', GGui.GGuiSaveType.eSaveAs)
 
 
 def generate_net_osm(file_name, inflows, veh_types):
@@ -374,7 +374,7 @@ def generate_net_osm(file_name, inflows, veh_types):
         config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
 
     # save
-    gui.saveAs('flow.ang')
+    gui.save(model, 'flow.ang', GGui.GGuiSaveType.eSaveAs)
 
 
 def get_junctions(nodes):
