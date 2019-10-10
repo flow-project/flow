@@ -825,7 +825,7 @@ if osm_path is not None:
         for s in types.itervalues():
             s_id = s.getId()
             num_lanes = s.getNbFullLanes()
-            length = s.getLanesLength2D()
+            length = s.getLanesLength2D()/num_lanes # getLanesLength2D sums all lane lengths
             speed = s.getSpeed()
             edge_osm[s_id] = {"speed": speed,
                               "length": length,
