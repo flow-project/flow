@@ -9,6 +9,7 @@ from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoParams
 
 from tests.setup_scripts import ring_road_exp_setup
+from examples.exp_configs.non_rl.ring import flow_params
 import numpy as np
 
 os.environ["TEST_FLAG"] = "True"
@@ -22,16 +23,17 @@ class TestNumSteps(unittest.TestCase):
     def setUp(self):
         # create the environment and network classes for a ring road
         env, _ = ring_road_exp_setup()
-
+        flow_params['sim'].render = False
+        flow_params['env'].horizon = 10
         # instantiate an experiment class
-        self.exp = Experiment(env)
+        self.exp = Experiment(flow_params)
 
     def tearDown(self):
         # free up used memory
         self.exp = None
 
     def test_steps(self):
-        self.exp.run(num_runs=1, num_steps=10)
+        self.exp.run(num_runs=1)
 
         self.assertEqual(self.exp.env.time_counter, 10)
 
@@ -46,16 +48,21 @@ class TestNumRuns(unittest.TestCase):
         # run the experiment for 1 run and collect the last position of all
         # vehicles
         env, _ = ring_road_exp_setup()
-        exp = Experiment(env)
-        exp.run(num_runs=1, num_steps=10)
+        flow_params['sim'].render = False
+        flow_params['env'].horizon = 10
+        exp = Experiment(flow_params)
+        exp.run(num_runs=1)
 
         vel1 = [exp.env.k.vehicle.get_speed(exp.env.k.vehicle.get_ids())]
 
         # run the experiment for 2 runs and collect the last position of all
         # vehicles
         env, _ = ring_road_exp_setup()
-        exp = Experiment(env)
-        exp.run(num_runs=2, num_steps=10)
+        flow_params['sim'].render = False
+        flow_params['env'].horizon = 10
+        # flow_params['env'] = env
+        exp = Experiment(flow_params)
+        exp.run(num_runs=2)
 
         vel2 = [exp.env.k.vehicle.get_speed(exp.env.k.vehicle.get_ids())]
 
@@ -85,10 +92,11 @@ class TestRLActions(unittest.TestCase):
             num_vehicles=1)
 
         env, _ = ring_road_exp_setup(vehicles=vehicles)
+        flow_params['sim'].render = False
+        flow_params['env'].horizon = 10
+        exp = Experiment(flow_params)
 
-        exp = Experiment(env=env)
-
-        exp.run(1, 10, rl_actions=rl_actions)
+        exp.run(1, rl_actions=rl_actions)
 
         # check that the acceleration of the RL vehicle was that specified by
         # the rl_actions method
@@ -106,8 +114,10 @@ class TestConvertToCSV(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         sim_params = SumoParams(emission_path="{}/".format(dir_path))
         env, network = ring_road_exp_setup(sim_params=sim_params)
-        exp = Experiment(env)
-        exp.run(num_runs=1, num_steps=10, convert_to_csv=True)
+        flow_params['sim'].render = False
+        flow_params['env'].horizon = 10
+        exp = Experiment(flow_params)
+        exp.run(num_runs=1, convert_to_csv=True)
 
         time.sleep(0.1)
 
