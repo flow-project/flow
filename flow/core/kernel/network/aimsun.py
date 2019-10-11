@@ -65,7 +65,7 @@ class AimsunKernelNetwork(BaseKernelNetwork):
             'render': self.sim_params.render,
             "sim_step": self.sim_params.sim_step,
             "traffic_lights": None,
-            "scenario_name": self.sim_params.scenario_name,
+            "network_name": self.sim_params.network_name,
             "experiment_name": self.sim_params.experiment_name,
             "replication_name": self.sim_params.replication_name,
             "centroid_config_name": self.sim_params.centroid_config_name,
@@ -272,6 +272,11 @@ class AimsunKernelNetwork(BaseKernelNetwork):
             return -1001
 
     def length(self):
+        """See parent class."""
+        return sum(self.edge_length(edge_id)
+                   for edge_id in self.get_edge_list())
+
+    def non_internal_length(self):
         """See parent class."""
         return sum(self.edge_length(edge_id)
                    for edge_id in self.get_edge_list())

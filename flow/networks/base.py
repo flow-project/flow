@@ -1,4 +1,4 @@
-"""Contains the base scenario class."""
+"""Contains the base network class."""
 
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
