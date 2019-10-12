@@ -685,7 +685,7 @@ def create_meter(model, edge):
     """
     section = model.getCatalog().findByName(edge, model.getType("GKSection"))
     meter_length = 2
-    pos = section.getLanesLength2D() - meter_length
+    pos = section.length2D() - meter_length
     type = model.getType("GKMetering")
     cmd = model.createNewCmd(model.getType("GKSectionObject"))
     # TODO double check the zeros
@@ -825,7 +825,7 @@ if osm_path is not None:
         for s in types.itervalues():
             s_id = s.getId()
             num_lanes = s.getNbFullLanes()
-            length = s.getLanesLength2D()/num_lanes # getLanesLength2D sums all lane lengths
+            length = s.length2D()
             speed = s.getSpeed()
             edge_osm[s_id] = {"speed": speed,
                               "length": length,

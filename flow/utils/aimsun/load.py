@@ -72,10 +72,7 @@ def get_dict_from_objects(sections, nodes, turnings, cen_connections):
         scenario_data['sections'][s.id] = {
             'name': s.name,
             'numLanes': s.nb_full_lanes,
-            # FIXME this is a mean of the lanes lengths
-            # (bc they don't have to be all of the same size)
-            # it may not be 100% accurate
-            'length': s.lanes_length_2D / s.nb_full_lanes,
+            'length': s.length2D(),
             'speed': s.speed
         }
 
