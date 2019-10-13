@@ -43,15 +43,11 @@ ADDITIONAL_NET_PARAMS = {
 
 class TrafficLightGridNetwork(Network):
     """Traffic Light Grid network class.
-
     The traffic light grid network consists of m vertical lanes and n
     horizontal lanes, with a total of nxm intersections where the vertical
     and horizontal edges meet.
-
     Requires from net_params:
-
     * **grid_array** : dictionary of grid array data, with the following keys
-
       * **row_num** : number of horizontal rows of edges
       * **col_num** : number of vertical columns of edges
       * **inner_length** : length of inner edges in traffic light grid network
@@ -64,13 +60,11 @@ class TrafficLightGridNetwork(Network):
         left
       * **cars_right** : number of cars starting at the edges heading to the
         right
-
     * **horizontal_lanes** : number of lanes in the horizontal edges
     * **vertical_lanes** : number of lanes in the vertical edges
     * **speed_limit** : speed limit for all edges. This may be represented as a
       float value, or a dictionary with separate values for vertical and
       horizontal lanes.
-
     Usage
     -----
     >>> from flow.core.params import NetParams
@@ -214,23 +208,18 @@ class TrafficLightGridNetwork(Network):
     @property
     def _inner_nodes(self):
         """Build out the inner nodes of the network.
-
         The inner nodes correspond to the intersections between the roads. They
         are numbered from bottom left, increasing first across the columns and
         then across the rows.
-
         For example, the nodes in a traffic light grid with 2 rows and 3 columns
         would be indexed as follows:
-
             |     |     |
         --- 3 --- 4 --- 5 ---
             |     |     |
         --- 0 --- 1 --- 2 ---
             |     |     |
-
         The id of a node is then "center{index}", for instance "center0" for
         node 0, "center1" for node 1 etc.
-
         Returns
         -------
         list <dict>
@@ -254,15 +243,12 @@ class TrafficLightGridNetwork(Network):
     @property
     def _outer_nodes(self):
         """Build out the outer nodes of the network.
-
         The outer nodes correspond to the extremities of the roads. There are
         two at each extremity, one where the vehicles enter the network
         (inflow) and one where the vehicles exit the network (outflow).
-
         Consider the following network with 2 rows and 3 columns, where the
         extremities are marked by 'x', the rows are labeled from 0 to 1 and the
         columns are labeled from 0 to 2:
-
                  x     x     x
                  |     |     |
         (1) x----|-----|-----|----x (*)
@@ -271,22 +257,17 @@ class TrafficLightGridNetwork(Network):
                  |     |     |
                  x     x     x
                 (0)   (1)   (2)
-
         On row i, there are two nodes at the left extremity of the row, labeled
         "left_row_short{i}" and "left_row_long{i}", as well as two nodes at the
         right extremity labeled "right_row_short{i}" and "right_row_long{i}".
-
         On column j, there are two nodes at the bottom extremity of the column,
         labeled "bot_col_short{j}" and "bot_col_long{j}", as well as two nodes
         at the top extremity labeled "top_col_short{j}" and "top_col_long{j}".
-
         The "short" nodes correspond to where vehicles enter the network while
         the "long" nodes correspond to where vehicles exit the network.
-
         For example, at extremity (*) on row (1):
         - the id of the input node is "right_row_short1"
         - the id of the output node is "right_row_long1"
-
         Returns
         -------
         list <dict>
@@ -320,36 +301,28 @@ class TrafficLightGridNetwork(Network):
     @property
     def _inner_edges(self):
         """Build out the inner edges of the network.
-
         The inner edges are the edges joining the inner nodes to each other.
-
         Consider the following network with n = 2 rows and m = 3 columns,
         where the rows are indexed from 0 to 1 and the columns from 0 to 2, and
         the inner nodes are marked by 'x':
-
                 |     |     |
         (1) ----x-----x-----x----
                 |     |     |
         (0) ----x-----x-(*)-x----
                 |     |     |
                (0)   (1)   (2)
-
         There are n * (m - 1) = 4 horizontal inner edges and (n - 1) * m = 3
         vertical inner edges, all that multiplied by two because each edge
         consists of two roads going in opposite directions traffic-wise.
-
         On an horizontal edge, the id of the top road is "top{i}_{j}" and the
         id of the bottom road is "bot{i}_{j}", where i is the index of the row
         where the edge is and j is the index of the column to the right of it.
-
         On a vertical edge, the id of the right road is "right{i}_{j}" and the
         id of the left road is "left{i}_{j}", where i is the index of the row
         above the edge and j is the index of the column where the edge is.
-
         For example, on edge (*) on row (0): the id of the bottom road (traffic
         going from left to right) is "bot0_2" and the id of the top road
         (traffic going from right to left) is "top0_2".
-
         Returns
         -------
         list <dict>
@@ -392,14 +365,11 @@ class TrafficLightGridNetwork(Network):
     @property
     def _outer_edges(self):
         """Build out the outer edges of the network.
-
         The outer edges are the edges joining the inner nodes to the outer
         nodes.
-
         Consider the following network with n = 2 rows and m = 3 columns,
         where the rows are indexed from 0 to 1 and the columns from 0 to 2, the
         inner nodes are marked by 'x' and the outer nodes by 'o':
-
                 o    o    o
                 |    |    |
         (1) o---x----x----x-(*)-o
@@ -408,25 +378,19 @@ class TrafficLightGridNetwork(Network):
                 |    |    |
                 o    o    o
                (0)  (1)  (2)
-
         There are n * 2 = 4 horizontal outer edges and m * 2 = 6 vertical outer
         edges, all that multiplied by two because each edge consists of two
         roads going in opposite directions traffic-wise.
-
         On row i, there are four horizontal edges: the left ones labeled
         "bot{i}_0" (in) and "top{i}_0" (out) and the right ones labeled
         "bot{i}_{m}" (out) and "top{i}_{m}" (in).
-
         On column j, there are four vertical edges: the bottom ones labeled
         "left0_{j}" (out) and "right0_{j}" (in) and the top ones labeled
         "left{n}_{j}" (in) and "right{n}_{j}" (out).
-
         For example, on edge (*) on row (1): the id of the bottom road (out)
         is "bot1_3" and the id of the top road is "top1_3".
-
         Edges labeled by "in" are edges where vehicles enter the network while
         edges labeled by "out" are edges where vehicles exit the network.
-
         Returns
         -------
         list <dict>
@@ -486,39 +450,150 @@ class TrafficLightGridNetwork(Network):
 
     def specify_connections(self, net_params):
         """Build out connections at each inner node.
-
         Connections describe what happens at the intersections. Here we link
         lanes in straight lines, which means vehicles cannot turn at
         intersections, they can only continue in a straight line.
         """
         con_dict = {}
 
-        def new_con(side, from_id, to_id, lane, signal_group):
-            return [{
-                "from": side + from_id,
-                "to": side + to_id,
-                "fromLane": str(lane),
-                "toLane": str(lane),
-                "signal_group": signal_group
-            }]
+        # def new_con(side, from_id, to_id, lane, signal_group):
+        #     return [{
+        #         "from": side + from_id,
+        #         "to": side + to_id,
+        #         "fromLane": str(lane),
+        #         "toLane": str(lane),
+        #         "signal_group": signal_group
+        #     }]
+
+        # def new_con(origin, dest, lane, signal_group):
+        #     return [{
+        #         "from": origin,
+        #         "to": dest,
+        #         "fromLane": str(lane),
+        #         "toLane": str(lane),
+        #         "signal_group": signal_group
+        #     }]
+
+        def build_node_conns(row, col, signal_group):
+            """given a particular 4-way inner node (intersection), build all
+            12 connections
+
+            Return a list of 12 dicts"""
+            connections = []
+
+            def new_con(origin, dest, lane_num, signal_group_num):
+                return [{
+                    "from": origin,
+                    "to": dest,
+                    "fromLane": str(lane_num),
+                    "toLane": str(lane_num),
+                    "signal_group": signal_group_num
+                }]
+
+            def build_bot_conns(rr, cc):
+                """Build the left, straight and right connections for the bottom edge
+                entering the node. Returns a list of three dicts"""
+
+                conns = []
+
+                origin = "bot" + "{}_{}".format(rr, cc)
+                dest_left = "right" + "{}_{}".format(rr + 1, cc)
+                dest_straight = "bot" + "{}_{}".format(rr, cc + 1)
+                dest_right = "left" + "{}_{}".format(rr, cc)
+
+                # making assumption number of vertical_lanes = number of horizontal lanes
+
+                for lane in range(self.vertical_lanes):
+                    conns += new_con(origin, dest_left, lane, signal_group)           # left turns
+                    conns += new_con(origin, dest_straight, lane, signal_group)   # straight turns
+                    conns += new_con(origin, dest_right, lane, signal_group)         # right turns
+
+                return conns
+
+            def build_left_conns(rr, cc):
+                """Build the left, straight and right connections for the left horizontal edge
+                entering the node. Returns a list of three dicts"""
+
+                conns = []
+
+                origin = "left" + "{}_{}".format(rr + 1, cc)
+                dest_left = "bot" + "{}_{}".format(rr, cc + 1)
+                dest_straight = "left" + "{}_{}".format(rr, cc)
+                dest_right = "top" + "{}_{}".format(rr, cc)
+
+                # Assumption: number of vertical_lanes = number of horizontal lanes
+
+                for lane in range(self.vertical_lanes):
+                    conns += new_con(origin, dest_left, lane, signal_group)  # left turns
+                    conns += new_con(origin, dest_straight, lane, signal_group)  # straight turns
+                    conns += new_con(origin, dest_right, lane, signal_group)  # right turns
+
+                return conns
+
+            def build_top_conns(rr, cc):
+                """Build the left, straight and right connections for the left horizontal edge
+                entering the node. Returns a list of three dicts"""
+
+                conns = []
+
+                origin = "top" + "{}_{}".format(rr , cc + 1)
+                dest_left = "left" + "{}_{}".format(rr, cc)
+                dest_straight = "top" + "{}_{}".format(rr, cc)
+                dest_right = "right" + "{}_{}".format(rr + 1, cc)
+
+                # Assumption: number of vertical_lanes = number of horizontal lanes
+
+                for lane in range(self.vertical_lanes):
+                    conns += new_con(origin, dest_left, lane, signal_group)  # left turns
+                    conns += new_con(origin, dest_straight, lane, signal_group)  # straight turns
+                    conns += new_con(origin, dest_right, lane, signal_group)  # right turns
+
+                return conns
+
+            def build_right_conns(rr, cc):
+                """Build the left, straight and right connections for the left horizontal edge
+                entering the node. Returns a list of three dicts"""
+
+                conns = []
+
+                origin = "right" + "{}_{}".format(rr, cc)
+                dest_left = "top" + "{}_{}".format(rr, cc)
+                dest_straight = "right" + "{}_{}".format(rr + 1, cc)
+                dest_right = "bot" + "{}_{}".format(rr, cc + 1)
+
+                # Assumption: number of vertical_lanes = number of horizontal lanes
+
+                for lane in range(self.vertical_lanes):
+                    conns += new_con(origin, dest_left, lane, signal_group)  # left turns
+                    conns += new_con(origin, dest_straight, lane, signal_group)  # straight turns
+                    conns += new_con(origin, dest_right, lane, signal_group)  # right turns
+
+                return conns
+
+            connections += build_bot_conns(row, col)
+            connections += build_top_conns(row, col)
+            connections += build_left_conns(row, col)
+            connections += build_right_conns(row, col)
+
+            return connections
 
         # build connections at each inner node
         for i in range(self.row_num):
             for j in range(self.col_num):
-                node_id = "{}_{}".format(i, j)
-                right_node_id = "{}_{}".format(i, j + 1)
-                top_node_id = "{}_{}".format(i + 1, j)
-
-                conn = []
-                for lane in range(self.vertical_lanes):
-                    conn += new_con("bot", node_id, right_node_id, lane, 1)
-                    conn += new_con("top", right_node_id, node_id, lane, 1)
-                for lane in range(self.horizontal_lanes):
-                    conn += new_con("right", node_id, top_node_id, lane, 2)
-                    conn += new_con("left", top_node_id, node_id, lane, 2)
+                # node_id = "{}_{}".format(i, j)
+                # right_node_id = "{}_{}".format(i, j + 1)
+                # top_node_id = "{}_{}".format(i + 1, j)
+                #
+                # conn = []
+                # for lane in range(self.vertical_lanes):
+                #     conn += new_con("bot", node_id, right_node_id, lane, 1)
+                #     conn += new_con("top", right_node_id, node_id, lane, 1)
+                # for lane in range(self.horizontal_lanes):
+                #     conn += new_con("right", node_id, top_node_id, lane, 2)
+                #     conn += new_con("left", top_node_id, node_id, lane, 2)
 
                 node_id = "center{}".format(i * self.col_num + j)
-                con_dict[node_id] = conn
+                con_dict[node_id] = build_node_conns(i, j, 1)
 
         return con_dict
 
@@ -579,10 +654,8 @@ class TrafficLightGridNetwork(Network):
     @property
     def node_mapping(self):
         """Map nodes to edges.
-
         Returns a list of pairs (node, connected edges) of all inner nodes
         and for each of them, the 4 edges that leave this node.
-
         The nodes are listed in alphabetical order, and within that, edges are
         listed in order: [bot, right, top, left].
         """
