@@ -60,7 +60,7 @@ class TestNumRuns(unittest.TestCase):
         env, _ = ring_road_exp_setup()
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
-        # flow_params['env'] = env
+
         exp = Experiment(flow_params)
         exp.run(num_runs=2)
 

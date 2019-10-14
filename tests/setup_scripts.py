@@ -409,22 +409,42 @@ def traffic_light_grid_mxn_exp_setup(row_num=1,
         initial_config = InitialConfig(
             spacing="custom", additional_params={"enter_speed": 30})
 
-    # create the network
-    network = TrafficLightGridNetwork(
-        name="Grid1x1Test",
-        vehicles=vehicles,
-        net_params=net_params,
-        initial_config=initial_config,
-        traffic_lights=tl_logic)
+    flow_params = dict(
+        # name of the experiment
+        exp_tag="Grid1x1Test",
 
-    # create the environment
-    env = TrafficLightGridTestEnv(
-        env_params=env_params, sim_params=sim_params, network=network)
+        # name of the flow environment the experiment is running on
+        env_name=TrafficLightGridTestEnv,
 
-    # reset the environment
-    env.reset()
+        # name of the network class the experiment is running on
+        network=TrafficLightGridNetwork,
 
-    return env, network
+        # simulator that is used by the experiment
+        simulator='traci',
+
+        # sumo-related parameters (see flow.core.params.SumoParams)
+        sim=sim_params,
+
+        # environment related parameters (see flow.core.params.EnvParams)
+        env=env_params,
+        # network-related parameters (see flow.core.params.NetParams and the
+        # network's documentation or ADDITIONAL_NET_PARAMS component)
+        net=net_params,
+
+        # vehicles to be placed in the network at the start of a rollout (see
+        # flow.core.params.VehicleParams)
+        veh=vehicles,
+
+        # parameters specifying the positioning of vehicles upon initialization/
+        # reset (see flow.core.params.InitialConfig)
+        initial=initial_config,
+
+        # traffic lights to be introduced to specific nodes (see
+        # flow.core.params.TrafficLightParams)
+        tls=tl_logic
+    )
+
+    return flow_params
 
 
 def variable_lanes_exp_setup(sim_params=None,

@@ -1,6 +1,8 @@
 import unittest
 
 from flow.core.experiment import Experiment
+from flow.envs import TrafficLightGridTestEnv
+from flow.networks.traffic_light_grid import TrafficLightGridNetwork
 from flow.core.params import SumoParams, SumoCarFollowingParams, NetParams, \
     InFlows
 from flow.core.params import VehicleParams
@@ -8,6 +10,7 @@ from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.routing_controllers import GridRouter
 
 from tests.setup_scripts import traffic_light_grid_mxn_exp_setup
+from examples.exp_configs.non_rl.traffic_light_grid import flow_params
 
 
 class TestCollisions(unittest.TestCase):
@@ -50,22 +53,37 @@ class TestCollisions(unittest.TestCase):
 
         net_params = NetParams(additional_params=additional_net_params)
 
-        env, _ = traffic_light_grid_mxn_exp_setup(
+        flow_params = traffic_light_grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
             sim_params=sim_params,
             vehicles=vehicles,
             net_params=net_params)
 
+        # create the network
+        network = TrafficLightGridNetwork(
+            name="Grid1x1Test",
+            vehicles=flow_params['veh'],
+            net_params=flow_params['net'],
+            initial_config=flow_params['initial'],
+            traffic_lights=flow_params['tls'])
+        
+        # create the environment
+        env = TrafficLightGridTestEnv(
+            env_params=flow_params['env'], sim_params=flow_params['sim'], network=network)
+
+        # reset the environment
+        env.reset()
+
         # go through the env and set all the lights to green
         for i in range(env.rows * env.cols):
             env.k.traffic_light.set_state(
                 node_id='center' + str(i), state="gggggggggggg")
 
-        # instantiate an experiment class
-        exp = Experiment(env)
+        # create an experiment object
+        exp = Experiment(flow_params)
 
-        exp.run(50, 50)
+        exp.run(50)
 
     def test_collide_inflows(self):
         """Tests collisions in the presence of inflows."""
