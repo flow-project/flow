@@ -306,6 +306,10 @@ def visualizer_rllib(args):
         # convert the emission file into a csv file
         emission_to_csv(emission_path)
 
+        # print the location of the emission csv file
+        emission_path_csv = emission_path[:-4] + ".csv"
+        print("\nGenerated emission file at " + emission_path_csv)
+
         # delete the .xml version of the emission file
         os.remove(emission_path)
 
