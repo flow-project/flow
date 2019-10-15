@@ -509,7 +509,8 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
     c, address = server_socket.accept()
 
     # start the threaded process
-    start_new_thread(threaded_client, (c,), time=time, timeSta=timeSta, timeTrans=timeTrans, acycle=acycle)
+    kwargs = {"time":time, "timeSta":timeSta, "timeTrans":timeTrans, "acycle":acycle}
+    start_new_thread(threaded_client, (c,), kwargs)
 
     return 0
 
