@@ -3,7 +3,7 @@ from flow.core.params import AimsunParams, NetParams, VehicleParams, EnvParams, 
 from flow.core.experiment import Experiment
 from flow.networks import Network
 # from flow.envs import TestEnv
-from coordinatedLightEnv import coordinatedEnv
+from coordinatedLightEnv import CoordinatedEnv
 import os
 
 
@@ -30,7 +30,7 @@ network = Network(
     vehicles=vehicles
 )
 
-env = coordinatedEnv(
+env = CoordinatedEnv(
     env_params,
     sim_params,
     network,
