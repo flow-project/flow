@@ -103,6 +103,8 @@ class AimsunKernelNetwork(BaseKernelNetwork):
         if os.path.exists(check_file_path):
             os.remove(check_file_path)
 
+        # we need to make flow directories visible to aimsun's python2.7
+        os.environ["PYTHONPATH"] = config.PROJECT_PATH
         # path to the supplementary file that is used to generate an aimsun
         # network from a template
         template_path = network.net_params.template
