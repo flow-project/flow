@@ -473,7 +473,7 @@ def threaded_client(conn, **kwargs):
                 acycle = kwargs.get('acycle')
                 phases = cp.change_offset(node_id, offset, time, timeSta, acycle)
 
-                output = phases[0].join([','+str(phase) for phase in phases[1:]])
+                output = ','.join(phases)
 
                 send_message(conn, in_format='str', values=(output,))
 
