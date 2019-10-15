@@ -112,4 +112,9 @@ flow.ang
 *.sang
 
 /aimsun_flow
-/flow
+/flow/bin
+/flow/include
+/flow/lib
+/flow/share
+/flow/etc
+flow/pyvenv.cfg
