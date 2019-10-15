@@ -1,6 +1,7 @@
 import AAPI as aapi
 from PyANGKernel import *
 from collections import OrderedDict
+import numpy as np
 
 model = GKSystem.getSystem().getActiveModel()
 global edge_detector_dict
@@ -55,6 +56,26 @@ def get_duration_phase(node_id, phase, timeSta):
                               normalDurationP, maxDurationP, minDurationP)
     normalDuration = normalDurationP.value()
     return normalDuration
+
+
+def change_offset(node_id, offset, time, timeSta, acycle):
+    curr_phase = get_current_phase(node_id)
+    ring_phases = np.cumsum(get_num_phases(node_id))
+
+    elapsed_time = time-aapi.ECIGetStartingTimePhaseInRing(node_id, 0)
+    for i, phase in enumerate(curr_phase):
+        target_phase = phase
+        phase_time = get_duration_phase(node_id, phase, timeSta)
+        remaining_time = (phase_time - elapsed_time) + offset
+        while remaining_time < 0:
+            target_phase += 1
+            if target_phase > ring_phases[i]:
+                target_phase -= ring_phases[0]
+                
+            phase_time = get_duration_phase(node_id, target_phase, timeSta)
+            remaining_time += phase_time
+        aapi.ECIChangeDirectPhase(node_id, target_phase, timeSta, time,
+                                  acycle, phase_time - remaining_time)
 
 
 def phase_converter(phase_timings):
@@ -149,24 +170,13 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
 
     node_id = 3344
     curr_phase = get_current_phase(node_id)
-    num_phases = get_num_phases(node_id)
+    ring_phases = np.cumsum(get_num_phases(node_id))
 
-    offset = -20
+    offset = -70
     if time == 60:
         print(curr_phase)
-        curr_time_phase = time-aapi.ECIGetStartingTimePhaseInRing(node_id, 0)
-        for i, phase in enumerate(curr_phase):
-            target_phase = phase
-            targ_duration = get_duration_phase(node_id, phase, timeSta)
-            remaining_time = targ_duration - curr_time_phase + offset
-            if remaining_time < 0:
-                target_phase = phase - 1
-                targ_duration = get_duration_phase(node_id, target_phase, timeSta)
-                while remaining_time + targ_duration < 0:
-                    remaining_time += targ_duration
-                    target_phase -= 1  # ensure this wraps around ring
-            aapi.ECIChangeDirectPhase(node_id, target_phase, timeSta, time,
-                                      acycle, targ_duration - remaining_time)
+        change_offset(node_id, offset, time, timeSta, acycle)
+
 
     # print(timeSta, a.value())
     return 0
