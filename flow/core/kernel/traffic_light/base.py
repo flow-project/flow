@@ -98,3 +98,6 @@ class KernelTrafficLight(object):
             Element = state of the traffic light at that node/lane
         """
         raise NotImplementedError
+
+    def get_offset(self, node_id):
+        raise NotImplementedError

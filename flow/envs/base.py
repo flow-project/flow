@@ -666,6 +666,7 @@ class Env(gym.Env):
         """
         try:
             # close everything within the kernel
+            print('terminate')
             self.k.close()
             # close pyglet renderer
             if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:

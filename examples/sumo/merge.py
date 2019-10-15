@@ -33,7 +33,7 @@ def merge_example(render=None):
         vehicles on a merge.
     """
     sim_params = SumoParams(
-        render=True,
+        render=False,
         emission_path="./data/",
         sim_step=0.2,
         restart_instance=False)

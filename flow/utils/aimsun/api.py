@@ -588,6 +588,11 @@ class FlowAimsunAPI(object):
             tl_ids = tl_ids.split(':')
             return [int(t) for t in tl_ids]
 
+    def get_offset(self, tl_id):
+        offset = self._send_command(ac.TL_GET_CONTROL_OFFSET,
+                                    values=(tl_id,))
+        return offset
+
     def get_traffic_light_state(self, tl_id):
         """Get the traffic light state of a specific set of traffic light(s).
 

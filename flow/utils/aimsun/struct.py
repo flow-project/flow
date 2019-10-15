@@ -163,7 +163,7 @@ class StaticInfVeh(object):
     idsectionExit : int
         Identifier of exit section destination of the vehicle, when the
         destination centroid uses percentages as destination (otherwise is
-        –1) and the traffic conditions are defined by an OD matrix
+        -1) and the traffic conditions are defined by an OD matrix
     idLine : int
         Identifier of Public Transport Line, when the vehicle has been
         generated as a public transport vehicle

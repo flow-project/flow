@@ -99,13 +99,8 @@ def get_combined_ring(start_times, phase_times):
     return combined_ring
 
 
-def AAPILoad():
-    return 0
-
-
-def AAPIInit():
-    target_nodes = [3369, 3341, 3370, 3344, 3329]
-
+def get_link_measures(target_nodes):
+    model = GKSystem.getSystem().getActiveModel()
     catalog = model.getCatalog()
     for nodeid in target_nodes:
         node = catalog.find(nodeid)
@@ -118,15 +113,38 @@ def AAPIInit():
         detector = aapi.AKIDetGetPropertiesDetector(i)
         if detector.IdSection in edge_detector_dict.keys():
             type_map = edge_detector_dict[detector.IdSection]
-            edge_aimsun = model.getCatalog().find(detector.IdSection)
+            edge_aimsun = catalog.find(detector.IdSection)
             if (edge_aimsun.length2D() - detector.FinalPosition) < 5:
-                type_map["stopbar_ids"].append(detector.Id)
+                kind = "stopbar_ids"
             else:
-                type_map["advanced_ids"].append(detector.Id)
+                kind = "advanced_ids"
+            detector_obj = catalog.find(detector.Id)
+            try:
+                # only those with numerical exernalIds are real
+                int(detector_obj.getExternalId())
+                type_map[kind].append(detector.Id)
+            except ValueError:
+                pass
+    
+    return edge_detector_dict
+
+
+def AAPILoad():
+    return 0
+
+
+def AAPIInit():
+    target_nodes = [3369, 3341, 3370, 3344, 3329]
+
+
+    edge_detector_dict = get_link_measures(target_nodes)
+    print(edge_detector_dict)
 
     node_id = 3344
     cplanType = model.getType("GKControlPlan")
 
+    # model = GKSystem.getSystem().getActiveModel()
+    catalog = model.getCatalog()
     if aapi.ECIGetNumberofControls(node_id) == 1:
         name = aapi.AKIConvertToAsciiString(aapi.ECIGetNameofControl(node_id, 0), True, aapi.boolp())
         node = catalog.find(node_id)
@@ -151,7 +169,7 @@ def AAPIInit():
                         phase_times[ring_id][start_time] = [i.name for i in phase.getSignals()]
                         timing_map[start_time] = ring_id
                         # print(phase.getFrom(), phase.getIdRing(), [i.name for i in phase.getSignals()])
-                print(phase_times)
+                # print(phase_times)
 
                 combined_ring = get_combined_ring(start_times, phase_times)
 
@@ -174,7 +192,7 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
 
     offset = -70
     if time == 60:
-        print(curr_phase)
+        # print(curr_phase)
         change_offset(node_id, offset, time, timeSta, acycle)
 
 
@@ -195,8 +213,8 @@ def AAPIPostManage(time, timeSta, timeTrans, acycle):
         # aapi.ECIChangeTimingPhase(3344, 13, 0, timeSta)
     if time == 60.8:
         curr_phase = get_current_phase(node_id)
-        print(curr_phase)
-        print(aapi.ECIGetCurrentTimeInCycle(node_id, 0))
+        # print(curr_phase)
+        # print(aapi.ECIGetCurrentTimeInCycle(node_id, 0))
 
 
     if time % 300 == 0:

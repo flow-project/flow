@@ -1,9 +1,9 @@
 import AAPI as aapi
-from PyANGKernel import *
+import PyANGKernel as gk
 from collections import OrderedDict
 import numpy as np
 
-model = GKSystem.getSystem().getActiveModel()
+model = gk.GKSystem.getSystem().getActiveModel()
 global edge_detector_dict
 edge_detector_dict = {}
 
@@ -99,3 +99,33 @@ def get_combined_ring(start_times, phase_times):
                 combined_ring[time].append(phase)
 
     return combined_ring
+
+
+def get_link_measures(target_nodes):
+    catalog = model.getCatalog()
+    for nodeid in target_nodes:
+        node = catalog.find(nodeid)
+        in_edges = node.getEntranceSections()
+        for edge in in_edges:
+            edge_detector_dict[edge.getId()] = {"stopbar_ids": [],
+                                                "advanced_ids": []}
+
+    for i in range(aapi.AKIDetGetNumberDetectors()):
+        detector = aapi.AKIDetGetPropertiesDetector(i)
+        if detector.IdSection in edge_detector_dict.keys():
+            type_map = edge_detector_dict[detector.IdSection]
+            edge_aimsun = catalog.find(detector.IdSection)
+            if (edge_aimsun.length2D() - detector.FinalPosition) < 5:
+                kind = "stopbar_ids"
+            else:
+                kind = "advanced_ids"
+            detector_obj = catalog.find(detector.Id)
+            try:
+                # only those with numerical exernalIds are real
+                int(detector_obj.getExternalId())
+                type_map[kind].append(detector.Id)
+            except ValueError:
+                pass
+    
+    return edge_detector_dict
+
