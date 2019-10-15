@@ -12,7 +12,7 @@ initial_config = InitialConfig()
 vehicles = VehicleParams()
 
 net_params = NetParams(
-    template=os.path.expanduser("scenario_one_hour.ang")
+    template=os.path.expanduser("no_api_scenario.ang")
 )
 
 sim_params = AimsunParams(
