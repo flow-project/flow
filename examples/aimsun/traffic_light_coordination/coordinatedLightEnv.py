@@ -7,4 +7,4 @@ class coordinatedEnv(TestEnv):
         tl_ids = self.k.traffic_light.get_ids()
         print(tl_ids)
         for i in tl_ids:
-            print(i, self.k.traffic_light.get_intersection_offset(tl_ids))
+            print(i, self.k.traffic_light.set_intersection_offset(3344, 20))
