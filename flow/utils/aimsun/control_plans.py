@@ -77,6 +77,7 @@ def change_offset(node_id, offset, time, timeSta, acycle):
         aapi.ECIChangeDirectPhase(node_id, target_phase, timeSta, time,
                                   acycle, phase_time - remaining_time)
 
+    return get_current_phase(node_id)
 
 def phase_converter(phase_timings):
     pass
