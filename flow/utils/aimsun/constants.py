@@ -105,3 +105,11 @@ TL_SET_STATE = 0x1B
 
 #: get traffic light state
 TL_GET_STATE = 0x1C
+
+
+###############################################################################
+#                           Intersection Commands                            #
+###############################################################################
+
+#: set intersection offset
+INT_SET_OFFSET = 0x1D

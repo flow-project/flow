@@ -1,0 +1,5295 @@
+{
+    "centroids": {}, 
+    "connections": {
+        "8040651": {
+            "from_id": 8040650, 
+            "from_name": "Huntington", 
+            "to_id": 398, 
+            "to_name": "Huntington"
+        }, 
+        "8040654": {
+            "from_id": 8040653, 
+            "from_name": "2nd", 
+            "to_id": 434, 
+            "to_name": "2nd"
+        }, 
+        "8040656": {
+            "from_id": 8040655, 
+            "from_name": "Huntington", 
+            "to_id": 441, 
+            "to_name": "Huntington"
+        }, 
+        "8040658": {
+            "from_id": 8040657, 
+            "from_name": "Santa Anita", 
+            "to_id": 468, 
+            "to_name": "Santa Anita"
+        }, 
+        "8040660": {
+            "from_id": 8040659, 
+            "from_name": "Santa Clara", 
+            "to_id": 571, 
+            "to_name": "Santa Clara"
+        }, 
+        "8040662": {
+            "from_id": 8040661, 
+            "from_name": "1st", 
+            "to_id": 572, 
+            "to_name": "1st"
+        }, 
+        "8040664": {
+            "from_id": 8040663, 
+            "from_name": "Santa Clara", 
+            "to_id": 573, 
+            "to_name": "Santa Clara"
+        }, 
+        "8040666": {
+            "from_id": 8040665, 
+            "from_name": "Santa Clara", 
+            "to_id": 731, 
+            "to_name": "Santa Clara"
+        }, 
+        "8040668": {
+            "from_id": 8040667, 
+            "from_name": "5th", 
+            "to_id": 732, 
+            "to_name": "5th"
+        }, 
+        "8040670": {
+            "from_id": 8040669, 
+            "from_name": "Santa Anita", 
+            "to_id": 25913, 
+            "to_name": "Santa Anita"
+        }, 
+        "8040672": {
+            "from_id": 8040671, 
+            "from_name": "Colorado Pl", 
+            "to_id": 7602916, 
+            "to_name": "Colorado Pl"
+        }, 
+        "8040674": {
+            "from_id": 8040673, 
+            "from_name": "2nd", 
+            "to_id": 8002970, 
+            "to_name": "2nd"
+        }, 
+        "8040676": {
+            "from_id": 8040675, 
+            "from_name": "1st", 
+            "to_id": 8002979, 
+            "to_name": "1st"
+        }, 
+        "8040678": {
+            "from_id": 8040677, 
+            "from_name": "iAR_Morlan", 
+            "to_id": 3345, 
+            "to_name": "Santa Clara"
+        }, 
+        "8040680": {
+            "from_id": 8040679, 
+            "from_name": "iAR_Wheeler/Santa Clara", 
+            "to_id": 24669, 
+            "to_name": "Santa Clara"
+        }, 
+        "8040681": {
+            "from_id": 8040679, 
+            "from_name": "iAR_Wheeler/Santa Clara", 
+            "to_id": 24681, 
+            "to_name": "2nd"
+        }, 
+        "8040683": {
+            "from_id": 8040682, 
+            "from_name": "iAR_Alta", 
+            "to_id": 660, 
+            "to_name": "Alta"
+        }, 
+        "8040684": {
+            "from_id": 8040682, 
+            "from_name": "iAR_Alta", 
+            "to_id": 7996502, 
+            "to_name": "Alta"
+        }, 
+        "8040685": {
+            "from_id": 8040682, 
+            "from_name": "iAR_Alta", 
+            "to_id": 8008236, 
+            "to_name": "Store Driveway"
+        }, 
+        "8040686": {
+            "from_id": 8040682, 
+            "from_name": "iAR_Alta", 
+            "to_id": 8008239, 
+            "to_name": "Bonita"
+        }, 
+        "8040687": {
+            "from_id": 8040682, 
+            "from_name": "iAR_Alta", 
+            "to_id": 8008240, 
+            "to_name": "Bonita"
+        }, 
+        "8040689": {
+            "from_id": 8040688, 
+            "from_name": "iAR_FedEx", 
+            "to_id": 24642, 
+            "to_name": "5th"
+        }, 
+        "8040691": {
+            "from_id": 8040690, 
+            "from_name": "Racetrack", 
+            "to_id": 671, 
+            "to_name": "Civic Center Place"
+        }, 
+        "8040692": {
+            "from_id": 8040690, 
+            "from_name": "Racetrack", 
+            "to_id": 7602910, 
+            "to_name": "Gate 5"
+        }, 
+        "8040693": {
+            "from_id": 8040690, 
+            "from_name": "Racetrack", 
+            "to_id": 7602914, 
+            "to_name": "Gate 6"
+        }, 
+        "8040695": {
+            "from_id": 8040694, 
+            "from_name": "iAR_Gateway (South)", 
+            "to_id": 564, 
+            "to_name": "Gateway"
+        }, 
+        "8040697": {
+            "from_id": 8040696, 
+            "from_name": "iAR_Gateway", 
+            "to_id": 559, 
+            "to_name": "Gateway"
+        }, 
+        "8040698": {
+            "from_id": 8040696, 
+            "from_name": "iAR_Gateway", 
+            "to_id": 24636, 
+            "to_name": "Santa Clara"
+        }, 
+        "8040700": {
+            "from_id": 8040699, 
+            "from_name": "iMO_Fifth (South)", 
+            "to_id": 556, 
+            "to_name": "5th"
+        }, 
+        "8040702": {
+            "from_id": 8040701, 
+            "from_name": "iAR_Wheeler (west)", 
+            "to_id": 638, 
+            "to_name": "Wheeler"
+        }, 
+        "8040703": {
+            "from_id": 8040701, 
+            "from_name": "iAR_Wheeler (west)", 
+            "to_id": 24690, 
+            "to_name": "Santa Anita"
+        }, 
+        "8040704": {
+            "from_id": 8040701, 
+            "from_name": "iAR_Wheeler (west)", 
+            "to_id": 24700, 
+            "to_name": "Santa Clara"
+        }, 
+        "8040706": {
+            "from_id": 8040705, 
+            "from_name": "iAR_Methodist Hospital", 
+            "to_id": 8008220, 
+            "to_name": "Civic Center Place"
+        }, 
+        "8040708": {
+            "from_id": 8040707, 
+            "from_name": "iAR_Wheeler (east)", 
+            "to_id": 639, 
+            "to_name": "Wheeler"
+        }, 
+        "8040709": {
+            "from_id": 8040707, 
+            "from_name": "iAR_Wheeler (east)", 
+            "to_id": 24661, 
+            "to_name": "Huntington"
+        }, 
+        "8040711": {
+            "from_id": 8040710, 
+            "from_name": "iAR_Arcadia Park", 
+            "to_id": 7996488, 
+            "to_name": "Arcadia Park"
+        }, 
+        "8040713": {
+            "from_id": 457, 
+            "from_name": "2nd", 
+            "to_id": 8040712, 
+            "to_name": "2nd"
+        }, 
+        "8040715": {
+            "from_id": 508, 
+            "from_name": "Huntington", 
+            "to_id": 8040714, 
+            "to_name": "Huntington"
+        }, 
+        "8040717": {
+            "from_id": 532, 
+            "from_name": "2nd", 
+            "to_id": 8040716, 
+            "to_name": "2nd"
+        }, 
+        "8040719": {
+            "from_id": 575, 
+            "from_name": "Santa Anita", 
+            "to_id": 8040718, 
+            "to_name": "Santa Anita"
+        }, 
+        "8040721": {
+            "from_id": 579, 
+            "from_name": "1st", 
+            "to_id": 8040720, 
+            "to_name": "1st"
+        }, 
+        "8040723": {
+            "from_id": 632, 
+            "from_name": "Santa Anita", 
+            "to_id": 8040722, 
+            "to_name": "Santa Anita"
+        }, 
+        "8040725": {
+            "from_id": 652, 
+            "from_name": "1st", 
+            "to_id": 8040724, 
+            "to_name": "1st"
+        }, 
+        "8040727": {
+            "from_id": 24629, 
+            "from_name": "Santa Clara", 
+            "to_id": 8040726, 
+            "to_name": "Santa Clara"
+        }, 
+        "8040729": {
+            "from_id": 24644, 
+            "from_name": "5th", 
+            "to_id": 8040728, 
+            "to_name": "5th"
+        }, 
+        "8040731": {
+            "from_id": 24671, 
+            "from_name": "Santa Clara", 
+            "to_id": 8040730, 
+            "to_name": "Santa Clara"
+        }, 
+        "8040733": {
+            "from_id": 24699, 
+            "from_name": "Santa Clara", 
+            "to_id": 8040732, 
+            "to_name": "Santa Clara"
+        }, 
+        "8040735": {
+            "from_id": 7685997, 
+            "from_name": "Colorado Pl", 
+            "to_id": 8040734, 
+            "to_name": "Colorado Pl"
+        }, 
+        "8040737": {
+            "from_id": 7770098, 
+            "from_name": "Huntington", 
+            "to_id": 8040736, 
+            "to_name": "Huntington"
+        }, 
+        "8040738": {
+            "from_id": 3345, 
+            "from_name": "Santa Clara", 
+            "to_id": 8040677, 
+            "to_name": "iAR_Morlan"
+        }, 
+        "8040739": {
+            "from_id": 24669, 
+            "from_name": "Santa Clara", 
+            "to_id": 8040679, 
+            "to_name": "iAR_Wheeler/Santa Clara"
+        }, 
+        "8040740": {
+            "from_id": 24681, 
+            "from_name": "2nd", 
+            "to_id": 8040679, 
+            "to_name": "iAR_Wheeler/Santa Clara"
+        }, 
+        "8040741": {
+            "from_id": 653, 
+            "from_name": "Alta", 
+            "to_id": 8040682, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8040742": {
+            "from_id": 7996501, 
+            "from_name": "Alta", 
+            "to_id": 8040682, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8040743": {
+            "from_id": 8008237, 
+            "from_name": "Store Driveway", 
+            "to_id": 8040682, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8040744": {
+            "from_id": 8008238, 
+            "from_name": "Bonita", 
+            "to_id": 8040682, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8040745": {
+            "from_id": 8008241, 
+            "from_name": "Bonita", 
+            "to_id": 8040682, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8040746": {
+            "from_id": 24642, 
+            "from_name": "5th", 
+            "to_id": 8040688, 
+            "to_name": "iAR_FedEx"
+        }, 
+        "8040747": {
+            "from_id": 517, 
+            "from_name": "Civic Center Place", 
+            "to_id": 8040690, 
+            "to_name": "Racetrack"
+        }, 
+        "8040748": {
+            "from_id": 7602911, 
+            "from_name": "Gate 5", 
+            "to_id": 8040690, 
+            "to_name": "Racetrack"
+        }, 
+        "8040749": {
+            "from_id": 7602915, 
+            "from_name": "Gate 6", 
+            "to_id": 8040690, 
+            "to_name": "Racetrack"
+        }, 
+        "8040750": {
+            "from_id": 560, 
+            "from_name": "Gateway", 
+            "to_id": 8040694, 
+            "to_name": "iAR_Gateway (South)"
+        }, 
+        "8040751": {
+            "from_id": 561, 
+            "from_name": "Gateway", 
+            "to_id": 8040696, 
+            "to_name": "iAR_Gateway"
+        }, 
+        "8040752": {
+            "from_id": 24636, 
+            "from_name": "Santa Clara", 
+            "to_id": 8040696, 
+            "to_name": "iAR_Gateway"
+        }, 
+        "8040753": {
+            "from_id": 507, 
+            "from_name": "5th", 
+            "to_id": 8040699, 
+            "to_name": "iMO_Fifth (South)"
+        }, 
+        "8040754": {
+            "from_id": 578, 
+            "from_name": "Wheeler", 
+            "to_id": 8040701, 
+            "to_name": "iAR_Wheeler (west)"
+        }, 
+        "8040755": {
+            "from_id": 24690, 
+            "from_name": "Santa Anita", 
+            "to_id": 8040701, 
+            "to_name": "iAR_Wheeler (west)"
+        }, 
+        "8040756": {
+            "from_id": 24700, 
+            "from_name": "Santa Clara", 
+            "to_id": 8040701, 
+            "to_name": "iAR_Wheeler (west)"
+        }, 
+        "8040757": {
+            "from_id": 8008220, 
+            "from_name": "Civic Center Place", 
+            "to_id": 8040705, 
+            "to_name": "iAR_Methodist Hospital"
+        }, 
+        "8040758": {
+            "from_id": 577, 
+            "from_name": "Wheeler", 
+            "to_id": 8040707, 
+            "to_name": "iAR_Wheeler (east)"
+        }, 
+        "8040759": {
+            "from_id": 24661, 
+            "from_name": "Huntington", 
+            "to_id": 8040707, 
+            "to_name": "iAR_Wheeler (east)"
+        }, 
+        "8040760": {
+            "from_id": 7996487, 
+            "from_name": "Arcadia Park", 
+            "to_id": 8040710, 
+            "to_name": "iAR_Arcadia Park"
+        }, 
+        "8044163": {
+            "from_id": 8044162, 
+            "from_name": "Huntington", 
+            "to_id": 398, 
+            "to_name": "Huntington"
+        }, 
+        "8044166": {
+            "from_id": 8044165, 
+            "from_name": "2nd", 
+            "to_id": 434, 
+            "to_name": "2nd"
+        }, 
+        "8044168": {
+            "from_id": 8044167, 
+            "from_name": "Huntington", 
+            "to_id": 441, 
+            "to_name": "Huntington"
+        }, 
+        "8044170": {
+            "from_id": 8044169, 
+            "from_name": "Santa Anita", 
+            "to_id": 468, 
+            "to_name": "Santa Anita"
+        }, 
+        "8044172": {
+            "from_id": 8044171, 
+            "from_name": "Santa Clara", 
+            "to_id": 571, 
+            "to_name": "Santa Clara"
+        }, 
+        "8044174": {
+            "from_id": 8044173, 
+            "from_name": "1st", 
+            "to_id": 572, 
+            "to_name": "1st"
+        }, 
+        "8044176": {
+            "from_id": 8044175, 
+            "from_name": "Santa Clara", 
+            "to_id": 573, 
+            "to_name": "Santa Clara"
+        }, 
+        "8044178": {
+            "from_id": 8044177, 
+            "from_name": "Santa Clara", 
+            "to_id": 731, 
+            "to_name": "Santa Clara"
+        }, 
+        "8044180": {
+            "from_id": 8044179, 
+            "from_name": "5th", 
+            "to_id": 732, 
+            "to_name": "5th"
+        }, 
+        "8044182": {
+            "from_id": 8044181, 
+            "from_name": "Santa Anita", 
+            "to_id": 25913, 
+            "to_name": "Santa Anita"
+        }, 
+        "8044184": {
+            "from_id": 8044183, 
+            "from_name": "Colorado Pl", 
+            "to_id": 7602916, 
+            "to_name": "Colorado Pl"
+        }, 
+        "8044186": {
+            "from_id": 8044185, 
+            "from_name": "2nd", 
+            "to_id": 8002970, 
+            "to_name": "2nd"
+        }, 
+        "8044188": {
+            "from_id": 8044187, 
+            "from_name": "1st", 
+            "to_id": 8002979, 
+            "to_name": "1st"
+        }, 
+        "8044190": {
+            "from_id": 8044189, 
+            "from_name": "iAR_Morlan", 
+            "to_id": 3345, 
+            "to_name": "Santa Clara"
+        }, 
+        "8044192": {
+            "from_id": 8044191, 
+            "from_name": "iAR_Wheeler/Santa Clara", 
+            "to_id": 24669, 
+            "to_name": "Santa Clara"
+        }, 
+        "8044193": {
+            "from_id": 8044191, 
+            "from_name": "iAR_Wheeler/Santa Clara", 
+            "to_id": 24681, 
+            "to_name": "2nd"
+        }, 
+        "8044195": {
+            "from_id": 8044194, 
+            "from_name": "iAR_Alta", 
+            "to_id": 660, 
+            "to_name": "Alta"
+        }, 
+        "8044196": {
+            "from_id": 8044194, 
+            "from_name": "iAR_Alta", 
+            "to_id": 7996502, 
+            "to_name": "Alta"
+        }, 
+        "8044197": {
+            "from_id": 8044194, 
+            "from_name": "iAR_Alta", 
+            "to_id": 8008236, 
+            "to_name": "Store Driveway"
+        }, 
+        "8044198": {
+            "from_id": 8044194, 
+            "from_name": "iAR_Alta", 
+            "to_id": 8008239, 
+            "to_name": "Bonita"
+        }, 
+        "8044199": {
+            "from_id": 8044194, 
+            "from_name": "iAR_Alta", 
+            "to_id": 8008240, 
+            "to_name": "Bonita"
+        }, 
+        "8044201": {
+            "from_id": 8044200, 
+            "from_name": "iAR_FedEx", 
+            "to_id": 24642, 
+            "to_name": "5th"
+        }, 
+        "8044203": {
+            "from_id": 8044202, 
+            "from_name": "Racetrack", 
+            "to_id": 671, 
+            "to_name": "Civic Center Place"
+        }, 
+        "8044204": {
+            "from_id": 8044202, 
+            "from_name": "Racetrack", 
+            "to_id": 7602910, 
+            "to_name": "Gate 5"
+        }, 
+        "8044205": {
+            "from_id": 8044202, 
+            "from_name": "Racetrack", 
+            "to_id": 7602914, 
+            "to_name": "Gate 6"
+        }, 
+        "8044207": {
+            "from_id": 8044206, 
+            "from_name": "iAR_Gateway (South)", 
+            "to_id": 564, 
+            "to_name": "Gateway"
+        }, 
+        "8044209": {
+            "from_id": 8044208, 
+            "from_name": "iAR_Gateway", 
+            "to_id": 559, 
+            "to_name": "Gateway"
+        }, 
+        "8044210": {
+            "from_id": 8044208, 
+            "from_name": "iAR_Gateway", 
+            "to_id": 24636, 
+            "to_name": "Santa Clara"
+        }, 
+        "8044212": {
+            "from_id": 8044211, 
+            "from_name": "iMO_Fifth (South)", 
+            "to_id": 556, 
+            "to_name": "5th"
+        }, 
+        "8044214": {
+            "from_id": 8044213, 
+            "from_name": "iAR_Wheeler (west)", 
+            "to_id": 638, 
+            "to_name": "Wheeler"
+        }, 
+        "8044215": {
+            "from_id": 8044213, 
+            "from_name": "iAR_Wheeler (west)", 
+            "to_id": 24690, 
+            "to_name": "Santa Anita"
+        }, 
+        "8044216": {
+            "from_id": 8044213, 
+            "from_name": "iAR_Wheeler (west)", 
+            "to_id": 24700, 
+            "to_name": "Santa Clara"
+        }, 
+        "8044218": {
+            "from_id": 8044217, 
+            "from_name": "iAR_Methodist Hospital", 
+            "to_id": 8008220, 
+            "to_name": "Civic Center Place"
+        }, 
+        "8044220": {
+            "from_id": 8044219, 
+            "from_name": "iAR_Wheeler (east)", 
+            "to_id": 639, 
+            "to_name": "Wheeler"
+        }, 
+        "8044221": {
+            "from_id": 8044219, 
+            "from_name": "iAR_Wheeler (east)", 
+            "to_id": 24661, 
+            "to_name": "Huntington"
+        }, 
+        "8044223": {
+            "from_id": 8044222, 
+            "from_name": "iAR_Arcadia Park", 
+            "to_id": 7996488, 
+            "to_name": "Arcadia Park"
+        }, 
+        "8044225": {
+            "from_id": 457, 
+            "from_name": "2nd", 
+            "to_id": 8044224, 
+            "to_name": "2nd"
+        }, 
+        "8044227": {
+            "from_id": 508, 
+            "from_name": "Huntington", 
+            "to_id": 8044226, 
+            "to_name": "Huntington"
+        }, 
+        "8044229": {
+            "from_id": 532, 
+            "from_name": "2nd", 
+            "to_id": 8044228, 
+            "to_name": "2nd"
+        }, 
+        "8044231": {
+            "from_id": 575, 
+            "from_name": "Santa Anita", 
+            "to_id": 8044230, 
+            "to_name": "Santa Anita"
+        }, 
+        "8044233": {
+            "from_id": 579, 
+            "from_name": "1st", 
+            "to_id": 8044232, 
+            "to_name": "1st"
+        }, 
+        "8044235": {
+            "from_id": 632, 
+            "from_name": "Santa Anita", 
+            "to_id": 8044234, 
+            "to_name": "Santa Anita"
+        }, 
+        "8044237": {
+            "from_id": 652, 
+            "from_name": "1st", 
+            "to_id": 8044236, 
+            "to_name": "1st"
+        }, 
+        "8044239": {
+            "from_id": 24629, 
+            "from_name": "Santa Clara", 
+            "to_id": 8044238, 
+            "to_name": "Santa Clara"
+        }, 
+        "8044241": {
+            "from_id": 24644, 
+            "from_name": "5th", 
+            "to_id": 8044240, 
+            "to_name": "5th"
+        }, 
+        "8044243": {
+            "from_id": 24671, 
+            "from_name": "Santa Clara", 
+            "to_id": 8044242, 
+            "to_name": "Santa Clara"
+        }, 
+        "8044245": {
+            "from_id": 24699, 
+            "from_name": "Santa Clara", 
+            "to_id": 8044244, 
+            "to_name": "Santa Clara"
+        }, 
+        "8044247": {
+            "from_id": 7685997, 
+            "from_name": "Colorado Pl", 
+            "to_id": 8044246, 
+            "to_name": "Colorado Pl"
+        }, 
+        "8044249": {
+            "from_id": 7770098, 
+            "from_name": "Huntington", 
+            "to_id": 8044248, 
+            "to_name": "Huntington"
+        }, 
+        "8044250": {
+            "from_id": 3345, 
+            "from_name": "Santa Clara", 
+            "to_id": 8044189, 
+            "to_name": "iAR_Morlan"
+        }, 
+        "8044251": {
+            "from_id": 24669, 
+            "from_name": "Santa Clara", 
+            "to_id": 8044191, 
+            "to_name": "iAR_Wheeler/Santa Clara"
+        }, 
+        "8044252": {
+            "from_id": 24681, 
+            "from_name": "2nd", 
+            "to_id": 8044191, 
+            "to_name": "iAR_Wheeler/Santa Clara"
+        }, 
+        "8044253": {
+            "from_id": 653, 
+            "from_name": "Alta", 
+            "to_id": 8044194, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8044254": {
+            "from_id": 7996501, 
+            "from_name": "Alta", 
+            "to_id": 8044194, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8044255": {
+            "from_id": 8008237, 
+            "from_name": "Store Driveway", 
+            "to_id": 8044194, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8044256": {
+            "from_id": 8008238, 
+            "from_name": "Bonita", 
+            "to_id": 8044194, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8044257": {
+            "from_id": 8008241, 
+            "from_name": "Bonita", 
+            "to_id": 8044194, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8044258": {
+            "from_id": 24642, 
+            "from_name": "5th", 
+            "to_id": 8044200, 
+            "to_name": "iAR_FedEx"
+        }, 
+        "8044259": {
+            "from_id": 517, 
+            "from_name": "Civic Center Place", 
+            "to_id": 8044202, 
+            "to_name": "Racetrack"
+        }, 
+        "8044260": {
+            "from_id": 7602911, 
+            "from_name": "Gate 5", 
+            "to_id": 8044202, 
+            "to_name": "Racetrack"
+        }, 
+        "8044261": {
+            "from_id": 7602915, 
+            "from_name": "Gate 6", 
+            "to_id": 8044202, 
+            "to_name": "Racetrack"
+        }, 
+        "8044262": {
+            "from_id": 560, 
+            "from_name": "Gateway", 
+            "to_id": 8044206, 
+            "to_name": "iAR_Gateway (South)"
+        }, 
+        "8044263": {
+            "from_id": 561, 
+            "from_name": "Gateway", 
+            "to_id": 8044208, 
+            "to_name": "iAR_Gateway"
+        }, 
+        "8044264": {
+            "from_id": 24636, 
+            "from_name": "Santa Clara", 
+            "to_id": 8044208, 
+            "to_name": "iAR_Gateway"
+        }, 
+        "8044265": {
+            "from_id": 507, 
+            "from_name": "5th", 
+            "to_id": 8044211, 
+            "to_name": "iMO_Fifth (South)"
+        }, 
+        "8044266": {
+            "from_id": 578, 
+            "from_name": "Wheeler", 
+            "to_id": 8044213, 
+            "to_name": "iAR_Wheeler (west)"
+        }, 
+        "8044267": {
+            "from_id": 24690, 
+            "from_name": "Santa Anita", 
+            "to_id": 8044213, 
+            "to_name": "iAR_Wheeler (west)"
+        }, 
+        "8044268": {
+            "from_id": 24700, 
+            "from_name": "Santa Clara", 
+            "to_id": 8044213, 
+            "to_name": "iAR_Wheeler (west)"
+        }, 
+        "8044269": {
+            "from_id": 8008220, 
+            "from_name": "Civic Center Place", 
+            "to_id": 8044217, 
+            "to_name": "iAR_Methodist Hospital"
+        }, 
+        "8044270": {
+            "from_id": 577, 
+            "from_name": "Wheeler", 
+            "to_id": 8044219, 
+            "to_name": "iAR_Wheeler (east)"
+        }, 
+        "8044271": {
+            "from_id": 24661, 
+            "from_name": "Huntington", 
+            "to_id": 8044219, 
+            "to_name": "iAR_Wheeler (east)"
+        }, 
+        "8044272": {
+            "from_id": 7996487, 
+            "from_name": "Arcadia Park", 
+            "to_id": 8044222, 
+            "to_name": "iAR_Arcadia Park"
+        }, 
+        "8046490": {
+            "from_id": 8046489, 
+            "from_name": "Huntington", 
+            "to_id": 398, 
+            "to_name": "Huntington"
+        }, 
+        "8046493": {
+            "from_id": 8046492, 
+            "from_name": "2nd", 
+            "to_id": 434, 
+            "to_name": "2nd"
+        }, 
+        "8046495": {
+            "from_id": 8046494, 
+            "from_name": "Huntington", 
+            "to_id": 441, 
+            "to_name": "Huntington"
+        }, 
+        "8046497": {
+            "from_id": 8046496, 
+            "from_name": "Santa Anita", 
+            "to_id": 468, 
+            "to_name": "Santa Anita"
+        }, 
+        "8046499": {
+            "from_id": 8046498, 
+            "from_name": "Santa Clara", 
+            "to_id": 571, 
+            "to_name": "Santa Clara"
+        }, 
+        "8046501": {
+            "from_id": 8046500, 
+            "from_name": "1st", 
+            "to_id": 572, 
+            "to_name": "1st"
+        }, 
+        "8046503": {
+            "from_id": 8046502, 
+            "from_name": "Santa Clara", 
+            "to_id": 573, 
+            "to_name": "Santa Clara"
+        }, 
+        "8046505": {
+            "from_id": 8046504, 
+            "from_name": "Santa Clara", 
+            "to_id": 731, 
+            "to_name": "Santa Clara"
+        }, 
+        "8046507": {
+            "from_id": 8046506, 
+            "from_name": "5th", 
+            "to_id": 732, 
+            "to_name": "5th"
+        }, 
+        "8046509": {
+            "from_id": 8046508, 
+            "from_name": "Santa Anita", 
+            "to_id": 25913, 
+            "to_name": "Santa Anita"
+        }, 
+        "8046511": {
+            "from_id": 8046510, 
+            "from_name": "Colorado Pl", 
+            "to_id": 7602916, 
+            "to_name": "Colorado Pl"
+        }, 
+        "8046513": {
+            "from_id": 8046512, 
+            "from_name": "2nd", 
+            "to_id": 8002970, 
+            "to_name": "2nd"
+        }, 
+        "8046515": {
+            "from_id": 8046514, 
+            "from_name": "1st", 
+            "to_id": 8002979, 
+            "to_name": "1st"
+        }, 
+        "8046517": {
+            "from_id": 8046516, 
+            "from_name": "iAR_Morlan", 
+            "to_id": 3345, 
+            "to_name": "Santa Clara"
+        }, 
+        "8046519": {
+            "from_id": 8046518, 
+            "from_name": "iAR_Wheeler/Santa Clara", 
+            "to_id": 24669, 
+            "to_name": "Santa Clara"
+        }, 
+        "8046520": {
+            "from_id": 8046518, 
+            "from_name": "iAR_Wheeler/Santa Clara", 
+            "to_id": 24681, 
+            "to_name": "2nd"
+        }, 
+        "8046522": {
+            "from_id": 8046521, 
+            "from_name": "iAR_Alta", 
+            "to_id": 660, 
+            "to_name": "Alta"
+        }, 
+        "8046523": {
+            "from_id": 8046521, 
+            "from_name": "iAR_Alta", 
+            "to_id": 7996502, 
+            "to_name": "Alta"
+        }, 
+        "8046524": {
+            "from_id": 8046521, 
+            "from_name": "iAR_Alta", 
+            "to_id": 8008236, 
+            "to_name": "Store Driveway"
+        }, 
+        "8046525": {
+            "from_id": 8046521, 
+            "from_name": "iAR_Alta", 
+            "to_id": 8008239, 
+            "to_name": "Bonita"
+        }, 
+        "8046526": {
+            "from_id": 8046521, 
+            "from_name": "iAR_Alta", 
+            "to_id": 8008240, 
+            "to_name": "Bonita"
+        }, 
+        "8046528": {
+            "from_id": 8046527, 
+            "from_name": "iAR_FedEx", 
+            "to_id": 24642, 
+            "to_name": "5th"
+        }, 
+        "8046530": {
+            "from_id": 8046529, 
+            "from_name": "Racetrack", 
+            "to_id": 671, 
+            "to_name": "Civic Center Place"
+        }, 
+        "8046531": {
+            "from_id": 8046529, 
+            "from_name": "Racetrack", 
+            "to_id": 7602910, 
+            "to_name": "Gate 5"
+        }, 
+        "8046532": {
+            "from_id": 8046529, 
+            "from_name": "Racetrack", 
+            "to_id": 7602914, 
+            "to_name": "Gate 6"
+        }, 
+        "8046534": {
+            "from_id": 8046533, 
+            "from_name": "iAR_Gateway (South)", 
+            "to_id": 564, 
+            "to_name": "Gateway"
+        }, 
+        "8046536": {
+            "from_id": 8046535, 
+            "from_name": "iAR_Gateway", 
+            "to_id": 559, 
+            "to_name": "Gateway"
+        }, 
+        "8046537": {
+            "from_id": 8046535, 
+            "from_name": "iAR_Gateway", 
+            "to_id": 24636, 
+            "to_name": "Santa Clara"
+        }, 
+        "8046539": {
+            "from_id": 8046538, 
+            "from_name": "iMO_Fifth (South)", 
+            "to_id": 556, 
+            "to_name": "5th"
+        }, 
+        "8046541": {
+            "from_id": 8046540, 
+            "from_name": "iAR_Wheeler (west)", 
+            "to_id": 638, 
+            "to_name": "Wheeler"
+        }, 
+        "8046542": {
+            "from_id": 8046540, 
+            "from_name": "iAR_Wheeler (west)", 
+            "to_id": 24690, 
+            "to_name": "Santa Anita"
+        }, 
+        "8046543": {
+            "from_id": 8046540, 
+            "from_name": "iAR_Wheeler (west)", 
+            "to_id": 24700, 
+            "to_name": "Santa Clara"
+        }, 
+        "8046545": {
+            "from_id": 8046544, 
+            "from_name": "iAR_Methodist Hospital", 
+            "to_id": 8008220, 
+            "to_name": "Civic Center Place"
+        }, 
+        "8046547": {
+            "from_id": 8046546, 
+            "from_name": "iAR_Wheeler (east)", 
+            "to_id": 639, 
+            "to_name": "Wheeler"
+        }, 
+        "8046548": {
+            "from_id": 8046546, 
+            "from_name": "iAR_Wheeler (east)", 
+            "to_id": 24661, 
+            "to_name": "Huntington"
+        }, 
+        "8046550": {
+            "from_id": 8046549, 
+            "from_name": "iAR_Arcadia Park", 
+            "to_id": 7996488, 
+            "to_name": "Arcadia Park"
+        }, 
+        "8046552": {
+            "from_id": 457, 
+            "from_name": "2nd", 
+            "to_id": 8046551, 
+            "to_name": "2nd"
+        }, 
+        "8046554": {
+            "from_id": 508, 
+            "from_name": "Huntington", 
+            "to_id": 8046553, 
+            "to_name": "Huntington"
+        }, 
+        "8046556": {
+            "from_id": 532, 
+            "from_name": "2nd", 
+            "to_id": 8046555, 
+            "to_name": "2nd"
+        }, 
+        "8046558": {
+            "from_id": 575, 
+            "from_name": "Santa Anita", 
+            "to_id": 8046557, 
+            "to_name": "Santa Anita"
+        }, 
+        "8046560": {
+            "from_id": 579, 
+            "from_name": "1st", 
+            "to_id": 8046559, 
+            "to_name": "1st"
+        }, 
+        "8046562": {
+            "from_id": 632, 
+            "from_name": "Santa Anita", 
+            "to_id": 8046561, 
+            "to_name": "Santa Anita"
+        }, 
+        "8046564": {
+            "from_id": 652, 
+            "from_name": "1st", 
+            "to_id": 8046563, 
+            "to_name": "1st"
+        }, 
+        "8046566": {
+            "from_id": 24629, 
+            "from_name": "Santa Clara", 
+            "to_id": 8046565, 
+            "to_name": "Santa Clara"
+        }, 
+        "8046568": {
+            "from_id": 24644, 
+            "from_name": "5th", 
+            "to_id": 8046567, 
+            "to_name": "5th"
+        }, 
+        "8046570": {
+            "from_id": 24671, 
+            "from_name": "Santa Clara", 
+            "to_id": 8046569, 
+            "to_name": "Santa Clara"
+        }, 
+        "8046572": {
+            "from_id": 24699, 
+            "from_name": "Santa Clara", 
+            "to_id": 8046571, 
+            "to_name": "Santa Clara"
+        }, 
+        "8046574": {
+            "from_id": 7685997, 
+            "from_name": "Colorado Pl", 
+            "to_id": 8046573, 
+            "to_name": "Colorado Pl"
+        }, 
+        "8046576": {
+            "from_id": 7770098, 
+            "from_name": "Huntington", 
+            "to_id": 8046575, 
+            "to_name": "Huntington"
+        }, 
+        "8046577": {
+            "from_id": 3345, 
+            "from_name": "Santa Clara", 
+            "to_id": 8046516, 
+            "to_name": "iAR_Morlan"
+        }, 
+        "8046578": {
+            "from_id": 24669, 
+            "from_name": "Santa Clara", 
+            "to_id": 8046518, 
+            "to_name": "iAR_Wheeler/Santa Clara"
+        }, 
+        "8046579": {
+            "from_id": 24681, 
+            "from_name": "2nd", 
+            "to_id": 8046518, 
+            "to_name": "iAR_Wheeler/Santa Clara"
+        }, 
+        "8046580": {
+            "from_id": 653, 
+            "from_name": "Alta", 
+            "to_id": 8046521, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8046581": {
+            "from_id": 7996501, 
+            "from_name": "Alta", 
+            "to_id": 8046521, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8046582": {
+            "from_id": 8008237, 
+            "from_name": "Store Driveway", 
+            "to_id": 8046521, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8046583": {
+            "from_id": 8008238, 
+            "from_name": "Bonita", 
+            "to_id": 8046521, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8046584": {
+            "from_id": 8008241, 
+            "from_name": "Bonita", 
+            "to_id": 8046521, 
+            "to_name": "iAR_Alta"
+        }, 
+        "8046585": {
+            "from_id": 24642, 
+            "from_name": "5th", 
+            "to_id": 8046527, 
+            "to_name": "iAR_FedEx"
+        }, 
+        "8046586": {
+            "from_id": 517, 
+            "from_name": "Civic Center Place", 
+            "to_id": 8046529, 
+            "to_name": "Racetrack"
+        }, 
+        "8046587": {
+            "from_id": 7602911, 
+            "from_name": "Gate 5", 
+            "to_id": 8046529, 
+            "to_name": "Racetrack"
+        }, 
+        "8046588": {
+            "from_id": 7602915, 
+            "from_name": "Gate 6", 
+            "to_id": 8046529, 
+            "to_name": "Racetrack"
+        }, 
+        "8046589": {
+            "from_id": 560, 
+            "from_name": "Gateway", 
+            "to_id": 8046533, 
+            "to_name": "iAR_Gateway (South)"
+        }, 
+        "8046590": {
+            "from_id": 561, 
+            "from_name": "Gateway", 
+            "to_id": 8046535, 
+            "to_name": "iAR_Gateway"
+        }, 
+        "8046591": {
+            "from_id": 24636, 
+            "from_name": "Santa Clara", 
+            "to_id": 8046535, 
+            "to_name": "iAR_Gateway"
+        }, 
+        "8046592": {
+            "from_id": 507, 
+            "from_name": "5th", 
+            "to_id": 8046538, 
+            "to_name": "iMO_Fifth (South)"
+        }, 
+        "8046593": {
+            "from_id": 578, 
+            "from_name": "Wheeler", 
+            "to_id": 8046540, 
+            "to_name": "iAR_Wheeler (west)"
+        }, 
+        "8046594": {
+            "from_id": 24690, 
+            "from_name": "Santa Anita", 
+            "to_id": 8046540, 
+            "to_name": "iAR_Wheeler (west)"
+        }, 
+        "8046595": {
+            "from_id": 24700, 
+            "from_name": "Santa Clara", 
+            "to_id": 8046540, 
+            "to_name": "iAR_Wheeler (west)"
+        }, 
+        "8046596": {
+            "from_id": 8008220, 
+            "from_name": "Civic Center Place", 
+            "to_id": 8046544, 
+            "to_name": "iAR_Methodist Hospital"
+        }, 
+        "8046597": {
+            "from_id": 577, 
+            "from_name": "Wheeler", 
+            "to_id": 8046546, 
+            "to_name": "iAR_Wheeler (east)"
+        }, 
+        "8046598": {
+            "from_id": 24661, 
+            "from_name": "Huntington", 
+            "to_id": 8046546, 
+            "to_name": "iAR_Wheeler (east)"
+        }, 
+        "8046599": {
+            "from_id": 7996487, 
+            "from_name": "Arcadia Park", 
+            "to_id": 8046549, 
+            "to_name": "iAR_Arcadia Park"
+        }
+    }, 
+    "nodes": {
+        "3313": {
+            "name": "Hntington", 
+            "nb_turnings": 1
+        }, 
+        "3314": {
+            "name": "Huntington & Colorado Place", 
+            "nb_turnings": 4
+        }, 
+        "3329": {
+            "name": "Huntington & Santa Clara", 
+            "nb_turnings": 8
+        }, 
+        "3337": {
+            "name": "2nd", 
+            "nb_turnings": 2
+        }, 
+        "3341": {
+            "name": "Huntington & 2nd", 
+            "nb_turnings": 12
+        }, 
+        "3343": {
+            "name": "2nd & Alta", 
+            "nb_turnings": 6
+        }, 
+        "3344": {
+            "name": "Huntington & Santa Anita", 
+            "nb_turnings": 13
+        }, 
+        "3345": {
+            "name": "Santa Clara", 
+            "nb_turnings": 2
+        }, 
+        "3355": {
+            "name": "Huntington & 5th", 
+            "nb_turnings": 12
+        }, 
+        "3359": {
+            "name": "Huntington & Civic Center Place", 
+            "nb_turnings": 7
+        }, 
+        "3362": {
+            "name": "Santa Clara & 2nd", 
+            "nb_turnings": 12
+        }, 
+        "3369": {
+            "name": "Huntington & Gateway", 
+            "nb_turnings": 12
+        }, 
+        "3370": {
+            "name": "Huntington & 1st", 
+            "nb_turnings": 12
+        }, 
+        "3371": {
+            "name": "Santa Clara & 1st", 
+            "nb_turnings": 12
+        }, 
+        "3372": {
+            "name": "Santa Anita & Alta", 
+            "nb_turnings": 12
+        }, 
+        "3373": {
+            "name": "Wheeler & 1st", 
+            "nb_turnings": 12
+        }, 
+        "3386": {
+            "name": "Santa Clara & Santa Anita", 
+            "nb_turnings": 14
+        }, 
+        "3391": {
+            "name": "Alta & 1st", 
+            "nb_turnings": 12
+        }, 
+        "3395": {
+            "name": "Huntington & Civic Center Place", 
+            "nb_turnings": 3
+        }, 
+        "3409": {
+            "name": "Santa Clara & 5th", 
+            "nb_turnings": 6
+        }, 
+        "22209": {
+            "name": "Santa Anita", 
+            "nb_turnings": 1
+        }, 
+        "22218": {
+            "name": "Santa Anita", 
+            "nb_turnings": 1
+        }, 
+        "24636": {
+            "name": "Santa Clara", 
+            "nb_turnings": 2
+        }, 
+        "24642": {
+            "name": "5th", 
+            "nb_turnings": 2
+        }, 
+        "24651": {
+            "name": "Huntington & Store Driveway", 
+            "nb_turnings": 3
+        }, 
+        "24661": {
+            "name": "Huntington", 
+            "nb_turnings": 1
+        }, 
+        "24669": {
+            "name": "Santa Clara", 
+            "nb_turnings": 2
+        }, 
+        "24681": {
+            "name": "2nd", 
+            "nb_turnings": 2
+        }, 
+        "24690": {
+            "name": "Santa Anita", 
+            "nb_turnings": 2
+        }, 
+        "24700": {
+            "name": "Santa Clara", 
+            "nb_turnings": 2
+        }, 
+        "7602908": {
+            "name": "Huntington & Gate 5", 
+            "nb_turnings": 3
+        }, 
+        "7602917": {
+            "name": "Colorado Pl & Gate 6", 
+            "nb_turnings": 6
+        }, 
+        "7602954": {
+            "name": "Huntington", 
+            "nb_turnings": 2
+        }, 
+        "7686012": {
+            "name": "Huntington", 
+            "nb_turnings": 1
+        }, 
+        "7770094": {
+            "name": "1st", 
+            "nb_turnings": 2
+        }, 
+        "8002974": {
+            "name": "2nd & Bonita", 
+            "nb_turnings": 6
+        }, 
+        "8002980": {
+            "name": "1st & Bonita", 
+            "nb_turnings": 6
+        }, 
+        "8008220": {
+            "name": "Civic Center Place", 
+            "nb_turnings": 2
+        }
+    }, 
+    "sections": {
+        "336": {
+            "length": 339.06755779981864, 
+            "max_speed": 72.4205, 
+            "name": "Huntington", 
+            "numLanes": 3
+        }, 
+        "338": {
+            "length": 169.8107249772008, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "339": {
+            "length": 84.25796649978292, 
+            "max_speed": 72.4205, 
+            "name": "Huntington", 
+            "numLanes": 3
+        }, 
+        "398": {
+            "length": 205.07194581650523, 
+            "max_speed": 72.4205, 
+            "name": "Huntington", 
+            "numLanes": 3
+        }, 
+        "399": {
+            "length": 191.02598161715116, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 2
+        }, 
+        "400": {
+            "length": 335.1974931489056, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 3
+        }, 
+        "401": {
+            "length": 16.63455406003128, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 3
+        }, 
+        "402": {
+            "length": 237.85012523635632, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 2
+        }, 
+        "403": {
+            "length": 213.3436347352623, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 2
+        }, 
+        "410": {
+            "length": 102.56893096889384, 
+            "max_speed": 64.3738, 
+            "name": "Colorado Pl", 
+            "numLanes": 2
+        }, 
+        "433": {
+            "length": 109.27492668264723, 
+            "max_speed": 56.327, 
+            "name": "2nd", 
+            "numLanes": 2
+        }, 
+        "434": {
+            "length": 119.41872698654254, 
+            "max_speed": 56.327, 
+            "name": "2nd", 
+            "numLanes": 2
+        }, 
+        "441": {
+            "length": 189.9010121020435, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "449": {
+            "length": 164.72461816398985, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "450": {
+            "length": 181.14975250428898, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "451": {
+            "length": 159.69755778994067, 
+            "max_speed": 56.327, 
+            "name": "2nd", 
+            "numLanes": 2
+        }, 
+        "452": {
+            "length": 100.61285200520447, 
+            "max_speed": 56.327, 
+            "name": "2nd", 
+            "numLanes": 2
+        }, 
+        "457": {
+            "length": 104.34443203773057, 
+            "max_speed": 56.327, 
+            "name": "2nd", 
+            "numLanes": 1
+        }, 
+        "458": {
+            "length": 119.26969413401446, 
+            "max_speed": 56.327, 
+            "name": "2nd", 
+            "numLanes": 2
+        }, 
+        "459": {
+            "length": 103.6319578792966, 
+            "max_speed": 64.3738, 
+            "name": "Santa Anita", 
+            "numLanes": 2
+        }, 
+        "460": {
+            "length": 109.44818688042304, 
+            "max_speed": 64.3738, 
+            "name": "Santa Anita", 
+            "numLanes": 2
+        }, 
+        "461": {
+            "length": 276.7455497827266, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "462": {
+            "length": 172.02721772910496, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "464": {
+            "length": 196.61884468854535, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 2
+        }, 
+        "468": {
+            "length": 225.25014305187747, 
+            "max_speed": 64.3738, 
+            "name": "Santa Anita", 
+            "numLanes": 2
+        }, 
+        "505": {
+            "length": 89.8528943647123, 
+            "max_speed": 56.327, 
+            "name": "5th", 
+            "numLanes": 1
+        }, 
+        "506": {
+            "length": 196.02344199066067, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "507": {
+            "length": 167.96571171682152, 
+            "max_speed": 40.2336, 
+            "name": "5th", 
+            "numLanes": 1
+        }, 
+        "508": {
+            "length": 194.0900703843472, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "517": {
+            "length": 123.09744917463638, 
+            "max_speed": 40.2336, 
+            "name": "Civic Center Place", 
+            "numLanes": 2
+        }, 
+        "518": {
+            "length": 81.69782116364897, 
+            "max_speed": 40.2336, 
+            "name": "Civic Center Place", 
+            "numLanes": 2
+        }, 
+        "529": {
+            "length": 60.85192880456744, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 1
+        }, 
+        "530": {
+            "length": 114.90562885084292, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 1
+        }, 
+        "531": {
+            "length": 56.744070327463255, 
+            "max_speed": 56.327, 
+            "name": "2nd", 
+            "numLanes": 2
+        }, 
+        "532": {
+            "length": 107.27728403453314, 
+            "max_speed": 56.327, 
+            "name": "2nd", 
+            "numLanes": 2
+        }, 
+        "556": {
+            "length": 195.11003562748283, 
+            "max_speed": 40.2336, 
+            "name": "5th", 
+            "numLanes": 1
+        }, 
+        "559": {
+            "length": 144.3779730813816, 
+            "max_speed": 40.2336, 
+            "name": "Gateway", 
+            "numLanes": 1
+        }, 
+        "560": {
+            "length": 74.05982681300561, 
+            "max_speed": 40.2336, 
+            "name": "Gateway", 
+            "numLanes": 1
+        }, 
+        "561": {
+            "length": 114.89593763549651, 
+            "max_speed": 40.2336, 
+            "name": "Gateway", 
+            "numLanes": 1
+        }, 
+        "562": {
+            "length": 203.16456104871935, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "563": {
+            "length": 214.07713930253368, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "564": {
+            "length": 93.3595250883317, 
+            "max_speed": 40.2336, 
+            "name": "Gateway", 
+            "numLanes": 1
+        }, 
+        "566": {
+            "length": 101.07648219385062, 
+            "max_speed": 40.2336, 
+            "name": "1st", 
+            "numLanes": 1
+        }, 
+        "567": {
+            "length": 115.33414879247654, 
+            "max_speed": 56.327, 
+            "name": "1st", 
+            "numLanes": 1
+        }, 
+        "568": {
+            "length": 287.7202145713773, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "569": {
+            "length": 176.07740671970512, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "570": {
+            "length": 109.74093582604442, 
+            "max_speed": 56.327, 
+            "name": "1st", 
+            "numLanes": 1
+        }, 
+        "571": {
+            "length": 165.6463065632324, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 1
+        }, 
+        "572": {
+            "length": 133.40049195708133, 
+            "max_speed": 56.327, 
+            "name": "1st", 
+            "numLanes": 1
+        }, 
+        "573": {
+            "length": 127.16376346507816, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 1
+        }, 
+        "574": {
+            "length": 261.0908759890012, 
+            "max_speed": 40.2336, 
+            "name": "Alta", 
+            "numLanes": 1
+        }, 
+        "575": {
+            "length": 224.63266224298238, 
+            "max_speed": 64.3738, 
+            "name": "Santa Anita", 
+            "numLanes": 2
+        }, 
+        "577": {
+            "length": 45.61031312010516, 
+            "max_speed": 40.2336, 
+            "name": "Wheeler", 
+            "numLanes": 1
+        }, 
+        "578": {
+            "length": 92.22845785365391, 
+            "max_speed": 40.2336, 
+            "name": "Wheeler", 
+            "numLanes": 1
+        }, 
+        "579": {
+            "length": 130.22043763302406, 
+            "max_speed": 56.327, 
+            "name": "1st", 
+            "numLanes": 1
+        }, 
+        "580": {
+            "length": 138.33075035092966, 
+            "max_speed": 56.327, 
+            "name": "1st", 
+            "numLanes": 1
+        }, 
+        "631": {
+            "length": 105.05300821981211, 
+            "max_speed": 56.327, 
+            "name": "2nd", 
+            "numLanes": 1
+        }, 
+        "632": {
+            "length": 227.67109359541092, 
+            "max_speed": 64.3738, 
+            "name": "Santa Anita", 
+            "numLanes": 2
+        }, 
+        "633": {
+            "length": 72.96028526241301, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 1
+        }, 
+        "634": {
+            "length": 104.68175246197711, 
+            "max_speed": 64.3738, 
+            "name": "Santa Anita", 
+            "numLanes": 2
+        }, 
+        "638": {
+            "length": 92.22885164227807, 
+            "max_speed": 40.2336, 
+            "name": "Wheeler", 
+            "numLanes": 1
+        }, 
+        "639": {
+            "length": 46.034033631680465, 
+            "max_speed": 40.2336, 
+            "name": "Wheeler", 
+            "numLanes": 1
+        }, 
+        "652": {
+            "length": 107.27309282425837, 
+            "max_speed": 40.2336, 
+            "name": "1st", 
+            "numLanes": 1
+        }, 
+        "653": {
+            "length": 59.15994641981848, 
+            "max_speed": 40.2336, 
+            "name": "Alta", 
+            "numLanes": 1
+        }, 
+        "654": {
+            "length": 261.1107414243758, 
+            "max_speed": 40.2336, 
+            "name": "Alta", 
+            "numLanes": 1
+        }, 
+        "655": {
+            "length": 140.7786636245349, 
+            "max_speed": 40.2336, 
+            "name": "1st", 
+            "numLanes": 1
+        }, 
+        "660": {
+            "length": 59.063108577596516, 
+            "max_speed": 40.2336, 
+            "name": "Alta", 
+            "numLanes": 1
+        }, 
+        "669": {
+            "length": 58.22488028968386, 
+            "max_speed": 56.327, 
+            "name": "Civic Center Place", 
+            "numLanes": 2
+        }, 
+        "671": {
+            "length": 122.57450817492624, 
+            "max_speed": 40.2336, 
+            "name": "Civic Center Place", 
+            "numLanes": 1
+        }, 
+        "730": {
+            "length": 216.20397359890447, 
+            "max_speed": 56.327, 
+            "name": "5th", 
+            "numLanes": 1
+        }, 
+        "731": {
+            "length": 339.87047290531734, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 1
+        }, 
+        "732": {
+            "length": 114.46593336820996, 
+            "max_speed": 56.327, 
+            "name": "5th", 
+            "numLanes": 1
+        }, 
+        "752": {
+            "length": 105.05343080087107, 
+            "max_speed": 40.2336, 
+            "name": "1st", 
+            "numLanes": 1
+        }, 
+        "21931": {
+            "length": 661.0139026775441, 
+            "max_speed": 72.4205, 
+            "name": "Huntington", 
+            "numLanes": 3
+        }, 
+        "22208": {
+            "length": 68.76105970358842, 
+            "max_speed": 64.3738, 
+            "name": "Santa Anita", 
+            "numLanes": 4
+        }, 
+        "22211": {
+            "length": 51.302363558130324, 
+            "max_speed": 64.3738, 
+            "name": "Santa Anita", 
+            "numLanes": 5
+        }, 
+        "22215": {
+            "length": 32.50737987489985, 
+            "max_speed": 64.3738, 
+            "name": "Santa Anita", 
+            "numLanes": 2
+        }, 
+        "24629": {
+            "length": 339.791982202219, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 1
+        }, 
+        "24635": {
+            "length": 82.04187314755745, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 1
+        }, 
+        "24641": {
+            "length": 141.12656281329072, 
+            "max_speed": 56.327, 
+            "name": "5th", 
+            "numLanes": 1
+        }, 
+        "24644": {
+            "length": 114.46913224097072, 
+            "max_speed": 56.327, 
+            "name": "5th", 
+            "numLanes": 1
+        }, 
+        "24650": {
+            "length": 152.3415615091763, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "24660": {
+            "length": 134.4090280381924, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "24668": {
+            "length": 136.44223956080063, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 1
+        }, 
+        "24671": {
+            "length": 186.927661299308, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 1
+        }, 
+        "24680": {
+            "length": 185.5238354403172, 
+            "max_speed": 56.327, 
+            "name": "2nd", 
+            "numLanes": 2
+        }, 
+        "24683": {
+            "length": 80.10717380586459, 
+            "max_speed": 56.327, 
+            "name": "2nd", 
+            "numLanes": 2
+        }, 
+        "24689": {
+            "length": 32.38303452177872, 
+            "max_speed": 64.3738, 
+            "name": "Santa Anita", 
+            "numLanes": 2
+        }, 
+        "24692": {
+            "length": 128.4458207941062, 
+            "max_speed": 64.3738, 
+            "name": "Santa Anita", 
+            "numLanes": 2
+        }, 
+        "24699": {
+            "length": 204.90896424102658, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 1
+        }, 
+        "24702": {
+            "length": 99.58169519780607, 
+            "max_speed": 56.327, 
+            "name": "Santa Clara", 
+            "numLanes": 1
+        }, 
+        "25479": {
+            "length": 216.2665741186395, 
+            "max_speed": 56.327, 
+            "name": "5th", 
+            "numLanes": 1
+        }, 
+        "25894": {
+            "length": 109.37387650315335, 
+            "max_speed": 56.327, 
+            "name": "2nd", 
+            "numLanes": 2
+        }, 
+        "25902": {
+            "length": 123.60212363712918, 
+            "max_speed": 56.327, 
+            "name": "1st", 
+            "numLanes": 1
+        }, 
+        "25913": {
+            "length": 268.7393624152011, 
+            "max_speed": 64.3738, 
+            "name": "Santa Anita", 
+            "numLanes": 2
+        }, 
+        "7602907": {
+            "length": 58.856702793035595, 
+            "max_speed": 72.4205, 
+            "name": "Huntington", 
+            "numLanes": 3
+        }, 
+        "7602910": {
+            "length": 56.982019411157964, 
+            "max_speed": 40.2336, 
+            "name": "Gate 5", 
+            "numLanes": 1
+        }, 
+        "7602911": {
+            "length": 61.68068178992935, 
+            "max_speed": 40.2336, 
+            "name": "Gate 5", 
+            "numLanes": 2
+        }, 
+        "7602914": {
+            "length": 87.13958866777769, 
+            "max_speed": 40.2336, 
+            "name": "Gate 6", 
+            "numLanes": 4
+        }, 
+        "7602915": {
+            "length": 95.15698180844554, 
+            "max_speed": 40.2336, 
+            "name": "Gate 6", 
+            "numLanes": 2
+        }, 
+        "7602916": {
+            "length": 252.41119821977313, 
+            "max_speed": 64.3738, 
+            "name": "Colorado Pl", 
+            "numLanes": 2
+        }, 
+        "7602919": {
+            "length": 110.3585719901286, 
+            "max_speed": 64.3738, 
+            "name": "Colorado Pl", 
+            "numLanes": 2
+        }, 
+        "7602926": {
+            "length": 10.645749687922295, 
+            "max_speed": 64.3738, 
+            "name": "Colorado Pl", 
+            "numLanes": 2
+        }, 
+        "7602953": {
+            "length": 103.72296392150588, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 3
+        }, 
+        "7602956": {
+            "length": 27.206530932900016, 
+            "max_speed": 64.3738, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "7685997": {
+            "length": 267.39630597171976, 
+            "max_speed": 64.3738, 
+            "name": "Colorado Pl", 
+            "numLanes": 2
+        }, 
+        "7686011": {
+            "length": 157.2795745850524, 
+            "max_speed": 48.2803, 
+            "name": "Huntington", 
+            "numLanes": 2
+        }, 
+        "7770090": {
+            "length": 110.38194969724195, 
+            "max_speed": 56.327, 
+            "name": "1st", 
+            "numLanes": 1
+        }, 
+        "7770093": {
+            "length": 101.48529841283155, 
+            "max_speed": 56.327, 
+            "name": "1st", 
+            "numLanes": 1
+        }, 
+        "7770098": {
+            "length": 205.21436346613112, 
+            "max_speed": 72.4205, 
+            "name": "Huntington", 
+            "numLanes": 3
+        }, 
+        "7996487": {
+            "length": 43.92996824595379, 
+            "max_speed": 40.2336, 
+            "name": "Arcadia Park", 
+            "numLanes": 1
+        }, 
+        "7996488": {
+            "length": 41.58662899075493, 
+            "max_speed": 40.2336, 
+            "name": "Arcadia Park", 
+            "numLanes": 1
+        }, 
+        "7996501": {
+            "length": 65.27836060891872, 
+            "max_speed": 40.2336, 
+            "name": "Alta", 
+            "numLanes": 1
+        }, 
+        "7996502": {
+            "length": 65.25347047639629, 
+            "max_speed": 40.2336, 
+            "name": "Alta", 
+            "numLanes": 1
+        }, 
+        "8002970": {
+            "length": 104.33709453330593, 
+            "max_speed": 56.327, 
+            "name": "2nd", 
+            "numLanes": 1
+        }, 
+        "8002973": {
+            "length": 105.12643741481898, 
+            "max_speed": 56.327, 
+            "name": "2nd", 
+            "numLanes": 1
+        }, 
+        "8002979": {
+            "length": 107.29538661568677, 
+            "max_speed": 40.2336, 
+            "name": "1st", 
+            "numLanes": 1
+        }, 
+        "8002982": {
+            "length": 105.06943666921215, 
+            "max_speed": 40.2336, 
+            "name": "1st", 
+            "numLanes": 1
+        }, 
+        "8008219": {
+            "length": 58.02995404609673, 
+            "max_speed": 40.2336, 
+            "name": "Civic Center Place", 
+            "numLanes": 2
+        }, 
+        "8008222": {
+            "length": 81.8302696033309, 
+            "max_speed": 40.2336, 
+            "name": "Civic Center Place", 
+            "numLanes": 2
+        }, 
+        "8008236": {
+            "length": 21.097828846217357, 
+            "max_speed": 24.1402, 
+            "name": "Store Driveway", 
+            "numLanes": 1
+        }, 
+        "8008237": {
+            "length": 21.06887750152252, 
+            "max_speed": 24.1402, 
+            "name": "Store Driveway", 
+            "numLanes": 1
+        }, 
+        "8008238": {
+            "length": 59.10001758748846, 
+            "max_speed": 40.2336, 
+            "name": "Bonita", 
+            "numLanes": 1
+        }, 
+        "8008239": {
+            "length": 59.012166145640414, 
+            "max_speed": 40.2336, 
+            "name": "Bonita", 
+            "numLanes": 1
+        }, 
+        "8008240": {
+            "length": 51.14257436855872, 
+            "max_speed": 40.2336, 
+            "name": "Bonita", 
+            "numLanes": 1
+        }, 
+        "8008241": {
+            "length": 50.86748931860114, 
+            "max_speed": 40.2336, 
+            "name": "Bonita", 
+            "numLanes": 1
+        }
+    }, 
+    "turnings": {
+        "4100": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 336, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 3, 
+            "length": 10.198692795322856, 
+            "max_speed": 72.4205, 
+            "name": "", 
+            "node_id": 3313, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 339, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "4101": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 7602907, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 17.316000087537, 
+            "max_speed": 24.478016269101165, 
+            "name": "", 
+            "node_id": 3314, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 410, 
+            "origin_section_name": "Colorado Pl", 
+            "origin_to_lane": 2
+        }, 
+        "4103": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 338, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 45.499117030305236, 
+            "max_speed": 55.17751428571428, 
+            "name": "", 
+            "node_id": 3314, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 410, 
+            "origin_section_name": "Colorado Pl", 
+            "origin_to_lane": 1
+        }, 
+        "4105": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7602907, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 51.97100669186639, 
+            "max_speed": 60.3504, 
+            "name": "", 
+            "node_id": 3314, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 401, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "4428": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 399, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 1, 
+            "length": 47.28118934157596, 
+            "max_speed": 50.96253333333333, 
+            "name": "", 
+            "node_id": 3329, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 338, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 0
+        }, 
+        "4430": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 400, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 3, 
+            "length": 40.56381723767696, 
+            "max_speed": 48.2803, 
+            "name": "", 
+            "node_id": 3329, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 338, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 3
+        }, 
+        "4432": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 7602953, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 35.642827295752305, 
+            "max_speed": 34.06589317387696, 
+            "name": "", 
+            "node_id": 3329, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 21931, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 0
+        }, 
+        "4434": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 400, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 3, 
+            "length": 30.980387826485444, 
+            "max_speed": 49.73470701303554, 
+            "name": "", 
+            "node_id": 3329, 
+            "origin_from_lane": 3, 
+            "origin_section_id": 21931, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 4
+        }, 
+        "4436": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 399, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 1, 
+            "length": 47.76891332458051, 
+            "max_speed": 67.82235714285714, 
+            "name": "", 
+            "node_id": 3329, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 21931, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "4438": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7602953, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 34.62688701806906, 
+            "max_speed": 50.96253333333333, 
+            "name": "", 
+            "node_id": 3329, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 464, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 1
+        }, 
+        "4440": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 399, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 1, 
+            "length": 21.285960690435058, 
+            "max_speed": 23.212823551497596, 
+            "name": "", 
+            "node_id": 3329, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 462, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "4442": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7602953, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 43.37143348549718, 
+            "max_speed": 48.2803, 
+            "name": "", 
+            "node_id": 3329, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 462, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "4573": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 433, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 1, 
+            "length": 12.207154521900298, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3337, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 532, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 1
+        }, 
+        "4574": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 434, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 2, 
+            "length": 12.077967574588921, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3337, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 25894, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 1
+        }, 
+        "4632": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 451, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 1, 
+            "length": 29.55400150891988, 
+            "max_speed": 42.95207760600621, 
+            "name": "", 
+            "node_id": 3341, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24650, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 0
+        }, 
+        "4634": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 452, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 1, 
+            "length": 15.42879563816995, 
+            "max_speed": 28.357806096785, 
+            "name": "", 
+            "node_id": 3341, 
+            "origin_from_lane": 3, 
+            "origin_section_id": 24650, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 3
+        }, 
+        "4636": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 450, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 31.65183332160803, 
+            "max_speed": 48.2803, 
+            "name": "", 
+            "node_id": 3341, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24650, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "4638": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 449, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 1, 
+            "length": 30.75571758850075, 
+            "max_speed": 43.17813159662885, 
+            "name": "", 
+            "node_id": 3341, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 458, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 0
+        }, 
+        "4640": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 450, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 18.248932417720567, 
+            "max_speed": 32.07225156857374, 
+            "name": "", 
+            "node_id": 3341, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 458, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 2
+        }, 
+        "4642": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 451, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 1, 
+            "length": 33.302947148289796, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3341, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 458, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 2
+        }, 
+        "4644": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 450, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 30.39383020274859, 
+            "max_speed": 42.447695584396875, 
+            "name": "", 
+            "node_id": 3341, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24680, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 0
+        }, 
+        "4646": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 449, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 1, 
+            "length": 16.664474142274067, 
+            "max_speed": 30.711617426986678, 
+            "name": "", 
+            "node_id": 3341, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 24680, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 2
+        }, 
+        "4648": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 452, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 1, 
+            "length": 33.55034714976552, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3341, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24680, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 2
+        }, 
+        "4650": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 452, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 1, 
+            "length": 31.67864626721944, 
+            "max_speed": 44.401531390072066, 
+            "name": "", 
+            "node_id": 3341, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 563, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 0
+        }, 
+        "4652": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 451, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 1, 
+            "length": 17.446411421426074, 
+            "max_speed": 29.27181154087341, 
+            "name": "", 
+            "node_id": 3341, 
+            "origin_from_lane": 3, 
+            "origin_section_id": 563, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 3
+        }, 
+        "4654": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 449, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 1, 
+            "length": 32.81626274391688, 
+            "max_speed": 48.28029999999999, 
+            "name": "", 
+            "node_id": 3341, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 563, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "4706": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 8002973, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 0, 
+            "length": 23.50766712456953, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3343, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 452, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 1
+        }, 
+        "4707": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 458, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 2, 
+            "length": 24.129697053857775, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3343, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 631, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 0
+        }, 
+        "4708": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 459, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 40.43146975271293, 
+            "max_speed": 50.05556012093584, 
+            "name": "", 
+            "node_id": 3344, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 400, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 0
+        }, 
+        "4710": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 460, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 2, 
+            "length": 19.717585873839457, 
+            "max_speed": 32.92683312638259, 
+            "name": "", 
+            "node_id": 3344, 
+            "origin_from_lane": 3, 
+            "origin_section_id": 400, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 3
+        }, 
+        "4712": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 461, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 42.59674904203737, 
+            "max_speed": 48.2803, 
+            "name": "", 
+            "node_id": 3344, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 400, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "4714": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7686011, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 1, 
+            "length": 38.27596680790042, 
+            "max_speed": 49.08048968088255, 
+            "name": "", 
+            "node_id": 3344, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 22211, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 1
+        }, 
+        "4716": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 461, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 19.110932091063123, 
+            "max_speed": 32.15942945648448, 
+            "name": "", 
+            "node_id": 3344, 
+            "origin_from_lane": 4, 
+            "origin_section_id": 22211, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 4
+        }, 
+        "4718": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 459, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 37.20601108752845, 
+            "max_speed": 64.3738, 
+            "name": "", 
+            "node_id": 3344, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 22211, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 3
+        }, 
+        "4720": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 461, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 34.91691009446737, 
+            "max_speed": 46.802526561306784, 
+            "name": "", 
+            "node_id": 3344, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 22208, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 1
+        }, 
+        "4722": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7686011, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 1, 
+            "length": 18.884734381204886, 
+            "max_speed": 32.58117154086921, 
+            "name": "", 
+            "node_id": 3344, 
+            "origin_from_lane": 4, 
+            "origin_section_id": 22208, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 4
+        }, 
+        "4724": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 460, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 2, 
+            "length": 37.08035294278339, 
+            "max_speed": 64.3738, 
+            "name": "", 
+            "node_id": 3344, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 22208, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 3
+        }, 
+        "4726": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 460, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 2, 
+            "length": 38.836409434386034, 
+            "max_speed": 49.02521772525461, 
+            "name": "", 
+            "node_id": 3344, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 568, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 0
+        }, 
+        "4728": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 459, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 17.44617963275017, 
+            "max_speed": 30.68574112315802, 
+            "name": "", 
+            "node_id": 3344, 
+            "origin_from_lane": 3, 
+            "origin_section_id": 568, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 3
+        }, 
+        "4730": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7686011, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 1, 
+            "length": 42.565032672295196, 
+            "max_speed": 48.28029999999999, 
+            "name": "", 
+            "node_id": 3344, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 568, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "4750": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 402, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 1, 
+            "length": 10.615633206251553, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3345, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 399, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 1
+        }, 
+        "4751": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 464, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 1, 
+            "length": 10.917480924486826, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3345, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 403, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 1
+        }, 
+        "4845": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 505, 
+            "dest_section_name": "5th", 
+            "dest_to_lane": 0, 
+            "length": 31.882151302249614, 
+            "max_speed": 45.626736038300386, 
+            "name": "", 
+            "node_id": 3355, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 562, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 0
+        }, 
+        "4847": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 507, 
+            "dest_section_name": "5th", 
+            "dest_to_lane": 0, 
+            "length": 18.637175789036412, 
+            "max_speed": 34.075055926276974, 
+            "name": "", 
+            "node_id": 3355, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 562, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "4849": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 508, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 1, 
+            "length": 31.143920275085605, 
+            "max_speed": 48.28029999999999, 
+            "name": "", 
+            "node_id": 3355, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 562, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "4851": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 506, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 1, 
+            "length": 30.526603005427265, 
+            "max_speed": 44.114644115604484, 
+            "name": "", 
+            "node_id": 3355, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 556, 
+            "origin_section_name": "5th", 
+            "origin_to_lane": 0
+        }, 
+        "4853": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 508, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 1, 
+            "length": 17.832338481901758, 
+            "max_speed": 33.54929346322815, 
+            "name": "", 
+            "node_id": 3355, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 556, 
+            "origin_section_name": "5th", 
+            "origin_to_lane": 1
+        }, 
+        "4855": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 505, 
+            "dest_section_name": "5th", 
+            "dest_to_lane": 0, 
+            "length": 39.963216813338626, 
+            "max_speed": 45.59806666666666, 
+            "name": "", 
+            "node_id": 3355, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 556, 
+            "origin_section_name": "5th", 
+            "origin_to_lane": 1
+        }, 
+        "4857": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 508, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 0, 
+            "length": 32.40360141806542, 
+            "max_speed": 45.4579087445027, 
+            "name": "", 
+            "node_id": 3355, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24641, 
+            "origin_section_name": "5th", 
+            "origin_to_lane": 0
+        }, 
+        "4859": {
+            "dest_from_lane": 2, 
+            "dest_section_id": 506, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 19.024788764129067, 
+            "max_speed": 34.96604549205833, 
+            "name": "", 
+            "node_id": 3355, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24641, 
+            "origin_section_name": "5th", 
+            "origin_to_lane": 1
+        }, 
+        "4861": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 507, 
+            "dest_section_name": "5th", 
+            "dest_to_lane": 0, 
+            "length": 38.907729256155484, 
+            "max_speed": 50.96253333333333, 
+            "name": "", 
+            "node_id": 3355, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24641, 
+            "origin_section_name": "5th", 
+            "origin_to_lane": 1
+        }, 
+        "4863": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 507, 
+            "dest_section_name": "5th", 
+            "dest_to_lane": 0, 
+            "length": 30.32967920062626, 
+            "max_speed": 44.50578863335345, 
+            "name": "", 
+            "node_id": 3355, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 441, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 0
+        }, 
+        "4865": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 505, 
+            "dest_section_name": "5th", 
+            "dest_to_lane": 0, 
+            "length": 17.91947568107017, 
+            "max_speed": 33.559771842406114, 
+            "name": "", 
+            "node_id": 3355, 
+            "origin_from_lane": 3, 
+            "origin_section_id": 441, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 3
+        }, 
+        "4867": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 506, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 30.94171589999607, 
+            "max_speed": 48.2803, 
+            "name": "", 
+            "node_id": 3355, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 441, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "4926": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7770098, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 25.64428479738499, 
+            "max_speed": 37.404405160881865, 
+            "name": "", 
+            "node_id": 3359, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 669, 
+            "origin_section_name": "Civic Center Place", 
+            "origin_to_lane": 0
+        }, 
+        "4928": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 517, 
+            "dest_section_name": "Civic Center Place", 
+            "dest_to_lane": 1, 
+            "length": 26.302181483520428, 
+            "max_speed": 48.2803, 
+            "name": "", 
+            "node_id": 3359, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 669, 
+            "origin_section_name": "Civic Center Place", 
+            "origin_to_lane": 1
+        }, 
+        "4930": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7770098, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 20.252708982312473, 
+            "max_speed": 31.65138890827033, 
+            "name": "", 
+            "node_id": 3359, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 671, 
+            "origin_section_name": "Civic Center Place", 
+            "origin_to_lane": 0
+        }, 
+        "4932": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 8008219, 
+            "dest_section_name": "Civic Center Place", 
+            "dest_to_lane": 1, 
+            "length": 24.33906636111235, 
+            "max_speed": 40.2336, 
+            "name": "", 
+            "node_id": 3359, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 671, 
+            "origin_section_name": "Civic Center Place", 
+            "origin_to_lane": 0
+        }, 
+        "4934": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 8008219, 
+            "dest_section_name": "Civic Center Place", 
+            "dest_to_lane": 1, 
+            "length": 21.372803794481914, 
+            "max_speed": 34.125593798660255, 
+            "name": "", 
+            "node_id": 3359, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 336, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 0
+        }, 
+        "4936": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 517, 
+            "dest_section_name": "Civic Center Place", 
+            "dest_to_lane": 1, 
+            "length": 15.056746125940329, 
+            "max_speed": 29.353947681429734, 
+            "name": "", 
+            "node_id": 3359, 
+            "origin_from_lane": 3, 
+            "origin_section_id": 336, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 3
+        }, 
+        "4938": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7770098, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 28.780900392391068, 
+            "max_speed": 72.4205, 
+            "name": "", 
+            "node_id": 3359, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 336, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 3
+        }, 
+        "4980": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 532, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 1, 
+            "length": 27.833664895816437, 
+            "max_speed": 40.98159237763588, 
+            "name": "", 
+            "node_id": 3362, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24668, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 0
+        }, 
+        "4982": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 531, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 1, 
+            "length": 15.935733570031552, 
+            "max_speed": 29.109097995493823, 
+            "name": "", 
+            "node_id": 3362, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24668, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 1
+        }, 
+        "4984": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 529, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 30.10407736596369, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3362, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24668, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 1
+        }, 
+        "4986": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 530, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 23.199818088027744, 
+            "max_speed": 38.45945913643465, 
+            "name": "", 
+            "node_id": 3362, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24683, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 0
+        }, 
+        "4988": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 529, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 13.369242311122981, 
+            "max_speed": 28.38151566970181, 
+            "name": "", 
+            "node_id": 3362, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 24683, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 2
+        }, 
+        "4990": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 532, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 1, 
+            "length": 24.766717338347902, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3362, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24683, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 2
+        }, 
+        "4992": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 529, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 24.42976098182854, 
+            "max_speed": 39.962622252144854, 
+            "name": "", 
+            "node_id": 3362, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 434, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 0
+        }, 
+        "4994": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 530, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 13.84111061920933, 
+            "max_speed": 29.10555216285705, 
+            "name": "", 
+            "node_id": 3362, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 434, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 2
+        }, 
+        "4996": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 531, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 1, 
+            "length": 24.748155864358104, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3362, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 434, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 2
+        }, 
+        "4998": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 531, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 1, 
+            "length": 27.839352803574325, 
+            "max_speed": 40.264837710192, 
+            "name": "", 
+            "node_id": 3362, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24635, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 0
+        }, 
+        "5000": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 532, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 1, 
+            "length": 17.27067563973214, 
+            "max_speed": 30.747778284192304, 
+            "name": "", 
+            "node_id": 3362, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24635, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 1
+        }, 
+        "5002": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 530, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 30.32769312784152, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3362, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24635, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 1
+        }, 
+        "5128": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 561, 
+            "dest_section_name": "Gateway", 
+            "dest_to_lane": 0, 
+            "length": 28.00640196025742, 
+            "max_speed": 43.032078963987765, 
+            "name": "", 
+            "node_id": 3369, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 450, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 0
+        }, 
+        "5130": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 560, 
+            "dest_section_name": "Gateway", 
+            "dest_to_lane": 0, 
+            "length": 16.21441645220338, 
+            "max_speed": 31.518241969080336, 
+            "name": "", 
+            "node_id": 3369, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 450, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "5132": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 562, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 28.61112504642339, 
+            "max_speed": 48.28029999999999, 
+            "name": "", 
+            "node_id": 3369, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 450, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "5134": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 563, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 29.558676187980158, 
+            "max_speed": 41.598300434687594, 
+            "name": "", 
+            "node_id": 3369, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 564, 
+            "origin_section_name": "Gateway", 
+            "origin_to_lane": 0
+        }, 
+        "5136": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 562, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 19.734638513168772, 
+            "max_speed": 33.5767849414876, 
+            "name": "", 
+            "node_id": 3369, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 564, 
+            "origin_section_name": "Gateway", 
+            "origin_to_lane": 1
+        }, 
+        "5138": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 561, 
+            "dest_section_name": "Gateway", 
+            "dest_to_lane": 0, 
+            "length": 35.03049882649264, 
+            "max_speed": 40.2336, 
+            "name": "", 
+            "node_id": 3369, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 564, 
+            "origin_section_name": "Gateway", 
+            "origin_to_lane": 1
+        }, 
+        "5140": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 562, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 32.73610184945371, 
+            "max_speed": 44.2760902100068, 
+            "name": "", 
+            "node_id": 3369, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 559, 
+            "origin_section_name": "Gateway", 
+            "origin_to_lane": 0
+        }, 
+        "5142": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 563, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 19.963889158764832, 
+            "max_speed": 33.584116743296235, 
+            "name": "", 
+            "node_id": 3369, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 559, 
+            "origin_section_name": "Gateway", 
+            "origin_to_lane": 1
+        }, 
+        "5144": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 560, 
+            "dest_section_name": "Gateway", 
+            "dest_to_lane": 0, 
+            "length": 35.151708190416336, 
+            "max_speed": 40.2336, 
+            "name": "", 
+            "node_id": 3369, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 559, 
+            "origin_section_name": "Gateway", 
+            "origin_to_lane": 1
+        }, 
+        "5146": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 560, 
+            "dest_section_name": "Gateway", 
+            "dest_to_lane": 0, 
+            "length": 27.56872775502029, 
+            "max_speed": 42.74287105168742, 
+            "name": "", 
+            "node_id": 3369, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 506, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 0
+        }, 
+        "5148": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 561, 
+            "dest_section_name": "Gateway", 
+            "dest_to_lane": 0, 
+            "length": 19.49800804101918, 
+            "max_speed": 34.8731563135427, 
+            "name": "", 
+            "node_id": 3369, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 506, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "5150": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 563, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 29.758615800809366, 
+            "max_speed": 48.2803, 
+            "name": "", 
+            "node_id": 3369, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 506, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "5162": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 567, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 27.159140881297258, 
+            "max_speed": 42.16339968048561, 
+            "name": "", 
+            "node_id": 3370, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 461, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 0
+        }, 
+        "5164": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 566, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 0, 
+            "length": 16.063975990500712, 
+            "max_speed": 31.470209704752723, 
+            "name": "", 
+            "node_id": 3370, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 461, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "5166": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 569, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 1, 
+            "length": 27.15410811105649, 
+            "max_speed": 48.2803, 
+            "name": "", 
+            "node_id": 3370, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 461, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "5168": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 568, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 30.024913948828768, 
+            "max_speed": 42.34405202142508, 
+            "name": "", 
+            "node_id": 3370, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 655, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "5170": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 569, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 1, 
+            "length": 18.771375782022194, 
+            "max_speed": 32.72720222899209, 
+            "name": "", 
+            "node_id": 3370, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 655, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 1
+        }, 
+        "5172": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 567, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 33.784203968304666, 
+            "max_speed": 48.2803, 
+            "name": "", 
+            "node_id": 3370, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 655, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 1
+        }, 
+        "5174": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 569, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 1, 
+            "length": 29.555447634645738, 
+            "max_speed": 41.765280911412134, 
+            "name": "", 
+            "node_id": 3370, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 580, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "5176": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 568, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 19.88478766303924, 
+            "max_speed": 33.95234716414228, 
+            "name": "", 
+            "node_id": 3370, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 580, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 1
+        }, 
+        "5178": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 566, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 0, 
+            "length": 33.74359542976397, 
+            "max_speed": 50.96253333333333, 
+            "name": "", 
+            "node_id": 3370, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 580, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 1
+        }, 
+        "5180": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 566, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 0, 
+            "length": 25.92695524548662, 
+            "max_speed": 41.16375014773316, 
+            "name": "", 
+            "node_id": 3370, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24660, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 0
+        }, 
+        "5182": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 567, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 15.400729038091528, 
+            "max_speed": 30.70528837773334, 
+            "name": "", 
+            "node_id": 3370, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 24660, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "5184": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 568, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 27.15204839115699, 
+            "max_speed": 48.2803, 
+            "name": "", 
+            "node_id": 3370, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24660, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "5198": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7770093, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 0, 
+            "length": 34.48408164616753, 
+            "max_speed": 47.26702433333259, 
+            "name": "", 
+            "node_id": 3371, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24699, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 0
+        }, 
+        "5200": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 572, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 24.351968245903507, 
+            "max_speed": 39.639382941280786, 
+            "name": "", 
+            "node_id": 3371, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24699, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 1
+        }, 
+        "5202": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 573, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 43.971301619752666, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3371, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24699, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 1
+        }, 
+        "5204": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 571, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 32.51558796493669, 
+            "max_speed": 46.122215747125054, 
+            "name": "", 
+            "node_id": 3371, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 579, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "5206": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 573, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 32.521136444022154, 
+            "max_speed": 45.103226194553265, 
+            "name": "", 
+            "node_id": 3371, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 579, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 1
+        }, 
+        "5208": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7770093, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 0, 
+            "length": 42.34364034357803, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3371, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 579, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 1
+        }, 
+        "5210": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 573, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 49.966255239592, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3371, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 25902, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "5212": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 571, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 35.863094038463394, 
+            "max_speed": 47.38206011603774, 
+            "name": "", 
+            "node_id": 3371, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 25902, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 1
+        }, 
+        "5214": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 572, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 51.68870370353667, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3371, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 25902, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 1
+        }, 
+        "5216": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 572, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 36.76974305671135, 
+            "max_speed": 49.032769763913876, 
+            "name": "", 
+            "node_id": 3371, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24671, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 0
+        }, 
+        "5218": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7770093, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 0, 
+            "length": 29.344202100126928, 
+            "max_speed": 42.47793275935132, 
+            "name": "", 
+            "node_id": 3371, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24671, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 1
+        }, 
+        "5220": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 571, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 36.975144188388995, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3371, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24671, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 1
+        }, 
+        "5232": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 574, 
+            "dest_section_name": "Alta", 
+            "dest_to_lane": 0, 
+            "length": 14.506653411671717, 
+            "max_speed": 29.679421996517878, 
+            "name": "", 
+            "node_id": 3372, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 468, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 1
+        }, 
+        "5236": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 574, 
+            "dest_section_name": "Alta", 
+            "dest_to_lane": 0, 
+            "length": 25.47187013560547, 
+            "max_speed": 40.38974792093422, 
+            "name": "", 
+            "node_id": 3372, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 460, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 0
+        }, 
+        "5238": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 575, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 25.187301054818082, 
+            "max_speed": 64.3738, 
+            "name": "", 
+            "node_id": 3372, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 460, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 2
+        }, 
+        "5240": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 575, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 32.74584581887273, 
+            "max_speed": 44.296658760762426, 
+            "name": "", 
+            "node_id": 3372, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 654, 
+            "origin_section_name": "Alta", 
+            "origin_to_lane": 0
+        }, 
+        "5244": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 579, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 22.160528710830988, 
+            "max_speed": 35.82813229070354, 
+            "name": "", 
+            "node_id": 3373, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 638, 
+            "origin_section_name": "Wheeler", 
+            "origin_to_lane": 0
+        }, 
+        "5246": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 580, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 13.603528806996918, 
+            "max_speed": 28.59205081683862, 
+            "name": "", 
+            "node_id": 3373, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 638, 
+            "origin_section_name": "Wheeler", 
+            "origin_to_lane": 0
+        }, 
+        "5248": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 577, 
+            "dest_section_name": "Wheeler", 
+            "dest_to_lane": 0, 
+            "length": 26.458709226185263, 
+            "max_speed": 40.2336, 
+            "name": "", 
+            "node_id": 3373, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 638, 
+            "origin_section_name": "Wheeler", 
+            "origin_to_lane": 0
+        }, 
+        "5250": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 578, 
+            "dest_section_name": "Wheeler", 
+            "dest_to_lane": 0, 
+            "length": 18.849609819701417, 
+            "max_speed": 34.42623626933, 
+            "name": "", 
+            "node_id": 3373, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 567, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "5252": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 577, 
+            "dest_section_name": "Wheeler", 
+            "dest_to_lane": 0, 
+            "length": 14.258812398276163, 
+            "max_speed": 29.293898188158373, 
+            "name": "", 
+            "node_id": 3373, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 567, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 1
+        }, 
+        "5254": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 579, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 17.683508514456644, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3373, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 567, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 1
+        }, 
+        "5256": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 577, 
+            "dest_section_name": "Wheeler", 
+            "dest_to_lane": 0, 
+            "length": 22.159266102284118, 
+            "max_speed": 37.35905004961523, 
+            "name": "", 
+            "node_id": 3373, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 572, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "5258": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 578, 
+            "dest_section_name": "Wheeler", 
+            "dest_to_lane": 0, 
+            "length": 10.846791749619651, 
+            "max_speed": 25.0903502738647, 
+            "name": "", 
+            "node_id": 3373, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 572, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 1
+        }, 
+        "5260": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 580, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 17.46555469717664, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3373, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 572, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "5262": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 580, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 22.543955281443807, 
+            "max_speed": 37.52308639841023, 
+            "name": "", 
+            "node_id": 3373, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 639, 
+            "origin_section_name": "Wheeler", 
+            "origin_to_lane": 0
+        }, 
+        "5264": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 579, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 14.143930197218824, 
+            "max_speed": 30.33929212878673, 
+            "name": "", 
+            "node_id": 3373, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 639, 
+            "origin_section_name": "Wheeler", 
+            "origin_to_lane": 0
+        }, 
+        "5266": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 578, 
+            "dest_section_name": "Wheeler", 
+            "dest_to_lane": 0, 
+            "length": 26.440020181407544, 
+            "max_speed": 40.2336, 
+            "name": "", 
+            "node_id": 3373, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 639, 
+            "origin_section_name": "Wheeler", 
+            "origin_to_lane": 0
+        }, 
+        "5588": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 632, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 39.12344507367436, 
+            "max_speed": 52.28841798080416, 
+            "name": "", 
+            "node_id": 3386, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 402, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 1
+        }, 
+        "5590": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 634, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 15.666399456183616, 
+            "max_speed": 28.91415085191704, 
+            "name": "", 
+            "node_id": 3386, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 402, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 2
+        }, 
+        "5592": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 633, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 41.81266026744209, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3386, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 402, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 2
+        }, 
+        "5594": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 403, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 1, 
+            "length": 33.32503828906189, 
+            "max_speed": 42.784483024369976, 
+            "name": "", 
+            "node_id": 3386, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24692, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 0
+        }, 
+        "5596": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 633, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 15.815338761319918, 
+            "max_speed": 30.968444490191967, 
+            "name": "", 
+            "node_id": 3386, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 24692, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 2
+        }, 
+        "5598": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 632, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 28.63404116469254, 
+            "max_speed": 64.3738, 
+            "name": "", 
+            "node_id": 3386, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24692, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 2
+        }, 
+        "5600": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 633, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 32.36236453942877, 
+            "max_speed": 46.095779122860804, 
+            "name": "", 
+            "node_id": 3386, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 25913, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 0
+        }, 
+        "5602": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 403, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 1, 
+            "length": 18.730632668033248, 
+            "max_speed": 34.02074346810006, 
+            "name": "", 
+            "node_id": 3386, 
+            "origin_from_lane": 3, 
+            "origin_section_id": 25913, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 3
+        }, 
+        "5604": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 634, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 31.705360378214717, 
+            "max_speed": 64.3738, 
+            "name": "", 
+            "node_id": 3386, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 25913, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 2
+        }, 
+        "5606": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 634, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 37.52019251216946, 
+            "max_speed": 47.30408086541104, 
+            "name": "", 
+            "node_id": 3386, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24702, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 0
+        }, 
+        "5608": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 632, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 21.517730314133495, 
+            "max_speed": 35.53218276229592, 
+            "name": "", 
+            "node_id": 3386, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24702, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 1
+        }, 
+        "5610": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 403, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 1, 
+            "length": 42.92055880906767, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3386, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 24702, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 1
+        }, 
+        "5667": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 655, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 17.051955798398573, 
+            "max_speed": 32.76476634567935, 
+            "name": "", 
+            "node_id": 3391, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 574, 
+            "origin_section_name": "Alta", 
+            "origin_to_lane": 0
+        }, 
+        "5669": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 8002982, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 0, 
+            "length": 12.131336947155992, 
+            "max_speed": 26.883326142950864, 
+            "name": "", 
+            "node_id": 3391, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 574, 
+            "origin_section_name": "Alta", 
+            "origin_to_lane": 0
+        }, 
+        "5671": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 653, 
+            "dest_section_name": "Alta", 
+            "dest_to_lane": 0, 
+            "length": 19.42896906440865, 
+            "max_speed": 40.2336, 
+            "name": "", 
+            "node_id": 3391, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 574, 
+            "origin_section_name": "Alta", 
+            "origin_to_lane": 0
+        }, 
+        "5673": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 654, 
+            "dest_section_name": "Alta", 
+            "dest_to_lane": 0, 
+            "length": 17.394375350901406, 
+            "max_speed": 32.976319620895616, 
+            "name": "", 
+            "node_id": 3391, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 752, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "5675": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 653, 
+            "dest_section_name": "Alta", 
+            "dest_to_lane": 0, 
+            "length": 12.75359575532063, 
+            "max_speed": 27.654640846514408, 
+            "name": "", 
+            "node_id": 3391, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 752, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "5677": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 655, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 17.16691054495081, 
+            "max_speed": 40.2336, 
+            "name": "", 
+            "node_id": 3391, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 752, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "5679": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 653, 
+            "dest_section_name": "Alta", 
+            "dest_to_lane": 0, 
+            "length": 17.173690721139184, 
+            "max_speed": 32.62678307131216, 
+            "name": "", 
+            "node_id": 3391, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 566, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "5681": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 654, 
+            "dest_section_name": "Alta", 
+            "dest_to_lane": 0, 
+            "length": 11.794555797760502, 
+            "max_speed": 26.61483297841078, 
+            "name": "", 
+            "node_id": 3391, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 566, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "5683": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 8002982, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 0, 
+            "length": 17.191773674557282, 
+            "max_speed": 40.1960262301543, 
+            "name": "", 
+            "node_id": 3391, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 566, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "5685": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 8002982, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 0, 
+            "length": 17.959857520073765, 
+            "max_speed": 33.54204587533266, 
+            "name": "", 
+            "node_id": 3391, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 660, 
+            "origin_section_name": "Alta", 
+            "origin_to_lane": 0
+        }, 
+        "5687": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 655, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 11.832253010480553, 
+            "max_speed": 26.387927806880498, 
+            "name": "", 
+            "node_id": 3391, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 660, 
+            "origin_section_name": "Alta", 
+            "origin_to_lane": 0
+        }, 
+        "5689": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 654, 
+            "dest_section_name": "Alta", 
+            "dest_to_lane": 0, 
+            "length": 19.384627880446914, 
+            "max_speed": 40.2336, 
+            "name": "", 
+            "node_id": 3391, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 660, 
+            "origin_section_name": "Alta", 
+            "origin_to_lane": 0
+        }, 
+        "5771": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 8008222, 
+            "dest_section_name": "Civic Center Place", 
+            "dest_to_lane": 1, 
+            "length": 22.91688076947991, 
+            "max_speed": 36.757913558844756, 
+            "name": "", 
+            "node_id": 3395, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 398, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 0
+        }, 
+        "5773": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 21931, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 3, 
+            "length": 26.60579206095684, 
+            "max_speed": 72.4205, 
+            "name": "", 
+            "node_id": 3395, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 398, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "5775": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 21931, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 25.193295671435575, 
+            "max_speed": 38.7490509342266, 
+            "name": "", 
+            "node_id": 3395, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 518, 
+            "origin_section_name": "Civic Center Place", 
+            "origin_to_lane": 1
+        }, 
+        "5961": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 730, 
+            "dest_section_name": "5th", 
+            "dest_to_lane": 0, 
+            "length": 20.73699368624645, 
+            "max_speed": 36.43763853277004, 
+            "name": "", 
+            "node_id": 3409, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24629, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 0
+        }, 
+        "5967": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 730, 
+            "dest_section_name": "5th", 
+            "dest_to_lane": 0, 
+            "length": 22.586587500837464, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3409, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24644, 
+            "origin_section_name": "5th", 
+            "origin_to_lane": 0
+        }, 
+        "5969": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 731, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 15.529821236381983, 
+            "max_speed": 31.04978957918392, 
+            "name": "", 
+            "node_id": 3409, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 25479, 
+            "origin_section_name": "5th", 
+            "origin_to_lane": 0
+        }, 
+        "5971": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 732, 
+            "dest_section_name": "5th", 
+            "dest_to_lane": 0, 
+            "length": 22.513562446101513, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 3409, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 25479, 
+            "origin_section_name": "5th", 
+            "origin_to_lane": 0
+        }, 
+        "22066": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 732, 
+            "dest_section_name": "5th", 
+            "dest_to_lane": 0, 
+            "length": 14.835467775632653, 
+            "max_speed": 30.076527037954996, 
+            "name": "", 
+            "node_id": 3409, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24629, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 0
+        }, 
+        "22067": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 731, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 20.152017933322288, 
+            "max_speed": 35.786307716718234, 
+            "name": "", 
+            "node_id": 3409, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24644, 
+            "origin_section_name": "5th", 
+            "origin_to_lane": 0
+        }, 
+        "22210": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 22208, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 3, 
+            "length": 21.62425979302432, 
+            "max_speed": 64.37145385985247, 
+            "name": "", 
+            "node_id": 22209, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24689, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 1
+        }, 
+        "22216": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 22215, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 24.88563745026206, 
+            "max_speed": 64.3738, 
+            "name": "", 
+            "node_id": 3372, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 468, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 1
+        }, 
+        "22217": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 22215, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 17.040953576160195, 
+            "max_speed": 30.85975641764238, 
+            "name": "", 
+            "node_id": 3372, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 654, 
+            "origin_section_name": "Alta", 
+            "origin_to_lane": 0
+        }, 
+        "22219": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 22211, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 4, 
+            "length": 22.30539126415731, 
+            "max_speed": 64.37217678310648, 
+            "name": "", 
+            "node_id": 22218, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 22215, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 1
+        }, 
+        "24637": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 24635, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 1, 
+            "length": 10.134900379608446, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 24636, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 731, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 0
+        }, 
+        "24638": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 24629, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 0, 
+            "length": 10.365957074926161, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 24636, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 529, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 0
+        }, 
+        "24643": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 24641, 
+            "dest_section_name": "5th", 
+            "dest_to_lane": 1, 
+            "length": 11.593068707649095, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 24642, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 732, 
+            "origin_section_name": "5th", 
+            "origin_to_lane": 0
+        }, 
+        "24647": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 24644, 
+            "dest_section_name": "5th", 
+            "dest_to_lane": 0, 
+            "length": 11.719117282164447, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 24642, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 505, 
+            "origin_section_name": "5th", 
+            "origin_to_lane": 0
+        }, 
+        "24652": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 24650, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 15.757645312143271, 
+            "max_speed": 48.28029999999999, 
+            "name": "", 
+            "node_id": 24651, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 569, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 1
+        }, 
+        "24662": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 24660, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 19.756614970057598, 
+            "max_speed": 48.2803, 
+            "name": "", 
+            "node_id": 24661, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 449, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 1
+        }, 
+        "24670": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 24668, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 1, 
+            "length": 13.697999385477072, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 24669, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 573, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 0
+        }, 
+        "24674": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 24671, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 1, 
+            "length": 13.844904833446211, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 24669, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 530, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 0
+        }, 
+        "24682": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 24680, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 2, 
+            "length": 10.661837172084978, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 24681, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 531, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 1
+        }, 
+        "24686": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 24683, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 2, 
+            "length": 9.393490247466842, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 24681, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 451, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 1
+        }, 
+        "24691": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 24689, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 6.930764220689745, 
+            "max_speed": 63.98102493269228, 
+            "name": "", 
+            "node_id": 24690, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 634, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 1
+        }, 
+        "24695": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 24692, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 2, 
+            "length": 7.416243239675726, 
+            "max_speed": 64.3738, 
+            "name": "", 
+            "node_id": 24690, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 459, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 1
+        }, 
+        "24701": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 24699, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 1, 
+            "length": 9.719439883038882, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 24700, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 633, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 0
+        }, 
+        "24705": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 24702, 
+            "dest_section_name": "Santa Clara", 
+            "dest_to_lane": 1, 
+            "length": 9.45243716965375, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 24700, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 571, 
+            "origin_section_name": "Santa Clara", 
+            "origin_to_lane": 0
+        }, 
+        "7602909": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 339, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 29.730789552979275, 
+            "max_speed": 72.4205, 
+            "name": "", 
+            "node_id": 7602908, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7602907, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "7602912": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 339, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 20.858080840776505, 
+            "max_speed": 25.504605066888388, 
+            "name": "", 
+            "node_id": 7602908, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7602910, 
+            "origin_section_name": "Gate 5", 
+            "origin_to_lane": 0
+        }, 
+        "7602913": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7602911, 
+            "dest_section_name": "Gate 5", 
+            "dest_to_lane": 1, 
+            "length": 23.57971630189792, 
+            "max_speed": 59.54574, 
+            "name": "", 
+            "node_id": 7602908, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 7602907, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "7602922": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 410, 
+            "dest_section_name": "Colorado Pl", 
+            "dest_to_lane": 1, 
+            "length": 17.439846055921368, 
+            "max_speed": 28.785081236879467, 
+            "name": "", 
+            "node_id": 7602917, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 7602914, 
+            "origin_section_name": "Gate 6", 
+            "origin_to_lane": 3
+        }, 
+        "7602923": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7685997, 
+            "dest_section_name": "Colorado Pl", 
+            "dest_to_lane": 1, 
+            "length": 21.012083668075267, 
+            "max_speed": 64.3738, 
+            "name": "", 
+            "node_id": 7602917, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7602919, 
+            "origin_section_name": "Colorado Pl", 
+            "origin_to_lane": 1
+        }, 
+        "7602924": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7602915, 
+            "dest_section_name": "Gate 6", 
+            "dest_to_lane": 1, 
+            "length": 17.50916164884369, 
+            "max_speed": 49.301687904027496, 
+            "name": "", 
+            "node_id": 7602917, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 7602916, 
+            "origin_section_name": "Colorado Pl", 
+            "origin_to_lane": 1
+        }, 
+        "7602925": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7685997, 
+            "dest_section_name": "Colorado Pl", 
+            "dest_to_lane": 1, 
+            "length": 29.728806702456513, 
+            "max_speed": 48.28033333333334, 
+            "name": "", 
+            "node_id": 7602917, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7602914, 
+            "origin_section_name": "Gate 6", 
+            "origin_to_lane": 1
+        }, 
+        "7602927": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7602926, 
+            "dest_section_name": "Colorado Pl", 
+            "dest_to_lane": 1, 
+            "length": 17.228756819944056, 
+            "max_speed": 64.3738, 
+            "name": "", 
+            "node_id": 7602917, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7602916, 
+            "origin_section_name": "Colorado Pl", 
+            "origin_to_lane": 1
+        }, 
+        "7602928": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 410, 
+            "dest_section_name": "Colorado Pl", 
+            "dest_to_lane": 1, 
+            "length": 24.610546523120604, 
+            "max_speed": 64.3738, 
+            "name": "", 
+            "node_id": 7602917, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7602926, 
+            "origin_section_name": "Colorado Pl", 
+            "origin_to_lane": 1
+        }, 
+        "7602955": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 401, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 25.043046366975567, 
+            "max_speed": 48.2803, 
+            "name": "", 
+            "node_id": 7602954, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7602953, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 2
+        }, 
+        "7602957": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7602919, 
+            "dest_section_name": "Colorado Pl", 
+            "dest_to_lane": 1, 
+            "length": 7.073302930583129, 
+            "max_speed": 64.3738, 
+            "name": "", 
+            "node_id": 3314, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7602956, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 1
+        }, 
+        "7686013": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 462, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 1, 
+            "length": 9.749352819763075, 
+            "max_speed": 48.2803, 
+            "name": "", 
+            "node_id": 7686012, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7686011, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 1
+        }, 
+        "7770095": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 570, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 0, 
+            "length": 4.024321745393765, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 7770094, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7770093, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "7993544": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 25902, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 1, 
+            "length": 4.429314847108957, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 7770094, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7770090, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "7996489": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7996487, 
+            "dest_section_name": "Arcadia Park", 
+            "dest_to_lane": 0, 
+            "length": 14.499947582482406, 
+            "max_speed": 35.20631678981979, 
+            "name": "", 
+            "node_id": 3372, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 460, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 2
+        }, 
+        "7996490": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 575, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 18.330452189916112, 
+            "max_speed": 27.099375032605938, 
+            "name": "", 
+            "node_id": 3372, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7996488, 
+            "origin_section_name": "Arcadia Park", 
+            "origin_to_lane": 0
+        }, 
+        "7996491": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 574, 
+            "dest_section_name": "Alta", 
+            "dest_to_lane": 0, 
+            "length": 33.115262765329454, 
+            "max_speed": 39.93601736664991, 
+            "name": "", 
+            "node_id": 3372, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7996488, 
+            "origin_section_name": "Arcadia Park", 
+            "origin_to_lane": 0
+        }, 
+        "7996492": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 22215, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 31.149906414612524, 
+            "max_speed": 41.9356339974085, 
+            "name": "", 
+            "node_id": 3372, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7996488, 
+            "origin_section_name": "Arcadia Park", 
+            "origin_to_lane": 0
+        }, 
+        "7996493": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7996487, 
+            "dest_section_name": "Arcadia Park", 
+            "dest_to_lane": 0, 
+            "length": 33.419557362112556, 
+            "max_speed": 26.722033744403532, 
+            "name": "", 
+            "node_id": 3372, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 654, 
+            "origin_section_name": "Alta", 
+            "origin_to_lane": 0
+        }, 
+        "7996494": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7996487, 
+            "dest_section_name": "Arcadia Park", 
+            "dest_to_lane": 0, 
+            "length": 31.60646134403187, 
+            "max_speed": 39.10094350208172, 
+            "name": "", 
+            "node_id": 3372, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 468, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 0
+        }, 
+        "7996503": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7996501, 
+            "dest_section_name": "Alta", 
+            "dest_to_lane": 0, 
+            "length": 16.755079718809235, 
+            "max_speed": 33.72962886992102, 
+            "name": "", 
+            "node_id": 3343, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 452, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 1
+        }, 
+        "7996504": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7996501, 
+            "dest_section_name": "Alta", 
+            "dest_to_lane": 0, 
+            "length": 17.043999056554096, 
+            "max_speed": 32.539264438902585, 
+            "name": "", 
+            "node_id": 3343, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 631, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 0
+        }, 
+        "7996505": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 8002973, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 0, 
+            "length": 11.730289170867932, 
+            "max_speed": 26.3235504883552, 
+            "name": "", 
+            "node_id": 3343, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7996502, 
+            "origin_section_name": "Alta", 
+            "origin_to_lane": 0
+        }, 
+        "7996506": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 458, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 2, 
+            "length": 25.011357951901754, 
+            "max_speed": 42.82875651841978, 
+            "name": "", 
+            "node_id": 3343, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 7996502, 
+            "origin_section_name": "Alta", 
+            "origin_to_lane": 0
+        }, 
+        "8002742": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 7602956, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 1, 
+            "length": 16.24296180902267, 
+            "max_speed": 53.6448, 
+            "name": "", 
+            "node_id": 7602954, 
+            "origin_from_lane": 2, 
+            "origin_section_id": 7602953, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 3
+        }, 
+        "8002858": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 634, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 20.255199995123128, 
+            "max_speed": 25.21708462125559, 
+            "name": "", 
+            "node_id": 3386, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 24692, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 0
+        }, 
+        "8002859": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 632, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 19.267927815260514, 
+            "max_speed": 24.79581825328645, 
+            "name": "", 
+            "node_id": 3386, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 25913, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 0
+        }, 
+        "8002909": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 459, 
+            "dest_section_name": "Santa Anita", 
+            "dest_to_lane": 1, 
+            "length": 15.522230503481614, 
+            "max_speed": 22.001797332366614, 
+            "name": "", 
+            "node_id": 3344, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 22208, 
+            "origin_section_name": "Santa Anita", 
+            "origin_to_lane": 0
+        }, 
+        "8002975": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 457, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 0, 
+            "length": 16.739805146326425, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 8002974, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8002973, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 0
+        }, 
+        "8002981": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 752, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 0, 
+            "length": 15.867505452729521, 
+            "max_speed": 40.2336, 
+            "name": "", 
+            "node_id": 8002980, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8002979, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "8008221": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 518, 
+            "dest_section_name": "Civic Center Place", 
+            "dest_to_lane": 1, 
+            "length": 11.694016113822865, 
+            "max_speed": 40.2336, 
+            "name": "", 
+            "node_id": 8008220, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8008219, 
+            "origin_section_name": "Civic Center Place", 
+            "origin_to_lane": 1
+        }, 
+        "8008225": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 669, 
+            "dest_section_name": "Civic Center Place", 
+            "dest_to_lane": 1, 
+            "length": 11.369930890610535, 
+            "max_speed": 48.2803, 
+            "name": "", 
+            "node_id": 8008220, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8008222, 
+            "origin_section_name": "Civic Center Place", 
+            "origin_to_lane": 1
+        }, 
+        "8008242": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 631, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 0, 
+            "length": 16.819921289169194, 
+            "max_speed": 56.327, 
+            "name": "", 
+            "node_id": 8002974, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8002970, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 0
+        }, 
+        "8008243": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 457, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 0, 
+            "length": 11.819915312856006, 
+            "max_speed": 26.43961607428673, 
+            "name": "", 
+            "node_id": 8002974, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8008239, 
+            "origin_section_name": "Bonita", 
+            "origin_to_lane": 0
+        }, 
+        "8008244": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 631, 
+            "dest_section_name": "2nd", 
+            "dest_to_lane": 0, 
+            "length": 17.390288448969905, 
+            "max_speed": 32.99597741317624, 
+            "name": "", 
+            "node_id": 8002974, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8008239, 
+            "origin_section_name": "Bonita", 
+            "origin_to_lane": 0
+        }, 
+        "8008245": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 8008238, 
+            "dest_section_name": "Bonita", 
+            "dest_to_lane": 0, 
+            "length": 12.1913617163744, 
+            "max_speed": 26.971498679068493, 
+            "name": "", 
+            "node_id": 8002974, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8002973, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 0
+        }, 
+        "8008246": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 8008238, 
+            "dest_section_name": "Bonita", 
+            "dest_to_lane": 0, 
+            "length": 17.14842258228606, 
+            "max_speed": 32.70420748434296, 
+            "name": "", 
+            "node_id": 8002974, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8002970, 
+            "origin_section_name": "2nd", 
+            "origin_to_lane": 0
+        }, 
+        "8008249": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 652, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 0, 
+            "length": 15.935873634234335, 
+            "max_speed": 40.2336, 
+            "name": "", 
+            "node_id": 8002980, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8002982, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "8008250": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 8008241, 
+            "dest_section_name": "Bonita", 
+            "dest_to_lane": 0, 
+            "length": 12.857857481426562, 
+            "max_speed": 27.43497815704186, 
+            "name": "", 
+            "node_id": 8002980, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8002979, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "8008251": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 752, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 0, 
+            "length": 13.232518693630807, 
+            "max_speed": 28.042677408779255, 
+            "name": "", 
+            "node_id": 8002980, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8008240, 
+            "origin_section_name": "Bonita", 
+            "origin_to_lane": 0
+        }, 
+        "8008252": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 652, 
+            "dest_section_name": "1st", 
+            "dest_to_lane": 0, 
+            "length": 17.996290043125445, 
+            "max_speed": 33.45055217991842, 
+            "name": "", 
+            "node_id": 8002980, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8008240, 
+            "origin_section_name": "Bonita", 
+            "origin_to_lane": 0
+        }, 
+        "8008253": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 8008241, 
+            "dest_section_name": "Bonita", 
+            "dest_to_lane": 0, 
+            "length": 18.4552985648652, 
+            "max_speed": 33.95216401862548, 
+            "name": "", 
+            "node_id": 8002980, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8002982, 
+            "origin_section_name": "1st", 
+            "origin_to_lane": 0
+        }, 
+        "8008256": {
+            "dest_from_lane": 0, 
+            "dest_section_id": 8008237, 
+            "dest_section_name": "Store Driveway", 
+            "dest_to_lane": 0, 
+            "length": 9.094893437804288, 
+            "max_speed": 22.544092161777815, 
+            "name": "", 
+            "node_id": 24651, 
+            "origin_from_lane": 1, 
+            "origin_section_id": 569, 
+            "origin_section_name": "Huntington", 
+            "origin_to_lane": 1
+        }, 
+        "8008257": {
+            "dest_from_lane": 1, 
+            "dest_section_id": 24650, 
+            "dest_section_name": "Huntington", 
+            "dest_to_lane": 2, 
+            "length": 12.505007928996005, 
+            "max_speed": 24.895367977322856, 
+            "name": "", 
+            "node_id": 24651, 
+            "origin_from_lane": 0, 
+            "origin_section_id": 8008236, 
+            "origin_section_name": "Store Driveway", 
+            "origin_to_lane": 0
+        }
+    }
+}

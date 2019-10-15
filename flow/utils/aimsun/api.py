@@ -650,3 +650,27 @@ class FlowAimsunAPI(object):
                            in_format='i',
                            values=(veh_id,),
                            out_format=None)
+
+    def set_intersection_offset(self, node_id, offset):
+        """
+        Sets an intersection's offset
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+        offset : float
+            the offset of the intersection
+
+        Returns
+        -------
+        list
+            list of current phases
+        """
+        phases = self._send_command(ac.INT_SET_OFFSET,
+                                    in_format='i f',
+                                    values=(node_id, offset,),
+                                    out_format='str')
+
+        return [int(phase) for phase in phases.split(',')]
+        

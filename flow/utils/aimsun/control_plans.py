@@ -79,6 +79,7 @@ def change_offset(node_id, offset, time, timeSta, acycle):
 
     return get_current_phase(node_id)
 
+
 def phase_converter(phase_timings):
     pass
 

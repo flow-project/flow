@@ -8,6 +8,7 @@ sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
                              'programming/Aimsun Next API/AAPIPython/Micro'))
 
 import flow.utils.aimsun.constants as ac
+import flow.utils.aimsun.control_plans as cp
 import AAPI as aimsun_api
 from AAPI import *
 from PyANGKernel import *
@@ -15,6 +16,7 @@ import socket
 import struct
 from thread import start_new_thread
 import numpy as np
+
 
 PORT = 9999
 entered_vehicles = []
@@ -99,7 +101,7 @@ def retrieve_message(conn, out_format):
     return unpacked_data
 
 
-def threaded_client(conn):
+def threaded_client(conn, **kwargs):
     """Create a threaded process.
 
     This process is called every simulation step to interact with the aimsun
@@ -462,6 +464,19 @@ def threaded_client(conn):
                     send_message(conn, in_format='i',
                             values=(int(edge),))
 
+            elif data == ac.INT_SET_OFFSET:
+                send_message(conn, in_format='i', values=(0,))
+                node_id, offset = retrieve_message(conn, 'i f')
+
+                time = kwargs.get('time')
+                timeSta = kwargs.get('timeSta')
+                acycle = kwargs.get('acycle')
+                phases = cp.change_offset(node_id, offset, time, timeSta, acycle)
+
+                output = phases[0].join([','+str(phase) for phase in phases[1:]])
+
+                send_message(conn, in_format='str', values=(output,))
+
             # in case the message is unknown, return -1001
             else:
                 send_message(conn, in_format='i', values=(-1001,))
@@ -494,7 +509,7 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
     c, address = server_socket.accept()
 
     # start the threaded process
-    start_new_thread(threaded_client, (c,))
+    start_new_thread(threaded_client, (c,), time=time, timeSta=timeSta, timeTrans=timeTrans, acycle=acycle)
 
     return 0
 

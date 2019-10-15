@@ -70,3 +70,21 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
             2: yellow
         """
         return self.kernel_api.get_traffic_light_state(meter_aimsun_id)
+
+    def set_intersection_offset(self, node_id, offset):
+        """
+        Sets an intersection's offset
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+        offset : float
+            the offset of the intersection
+
+        Returns
+        -------
+        list
+            list of current phases
+        """
+        return self.kernel_api.set_intersection_offset(node_id, offset)
