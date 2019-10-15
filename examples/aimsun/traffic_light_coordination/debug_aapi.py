@@ -61,6 +61,23 @@ def phase_converter(phase_timings):
     pass
 
 
+def get_combined_ring(start_times, phase_times):
+    combined_ring = {time: [] for time in sorted(start_times)}
+    for time in combined_ring.keys():
+        for ring in phase_times.keys():
+            last_phase_time = None
+            for phase_time in phase_times[ring].keys():
+                if phase_time - time <= 0:
+                    last_phase_time = phase_time
+                else:
+                    break
+                            
+            for phase in phase_times[ring][last_phase_time]:
+                combined_ring[time].append(phase)
+
+    return combined_ring
+
+
 def AAPILoad():
     return 0
 
@@ -104,16 +121,18 @@ def AAPIInit():
                 num_rings = cjunction.getNbRings()
                 phase_times = {i+1: OrderedDict() for i in range(num_rings)}
                 timing_map = {}
+                start_times = set()
                 for phase in cjunction.getPhases():
                     if len(phase.getSignals())>0:
                         ring_id = phase.getIdRing()
                         start_time = phase.getFrom()
+                        start_times.add(start_time)
                         phase_times[ring_id][start_time] = [i.name for i in phase.getSignals()]
                         timing_map[start_time] = ring_id
                         # print(phase.getFrom(), phase.getIdRing(), [i.name for i in phase.getSignals()])
                 print(phase_times)
 
-
+                combined_ring = get_combined_ring(start_times, phase_times)
 
                 # sorted(mydict.items(), key=lambda item: item[1]
     else:
