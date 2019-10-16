@@ -1,5 +1,15 @@
 # flake8: noqa
 """Script used to interact with Aimsun's API during the simulation phase."""
+import json
+import numpy as np
+from thread import start_new_thread
+import struct
+import socket
+from PyANGKernel import *
+from AAPI import *
+import AAPI as aimsun_api
+import flow.utils.aimsun.control_plans as cp
+import flow.utils.aimsun.constants as ac
 import flow.config as config
 import sys
 import os
@@ -7,16 +17,6 @@ import os
 sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
                              'programming/Aimsun Next API/AAPIPython/Micro'))
 
-import flow.utils.aimsun.constants as ac
-import flow.utils.aimsun.control_plans as cp
-import AAPI as aimsun_api
-from AAPI import *
-from PyANGKernel import *
-import socket
-import struct
-from thread import start_new_thread
-import numpy as np
-import json
 
 PORT = 9999
 entered_vehicles = []
@@ -337,41 +337,43 @@ def threaded_client(conn, **kwargs):
                     tracking_info = aimsun_api.AKIVehGetInf(veh_id)
 
                 data = (
-                          # tracking_info.report,
-                          # tracking_info.idVeh,
-                          # tracking_info.type,
-                          tracking_info.CurrentPos,
-                          tracking_info.distance2End,
-                          tracking_info.xCurrentPos,
-                          tracking_info.yCurrentPos,
-                          tracking_info.zCurrentPos,
-                          tracking_info.xCurrentPosBack,
-                          tracking_info.yCurrentPosBack,
-                          tracking_info.zCurrentPosBack,
-                          tracking_info.CurrentSpeed,
-                          # tracking_info.PreviousSpeed,
-                          tracking_info.TotalDistance,
-                          # tracking_info.SystemGenerationT,
-                          # tracking_info.SystemEntranceT,
-                          tracking_info.SectionEntranceT,
-                          tracking_info.CurrentStopTime,
-                          tracking_info.stopped,
-                          tracking_info.idSection,
-                          tracking_info.segment,
-                          tracking_info.numberLane,
-                          tracking_info.idJunction,
-                          tracking_info.idSectionFrom,
-                          tracking_info.idLaneFrom,
-                          tracking_info.idSectionTo,
-                          tracking_info.idLaneTo)
-                
+                    # tracking_info.report,
+                    # tracking_info.idVeh,
+                    # tracking_info.type,
+                    tracking_info.CurrentPos,
+                    tracking_info.distance2End,
+                    tracking_info.xCurrentPos,
+                    tracking_info.yCurrentPos,
+                    tracking_info.zCurrentPos,
+                    tracking_info.xCurrentPosBack,
+                    tracking_info.yCurrentPosBack,
+                    tracking_info.zCurrentPosBack,
+                    tracking_info.CurrentSpeed,
+                    # tracking_info.PreviousSpeed,
+                    tracking_info.TotalDistance,
+                    # tracking_info.SystemGenerationT,
+                    # tracking_info.SystemEntranceT,
+                    tracking_info.SectionEntranceT,
+                    tracking_info.CurrentStopTime,
+                    tracking_info.stopped,
+                    tracking_info.idSection,
+                    tracking_info.segment,
+                    tracking_info.numberLane,
+                    tracking_info.idJunction,
+                    tracking_info.idSectionFrom,
+                    tracking_info.idLaneFrom,
+                    tracking_info.idSectionTo,
+                    tracking_info.idLaneTo)
+
                 # form the output and output format according to the bitmap
                 output = []
                 in_format = ''
                 for i in range(len(info_bitmap)):
                     if info_bitmap[i] == '1':
-                        if i <= 12: in_format += 'f '
-                        else: in_format += 'i '
+                        if i <= 12:
+                            in_format += 'f '
+                        else:
+                            in_format += 'i '
                         output.append(data[i])
                 if in_format == '':
                     return
@@ -459,10 +461,10 @@ def threaded_client(conn, **kwargs):
 
                 if edge_aimsun:
                     send_message(conn, in_format='i',
-                             values=(edge_aimsun.getId(),))
+                                 values=(edge_aimsun.getId(),))
                 else:
                     send_message(conn, in_format='i',
-                            values=(int(edge),))
+                                 values=(int(edge),))
 
             elif data == ac.INT_SET_OFFSET:
                 send_message(conn, in_format='i', values=(0,))
@@ -527,7 +529,7 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
     c, address = server_socket.accept()
 
     # start the threaded process
-    kwargs = {"time":time, "timeSta":timeSta, "timeTrans":timeTrans, "acycle":acycle}
+    kwargs = {"time": time, "timeSta": timeSta, "timeTrans": timeTrans, "acycle": acycle}
     start_new_thread(threaded_client, (c,), kwargs)
 
     return 0
