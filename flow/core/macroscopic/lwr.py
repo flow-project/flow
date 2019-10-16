@@ -241,7 +241,6 @@ class LWR(MacroModelEnv):
         speed = self.speed_info(rho)
 
         # compute the new observation
-        # self.obs = np.concatenate((rho / self.rho_max, speed / self.v_max))
         self.obs = np.concatenate((rho, speed))
 
         # compute the reward value
@@ -265,15 +264,19 @@ class LWR(MacroModelEnv):
         array_like
             array of fluxes calibrated at every point of our data
         """
+        rho_critical = self.rho_critical
+        q_max = rho_critical * self.speed_info(rho_critical)
+
         # demand
         d = rho_t * self.speed_info(rho_t) \
-            * (rho_t < self.rho_critical) \
-            + 0.25 * self.v_max * self.rho_max * (rho_t >= self.rho_critical)
+            * (rho_t < rho_critical) \
+            + q_max* (rho_t >= rho_critical)
 
         # supply
         s = rho_t * self.speed_info(rho_t)\
-            * (rho_t > self.rho_critical) \
-            + 0.25 * self.v_max * self.rho_max * (rho_t <= self.rho_critical)
+            * (rho_t > rho_critical) \
+            + q_max * (rho_t <= rho_critical)
+
         s = np.append(s[1:], s[len(s) - 1])
 
         # Godunov flux
