@@ -16,7 +16,7 @@ import socket
 import struct
 from thread import start_new_thread
 import numpy as np
-
+import json
 
 PORT = 9999
 entered_vehicles = []
@@ -483,6 +483,15 @@ def threaded_client(conn, **kwargs):
 
                 edge_ids = cp.get_incoming_edges(node_id)
                 output = ','.join(str(i) for i in edge_ids)
+
+                send_message(conn, in_format='str', values=(output,))
+
+            elif data == ac.DET_GET_IDS_ON_EDGE:
+                send_message(conn, in_format='i', values=(0,))
+                edge_id, = retrieve_message(conn, 'i')
+
+                detector_list = cp.get_detector_ids(edge_id)
+                output = json.dumps(detector_list)
 
                 send_message(conn, in_format='str', values=(output,))
 

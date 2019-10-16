@@ -158,4 +158,4 @@ def get_detector_ids(edge_id):
                 detector_list[kind].append(detector.Id)
             except ValueError:
                 pass
-    return detector_list['stopbar'], detector_list['advanced']
+    return detector_list

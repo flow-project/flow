@@ -2,6 +2,7 @@
 import socket
 import logging
 import struct
+import json
 
 import flow.utils.aimsun.constants as ac
 import flow.utils.aimsun.struct as aimsun_struct
@@ -699,3 +700,23 @@ class FlowAimsunAPI(object):
                                       out_format='str')
 
         return [int(edge_id) for edge_id in edge_ids.split(',')]
+
+    def get_detectors_on_edge(self, edge_id):
+        """
+        Gets the detector ids on an edge
+
+        Parameters
+        ----------
+        edge_id : int
+            the id of the edge
+
+        Returns
+        -------
+        dict
+            dict of detector ids with keys 'stopbar' and 'advanced'
+        """
+        output = self._send_command(ac.DET_GET_IDS_ON_EDGE,
+                                    in_format='i',
+                                    values=(edge_id,),
+                                    out_format='str')
+        return json.loads(output)

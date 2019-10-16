@@ -104,3 +104,19 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
             list of edge ids as ints
         """
         return self.kernel_api.get_incoming_edges(node_id)
+
+    def get_detectors_on_edge(self, edge_id):
+        """
+        Gets the detector ids on an edge
+
+        Parameters
+        ----------
+        edge_id : int
+            the id of the edge
+
+        Returns
+        -------
+        list
+            list of detector ids as ints
+        """
+        return self.kernel_api.get_detectors_on_edge(edge_id)

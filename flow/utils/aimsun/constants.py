@@ -116,3 +116,11 @@ INT_SET_OFFSET = 0x1D
 
 #: get incoming link ids
 INT_GET_IN_EDGES = 0x1F
+
+
+###############################################################################
+#                           Detector Commands                            #
+###############################################################################
+
+#: set intersection offset
+DET_GET_IDS_ON_EDGE = 0x20
