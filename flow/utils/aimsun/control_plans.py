@@ -8,26 +8,10 @@ global edge_detector_dict
 edge_detector_dict = {}
 
 
-def get_section_occupancy(section_id):
-    section_data = edge_detector_dict[section_id]
-    readings = [0, 0]
-    detector_types = ["stopbar_ids", "advanced_ids"]
-    for i, detector_type in enumerate(detector_types):
-        for detector_id in section_data[detector_type]:
-            reading = aapi.AKIDetGetTimeOccupedAggregatedbyId(detector_id, 0)
-            readings[i] += max(reading, 0)/100  # percentage to float
-    return readings
-
-
-def get_section_flow(section_id):
-    section_data = edge_detector_dict[section_id]
-    readings = [0, 0]
-    detector_types = ["stopbar_ids", "advanced_ids"]
-    for i, detector_type in enumerate(detector_types):
-        for detector_id in section_data[detector_type]:
-            reading = aapi.AKIDetGetCounterAggregatedbyId(detector_id, 0)
-            readings[i] += max(reading, 0)
-    return readings
+def get_detector_flow_and_occupancy(detector_id):
+    flow = aapi.AKIDetGetCounterAggregatedbyId(detector_id, 0)
+    occupancy = aapi.AKIDetGetTimeOccupedAggregatedbyId(detector_id, 0)
+    return flow, occupancy
 
 
 def get_current_phase(node_id):

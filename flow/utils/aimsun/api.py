@@ -720,3 +720,23 @@ class FlowAimsunAPI(object):
                                     values=(edge_id,),
                                     out_format='str')
         return json.loads(output)
+
+    def get_detector_flow_and_occupancy(self, detector_id):
+        """
+        Gets the detector's flow and occupancy values
+
+        Parameters
+        ----------
+        detector_id : int
+            the id of the detector
+
+        Returns
+        -------
+        int, float
+            flow and occupancy of the detector
+        """
+        flow, occupancy = self._send_command(ac.DET_GET_FLOW_AND_OCCUPANCY,
+                                             in_format='i',
+                                             values=(detector_id,),
+                                             out_format='i f')
+        return flow, occupancy

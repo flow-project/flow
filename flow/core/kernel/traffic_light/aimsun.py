@@ -120,3 +120,19 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
             list of detector ids as ints
         """
         return self.kernel_api.get_detectors_on_edge(edge_id)
+
+    def get_detector_flow_and_occupancy(self, detector_id):
+        """
+        Gets the detector's flow and occupancy values
+
+        Parameters
+        ----------
+        detector_id : int
+            the id of the detector
+
+        Returns
+        -------
+        int, float
+            flow and occupancy of the detector
+        """
+        return self.kernel_api.get_detector_flow_and_occupancy(detector_id)

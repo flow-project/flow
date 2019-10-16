@@ -124,3 +124,6 @@ INT_GET_IN_EDGES = 0x1F
 
 #: get detector ids on an edge
 DET_GET_IDS_ON_EDGE = 0x20
+
+#: get flow and occupancy for a detector
+DET_GET_FLOW_AND_OCCUPANCY = 0x21

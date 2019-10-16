@@ -497,6 +497,14 @@ def threaded_client(conn, **kwargs):
 
                 send_message(conn, in_format='str', values=(output,))
 
+            elif data == ac.DET_GET_FLOW_AND_OCCUPANCY:
+                send_message(conn, in_format='i', values=(0,))
+                detector_id, = retrieve_message(conn, 'i')
+
+                flow, occupancy = cp.get_detector_flow_and_occupancy(detector_id)
+
+                send_message(conn, in_format='i f', values=(flow, occupancy))
+
             # in case the message is unknown, return -1001
             else:
                 send_message(conn, in_format='i', values=(-1001,))
