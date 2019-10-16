@@ -143,7 +143,11 @@ class LWR(MacroModelEnv):
             * dt (float): time discretization (in seconds/step)
             * initial_conditions (list of float): list of initial densities.
               Must be of length int(length/dx)
-            * boundary_conditions ((float, float)): TODO: define what that is
+            * boundary_conditions ((float, float)): tuple of (density, density) a at left edge
+                of road and right edge of road respectively as initial boundary conditions.
+                Boundary conditions are important to maintain conservation laws
+                because at each calculation of the flux, we lose information at the boundaries
+                and so may we have to keep updating/specifying them for t=0 (unless in special cases).
         """
         super(LWR, self).__init__(params)
 
@@ -183,6 +187,8 @@ class LWR(MacroModelEnv):
         self.initial_conditions = params['initial_conditions']
         self.boundary_left = params['boundary_conditions'][0]
         self.boundary_right = params['boundary_conditions'][1]
+        self.lam = 1
+        self.rho_critical = self.rho_max / 2
         self.speeds = None
 
         self.obs = None
@@ -235,7 +241,8 @@ class LWR(MacroModelEnv):
         speed = self.speed_info(rho)
 
         # compute the new observation
-        self.obs = np.concatenate((rho / 1, speed / 1))
+        # self.obs = np.concatenate((rho / self.rho_max, speed / self.v_max))
+        self.obs = np.concatenate((rho, speed))
 
         # compute the reward value
         rew = np.mean(np.square(speed - self.v_max) * rho)
@@ -259,14 +266,14 @@ class LWR(MacroModelEnv):
             array of fluxes calibrated at every point of our data
         """
         # demand
-        d = self.v_max * rho_t * (1 - rho_t / self.rho_max) \
-            * (rho_t < 0.5 * self.rho_max) \
-            + 0.25 * self.v_max * self.rho_max * (rho_t >= 0.5 * self.rho_max)
+        d = rho_t * self.speed_info(rho_t) \
+            * (rho_t < self.rho_critical) \
+            + 0.25 * self.v_max * self.rho_max * (rho_t >= self.rho_critical)
 
         # supply
-        s = self.v_max * rho_t * (1 - rho_t / self.rho_max) \
-            * (rho_t > 0.5 * self.rho_max) \
-            + 0.25 * self.v_max * self.rho_max * (rho_t <= 0.5 * self.rho_max)
+        s = rho_t * self.speed_info(rho_t)\
+            * (rho_t > self.rho_critical) \
+            + 0.25 * self.v_max * self.rho_max * (rho_t <= self.rho_critical)
         s = np.append(s[1:], s[len(s) - 1])
 
         # Godunov flux
@@ -295,10 +302,30 @@ class LWR(MacroModelEnv):
         array_like
               next density data points as calculated by the Godunov scheme
         """
-        # lam = time/distance step
-        lam = self.dt / self.dx
+        # step = time/distance step
+        step = self.dt / self.dx
 
-        rho_t = np.insert(np.append(rho_t, u_right), 0, u_left)
+        # # initialize with some boundary data
+        # rho_t = np.insert(np.append(rho_t, u_right), 0, u_left)
+        #
+        # # Godunov numerical flux
+        # f = self.godunov_flux(rho_t)
+        #
+        # fm = np.insert(f[0:len(f) - 1], 0, f[0])
+        #
+        # # Godunov scheme (updating rho_t)
+        # rho_t = rho_t - lam * (f - fm)
+        #
+        # # append with boundary data here
+        # rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], u_right),
+        #                   0, u_left)
+        #
+        # # remove the boundary conditions from the output
+        # rho_t = rho_t[1:len(rho_t) - 1]
+
+        # boundary conditions and simulation for ring experiment below
+        self.boundary_left = rho_t[len(rho_t) - 1]
+        self.boundary_right = rho_t[len(rho_t) - 2]
 
         # Godunov numerical flux
         f = self.godunov_flux(rho_t)
@@ -306,13 +333,11 @@ class LWR(MacroModelEnv):
         fm = np.insert(f[0:len(f) - 1], 0, f[0])
 
         # Godunov scheme (updating rho_t)
-        rho_t = rho_t - lam * (f - fm)
+        rho_t = rho_t - step * (f - fm)
 
-        rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], u_right),
-                          0, u_left)
-
-        # remove the boundary conditions from the output
-        rho_t = rho_t[1:len(rho_t) - 1]
+        # append with boundary data here
+        rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
+                          0, self.boundary_left)
 
         return rho_t
 
@@ -333,7 +358,7 @@ class LWR(MacroModelEnv):
         array_like
             equilibrium velocity at every specified point on road
         """
-        self.speeds = self.v_max * (1 - (density / self.rho_max))
+        self.speeds = self.v_max * ((1 - (density / self.rho_max)) ** self.lam)
         return self.speeds
 
     def reset(self):

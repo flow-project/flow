@@ -165,7 +165,7 @@ class ARZ(MacroModelEnv):
         number of simulation steps since the start of the most recent rollout
     rho_next : array_like
         the next density value
-    rhs : TODO
+    rhs : float
         right hand side constant for the relative flow (used during fsolve)
     """
 
@@ -198,7 +198,11 @@ class ARZ(MacroModelEnv):
             * initial_conditions ((list of float, list of float)): tuple of
               (speed, density) initial conditions. Each element of the tuple
               must be a list of length int(length/dx)
-            * boundary_conditions ((float, float)): TODO: define what that is
+            * boundary_conditions ((float, float)): tuple of ((density, speed),(density, speed) ) a at left edge
+                of road and right edge of road as initial boundary conditions.
+                Boundary conditions are important to maintain conservation laws
+                because at each calculation of the flux, we lose information at the boundaries
+                and so may we have to keep updating/specifying them for t=0 (unless in special cases).
         """
         super(ARZ, self).__init__(params)
 
@@ -243,6 +247,7 @@ class ARZ(MacroModelEnv):
         self.initial_conditions_density = params['initial_conditions'][0]
         self.initial_conditions_velocity = params['initial_conditions'][1]
         # calculate relative flow (transform velocity (u) to relative flow (y))
+        self.lam = 1
         self.initial_conditions_relative_flow = self.relative_flow(
             self.initial_conditions_density, self.initial_conditions_velocity)
         self.initial_conditions = (self.initial_conditions_density,
@@ -251,6 +256,7 @@ class ARZ(MacroModelEnv):
         self.boundary_left = params['boundary_conditions'][0]
         self.boundary_right = params['boundary_conditions'][1]
 
+        self.rho_critical = self.rho_max / 2
         self.speed = None
         self.obs = None
         self.num_steps = None
@@ -348,15 +354,38 @@ class ARZ(MacroModelEnv):
             next relative flow data points as calculated by the Semi-Implicit
             Godunov scheme
         """
-        # we are extrapolating our boundary conditions
-        self.boundary_left = boundary_left_solve(u_full)
-        self.boundary_right = boundary_right_solve(u_full)
 
-        # full array with boundary conditions
-        u_all = (np.insert(np.append(u_full[0], self.boundary_right[0]),
-                           0, self.boundary_left[0]),
-                 np.insert(np.append(u_full[1], self.boundary_right[1]),
-                           0, self.boundary_left[1]))
+        # we are extrapolating our boundary conditions
+        # self.boundary_left = boundary_left_solve(u_full)
+        # self.boundary_right = boundary_right_solve(u_full)
+        #
+        # # full array with boundary conditions
+        # u_all = (np.insert(np.append(u_full[0], self.boundary_right[0]),
+        #                    0, self.boundary_left[0]),
+        #          np.insert(np.append(u_full[1], self.boundary_right[1]),
+        #                    0, self.boundary_left[1]))
+        #
+        # # compute flux
+        # fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, \
+        #     rho_init, y_init = self.compute_flux(u_all)
+        #
+        # # update new points
+        # new_points = self.arz_update_points(
+        #     fp_higher_half,
+        #     fp_lower_half,
+        #     fy_higher_half,
+        #     fy_lower_half,
+        #     rho_init,
+        #     y_init,
+        # )
+
+        # boundary conditions and simulation for ring experiment below
+
+        self.boundary_left = u_full[0][len(u_full[1]) - 1], u_full[1][len(u_full[1]) - 1]
+        self.boundary_right = u_full[0][len(u_full[1]) - 2], u_full[1][len(u_full[1]) - 2]
+
+        # # full array with boundary conditions
+        u_all = u_full
 
         # compute flux
         fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, \
@@ -372,48 +401,12 @@ class ARZ(MacroModelEnv):
             y_init,
         )
 
+        new_points = (np.insert(np.append(new_points[0], self.boundary_right[0]),
+                                0, self.boundary_left[0]),
+                      np.insert(np.append(new_points[1], self.boundary_right[1]),
+                                0, self.boundary_left[1]))
+
         return new_points
-
-    def function_rho(self, density, y_value):
-        """Calculate flux associated with density using density Flux function.
-
-        Fan, Shimao et al. “Comparative model accuracy of a data-fitted
-        generalized Aw-Rascle-Zhang model.” NHM 9 (2014): 239-268.
-
-        Parameters
-        ----------
-        density : array_like
-            density data points at every specified point on the road
-        y_value : array_like
-            relative flow data points at every specified point on the road
-
-        Returns
-        -------
-        array_like
-            density flux values
-        """
-        # Flux equation for density (rho)
-        return y_value + density * self.ve(density)
-
-    def function_y(self, density, y_value):
-        """Calculate flux associated with relative flow.
-
-        Fan, Shimao et al. “Comparative model accuracy of a data-fitted
-        generalized Aw-Rascle-Zhang model.” NHM 9 (2014): 239-268.
-
-        Parameters
-        ----------
-        density : array_like
-            density data points at every specified point on the road
-        y_value : array_like
-            relative flow data points at every specified point on the road
-
-        Returns
-        -------
-        array_like
-            relative flow flux values
-        """
-        return y_value ** 2 / density + y_value * self.ve(density)
 
     def compute_flux(self, u_all):
         """Implement the 'The Lax-Friedrichs Method' for Flux calculations.
@@ -452,47 +445,32 @@ class ARZ(MacroModelEnv):
         rho_full = u_all[0]
         y_full = u_all[1]
 
-        # left cell boundary data to be considered -> entire row except last
-        # two
-        rho_l = rho_full[:-2]
-        y_l = y_full[:-2]
+        rho_critical = self.rho_critical
+        q_max = ((rho_critical * self.ve(rho_critical)) + y_full)
 
-        # midpoint cell boundary data to be considered -> all expect first and
-        # last
-        rho_init = rho_full[1:-1]
-        y_init = y_full[1:-1]
+        # demand
+        d = (rho_full * self.ve(rho_full) + y_full) * (rho_full < rho_critical) + q_max * (rho_full >= rho_critical)
 
-        # right cell boundary data to be considered -> entire row except first
-        # two
-        rho_r = rho_full[2:]
-        y_r = y_full[2:]
+        # supply
+        s = (rho_full * self.ve(rho_full) + y_full) * (rho_full > rho_critical) + q_max * (rho_full <= rho_critical)
+        s = np.append(s[1:], s[len(s) - 1])
 
-        # left fluxes
-        fp_lower_half = 0.5 \
-            * (self.function_rho(rho_l, y_l)
-               + self.function_rho(rho_init, y_init)) \
-            - ((0.5 * self.dx / self.dt) * (rho_init - rho_l))
+        # flow flux
+        q = np.minimum(d, s)
 
-        fy_lower_half = 0.5 \
-            * (self.function_y(rho_l, y_l)
-               + self.function_y(rho_init, y_init)) \
-            - ((0.5 * self.dx / self.dt) * (y_init - y_l))
+        # relative flux
+        p = q * (y_full / rho_full)
 
-        # right fluxes
-        fp_higher_half = 0.5 \
-            * (self.function_rho(rho_r, y_r)
-               + self.function_rho(rho_init, y_init)) \
-            - ((0.5 * self.dx / self.dt) * (rho_r - rho_init))
+        # fluxes at left cell boundaries
+        qm = np.append(q[0], q[0:len(q) - 1])
+        pm = np.append(p[0], p[0:len(p) - 1])
 
-        fy_higher_half = 0.5 \
-            * (self.function_y(rho_r, y_r)
-               + self.function_y(rho_init, y_init)) \
-            - ((0.5 * self.dx / self.dt) * (y_r - y_init))
-
-        self.list_values = self.list_values + [
-            [fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half,
-             rho_init, y_init]
-        ]
+        fp_higher_half = q
+        fp_lower_half = qm
+        fy_higher_half = p
+        fy_lower_half = pm
+        rho_init = rho_full
+        y_init = y_full
 
         return fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, \
             rho_init, y_init
@@ -543,6 +521,9 @@ class ARZ(MacroModelEnv):
         x0 = y_init
         y_next = fsolve(self.myfun, x0)
 
+        self.rho_next = self.rho_next[1:len(self.rho_next) - 1]
+        y_next = y_next[1:len(y_next) - 1]
+
         return self.rho_next, y_next
 
     def myfun(self, y_next):
@@ -580,7 +561,7 @@ class ARZ(MacroModelEnv):
         array_like
             equilibrium velocity at every specified point on road
         """
-        return self.v_max * (1 - (density / self.rho_max))
+        return self.v_max * ((1 - (density / self.rho_max)) ** self.lam)
 
     def u(self, density, y_value):
         """Calculate actual velocity from density and relative flow.
