@@ -9,8 +9,8 @@ edge_detector_dict = {}
 
 
 def get_detector_flow_and_occupancy(detector_id):
-    flow = aapi.AKIDetGetCounterAggregatedbyId(detector_id, 0)
-    occupancy = aapi.AKIDetGetTimeOccupedAggregatedbyId(detector_id, 0)
+    flow = max(aapi.AKIDetGetCounterAggregatedbyId(detector_id, 0), 0)
+    occupancy = max(aapi.AKIDetGetTimeOccupedAggregatedbyId(detector_id, 0), 0)/100
     return flow, occupancy
 
 
