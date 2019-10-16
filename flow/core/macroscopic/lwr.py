@@ -270,7 +270,7 @@ class LWR(MacroModelEnv):
         # demand
         d = rho_t * self.speed_info(rho_t) \
             * (rho_t < rho_critical) \
-            + q_max* (rho_t >= rho_critical)
+            + q_max * (rho_t >= rho_critical)
 
         # supply
         s = rho_t * self.speed_info(rho_t)\
