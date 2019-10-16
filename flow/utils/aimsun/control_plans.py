@@ -126,6 +126,13 @@ def get_link_measures(target_nodes):
                 type_map[kind].append(detector.Id)
             except ValueError:
                 pass
-    
+
     return edge_detector_dict
 
+
+def get_incoming_edges(node_id):
+    catalog = model.getCatalog()
+    node = catalog.find(node_id)
+    in_edges = node.getEntranceSections()
+
+    return [edge.getId() for edge in in_edges]

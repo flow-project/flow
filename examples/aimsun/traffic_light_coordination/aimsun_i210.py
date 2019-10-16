@@ -6,8 +6,9 @@ from flow.networks import Network
 from coordinatedLightEnv import CoordinatedEnv
 import os
 
+ADDITIONAL_ENV_PARAMS = {'target_nodes': [3369, 3341, 3370, 3344, 3329]}
 
-env_params = EnvParams()
+env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 initial_config = InitialConfig()
 vehicles = VehicleParams()
 
@@ -16,8 +17,8 @@ net_params = NetParams(
 )
 
 sim_params = AimsunParams(
-    sim_step=0.1,
-    render=True,
+    sim_step=1,
+    render=False,
     emission_path='data',
     replication_name="Replication (one hour)",
     centroid_config_name="Centroid Configuration 8040652"
@@ -38,4 +39,4 @@ env = CoordinatedEnv(
 )
 
 exp = Experiment(env)
-exp.run(1, 1000)
+exp.run(1, 100)

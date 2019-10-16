@@ -113,3 +113,6 @@ TL_GET_STATE = 0x1C
 
 #: set intersection offset
 INT_SET_OFFSET = 0x1D
+
+#: get incoming link ids
+INT_GET_IN_EDGES = 0x1F

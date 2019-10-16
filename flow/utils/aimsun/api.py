@@ -670,7 +670,7 @@ class FlowAimsunAPI(object):
         Returns
         -------
         list
-            list of current phases
+            list of current phases as ints
         """
         phases = self._send_command(ac.INT_SET_OFFSET,
                                     in_format='i f',
@@ -678,3 +678,24 @@ class FlowAimsunAPI(object):
                                     out_format='str')
 
         return [int(phase) for phase in phases.split(',')]
+
+    def get_incoming_edges(self, node_id):
+        """
+        Gets an intersection's incoming edges
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+
+        Returns
+        -------
+        list
+            list of edge ids as ints
+        """
+        edge_ids = self._send_command(ac.INT_GET_IN_EDGES,
+                                      in_format='i',
+                                      values=(node_id,),
+                                      out_format='str')
+
+        return [int(edge_id) for edge_id in edge_ids.split(',')]

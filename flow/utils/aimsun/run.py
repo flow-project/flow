@@ -477,6 +477,15 @@ def threaded_client(conn, **kwargs):
 
                 send_message(conn, in_format='str', values=(output,))
 
+            elif data == ac.INT_GET_IN_EDGES:
+                send_message(conn, in_format='i', values=(0,))
+                node_id, = retrieve_message(conn, 'i')
+
+                edge_ids = cp.get_incoming_edges(node_id)
+                output = ','.join(str(i) for i in edge_ids)
+
+                send_message(conn, in_format='str', values=(output,))
+
             # in case the message is unknown, return -1001
             else:
                 send_message(conn, in_format='i', values=(-1001,))

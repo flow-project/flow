@@ -85,6 +85,22 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         Returns
         -------
         list
-            list of current phases
+            list of current phases as ints
         """
         return self.kernel_api.set_intersection_offset(node_id, offset)
+
+    def get_incoming_edges(self, node_id):
+        """
+        Gets an intersection's incoming edges
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+
+        Returns
+        -------
+        list
+            list of edge ids as ints
+        """
+        return self.kernel_api.get_incoming_edges(node_id)
