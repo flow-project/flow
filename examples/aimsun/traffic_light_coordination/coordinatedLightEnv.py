@@ -15,16 +15,21 @@ class CoordinatedEnv(TestEnv):
         # target intersections
         self.target_nodes = env_params.additional_params["target_nodes"]
         self.edge_detector_dict = {}
+        self.edges_with_detectors = {}
         for node_id in self.target_nodes:
             incoming_edges = self.k.traffic_light.get_incoming_edges(node_id)
-            self.edge_detector_dict[node_id] = {edge: {"stopbar_ids": [], "advanced_ids": []}
-                                                for edge in incoming_edges}
+            for edge_id in incoming_edges:
+                stopbar_ids, advanced_ids = self.k.traffic_light.get_detectors_on_edge(edge_id)
+                type_map = {"stopbar_ids": stopbar_ids, "advanced_ids": advanced_ids}
+
+                self.edge_detector_dict[node_id] = {edge_id: type_map}
+            # self.edges_with_detectors.update(incoming_edges)
 
     def additional_command(self):
         """Additional commands that may be performed by the step method."""
-        print(self.edge_detector_dict)
-        # veh_types = ["Car", "Car HOV", "Truck - Medium Duty (SU)"]
-        # self.k.vehicle.tracked_vehicle_types.update(veh_types)
+        # print(self.edge_detector_dict)
+        veh_types = ["Car"]
+        self.k.vehicle.tracked_vehicle_types.update(veh_types)
         # tl_ids = self.k.traffic_light.get_ids()
         # print(tl_ids)
-        # print(self.k.traffic_light.set_intersection_offset(3344, -20))
+        print(self.k.traffic_light.set_intersection_offset(3344, -20))

@@ -136,3 +136,26 @@ def get_incoming_edges(node_id):
     in_edges = node.getEntranceSections()
 
     return [edge.getId() for edge in in_edges]
+
+
+def get_detector_ids(edge_id):
+    catalog = model.getCatalog()
+    detector_list = {"stopbar": [], "advanced": []}
+    for i in range(aapi.AKIDetGetNumberDetectors()):
+        detector = aapi.AKIDetGetPropertiesDetector(i)
+        if detector.IdSection == edge_id:
+            edge_aimsun = catalog.find(detector.IdSection)
+
+            if (edge_aimsun.length2D() - detector.FinalPosition) < 5:
+                kind = "stopbar"
+            else:
+                kind = "advanced"
+
+            detector_obj = catalog.find(detector.Id)
+            try:
+                # only those with numerical exernalIds are real
+                int(detector_obj.getExternalId())
+                detector_list[kind].append(detector.Id)
+            except ValueError:
+                pass
+    return detector_list['stopbar'], detector_list['advanced']
