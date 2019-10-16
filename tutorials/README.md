@@ -56,7 +56,7 @@ The content of each exercise is as follows:
 **Tutorial 3:** Running RLlib experiments for mixed-autonomy traffic.
 
 **Tutorial 4:** Saving and visualizing resuls from non-RL simulations and
-testing simulations in the presence of an RLlib/rllab agent.
+testing simulations in the presence of an RLlib agent.
 
 **Tutorial 5:** Creating custom networks.
 
