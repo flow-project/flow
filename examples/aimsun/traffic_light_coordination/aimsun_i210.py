@@ -3,10 +3,10 @@ from flow.core.params import AimsunParams, NetParams, VehicleParams, EnvParams, 
 from flow.core.experiment import Experiment
 from flow.networks import Network
 # from flow.envs import TestEnv
-from coordinatedLightEnv import CoordinatedEnv
+from coordinatedLightEnv import CoordinatedEnv, ADDITIONAL_ENV_PARAMS
 import os
 
-ADDITIONAL_ENV_PARAMS = {'target_nodes': [3369, 3341, 3370, 3344, 3329]}
+# ADDITIONAL_ENV_PARAMS = {'target_nodes': [3369, 3341, 3370, 3344, 3329]}
 
 env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 initial_config = InitialConfig()
@@ -17,7 +17,7 @@ net_params = NetParams(
 )
 
 sim_params = AimsunParams(
-    sim_step=1,
+    sim_step=300,
     render=False,
     emission_path='data',
     replication_name="Replication (one hour)",
@@ -39,4 +39,4 @@ env = CoordinatedEnv(
 )
 
 exp = Experiment(env)
-exp.run(1, 100)
+exp.run(1, 12)
