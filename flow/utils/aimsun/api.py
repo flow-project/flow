@@ -678,4 +678,3 @@ class FlowAimsunAPI(object):
                                     out_format='str')
 
         return [int(phase) for phase in phases.split(',')]
-        
