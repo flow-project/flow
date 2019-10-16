@@ -122,5 +122,5 @@ INT_GET_IN_EDGES = 0x1F
 #                           Detector Commands                            #
 ###############################################################################
 
-#: set detector ids on an edge
+#: get detector ids on an edge
 DET_GET_IDS_ON_EDGE = 0x20
