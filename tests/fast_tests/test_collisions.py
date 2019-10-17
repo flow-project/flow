@@ -10,7 +10,6 @@ from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.routing_controllers import GridRouter
 
 from tests.setup_scripts import traffic_light_grid_mxn_exp_setup
-from examples.exp_configs.non_rl.traffic_light_grid import flow_params
 
 
 class TestCollisions(unittest.TestCase):
@@ -67,7 +66,7 @@ class TestCollisions(unittest.TestCase):
             net_params=flow_params['net'],
             initial_config=flow_params['initial'],
             traffic_lights=flow_params['tls'])
-        
+
         # create the environment
         env = TrafficLightGridTestEnv(
             env_params=flow_params['env'], sim_params=flow_params['sim'], network=network)
