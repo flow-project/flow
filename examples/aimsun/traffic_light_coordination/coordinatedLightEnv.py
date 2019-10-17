@@ -113,58 +113,35 @@ class CoordinatedEnv(TestEnv):
 
     def get_state(self, rl_id=None, **kwargs):
         """See class definition."""
-        # read detectors here
         ap = self.additional_params
-        shape = len(self.target_nodes)*ap['num_incoming_edges_per_node']\
-            * (ap['num_stopbars']+ap['num_advanced'])*ap['num_measures']
-        shape = (len(self.target_nodes), ap['num_incoming_edges_per_node'],
-             (ap['num_stopbars']+ap['num_advanced']), ap['num_measures'])
-        the_state = np.zeros(shape)
 
         num_nodes = len(self.target_nodes)
         num_edges = ap['num_incoming_edges_per_node']
         num_detectors_types = (ap['num_stopbars']+ap['num_advanced'])
         num_measures = (ap['num_measures'])
 
-        z = 0
+        shape = (num_nodes, num_edges, num_detectors_types, num_measures)
+        the_state = np.zeros(shape) - 1
+
         for i, (node, edge) in enumerate(self.edge_detector_dict.items()):
             for j, (edge_id, detector_info) in enumerate(edge.items()):
                 for k, (detector_type, detector_ids) in enumerate(detector_info.items()):
                     if detector_type == 'stopbar':
                         for m, detector in enumerate(detector_ids):
                             flow, occupancy = self.k.traffic_light.get_detector_flow_and_occupancy(int(detector))
-                            index = (i*num_nodes, j*num_edges, k*num_detectors_types, m*num_measures)
-                            print(index)
+                            index = (i, j, m)
                             the_state[(*index, 0)] = flow
                             the_state[(*index, 1)] = occupancy
-                            z+=2
                     elif detector_type == 'advanced':
                         flow, occupancy = 0, 0
                         for detector in detector_ids:
                             output = self.k.traffic_light.get_detector_flow_and_occupancy(int(detector))
                             flow += output[0]
                             occupancy += output[1]
-                        index = (i*num_nodes, j*num_edges, k*num_detectors_types, 3*num_measures)
-                        # print(index)
-
+                        index = (i, j, ap['num_stopbars'])
                         the_state[(*index, 0)] = flow
                         the_state[(*index, 1)] = occupancy
-                        z+=2
 
-                    # flow, occupancy = 0, 0
-                    # for m, detector in enumerate(detector_ids):
-                    #     if detector_type == 'stopbar':
-                    #         flow, occupancy = self.k.traffic_light.get_detector_flow_and_occupancy(int(detector))
-                    #         index = i*num_nodes + j*num_edges + k*num_detectors_types + m
-                    #     elif detector_type == 'advanced':
-                    #         flow, occupancy += self.k.traffic_light.get_detector_flow_and_occupancy(int(detector))
-                    #         index = i*num_nodes + j*num_edges + k*num_detectors_types + 3
-                    # the_state[index] = flow
-                    # the_state[index + 1] = occupancy
-
-                        # print(flow, occupancy)
-        # print(self.k.simulation.time)
-        print(z)
         return the_state.flatten()
 
     def compute_reward(self, rl_actions, **kwargs):
