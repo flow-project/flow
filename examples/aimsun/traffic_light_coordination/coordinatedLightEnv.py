@@ -10,7 +10,7 @@ ADDITIONAL_ENV_PARAMS = {'target_nodes': [3369, 3341, 3370, 3344, 3329],
 
 
 class CoordinatedEnv(TestEnv):
-    def __init__(self, env_params, sim_params, network, simulator='traci'):
+    def __init__(self, env_params, sim_params, network, simulator='aimsun'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -147,7 +147,7 @@ class CoordinatedEnv(TestEnv):
                         the_state[(*index, 0)] = flow
                         the_state[(*index, 1)] = occupancy
 
-       return the_state.flatten()
+        return the_state.flatten()
 
     def compute_reward(self, rl_actions, **kwargs):
         """Computes the average speed of vehicles in the network."""
