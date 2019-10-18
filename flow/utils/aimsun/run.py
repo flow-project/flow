@@ -505,6 +505,18 @@ def threaded_client(conn, **kwargs):
 
                 send_message(conn, in_format='i f', values=(flow, occupancy))
 
+            elif data == ac.DET_SET_STAT_INTERVAL:
+                send_message(conn, in_format='i', values=(0,))
+                hour, minute, sec = retrieve_message(conn, 'i i i')
+
+                cp.set_statistical_interval(hour, minute, sec)
+
+            elif data == ac.DET_SET_DETECTION_INTERVAL:
+                send_message(conn, in_format='i', values=(0,))
+                hour, minute, sec = retrieve_message(conn, 'i i i')
+
+                cp.set_detection_interval(hour, minute, sec)
+
             # in case the message is unknown, return -1001
             else:
                 send_message(conn, in_format='i', values=(-1001,))

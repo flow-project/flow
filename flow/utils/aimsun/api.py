@@ -740,3 +740,39 @@ class FlowAimsunAPI(object):
                                              values=(detector_id,),
                                              out_format='i f')
         return flow, occupancy
+
+    def set_statistical_interval(self, hour, minute, sec):
+        """
+        Sets the statistical interval for the scenario
+
+        Parameters
+        ----------
+        hour : int
+            interval in hours
+        minute : int
+            interval in minutes
+        sec : int
+            interval in seconds
+        """
+        self._send_command(ac.DET_SET_STAT_INTERVAL,
+                           in_format='i i i',
+                           values=(hour, minute, sec,),
+                           out_format=None)
+
+    def set_detection_interval(self, hour, minute, sec):
+        """
+        Sets the detection interval for the scenario
+
+        Parameters
+        ----------
+        hour : int
+            interval in hours
+        minute : int
+            interval in minutes
+        sec : int
+            interval in seconds
+        """
+        self._send_command(ac.DET_SET_DETECTION_INTERVAL,
+                           in_format='i i i',
+                           values=(hour, minute, sec,),
+                           out_format=None)

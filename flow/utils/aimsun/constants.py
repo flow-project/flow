@@ -127,3 +127,9 @@ DET_GET_IDS_ON_EDGE = 0x20
 
 #: get flow and occupancy for a detector
 DET_GET_FLOW_AND_OCCUPANCY = 0x21
+
+#: set statistical interval for the scenairo
+DET_SET_STAT_INTERVAL = 0x22
+
+#: set detection interval for the scenairo
+DET_SET_DETECTION_INTERVAL = 0x23

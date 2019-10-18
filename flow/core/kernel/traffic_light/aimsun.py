@@ -136,3 +136,33 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
             flow and occupancy of the detector
         """
         return self.kernel_api.get_detector_flow_and_occupancy(detector_id)
+
+    def set_statistical_interval(self, hour, minute, sec):
+        """
+        Sets the statistical interval for the scenario
+
+        Parameters
+        ----------
+        hour : int
+            interval in hours
+        minute : int
+            interval in minutes
+        sec : int
+            interval in seconds
+        """
+        return self.kernel_api.set_statistical_interval(hour, minute, sec)
+
+    def set_detection_interval(self, hour, minute, sec):
+        """
+        Sets the detection interval for the scenario
+
+        Parameters
+        ----------
+        hour : int
+            interval in hours
+        minute : int
+            interval in minutes
+        sec : int
+            interval in seconds
+        """
+        return self.kernel_api.set_detection_interval(hour, minute, sec)
