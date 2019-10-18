@@ -6,7 +6,9 @@ ADDITIONAL_ENV_PARAMS = {'target_nodes': [3369, 3341, 3370, 3344, 3329],
                          'num_incoming_edges_per_node': 4,
                          'num_stopbars': 3,
                          'num_advanced': 1,
-                         'num_measures': 2}
+                         'num_measures': 2,
+                         'detection_interval': (0, 5, 0),
+                         'statistical_interval': (0, 5, 0)}
 
 
 class CoordinatedEnv(TestEnv):
@@ -18,6 +20,16 @@ class CoordinatedEnv(TestEnv):
 
         super().__init__(env_params, sim_params, network, simulator)
         self.additional_params = env_params.additional_params
+
+        self.k.simulation.set_detection_interval(
+            self.additional_params['detection_interval'][0],
+            self.additional_params['detection_interval'][1],
+            self.additional_params['detection_interval'][2])
+
+        self.k.simulation.set_statistical_interval(
+            self.additional_params['statistical_interval'][0],
+            self.additional_params['statistical_interval'][1],
+            self.additional_params['statistical_interval'][2])
 
         # veh_types = ["Car"]
         # self.k.vehicle.tracked_vehicle_types.update(veh_types)
@@ -65,7 +77,7 @@ class CoordinatedEnv(TestEnv):
     #     ap = self.additional_params
     #     shape = len(self.target_nodes)*ap['num_incoming_edges_per_node']\
     #         * (ap['num_stopbars']+ap['num_advanced'])*ap['num_measures']
-        
+
     #     the_state = np.zeros(shape)
 
     #     num_nodes = len(self.target_nodes)
