@@ -352,6 +352,10 @@ class Env(gym.Env):
 
             self.k.vehicle.choose_routes(routing_ids, routing_actions)
 
+            # reroute if on the final edge and request
+            if self.env_params.reroute_if_final_edge:
+                self.reroute_if_final_edge()
+
             self.apply_rl_actions(rl_actions)
 
             self.additional_command()
@@ -766,3 +770,26 @@ class Env(gym.Env):
             sight = self.renderer.get_sight(
                 orientation, id)
             self.sights.append(sight)
+
+    def reroute_if_final_edge(self):
+        """Checks if an edge is the final edge. If it is return the route it
+        should start off at.
+        """
+        veh_ids = self.k.vehicle.get_human_ids() + self.k.vehicle.get_rl_ids()
+        for veh_id in veh_ids:
+            route = self.k.vehicle.get_route(veh_id)
+            edge = self.k.vehicle.get_edge(veh_id)
+            # check if its on the final edge
+            if edge == route[-1]:
+                type_id = self.k.vehicle.get_type(veh_id)
+                lane_index = self.k.vehicle.get_lane(veh_id)
+                # remove the vehicle
+                self.k.vehicle.remove(veh_id)
+                # reintroduce it at the start of the network
+                self.k.vehicle.add(
+                    veh_id=veh_id,
+                    edge=route[0],
+                    type_id=str(type_id),
+                    lane=str(lane_index),
+                    pos="0",
+                    speed="max")
