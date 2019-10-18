@@ -19,6 +19,9 @@ class CoordinatedEnv(TestEnv):
         super().__init__(env_params, sim_params, network, simulator)
         self.additional_params = env_params.additional_params
 
+        # veh_types = ["Car"]
+        # self.k.vehicle.tracked_vehicle_types.update(veh_types)
+
         # target intersections
         self.target_nodes = env_params.additional_params["target_nodes"]
         self.edge_detector_dict = {}
@@ -113,6 +116,7 @@ class CoordinatedEnv(TestEnv):
 
     def get_state(self, rl_id=None, **kwargs):
         """See class definition."""
+
         ap = self.additional_params
 
         num_nodes = len(self.target_nodes)
@@ -127,6 +131,7 @@ class CoordinatedEnv(TestEnv):
             for j, (edge_id, detector_info) in enumerate(edge.items()):
                 for k, (detector_type, detector_ids) in enumerate(detector_info.items()):
                     if detector_type == 'stopbar':
+                        assert len(detector_ids) <= 3
                         for m, detector in enumerate(detector_ids):
                             flow, occupancy = self.k.traffic_light.get_detector_flow_and_occupancy(int(detector))
                             index = (i, j, m)
@@ -142,22 +147,22 @@ class CoordinatedEnv(TestEnv):
                         the_state[(*index, 0)] = flow
                         the_state[(*index, 1)] = occupancy
 
-        return the_state.flatten()
+       return the_state.flatten()
 
     def compute_reward(self, rl_actions, **kwargs):
         """Computes the average speed of vehicles in the network."""
         veh_ids = self.k.vehicle.get_ids()
-        if veh_ids is []:
+        if len(veh_ids) == 0:
             return 0
         else:
             return sum(np.array(self.k.vehicle.get_speed(veh_ids)) < 0.05)/len(veh_ids)
 
     def additional_command(self):
         """Additional commands that may be performed by the step method."""
-        veh_types = ["Car"]
-        self.k.vehicle.tracked_vehicle_types.update(veh_types)
+        pass
         # tl_ids = self.k.traffic_light.get_ids()
         # print(tl_ids)
         # print(self.k.traffic_light.set_intersection_offset(3344, -20))
         # print(self.k.traffic_light.get_detector_flow_and_occupancy(5157))
-        print(self.get_state())
+        # if self.k.simulation.time % 300 == 0:
+        # print(self.get_state())

@@ -8,6 +8,22 @@ global edge_detector_dict
 edge_detector_dict = {}
 
 
+def set_statistical_interval(hour, minute, sec):
+    time_duration = gk.GKTimeDuration(hour, minute, sec)
+    scenarios = model.getCatalog().getObjectsByType(model.getType("GKScenario"))
+    for scenario in scenarios.values():
+        input_data = scenario.getInputData()
+        input_data.setStatisticalInterval(time_duration)
+
+
+def set_detection_interval(hour, minute, sec):
+    time_duration = gk.GKTimeDuration(hour, minute, sec)
+    scenarios = model.getCatalog().getObjectsByType(model.getType("GKScenario"))
+    for scenario in scenarios.values():
+        input_data = scenario.getInputData()
+        input_data.setDetectionInterval(time_duration)
+
+
 def get_detector_flow_and_occupancy(detector_id):
     flow = max(aapi.AKIDetGetCounterAggregatedbyId(detector_id, 0), 0)
     occupancy = max(aapi.AKIDetGetTimeOccupedAggregatedbyId(detector_id, 0), 0)/100
@@ -83,35 +99,6 @@ def get_combined_ring(start_times, phase_times):
                 combined_ring[time].append(phase)
 
     return combined_ring
-
-
-def get_link_measures(target_nodes):
-    catalog = model.getCatalog()
-    for nodeid in target_nodes:
-        node = catalog.find(nodeid)
-        in_edges = node.getEntranceSections()
-        for edge in in_edges:
-            edge_detector_dict[edge.getId()] = {"stopbar_ids": [],
-                                                "advanced_ids": []}
-
-    for i in range(aapi.AKIDetGetNumberDetectors()):
-        detector = aapi.AKIDetGetPropertiesDetector(i)
-        if detector.IdSection in edge_detector_dict.keys():
-            type_map = edge_detector_dict[detector.IdSection]
-            edge_aimsun = catalog.find(detector.IdSection)
-            if (edge_aimsun.length2D() - detector.FinalPosition) < 5:
-                kind = "stopbar_ids"
-            else:
-                kind = "advanced_ids"
-            detector_obj = catalog.find(detector.Id)
-            try:
-                # only those with numerical exernalIds are real
-                int(detector_obj.getExternalId())
-                type_map[kind].append(detector.Id)
-            except ValueError:
-                pass
-
-    return edge_detector_dict
 
 
 def get_incoming_edges(node_id):
