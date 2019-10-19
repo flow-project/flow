@@ -128,22 +128,23 @@ class TestCollisions(unittest.TestCase):
             inflows=inflows,
             additional_params=additional_net_params)
 
-        env, _ = traffic_light_grid_mxn_exp_setup(
+        flow_params = traffic_light_grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
             sim_params=sim_params,
             vehicles=vehicles,
             net_params=net_params)
 
+        # instantiate an experiment class
+        exp = Experiment(flow_params)
+        env = exp.env
+
         # go through the env and set all the lights to green
         for i in range(env.rows * env.cols):
             env.k.traffic_light.set_state(
                 node_id='center' + str(i), state="gggggggggggg")
 
-        # instantiate an experiment class
-        exp = Experiment(env)
-
-        exp.run(50, 50)
+        exp.run(50)
 
 
 if __name__ == '__main__':

@@ -15,11 +15,12 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
 from flow.core.params import TrafficLightParams
 from flow.core.params import VehicleParams
 from flow.envs.traffic_light_grid import TrafficLightGridTestEnv
-from flow.envs.ring.accel import AccelEnv
+
 from flow.networks.figure_eight import FigureEightNetwork
 from flow.networks.traffic_light_grid import TrafficLightGridNetwork
 from flow.networks.highway import HighwayNetwork
 from flow.networks.ring import RingNetwork
+from flow.envs.ring.accel import AccelEnv
 
 
 def ring_road_exp_setup(sim_params=None,
@@ -97,22 +98,42 @@ def ring_road_exp_setup(sim_params=None,
         # set default to no traffic lights
         traffic_lights = TrafficLightParams()
 
-    # create the network
-    network = RingNetwork(
-        name="RingRoadTest",
-        vehicles=vehicles,
-        net_params=net_params,
-        initial_config=initial_config,
-        traffic_lights=traffic_lights)
+    flow_params = dict(
+        # name of the experiment
+        exp_tag="RingRoadTest",
 
-    # create the environment
-    env = AccelEnv(
-        env_params=env_params, sim_params=sim_params, network=network)
+        # name of the flow environment the experiment is running on
+        env_name=AccelEnv,
 
-    # reset the environment
-    env.reset()
+        # name of the network class the experiment is running on
+        network=RingNetwork,
 
-    return env, network
+        # simulator that is used by the experiment
+        simulator='traci',
+
+        # sumo-related parameters (see flow.core.params.SumoParams)
+        sim=sim_params,
+
+        # environment related parameters (see flow.core.params.EnvParams)
+        env=env_params,
+        # network-related parameters (see flow.core.params.NetParams and the
+        # network's documentation or ADDITIONAL_NET_PARAMS component)
+        net=net_params,
+
+        # vehicles to be placed in the network at the start of a rollout (see
+        # flow.core.params.VehicleParams)
+        veh=vehicles,
+
+        # parameters specifying the positioning of vehicles upon initialization/
+        # reset (see flow.core.params.InitialConfig)
+        initial=initial_config,
+
+        # traffic lights to be introduced to specific nodes (see
+        # flow.core.params.TrafficLightParams)
+        tls=traffic_lights,
+    )
+
+    return flow_params
 
 
 def figure_eight_exp_setup(sim_params=None,
