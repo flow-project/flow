@@ -51,7 +51,12 @@ PARAMS = DictDescriptor(
     ("initial_conditions", [0], None,  # FIXME
      "list of initial densities. Must be of length int(length/dx)"),
 
-    ("boundary_conditions", (None, None), None, "TODO: define what that is"),
+    ("boundary_conditions", 'extend_both', None,
+     "conditions at road left and right ends; should either dict or string"
+     " ie. {'constant_both': (value, value)}, constant value of both ends"
+     "loop, loop edge values as a ring"
+     "extend_both, extrapolate last value on both ends"
+     ),
 )
 
 
@@ -107,10 +112,6 @@ class LWR(MacroModelEnv):
         environment's time horizon, in steps
     initial_conditions : array_like
         list of initial densities. Must be of length int(length/dx)
-    boundary_left : float
-        left boundary conditions
-    boundary_right : float
-        right boundary conditions
     obs : array_like
         current observation
     num_steps : int
@@ -185,9 +186,13 @@ class LWR(MacroModelEnv):
         self.dt = params['dt']
         self.horizon = int(self.total_time / self.dt)
         self.initial_conditions = params['initial_conditions']
-        self.boundary_left = params['boundary_conditions'][0]
-        self.boundary_right = params['boundary_conditions'][1]
+        self.boundaries = params["boundary_conditions"]
+        self.boundary_left = None
+        self.boundary_right = None
+
+        # lam is an exponent of the Green-shield velocity function
         self.lam = 1
+        # critical density defined by the Green-shield Model
         self.rho_critical = self.rho_max / 2
         self.speeds = None
 
@@ -235,8 +240,6 @@ class LWR(MacroModelEnv):
         # advance the state of the simulation by one step
         rho = self.ibvp(
             self.obs[:int(self.length/self.dx)],
-            self.boundary_right,
-            self.boundary_left,
         )
         speed = self.speed_info(rho)
 
@@ -282,7 +285,7 @@ class LWR(MacroModelEnv):
         # Godunov flux
         return np.minimum(d, s)
 
-    def ibvp(self, rho_t, u_right, u_left):
+    def ibvp(self, rho_t):
         """Implement Godunov scheme for multi-populations.
 
         Friedrich, Jan & Kolb, Oliver & Goettlich, Simone. (2018). A Godunov
@@ -295,10 +298,6 @@ class LWR(MacroModelEnv):
             density data to be analyzed and calculate next points for this data
             using Godunov scheme.
             Note: at time = 0, rho_t = initial density data
-        u_right : double
-            right boundary condition
-        u_left : double
-            left boundary condition
 
         Returns
         -------
@@ -308,27 +307,9 @@ class LWR(MacroModelEnv):
         # step = time/distance step
         step = self.dt / self.dx
 
-        # # initialize with some boundary data
-        # rho_t = np.insert(np.append(rho_t, u_right), 0, u_left)
-        #
-        # # Godunov numerical flux
-        # f = self.godunov_flux(rho_t)
-        #
-        # fm = np.insert(f[0:len(f) - 1], 0, f[0])
-        #
-        # # Godunov scheme (updating rho_t)
-        # rho_t = rho_t - lam * (f - fm)
-        #
-        # # append with boundary data here
-        # rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], u_right),
-        #                   0, u_left)
-        #
-        # # remove the boundary conditions from the output
-        # rho_t = rho_t[1:len(rho_t) - 1]
-
-        # boundary conditions and simulation for ring experiment below
-        self.boundary_left = rho_t[len(rho_t) - 1]
-        self.boundary_right = rho_t[len(rho_t) - 2]
+        if self.boundaries == "looped":
+            self.boundary_left = rho_t[len(rho_t) - 1]
+            self.boundary_right = rho_t[len(rho_t) - 2]
 
         # Godunov numerical flux
         f = self.godunov_flux(rho_t)
@@ -338,9 +319,23 @@ class LWR(MacroModelEnv):
         # Godunov scheme (updating rho_t)
         rho_t = rho_t - step * (f - fm)
 
-        # append with boundary data here
-        rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
-                          0, self.boundary_left)
+        # append with boundary data below
+        if self.boundaries == "looped":
+            rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
+                              0, self.boundary_left)
+
+        if self.boundaries == "extend_both":
+            self.boundary_left = rho_t[0]
+            self.boundary_right = rho_t[len(rho_t) - 1]
+            rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
+                              0, self.boundary_left)
+
+        if type(self.boundaries) == dict:
+            if list(self.boundaries.keys())[0] == "constant_both":
+                self.boundary_left = self.boundaries["constant_both"][0]
+                self.boundary_right = self.boundaries["constant_both"][1]
+                rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
+                                  0, self.boundary_left)
 
         return rho_t
 
