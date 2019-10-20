@@ -8,6 +8,7 @@ from gym.spaces import Box
 import numpy as np
 from flow.core.macroscopic.base_model import MacroModelEnv
 from flow.core.macroscopic.utils import DictDescriptor
+import matplotlib.pyplot as plt
 
 
 PARAMS = DictDescriptor(
@@ -199,6 +200,51 @@ class LWR(MacroModelEnv):
         self.obs = None
         self.num_steps = None
 
+    def run(self, rl_actions=1, visualize=True):
+        obs = self.reset()
+        t = 0
+        time_steps = [t]
+        # fig, plots = plt.subplots (2)
+        all_densities = self.obs[:int(self.length / self.dx)]
+        all_speeds = self.obs[int(self.length / self.dx):]
+        while t < self.total_time:
+            t = t + self.dt
+            time_steps.append(t)
+            obs, rew, done, _ = self.step(rl_actions)
+            if visualize:
+                x = np.arange(0, self.length, self.dx)
+                # obs values store
+                density = self.obs[:int(self.length / self.dx)]
+                speeds = self.obs[int(self.length / self.dx):]
+                all_densities = np.vstack([all_densities, density])
+                all_speeds = np.vstack([all_speeds, speeds])
+                # self.plot_points(self.length, x, density, speeds, 4, 1, plots)
+        X, Y = np.meshgrid(x, time_steps)
+        Z = all_densities
+        plt.contourf(X, Y, Z, levels=900, cmap='jet')
+        plt.xlabel('Length')
+        plt.ylabel('Time (seconds)')
+        plt.colorbar(shrink=0.8, aspect=5)
+        plt.show()
+
+    def plot_points(self, Length, x, Density, Speed, R, V_max, plots):
+        """Ignore since removing."""
+        # plot current profile during execution
+        plots[0].plot(x, Density, 'b-')
+        plots[0].axis([0, Length, -0.1, R + 1])
+        plots[0].set(xlabel='Street Length (m)', ylabel='Density')
+        plots[0].set_title("LWR Evolution of Density")
+
+        plots[1].plot(x, Speed, 'b-')
+        plots[1].axis([0, Length, -0.1, V_max + 1])
+        plots[1].set(xlabel='Street Length (m)', ylabel='Velocities(m/s)')
+        plots[1].set_title("LWR Evolution of Velocities ")
+        plt.draw()
+        plt.pause(0.0001)
+        # plt.clf()
+        plots[0].clear()
+        plots[1].clear()
+
     @property
     def observation_space(self):
         """See parent class."""
@@ -251,6 +297,12 @@ class LWR(MacroModelEnv):
 
         # compute the done mask
         done = self.num_steps >= self.horizon
+
+        # Store variables for visualizing
+        # time steps
+        # Length of Road
+        # obs
+        # plot 2 subplots outside
 
         return self.obs.copy(), rew, done, {}
 
@@ -307,7 +359,7 @@ class LWR(MacroModelEnv):
         # step = time/distance step
         step = self.dt / self.dx
 
-        if self.boundaries == "looped":
+        if self.boundaries == "loop":
             self.boundary_left = rho_t[len(rho_t) - 1]
             self.boundary_right = rho_t[len(rho_t) - 2]
 
@@ -320,7 +372,7 @@ class LWR(MacroModelEnv):
         rho_t = rho_t - step * (f - fm)
 
         # append with boundary data below
-        if self.boundaries == "looped":
+        if self.boundaries == "loop":
             rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
                               0, self.boundary_left)
 
@@ -381,3 +433,4 @@ class LWR(MacroModelEnv):
         self.obs = np.concatenate((rho_init, v_init))
 
         return self.obs.copy()
+
