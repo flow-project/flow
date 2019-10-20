@@ -28,7 +28,7 @@ def start():
     initial_config = InitialConfig(bunching=20)
 
     network = RingNetwork(
-        name="sugiyama",
+        name="ring",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
