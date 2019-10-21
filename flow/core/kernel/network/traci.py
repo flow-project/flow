@@ -142,6 +142,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 self.network.traffic_lights,
                 self.network.nodes,
                 self.network.edges,
+                #self.network.crossings,
                 self.network.types,
                 connections
             )
@@ -335,6 +336,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                      traffic_lights,
                      nodes,
                      edges,
+                     crossings=None,
                      types=None,
                      connections=None):
         """Generate Net files for the transportation network.
@@ -470,6 +472,8 @@ class TraCIKernelNetwork(BaseKernelNetwork):
 
         # xml for connections: specifies which lanes connect to which in the
         # edges
+        x = makexml('connections', 'http://sumo.dlr.de/xsd/connections_file.xsd')
+
         if connections is not None:
             # modify the fromLane and toLane values
             for connection in connections:
@@ -477,15 +481,17 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                     connection['fromLane'] = str(connection['fromLane'])
                 if 'toLane' in connection:
                     connection['toLane'] = str(connection['toLane'])
+            #x = makexml('connections', 'http://sumo.dlr.de/xsd/connections_file.xsd')
 
-            x = makexml('connections',
-                        'http://sumo.dlr.de/xsd/connections_file.xsd')
             for connection_attributes in connections:
                 if 'signal_group' in connection_attributes:
                     del connection_attributes['signal_group']
                 x.append(E('connection', **connection_attributes))
-            printxml(x, self.net_path + self.confn)
 
+            #for cross in crossings:
+            #    x.append(E('crossing', **cross))
+            printxml(x, self.net_path + self.confn)
+        
         # xml file for configuration, which specifies:
         # - the location of all files of interest for sumo
         # - output net file

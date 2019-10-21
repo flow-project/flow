@@ -348,6 +348,8 @@ class Network(object):
             # specify the connection attributes (default is None)
             self.connections = self.specify_connections(net_params)
 
+            #self.crossings = self.specify_crossings(net_params)
+
         # this is to be used if file paths other than the the network geometry
         # file is specified
         elif type(net_params.template) is dict:
@@ -454,6 +456,10 @@ class Network(object):
         Other attributes may also be specified. See:
         http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Node_Descriptions
         """
+        raise NotImplementedError
+
+    
+    def specify_crossings(self, net_params):
         raise NotImplementedError
 
     # TODO: convert to property

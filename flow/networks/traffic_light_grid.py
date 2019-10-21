@@ -162,6 +162,13 @@ class TrafficLightGridNetwork(Network):
 
         super().__init__(name, vehicles, net_params, initial_config,
                          traffic_lights)
+    '''
+    def specify_crossings(self, net_params):
+        crossings = []
+
+        crossings.append({"node": "center3", "edges":"left1_1 right1_1"})
+        return crossings
+    '''
 
     def specify_nodes(self, net_params):
         """See parent class."""
@@ -364,7 +371,8 @@ class TrafficLightGridNetwork(Network):
                 "priority": 78,
                 "from": "center" + str(from_node),
                 "to": "center" + str(to_node),
-                "length": self.inner_length
+                "length": self.inner_length,
+                "sidewalkWidth": str(1)
             }]
 
         # Build the horizontal inner edges
@@ -441,7 +449,8 @@ class TrafficLightGridNetwork(Network):
                 "priority": 78,
                 "from": from_node,
                 "to": to_node,
-                "length": length
+                "length": length,
+                "sidewalkWidth": str(1)
             }]
 
         for i in range(self.col_num):
@@ -510,10 +519,10 @@ class TrafficLightGridNetwork(Network):
                 top_node_id = "{}_{}".format(i + 1, j)
 
                 conn = []
-                for lane in range(self.vertical_lanes):
+                for lane in range(self.vertical_lanes + 1):
                     conn += new_con("bot", node_id, right_node_id, lane, 1)
                     conn += new_con("top", right_node_id, node_id, lane, 1)
-                for lane in range(self.horizontal_lanes):
+                for lane in range(self.horizontal_lanes + 1):
                     conn += new_con("right", node_id, top_node_id, lane, 2)
                     conn += new_con("left", top_node_id, node_id, lane, 2)
 

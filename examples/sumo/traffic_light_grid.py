@@ -133,7 +133,7 @@ def traffic_light_grid_example(render=None, use_inflows=False):
     long_length = 500
     short_length = 300
     n_rows = 2
-    n_columns = 3
+    n_columns = 2
     num_cars_left = 20
     num_cars_right = 20
     num_cars_top = 20
