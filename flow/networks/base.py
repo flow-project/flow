@@ -348,7 +348,7 @@ class Network(object):
             # specify the connection attributes (default is None)
             self.connections = self.specify_connections(net_params)
 
-            #self.crossings = self.specify_crossings(net_params)
+            self.crossings = self.specify_crossings(net_params)
 
         # this is to be used if file paths other than the the network geometry
         # file is specified

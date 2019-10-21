@@ -142,7 +142,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 self.network.traffic_lights,
                 self.network.nodes,
                 self.network.edges,
-                #self.network.crossings,
+                self.network.crossings,
                 self.network.types,
                 connections
             )

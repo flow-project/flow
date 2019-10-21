@@ -162,13 +162,11 @@ class TrafficLightGridNetwork(Network):
 
         super().__init__(name, vehicles, net_params, initial_config,
                          traffic_lights)
-    '''
     def specify_crossings(self, net_params):
         crossings = []
 
         crossings.append({"node": "center3", "edges":"left1_1 right1_1"})
         return crossings
-    '''
 
     def specify_nodes(self, net_params):
         """See parent class."""
