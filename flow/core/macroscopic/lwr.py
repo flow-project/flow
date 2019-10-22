@@ -205,8 +205,8 @@ class LWR(MacroModelEnv):
         self.obs = self.reset()
         t = 0
         time_steps = [t]
-        all_densities = [self.obs[:int(self.length / self.dx)]]
-        all_speeds = [self.obs[int(self.length / self.dx):]]
+        all_densities = [self.obs[:int(self.obs.shape[0] / 2)]]
+        all_speeds = [self.obs[int(self.obs.shape[0] / 2):]]
         x = np.arange(0, self.length, self.dx)
         while t < self.total_time:
             t = t + self.dt
@@ -214,12 +214,10 @@ class LWR(MacroModelEnv):
             obs, rew, done, _ = self.step(rl_actions)
             if visualize:
                 # store values
-                density = self.obs[:int(self.length / self.dx)]
-                speeds = self.obs[int(self.length / self.dx):]
+                density = self.obs[:int(self.obs.shape[0] / 2)]
+                speeds = self.obs[int(self.obs.shape[0] / 2):]
                 all_densities = np.concatenate((all_densities, [density]), axis=0)
                 all_speeds = np.concatenate((all_speeds, [speeds]), axis=0)
-                # all_densities = np.vstack([all_densities, density])
-                # all_speeds = np.vstack([all_speeds, speeds])
 
         if visualize:
             # call visualize function

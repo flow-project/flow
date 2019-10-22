@@ -8,6 +8,7 @@ import numpy as np
 from scipy.optimize import fsolve
 from flow.core.macroscopic.base_model import MacroModelEnv
 from flow.core.macroscopic.utils import DictDescriptor
+import matplotlib.pyplot as plt
 
 
 PARAMS = DictDescriptor(
@@ -229,11 +230,11 @@ class ARZ(MacroModelEnv):
             "CFL condition not satisfied. Make sure dt <= CFL * dx / v_max"
 
         assert len(params['initial_conditions'][0]) == \
-            int(params['length'] / params['dx']) - 1, \
-            "Initial conditions must be a list of size: (length/dx) - 1."
+            int(params['length'] / params['dx']), \
+            "Initial conditions must be a list of size: (length/dx)."
 
         assert len(params['initial_conditions'][1]) == \
-            int(params['length'] / params['dx']) - 1, \
+            int(params['length'] / params['dx']), \
             "Initial conditions must be a list of size: length/dx."
 
         self.params = params.copy()
@@ -267,6 +268,48 @@ class ARZ(MacroModelEnv):
         self.num_steps = None
         self.rho_next = None
         self.rhs = None
+
+    def run(self, rl_actions=1, visualize=True):
+        self.obs = self.reset()
+        t = 0
+        time_steps = [t]
+        all_densities = [self.obs[:int(self.obs.shape[0]/2)]]
+        all_speeds = [self.obs[int(self.obs.shape[0]/2):]]
+        x = np.arange(0, self.length, self.dx)
+        while t < self.total_time:
+            t = t + self.dt
+            time_steps.append(t)
+            obs, rew, done, _ = self.step(rl_actions)
+            if visualize:
+                # store values
+                density = self.obs[:int(self.obs.shape[0]/2)]
+                speeds = self.obs[int(self.obs.shape[0]/2):]
+                all_densities = np.concatenate((all_densities, [density]), axis=0)
+                all_speeds = np.concatenate((all_speeds, [speeds]), axis=0)
+
+        if visualize:
+            # call visualize function
+            self.visualize_plots(x, all_densities, all_speeds, time_steps)
+
+    def visualize_plots(self, x, all_densities, all_speeds, time_steps):
+        """TODO: document this"""
+        fig, plots = plt.subplots(2, figsize=(10, 10))
+        fig.subplots_adjust(hspace=.5)
+        x_vector, y_vector = np.meshgrid(x, time_steps)
+        z_array = all_densities
+        first_plot = plots[0].contourf(x_vector, y_vector, z_array, levels=900, cmap='jet')
+        plots[0].set(xlabel='Length (Position on Street in meters)', ylabel='Time (seconds)')
+        plots[0].set_title('ARZ Density Evolution')
+        color_bar = fig.colorbar(first_plot, ax=plots[0], shrink=0.8)
+        color_bar.ax.set_title('Density\nLevels', fontsize=8)
+
+        z_array1 = all_speeds
+        first_plot = plots[1].contourf(x_vector, y_vector, z_array1, levels=900, cmap='jet')
+        plots[1].set(xlabel='Length (Position on Street in meters)', ylabel='Time (seconds)')
+        plots[1].set_title('ARZ Velocity Evolution (m/s)')
+        color_bar1 = fig.colorbar(first_plot, ax=plots[1], shrink=0.8)
+        color_bar1.ax.set_title('Velocity\nLevels (m/s)', fontsize=8)
+        plt.show()
 
     @property
     def observation_space(self):
