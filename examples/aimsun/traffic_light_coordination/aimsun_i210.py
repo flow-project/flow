@@ -3,10 +3,10 @@ from flow.core.params import AimsunParams, NetParams, VehicleParams, EnvParams, 
 from flow.core.experiment import Experiment
 from flow.networks import Network
 # from flow.envs import TestEnv
-from coordinatedLightEnv import CoordinatedEnv, ADDITIONAL_ENV_PARAMS
+from coordinated_lights import CoordinatedEnv, ADDITIONAL_ENV_PARAMS
 import os
 
-sim_step = 0.5  # seconds
+sim_step = 0.8  # seconds
 detector_step = 300  # seconds
 env_params = EnvParams(sims_per_step=int(detector_step/sim_step),
                        additional_params=ADDITIONAL_ENV_PARAMS)
@@ -40,4 +40,4 @@ env = CoordinatedEnv(
 )
 
 exp = Experiment(env)
-exp.run(1, int(3600/detector_step*sim_step))
+exp.run(1, int(3600/detector_step))

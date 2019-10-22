@@ -589,11 +589,6 @@ class FlowAimsunAPI(object):
             tl_ids = tl_ids.split(':')
             return [int(t) for t in tl_ids]
 
-    def get_offset(self, tl_id):
-        offset = self._send_command(ac.TL_GET_CONTROL_OFFSET,
-                                    values=(tl_id,))
-        return offset
-
     def get_traffic_light_state(self, tl_id):
         """Get the traffic light state of a specific set of traffic light(s).
 
@@ -657,6 +652,27 @@ class FlowAimsunAPI(object):
                            values=(veh_id,),
                            out_format=None)
 
+    def get_intersection_offset(self, node_id):
+        """
+        Gets the intersection's offset
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+
+        Returns
+        -------
+        int
+            the offset of the intersection
+        """
+        offset, = self._send_command(ac.INT_GET_OFFSET,
+                                     in_format='i',
+                                     values=(node_id,),
+                                     out_format='i')
+
+        return offset
+
     def set_intersection_offset(self, node_id, offset):
         """
         Sets an intersection's offset
@@ -684,7 +700,7 @@ class FlowAimsunAPI(object):
         """
         Gets an intersection's incoming edges
 
-        Parameters
+        ParametersF
         ----------
         node_id : int
             the node id of the intersection
@@ -700,6 +716,27 @@ class FlowAimsunAPI(object):
                                       out_format='str')
 
         return [int(edge_id) for edge_id in edge_ids.split(',')]
+
+    def get_cumulative_queue_length(self, section_id):
+        """
+        Gets a section's cumulative queue length
+
+        Parameters
+        ----------
+        section_id : int
+            the id of the section
+
+        Returns
+        -------
+        float
+            the cumulative queue length
+        """
+        cume_queue_length, = self._send_command(ac.INT_GET_CUME_QUEUE_LENGTH,
+                                                in_format='i',
+                                                values=(section_id,),
+                                                out_format='f')
+
+        return cume_queue_length
 
     def get_detectors_on_edge(self, edge_id):
         """
@@ -775,4 +812,19 @@ class FlowAimsunAPI(object):
         self._send_command(ac.DET_SET_DETECTION_INTERVAL,
                            in_format='i i i',
                            values=(hour, minute, sec,),
+                           out_format=None)
+
+    def set_replication_seed(self, seed):
+        """
+        Sets the replication seed
+
+        Parameters
+        ----------
+        seed : int
+            random seed
+        """
+
+        self._send_command(ac.REPL_SET_SEED,
+                           in_format='i',
+                           values='i',
                            out_format=None)

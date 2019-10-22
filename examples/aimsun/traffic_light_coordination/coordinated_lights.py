@@ -1,4 +1,4 @@
-from flow.envs import TestEnv
+from flow.envs import Env
 import numpy as np
 from gym.spaces.box import Box
 
@@ -10,8 +10,10 @@ ADDITIONAL_ENV_PARAMS = {'target_nodes': [3369, 3341, 3370, 3344, 3329],
                          'detection_interval': (0, 5, 0),
                          'statistical_interval': (0, 5, 0)}
 
+np.random.seed(1234567890)
 
-class CoordinatedEnv(TestEnv):
+
+class CoordinatedEnv(Env):
     def __init__(self, env_params, sim_params, network, simulator='aimsun'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -21,23 +23,27 @@ class CoordinatedEnv(TestEnv):
         super().__init__(env_params, sim_params, network, simulator)
         self.additional_params = env_params.additional_params
 
-        self.k.simulation.set_detection_interval(
-            self.additional_params['detection_interval'][0],
-            self.additional_params['detection_interval'][1],
-            self.additional_params['detection_interval'][2])
+        self.k.simulation.set_detection_interval(*self.additional_params['detection_interval'])
 
-        self.k.simulation.set_statistical_interval(
-            self.additional_params['statistical_interval'][0],
-            self.additional_params['statistical_interval'][1],
-            self.additional_params['statistical_interval'][2])
+        self.k.simulation.set_statistical_interval(*self.additional_params['statistical_interval'])
 
         # veh_types = ["Car"]
         # self.k.vehicle.tracked_vehicle_types.update(veh_types)
 
         # target intersections
         self.target_nodes = env_params.additional_params["target_nodes"]
+        self.current_offset = np.zeros(len(self.target_nodes))
+
+        # reset_offsets
+        for node_id in self.target_nodes:
+            default_offset = self.k.traffic_light.get_intersection_offset(node_id)
+            self.k.traffic_light.set_intersection_offset(node_id, -default_offset)
+
         self.edge_detector_dict = {}
         self.edges_with_detectors = {}
+        # ap = self.additional_params
+        # self.past_queues: = np.zeros(ap['num_incoming_edges_per_node']*len(self.target_nodes))
+        self.past_queues = {}
         for node_id in self.target_nodes:
             incoming_edges = self.k.traffic_light.get_incoming_edges(node_id)
             self.edge_detector_dict[node_id] = {}
@@ -48,6 +54,7 @@ class CoordinatedEnv(TestEnv):
                 type_map = {"stopbar": stopbar, "advanced": advanced}
 
                 self.edge_detector_dict[node_id][edge_id] = type_map
+                self.past_queues[edge_id] = 0
                 # for detector_id in stopbar:
                 #     print(self.k.traffic_light.get_detector_flow_and_occupancy(detector_id), detector_id)
             # self.edges_with_detectors.update(incoming_edges)
@@ -71,60 +78,10 @@ class CoordinatedEnv(TestEnv):
             * (ap['num_stopbars']+ap['num_advanced'])*ap['num_measures']
         return Box(low=0, high=1, shape=(shape, ), dtype=np.float32)
 
-    # def get_state(self, rl_id=None, **kwargs):
-    #     """See class definition."""
-    #     # read detectors here
-    #     ap = self.additional_params
-    #     shape = len(self.target_nodes)*ap['num_incoming_edges_per_node']\
-    #         * (ap['num_stopbars']+ap['num_advanced'])*ap['num_measures']
-
-    #     the_state = np.zeros(shape)
-
-    #     num_nodes = len(self.target_nodes)
-    #     num_edges = ap['num_incoming_edges_per_node']
-    #     num_detectors_types = (ap['num_stopbars']+ap['num_advanced'])
-    #     num_measures = (ap['num_measures'])
-
-    #     z = 0
-    #     for i, (node, edge) in enumerate(self.edge_detector_dict.items()):
-    #         for j, (edge_id, detector_info) in enumerate(edge.items()):
-    #             for k, (detector_type, detector_ids) in enumerate(detector_info.items()):
-    #                 if detector_type == 'stopbar':
-    #                     for m, detector in enumerate(detector_ids):
-    #                         flow, occupancy = self.k.traffic_light.get_detector_flow_and_occupancy(int(detector))
-    #                         index = i*num_nodes + j*num_edges + k*num_detectors_types + m*num_measures
-    #                         print(index)
-    #                         the_state[index] = flow
-    #                         the_state[index + 1] = occupancy
-    #                         z+=2
-    #                 elif detector_type == 'advanced':
-    #                     flow, occupancy = 0, 0
-    #                     for detector in detector_ids:
-    #                         output = self.k.traffic_light.get_detector_flow_and_occupancy(int(detector))
-    #                         flow += output[0]
-    #                         occupancy += output[1]
-    #                     index = i*num_nodes + j*num_edges + k*num_detectors_types + 3*num_measures
-    #                     print(index)
-
-    #                     the_state[index] = flow
-    #                     the_state[index + 1] = occupancy
-    #                     z+=2
-
-    #                 # flow, occupancy = 0, 0
-    #                 # for m, detector in enumerate(detector_ids):
-    #                 #     if detector_type == 'stopbar':
-    #                 #         flow, occupancy = self.k.traffic_light.get_detector_flow_and_occupancy(int(detector))
-    #                 #         index = i*num_nodes + j*num_edges + k*num_detectors_types + m
-    #                 #     elif detector_type == 'advanced':
-    #                 #         flow, occupancy += self.k.traffic_light.get_detector_flow_and_occupancy(int(detector))
-    #                 #         index = i*num_nodes + j*num_edges + k*num_detectors_types + 3
-    #                 # the_state[index] = flow
-    #                 # the_state[index + 1] = occupancy
-
-    #                     # print(flow, occupancy)
-    #     # print(self.k.simulation.time)
-    #     print(z)
-    #     return the_state
+    def _apply_rl_actions(self, rl_actions):
+        for node_id, action in zip(self.target_nodes, rl_actions):
+            self.k.traffic_light.set_intersection_offset(node_id, action)
+        self.current_offset += np.array(rl_actions)
 
     def get_state(self, rl_id=None, **kwargs):
         """See class definition."""
@@ -158,16 +115,20 @@ class CoordinatedEnv(TestEnv):
                         index = (i, j, ap['num_stopbars'])
                         the_state[(*index, 0)] = flow
                         the_state[(*index, 1)] = occupancy
+                    if 7674941 in detector_ids:
+                        print("%.2f\t%.2f\t%.2f" % (self.k.simulation.time, flow, occupancy))
 
         return the_state.flatten()
 
     def compute_reward(self, rl_actions, **kwargs):
         """Computes the average speed of vehicles in the network."""
-        veh_ids = self.k.vehicle.get_ids()
-        if len(veh_ids) == 0:
-            return 0
-        else:
-            return sum(np.array(self.k.vehicle.get_speed(veh_ids)) < 0.05)/len(veh_ids)
+        running_sum = 0
+        for section_id, past_queue in self.past_queues.items():
+            cumul_queue = self.k.traffic_light.get_cumulative_queue_length(section_id)
+            queue = cumul_queue - self.past_queues[section_id]
+            self.past_queues[section_id] = cumul_queue
+            running_sum += queue**2
+        return running_sum
 
     def additional_command(self):
         """Additional commands that may be performed by the step method."""
@@ -178,3 +139,7 @@ class CoordinatedEnv(TestEnv):
         # print(self.k.traffic_light.get_detector_flow_and_occupancy(5157))
         # if self.k.simulation.time % 300 == 0:
         # print(self.get_state())
+
+    # def reset(self):
+    #     replication_names = ['Replication 8050315', 'Replication 8050318',
+    #                          'Replication 8050293', 'Replication (one hour)']

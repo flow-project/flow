@@ -8,6 +8,25 @@ global edge_detector_dict
 edge_detector_dict = {}
 
 
+def get_intersection_offset(node_id):
+    return aapi.ECIGetOffset(node_id)
+
+
+def get_cumulative_queue_length(section_id):
+    catalog = model.getCatalog()
+    section = catalog.find(section_id)
+    num_lanes = section.getNbLanesAtPos(section.length2D())
+    queue = sum(aapi.AKIEstGetCurrentStatisticsSectionLane(461, i, 0).LongQueueAvg for i in range(num_lanes))
+
+    return queue
+
+
+def set_replication_seed(seed):
+    replications = model.getCatalog().getObjectsByType(model.getType("GKReplication"))
+    for replication in replications.values():
+        replication.setRandomSeed(seed)
+
+
 def set_statistical_interval(hour, minute, sec):
     time_duration = gk.GKTimeDuration(hour, minute, sec)
     scenarios = model.getCatalog().getObjectsByType(model.getType("GKScenario"))
@@ -81,7 +100,7 @@ def change_offset(node_id, offset, time, timeSta, acycle):
 
 
 def phase_converter(phase_timings):
-    pass
+    raise NotImplementedError
 
 
 def get_combined_ring(start_times, phase_times):

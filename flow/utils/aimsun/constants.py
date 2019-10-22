@@ -111,25 +111,33 @@ TL_GET_STATE = 0x1C
 #                           Intersection Commands                            #
 ###############################################################################
 
+#: get intersection offset
+INT_GET_OFFSET = 0x1D
+
 #: set intersection offset
-INT_SET_OFFSET = 0x1D
+INT_SET_OFFSET = 0x1E
 
 #: get incoming link ids
 INT_GET_IN_EDGES = 0x1F
 
+#: get cumulative queue length
+INT_GET_CUME_QUEUE_LENGTH = 0x20
+
+#: set replication seed
+REPL_SET_SEED = 0x21
 
 ###############################################################################
 #                           Detector Commands                            #
 ###############################################################################
 
 #: get detector ids on an edge
-DET_GET_IDS_ON_EDGE = 0x20
+DET_GET_IDS_ON_EDGE = 0x22
 
 #: get flow and occupancy for a detector
-DET_GET_FLOW_AND_OCCUPANCY = 0x21
+DET_GET_FLOW_AND_OCCUPANCY = 0x23
 
 #: set statistical interval for the scenairo
-DET_SET_STAT_INTERVAL = 0x22
+DET_SET_STAT_INTERVAL = 0x24
 
 #: set detection interval for the scenairo
-DET_SET_DETECTION_INTERVAL = 0x23
+DET_SET_DETECTION_INTERVAL = 0x25

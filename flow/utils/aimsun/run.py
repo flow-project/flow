@@ -465,6 +465,13 @@ def threaded_client(conn, **kwargs):
                 else:
                     send_message(conn, in_format='i',
                                  values=(int(edge),))
+            elif data == ac.INT_GET_OFFSET:
+                send_message(conn, in_format='i', values=(0,))
+                node_id, = retrieve_message(conn, 'i')
+
+                offset = cp.get_intersection_offset(node_id)
+
+                send_message(conn, in_format='i', values=(offset,))
 
             elif data == ac.INT_SET_OFFSET:
                 send_message(conn, in_format='i', values=(0,))
@@ -487,6 +494,14 @@ def threaded_client(conn, **kwargs):
                 output = ','.join(str(i) for i in edge_ids)
 
                 send_message(conn, in_format='str', values=(output,))
+
+            elif data == ac.INT_GET_CUME_QUEUE_LENGTH:
+                send_message(conn, in_format='i', values=(0,))
+                section_id, = retrieve_message(conn, 'i')
+
+                cume_queue_length = cp.get_cumulative_queue_length(section_id)
+
+                send_message(conn, in_format='f', values=(cume_queue_length,))
 
             elif data == ac.DET_GET_IDS_ON_EDGE:
                 send_message(conn, in_format='i', values=(0,))
@@ -516,6 +531,12 @@ def threaded_client(conn, **kwargs):
                 hour, minute, sec = retrieve_message(conn, 'i i i')
 
                 cp.set_detection_interval(hour, minute, sec)
+
+            elif data == ac.REPL_SET_SEED:
+                send_message(conn, in_format='i', values=(0,))
+                seed = retrieve_message(conn, 'i')
+
+                cp.set_replication_seed(seed)
 
             # in case the message is unknown, return -1001
             else:

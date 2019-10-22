@@ -71,6 +71,22 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         """
         return self.kernel_api.get_traffic_light_state(meter_aimsun_id)
 
+    def get_intersection_offset(self, node_id):
+        """
+        Gets the intersection's offset
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+
+        Returns
+        -------
+        int
+            the offset of the intersection
+        """
+        return self.kernel_api.get_intersection_offset(node_id)
+
     def set_intersection_offset(self, node_id, offset):
         """
         Sets an intersection's offset
@@ -105,6 +121,25 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         """
         return self.kernel_api.get_incoming_edges(node_id)
 
+    def get_cumulative_queue_length(self, section_id):
+        """
+        Gets a section's cumulative queue length
+
+        For some reason, AIMSUN only returns the cumulative length, not the actual values, hence,
+        we do the calculations on the environment level.
+
+        Parameters
+        ----------
+        section_id : int
+            the id of the section
+
+        Returns
+        -------
+        float
+            the cumulative queue length
+        """
+        return self.kernel_api.get_cumulative_queue_length(section_id)
+
     def get_detectors_on_edge(self, edge_id):
         """
         Gets the detector ids on an edge
@@ -136,3 +171,15 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
             flow and occupancy of the detector
         """
         return self.kernel_api.get_detector_flow_and_occupancy(detector_id)
+
+    def set_replication_seed(self, seed):
+        """
+        Sets the replication seed
+
+        Parameters
+        ----------
+        seed : int
+            random seed
+        """
+
+        return self.kernel_api.set_replication_seed(seed)

@@ -1,11 +1,17 @@
 import AAPI as aapi
-from PyANGKernel import *
+import PyANGKernel as gk
 from collections import OrderedDict
 import numpy as np
 
-model = GKSystem.getSystem().getActiveModel()
+model = gk.GKSystem.getSystem().getActiveModel()
 global edge_detector_dict
 edge_detector_dict = {}
+
+
+def get_detector_flow_and_occupancy(detector_id):
+    flow = max(aapi.AKIDetGetCounterAggregatedbyId(detector_id, 0), 0)
+    occupancy = max(aapi.AKIDetGetTimeOccupedAggregatedbyId(detector_id, 0), 0)/100
+    return flow, occupancy
 
 
 def get_section_occupancy(section_id):
@@ -100,7 +106,7 @@ def get_combined_ring(start_times, phase_times):
 
 
 def get_link_measures(target_nodes):
-    model = GKSystem.getSystem().getActiveModel()
+    model = gk.GKSystem.getSystem().getActiveModel()
     catalog = model.getCatalog()
     for nodeid in target_nodes:
         node = catalog.find(nodeid)
@@ -130,6 +136,11 @@ def get_link_measures(target_nodes):
 
 
 def AAPILoad():
+    # model.setActiveExperimentId(8050312)
+    # print(model.getActiveExperimentId(), "experiment id")
+
+    # model.setActiveReplicationId(8050315)
+    # print(model.getActiveReplicationId(), "replication id")
     return 0
 
 
@@ -176,22 +187,37 @@ def AAPIInit():
                 # sorted(mydict.items(), key=lambda item: item[1]
     else:
         print("WTH")
+
     return 0
 
+global q
+q = 0
 
 def AAPIManage(time, timeSta, timeTrans, acycle):
-    # a = aapi.doublep()
-    # b = aapi.doublep()
-    # c = aapi.doublep()
-    # aapi.ECIGetDurationsPhase(3344, 13, 3600*7.5, a,b,c)
-    # print(a.value(), b.value(), c.value())
-
     node_id = 3344
     curr_phase = get_current_phase(node_id)
     ring_phases = np.cumsum(get_num_phases(node_id))
+    global q
 
+    print(aapi.ECIGetOffset(3370), 'offset')
     offset = -70
-    if time == 60:
+    if time%300 == 0:
+        # replications = model.getCatalog().getObjectsByType(model.getType("GKReplication"))
+        # for replication in replications.values():
+        #     print(replication.getDBId())
+        catalog = model.getCatalog()
+        section = catalog.find(461)
+        num_lanes = section.getNbLanesAtPos(section.length2D())
+        queue = sum(aapi.AKIEstGetCurrentStatisticsSectionLane(461, i, 0).LongQueueAvg for i in range(num_lanes))
+
+        # queue = aapi.AKIEstGetParcialStatisticsSection(461, timeSta, 0).LongQueueAvg
+        print(queue-q, num_lanes)
+        q = queue
+        7674941, 7674942
+
+
+    if time % 60 == 0:
+
         # print(curr_phase)
         change_offset(node_id, offset, time, timeSta, acycle)
 
@@ -201,35 +227,12 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
 
 
 def AAPIPostManage(time, timeSta, timeTrans, acycle):
-    # print(aapi.ECIGetNumberPhases(3344))
-    # print(aapi.ECIGetOffset(3344))  # AR 5083 - Zone 132 - P2, returns 0??
-    # print([aapi.ECIGetCurrentPhaseInRing(3344, i) for i in range(2)])
-    # print(aapi.ECIGetCurrentStateofMeteringById(3344, 1))
-    # print(aapi.ECIGetNumberSem(3344))
-
     node_id = 3344
-
-        # aapi.ECIChangeTimingPhase(3344, 14, 0, timeSta)
-        # aapi.ECIChangeTimingPhase(3344, 13, 0, timeSta)
     if time == 60.8:
         curr_phase = get_current_phase(node_id)
         # print(curr_phase)
-        # print(aapi.ECIGetCurrentTimeInCycle(node_id, 0))
-
-
-    if time % 300 == 0:
-        # read sensors:
-        section_id = 568
-        # section_id = 461
-
-
-        # anyNonAsciiChar = aapi.boolp()
-        # s = aapi.AKIConvertToAsciiString(aapi.ECIGetNameofControl(3344, 0), 
-        #                                  True,
-        #                                  anyNonAsciiChar)
-        # print(s)
-        # print("occupancy:", get_section_occupancy(section_id))
-        # print("flow:", get_section_flow(section_id))
+    # if aapi.AKIEstIsNewStatisticsAvailable():
+    #     print(time)
     return 0
 
 
