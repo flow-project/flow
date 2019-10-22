@@ -11,7 +11,7 @@ from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.controllers.rlcontroller import RLController
 
 from tests.setup_scripts import ring_road_exp_setup, highway_exp_setup
-
+from flow.core.experiment import Experiment
 os.environ["TEST_FLAG"] = "True"
 
 
@@ -118,7 +118,10 @@ class TestVehiclesClass(unittest.TestCase):
             num_vehicles=4,
             acceleration_controller=(IDMController, {}))
 
-        env, _ = ring_road_exp_setup(vehicles=vehicles)
+        flow_params = ring_road_exp_setup(vehicles=vehicles)
+        exp = Experiment(flow_params)
+        env = exp.env
+        env.reset()
 
         self.assertEqual(env.k.vehicle.num_vehicles, 7)
         self.assertEqual(len(env.k.vehicle.get_ids()), 7)
@@ -138,7 +141,10 @@ class TestVehiclesClass(unittest.TestCase):
             num_vehicles=10,
             acceleration_controller=(RLController, {}))
 
-        env, _ = ring_road_exp_setup(vehicles=vehicles)
+        flow_params = ring_road_exp_setup(vehicles=vehicles)
+        exp = Experiment(flow_params)
+        env = exp.env
+        env.reset()
 
         self.assertEqual(env.k.vehicle.num_vehicles, 10)
         self.assertEqual(len(env.k.vehicle.get_ids()), 10)
@@ -160,7 +166,10 @@ class TestVehiclesClass(unittest.TestCase):
             num_vehicles=10,
             acceleration_controller=(RLController, {}))
 
-        env, _ = ring_road_exp_setup(vehicles=vehicles)
+        flow_params = ring_road_exp_setup(vehicles=vehicles)
+        exp = Experiment(flow_params)
+        env = exp.env
+        env.reset()
 
         # remove one human-driven vehicle and on rl vehicle
         env.k.vehicle.remove("test_0")
@@ -225,10 +234,12 @@ class TestMultiLaneData(unittest.TestCase):
 
         initial_config = InitialConfig(lanes_distribution=float("inf"))
 
-        env, _ = ring_road_exp_setup(
+        flow_params = ring_road_exp_setup(
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
+        exp = Experiment(flow_params)
+        env = exp.env
         env.reset()
 
         # check the lane leaders method is outputting the right values
@@ -542,7 +553,10 @@ class TestIdsByEdge(unittest.TestCase):
         vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=20)
 
-        self.env, _ = ring_road_exp_setup(vehicles=vehicles)
+        flow_params = ring_road_exp_setup(vehicles=vehicles)
+        exp = Experiment(flow_params)
+        self.env = exp.env
+        self.env.reset()
 
     def tearDown(self):
         # free data used by the class
@@ -563,7 +577,10 @@ class TestObservedIDs(unittest.TestCase):
         vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=10)
 
-        env, _ = ring_road_exp_setup(vehicles=vehicles)
+        flow_params = ring_road_exp_setup(vehicles=vehicles)
+        exp = Experiment(flow_params)
+        env = exp.env
+        env.reset()
 
         # test setting new observed values
         env.k.vehicle.set_observed("test_0")

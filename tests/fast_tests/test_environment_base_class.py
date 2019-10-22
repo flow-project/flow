@@ -10,6 +10,8 @@ from flow.controllers import RLController
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.utils.exceptions import FatalFlowError
 from flow.envs import Env, TestEnv
+from flow.core.experiment import Experiment
+from flow.networks.ring import RingNetwork
 
 from tests.setup_scripts import ring_road_exp_setup, highway_exp_setup
 import os
@@ -47,10 +49,13 @@ class TestShuffle(unittest.TestCase):
         initial_config = InitialConfig(x0=5, shuffle=True)
 
         # create the environment and network classes for a ring road
-        self.env, _ = ring_road_exp_setup(
+        flow_params = ring_road_exp_setup(
             env_params=env_params,
             initial_config=initial_config,
             vehicles=vehicles)
+        exp = Experiment(flow_params)
+        self.env = exp.env
+        self.env.reset()
 
     def tearDown(self):
         # terminate the traci instance
@@ -87,7 +92,10 @@ class TestEmissionPath(unittest.TestCase):
         sim_params = SumoParams()
 
         # create the environment and network classes for a ring road
-        self.env, _ = ring_road_exp_setup(sim_params=sim_params)
+        flow_params = ring_road_exp_setup(sim_params=sim_params)
+        exp = Experiment(flow_params)
+        self.env = exp.env
+        self.env.reset()
 
     def tearDown(self):
         # terminate the traci instance
@@ -133,8 +141,11 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
             num_vehicles=5)
 
         # create the environment and network classes for a ring road
-        self.env, _ = ring_road_exp_setup(
+        flow_params= ring_road_exp_setup(
             net_params=net_params, env_params=env_params, vehicles=vehicles)
+        exp = Experiment(flow_params)
+        self.env = exp.env
+        self.env.reset()
 
     def tearDown(self):
         # terminate the traci instance
@@ -264,7 +275,10 @@ class TestWarmUpSteps(unittest.TestCase):
         # than one
         env_params = EnvParams(
             warmup_steps=warmup_step, additional_params=ADDITIONAL_ENV_PARAMS)
-        env, _ = ring_road_exp_setup(env_params=env_params)
+        flow_params = ring_road_exp_setup(env_params=env_params)
+        exp = Experiment(flow_params)
+        env = exp.env
+        env.reset()
 
         # time before running a reset
         t1 = 0
@@ -289,9 +303,10 @@ class TestSimsPerStep(unittest.TestCase):
         env_params = EnvParams(
             sims_per_step=sims_per_step,
             additional_params=ADDITIONAL_ENV_PARAMS)
-        env, _ = ring_road_exp_setup(env_params=env_params)
+        flow_params = ring_road_exp_setup(env_params=env_params)
+        exp = Experiment(flow_params)
+        env = exp.env
 
-        env.reset()
         # time before running a step
         t1 = env.time_counter
         # perform a step
@@ -311,9 +326,18 @@ class TestAbstractMethods(unittest.TestCase):
     """
 
     def setUp(self):
-        env, network = ring_road_exp_setup()
+        flow_params = ring_road_exp_setup()
         sim_params = SumoParams()  # FIXME: make ambiguous
         env_params = EnvParams()
+        exp = Experiment(flow_params)
+        self.env = exp.env
+        self.env.reset()
+        network = RingNetwork(
+            name="RingRoadTest",
+            vehicles=flow_params['veh'],
+            net_params=flow_params['net'],
+            initial_config=flow_params['initial'],
+            traffic_lights=flow_params['tls'])
         self.env = Env(sim_params=sim_params,
                        env_params=env_params,
                        network=network)
@@ -343,10 +367,17 @@ class TestVehicleColoring(unittest.TestCase):
         # add an RL vehicle to ensure that its color will be distinct
         vehicles.add("rl", acceleration_controller=(RLController, {}),
                      num_vehicles=1)
-        _, network = ring_road_exp_setup(vehicles=vehicles)
+        flow_params = ring_road_exp_setup(vehicles=vehicles)
+        exp = Experiment(flow_params)
+        env = exp.env
+        network = RingNetwork(
+            name="RingRoadTest",
+            vehicles=flow_params['veh'],
+            net_params=flow_params['net'],
+            initial_config=flow_params['initial'],
+            traffic_lights=flow_params['tls'])
         env = TestEnv(EnvParams(), SumoParams(), network)
         env.reset()
-
         # set one vehicle as observed
         env.k.vehicle.set_observed("human_0")
 
@@ -421,9 +452,18 @@ class TestClipBoxActions(unittest.TestCase):
     """
 
     def setUp(self):
-        env, network = ring_road_exp_setup()
+        flow_params = ring_road_exp_setup()
         sim_params = SumoParams()
         env_params = EnvParams()
+        exp = Experiment(flow_params)
+        env = exp.env
+        env.reset()
+        network = RingNetwork(
+            name="RingRoadTest",
+            vehicles=flow_params['veh'],
+            net_params=flow_params['net'],
+            initial_config=flow_params['initial'],
+            traffic_lights=flow_params['tls'])
         self.env = BoxEnv(
             sim_params=sim_params,
             env_params=env_params,
@@ -469,13 +509,22 @@ class TestClipTupleActions(unittest.TestCase):
     """
 
     def setUp(self):
-        env, scenario = ring_road_exp_setup()
+        flow_params = ring_road_exp_setup()
         sim_params = SumoParams()
         env_params = EnvParams()
+        exp = Experiment(flow_params)
+        self.env = exp.env
+        self.env.reset()
+        network = RingNetwork(
+            name="RingRoadTest",
+            vehicles=flow_params['veh'],
+            net_params=flow_params['net'],
+            initial_config=flow_params['initial'],
+            traffic_lights=flow_params['tls'])
         self.env = TupleEnv(
             sim_params=sim_params,
             env_params=env_params,
-            scenario=scenario)
+            network=network)
 
     def tearDown(self):
         self.env.terminate()

@@ -12,6 +12,7 @@ from flow.core.params import SumoCarFollowingParams
 from flow.networks.ring import RingNetwork, ADDITIONAL_NET_PARAMS
 from flow.envs import TestEnv
 from flow.networks import Network
+from flow.core.experiment import Experiment
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
@@ -128,10 +129,13 @@ class TestEvenStartPos(unittest.TestCase):
             num_vehicles=15)
 
         # create the environment and network classes for a ring road
-        self.env, _ = ring_road_exp_setup(
+        flow_params = ring_road_exp_setup(
             net_params=net_params,
             initial_config=initial_config,
             vehicles=vehicles)
+        exp = Experiment(flow_params)
+        self.env = exp.env
+        self.env.reset()
 
     def tearDown_gen_start_pos(self):
         # terminate the traci instance
@@ -527,10 +531,13 @@ class TestRandomStartPos(unittest.TestCase):
             num_vehicles=5)
 
         # create the environment and network classes for a ring road
-        self.env, _ = ring_road_exp_setup(
+        flow_params = ring_road_exp_setup(
             net_params=net_params,
             initial_config=initial_config,
             vehicles=vehicles)
+        exp = Experiment(flow_params)
+        self.env = exp.env
+        self.env.reset()
 
     def tearDown(self):
         # terminate the traci instance
@@ -666,7 +673,10 @@ class TestEdgeLength(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a ring road
-        env, _ = ring_road_exp_setup(net_params=net_params)
+        flow_params = ring_road_exp_setup(net_params=net_params)
+        exp = Experiment(flow_params)
+        env = exp.env
+        env.reset()
 
         self.assertEqual(env.k.network.edge_length("top"), 250)
 
@@ -711,7 +721,10 @@ class TestSpeedLimit(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a figure eight
-        env, _ = ring_road_exp_setup(net_params=net_params)
+        flow_params = ring_road_exp_setup(net_params=net_params)
+        exp = Experiment(flow_params)
+        env = exp.env
+        env.reset()
 
         self.assertAlmostEqual(env.k.network.speed_limit("top"), 60)
 
@@ -756,7 +769,10 @@ class TestNumLanes(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a figure eight
-        env, network = ring_road_exp_setup(net_params=net_params)
+        flow_params = ring_road_exp_setup(net_params=net_params)
+        exp = Experiment(flow_params)
+        env = exp.env
+        env.reset()
 
         self.assertEqual(env.k.network.num_lanes("top"), 2)
 
@@ -854,7 +870,10 @@ class TestNextPrevEdge(unittest.TestCase):
         """
         Tests the next_edge() and prev_edge() methods for the ring road.
         """
-        env, _ = ring_road_exp_setup()
+        flow_params = ring_road_exp_setup()
+        exp = Experiment(flow_params)
+        env = exp.env
+        env.reset()
 
         next_edge = env.k.network.next_edge("top", 0)
         expected_next_edge = [(":left_0", 0)]
