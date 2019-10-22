@@ -7,7 +7,6 @@ from flow.core.params import VehicleParams
 from flow.core.rewards import average_velocity, min_delay
 from flow.core.rewards import desired_velocity, boolean_action_penalty
 from flow.core.rewards import penalize_near_standstill, penalize_standstill
-from flow.core.experiment import Experiment
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -24,12 +23,9 @@ class TestRewards(unittest.TestCase):
             "target_velocity": np.sqrt(10), "max_accel": 1, "max_decel": 1,
             "sort_vehicles": False})
 
-        flow_params = ring_road_exp_setup(vehicles=vehicles,
+        env, _ = ring_road_exp_setup(vehicles=vehicles,
                                      env_params=env_params)
-        exp = Experiment(flow_params)
-        env = exp.env
-        env.reset()
-        
+
         # check that the fail attribute leads to a zero return
         self.assertEqual(desired_velocity(env, fail=True), 0)
 
@@ -39,7 +35,7 @@ class TestRewards(unittest.TestCase):
         # check the average speed upon reset with a subset of edges
         self.assertEqual(desired_velocity(env, edge_list=["bottom"],
                                           fail=False), 0)
-        
+
         # change the speed of one vehicle
         env.k.vehicle.test_set_speed("test_0", np.sqrt(10))
 
@@ -65,10 +61,7 @@ class TestRewards(unittest.TestCase):
         vehicles = VehicleParams()
         vehicles.add("test", num_vehicles=10)
 
-        flow_params = ring_road_exp_setup(vehicles=vehicles)
-        exp = Experiment(flow_params)
-        env = exp.env
-        env.reset()
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
 
         # check that the fail attribute leads to a zero return
         self.assertEqual(average_velocity(env, fail=True), 0)
@@ -84,10 +77,7 @@ class TestRewards(unittest.TestCase):
 
         # recreate the environment with no vehicles
         vehicles = VehicleParams()
-        flow_params = ring_road_exp_setup(vehicles=vehicles)
-        exp = Experiment(flow_params)
-        env = exp.env
-        env.reset()
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
 
         # check that the reward function return 0 in the case of no vehicles
         self.assertEqual(average_velocity(env, fail=False), 0)
@@ -96,10 +86,7 @@ class TestRewards(unittest.TestCase):
         """Test the min_delay method."""
         # try the case of an environment with no vehicles
         vehicles = VehicleParams()
-        flow_params = ring_road_exp_setup(vehicles=vehicles)
-        exp = Experiment(flow_params)
-        env = exp.env
-        env.reset()
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
 
         # check that the reward function return 0 in the case of no vehicles
         self.assertEqual(min_delay(env), 0)
@@ -107,10 +94,7 @@ class TestRewards(unittest.TestCase):
         # try the case of multiple vehicles
         vehicles = VehicleParams()
         vehicles.add("test", num_vehicles=10)
-        flow_params = ring_road_exp_setup(vehicles=vehicles)
-        exp = Experiment(flow_params)
-        env = exp.env
-        env.reset()
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
 
         # check the min_delay upon reset
         self.assertAlmostEqual(min_delay(env), 0)
@@ -130,11 +114,8 @@ class TestRewards(unittest.TestCase):
             "target_velocity": 10, "max_accel": 1, "max_decel": 1,
             "sort_vehicles": False})
 
-        flow_params = ring_road_exp_setup(vehicles=vehicles,
+        env, _ = ring_road_exp_setup(vehicles=vehicles,
                                      env_params=env_params)
-        exp = Experiment(flow_params)
-        env = exp.env
-        env.reset()
 
         # check the penalty is acknowledging all vehicles
         self.assertEqual(penalize_standstill(env, gain=1), -10)
@@ -156,11 +137,8 @@ class TestRewards(unittest.TestCase):
             "target_velocity": 10, "max_accel": 1, "max_decel": 1,
             "sort_vehicles": False})
 
-        flow_params = ring_road_exp_setup(vehicles=vehicles,
+        env, _ = ring_road_exp_setup(vehicles=vehicles,
                                      env_params=env_params)
-        exp = Experiment(flow_params)
-        env = exp.env
-        env.reset()
 
         # check the penalty is acknowledging all vehicles
         self.assertEqual(penalize_near_standstill(env, gain=1), -10)

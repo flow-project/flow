@@ -40,12 +40,10 @@ class TestUpdateGetState(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a ring road
-        flow_params = ring_road_exp_setup(
+        self.env, _ = ring_road_exp_setup(
             net_params=net_params, traffic_lights=traffic_lights)
-        exp = Experiment(flow_params)
-        self.env = exp.env
-        self.env.reset()
 
+        self.env.reset()
         self.env.step([])
 
         state = self.env.k.traffic_light.get_state("top")
@@ -67,12 +65,10 @@ class TestUpdateGetState(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a ring road
-        flow_params = ring_road_exp_setup(
+        self.env, _ = ring_road_exp_setup(
             net_params=net_params, traffic_lights=traffic_lights)
-        exp = Experiment(flow_params)
-        self.env = exp.env
-        self.env.reset()
 
+        self.env.reset()
         self.env.step([])
 
         state = self.env.k.traffic_light.get_state("top")
@@ -100,11 +96,8 @@ class TestSetState(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a ring road
-        flow_params = ring_road_exp_setup(
+        self.env, _ = ring_road_exp_setup(
             net_params=net_params, traffic_lights=traffic_lights)
-        exp = Experiment(flow_params)
-        self.env = exp.env
-        self.env.reset()
 
     def tearDown(self):
         # terminate the traci instance
@@ -337,11 +330,8 @@ class TestCustomization(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a ring road
-        flow_params = ring_road_exp_setup(
+        self.env, _ = ring_road_exp_setup(
             net_params=net_params, traffic_lights=traffic_lights)
-        exp = Experiment(flow_params)
-        self.env = exp.env
-        self.env.reset()
 
     def tearDown(self):
         # terminate the traci instance

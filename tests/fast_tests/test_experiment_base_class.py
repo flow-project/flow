@@ -11,7 +11,6 @@ from flow.core.params import SumoParams
 from tests.setup_scripts import ring_road_exp_setup
 from examples.exp_configs.non_rl.ring import flow_params
 import numpy as np
-from flow.core.experiment import Experiment
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -23,7 +22,7 @@ class TestNumSteps(unittest.TestCase):
 
     def setUp(self):
         # create the environment and network classes for a ring road
-        flow_params = ring_road_exp_setup()
+        env, _ = ring_road_exp_setup()
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
         # instantiate an experiment class
@@ -48,7 +47,7 @@ class TestNumRuns(unittest.TestCase):
     def test_num_runs(self):
         # run the experiment for 1 run and collect the last position of all
         # vehicles
-        flow_params = ring_road_exp_setup()
+        env, _ = ring_road_exp_setup()
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
         exp = Experiment(flow_params)
@@ -58,7 +57,7 @@ class TestNumRuns(unittest.TestCase):
 
         # run the experiment for 2 runs and collect the last position of all
         # vehicles
-        flow_params = ring_road_exp_setup()
+        env, _ = ring_road_exp_setup()
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
 
@@ -92,7 +91,7 @@ class TestRLActions(unittest.TestCase):
             ),
             num_vehicles=1)
 
-        flow_params = ring_road_exp_setup(vehicles=vehicles)
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
         exp = Experiment(flow_params)
@@ -114,25 +113,25 @@ class TestConvertToCSV(unittest.TestCase):
     def test_convert_to_csv(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         sim_params = SumoParams(emission_path="{}/".format(dir_path))
-        flow_params = ring_road_exp_setup(sim_params=sim_params)
+        env, network = ring_road_exp_setup(sim_params=sim_params)
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
         exp = Experiment(flow_params)
         exp.run(num_runs=1, convert_to_csv=True)
 
         time.sleep(0.1)
-        
+
         # check that both the csv file exists and the xml file doesn't.
         self.assertFalse(os.path.isfile(dir_path + "/{}-emission.xml".format(
-            flow_params['network'].__name__)))
+            network.name)))
         self.assertTrue(os.path.isfile(dir_path + "/{}-emission.csv".format(
-            flow_params['network'].__name__)))
+            network.name)))
 
         time.sleep(0.1)
 
         # delete the files
         os.remove(os.path.expanduser(dir_path + "/{}-emission.csv".format(
-            flow_params['network'].__name__)))
+            network.name)))
 
 
 if __name__ == '__main__':
