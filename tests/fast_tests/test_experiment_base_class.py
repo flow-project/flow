@@ -9,7 +9,9 @@ from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoParams
 
 from tests.setup_scripts import ring_road_exp_setup
+from examples.exp_configs.non_rl.ring import flow_params
 import numpy as np
+from flow.core.experiment import Experiment
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -119,6 +121,7 @@ class TestConvertToCSV(unittest.TestCase):
         exp.run(num_runs=1, convert_to_csv=True)
 
         time.sleep(0.1)
+        
         # check that both the csv file exists and the xml file doesn't.
         self.assertFalse(os.path.isfile(dir_path + "/{}-emission.xml".format(
             flow_params['network'].__name__)))

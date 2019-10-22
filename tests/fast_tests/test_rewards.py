@@ -25,11 +25,11 @@ class TestRewards(unittest.TestCase):
             "sort_vehicles": False})
 
         flow_params = ring_road_exp_setup(vehicles=vehicles,
-                                          env_params=env_params)
+                                     env_params=env_params)
         exp = Experiment(flow_params)
         env = exp.env
         env.reset()
-
+        
         # check that the fail attribute leads to a zero return
         self.assertEqual(desired_velocity(env, fail=True), 0)
 
@@ -39,7 +39,7 @@ class TestRewards(unittest.TestCase):
         # check the average speed upon reset with a subset of edges
         self.assertEqual(desired_velocity(env, edge_list=["bottom"],
                                           fail=False), 0)
-
+        
         # change the speed of one vehicle
         env.k.vehicle.test_set_speed("test_0", np.sqrt(10))
 
@@ -131,7 +131,7 @@ class TestRewards(unittest.TestCase):
             "sort_vehicles": False})
 
         flow_params = ring_road_exp_setup(vehicles=vehicles,
-                                          env_params=env_params)
+                                     env_params=env_params)
         exp = Experiment(flow_params)
         env = exp.env
         env.reset()
@@ -157,7 +157,7 @@ class TestRewards(unittest.TestCase):
             "sort_vehicles": False})
 
         flow_params = ring_road_exp_setup(vehicles=vehicles,
-                                          env_params=env_params)
+                                     env_params=env_params)
         exp = Experiment(flow_params)
         env = exp.env
         env.reset()

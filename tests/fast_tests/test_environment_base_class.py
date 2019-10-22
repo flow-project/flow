@@ -141,7 +141,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
             num_vehicles=5)
 
         # create the environment and network classes for a ring road
-        flow_params = ring_road_exp_setup(
+        flow_params= ring_road_exp_setup(
             net_params=net_params, env_params=env_params, vehicles=vehicles)
         exp = Experiment(flow_params)
         self.env = exp.env
