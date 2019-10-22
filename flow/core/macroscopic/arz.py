@@ -56,9 +56,12 @@ PARAMS = DictDescriptor(
      "tuple of (density, speed) initial conditions. Each element of the tuple"
      " must be a list of length int(length/dx)"),
 
-    ("boundary_conditions", (None, None), None,
-     "tuple of ((density, speed),tuple of (density, speed)). Specify values "
-     "for left boundary and right boundary"),
+    ("boundary_conditions", 'extend_both', None,
+     "conditions at road left and right ends; should either dict or string"
+     " ie. {'constant_both': ((density, speed),(density, speed) )}, constant value of both ends"
+     "loop, loop edge values as a ring"
+     "extend_both, extrapolate last value on both ends"
+     ),
 )
 
 
@@ -198,8 +201,9 @@ class ARZ(MacroModelEnv):
             * initial_conditions ((list of float, list of float)): tuple of
               (speed, density) initial conditions. Each element of the tuple
               must be a list of length int(length/dx)
-            * boundary_conditions ((float, float)): tuple of ((density, speed),(density, speed) ) a at left edge
-                of road and right edge of road as initial boundary conditions.
+            * boundary_conditions (string) or (dict): string  of either "loop" or "extend_both " or a
+                dict of {"condition": ((density,speed), (density,speed))} specifying densities at left edge
+                of road and right edge of road respectively as initial boundary conditions.
                 Boundary conditions are important to maintain conservation laws
                 because at each calculation of the flux, we lose information at the boundaries
                 and so may we have to keep updating/specifying them for t=0 (unless in special cases).
@@ -253,8 +257,9 @@ class ARZ(MacroModelEnv):
         self.initial_conditions = (self.initial_conditions_density,
                                    self.initial_conditions_relative_flow)
         self.list_values = []
-        self.boundary_left = params['boundary_conditions'][0]
-        self.boundary_right = params['boundary_conditions'][1]
+        self.boundaries = params["boundary_conditions"]
+        self.boundary_left = None
+        self.boundary_right = None
 
         self.rho_critical = self.rho_max / 2
         self.speed = None
@@ -286,8 +291,8 @@ class ARZ(MacroModelEnv):
 
         # extract the densities and relative speed
         obs = self.obs.copy()
-        rho = obs[:int(obs.shape[0]/2)] * self.rho_max_max
-        speed = obs[int(obs.shape[0]/2):] * self.v_max_max
+        rho = obs[:int(obs.shape[0]/2)]
+        speed = obs[int(obs.shape[0]/2):]
         relative_flow = self.relative_flow(rho, speed)
 
         # advance the state of the simulation by one step
@@ -297,8 +302,7 @@ class ARZ(MacroModelEnv):
         self.speed = self.u(rho, rel_flow)
 
         # compute the new observation
-        self.obs = np.concatenate((rho / self.rho_max_max,
-                                   self.speed / self.v_max_max))
+        self.obs = np.concatenate((rho, self.speed))
         # compute the reward value
         rew = np.mean(np.square(self.speed - self.v_max_max) * rho)
 
@@ -354,35 +358,10 @@ class ARZ(MacroModelEnv):
             next relative flow data points as calculated by the Semi-Implicit
             Godunov scheme
         """
-
-        # we are extrapolating our boundary conditions
-        # self.boundary_left = boundary_left_solve(u_full)
-        # self.boundary_right = boundary_right_solve(u_full)
-        #
-        # # full array with boundary conditions
-        # u_all = (np.insert(np.append(u_full[0], self.boundary_right[0]),
-        #                    0, self.boundary_left[0]),
-        #          np.insert(np.append(u_full[1], self.boundary_right[1]),
-        #                    0, self.boundary_left[1]))
-        #
-        # # compute flux
-        # fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, \
-        #     rho_init, y_init = self.compute_flux(u_all)
-        #
-        # # update new points
-        # new_points = self.arz_update_points(
-        #     fp_higher_half,
-        #     fp_lower_half,
-        #     fy_higher_half,
-        #     fy_lower_half,
-        #     rho_init,
-        #     y_init,
-        # )
-
         # boundary conditions and simulation for ring experiment below
-
-        self.boundary_left = u_full[0][len(u_full[1]) - 1], u_full[1][len(u_full[1]) - 1]
-        self.boundary_right = u_full[0][len(u_full[1]) - 2], u_full[1][len(u_full[1]) - 2]
+        if self.boundaries == "loop":
+            self.boundary_left = u_full[0][len(u_full[1]) - 1], u_full[1][len(u_full[1]) - 1]
+            self.boundary_right = u_full[0][len(u_full[1]) - 2], u_full[1][len(u_full[1]) - 2]
 
         # # full array with boundary conditions
         u_all = u_full
@@ -400,11 +379,31 @@ class ARZ(MacroModelEnv):
             rho_init,
             y_init,
         )
+        if self.boundaries == "loop":
+            new_points = (np.insert(np.append(new_points[0], self.boundary_right[0]),
+                                    0, self.boundary_left[0]),
+                          np.insert(np.append(new_points[1], self.boundary_right[1]),
+                                    0, self.boundary_left[1]))
 
-        new_points = (np.insert(np.append(new_points[0], self.boundary_right[0]),
-                                0, self.boundary_left[0]),
-                      np.insert(np.append(new_points[1], self.boundary_right[1]),
-                                0, self.boundary_left[1]))
+        if self.boundaries == "extend_both":
+            self.boundary_left = (new_points[0][0], new_points[1][0])
+            self.boundary_right = (new_points[0][len(new_points[1]) - 1],
+                                   new_points[1][len(new_points[1]) - 1])
+            new_points = (np.insert(np.append(new_points[0], self.boundary_right[0]),
+                                    0, self.boundary_left[0]),
+                          np.insert(np.append(new_points[1], self.boundary_right[1]),
+                                    0, self.boundary_left[1]))
+
+        if type(self.boundaries) == dict:
+            if list(self.boundaries.keys())[0] == "constant_both":
+                self.boundary_left = (self.boundaries["constant_both"][0][0],
+                                      self.boundaries["constant_both"][0][1])
+                self.boundary_right = (self.boundaries["constant_both"][1][0],
+                                       self.boundaries["constant_both"][1][1])
+                new_points = (np.insert(np.append(new_points[0], self.boundary_right[0]),
+                                        0, self.boundary_left[0]),
+                              np.insert(np.append(new_points[1], self.boundary_right[1]),
+                                        0, self.boundary_left[1]))
 
         return new_points
 
