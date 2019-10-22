@@ -145,11 +145,12 @@ class LWR(MacroModelEnv):
             * dt (float): time discretization (in seconds/step)
             * initial_conditions (list of float): list of initial densities.
               Must be of length int(length/dx)
-            * boundary_conditions ((float, float)): tuple of (density, density) a at left edge
+            * boundary_conditions (string) or (dict): string  of either "loop" or "extend_both " or a
+                dict of {"condition": (density, density)} specifying densities at left edge
                 of road and right edge of road respectively as initial boundary conditions.
                 Boundary conditions are important to maintain conservation laws
                 because at each calculation of the flux, we lose information at the boundaries
-                and so may we have to keep updating/specifying them for t=0 (unless in special cases).
+                and so we have to keep updating/specifying them from t=1 (unless in special cases).
         """
         super(LWR, self).__init__(params)
 
@@ -201,49 +202,48 @@ class LWR(MacroModelEnv):
         self.num_steps = None
 
     def run(self, rl_actions=1, visualize=True):
-        obs = self.reset()
+        self.obs = self.reset()
         t = 0
         time_steps = [t]
-        # fig, plots = plt.subplots (2)
-        all_densities = self.obs[:int(self.length / self.dx)]
-        all_speeds = self.obs[int(self.length / self.dx):]
+        all_densities = [self.obs[:int(self.length / self.dx)]]
+        all_speeds = [self.obs[int(self.length / self.dx):]]
+        x = np.arange(0, self.length, self.dx)
         while t < self.total_time:
             t = t + self.dt
             time_steps.append(t)
             obs, rew, done, _ = self.step(rl_actions)
             if visualize:
-                x = np.arange(0, self.length, self.dx)
-                # obs values store
+                # store values
                 density = self.obs[:int(self.length / self.dx)]
                 speeds = self.obs[int(self.length / self.dx):]
-                all_densities = np.vstack([all_densities, density])
-                all_speeds = np.vstack([all_speeds, speeds])
-                # self.plot_points(self.length, x, density, speeds, 4, 1, plots)
-        X, Y = np.meshgrid(x, time_steps)
-        Z = all_densities
-        plt.contourf(X, Y, Z, levels=900, cmap='jet')
-        plt.xlabel('Length')
-        plt.ylabel('Time (seconds)')
-        plt.colorbar(shrink=0.8, aspect=5)
+                all_densities = np.concatenate((all_densities, [density]), axis=0)
+                all_speeds = np.concatenate((all_speeds, [speeds]), axis=0)
+                # all_densities = np.vstack([all_densities, density])
+                # all_speeds = np.vstack([all_speeds, speeds])
+
+        if visualize:
+            # call visualize function
+            self.visualize_plots(x, all_densities, all_speeds, time_steps)
+
+    def visualize_plots(self, x, all_densities, all_speeds, time_steps):
+        """TODO: document this"""
+        fig, plots = plt.subplots(2, figsize=(10, 10))
+        fig.subplots_adjust(hspace=.5)
+        x_vector, y_vector = np.meshgrid(x, time_steps)
+        z_array = all_densities
+        first_plot = plots[0].contourf(x_vector, y_vector, z_array, levels=900, cmap='jet')
+        plots[0].set(xlabel='Length (Position on Street in meters)', ylabel='Time (seconds)')
+        plots[0].set_title('LWR Density Evolution')
+        color_bar = fig.colorbar(first_plot, ax=plots[0], shrink=0.8)
+        color_bar.ax.set_title('Density\nLevels', fontsize=8)
+
+        z_array1 = all_speeds
+        first_plot = plots[1].contourf(x_vector, y_vector, z_array1, levels=900, cmap='jet')
+        plots[1].set(xlabel='Length (Position on Street in meters)', ylabel='Time (seconds)')
+        plots[1].set_title('LWR Velocity Evolution (m/s)')
+        color_bar1 = fig.colorbar(first_plot, ax=plots[1], shrink=0.8)
+        color_bar1.ax.set_title('Velocity\nLevels (m/s)', fontsize=8)
         plt.show()
-
-    def plot_points(self, Length, x, Density, Speed, R, V_max, plots):
-        """Ignore since removing."""
-        # plot current profile during execution
-        plots[0].plot(x, Density, 'b-')
-        plots[0].axis([0, Length, -0.1, R + 1])
-        plots[0].set(xlabel='Street Length (m)', ylabel='Density')
-        plots[0].set_title("LWR Evolution of Density")
-
-        plots[1].plot(x, Speed, 'b-')
-        plots[1].axis([0, Length, -0.1, V_max + 1])
-        plots[1].set(xlabel='Street Length (m)', ylabel='Velocities(m/s)')
-        plots[1].set_title("LWR Evolution of Velocities ")
-        plt.draw()
-        plt.pause(0.0001)
-        # plt.clf()
-        plots[0].clear()
-        plots[1].clear()
 
     @property
     def observation_space(self):
@@ -433,4 +433,3 @@ class LWR(MacroModelEnv):
         self.obs = np.concatenate((rho_init, v_init))
 
         return self.obs.copy()
-
