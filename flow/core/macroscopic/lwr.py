@@ -298,12 +298,6 @@ class LWR(MacroModelEnv):
         # compute the done mask
         done = self.num_steps >= self.horizon
 
-        # Store variables for visualizing
-        # time steps
-        # Length of Road
-        # obs
-        # plot 2 subplots outside
-
         return self.obs.copy(), rew, done, {}
 
     def godunov_flux(self, rho_t):
