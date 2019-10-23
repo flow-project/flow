@@ -16,7 +16,8 @@ import flow.utils.aimsun.control_plans as cp
 from PyANGKernel import *
 import AAPI as aimsun_api
 
-PORT = 9999
+model = GKSystem.getSystem().getActiveModel()
+PORT = int(model.getAuthor())
 entered_vehicles = []
 exited_vehicles = []
 

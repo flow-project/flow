@@ -102,7 +102,7 @@ class TestHighwayNetwork(unittest.TestCase):
 
 class TestRingNetwork(unittest.TestCase):
 
-    """Tests LoopNetwork in flow/networks/ring.py."""
+    """Tests RingNetwork in flow/networks/ring.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
@@ -142,7 +142,7 @@ class TestMergeNetwork(unittest.TestCase):
 
 class TestMultiRingNetwork(unittest.TestCase):
 
-    """Tests MultiLoopNetwork in flow/networks/multi_ring.py."""
+    """Tests MultiRingNetwork in flow/networks/multi_ring.py."""
 
     def test_additional_net_params(self):
         """Ensures that not returning the correct params leads to an error."""
