@@ -120,7 +120,7 @@ class AimsunKernelNetwork(BaseKernelNetwork):
                 f.write(template_path)
 
         # start the aimsun process
-        aimsun_call = [aimsun_path, "-script", script_path]
+        aimsun_call = [aimsun_path, "-script", script_path, str(self.sim_params.port)]
         self.aimsun_proc = subprocess.Popen(aimsun_call)
 
         # merge types into edges

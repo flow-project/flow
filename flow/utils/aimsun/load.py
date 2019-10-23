@@ -5,6 +5,7 @@ import json
 
 import flow.config as config
 from flow.utils.aimsun.scripting_api import AimsunTemplate
+import sys
 
 
 def load_network():
@@ -133,6 +134,10 @@ os.remove(file_path)
 print('[load.py] Loading template ' + template_path)
 model = AimsunTemplate(GKSystem, GKGUISystem)
 model.load(template_path)
+
+# HACK: Store port in author
+port_string = sys.argv[1]
+model.setAuthor(port_string)
 
 # collect the simulation parameters
 params_file = 'flow/core/kernel/network/data.json'
