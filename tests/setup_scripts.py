@@ -133,7 +133,22 @@ def ring_road_exp_setup(sim_params=None,
         tls=traffic_lights,
     )
 
-    return flow_params
+    # create the network
+    network = RingNetwork(
+        name="RingRoadTest",
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config,
+        traffic_lights=traffic_lights)
+
+    # create the environment
+    env = AccelEnv(
+        env_params=env_params, sim_params=sim_params, network=network)
+
+    # reset the environment
+    env.reset()
+
+    return env, network, flow_params
 
 
 def figure_eight_exp_setup(sim_params=None,
@@ -211,6 +226,41 @@ def figure_eight_exp_setup(sim_params=None,
         # set default to no traffic lights
         traffic_lights = TrafficLightParams()
 
+    flow_params = dict(
+        # name of the experiment
+        exp_tag="FigureEightTest",
+
+        # name of the flow environment the experiment is running on
+        env_name=AccelEnv,
+
+        # name of the network class the experiment is running on
+        network=FigureEightNetwork,
+
+        # simulator that is used by the experiment
+        simulator='traci',
+
+        # sumo-related parameters (see flow.core.params.SumoParams)
+        sim=sim_params,
+
+        # environment related parameters (see flow.core.params.EnvParams)
+        env=env_params,
+        # network-related parameters (see flow.core.params.NetParams and the
+        # network's documentation or ADDITIONAL_NET_PARAMS component)
+        net=net_params,
+
+        # vehicles to be placed in the network at the start of a rollout (see
+        # flow.core.params.VehicleParams)
+        veh=vehicles,
+
+        # parameters specifying the positioning of vehicles upon initialization/
+        # reset (see flow.core.params.InitialConfig)
+        initial=initial_config,
+
+        # traffic lights to be introduced to specific nodes (see
+        # flow.core.params.TrafficLightParams)
+        tls=traffic_lights,
+    )
+
     # create the network
     network = FigureEightNetwork(
         name="FigureEightTest",
@@ -226,7 +276,7 @@ def figure_eight_exp_setup(sim_params=None,
     # reset the environment
     env.reset()
 
-    return env, network
+    return env, network, flow_params
 
 
 def highway_exp_setup(sim_params=None,
@@ -305,6 +355,41 @@ def highway_exp_setup(sim_params=None,
         # set default to no traffic lights
         traffic_lights = TrafficLightParams()
 
+    flow_params = dict(
+        # name of the experiment
+        exp_tag="RingRoadTest",
+
+        # name of the flow environment the experiment is running on
+        env_name=AccelEnv,
+
+        # name of the network class the experiment is running on
+        network=HighwayNetwork,
+
+        # simulator that is used by the experiment
+        simulator='traci',
+
+        # sumo-related parameters (see flow.core.params.SumoParams)
+        sim=sim_params,
+
+        # environment related parameters (see flow.core.params.EnvParams)
+        env=env_params,
+        # network-related parameters (see flow.core.params.NetParams and the
+        # network's documentation or ADDITIONAL_NET_PARAMS component)
+        net=net_params,
+
+        # vehicles to be placed in the network at the start of a rollout (see
+        # flow.core.params.VehicleParams)
+        veh=vehicles,
+
+        # parameters specifying the positioning of vehicles upon initialization/
+        # reset (see flow.core.params.InitialConfig)
+        initial=initial_config,
+
+        # traffic lights to be introduced to specific nodes (see
+        # flow.core.params.TrafficLightParams)
+        tls=traffic_lights,
+    )
+    
     # create the network
     network = HighwayNetwork(
         name="RingRoadTest",
@@ -320,7 +405,7 @@ def highway_exp_setup(sim_params=None,
     # reset the environment
     env.reset()
 
-    return env, network
+    return env, network, flow_params
 
 
 def traffic_light_grid_mxn_exp_setup(row_num=1,
@@ -465,7 +550,22 @@ def traffic_light_grid_mxn_exp_setup(row_num=1,
         tls=tl_logic
     )
 
-    return flow_params
+    # create the network
+    network = TrafficLightGridNetwork(
+        name="Grid1x1Test",
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config,
+        traffic_lights=tl_logic)
+
+    # create the environment
+    env = TrafficLightGridTestEnv(
+        env_params=env_params, sim_params=sim_params, network=network)
+
+    # reset the environment
+    env.reset()
+
+    return env, network, flow_params
 
 
 def variable_lanes_exp_setup(sim_params=None,
@@ -546,6 +646,41 @@ def variable_lanes_exp_setup(sim_params=None,
         # set default to no traffic lights
         traffic_lights = TrafficLightParams()
 
+    flow_params = dict(
+        # name of the experiment
+        exp_tag="VariableLaneRingRoadTest",
+
+        # name of the flow environment the experiment is running on
+        env_name=AccelEnv,
+
+        # name of the network class the experiment is running on
+        network=VariableLanesNetwork,
+
+        # simulator that is used by the experiment
+        simulator='traci',
+
+        # sumo-related parameters (see flow.core.params.SumoParams)
+        sim=sim_params,
+
+        # environment related parameters (see flow.core.params.EnvParams)
+        env=env_params,
+        # network-related parameters (see flow.core.params.NetParams and the
+        # network's documentation or ADDITIONAL_NET_PARAMS component)
+        net=net_params,
+
+        # vehicles to be placed in the network at the start of a rollout (see
+        # flow.core.params.VehicleParams)
+        veh=vehicles,
+
+        # parameters specifying the positioning of vehicles upon initialization/
+        # reset (see flow.core.params.InitialConfig)
+        initial=initial_config,
+
+        # traffic lights to be introduced to specific nodes (see
+        # flow.core.params.TrafficLightParams)
+        tls=traffic_lights,
+    )
+
     # create the network
     network = VariableLanesNetwork(
         name="VariableLaneRingRoadTest",
@@ -561,7 +696,7 @@ def variable_lanes_exp_setup(sim_params=None,
     # reset the environment
     env.reset()
 
-    return env, network
+    return env, network, flow_params
 
 
 class VariableLanesNetwork(RingNetwork):

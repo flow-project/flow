@@ -52,27 +52,12 @@ class TestCollisions(unittest.TestCase):
 
         net_params = NetParams(additional_params=additional_net_params)
 
-        flow_params = traffic_light_grid_mxn_exp_setup(
+        env, _, flow_params = traffic_light_grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
             sim_params=sim_params,
             vehicles=vehicles,
             net_params=net_params)
-
-        # create the network
-        network = TrafficLightGridNetwork(
-            name="Grid1x1Test",
-            vehicles=flow_params['veh'],
-            net_params=flow_params['net'],
-            initial_config=flow_params['initial'],
-            traffic_lights=flow_params['tls'])
-
-        # create the environment
-        env = TrafficLightGridTestEnv(
-            env_params=flow_params['env'], sim_params=flow_params['sim'], network=network)
-
-        # reset the environment
-        env.reset()
 
         # go through the env and set all the lights to green
         for i in range(env.rows * env.cols):
@@ -128,7 +113,7 @@ class TestCollisions(unittest.TestCase):
             inflows=inflows,
             additional_params=additional_net_params)
 
-        flow_params = traffic_light_grid_mxn_exp_setup(
+        _, _, flow_params = traffic_light_grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
             sim_params=sim_params,

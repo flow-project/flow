@@ -9,7 +9,7 @@ from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoParams
 
 from tests.setup_scripts import ring_road_exp_setup
-from examples.exp_configs.non_rl.ring import flow_params
+
 import numpy as np
 
 os.environ["TEST_FLAG"] = "True"
@@ -22,7 +22,7 @@ class TestNumSteps(unittest.TestCase):
 
     def setUp(self):
         # create the environment and network classes for a ring road
-        env, _ = ring_road_exp_setup()
+        _, _, flow_params = ring_road_exp_setup()
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
         # instantiate an experiment class
@@ -47,7 +47,7 @@ class TestNumRuns(unittest.TestCase):
     def test_num_runs(self):
         # run the experiment for 1 run and collect the last position of all
         # vehicles
-        env, _ = ring_road_exp_setup()
+        env, _, flow_params = ring_road_exp_setup()
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
         exp = Experiment(flow_params)
@@ -57,7 +57,7 @@ class TestNumRuns(unittest.TestCase):
 
         # run the experiment for 2 runs and collect the last position of all
         # vehicles
-        env, _ = ring_road_exp_setup()
+        env, _, flow_params = ring_road_exp_setup()
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
 
@@ -91,7 +91,7 @@ class TestRLActions(unittest.TestCase):
             ),
             num_vehicles=1)
 
-        env, _ = ring_road_exp_setup(vehicles=vehicles)
+        _, _, flow_params = ring_road_exp_setup(vehicles=vehicles)
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
         exp = Experiment(flow_params)
@@ -113,7 +113,7 @@ class TestConvertToCSV(unittest.TestCase):
     def test_convert_to_csv(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         sim_params = SumoParams(emission_path="{}/".format(dir_path))
-        env, network = ring_road_exp_setup(sim_params=sim_params)
+        _, network, flow_params = ring_road_exp_setup(sim_params=sim_params)
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
         exp = Experiment(flow_params)
