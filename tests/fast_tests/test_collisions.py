@@ -1,8 +1,6 @@
 import unittest
 
 from flow.core.experiment import Experiment
-from flow.envs import TrafficLightGridTestEnv
-from flow.networks.traffic_light_grid import TrafficLightGridNetwork
 from flow.core.params import SumoParams, SumoCarFollowingParams, NetParams, \
     InFlows
 from flow.core.params import VehicleParams

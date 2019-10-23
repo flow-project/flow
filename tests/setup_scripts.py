@@ -389,7 +389,7 @@ def highway_exp_setup(sim_params=None,
         # flow.core.params.TrafficLightParams)
         tls=traffic_lights,
     )
-    
+
     # create the network
     network = HighwayNetwork(
         name="RingRoadTest",

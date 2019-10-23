@@ -40,7 +40,7 @@ class TestUpdateGetState(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a ring road
-        self.env, _,_ = ring_road_exp_setup(
+        self.env, _, _ = ring_road_exp_setup(
             net_params=net_params, traffic_lights=traffic_lights)
 
         self.env.reset()
@@ -230,10 +230,10 @@ class TestItRuns(unittest.TestCase):
 
         _, _, flow_params = traffic_light_grid_mxn_exp_setup(
             row_num=1, col_num=3, vehicles=vehicles)
-        
+
         flow_params['env'].horizon = 50
         self.exp = Experiment(flow_params)
-        
+
     def tearDown(self):
         # free data used by the class
         self.exp = None

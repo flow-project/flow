@@ -24,7 +24,7 @@ class TestRewards(unittest.TestCase):
             "sort_vehicles": False})
 
         env, _, _ = ring_road_exp_setup(vehicles=vehicles,
-                                     env_params=env_params)
+                                        env_params=env_params)
 
         # check that the fail attribute leads to a zero return
         self.assertEqual(desired_velocity(env, fail=True), 0)
@@ -115,7 +115,7 @@ class TestRewards(unittest.TestCase):
             "sort_vehicles": False})
 
         env, _, _ = ring_road_exp_setup(vehicles=vehicles,
-                                     env_params=env_params)
+                                        env_params=env_params)
 
         # check the penalty is acknowledging all vehicles
         self.assertEqual(penalize_standstill(env, gain=1), -10)
@@ -138,7 +138,7 @@ class TestRewards(unittest.TestCase):
             "sort_vehicles": False})
 
         env, _, _ = ring_road_exp_setup(vehicles=vehicles,
-                                     env_params=env_params)
+                                        env_params=env_params)
 
         # check the penalty is acknowledging all vehicles
         self.assertEqual(penalize_near_standstill(env, gain=1), -10)
