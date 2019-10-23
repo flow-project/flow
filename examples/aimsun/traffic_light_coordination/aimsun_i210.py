@@ -1,9 +1,9 @@
 
 from flow.core.params import AimsunParams, NetParams, VehicleParams, EnvParams, InitialConfig
 from flow.core.experiment import Experiment
-from flow.networks import Network
+# from flow.networks import Network
 # from flow.envs import TestEnv
-from coordinated_lights import CoordinatedEnv, ADDITIONAL_ENV_PARAMS
+from coordinated_lights import CoordinatedNetwork, CoordinatedEnv, ADDITIONAL_ENV_PARAMS
 import os
 
 sim_step = 0.8  # seconds
@@ -25,7 +25,7 @@ sim_params = AimsunParams(
     centroid_config_name="Centroid Configuration 8040652"
 )
 
-network = Network(
+network = CoordinatedNetwork(
     name="template",
     net_params=net_params,
     initial_config=initial_config,

@@ -5,18 +5,16 @@ import numpy as np
 from thread import start_new_thread
 import struct
 import socket
-from PyANGKernel import *
-from AAPI import *
-import AAPI as aimsun_api
-import flow.utils.aimsun.control_plans as cp
-import flow.utils.aimsun.constants as ac
-import flow.config as config
 import sys
 import os
+import flow.utils.aimsun.constants as ac
+import flow.config as config
 
 sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
                              'programming/Aimsun Next API/AAPIPython/Micro'))
-
+import flow.utils.aimsun.control_plans as cp
+from PyANGKernel import *
+import AAPI as aimsun_api
 
 PORT = 9999
 entered_vehicles = []
@@ -240,7 +238,7 @@ def threaded_client(conn, **kwargs):
                 vehicle = model.getCatalog().findByName(
                     type_id, type_vehicle)
                 aimsun_type = vehicle.getId()
-                aimsun_type_pos = AKIVehGetVehTypeInternalPosition(aimsun_type)
+                aimsun_type_pos = aimsun_api.AKIVehGetVehTypeInternalPosition(aimsun_type)
 
                 send_message(conn, in_format='i', values=(aimsun_type_pos,))
 
@@ -402,7 +400,7 @@ def threaded_client(conn, **kwargs):
             elif data == ac.VEH_GET_NEXT_SECTION:
                 send_message(conn, in_format='i', values=(0,))
                 veh_id, section = retrieve_message(conn, 'i i')
-                next_section = AKIVehInfPathGetNextSection(veh_id, section)
+                next_section = aimsun_api.AKIVehInfPathGetNextSection(veh_id, section)
                 send_message(conn, in_format='i', values=(next_section,))
 
             elif data == ac.VEH_GET_ROUTE:
@@ -423,7 +421,7 @@ def threaded_client(conn, **kwargs):
                 else:
                     meter_ids = []
                     for i in range(1, num_meters + 1):
-                        struct_metering = ECIGetMeteringProperties(i)
+                        struct_metering = aimsun_api.ECIGetMeteringProperties(i)
                         meter_id = struct_metering.Id
                         meter_ids.append(meter_id)
                     output = ':'.join([str(e) for e in meter_ids])
@@ -432,10 +430,10 @@ def threaded_client(conn, **kwargs):
             elif data == ac.TL_SET_STATE:
                 send_message(conn, in_format='i', values=(0,))
                 meter_aimsun_id, state = retrieve_message(conn, 'i i')
-                time = AKIGetCurrentSimulationTime()  # simulation time
-                sim_step = AKIGetSimulationStepTime()
+                time = aimsun_api.AKIGetCurrentSimulationTime()  # simulation time
+                sim_step = aimsun_api.AKIGetSimulationStepTime()
                 identity = 0
-                ECIChangeStateMeteringById(
+                aimsun_api.ECIChangeStateMeteringById(
                     meter_aimsun_id, state, time, sim_step, identity)
                 send_message(conn, in_format='i', values=(0,))
 
@@ -443,7 +441,7 @@ def threaded_client(conn, **kwargs):
                 send_message(conn, in_format='i', values=(0,))
                 meter_aimsun_id = retrieve_message(conn, 'i')
                 lane_id = 1  # TODO double check
-                state = ECIGetCurrentStateofMeteringById(
+                state = aimsun_api.ECIGetCurrentStateofMeteringById(
                     meter_aimsun_id, lane_id)
                 send_message(conn, in_format='i', values=(state,))
 
@@ -554,7 +552,7 @@ def AAPILoad():
 def AAPIInit():
     """Execute commands while the Aimsun instance is initializing."""
     # set the simulation time to be very large
-    AKISetEndSimTime(2e6)
+    aimsun_api.AKISetEndSimTime(2e6)
     return 0
 
 

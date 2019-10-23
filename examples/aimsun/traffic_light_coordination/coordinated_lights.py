@@ -1,4 +1,5 @@
 from flow.envs import Env
+from flow.networks import Network
 import numpy as np
 from gym.spaces.box import Box
 
@@ -143,3 +144,7 @@ class CoordinatedEnv(Env):
     # def reset(self):
     #     replication_names = ['Replication 8050315', 'Replication 8050318',
     #                          'Replication 8050293', 'Replication (one hour)']
+
+
+class CoordinatedNetwork(Network):
+    pass
