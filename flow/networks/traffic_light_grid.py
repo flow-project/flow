@@ -199,21 +199,32 @@ class TrafficLightGridNetwork(Network):
 
         def generate_routes_list(k=10):
             """Create a list of k shortest routes for all possible pairs of source and destination outer nodes. By default,
-            for any two pairs of source and destination nodes, generate k shortest routes"""
+            for any two pairs of source and destination nodes, generate k shortest routes.
 
-            route = []
-
-            x_max = self.col_num + 1
-            y_max = self.row_num + 1
-
-            def k_shortest_paths(G, source, target, len_k, weight=None):
-                """Takes in a graph, source and target and compute a list of the k shortest/best paths between two nodes"""
-                return list(islice(nx.shortest_simple_paths(G, source, target, weight=weight), len_k))
+            Returns
+            -------
+            list <list>
+                A list of lists, where the elements of each inner list represent a sequence of nodes from a source node
+                to a target node.
+            """
 
             routes = []
             G = nx.DiGraph()
             src_dst_nodes = []  # list of all outer nodes that function as starting (and ending) nodes
 
+            x_max = self.col_num + 1
+            y_max = self.row_num + 1
+
+            def k_shortest_paths(G, source, target, len_k, weight=None):
+                """Takes in a graph, source and target and returns a list of k lists. Each inner list contains a sequence
+                 of nodes that form a path between a source and target node.
+
+                Source: https://networkx.github.io/documentation/stable/reference/algorithms/generated/networkx.algorithms.
+                simple_paths.shortest_simple_paths.html#networkx.algorithms.simple_paths.shortest_simple_paths"""
+
+                return list(islice(nx.shortest_simple_paths(G, source, target, weight=weight), len_k))
+
+            # Generate all nodes in the grid for the graph
             for x in range(x_max + 1):
                 for y in range(y_max + 1):
                     if (x, y) not in [(0, 0), (x_max, 0), (0, y_max), (x_max, y_max)]:
@@ -221,7 +232,7 @@ class TrafficLightGridNetwork(Network):
                         if x == x_max or x == 0 or y == y_max or y == 0:
                             src_dst_nodes += ["({}.{})".format(x, y)]
 
-            # Build the horizontal edges
+            # Build all the 'horizontal' edges for the graph
             for y in range(1, y_max):
                 for x in range(x_max):
                     left_node = "({}.{})".format(x, y)
@@ -229,7 +240,7 @@ class TrafficLightGridNetwork(Network):
                     G.add_edge(left_node, right_node, weight=1)
                     G.add_edge(right_node, left_node, weight=1)
 
-            # Build the vertical edges
+            # Build all the 'vertical' edges for the graph
             for x in range(1, x_max):
                 for y in range(y_max):
                     bottom_node = "({}.{})".format(x, y)
@@ -237,17 +248,16 @@ class TrafficLightGridNetwork(Network):
                     G.add_edge(bottom_node, top_node, weight=1)
                     G.add_edge(top_node, bottom_node, weight=1)
 
-            # Loop through all possible source and destination nodes to generate a list of all possible paths
+            # Loop through all possible source and destination nodes to generate list of node sequences that represent possible paths
             for src in src_dst_nodes:
                 for dst in src_dst_nodes:
                     routes.extend(k_shortest_paths(G, src, dst, k))
                     # if src != dst: do we want cars to be able to return to the same edge it came from?
             return routes
 
-        all_routes = generate_routes_list()
+        all_routes = generate_routes_list()  # list of lists
         for r in all_routes:
-            # place everything into a routes dict!
-        hello
+
 
         return all_routes
 
