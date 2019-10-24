@@ -95,7 +95,7 @@ class CoordinatedEnv(Env):
         num_measures = (ap['num_measures'])
 
         shape = (num_nodes, num_edges, num_detectors_types, num_measures)
-        the_state = np.zeros(shape) - 1
+        the_state = np.zeros(shape)
 
         for i, (node, edge) in enumerate(self.edge_detector_dict.items()):
             for j, (edge_id, detector_info) in enumerate(edge.items()):
@@ -133,7 +133,9 @@ class CoordinatedEnv(Env):
 
     def additional_command(self):
         """Additional commands that may be performed by the step method."""
-        pass
+        # pass
+        self.k.traffic_light.set_replication_seed(1)
+        # str(self.k.traffic_light.get_ids())
         # tl_ids = self.k.traffic_light.get_ids()
         # print(tl_ids)
         # print(self.k.traffic_light.set_intersection_offset(3344, -20))

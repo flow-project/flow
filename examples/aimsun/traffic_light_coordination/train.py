@@ -18,8 +18,8 @@ except ImportError:
 
 sim_step = 0.8  # seconds
 detector_step = 300  # seconds
-HORIZON = int(3600/detector_step)
-N_ROLLOUTS = 10
+HORIZON = 3900
+N_ROLLOUTS = 1
 
 net_params = NetParams(template=os.path.abspath("no_api_scenario.ang"))
 initial_config = InitialConfig()
@@ -29,7 +29,7 @@ env_params = EnvParams(horizon=HORIZON,
                        additional_params=ADDITIONAL_ENV_PARAMS)
 sim_params = AimsunParams(sim_step=sim_step,
                           render=False,
-                          restart_instance=True,
+                          restart_instance=False,
                           replication_name="Replication (one hour)",
                           centroid_config_name="Centroid Configuration 8040652"
                           )
@@ -94,7 +94,6 @@ if __name__ == "__main__":
     ray.init(num_cpus=N_CPUS + 1, object_store_memory=int(1e9))
 
     alg_run, gym_name, config = setup_exps()
-    # print(alg_runad)
     trials = run_experiments({
         flow_params["exp_tag"]: {
             "run": alg_run,
