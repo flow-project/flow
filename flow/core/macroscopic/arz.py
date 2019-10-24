@@ -52,8 +52,7 @@ PARAMS = DictDescriptor(
     #                      Initial / boundary conditions                      #
     # ======================================================================= #
 
-    ("initial_conditions", ([0], [0]),
-     None,
+    ("initial_conditions", ([0], [0]), None,
      "tuple of (density, speed) initial conditions. Each element of the tuple"
      " must be a list of length int(length/dx)"),
 
@@ -66,42 +65,43 @@ PARAMS = DictDescriptor(
 )
 
 
-def boundary_right_solve(data):
-    """Calculate right boundary condition.
+def visualize_plots(x, all_densities, all_speeds, time_steps):
+    """Creates surface plot for density and velocity evolution of simulation
 
-    Parameters
+     Parameters
     ----------
-    data : tuple -> (density, relative flow)
-        density: array_like
-            density data points on the road length
-       relative flow: array_ike
-           relative flow data points on the road length
+    x : array-like or list
+        points of the road length to plot against
+    all_densities: N x M array-like matrix
+        density values on the road length M at every time step N.
+    all_speeds: N x M array-like matrix
+        velocity values on the road length M at every time step N.
+    time_steps: list
+        discrete time steps that the simulation has run for
 
     Returns
     -------
-    tuple -> (double, double)
-        right boundary conditions for Data -> (density, relative flow)
+    Subplots of density and velocity surface diagrams of simulation
+
     """
-    return data[0][len(data[1]) - 1], data[1][len(data[1]) - 1]
 
+    # density plot
+    fig, plots = plt.subplots(2, figsize=(10, 10))
+    fig.subplots_adjust(hspace=.5)
+    y_vector, x_vector = np.meshgrid(x, time_steps)
+    first_plot = plots[0].contourf(x_vector, y_vector, all_densities, levels=900, cmap='jet')
+    plots[0].set(ylabel='Length (Position on Street in meters)', xlabel='Time (seconds)')
+    plots[0].set_title('ARZ Density Evolution')
+    color_bar = fig.colorbar(first_plot, ax=plots[0], shrink=0.8)
+    color_bar.ax.set_title('Density\nLevels', fontsize=8)
 
-def boundary_left_solve(data):
-    """Calculate left boundary condition.
-
-    Parameters
-    ----------
-    data : tuple -> (density, relative flow)
-        density: array_like
-            density data points on the road length
-        relative flow: array_ike
-           relative flow data points on the road length
-
-    Returns
-    -------
-    tuple -> (double, double)
-        left boundary conditions for Data -> (density, relative flow)
-    """
-    return data[0][0], data[1][0]
+    # velocity plot
+    second_plot = plots[1].contourf(x_vector, y_vector, all_speeds, levels=900, cmap='jet')
+    plots[1].set(ylabel='Length (Position on Street in meters)', xlabel='Time (seconds)')
+    plots[1].set_title('ARZ Velocity Evolution (m/s)')
+    color_bar1 = fig.colorbar(second_plot, ax=plots[1], shrink=0.8)
+    color_bar1.ax.set_title('Velocity\nLevels (m/s)', fontsize=8)
+    plt.show()
 
 
 class ARZ(MacroModelEnv):
@@ -251,7 +251,9 @@ class ARZ(MacroModelEnv):
         self.horizon = int(self.total_time / self.dt)
         self.initial_conditions_density = params['initial_conditions'][0]
         self.initial_conditions_velocity = params['initial_conditions'][1]
+
         # calculate relative flow (transform velocity (u) to relative flow (y))
+        # lam is an exponent of the Green-shield velocity function
         self.lam = 1
         self.initial_conditions_relative_flow = self.relative_flow(
             self.initial_conditions_density, self.initial_conditions_velocity)
@@ -262,6 +264,7 @@ class ARZ(MacroModelEnv):
         self.boundary_left = None
         self.boundary_right = None
 
+        # critical density defined by the Green-shield Model
         self.rho_critical = self.rho_max / 2
         self.speed = None
         self.obs = None
@@ -270,18 +273,26 @@ class ARZ(MacroModelEnv):
         self.rhs = None
 
     def run(self, rl_actions=1, visualize=True):
+
+        # initialize of simulation initial values
         self.obs = self.reset()
+
+        # initialize plotting values
         t = 0
         time_steps = [t]
         all_densities = [self.obs[:int(self.obs.shape[0]/2)]]
         all_speeds = [self.obs[int(self.obs.shape[0]/2):]]
         x = np.arange(0, self.length, self.dx)
+
         while t < self.total_time:
-            t = t + self.dt
-            time_steps.append(t)
+
+            # run simulation step
             obs, rew, done, _ = self.step(rl_actions)
+            t = t + self.dt
+
             if visualize:
                 # store values
+                time_steps.append(t)
                 density = self.obs[:int(self.obs.shape[0]/2)]
                 speeds = self.obs[int(self.obs.shape[0]/2):]
                 all_densities = np.concatenate((all_densities, [density]), axis=0)
@@ -289,27 +300,7 @@ class ARZ(MacroModelEnv):
 
         if visualize:
             # call visualize function
-            self.visualize_plots(x, all_densities, all_speeds, time_steps)
-
-    def visualize_plots(self, x, all_densities, all_speeds, time_steps):
-        """TODO: document this"""
-        fig, plots = plt.subplots(2, figsize=(10, 10))
-        fig.subplots_adjust(hspace=.5)
-        x_vector, y_vector = np.meshgrid(x, time_steps)
-        z_array = all_densities
-        first_plot = plots[0].contourf(x_vector, y_vector, z_array, levels=900, cmap='jet')
-        plots[0].set(xlabel='Length (Position on Street in meters)', ylabel='Time (seconds)')
-        plots[0].set_title('ARZ Density Evolution')
-        color_bar = fig.colorbar(first_plot, ax=plots[0], shrink=0.8)
-        color_bar.ax.set_title('Density\nLevels', fontsize=8)
-
-        z_array1 = all_speeds
-        first_plot = plots[1].contourf(x_vector, y_vector, z_array1, levels=900, cmap='jet')
-        plots[1].set(xlabel='Length (Position on Street in meters)', ylabel='Time (seconds)')
-        plots[1].set_title('ARZ Velocity Evolution (m/s)')
-        color_bar1 = fig.colorbar(first_plot, ax=plots[1], shrink=0.8)
-        color_bar1.ax.set_title('Velocity\nLevels (m/s)', fontsize=8)
-        plt.show()
+            visualize_plots(x, all_densities, all_speeds, time_steps)
 
     @property
     def observation_space(self):
@@ -397,16 +388,16 @@ class ARZ(MacroModelEnv):
         array_like
             next density data points as calculated by the Semi-Implicit Godunov
             scheme
-        array_ike
+        array_like
             next relative flow data points as calculated by the Semi-Implicit
             Godunov scheme
         """
-        # boundary conditions and simulation for ring experiment below
+        # store loop boundary conditions for ring-like experiment
         if self.boundaries == "loop":
             self.boundary_left = u_full[0][len(u_full[1]) - 1], u_full[1][len(u_full[1]) - 1]
             self.boundary_right = u_full[0][len(u_full[1]) - 2], u_full[1][len(u_full[1]) - 2]
 
-        # # full array with boundary conditions
+        # full array with boundary conditions
         u_all = u_full
 
         # compute flux
@@ -422,12 +413,15 @@ class ARZ(MacroModelEnv):
             rho_init,
             y_init,
         )
+
+        # update loop boundary conditions for ring-like experiment
         if self.boundaries == "loop":
             new_points = (np.insert(np.append(new_points[0], self.boundary_right[0]),
                                     0, self.boundary_left[0]),
                           np.insert(np.append(new_points[1], self.boundary_right[1]),
                                     0, self.boundary_left[1]))
 
+        # update boundary conditions by extending/extrapolating boundaries (reduplication)
         if self.boundaries == "extend_both":
             self.boundary_left = (new_points[0][0], new_points[1][0])
             self.boundary_right = (new_points[0][len(new_points[1]) - 1],
@@ -437,6 +431,7 @@ class ARZ(MacroModelEnv):
                           np.insert(np.append(new_points[1], self.boundary_right[1]),
                                     0, self.boundary_left[1]))
 
+        # update boundary conditions by keeping boundaries constant
         if type(self.boundaries) == dict:
             if list(self.boundaries.keys())[0] == "constant_both":
                 self.boundary_left = (self.boundaries["constant_both"][0][0],
@@ -451,10 +446,11 @@ class ARZ(MacroModelEnv):
         return new_points
 
     def compute_flux(self, u_all):
-        """Implement the 'The Lax-Friedrichs Method' for Flux calculations.
+        """Implement the Flux Supply and Demand Model for flux funtion.
 
-        "Finite-Volume Methods for Hyperbolic Problems", Chapter 4 (p71),
-        Randal J. Leveque.
+        'Lebacque, Jean-Patrick & Haj-Salem, Habib & Mammar, Salim. (2005).
+        Second order traffic flow modeling: supply-demand analysis of the
+        inhomogeneous riemann problem and of boundary conditions'
 
         Parameters
         ----------

@@ -49,7 +49,7 @@ PARAMS = DictDescriptor(
     #                      Initial / boundary conditions                      #
     # ======================================================================= #
 
-    ("initial_conditions", [0], None,  # FIXME
+    ("initial_conditions", [0], None,
      "list of initial densities. Must be of length int(length/dx)"),
 
     ("boundary_conditions", 'extend_both', None,
@@ -59,6 +59,44 @@ PARAMS = DictDescriptor(
      "extend_both, extrapolate last value on both ends"
      ),
 )
+
+
+def visualize_plots(x, all_densities, all_speeds, time_steps):
+    """Creates surface plot for density and velocity evolution of simulation
+
+         Parameters
+        ----------
+        x : array-like or list
+            points of the road length to plot against
+        all_densities: N x M array-like matrix
+            density values on the road length M at every time step N.
+        all_speeds: N x M array-like matrix
+            velocity values on the road length M at every time step N.
+        time_steps: list
+            discrete time steps that the simulation has run for
+
+        Returns
+        -------
+        Subplots of density and velocity surface diagrams of simulation
+
+        """
+    # density plot
+    fig, plots = plt.subplots(2, figsize=(10, 10))
+    fig.subplots_adjust(hspace=.5)
+    y_vector, x_vector = np.meshgrid(x, time_steps)
+    first_plot = plots[0].contourf(x_vector, y_vector, all_densities, levels=900, cmap='jet')
+    plots[0].set(ylabel='Length (Position on Street in meters)', xlabel='Time (seconds)')
+    plots[0].set_title('LWR Density Evolution')
+    color_bar = fig.colorbar(first_plot, ax=plots[0], shrink=0.8)
+    color_bar.ax.set_title('Density\nLevels', fontsize=8)
+
+    # velocity plot
+    second_plot = plots[1].contourf(x_vector, y_vector, all_speeds, levels=900, cmap='jet')
+    plots[1].set(ylabel='Length (Position on Street in meters)', xlabel='Time (seconds)')
+    plots[1].set_title('LWR Velocity Evolution (m/s)')
+    color_bar1 = fig.colorbar(second_plot, ax=plots[1], shrink=0.8)
+    color_bar1.ax.set_title('Velocity\nLevels (m/s)', fontsize=8)
+    plt.show()
 
 
 class LWR(MacroModelEnv):
@@ -202,18 +240,26 @@ class LWR(MacroModelEnv):
         self.num_steps = None
 
     def run(self, rl_actions=1, visualize=True):
+
+        # initialize of simulation initial values
         self.obs = self.reset()
+
+        # initialize plotting values
         t = 0
         time_steps = [t]
         all_densities = [self.obs[:int(self.obs.shape[0] / 2)]]
         all_speeds = [self.obs[int(self.obs.shape[0] / 2):]]
         x = np.arange(0, self.length, self.dx)
+
         while t < self.total_time:
-            t = t + self.dt
-            time_steps.append(t)
+
+            # run simulation step
             obs, rew, done, _ = self.step(rl_actions)
+            t = t + self.dt
+
             if visualize:
                 # store values
+                time_steps.append(t)
                 density = self.obs[:int(self.obs.shape[0] / 2)]
                 speeds = self.obs[int(self.obs.shape[0] / 2):]
                 all_densities = np.concatenate((all_densities, [density]), axis=0)
@@ -221,27 +267,7 @@ class LWR(MacroModelEnv):
 
         if visualize:
             # call visualize function
-            self.visualize_plots(x, all_densities, all_speeds, time_steps)
-
-    def visualize_plots(self, x, all_densities, all_speeds, time_steps):
-        """TODO: document this"""
-        fig, plots = plt.subplots(2, figsize=(10, 10))
-        fig.subplots_adjust(hspace=.5)
-        x_vector, y_vector = np.meshgrid(x, time_steps)
-        z_array = all_densities
-        first_plot = plots[0].contourf(x_vector, y_vector, z_array, levels=900, cmap='jet')
-        plots[0].set(xlabel='Length (Position on Street in meters)', ylabel='Time (seconds)')
-        plots[0].set_title('LWR Density Evolution')
-        color_bar = fig.colorbar(first_plot, ax=plots[0], shrink=0.8)
-        color_bar.ax.set_title('Density\nLevels', fontsize=8)
-
-        z_array1 = all_speeds
-        first_plot = plots[1].contourf(x_vector, y_vector, z_array1, levels=900, cmap='jet')
-        plots[1].set(xlabel='Length (Position on Street in meters)', ylabel='Time (seconds)')
-        plots[1].set_title('LWR Velocity Evolution (m/s)')
-        color_bar1 = fig.colorbar(first_plot, ax=plots[1], shrink=0.8)
-        color_bar1.ax.set_title('Velocity\nLevels (m/s)', fontsize=8)
-        plt.show()
+            visualize_plots(x, all_densities, all_speeds, time_steps)
 
     @property
     def observation_space(self):
@@ -351,6 +377,7 @@ class LWR(MacroModelEnv):
         # step = time/distance step
         step = self.dt / self.dx
 
+        # store loop boundary conditions for ring-like experiment
         if self.boundaries == "loop":
             self.boundary_left = rho_t[len(rho_t) - 1]
             self.boundary_right = rho_t[len(rho_t) - 2]
@@ -363,17 +390,19 @@ class LWR(MacroModelEnv):
         # Godunov scheme (updating rho_t)
         rho_t = rho_t - step * (f - fm)
 
-        # append with boundary data below
+        # update loop boundary conditions for ring-like experiment
         if self.boundaries == "loop":
             rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
                               0, self.boundary_left)
 
+        # update boundary conditions by extending/extrapolating boundaries (reduplication)
         if self.boundaries == "extend_both":
             self.boundary_left = rho_t[0]
             self.boundary_right = rho_t[len(rho_t) - 1]
             rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
                               0, self.boundary_left)
 
+        # update boundary conditions by keeping boundaries constant
         if type(self.boundaries) == dict:
             if list(self.boundaries.keys())[0] == "constant_both":
                 self.boundary_left = self.boundaries["constant_both"][0]

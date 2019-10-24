@@ -6,13 +6,16 @@ import json
 
 params = LWR_PARAMS.copy()
 
-json_dir = "/Users/gilbertbahatij/flow/flow/core/macroscopic/json_files/"
+# read initial data from json file
+json_dir = "./json_files/"
 json_params = json.load(open(json_dir + 'lwr_initial_data.json', 'r'))
 
 params['initial_conditions'] = np.array(json_params['initial_conditions'])
-# params['boundary_conditions'] = {"constant_both": (4, 2)}
 params["total_time"] = 55.25
+
 params['boundary_conditions'] = "loop"
+# params['boundary_conditions'] = "extend_both"
+# params['boundary_conditions'] = {"constant_both": (4, 2)}
 
 if __name__ == "__main__":
     env = LWR(params)
