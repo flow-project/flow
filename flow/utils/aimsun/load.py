@@ -5,6 +5,7 @@ import json
 
 import flow.config as config
 from flow.utils.aimsun.scripting_api import AimsunTemplate
+import sys
 
 
 def load_network():
@@ -72,11 +73,8 @@ def get_dict_from_objects(sections, nodes, turnings, cen_connections):
         scenario_data['sections'][s.id] = {
             'name': s.name,
             'numLanes': s.nb_full_lanes,
-            # FIXME this is a mean of the lanes lengths
-            # (bc they don't have to be all of the same size)
-            # it may not be 100% accurate
-            'length': s.lanes_length_2D / s.nb_full_lanes,
-            'max_speed': s.speed
+            'length': s.length2D(),
+            'speed': s.speed
         }
 
     # load nodes
@@ -136,6 +134,10 @@ os.remove(file_path)
 print('[load.py] Loading template ' + template_path)
 model = AimsunTemplate(GKSystem, GKGUISystem)
 model.load(template_path)
+
+# HACK: Store port in author
+port_string = sys.argv[1]
+model.setAuthor(port_string)
 
 # collect the simulation parameters
 params_file = 'flow/core/kernel/network/data.json'

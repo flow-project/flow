@@ -29,6 +29,9 @@ gui.newDoc(os.path.join(config.PROJECT_PATH,
            "EPSG:32601")
 model = gui.getActiveModel()
 
+# HACK: Store port in author
+port_string = sys.argv[1]
+model.setAuthor(port_string)
 
 def generate_net(nodes,
                  edges,
@@ -275,7 +278,7 @@ def generate_net(nodes,
         config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
 
     # save
-    gui.saveAs('flow.ang')
+    gui.save(model, 'flow.ang', GGui.GGuiSaveType.eSaveAs)
 
 
 def generate_net_osm(file_name, inflows, veh_types):
@@ -374,7 +377,7 @@ def generate_net_osm(file_name, inflows, veh_types):
         config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
 
     # save
-    gui.saveAs('flow.ang')
+    gui.save(model, 'flow.ang', GGui.GGuiSaveType.eSaveAs)
 
 
 def get_junctions(nodes):
@@ -685,7 +688,7 @@ def create_meter(model, edge):
     """
     section = model.getCatalog().findByName(edge, model.getType("GKSection"))
     meter_length = 2
-    pos = section.getLanesLength2D() - meter_length
+    pos = section.length2D() - meter_length
     type = model.getType("GKMetering")
     cmd = model.createNewCmd(model.getType("GKSectionObject"))
     # TODO double check the zeros
@@ -825,7 +828,7 @@ if osm_path is not None:
         for s in types.itervalues():
             s_id = s.getId()
             num_lanes = s.getNbFullLanes()
-            length = s.getLanesLength2D()
+            length = s.length2D()
             speed = s.getSpeed()
             edge_osm[s_id] = {"speed": speed,
                               "length": length,
