@@ -19,6 +19,7 @@ try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
+from copy import deepcopy
 
 
 def parse_args(args):
@@ -80,7 +81,7 @@ def setup_exps(flow_params,
     alg_run = "PPO"
 
     agent_cls = get_agent_class(alg_run)
-    config = agent_cls._default_config.copy()
+    config = deepcopy(agent_cls._default_config)
 
     config["num_workers"] = n_cpus
     config["train_batch_size"] = horizon * n_rollouts
