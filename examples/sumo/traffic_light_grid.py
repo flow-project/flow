@@ -27,15 +27,38 @@ def gen_edges(col_num, row_num):
     """
     edges = []
 
-    # build the left and then the right edges
-    for i in range(col_num):
-        edges += ['left' + str(row_num) + '_' + str(i)]
-        edges += ['right' + '0' + '_' + str(i)]
+    x_max = col_num + 1
+    y_max = row_num + 1
 
-    # build the bottom and then top edges
-    for i in range(row_num):
-        edges += ['bot' + str(i) + '_' + '0']
-        edges += ['top' + str(i) + '_' + str(col_num)]
+    def new_edge(from_node, to_node):
+        return str(from_node) + "--" + str(to_node)
+
+    # Build the horizontal edges
+    for y in range(1, y_max):
+        for x in [0, x_max - 1]:
+            left_node = "({}.{})".format(x, y)
+            right_node = "({}.{})".format(x + 1, y)
+            edges += new_edge(left_node, right_node)
+            edges += new_edge(right_node, left_node)
+
+    # Build the vertical edges
+    for x in range(1, x_max):
+        for y in [0, y_max - 1]:
+            bottom_node = "({}.{})".format(x, y)
+            top_node = "({}.{})".format(x, y + 1)
+            edges += new_edge(bottom_node, top_node)
+            edges += new_edge(top_node, bottom_node)
+
+
+    # # build the left and then the right edges
+    # for i in range(col_num):
+    #     edges += ['left' + str(row_num) + '_' + str(i)]
+    #     edges += ['right' + '0' + '_' + str(i)]
+    #
+    # # build the bottom and then top edges
+    # for i in range(row_num):
+    #     edges += ['bot' + str(i) + '_' + '0']
+    #     edges += ['top' + str(i) + '_' + str(col_num)]
 
     return edges
 
