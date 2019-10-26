@@ -193,6 +193,28 @@ class TrafficLightGridNetwork(Network):
     #     return routes
 
     def specify_routes(self, net_params):
+        """Returns a dict representing all possible routes of the network via the "Multiple routes per edge" format.
+
+        :param net_params:
+
+        Returns
+        -------
+        routes_dict <list <tuple>>
+
+        The format of routes_dict is as follows:
+
+                routes_dict = {"se0": [(["edge0", "edge1", "edge2", "edge3"], 1)],
+                               "se1": [(["edge1", "edge2", "edge3", "edge0"], 1)],
+                               "se2": [(["edge2", "edge3", "edge0", "edge1"], 1)],
+                               "se3": [(["edge3", "edge0", "edge1", "edge2"], 1)]}
+
+                routes_dict = {"start_edge":
+                                            [(Route A beginning with start_edge, Pr(route A)),
+                                             (Route B beginning with start_edge, Pr(route B)]
+                                ...
+                                }
+
+        """
 
         routes_dict = {}
 
@@ -202,7 +224,7 @@ class TrafficLightGridNetwork(Network):
 
             Returns
             -------
-            routes_dict, a dict of dicts.
+            routes_dict_nodes, a dict of dicts.
 
             The keys to the outer dict are the names of the starting nodes e.g "(0.1)". The value of the outer dict are
             more dicts. e.g. routes_dict["(0.1)"] returns another dict. Let's call this dict "(0.1)-routes". The keys to
@@ -226,14 +248,27 @@ class TrafficLightGridNetwork(Network):
                             ...
                            }
 
-            routes_dict = {start_node:
+            (Here, sn is shorthand for "start node", and en is shorthand for "end node")
+
+            routes_nodes_dict = {start_node:
                                     {end_node: [rt1, rt2, rt3]}
                                                                 ... }
 
             routes are written in terms of a sequence of nodes e.g. ['(0.1)', '(0.2)', '(1.2)']
+
+
+            routes_dict = {"start_edge":
+                                [(Route A beginning with start_edge, Pr(route A)),
+                                 (Route B beginning with start_edge, Pr(route B)]
+                            ...
+                        }
+
+            # I'm going to use a non-hard coded method to convert the routes nodes dict to routes dict with edges i.e.
+            # I'll need to connect up the start node with the next node in the sequence of nodes
+
             """
 
-            routes_dict = {}
+            routes_nodes_dict = {}
             g = nx.DiGraph()
             src_dst_nodes = []  # list of all outer nodes that function as starting (and ending) nodes
 
@@ -274,21 +309,66 @@ class TrafficLightGridNetwork(Network):
                     g.add_edge(top_node, bottom_node, weight=1)
 
             # Loop through all possible source and destination nodes to generate list of node sequences that represent possible paths
-            for src in src_dst_nodes:  # e.g [n1, n2, n3, n4, n5]
-                routes_dict[src] = {}
+            for src in src_dst_nodes:
+                routes_nodes_dict[src] = {}
                 for dst in src_dst_nodes:
-                    curr_src_dict = routes_dict[src].get(dst, {})
-                    curr_src_dict_lst = curr_src_dict.get(dst, [])
-                    curr_src_dict_lst.extend(k_shortest_paths(g, src, dst, k))
-                    routes_dict[src][dst] = curr_src_dict_lst
-                    # if src != dst: do we want cars to be able to return to the same edge it came from?
+                    if src != dst:  # In reality, one would probably want to be able to return to a particular node
+                        curr_src_dict = routes_nodes_dict[src].get(dst, {})
+                        curr_src_dict_lst = curr_src_dict.get(dst, [])
+                        curr_src_dict_lst.extend(k_shortest_paths(g, src, dst, k))
+                        routes_nodes_dict[src][dst] = curr_src_dict_lst
+                        # if src != dst: do we want cars to be able to return to the same edge it came from?
 
-            return routes_dict
+            return routes_nodes_dict
 
-        all_node_routes = generate_node_routes_list(5)  # for all src dst node pairs, generate the top 5 shortest paths
+        def node_route_to_edge_route(node_route):
+            """Convert a shortest path specified by a sequence of nodes to a shortest path specified by a sequence of edges
+            Returns a list of edges"""
+
+            edge_route = []
+            for node_index in range(len(node_route) - 1):
+                curr_node = node_route[node_index]
+                next_node = node_route[node_index + 1]
+                curr_edge = curr_node + "--" + next_node
+                edge_route.append(curr_edge)
+
+            return edge_route
+
+        node_routes = generate_node_routes_list(5)  # for all src dst node pairs, generate the top 5 shortest paths
         # TODO: convert node pairings into edge pairings - take into account that some routes have a fixed number of routes
 
-        return all_routes
+        """(Here, sn is shorthand for "start node", and en is shorthand
+        for "end node")
+
+        routes_nodes_dict = {start_node:
+                                 {end_node: [rt1, rt2, rt3]}
+                                     ...}
+
+        e.g.rt1 = ['(0.1)', '(0.2)', '(1.2)']
+
+        routes_dict = {"start_edge":
+                                 [(Route A beginning with start_edge, Pr(route A)),
+                                  (Route B beginning with start_edge, Pr(route B)]
+        ...
+        }
+
+        # I'm going to use a non-hard coded method to convert the routes nodes dict to routes dict with edges i.e. 
+        # I'll need to connect up the start node with the next node in the sequence of nodes"""
+
+        for start_node in node_routes:
+            start_node_routes_dict = node_routes[start_node]
+            for end_node in start_node_routes_dict:
+                start_end_node_routes_list = node_routes[start_node][end_node]
+                num_rts = len(start_end_node_routes_list) # this is a hard coded method of calculating probabilites, TODO: change to non-hard coded method
+                for node_route in start_end_node_routes_list:
+                    #  1. Convert node specified route to an edge specified route
+                    #  2. Calculate required probabilities
+                    edge_route = node_route_to_edge_route(node_route)
+                    start_edge = edge_route[0]
+                    curr_start_edge_routes = routes_dict.get(start_edge, [])
+                    curr_start_edge_routes.append((edge_route, 1 / num_rts))
+
+        return routes_dict
 
     def specify_types(self, net_params):
         """See parent class."""
@@ -364,7 +444,23 @@ class TrafficLightGridNetwork(Network):
 
     @property
     def _tl_nodes(self):
-        return self._nodes
+
+        node_type = "traffic_light" if self.use_traffic_lights else "priority"
+        x_max = self.col_num + 1
+        y_max = self.row_num + 1
+
+        nodes = []
+        for x in range(1, x_max):
+            for y in range(1, y_max):
+                nodes.append({
+                    "id": "({}.{})".format(x, y),
+                    "x": x * self.inner_length,
+                    "y": y * self.inner_length,
+                    "type": node_type,
+                    "radius": self.nodes_radius
+                })
+
+        return nodes
 
     @property
     def _edges(self):
