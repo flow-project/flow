@@ -12,6 +12,7 @@ ADDITIONAL_ENV_PARAMS = {'target_nodes': [3369, 3341, 3370, 3344, 3329],
                          'statistical_interval': (0, 5, 0)}
 
 np.random.seed(1234567890)
+detection_interval = 300
 
 
 class CoordinatedEnv(Env):
@@ -77,7 +78,7 @@ class CoordinatedEnv(Env):
         ap = self.additional_params
         shape = len(self.target_nodes)*ap['num_incoming_edges_per_node']\
             * (ap['num_stopbars']+ap['num_advanced'])*ap['num_measures']
-        return Box(low=0, high=1, shape=(shape, ), dtype=np.float32)
+        return Box(low=0, high=5, shape=(shape, ), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         for node_id, action in zip(self.target_nodes, rl_actions):
@@ -105,13 +106,13 @@ class CoordinatedEnv(Env):
                         for m, detector in enumerate(detector_ids):
                             flow, occupancy = self.k.traffic_light.get_detector_flow_and_occupancy(int(detector))
                             index = (i, j, m)
-                            the_state[(*index, 0)] = flow
+                            the_state[(*index, 0)] = flow/detection_interval
                             the_state[(*index, 1)] = occupancy
                     elif detector_type == 'advanced':
                         flow, occupancy = 0, 0
                         for detector in detector_ids:
                             output = self.k.traffic_light.get_detector_flow_and_occupancy(int(detector))
-                            flow += output[0]
+                            flow += output[0]/detection_interval
                             occupancy += output[1]
                         index = (i, j, ap['num_stopbars'])
                         the_state[(*index, 0)] = flow
@@ -134,6 +135,9 @@ class CoordinatedEnv(Env):
     def additional_command(self):
         """Additional commands that may be performed by the step method."""
         # pass
+        # if self.k.simulation.time > 400:
+        #     print("attempting to stop now")
+        #     self.k.simulation.kernel_api.stop_simulation()
         self.k.traffic_light.set_replication_seed(1)
         # str(self.k.traffic_light.get_ids())
         # tl_ids = self.k.traffic_light.get_ids()
@@ -143,9 +147,27 @@ class CoordinatedEnv(Env):
         # if self.k.simulation.time % 300 == 0:
         # print(self.get_state())
 
-    # def reset(self):
-    #     replication_names = ['Replication 8050315', 'Replication 8050318',
-    #                          'Replication 8050293', 'Replication (one hour)']
+    def reset(self):
+        """See parent class.
+
+        The sumo instance is reset with a new ring length, and a number of
+        steps are performed with the rl vehicle acting as a human vehicle.
+        """
+        # reset the step counter
+        self.step_counter = 0
+
+        # restart aimsun instance
+        self.restart_simulation(
+            sim_params=self.sim_params,
+            render=self.sim_params.render)
+
+        # perform the generic reset function
+        observation = super().reset()
+
+        # reset the timer to zero
+        self.time_counter = 0
+
+        return observation
 
 
 class CoordinatedNetwork(Network):

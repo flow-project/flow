@@ -8,7 +8,8 @@ import os
 
 sim_step = 0.8  # seconds
 detector_step = 300  # seconds
-env_params = EnvParams(sims_per_step=int(detector_step/sim_step),
+env_params = EnvParams(horizon=3600//sim_step,
+                       sims_per_step=int(detector_step/sim_step),
                        additional_params=ADDITIONAL_ENV_PARAMS)
 initial_config = InitialConfig()
 vehicles = VehicleParams()
@@ -40,4 +41,4 @@ env = CoordinatedEnv(
 )
 
 exp = Experiment(env)
-exp.run(1, int(3600/detector_step))
+exp.run(1, int(3900/detector_step))

@@ -136,6 +136,10 @@ def get_link_measures(target_nodes):
 
 
 def AAPILoad():
+    catalog = model.getCatalog()
+    replication = catalog.find(8050330)
+    found = gk.GKSystem.getSystem().canExecuteAction("end", replication, [])
+    print("attempt to execute", found)
     # model.setActiveExperimentId(8050312)
     # print(model.getActiveExperimentId(), "experiment id")
 
@@ -199,7 +203,7 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
     ring_phases = np.cumsum(get_num_phases(node_id))
     global q
 
-    print(aapi.ECIGetOffset(3370), 'offset')
+    # print(aapi.ECIGetOffset(3370), 'offset')
     offset = -70
     if time%300 == 0:
         # replications = model.getCatalog().getObjectsByType(model.getType("GKReplication"))
@@ -211,13 +215,13 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
         queue = sum(aapi.AKIEstGetCurrentStatisticsSectionLane(461, i, 0).LongQueueAvg for i in range(num_lanes))
 
         # queue = aapi.AKIEstGetParcialStatisticsSection(461, timeSta, 0).LongQueueAvg
-        print(queue-q, num_lanes)
+        # print(queue-q, num_lanes)
         q = queue
         7674941, 7674942
-
-
+    catalog = model.getCatalog()
+    replication = catalog.find(8050330)
     if time % 60 == 0:
-
+        
         # print(curr_phase)
         change_offset(node_id, offset, time, timeSta, acycle)
 

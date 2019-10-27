@@ -127,12 +127,10 @@ class AimsunKernelSimulation(KernelSimulation):
         try:
             self.kernel_api.stop_simulation()
             self.master_kernel.network.aimsun_proc.kill()
-            # unshackle the chains
-            os.remove("%s.lck"%self.master_kernel.network.network.net_params.template)
         except OSError:
             # in case no simulation originally existed (used by the visualizer)
             pass
-
+            
     def set_statistical_interval(self, hour, minute, sec):
         """
         Sets the statistical interval for the scenario

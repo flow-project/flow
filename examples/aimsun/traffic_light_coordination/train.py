@@ -3,6 +3,7 @@ from ray.tune.registry import register_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.utils.registry import make_create_env
 from flow.core.params import AimsunParams, NetParams, VehicleParams, EnvParams, InitialConfig
+# from flow.envs import TestEnv
 
 import os
 import ray
@@ -17,14 +18,16 @@ except ImportError:
 
 
 sim_step = 0.8  # seconds
-detector_step = 300  # seconds
-HORIZON = 3900
+# detector_step = 300  # seconds
+detector_step = 1.6  # seconds
+
+# HORIZON = 3900//sim_step
 N_ROLLOUTS = 1
 
 net_params = NetParams(template=os.path.abspath("no_api_scenario.ang"))
 initial_config = InitialConfig()
 vehicles = VehicleParams()
-env_params = EnvParams(horizon=HORIZON,
+env_params = EnvParams(horizon=3600//sim_step,
                        sims_per_step=int(detector_step/sim_step),
                        additional_params=ADDITIONAL_ENV_PARAMS)
 sim_params = AimsunParams(sim_step=sim_step,
@@ -62,11 +65,12 @@ def setup_exps(version=0):
     """
     alg_run = "PPO"
 
+    HORIZON = 1200
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = N_CPUS
-    config["sgd_minibatch_size"] = HORIZON * N_ROLLOUTS  # remove me
-    config["train_batch_size"] = HORIZON * N_ROLLOUTS
+    config["sgd_minibatch_size"] = 120  # remove me
+    config["train_batch_size"] = HORIZON*2
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [32]})
     config["use_gae"] = True

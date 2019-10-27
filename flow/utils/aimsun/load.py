@@ -128,10 +128,15 @@ file_path = os.path.join(config.PROJECT_PATH,
                          'flow/utils/aimsun/aimsun_template_path')
 with open(file_path, 'r') as f:
     template_path = f.readline()
-os.remove(file_path)
+# os.remove(file_path)
 
 # open template in Aimsun
 print('[load.py] Loading template ' + template_path)
+try:
+    # unshackle the chains
+    os.remove("%s.lck"%template_path)
+except:
+    pass
 model = AimsunTemplate(GKSystem, GKGUISystem)
 model.load(template_path)
 

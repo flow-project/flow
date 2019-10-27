@@ -11,10 +11,10 @@ from coordinated_lights import CoordinatedNetwork, CoordinatedEnv, ADDITIONAL_EN
 from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines import PPO2
 
-sim_step = 0.8  # seconds
+sim_step = 0.8 # seconds
 detector_step = 300  # seconds
-HORIZON = 3600//sim_step
-N_ROLLOUTS = 1
+timehorizon = 3600
+HORIZON = int(timehorizon//sim_step)
 
 net_params = NetParams(template=os.path.abspath("no_api_scenario.ang"))
 initial_config = InitialConfig()
@@ -57,10 +57,10 @@ def run_model(num_cpus=1, rollout_size=50, num_steps=50):
 
 
 if __name__ == "__main__":
-    N_CPUS = 1
     num_cpus = 1
-    rollout_size = int(3600/sim_step)
-    num_steps = int(3600/sim_step)
+    num_rollouts = 20
+    rollout_size = int(timehorizon/detector_step)
+    num_steps = int(timehorizon/detector_step)*num_rollouts
     result_name = "result_demo"
     model = run_model(num_cpus, rollout_size, num_steps)
     # Save the model to a desired folder and then delete it to demonstrate loading
