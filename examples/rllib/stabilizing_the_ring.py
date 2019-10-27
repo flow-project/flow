@@ -18,16 +18,16 @@ from flow.envs import WaveAttenuationPOEnv
 from flow.networks import RingNetwork
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
-from flow.core.params import AimsunParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams, SumoCarFollowingParams
 from flow.controllers import RLController, IDMController, ContinuousRouter
 
 # time horizon of a single rollout
-HORIZON = 3000
+HORIZON = 30
 # number of rollouts per training iteration
-N_ROLLOUTS = 20
+N_ROLLOUTS = 1
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 1
 
 # We place one autonomous vehicle and 22 human-driven vehicles in the network
 vehicles = VehicleParams()
@@ -36,10 +36,15 @@ vehicles.add(
     acceleration_controller=(IDMController, {
         "noise": 0.2
     }),
+    car_following_params=SumoCarFollowingParams(
+        min_gap=0
+    ),
+    routing_controller=(ContinuousRouter, {}),
     num_vehicles=21)
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
+    routing_controller=(ContinuousRouter, {}),
     num_vehicles=1)
 
 flow_params = dict(
@@ -53,10 +58,10 @@ flow_params = dict(
     network=RingNetwork,
 
     # simulator that is used by the experiment
-    simulator='aimsun',
+    simulator='traci',
 
-    # sumo-related parameters (see flow.core.params.AimsunParams)
-    sim=AimsunParams(
+    # sumo-related parameters (see flow.core.params.SumoParams)
+    sim=SumoParams(
         sim_step=0.1,
         render=False,
     ),

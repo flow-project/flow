@@ -144,7 +144,7 @@ class Experiment:
             np.mean(rets), np.std(rets)))
         print("Average, std speed: {}, {}".format(
             np.mean(mean_vels), np.std(mean_vels)))
-        # self.env.terminate()
+        self.env.terminate()
 
         if convert_to_csv:
             # wait a short period of time to ensure the xml file is readable
