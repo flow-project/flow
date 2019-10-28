@@ -798,7 +798,7 @@ def set_sim_step(experiment, sim_step):
 
 
 # collect the network-specific data
-data_file = 'flow/core/kernel/network/data.json'
+data_file = 'flow/core/kernel/network/data_%s.json'%port_string
 with open(os.path.join(config.PROJECT_PATH, data_file)) as f:
     data = json.load(f)
 
@@ -834,7 +834,7 @@ if osm_path is not None:
                               "length": length,
                               "numLanes": num_lanes}
     with open(os.path.join(config.PROJECT_PATH,
-                           'flow/utils/aimsun/osm_edges.json'), 'w') \
+                           'flow/utils/aimsun/osm_edges_%s.json' % port_string), 'w') \
             as outfile:
         json.dump(edge_osm, outfile, sort_keys=True, indent=4)
 
