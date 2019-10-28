@@ -215,9 +215,11 @@ def traffic_light_grid_example(render=None, use_inflows=False):
         "maxDur": "6",
         "state": "ryryryryryry"
     }]
-    tl_logic.add("center0", phases=phases, programID=1)
-    tl_logic.add("center1", phases=phases, programID=1)
-    tl_logic.add("center2", phases=phases, programID=1, tls_type="actuated")
+
+    # TODO: Kevin Lin - why's this hardcoded?
+    tl_logic.add("(1.1)", phases=phases, programID=1)
+    tl_logic.add("(2.1)", phases=phases, programID=1)
+    tl_logic.add("(3.1)", phases=phases, programID=1, tls_type="actuated")
 
     additional_net_params = {
         "grid_array": grid_array,

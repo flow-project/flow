@@ -616,7 +616,7 @@ class TrafficLightGridNetwork(Network):
             # build vertical connection for TOP edge (0, 1)
             for vert_l1 in range(self.vertical_lanes):
                 for vert_l2 in range(self.vertical_lanes):
-                    node_cons_list += single_con_dict(top_edge_in, top_edge_out, vert_l1, vert_l2, signal_group)
+                    node_cons_list += single_con_dict(top_edge_in, bottom_edge_out, vert_l1, vert_l2, signal_group)
 
             # build horizontal connections for TOP edge (0, 1)
             for hor_l in range(self.horizontal_lanes):
