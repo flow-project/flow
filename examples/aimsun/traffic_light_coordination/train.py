@@ -21,13 +21,14 @@ sim_step = 0.8  # seconds
 # detector_step = 300  # seconds
 detector_step = 1.6  # seconds
 
-# HORIZON = 3900//sim_step
+timehorizon = 3600
+HORIZON = int(timehorizon//sim_step)
 N_ROLLOUTS = 1
 
 net_params = NetParams(template=os.path.abspath("no_api_scenario.ang"))
 initial_config = InitialConfig()
 vehicles = VehicleParams()
-env_params = EnvParams(horizon=3600//sim_step,
+env_params = EnvParams(horizon=HORIZON,
                        sims_per_step=int(detector_step/sim_step),
                        additional_params=ADDITIONAL_ENV_PARAMS)
 sim_params = AimsunParams(sim_step=sim_step,
@@ -94,7 +95,7 @@ def setup_exps(version=0):
 
 
 if __name__ == "__main__":
-    N_CPUS = 1
+    N_CPUS = 2
     ray.init(num_cpus=N_CPUS + 1, object_store_memory=int(1e9))
 
     alg_run, gym_name, config = setup_exps()

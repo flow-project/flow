@@ -12,7 +12,7 @@ from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines import PPO2
 
 sim_step = 0.8 # seconds
-detector_step = 300  # seconds
+detector_step = 60  # seconds
 timehorizon = 3600
 HORIZON = int(timehorizon//sim_step)
 
@@ -57,8 +57,8 @@ def run_model(num_cpus=1, rollout_size=50, num_steps=50):
 
 
 if __name__ == "__main__":
-    num_cpus = 1
-    num_rollouts = 20
+    num_cpus = 2
+    num_rollouts = 8
     rollout_size = int(timehorizon/detector_step)
     num_steps = int(timehorizon/detector_step)*num_rollouts
     result_name = "result_demo"
