@@ -81,7 +81,7 @@ class AimsunKernelNetwork(BaseKernelNetwork):
         cur_dir = os.path.join(config.PROJECT_PATH,
                                'flow/core/kernel/network')
         # TODO: add current time
-        with open(os.path.join(cur_dir, 'data.json'), 'w') as outfile:
+        with open(os.path.join(cur_dir, 'data_%s.json' % self.sim_params.port), 'w') as outfile:
             json.dump(output, outfile, sort_keys=True, indent=4)
 
         # path to the Aimsun_Next binary
@@ -94,11 +94,11 @@ class AimsunKernelNetwork(BaseKernelNetwork):
 
         # remove network data file if if still exists from
         # the previous simulation
-        data_file = 'flow/core/kernel/network/network_data.json'
+        data_file = 'flow/core/kernel/network/network_data_%s.json' % self.sim_params.port
         data_file_path = os.path.join(config.PROJECT_PATH, data_file)
         if os.path.exists(data_file_path):
             os.remove(data_file_path)
-        check_file = 'flow/core/kernel/network/network_data_check'
+        check_file = 'flow/core/kernel/network/network_data_check%s' % self.sim_params.port
         check_file_path = os.path.join(config.PROJECT_PATH, check_file)
         if os.path.exists(check_file_path):
             os.remove(check_file_path)
@@ -115,7 +115,7 @@ class AimsunKernelNetwork(BaseKernelNetwork):
             script_path = osp.join(config.PROJECT_PATH,
                                    'flow/utils/aimsun/load.py')
             file_path = osp.join(config.PROJECT_PATH,
-                                 'flow/utils/aimsun/aimsun_template_path')
+                                 'flow/utils/aimsun/aimsun_template_path_%s' % self.sim_params.port)
             with open(file_path, 'w') as f:
                 f.write(template_path)
 
@@ -152,10 +152,10 @@ class AimsunKernelNetwork(BaseKernelNetwork):
 
             else:
                 # load network from template
-                scenar_file = "flow/core/kernel/network/network_data.json"
+                scenar_file = "flow/core/kernel/network/network_data_%s.json" % self.sim_params.port
                 scenar_path = os.path.join(config.PROJECT_PATH, scenar_file)
 
-                check_file = "flow/core/kernel/network/network_data_check"
+                check_file = "flow/core/kernel/network/network_data_check_%s" % self.sim_params.port
                 check_path = os.path.join(config.PROJECT_PATH, check_file)
 
                 # a check file is created when all the network data
@@ -176,7 +176,7 @@ class AimsunKernelNetwork(BaseKernelNetwork):
                 # TODO load everything that is in content into the network
 
         else:
-            data_file = 'flow/utils/aimsun/osm_edges.json'
+            data_file = 'flow/utils/aimsun/osm_edges_%s.json' % self.sim_params.port
             filepath = os.path.join(config.PROJECT_PATH, data_file)
 
             while not os.path.exists(filepath):
@@ -259,7 +259,7 @@ class AimsunKernelNetwork(BaseKernelNetwork):
         # delete the json file that was used to read the network data
         cur_dir = os.path.join(config.PROJECT_PATH,
                                'flow/core/kernel/network')
-        os.remove(os.path.join(cur_dir, 'data.json'))
+        os.remove(os.path.join(cur_dir, 'data_%s.json' % self.sim_params.port))
 
     ###########################################################################
     #                        State acquisition methods                        #
