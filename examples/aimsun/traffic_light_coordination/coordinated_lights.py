@@ -15,7 +15,6 @@ ADDITIONAL_ENV_PARAMS = {'target_nodes': [3369, 3341, 3370, 3344, 3329],
                                               'Replication 8050322']}  # 14-21
 
 np.random.seed(1234567890)
-detection_interval = 300
 
 
 class CoordinatedEnv(Env):
@@ -28,8 +27,8 @@ class CoordinatedEnv(Env):
         super().__init__(env_params, sim_params, network, simulator)
         self.additional_params = env_params.additional_params
 
+        self.detection_interval = self.additional_params['detection_interval'][1]*60 # FIXME: assuming minutes for now
         self.k.simulation.set_detection_interval(*self.additional_params['detection_interval'])
-
         self.k.simulation.set_statistical_interval(*self.additional_params['statistical_interval'])
         self.k.traffic_light.set_replication_seed(np.random.randint(2e9))
 
@@ -76,7 +75,7 @@ class CoordinatedEnv(Env):
         ap = self.additional_params
         shape = len(self.target_nodes)*ap['num_incoming_edges_per_node']\
             * (ap['num_stopbars']+ap['num_advanced'])*ap['num_measures']
-        return Box(low=0, high=3, shape=(shape, ), dtype=np.float32)
+        return Box(low=0, high=5, shape=(shape, ), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         delta_offset = rl_actions - self.current_offset
@@ -105,13 +104,13 @@ class CoordinatedEnv(Env):
                         for m, detector in enumerate(detector_ids):
                             count, occupancy = self.k.traffic_light.get_detector_count_and_occupancy(int(detector))
                             index = (i, j, m)
-                            the_state[(*index, 0)] = (count/detection_interval)/(2000/3600)
+                            the_state[(*index, 0)] = (count/self.detection_interval)/(2000/3600)
                             the_state[(*index, 1)] = occupancy
                     elif detector_type == 'advanced':
                         flow, occupancy = 0, 0
                         for detector in detector_ids:
                             output = self.k.traffic_light.get_detector_count_and_occupancy(int(detector))
-                            flow += (output[0]/detection_interval)/(2000/3600)
+                            flow += (output[0]/self.detection_interval)/(2000/3600)
                             occupancy += output[1]
                         index = (i, j, ap['num_stopbars'])
                         the_state[(*index, 0)] = flow
@@ -131,7 +130,8 @@ class CoordinatedEnv(Env):
             running_sum += queue**2
         print(self.current_offset)
 
-        return running_sum
+        # reward is negative queues
+        return -running_sum
 
     def additional_command(self):
         """Additional commands that may be performed by the step method."""
@@ -152,8 +152,8 @@ class CoordinatedEnv(Env):
             sim_params=self.sim_params,
             render=self.sim_params.render)
 
-        self.sim_params.replication_name = np.random.choice(ADDITIONAL_ENV_PARAMS['replication_list'])
-        self.k.traffic_light.set_replication_seed(np.random.randint(2e9))
+        # self.sim_params.replication_name = np.random.choice(ADDITIONAL_ENV_PARAMS['replication_list'])
+        # self.k.traffic_light.set_replication_seed(np.random.randint(2e9))
 
         # perform the generic reset function
         observation = super().reset()

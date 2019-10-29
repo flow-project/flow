@@ -2,6 +2,7 @@ from flow.core.params import AimsunParams, NetParams, VehicleParams, EnvParams, 
 from flow.utils.registry import env_constructor
 
 import os
+import numpy as np
 
 from coordinated_lights import CoordinatedNetwork, CoordinatedEnv, ADDITIONAL_ENV_PARAMS
 
@@ -10,19 +11,20 @@ from stable_baselines import PPO2
 
 sim_step = 0.8  # seconds
 detector_step = 300  # seconds
-timehorizon = 3600
+timehorizon = 3600*4 #- detector_step
 HORIZON = int(timehorizon//sim_step)
 
 net_params = NetParams(template=os.path.abspath("no_api_scenario.ang"))
 initial_config = InitialConfig()
 vehicles = VehicleParams()
 env_params = EnvParams(horizon=HORIZON,
+                       warmup_steps=int(np.ceil(120/detector_step)),
                        sims_per_step=int(detector_step/sim_step),
                        additional_params=ADDITIONAL_ENV_PARAMS)
 sim_params = AimsunParams(sim_step=sim_step,
                           render=False,
                           restart_instance=False,
-                          replication_name="Replication (one hour)",
+                          replication_name=ADDITIONAL_ENV_PARAMS['replication_list'][0],
                           centroid_config_name="Centroid Configuration 8040652"
                           )
 
@@ -48,14 +50,15 @@ def run_model(num_cpus=1, rollout_size=50, num_steps=50):
     else:
         env = SubprocVecEnv([env_constructor(params=flow_params, version=i) for i in range(num_cpus)])
 
-    model = PPO2('MlpPolicy', env, verbose=1, n_steps=rollout_size, vf_coef=10e-5)
+    model = PPO2('MlpPolicy', env, verbose=1, n_steps=rollout_size, vf_coef=10e-5,
+                 tensorboard_log="~/baseline_results/intersections")
     model.learn(total_timesteps=num_steps)
     return model
 
 
 if __name__ == "__main__":
-    num_cpus = 1
-    num_rollouts = 1
+    num_cpus = 2
+    num_rollouts = 80
     rollout_size = int(timehorizon/detector_step)
     num_steps = int(timehorizon/detector_step)*num_rollouts
     result_name = "result_demo"

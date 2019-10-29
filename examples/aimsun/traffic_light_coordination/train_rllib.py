@@ -7,6 +7,7 @@ from flow.core.params import AimsunParams, NetParams, VehicleParams, EnvParams, 
 import os
 import ray
 import json
+import numpy as np
 
 from coordinated_lights import CoordinatedNetwork, CoordinatedEnv, ADDITIONAL_ENV_PARAMS
 
@@ -17,23 +18,28 @@ except ImportError:
 
 
 sim_step = 0.8  # seconds
-# detector_step = 300  # seconds
-detector_step = 60  # seconds
+detector_step = 300  # seconds
+# detector_step = 1.6  # seconds
 
 timehorizon = 3600*4 - detector_step
 HORIZON = int(timehorizon//sim_step)
-N_ROLLOUTS = 1
+N_ROLLOUTS = 80
+
+# ADDITIONAL_ENV_PARAMS['detection_interval'] = (detector_step//3600,  (detector_step%3600)//60, detector_step%60)
+# ADDITIONAL_ENV_PARAMS['statistical_interval'] = (detector_step//3600,  (detector_step%3600)//60, detector_step%60)
 
 net_params = NetParams(template=os.path.abspath("no_api_scenario.ang"))
 initial_config = InitialConfig()
 vehicles = VehicleParams()
 env_params = EnvParams(horizon=HORIZON,
-                       warmup_steps=int(detector_step/sim_step),
+                       warmup_steps=int(np.ceil(120/detector_step)),
                        sims_per_step=int(detector_step/sim_step),
                        additional_params=ADDITIONAL_ENV_PARAMS)
 sim_params = AimsunParams(sim_step=sim_step,
                           render=False,
-                          replication_name="Replication 8050297",
+                          restart_instance=False,
+                        #   replication_name="Replication (one hour)",
+                          replication_name=ADDITIONAL_ENV_PARAMS['replication_list'][0],
                           centroid_config_name="Centroid Configuration 8040652"
                           )
 
@@ -68,8 +74,8 @@ def setup_exps(version=0):
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = N_CPUS
-    # config["sgd_minibatch_size"] = 120  # remove me
-    config["train_batch_size"] = HORIZON*N_ROLLOUTS
+    # config["sgd_minibatch_size"] = 3  # remove me
+    config["train_batch_size"] = (timehorizon//detector_step)*N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [32, 32]})
     config["use_gae"] = True
@@ -77,7 +83,7 @@ def setup_exps(version=0):
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config['clip_actions'] = False  # FIXME(ev) temporary ray bug
-    config["horizon"] = HORIZON
+    config["horizon"] = timehorizon//detector_step
     config["vf_loss_coeff"] = 1e-5
 
     # save the flow params for replay
@@ -94,7 +100,7 @@ def setup_exps(version=0):
 
 
 if __name__ == "__main__":
-    N_CPUS = 2
+    N_CPUS = 1
     ray.init(num_cpus=N_CPUS + 1, object_store_memory=int(1e9))
 
     alg_run, gym_name, config = setup_exps()
@@ -109,9 +115,8 @@ if __name__ == "__main__":
             "checkpoint_at_end": True,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 1,
+                "training_iteration": 100,
             },
-            "resume": True,
             # "local_dir": os.path.abspath("./ray_results"),
         }
-    })
+    }, resume=False)
