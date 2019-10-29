@@ -16,7 +16,8 @@ import struct
 from thread import start_new_thread
 import numpy as np
 
-PORT = 9999
+model = GKSystem.getSystem().getActiveModel()
+PORT = int(model.getAuthor())
 entered_vehicles = []
 exited_vehicles = []
 

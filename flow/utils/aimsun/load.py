@@ -5,6 +5,7 @@ import json
 
 import flow.config as config
 from flow.utils.aimsun.scripting_api import AimsunTemplate
+import sys
 
 
 def load_network():
