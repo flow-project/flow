@@ -472,7 +472,7 @@ def threaded_client(conn, **kwargs):
 
                 send_message(conn, in_format='i', values=(offset,))
 
-            elif data == ac.INT_SET_OFFSET:
+            elif data == ac.INT_CHANGE_OFFSET:
                 send_message(conn, in_format='i', values=(0,))
                 node_id, offset = retrieve_message(conn, 'i f')
 
@@ -511,11 +511,11 @@ def threaded_client(conn, **kwargs):
 
                 send_message(conn, in_format='str', values=(output,))
 
-            elif data == ac.DET_GET_FLOW_AND_OCCUPANCY:
+            elif data == ac.DET_GET_COUNT_AND_OCCUPANCY:
                 send_message(conn, in_format='i', values=(0,))
                 detector_id, = retrieve_message(conn, 'i')
 
-                flow, occupancy = cp.get_detector_flow_and_occupancy(detector_id)
+                flow, occupancy = cp.get_detector_count_and_occupancy(detector_id)
 
                 send_message(conn, in_format='i f', values=(flow, occupancy))
 
@@ -533,7 +533,7 @@ def threaded_client(conn, **kwargs):
 
             elif data == ac.REPL_SET_SEED:
                 send_message(conn, in_format='i', values=(0,))
-                seed = retrieve_message(conn, 'i')
+                seed, = retrieve_message(conn, 'i')
 
                 cp.set_replication_seed(seed)
 

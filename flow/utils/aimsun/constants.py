@@ -115,7 +115,7 @@ TL_GET_STATE = 0x1C
 INT_GET_OFFSET = 0x1D
 
 #: set intersection offset
-INT_SET_OFFSET = 0x1E
+INT_CHANGE_OFFSET = 0x1E
 
 #: get incoming link ids
 INT_GET_IN_EDGES = 0x1F
@@ -134,7 +134,7 @@ REPL_SET_SEED = 0x21
 DET_GET_IDS_ON_EDGE = 0x22
 
 #: get flow and occupancy for a detector
-DET_GET_FLOW_AND_OCCUPANCY = 0x23
+DET_GET_COUNT_AND_OCCUPANCY = 0x23
 
 #: set statistical interval for the scenairo
 DET_SET_STAT_INTERVAL = 0x24

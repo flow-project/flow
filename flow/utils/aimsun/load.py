@@ -122,11 +122,12 @@ def get_dict_from_objects(sections, nodes, turnings, cen_connections):
 
     return scenario_data
 
+
 port_string = sys.argv[1]
 
 # collect template path
 file_path = os.path.join(config.PROJECT_PATH,
-                         'flow/utils/aimsun/aimsun_template_path_%s'%port_string)
+                         'flow/utils/aimsun/aimsun_template_path_%s' % port_string)
 with open(file_path, 'r') as f:
     template_path = f.readline()
 os.remove(file_path)
@@ -135,7 +136,7 @@ os.remove(file_path)
 print('[load.py] Loading template ' + template_path)
 try:
     # unshackle the chains
-    os.remove("%s.lck"%template_path)
+    os.remove("%s.lck" % template_path)
 except:
     pass
 model = AimsunTemplate(GKSystem, GKGUISystem)
@@ -181,7 +182,7 @@ else:
     scenario_data = load_network()
 
 # save template's scenario into a file to be loaded into Flow's scenario
-scenario_data_file = 'flow/core/kernel/network/network_data_%s.json'%port_string
+scenario_data_file = 'flow/core/kernel/network/network_data_%s.json' % port_string
 scenario_data_path = os.path.join(config.PROJECT_PATH, scenario_data_file)
 with open(scenario_data_path, 'w') as f:
     json.dump(scenario_data, f, sort_keys=True, indent=4)
@@ -190,7 +191,7 @@ with open(scenario_data_path, 'w') as f:
 
 # create a check file to announce that we are done
 # writing all the network data into the .json file
-check_file = 'flow/core/kernel/network/network_data_check_%s'%port_string
+check_file = 'flow/core/kernel/network/network_data_check_%s' % port_string
 check_file_path = os.path.join(config.PROJECT_PATH, check_file)
 open(check_file_path, 'a').close()
 

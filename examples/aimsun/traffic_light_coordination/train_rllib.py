@@ -3,7 +3,6 @@ from ray.tune.registry import register_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.utils.registry import make_create_env
 from flow.core.params import AimsunParams, NetParams, VehicleParams, EnvParams, InitialConfig
-# from flow.envs import TestEnv
 
 import os
 import ray
@@ -19,9 +18,9 @@ except ImportError:
 
 sim_step = 0.8  # seconds
 # detector_step = 300  # seconds
-detector_step = 1.6  # seconds
+detector_step = 60  # seconds
 
-timehorizon = 3600
+timehorizon = 3600*4 - detector_step
 HORIZON = int(timehorizon//sim_step)
 N_ROLLOUTS = 1
 
@@ -29,12 +28,12 @@ net_params = NetParams(template=os.path.abspath("no_api_scenario.ang"))
 initial_config = InitialConfig()
 vehicles = VehicleParams()
 env_params = EnvParams(horizon=HORIZON,
+                       warmup_steps=int(detector_step/sim_step),
                        sims_per_step=int(detector_step/sim_step),
                        additional_params=ADDITIONAL_ENV_PARAMS)
 sim_params = AimsunParams(sim_step=sim_step,
                           render=False,
-                          restart_instance=False,
-                          replication_name="Replication (one hour)",
+                          replication_name="Replication 8050297",
                           centroid_config_name="Centroid Configuration 8040652"
                           )
 
@@ -66,20 +65,20 @@ def setup_exps(version=0):
     """
     alg_run = "PPO"
 
-    HORIZON = 1200
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = N_CPUS
-    config["sgd_minibatch_size"] = 120  # remove me
-    config["train_batch_size"] = HORIZON*2
+    # config["sgd_minibatch_size"] = 120  # remove me
+    config["train_batch_size"] = HORIZON*N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [32]})
+    config["model"].update({"fcnet_hiddens": [32, 32]})
     config["use_gae"] = True
     config["lambda"] = 0.97
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
-    # config['clip_actions'] = False  # FIXME(ev) temporary ray bug
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config["horizon"] = HORIZON
+    config["vf_loss_coeff"] = 1e-5
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -112,6 +111,7 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": 1,
             },
+            "resume": True,
             # "local_dir": os.path.abspath("./ray_results"),
         }
     })

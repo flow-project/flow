@@ -87,9 +87,9 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         """
         return self.kernel_api.get_intersection_offset(node_id)
 
-    def set_intersection_offset(self, node_id, offset):
+    def change_intersection_offset(self, node_id, offset):
         """
-        Sets an intersection's offset
+        Changes an intersection's offset by the above offset
 
         Parameters
         ----------
@@ -103,7 +103,7 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         list
             list of current phases as ints
         """
-        return self.kernel_api.set_intersection_offset(node_id, offset)
+        return self.kernel_api.change_intersection_offset(node_id, offset)
 
     def get_incoming_edges(self, node_id):
         """
@@ -156,7 +156,7 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         """
         return self.kernel_api.get_detectors_on_edge(edge_id)
 
-    def get_detector_flow_and_occupancy(self, detector_id):
+    def get_detector_count_and_occupancy(self, detector_id):
         """
         Gets the detector's flow and occupancy values
 
@@ -170,7 +170,7 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         int, float
             flow and occupancy of the detector
         """
-        return self.kernel_api.get_detector_flow_and_occupancy(detector_id)
+        return self.kernel_api.get_detector_count_and_occupancy(detector_id)
 
     def set_replication_seed(self, seed):
         """

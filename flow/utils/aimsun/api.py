@@ -27,13 +27,14 @@ def create_client(port, print_status=False):
     """
     # create a socket connection
     if print_status:
-        print('Listening for connection...', end=' ')
+        print('Listening for connection... %s' % port, end=' ')
 
     stop = False
     while not stop:
         # try to connect
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(2)
             s.connect(('localhost', port))
 
             # check the connection
@@ -673,9 +674,9 @@ class FlowAimsunAPI(object):
 
         return offset
 
-    def set_intersection_offset(self, node_id, offset):
+    def change_intersection_offset(self, node_id, offset):
         """
-        Sets an intersection's offset
+        Changes an intersection's offset by the above offset
 
         Parameters
         ----------
@@ -689,7 +690,7 @@ class FlowAimsunAPI(object):
         list
             list of current phases as ints
         """
-        phases = self._send_command(ac.INT_SET_OFFSET,
+        phases = self._send_command(ac.INT_CHANGE_OFFSET,
                                     in_format='i f',
                                     values=(node_id, offset,),
                                     out_format='str')
@@ -758,9 +759,9 @@ class FlowAimsunAPI(object):
                                     out_format='str')
         return json.loads(output)
 
-    def get_detector_flow_and_occupancy(self, detector_id):
+    def get_detector_count_and_occupancy(self, detector_id):
         """
-        Gets the detector's flow and occupancy values
+        Gets the detector's flow count and occupancy values
 
         Parameters
         ----------
@@ -772,7 +773,7 @@ class FlowAimsunAPI(object):
         int, float
             flow and occupancy of the detector
         """
-        flow, occupancy = self._send_command(ac.DET_GET_FLOW_AND_OCCUPANCY,
+        flow, occupancy = self._send_command(ac.DET_GET_COUNT_AND_OCCUPANCY,
                                              in_format='i',
                                              values=(detector_id,),
                                              out_format='i f')
@@ -826,5 +827,5 @@ class FlowAimsunAPI(object):
 
         self._send_command(ac.REPL_SET_SEED,
                            in_format='i',
-                           values='i',
+                           values=(seed,),
                            out_format=None)

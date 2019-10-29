@@ -77,7 +77,7 @@ def change_offset(node_id, offset, time, timeSta, acycle):
             target_phase += 1
             if target_phase > ring_phases[i]:
                 target_phase -= ring_phases[0]
-                
+
             phase_time = get_duration_phase(node_id, target_phase, timeSta)
             remaining_time += phase_time
         aapi.ECIChangeDirectPhase(node_id, target_phase, timeSta, time,
@@ -98,7 +98,7 @@ def get_combined_ring(start_times, phase_times):
                     last_phase_time = phase_time
                 else:
                     break
-                            
+
             for phase in phase_times[ring][last_phase_time]:
                 combined_ring[time].append(phase)
 
@@ -131,7 +131,7 @@ def get_link_measures(target_nodes):
                 type_map[kind].append(detector.Id)
             except ValueError:
                 pass
-    
+
     return edge_detector_dict
 
 
@@ -151,7 +151,6 @@ def AAPILoad():
 def AAPIInit():
     target_nodes = [3369, 3341, 3370, 3344, 3329]
 
-
     edge_detector_dict = get_link_measures(target_nodes)
     print(edge_detector_dict)
 
@@ -166,7 +165,7 @@ def AAPIInit():
         cplan_ids = catalog.getObjectsByType(cplanType)
         for cid in cplan_ids:
             cplan = catalog.find(cid)
-            if 'AR 5083 - Zone 132 - P2'!=cplan.getName():
+            if 'AR 5083 - Zone 132 - P2' != cplan.getName():
                 continue
             cjunction = cplan.getControlJunction(node)
 
@@ -177,7 +176,7 @@ def AAPIInit():
                 timing_map = {}
                 start_times = set()
                 for phase in cjunction.getPhases():
-                    if len(phase.getSignals())>0:
+                    if len(phase.getSignals()) > 0:
                         ring_id = phase.getIdRing()
                         start_time = phase.getFrom()
                         start_times.add(start_time)
@@ -194,8 +193,10 @@ def AAPIInit():
 
     return 0
 
+
 global q
 q = 0
+
 
 def AAPIManage(time, timeSta, timeTrans, acycle):
     node_id = 3344
@@ -205,7 +206,7 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
 
     # print(aapi.ECIGetOffset(3370), 'offset')
     offset = -70
-    if time%300 == 0:
+    if time % 300 == 0:
         # replications = model.getCatalog().getObjectsByType(model.getType("GKReplication"))
         # for replication in replications.values():
         #     print(replication.getDBId())
@@ -221,10 +222,9 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
     catalog = model.getCatalog()
     replication = catalog.find(8050330)
     if time % 60 == 0:
-        
+
         # print(curr_phase)
         change_offset(node_id, offset, time, timeSta, acycle)
-
 
     # print(timeSta, a.value())
     return 0

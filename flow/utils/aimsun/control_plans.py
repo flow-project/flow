@@ -1,11 +1,11 @@
 import AAPI as aapi
 import PyANGKernel as gk
-from collections import OrderedDict
 import numpy as np
 
 model = gk.GKSystem.getSystem().getActiveModel()
 global edge_detector_dict
 edge_detector_dict = {}
+length_car = 5  # typical car length
 
 
 def get_intersection_offset(node_id):
@@ -16,9 +16,9 @@ def get_cumulative_queue_length(section_id):
     catalog = model.getCatalog()
     section = catalog.find(section_id)
     num_lanes = section.getNbLanesAtPos(section.length2D())
-    queue = sum(aapi.AKIEstGetCurrentStatisticsSectionLane(461, i, 0).LongQueueAvg for i in range(num_lanes))
+    queue = sum(aapi.AKIEstGetCurrentStatisticsSectionLane(section_id, i, 0).LongQueueAvg for i in range(num_lanes))
 
-    return queue
+    return queue*length_car/section.length2D()
 
 
 def set_replication_seed(seed):
@@ -43,7 +43,7 @@ def set_detection_interval(hour, minute, sec):
         input_data.setDetectionInterval(time_duration)
 
 
-def get_detector_flow_and_occupancy(detector_id):
+def get_detector_count_and_occupancy(detector_id):
     flow = max(aapi.AKIDetGetCounterAggregatedbyId(detector_id, 0), 0)
     occupancy = max(aapi.AKIDetGetTimeOccupedAggregatedbyId(detector_id, 0), 0)/100
     return flow, occupancy
