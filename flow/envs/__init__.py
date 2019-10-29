@@ -1,6 +1,5 @@
 """Contains all callable environments in Flow."""
 from flow.envs.base import Env
-from flow.envs.my_env import myEnv
 from flow.envs.bay_bridge import BayBridgeEnv
 from flow.envs.bottleneck import BottleneckAccelEnv, BottleneckEnv, \
     BottleneckDesiredVelocityEnv
@@ -37,7 +36,6 @@ __all__ = [
     'BottleneckDesiredVelocityEnv',
     'TestEnv',
     'BayBridgeEnv',
-    'MyEnv',
     # deprecated classes
     'BottleNeckAccelEnv',
     'DesiredVelocityEnv',
