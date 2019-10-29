@@ -305,6 +305,7 @@ class Network(object):
     >>> print(network.intersection_edge_starts)
     >>> []
     """
+    initial_config: InitialConfig
 
     def __init__(self,
                  name,

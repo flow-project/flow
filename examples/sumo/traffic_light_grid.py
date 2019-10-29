@@ -252,7 +252,7 @@ def traffic_light_grid_example(render=None, use_inflows=False):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = traffic_light_grid_example()
+    exp = traffic_light_grid_example(render=False)
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

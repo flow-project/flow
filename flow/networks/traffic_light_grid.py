@@ -357,6 +357,7 @@ class TrafficLightGridNetwork(Network):
 
         for start_node in node_routes:
             start_node_routes_dict = node_routes[start_node]
+            print(start_node)
             for end_node in start_node_routes_dict:
                 start_end_node_routes_list = node_routes[start_node][end_node]
                 num_rts = len(start_end_node_routes_list) # this is a hard coded method of calculating probabilites, TODO: change to non-hard coded method
@@ -367,7 +368,8 @@ class TrafficLightGridNetwork(Network):
                     start_edge = edge_route[0]
                     curr_start_edge_routes = routes_dict.get(start_edge, [])
                     curr_start_edge_routes.append((edge_route, 1 / num_rts))
-
+                    routes_dict[start_edge] = curr_start_edge_routes
+        print(routes_dict)
         return routes_dict
 
     def specify_types(self, net_params):
@@ -653,34 +655,49 @@ class TrafficLightGridNetwork(Network):
         grid_array = net_params.additional_params["grid_array"]
         row_num = grid_array["row_num"]
         col_num = grid_array["col_num"]
+
+        # ah, I also need to change these params
+
         cars_heading_left = grid_array["cars_left"]
         cars_heading_right = grid_array["cars_right"]
         cars_heading_top = grid_array["cars_top"]
         cars_heading_bot = grid_array["cars_bot"]
 
+        # TODO: are these names supposed to be inverted? i.e. it seems like the cars "heading right" are heading up/down
+
         start_pos = []
+
+        x_max = col_num + 1
+        y_max = row_num + 1
 
         x0 = 6  # position of the first car
         dx = 10  # distance between each car
 
         start_lanes = []
-        for i in range(col_num):
-            start_pos += [("right0_{}".format(i), x0 + k * dx)
-                          for k in range(cars_heading_right)]
-            start_pos += [("left{}_{}".format(row_num, i), x0 + k * dx)
-                          for k in range(cars_heading_left)]
+        # cars heading up and down
+        for x in range(1, x_max):
+            bot_edge = "({}.{})--({}.{})".format(x, 0, x, 1)
+            top_edge = "({}.{})--({}.{})".format(x, y_max, x, y_max - 1)
+
+            start_pos += [(bot_edge, x0 + k * dx)
+                          for k in range(cars_heading_top)]
+            start_pos += [(top_edge, x0 + k * dx)
+                          for k in range(cars_heading_bot)]
+            vert_lanes = np.random.randint(low=0, high=net_params.additional_params["vertical_lanes"],
+                                           size=cars_heading_top + cars_heading_bot).tolist()
+            start_lanes += vert_lanes
+        # cars heading left and right
+        for y in range(1, y_max):
+            left_edge = "({}.{})--({}.{})".format(0, y, 1, y)
+            right_edge = "({}.{})--({}.{})".format(x_max, y, x_max - 1, y)
+
+            start_pos += [(left_edge, x0 + k * dx)
+                          for k in range(cars_heading_top)]
+            start_pos += [(right_edge, x0 + k * dx)
+                          for k in range(cars_heading_bot)]
             horz_lanes = np.random.randint(low=0, high=net_params.additional_params["horizontal_lanes"],
                                            size=cars_heading_left + cars_heading_right).tolist()
             start_lanes += horz_lanes
-
-        for i in range(row_num):
-            start_pos += [("top{}_{}".format(i, col_num), x0 + k * dx)
-                          for k in range(cars_heading_top)]
-            start_pos += [("bot{}_0".format(i), x0 + k * dx)
-                          for k in range(cars_heading_bot)]
-            vert_lanes = np.random.randint(low=0, high=net_params.additional_params["vertical_lanes"],
-                                           size=cars_heading_left + cars_heading_right).tolist()
-            start_lanes += vert_lanes
 
         return start_pos, start_lanes
 
