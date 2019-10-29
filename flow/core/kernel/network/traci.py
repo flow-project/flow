@@ -491,7 +491,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
             #for cross in crossings:
             #    x.append(E('crossing', **cross))
             printxml(x, self.net_path + self.confn)
-        
+
         # xml file for configuration, which specifies:
         # - the location of all files of interest for sumo
         # - output net file
@@ -803,11 +803,13 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         cfg = makexml('configuration',
                       'http://sumo.dlr.de/xsd/sumoConfiguration.xsd')
 
+        include_ped_routes = self.roufn + ',../net/pedestrians.trip.xml'
+
         cfg.append(
             _inputs(
                 net=self.netfn,
                 add=self.addfn,
-                rou=self.roufn,
+                rou=include_ped_routes,
                 gui=self.guifn))
         t = E('time')
         t.append(E('begin', value=repr(0)))
@@ -909,13 +911,26 @@ class TraCIKernelNetwork(BaseKernelNetwork):
 
         # collect connection data
         for connection in root.findall('connection'):
+
+            #print(connection.attrib)
+
             from_edge = connection.attrib['from']
             from_lane = int(connection.attrib['fromLane'])
 
             if from_edge[0] != ":":
                 # if the edge is not an internal link, then get the next
                 # edge/lane pair from the "via" element
+
+                #TODO
+                '''
+                try:
+                    via = connection.attrib['via'].rsplit('_', 1)
+                except:
+                    import ipdb; ipdb.set_trace()
+                '''
+
                 via = connection.attrib['via'].rsplit('_', 1)
+
                 to_edge = via[0]
                 to_lane = int(via[1])
             else:

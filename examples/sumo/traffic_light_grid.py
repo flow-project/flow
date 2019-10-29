@@ -70,7 +70,7 @@ def get_flow_params(col_num, row_num, additional_net_params):
             veh_type='human',
             edge=outer_edges[i],
             probability=0.25,
-            departLane='free',
+            departLane='first',
             departSpeed=20)
 
     net = NetParams(
@@ -132,8 +132,8 @@ def traffic_light_grid_example(render=None, use_inflows=False):
     inner_length = 300
     long_length = 500
     short_length = 300
-    n_rows = 2
-    n_columns = 2
+    n_rows = 1
+    n_columns = 1
     num_cars_left = 20
     num_cars_right = 20
     num_cars_top = 20
@@ -193,8 +193,8 @@ def traffic_light_grid_example(render=None, use_inflows=False):
         "state": "ryryryryryry"
     }]
     tl_logic.add("center0", phases=phases, programID=1)
-    tl_logic.add("center1", phases=phases, programID=1)
-    tl_logic.add("center2", phases=phases, programID=1, tls_type="actuated")
+    #tl_logic.add("center1", phases=phases, programID=1)
+    #tl_logic.add("center2", phases=phases, programID=1, tls_type="actuated")
 
     additional_net_params = {
         "grid_array": grid_array,
@@ -230,4 +230,4 @@ if __name__ == "__main__":
     exp = traffic_light_grid_example()
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 1500)
+    exp.run(1, 15000    )

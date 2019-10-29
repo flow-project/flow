@@ -165,7 +165,7 @@ class TrafficLightGridNetwork(Network):
     def specify_crossings(self, net_params):
         crossings = []
 
-        crossings.append({"node": "center3", "edges":"left1_1 right1_1"})
+        crossings.append({"node": "center0", "edges":"top0_1 bot0_1"})
         return crossings
 
     def specify_nodes(self, net_params):
@@ -370,7 +370,8 @@ class TrafficLightGridNetwork(Network):
                 "from": "center" + str(from_node),
                 "to": "center" + str(to_node),
                 "length": self.inner_length,
-                "sidewalkWidth": str(1)
+                "disallow": "pedestrian",
+                "sidewalkWidth": str(2)
             }]
 
         # Build the horizontal inner edges
@@ -448,7 +449,8 @@ class TrafficLightGridNetwork(Network):
                 "from": from_node,
                 "to": to_node,
                 "length": length,
-                "sidewalkWidth": str(1)
+                "disallow": "pedestrian",
+                "sidewalkWidth": str(2)
             }]
 
         for i in range(self.col_num):

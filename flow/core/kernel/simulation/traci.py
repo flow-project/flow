@@ -12,6 +12,8 @@ import logging
 import subprocess
 import signal
 
+import randomTrips
+
 
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
@@ -77,6 +79,22 @@ class TraCISimulation(KernelSimulation):
         error = None
         for _ in range(RETRIES_ON_ERROR):
             try:
+
+                net = network.name + '.net.xml'
+                net = '/home/nick/Programming/flow/flow/core/kernel/network/debug/cfg/'+ net
+
+                randomTrips.main(randomTrips.get_options([
+                    '--net-file', net,
+                    '--output-trip-file', 'pedestrians.trip.xml',
+                    '--seed', '42',  # make runs reproducible
+                    '--pedestrians',
+                    '--prefix', 'ped',
+                    # prevent trips that start and end on the same edge
+                    '--min-distance', '1',
+                    '--trip-attributes', 'departPos="random" arrivalPos="random"',
+                    '--binomial', '4',
+                    '--period', '35']))
+
                 # port number the sumo instance will be run on
                 port = sim_params.port
 

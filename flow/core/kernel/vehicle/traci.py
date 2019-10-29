@@ -1022,7 +1022,7 @@ class TraCIVehicle(KernelVehicle):
             veh_id,
             route_id,
             typeID=str(type_id),
-            departLane=str(lane),
+            departLane=str(1),
             departPos=str(pos),
             departSpeed=str(speed))
 
