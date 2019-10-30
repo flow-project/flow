@@ -5,7 +5,7 @@ This environment was used in:
 TODO(ak): add paper after it has been published.
 """
 
-from flow.envs.base_env import Env
+from flow.envs.base import Env
 from flow.core import rewards
 
 from gym.spaces.box import Box
@@ -25,7 +25,7 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 
-class WaveAttenuationMergePOEnv(Env):
+class MergePOEnv(Env):
     """Partially observable merge environment.
 
     This environment is used to train autonomous vehicles to attenuate the
@@ -70,7 +70,7 @@ class WaveAttenuationMergePOEnv(Env):
         vehicles collide into one another.
     """
 
-    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -90,7 +90,7 @@ class WaveAttenuationMergePOEnv(Env):
         self.leader = []
         self.follower = []
 
-        super().__init__(env_params, sim_params, scenario, simulator)
+        super().__init__(env_params, sim_params, network, simulator)
 
     @property
     def action_space(self):
@@ -120,8 +120,8 @@ class WaveAttenuationMergePOEnv(Env):
         self.follower = []
 
         # normalizing constants
-        max_speed = self.k.scenario.max_speed()
-        max_length = self.k.scenario.length()
+        max_speed = self.k.network.max_speed()
+        max_length = self.k.network.length()
 
         observation = [0 for _ in range(5 * self.num_rl)]
         for i, rl_id in enumerate(self.rl_veh):

@@ -1,11 +1,11 @@
 """
 A solution should include:
-    1. Benchmark scenario;
+    1. Benchmark network;
     2. get_actions() method;
     3. get_states() method.
 """
 
-# Specify benchmark scenario below.
+# Specify benchmark network below.
 BENCHMARK = ""  # Benchmark name goes here...
 
 

@@ -5,9 +5,9 @@ from flow.core.params import SumoParams, EnvParams, \
     SumoLaneChangeParams
 from flow.core.params import VehicleParams
 from flow.core.experiment import Experiment
-from flow.scenarios.highway_ramps import HighwayRampsScenario, \
+from flow.networks.highway_ramps import HighwayRampsNetwork, \
     ADDITIONAL_NET_PARAMS
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
@@ -100,13 +100,13 @@ def highway_ramps_example(render=None):
 
     initial_config = InitialConfig()  # no vehicles initially
 
-    scenario = HighwayRampsScenario(
+    network = HighwayRampsNetwork(
         name="highway-ramp",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = AccelEnv(env_params, sim_params, scenario)
+    env = AccelEnv(env_params, sim_params, network)
 
     return Experiment(env)
 

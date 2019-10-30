@@ -46,7 +46,8 @@ script. Be sure to run the below commands from ``/path/to/flow``.
 
     # create a conda environment
     conda env create -f environment.yml
-    source activate flow
+    conda activate flow
+    python setup.py develop
 
 If the conda install fails, you can also install the requirements using pip by calling
 
@@ -118,12 +119,12 @@ sure to enter your conda environment by typing:
 
 ::
 
-    source activate flow
+    conda activate flow
 
 Let’s see some traffic action:
 
 ::
-
+    
     python examples/sumo/sugiyama.py
 
 Running the following should result in the loading of the SUMO GUI.
@@ -141,14 +142,14 @@ can be achieved by following the installation instructions located in:
 https://www.aimsun.com/aimsun-next/download/.
 
 Once Aimsun has been installed, copy the path to the `Aimsun_Next` main
-directory and place it in under the `AIMSUN_NEXT_PATH` variable in the
-"flow/config.py" folder. This will allow Flow to locate and use this binary
+directory and place it in under the `AIMSUN_NEXT_PATH` variable in your bashrc.
+This will allow Flow to locate and use this binary
 during the execution of various tasks. The path should look something like:
 
 ::
 
-    /home/user/Aimsun_Next_X_Y_Z/                   # Linux
-    /Applications/Aimsun Next.app/Contents/MacOS/   # OS X
+    export AIMSUN_NEXT_PATH="/home/user/Aimsun_Next_X_Y_Z/"                   # Linux
+    export AIMSUN_NEXT_PATH="/Applications/Aimsun Next.app/Contents/MacOS/"   # OS X
 
 `Note for Mac users:` when you download Aimsun, you will get a folder named "Programming". You need to rename it to "programming" (all lowercase) and to move it inside the "Aimsun Next.app/Contents/MacOS/" directory so that the python API can work.
 
@@ -177,9 +178,12 @@ The latter command should return an output similar to:
 
     /path/to/envs/aimsun_flow/bin/python
 
-Copy the path up until right before /bin (i.e. /path/to/envs/aimsun_flow) and
-place it under the `AIMSUN_SITEPACKAGES` variable in flow/config.py.
+Copy the path up until right before /lib (i.e. /path/to/envs/aimsun_flow/bin/python) and
+place it under the `AIMSUN_SITEPACKAGES` variable in your bashrc, like this:
 
+::
+
+    export AIMSUN_SITEPACKAGES="/path/to/envs/aimsun_flow/bin/python"
 
 Testing your installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -245,7 +249,7 @@ To run any of the RL examples, make sure to run
 
 ::
 
-    source activate flow
+    conda activate flow
 
 In order to test run an Flow experiment in RLlib, try the following command:
 
@@ -277,26 +281,6 @@ jobs from there.
     pip install boto3
     ray create-or-update scripts/ray_autoscale.yaml
     ray teardown scripts/ray_autoscale.yaml
-
-
-Testing your installation
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To run any of the RL examples, make sure to run
-
-::
-
-    source activate flow
-
-In order to test run an Flow experiment in rllib, try the following
-command:
-
-::
-
-    python examples/rllib/stabilizing_the_ring.py
-
-If it does not fail, this means that you have Flow properly configured with
-rllib.
 
 
 (Optional) Direct install of SUMO from GitHub
