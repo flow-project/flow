@@ -673,11 +673,13 @@ class NetParams:
 
     def __init__(self,
                  inflows=None,
+                 bus_stops=None,
                  osm_path=None,
                  template=None,
                  additional_params=None):
         """Instantiate NetParams."""
         self.inflows = inflows or InFlows()
+        self.bus_stops = bus_stops or BusStops()
         self.osm_path = osm_path
         self.template = template
         self.additional_params = additional_params or {}
@@ -821,6 +823,8 @@ class SumoCarFollowingParams:
             speed_dev=0.1,
             impatience=0.5,
             car_follow_model="IDM",
+            length=5.0,
+            gui_shape="passenger",
             **kwargs):
         """Instantiate SumoCarFollowingParams."""
         # check for deprecations (minGap)
@@ -860,6 +864,8 @@ class SumoCarFollowingParams:
             "speedDev": speed_dev,
             "impatience": impatience,
             "carFollowModel": car_follow_model,
+            "length": length,
+            "guiShape": gui_shape
         }
 
         # adjust the speed mode value
@@ -1206,3 +1212,62 @@ class InFlows:
     def get(self):
         """Return the inflows of each edge."""
         return self.__flows
+
+class BusStops:
+    """Used to add bus stops to a network.
+
+    Bus stops can be specified for any edge that has a specified route or routes.
+    """
+    def __init__(self):
+        """Instantiate bus stops."""
+        self.__bus_stops = []
+
+    def add(self,
+            edge,
+            start_pos=0,
+            end_pos=-0.1,
+            name="bus_stop",
+            **kwargs):
+        r"""Specify a new inflow for a given type of vehicles and edge.
+
+        Parameters
+        ----------
+        edge : str
+            starting edge for the vehicles in this inflow
+        veh_type : str
+            type of the vehicles entering the edge. Must match one of the types
+            set in the Vehicles class
+        vehs_per_hour : float, optional
+            number of vehicles per hour, equally spaced (in vehicles/hour).
+            Cannot be specified together with probability or period
+        kwargs : dict, optional
+            see Note
+
+        Note
+        ----
+        For information on the parameters edge, start_pos, end_pos, as 
+        well as other parameters that may be added via \*\*kwargs, refer to:
+        https://sumo.dlr.de/docs/Simulation/Public_Transport.html
+        """
+
+        new_stop = {
+            "id": "%s_%d" % (name, len(self.__bus_stops)),
+            "lane": "%s_0" % edge,  # FIXME: assume bus stop at rightmost lane
+            "startPos": start_pos,
+            "endPos": end_pos,
+        }
+        new_stop.update(kwargs)
+
+        # inflow_params = [vehs_per_hour, probability, period]
+        # n_inflow_params = len(inflow_params) - inflow_params.count(None)
+        # if n_inflow_params != 1:
+        #     raise ValueError(
+        #         "Exactly one among the three parameters 'vehs_per_hour', "
+        #         "'probability' and 'period' must be specified in InFlows.add. "
+        #         "{} were specified.".format(n_inflow_params))
+
+        self.__bus_stops.append(new_stop)
+
+    def get(self):
+        """Return the bus stops of each edge."""
+        return self.__bus_stops

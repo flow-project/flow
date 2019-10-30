@@ -654,6 +654,23 @@ class TraCIKernelNetwork(BaseKernelNetwork):
             }
             add.append(E('vType', id=params['veh_id'], **type_params_str))
 
+        # add (optional) bus stops to the .add.xml file
+        print(self.network.net_params.bus_stops.get())
+        if self.network.net_params.bus_stops is not None:
+            stops = self.network.net_params.bus_stops.get()
+            for stop in stops:
+                # do not want to affect the original values
+                sumo_stop = deepcopy(stop)
+
+                # convert any non-string element in the inflow dict to a string
+                for key in sumo_stop:
+                    if not isinstance(sumo_stop[key], str):
+                        sumo_stop[key] = repr(sumo_stop[key])
+
+                # edge = sumo_stop['edge']
+                # del sumo_stop['edge']
+                add.append(E('busStop', **sumo_stop))
+
         # add (optionally) the traffic light properties to the .add.xml file
         num_traffic_lights = len(list(traffic_lights.get_properties().keys()))
         if num_traffic_lights > 0:
