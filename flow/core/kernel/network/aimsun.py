@@ -119,7 +119,7 @@ class AimsunKernelNetwork(BaseKernelNetwork):
             with open(file_path, 'w') as f:
                 f.write("%s_%s" % (template_path, self.sim_params.port))
             # instances must have unique template paths to avoid crashing?
-            os.popen('cp %s %s_%s' % (template_path, template_path, self.sim_params.port)) 
+            os.popen('cp %s %s_%s' % (template_path, template_path, self.sim_params.port))
 
         # start the aimsun process
         aimsun_call = [aimsun_path, "-script", script_path, str(self.sim_params.port)]
