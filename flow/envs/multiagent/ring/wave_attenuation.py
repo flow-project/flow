@@ -49,7 +49,7 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
     @property
     def observation_space(self):
         """See class definition."""
-        return Box(low=0, high=1, shape=(3,), dtype=np.float32)
+        return Box(low=-1, high=1, shape=(3,), dtype=np.float32)
 
     @property
     def action_space(self):

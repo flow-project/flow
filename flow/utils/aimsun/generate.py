@@ -29,6 +29,9 @@ gui.newDoc(os.path.join(config.PROJECT_PATH,
            "EPSG:32601")
 model = gui.getActiveModel()
 
+# HACK: Store port in author
+port_string = sys.argv[1]
+model.setAuthor(port_string)
 
 def generate_net(nodes,
                  edges,
