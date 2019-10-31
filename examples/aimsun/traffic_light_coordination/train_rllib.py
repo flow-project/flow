@@ -23,7 +23,8 @@ detector_step = 300  # seconds
 
 timehorizon = 3600*4 - detector_step
 HORIZON = int(timehorizon//sim_step)
-N_ROLLOUTS = 80
+N_ROLLOUTS = 20
+# N_ROLLOUTS = 10
 
 # ADDITIONAL_ENV_PARAMS['detection_interval'] = (detector_step//3600,  (detector_step%3600)//60, detector_step%60)
 # ADDITIONAL_ENV_PARAMS['statistical_interval'] = (detector_step//3600,  (detector_step%3600)//60, detector_step%60)
@@ -74,7 +75,7 @@ def setup_exps(version=0):
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = N_CPUS
-    # config["sgd_minibatch_size"] = 3  # remove me
+    config["sgd_minibatch_size"] = 32  # remove me
     config["train_batch_size"] = (timehorizon//detector_step)*N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [32, 32]})
@@ -83,7 +84,7 @@ def setup_exps(version=0):
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config['clip_actions'] = False  # FIXME(ev) temporary ray bug
-    config["horizon"] = timehorizon//detector_step
+    config["horizon"] = timehorizon//detector_step  # not same as env horizon. 
     config["vf_loss_coeff"] = 1e-5
 
     # save the flow params for replay
@@ -100,7 +101,7 @@ def setup_exps(version=0):
 
 
 if __name__ == "__main__":
-    N_CPUS = 1
+    N_CPUS = 6
     ray.init(num_cpus=N_CPUS + 1, object_store_memory=int(1e9))
 
     alg_run, gym_name, config = setup_exps()
