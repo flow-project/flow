@@ -195,24 +195,20 @@ class TrafficLightGridNetwork(Network):
     def specify_routes(self, net_params):
         """Returns a dict representing all possible routes of the network via the "Multiple routes per edge" format.
 
-        :param net_params:
-
         Returns
         -------
         routes_dict <list <tuple>>
 
         The format of routes_dict is as follows:
 
-                routes_dict = {"se0": [(["edge0", "edge1", "edge2", "edge3"], 1)],
-                               "se1": [(["edge1", "edge2", "edge3", "edge0"], 1)],
-                               "se2": [(["edge2", "edge3", "edge0", "edge1"], 1)],
-                               "se3": [(["edge3", "edge0", "edge1", "edge2"], 1)]}
-
-                routes_dict = {"start_edge":
-                                            [(Route A beginning with start_edge, Pr(route A)),
-                                             (Route B beginning with start_edge, Pr(route B)]
+                routes_dict = {"edge0":     [(Route A beginning with edge0, Pr(route A)),
+                                             (Route B beginning with edge0, Pr(route B))],
+                               "edge1":     [(Route A beginning with edge1, Pr(route A)),
+                                             (Route B beginning with edge1, Pr(route B)]
                                 ...
                                 }
+
+                Each route is a list of edges
 
         """
 
@@ -334,30 +330,11 @@ class TrafficLightGridNetwork(Network):
 
             return edge_route
 
-        node_routes = generate_node_routes_list(5)  # for all src dst node pairs, generate the top 5 shortest paths
-        # TODO: convert node pairings into edge pairings - take into account that some routes have a fixed number of routes
+        node_routes = generate_node_routes_list(5)  # for all src-dst node pairs, generate the top 5 shortest node paths
 
-        """(Here, sn is shorthand for "start node", and en is shorthand
-        for "end node")
-
-        routes_nodes_dict = {start_node:
-                                 {end_node: [rt1, rt2, rt3]}
-                                     ...}
-
-        e.g.rt1 = ['(0.1)', '(0.2)', '(1.2)']
-
-        routes_dict = {"start_edge":
-                                 [(Route A beginning with start_edge, Pr(route A)),
-                                  (Route B beginning with start_edge, Pr(route B)]
-        ...
-        }
-
-        # I'm going to use a non-hard coded method to convert the routes nodes dict to routes dict with edges i.e. 
-        # I'll need to connect up the start node with the next node in the sequence of nodes"""
-
+        # Convert node routes into edge routes
         for start_node in node_routes:
             start_node_routes_dict = node_routes[start_node]
-            print(start_node)
             for end_node in start_node_routes_dict:
                 start_end_node_routes_list = node_routes[start_node][end_node]
                 num_rts = len(start_end_node_routes_list) # this is a hard coded method of calculating probabilites, TODO: change to non-hard coded method
@@ -369,7 +346,19 @@ class TrafficLightGridNetwork(Network):
                     curr_start_edge_routes = routes_dict.get(start_edge, [])
                     curr_start_edge_routes.append((edge_route, 1 / num_rts))
                     routes_dict[start_edge] = curr_start_edge_routes
-        print(routes_dict)
+
+        # normalise probabilities of choosing a particular route
+        for start_edge in routes_dict:
+            routes_list = routes_dict[start_edge]
+            total_prob = 0
+            new_routes_list = [] # replace old list with normalised list
+            for (rt1, prob) in routes_list:
+                total_prob += prob
+            for (rt1, prob) in routes_list:
+                new_routes_list.append((rt1, prob / total_prob))
+
+            routes_dict[start_edge] = new_routes_list
+
         return routes_dict
 
     def specify_types(self, net_params):

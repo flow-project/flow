@@ -49,17 +49,6 @@ def gen_edges(col_num, row_num):
             edges += new_edge(bottom_node, top_node)
             edges += new_edge(top_node, bottom_node)
 
-
-    # # build the left and then the right edges
-    # for i in range(col_num):
-    #     edges += ['left' + str(row_num) + '_' + str(i)]
-    #     edges += ['right' + '0' + '_' + str(i)]
-    #
-    # # build the bottom and then top edges
-    # for i in range(row_num):
-    #     edges += ['bot' + str(i) + '_' + '0']
-    #     edges += ['top' + str(i) + '_' + str(col_num)]
-
     return edges
 
 
@@ -217,15 +206,15 @@ def traffic_light_grid_example(render=None, use_inflows=False):
     }]
 
     # TODO: Kevin Lin - why's this hardcoded?
-    tl_logic.add("(1.1)", phases=phases, programID=1)
-    tl_logic.add("(2.1)", phases=phases, programID=1)
-    tl_logic.add("(3.1)", phases=phases, programID=1, tls_type="actuated")
+    # tl_logic.add("(1.1)", phases=phases, programID=1)
+    # tl_logic.add("(2.1)", phases=phases, programID=1)
+    # tl_logic.add("(3.1)", phases=phases, programID=1, tls_type="actuated")
 
     additional_net_params = {
         "grid_array": grid_array,
         "speed_limit": 35,
-        "horizontal_lanes": 1,
-        "vertical_lanes": 1
+        "horizontal_lanes": 3,
+        "vertical_lanes": 3
     }
 
     if use_inflows:
@@ -252,7 +241,7 @@ def traffic_light_grid_example(render=None, use_inflows=False):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = traffic_light_grid_example(render=False)
+    exp = traffic_light_grid_example()
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)
