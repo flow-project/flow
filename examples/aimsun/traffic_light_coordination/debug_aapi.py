@@ -148,6 +148,71 @@ def AAPILoad():
     return 0
 
 
+def maxband():
+    target_nodes = {3369: "AR 5083 - Zone 132 - P2",
+                    3341: "AR 5083 - Zone 132 - P2",
+                    3370: "AR 5083 - Zone 132 - P2",
+                    3344: "AR 5083 - Zone 132 - P2",
+                    3329: "AR 5083 - Zone 132 - P2"}
+
+    b = []
+    b_bar = []
+    w = []
+    w_bar = []
+    delta = []
+    r = []
+    r_bar = []
+    cycle_length = 120
+
+    for node_id, cplan_name in target_nodes.items():
+        cplanType = model.getType("GKControlPlan")
+
+        catalog = model.getCatalog()
+        if aapi.ECIGetNumberofControls(node_id) == 1:
+            node = catalog.find(node_id)
+            cplan_ids = catalog.getObjectsByType(cplanType)
+            for cid in cplan_ids:
+                # Find current active control plan
+                cplan = catalog.find(cid)
+                if cplan_name != cplan.getName():  # currently specific to a node
+                    continue
+                cjunction = cplan.getControlJunction(node)
+
+                if cjunction:
+                    num_rings = cjunction.getNbRings()
+                    phase_times = {i+1: OrderedDict() for i in range(num_rings)}
+                    timing_map = {}
+                    # start_times = set()
+                    phase_ids = [3, 11]  # TBD
+                    # for phase_id in phase_ids:
+                    phase = cjunction.getPhaseByPos(phase_ids[0] - 1)
+                    phase_bar = cjunction.getPhaseByPos(phase_ids[1] - 1)
+
+                    # if (len(phase.getSignals()) > 0) and (phase.getIdRing() == 1):  # might be safe to remove
+                    # force phase
+                    # ring_id = phase.getIdRing()
+                    start_time = phase.getFrom()
+                    duration_green = phase.getDuration()
+                    duration_red = cycle_length - duration_green
+                    r.append(duration_red)
+                    r_midway = (start_time + duration_green + duration_red/2) % cycle_length
+
+                    # force phase 11
+                    start_time_bar = phase_bar.getFrom()
+                    duration_green_bar = phase_bar.getDuration()
+                    duration_red_bar = cycle_length - duration_green_bar
+                    r_bar.append(duration_red_bar)
+                    r_bar_midway = (start_time_bar + duration_green_bar + duration_red_bar/2) % cycle_length
+
+                    delta.append(r_midway - r_bar_midway)
+
+                    # start_times.add(start_time)
+                    phase_times[ring_id][start_time] = [i.name for i in phase.getSignals()]
+                    timing_map[start_time] = ring_id
+
+                    # combined_ring = get_combined_ring(start_times, phase_times)
+
+
 def AAPIInit():
     target_nodes = [3369, 3341, 3370, 3344, 3329]
 
