@@ -1025,6 +1025,10 @@ class TraCIVehicle(KernelVehicle):
             departLane=str(lane),
             departPos=str(pos),
             departSpeed=str(speed))
+        
+        if type_id == "bus":
+            print(veh_id)
+            self.kernel_api.vehicle.setBusStop(veh_id, 'bus_stop_0', 10)
 
     def get_max_speed(self, veh_id, error=-1001):
         """See parent class."""
