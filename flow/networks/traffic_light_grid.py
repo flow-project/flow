@@ -145,6 +145,9 @@ class TrafficLightGridNetwork(Network):
         self.cars_heading_left = self.grid_array["cars_left"]
         self.cars_heading_right = self.grid_array["cars_right"]
 
+        # TODO add param for this
+        self.sidewalk_width = 3
+
         # specifies whether or not there will be traffic lights at the
         # intersections (True by default)
         self.use_traffic_lights = net_params.additional_params.get(
@@ -162,10 +165,44 @@ class TrafficLightGridNetwork(Network):
 
         super().__init__(name, vehicles, net_params, initial_config,
                          traffic_lights)
+    
     def specify_crossings(self, net_params):
-        crossings = []
 
-        crossings.append({"node": "center0", "edges":"top0_1 bot0_1"})
+        crossings = []
+        
+        for i_node in self._inner_nodes:
+            adjacent_edges = set()
+            for e in self._inner_edges + self._outer_edges:
+                edge_id = e['id']
+                if e['from'] == i_node['id'] or e['to'] == i_node['id']:
+                    alt_edge = ''
+                    if edge_id[:3] == 'top':
+                        alt_edge = 'bot' + edge_id[3:]
+                    elif edge_id[:3] == 'bot':
+                        alt_edge = 'top' + edge_id[3:]
+                    elif edge_id[:4] == 'left':
+                        alt_edge = 'right' + edge_id[4:]
+                    elif edge_id[:5] == 'right':
+                        alt_edge = 'left' + edge_id[5:]
+                    
+                    if alt_edge in adjacent_edges:
+                        adjacent_edges.remove(alt_edge)
+                        adjacent_edges.add(edge_id + ' ' + alt_edge)
+                    else:
+                        adjacent_edges.add(edge_id)
+
+            for cross_edges in adjacent_edges:
+                crossings.append({"node": i_node['id'],
+                    "edges": cross_edges,
+                    "width": str(self.sidewalk_width)})
+        
+        '''
+        crossings.append({"node": "center0", "edges":"top0_0 bot0_0", "width":"3"})
+        crossings.append({"node": "center0", "edges":"top0_1 bot0_1", "width":"3"})
+        crossings.append({"node": "center0", "edges":"right0_0 left0_0", "width":"3"})
+        crossings.append({"node": "center0", "edges":"right1_0 left1_0", "width":"3"})
+        '''
+        
         return crossings
 
     def specify_nodes(self, net_params):

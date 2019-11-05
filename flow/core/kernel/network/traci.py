@@ -488,8 +488,8 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                     del connection_attributes['signal_group']
                 x.append(E('connection', **connection_attributes))
 
-            #for cross in crossings:
-            #    x.append(E('crossing', **cross))
+            for cross in crossings:
+                x.append(E('crossing', **cross))
             printxml(x, self.net_path + self.confn)
 
         # xml file for configuration, which specifies:
@@ -915,9 +915,10 @@ class TraCIKernelNetwork(BaseKernelNetwork):
             #print(connection.attrib)
 
             from_edge = connection.attrib['from']
+            to_edge = connection.attrib['to']
             from_lane = int(connection.attrib['fromLane'])
 
-            if from_edge[0] != ":":
+            if from_edge[0] != ":" and to_edge[0] != ":":
                 # if the edge is not an internal link, then get the next
                 # edge/lane pair from the "via" element
 

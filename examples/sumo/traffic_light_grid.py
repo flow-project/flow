@@ -132,7 +132,7 @@ def traffic_light_grid_example(render=None, use_inflows=False):
     inner_length = 300
     long_length = 500
     short_length = 300
-    n_rows = 1
+    n_rows = 2
     n_columns = 1
     num_cars_left = 20
     num_cars_right = 20
@@ -230,4 +230,4 @@ if __name__ == "__main__":
     exp = traffic_light_grid_example()
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 15000    )
+    exp.run(1, 15000)
