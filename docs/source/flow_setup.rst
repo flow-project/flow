@@ -198,8 +198,8 @@ to activate the `flow` env. Type:
     source activate flow
     python examples/aimsun/sugiyama.py
 
-`Troubleshootig for Ubuntu users with Aimsun 8.4:` when you run the above example, you may get a subprocess.Popen error ``OSError: [Errno 8] Exec format error:``.  
-To fix this, go to the `Aimsun_Next` main directory, open the `Aimsun_Next` binary with a text editor (e.g., run `vim Aimsun_next`) and add the shebang to the first line of the script ``#!/bin/sh``.
+*Troubleshootig for Ubuntu users with Aimsun 8.4*: when you run the above example, you may get a subprocess.Popen error ``OSError: [Errno 8] Exec format error:``.  
+To fix this, go to the `Aimsun Next` main directory, open the `Aimsun_Next` binary with a text editor and add the shebang to the first line of the script ``#!/bin/sh``.
 
 (Optional) Install Ray RLlib
 ----------------------------
