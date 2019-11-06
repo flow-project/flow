@@ -139,6 +139,17 @@ class BaseKernelNetwork(object):
         """Return the maximum achievable speed on any edge in the network."""
         raise NotImplementedError
 
+    def set_edge_speed(self, edge_id, speed):
+        """Set speed limit of an edge.
+        Parameters
+        ----------
+        edge_id : str
+            name of the edge
+        speed : float
+            speed limit of the edge
+        """
+        raise NotImplementedError
+
     def num_lanes(self, edge_id):
         """Return the number of lanes of a given edge/junction.
 
