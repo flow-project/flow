@@ -184,31 +184,31 @@ def traffic_light_grid_example(render=None, use_inflows=False):
 
     tl_logic = TrafficLightParams(baseline=False)
     phases = [{
-        "duration": "31",
+        "duration": "15",
         "minDur": "8",
-        "maxDur": "45",
-        "state": "GrGrGrGrGrGr"
+        "maxDur": "7",
+        "state": "ggggggggggggggggggrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrggg"
     }, {
         "duration": "6",
         "minDur": "3",
         "maxDur": "6",
-        "state": "yryryryryryr"
+        "state": "ggggggggggggggggggrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
     }, {
         "duration": "31",
         "minDur": "8",
         "maxDur": "45",
-        "state": "rGrGrGrGrGrG"
+        "state": "rrrgggyyyrrrgggyyyrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
     }, {
         "duration": "6",
         "minDur": "3",
         "maxDur": "6",
-        "state": "ryryryryryry"
+        "state": "rrrgggyyyrrrgggyyyrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
     }]
 
-    # TODO: Kevin Lin - why's this hardcoded?
-    # tl_logic.add("(1.1)", phases=phases, programID=1)
-    # tl_logic.add("(2.1)", phases=phases, programID=1)
-    # tl_logic.add("(3.1)", phases=phases, programID=1, tls_type="actuated")
+    # Here's an example of how you can manually set traffic lights
+    tl_logic.add("(1.1)", phases=phases, tls_type="actuated")
+    tl_logic.add("(2.1)", phases=phases, tls_type="actuated")
+    tl_logic.add("(3.1)", phases=phases, tls_type="actuated")
 
     additional_net_params = {
         "grid_array": grid_array,
@@ -234,6 +234,7 @@ def traffic_light_grid_example(render=None, use_inflows=False):
         initial_config=initial_config,
         traffic_lights=tl_logic)
 
+
     env = AccelEnv(env_params, sim_params, network)
 
     return Experiment(env)
@@ -242,6 +243,5 @@ def traffic_light_grid_example(render=None, use_inflows=False):
 if __name__ == "__main__":
     # import the experiment variable
     exp = traffic_light_grid_example()
-
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

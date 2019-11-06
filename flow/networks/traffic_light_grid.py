@@ -167,33 +167,9 @@ class TrafficLightGridNetwork(Network):
         """See parent class."""
         return self._edges
 
-    # def specify_routes(self, net_params):
-    #     """See parent class."""
-    #     routes = defaultdict(list)
-    #
-    #     # build row routes (vehicles go from left to right and vice versa)
-    #     for i in range(self.row_num):
-    #         bot_id = "bot{}_0".format(i)
-    #         top_id = "top{}_{}".format(i, self.col_num)
-    #         for j in range(self.col_num + 1):
-    #             routes[bot_id] += ["bot{}_{}".format(i, j)]
-    #             routes[top_id] += ["top{}_{}".format(i, self.col_num - j)]
-    #
-    #     # build column routes (vehicles go from top to bottom and vice versa)
-    #     for j in range(self.col_num):
-    #         left_id = "left{}_{}".format(self.row_num, j)
-    #         right_id = "right0_{}".format(j)
-    #         for i in range(self.row_num + 1):
-    #             routes[left_id] += ["left{}_{}".format(self.row_num - i, j)]
-    #             routes[right_id] += ["right{}_{}".format(i, j)]
-    #
-    #     routes["bot0_0"] = ["bot0_0", "right1_0"]
-    #     routes["bot1_0"] = ["bot1_0", "right2_0"]
-    #
-    #     return routes
-
     def specify_routes(self, net_params):
-        """Returns a dict representing all possible routes of the network via the "Multiple routes per edge" format.
+        """Generate dict representing all (perhaps we don't want ALL) possible routes of the network via the
+        "Multiple routes per edge" format described in the networks tutorial (tutorial 5, as of 1st Nov, 2019).
 
         Returns
         -------
@@ -205,11 +181,8 @@ class TrafficLightGridNetwork(Network):
                                              (Route B beginning with edge0, Pr(route B))],
                                "edge1":     [(Route A beginning with edge1, Pr(route A)),
                                              (Route B beginning with edge1, Pr(route B)]
-                                ...
                                 }
-
-                Each route is a list of edges
-
+        Each route is a list of edges
         """
 
         routes_dict = {}
@@ -232,13 +205,11 @@ class TrafficLightGridNetwork(Network):
 
             routes_dict = {"sn0": {"en0": [route_1(sn0 - en0), route_2(sn0 - en0), route_3(sn0 - en0), ... route_k(sn0, en0)],
                                    "en1": [route_1(sn0 - en1), route_2(sn0 - en1), route_3(sn0 - en1), ... route_k(sn0, en1)],
-                                   "en2": [route_1(sn0 - en2), route_2(sn0 - en2), route_3(sn0 - en2), ... route_k(sn0, en2)],
                                         ...
                                    "enj": [route_1(sn0 - en2), route_2(sn0 - en2), route_3(sn0 - en2), ... route_k(sn0, en2)]},
 
                            "sn1": {"en0": [route_1(sn1 - en0), route_2(sn1 - en0), route_3(sn1 - en0), ... route_k(sn1, en0)],
                                    "en1": [route_1(sn1 - en1), route_2(sn1 - en1), route_3(sn1 - en1), ... route_k(sn1, en1)],
-                                   "en2": [route_1(sn1 - en2), route_2(sn1 - en2), route_3(sn1 - en2), ... route_k(sn1, en2)],
                                         ...
                                    "enj": [route_1(sn1 - enj), route_2(sn1 - enj), route_3(sn1 - enj), ... route_k(sn1, enj)]},
                             ...
@@ -249,19 +220,6 @@ class TrafficLightGridNetwork(Network):
             routes_nodes_dict = {start_node:
                                     {end_node: [rt1, rt2, rt3]}
                                                                 ... }
-
-            routes are written in terms of a sequence of nodes e.g. ['(0.1)', '(0.2)', '(1.2)']
-
-
-            routes_dict = {"start_edge":
-                                [(Route A beginning with start_edge, Pr(route A)),
-                                 (Route B beginning with start_edge, Pr(route B)]
-                            ...
-                        }
-
-            # I'm going to use a non-hard coded method to convert the routes nodes dict to routes dict with edges i.e.
-            # I'll need to connect up the start node with the next node in the sequence of nodes
-
             """
 
             routes_nodes_dict = {}
@@ -304,7 +262,7 @@ class TrafficLightGridNetwork(Network):
                     g.add_edge(bottom_node, top_node, weight=1)
                     g.add_edge(top_node, bottom_node, weight=1)
 
-            # Loop through all possible source and destination nodes to generate list of node sequences that represent possible paths
+            # Loop through all src and dest nodes to generate list of node sequences that represent possible paths
             for src in src_dst_nodes:
                 routes_nodes_dict[src] = {}
                 for dst in src_dst_nodes:
@@ -337,10 +295,8 @@ class TrafficLightGridNetwork(Network):
             start_node_routes_dict = node_routes[start_node]
             for end_node in start_node_routes_dict:
                 start_end_node_routes_list = node_routes[start_node][end_node]
-                num_rts = len(start_end_node_routes_list) # this is a hard coded method of calculating probabilites, TODO: change to non-hard coded method
+                num_rts = len(start_end_node_routes_list) # TODO: change probs to non-hard coded (uniform) distribution?
                 for node_route in start_end_node_routes_list:
-                    #  1. Convert node specified route to an edge specified route
-                    #  2. Calculate required probabilities
                     edge_route = node_route_to_edge_route(node_route)
                     start_edge = edge_route[0]
                     curr_start_edge_routes = routes_dict.get(start_edge, [])
@@ -524,13 +480,20 @@ class TrafficLightGridNetwork(Network):
 
         return edges
 
-    def specify_connections(self, net_params):
+    def specify_connections(self, net_params, legal_turns=True):
         """Build out connections at each node (aside from those nodes where vehicles enter and exit).
         Connections describe what happens at the intersections. We specify the connections of an entire network using
         a dict, where keys are the individual node ids and the values are a list of all connections directly related to
         a particular node. For a particular node, we specify the node's connections using a list of "from" edges and "to"
         edges. Here, we link lanes with all possible adjacent lanes. This means vehicles can make
         turns at any intersection and can turn to any particular adjacent lane.
+
+        Movement restrictions:
+        Right lanes can travel only straight or right.
+        Middle lanes can travel only straight.
+        Left lanes can travel only straight or left.
+
+        (N.B. turns can only be legal turns i.e. allowed by law)
 
         Returns
         -------
@@ -582,49 +545,83 @@ class TrafficLightGridNetwork(Network):
             left_edge_out = center_node_id + "--" + left_node_id
             bottom_edge_out = center_node_id + "--" + bottom_node_id
 
+            """
+            Movement restrictions:
+            Right lanes can travel only straight or right.            
+            Middle lanes can travel only straight.
+            Left lanes can travel only straight or left.
+            
+            In SUMO, lanes are numbered from 0, starting from the rightmost lane. Thus, a legal left turn by a left lane
+            would be lane n to lane n. A legal right turn from the rightmost lane would be lane 0 to lane 0."""
+
             # build vertical connections for RIGHT edge (1,0)
             for hor_l in range(self.horizontal_lanes):
                 for vert_l in range(self.vertical_lanes):
-                    node_cons_list += single_con_dict(right_edge_in, top_edge_out, hor_l, vert_l, signal_group)
-                    node_cons_list += single_con_dict(right_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
+                    # TODO: fix the strange lane turns
+                    if legal_turns:
+                        if hor_l == vert_l:
+                            node_cons_list += single_con_dict(right_edge_in, top_edge_out, hor_l, vert_l, signal_group)
+                            node_cons_list += single_con_dict(right_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
+                    else:
+                        node_cons_list += single_con_dict(right_edge_in, top_edge_out, hor_l, vert_l, signal_group)
+                        node_cons_list += single_con_dict(right_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
 
             # build horizontal connection for RIGHT edge (1,0)
             for hor_l1 in range(self.horizontal_lanes):
                 for hor_l2 in range(self.horizontal_lanes):
-                    node_cons_list += single_con_dict(right_edge_in, left_edge_out, hor_l1, hor_l2, signal_group)
+                    if hor_l1 == hor_l2: # when going straight, you can only go directly straight
+                        node_cons_list += single_con_dict(right_edge_in, left_edge_out, hor_l1, hor_l2, signal_group)
 
             # build vertical connections for LEFT edge (-1,0)
             for hor_l in range(self.horizontal_lanes):
                 for vert_l in range(self.vertical_lanes):
-                    node_cons_list += single_con_dict(left_edge_in, top_edge_out, hor_l, vert_l, signal_group)
-                    node_cons_list += single_con_dict(left_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
+                    if legal_turns:
+                        if hor_l == vert_l:
+                            node_cons_list += single_con_dict(left_edge_in, top_edge_out, hor_l, vert_l, signal_group)
+                            node_cons_list += single_con_dict(left_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
+                    else:
+                        node_cons_list += single_con_dict(left_edge_in, top_edge_out, hor_l, vert_l, signal_group)
+                        node_cons_list += single_con_dict(left_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
 
             # build horizontal connection for LEFT edge (-1,0)
             for hor_l1 in range(self.horizontal_lanes):
                 for hor_l2 in range(self.horizontal_lanes):
-                    node_cons_list += single_con_dict(left_edge_in, right_edge_out, hor_l1, hor_l2, signal_group)
+                    if hor_l1 == hor_l2:
+                        node_cons_list += single_con_dict(left_edge_in, right_edge_out, hor_l1, hor_l2, signal_group)
 
             # build vertical connection for TOP edge (0, 1)
             for vert_l1 in range(self.vertical_lanes):
                 for vert_l2 in range(self.vertical_lanes):
-                    node_cons_list += single_con_dict(top_edge_in, bottom_edge_out, vert_l1, vert_l2, signal_group)
+                    if vert_l1 == vert_l2:
+                        node_cons_list += single_con_dict(top_edge_in, bottom_edge_out, vert_l1, vert_l2, signal_group)
 
             # build horizontal connections for TOP edge (0, 1)
             for hor_l in range(self.horizontal_lanes):
                 for vert_l in range(self.vertical_lanes):
-                    node_cons_list += single_con_dict(top_edge_in, left_edge_out, vert_l, hor_l, signal_group)
-                    node_cons_list += single_con_dict(top_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+                    if legal_turns:
+                        if hor_l == vert_l:
+                            node_cons_list += single_con_dict(top_edge_in, left_edge_out, vert_l, hor_l, signal_group)
+                            node_cons_list += single_con_dict(top_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+                    else:
+                        node_cons_list += single_con_dict(top_edge_in, left_edge_out, vert_l, hor_l, signal_group)
+                        node_cons_list += single_con_dict(top_edge_in, right_edge_out, vert_l, hor_l, signal_group)
 
             # build vertical connection for BOTTOM edge (0, -1)
             for vert_l1 in range(self.horizontal_lanes):
                 for vert_l2 in range(self.vertical_lanes):
-                    node_cons_list += single_con_dict(bottom_edge_in, top_edge_out, vert_l1, vert_l2, signal_group)
+                    if vert_l1 == vert_l2:
+                        node_cons_list += single_con_dict(bottom_edge_in, top_edge_out, vert_l1, vert_l2, signal_group)
 
             # build horizontal connections for BOTTOM edge (0, -1)
             for hor_l in range(self.horizontal_lanes):
                 for vert_l in range(self.vertical_lanes):
-                    node_cons_list += single_con_dict(bottom_edge_in, left_edge_out, vert_l, hor_l, signal_group)
-                    node_cons_list += single_con_dict(bottom_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+                    if legal_turns:
+                        if hor_l == vert_l:
+                            node_cons_list += single_con_dict(bottom_edge_in, left_edge_out, vert_l, hor_l, signal_group)
+                            node_cons_list += single_con_dict(bottom_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+                    else:
+                        node_cons_list += single_con_dict(bottom_edge_in, left_edge_out, vert_l, hor_l, signal_group)
+                        node_cons_list += single_con_dict(bottom_edge_in, right_edge_out, vert_l, hor_l, signal_group)
 
             return node_cons_list
 
@@ -652,8 +649,6 @@ class TrafficLightGridNetwork(Network):
         cars_heading_top = grid_array["cars_top"]
         cars_heading_bot = grid_array["cars_bot"]
 
-        # TODO: are these names supposed to be inverted? i.e. it seems like the cars "heading right" are heading up/down
-
         start_pos = []
 
         x_max = col_num + 1
@@ -675,6 +670,7 @@ class TrafficLightGridNetwork(Network):
             vert_lanes = np.random.randint(low=0, high=net_params.additional_params["vertical_lanes"],
                                            size=cars_heading_top + cars_heading_bot).tolist()
             start_lanes += vert_lanes
+
         # cars heading left and right
         for y in range(1, y_max):
             left_edge = "({}.{})--({}.{})".format(0, y, 1, y)
@@ -713,48 +709,3 @@ class TrafficLightGridNetwork(Network):
                                     right_edge_id, top_edge_id]
 
         return sorted(mapping.items(), key=lambda x: x[0])
-
-    # TODO: I'll need to change the tests to reflect the new mapping method names
-    @property
-    def node_mapping_outer(self):
-        """Map outer nodes, specifically, the start nodes, to edges.
-        Returns a list of pairs (node, connected edges) of all outer nodes
-        and for each of them, the edge that starts from this node and the edge that ends at this node..
-        The nodes are listed in alphabetical order, and within that, edges are
-        listed in order: [bot, right, top, left].
-        """
-        mapping = {}
-        for col in range(self.col_num):
-            for node_pos in (["bot"]):
-                node_in_id = "{}_col_short{}".format(node_pos, col)
-                mapping[node_in_id] = "right{}_{}".format(0, col)
-
-                node_out_id = "{}_col_long{}".format(node_pos, col)
-                mapping[node_out_id] = "left{}_{}".format(0, col)
-
-        for col in range(self.col_num):
-            for node_pos in (["top"]):
-                node_in_id = "{}_col_short{}".format(node_pos, col)
-                mapping[node_in_id] = "left{}_{}".format(self.row_num, col)
-
-                node_out_id = "{}_col_short{}".format(node_pos, col)
-                mapping[node_out_id] = "right{}_{}".format(self.row_num, col)
-
-        for row in range(self.row_num):
-            for node_pos in (["left"]):
-                node_in_id = "{}_row_short{}".format(node_pos, row)
-                mapping[node_in_id] = "bot{}_{}".format(row, 0)
-
-                node_out_id = "{}_row_long{}".format(node_pos, row)
-                mapping[node_out_id] = "top{}_{}".format(row, 0)
-
-        for row in range(self.row_num):
-            for node_pos in (["right"]):
-                node_in_id = "{}_row_short{}".format(node_pos, row)
-                mapping[node_in_id] = "top{}_{}".format(row, self.col_num)
-
-                node_out_id = "{}_row_long{}".format(node_pos, row)
-                mapping[node_out_id] = "bot{}_{}".format(row, self.col_num)
-
-        return mapping
-
