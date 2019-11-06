@@ -18,6 +18,8 @@ SIMULATION_TERMINATE = 0x01
 #: get the edge name in aimsun
 GET_EDGE_NAME = 0x02
 
+#: set the speed of an edge in aimsun
+SET_EDGE_SPEED = 0x1D
 
 ###############################################################################
 #                               Vehicle Commands                              #

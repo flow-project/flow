@@ -650,3 +650,18 @@ class FlowAimsunAPI(object):
                            in_format='i',
                            values=(veh_id,),
                            out_format=None)
+
+    def set_edge_speed(self, edge, speed):
+        """Set speed limit of an edge.
+
+        Parameters
+        ----------
+        edge : str
+            edge name
+        speed : float
+            speed limit of the edge
+        """
+        self._send_command(ac.SET_EDGE_SPEED,
+                           in_format='i f',
+                           values=(edge, speed),
+                           out_format=None)

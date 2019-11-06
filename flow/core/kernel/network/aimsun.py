@@ -296,6 +296,12 @@ class AimsunKernelNetwork(BaseKernelNetwork):
         return max(
             self.speed_limit(edge) for edge in self.get_edge_list())
 
+    def set_edge_speed(self, edge_id, speed):
+        """See parent class."""
+        edge_id_aimsun = self.aimsun_edge_name(edge_id)
+        self.kernel_api.set_edge_speed(edge_id_aimsun, speed)
+        self._edges[edge_id]["speed"] = speed
+
     def num_lanes(self, edge_id):
         """See parent class."""
         try:

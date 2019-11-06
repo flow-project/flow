@@ -22,6 +22,10 @@ entered_vehicles = []
 exited_vehicles = []
 
 
+def send_confirmation():
+    pass
+
+
 def send_message(conn, in_format, values):
     """Send a message to the client.
 
@@ -462,6 +466,32 @@ def threaded_client(conn):
                 else:
                     send_message(conn, in_format='i',
                             values=(int(edge),))
+
+            elif data == ac.SET_EDGE_SPEED:
+                # send a response
+                send_message(conn, in_format='i', values=(0,))
+
+                # get the edge and desired speed
+                edge, speed = retrieve_message(conn, 'i f')
+
+                print("OK")
+
+                # perform command in Aimsun
+                report = intp()
+                behParams = AKIInfNetGetSectionBehaviouralParam(edge, report)
+                if report.value() == 0:
+                    behParams.speedLimit = speed
+                    AKIInfNetSetSectionBehaviouralParam(edge,
+                                                        behParams,
+                                                        True
+                                                        )
+                    AKIPrintString("OK")
+                else:
+                    AKIPrintString("Not OK")
+
+                # # send confirmation that action has been performed
+                # send_message(conn, in_format='i', values=(0,))
+
 
             # in case the message is unknown, return -1001
             else:
