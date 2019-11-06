@@ -666,6 +666,10 @@ class NetParams:
     template : str, optional
         path to the network template file that can be used to instantiate a
         netowrk in the simulator of choice
+    rl_edges : list of (str or list of str)
+        list of edges that are controlled by an RL agent. If an element in the
+        list is itself a list of edges, than all these edges are controlled by
+        the same action from the agent.
     additional_params : dict, optional
         network specific parameters; see each subclass for a description of
         what is needed
@@ -675,11 +679,13 @@ class NetParams:
                  inflows=None,
                  osm_path=None,
                  template=None,
+                 rl_edges=None,
                  additional_params=None):
         """Instantiate NetParams."""
         self.inflows = inflows or InFlows()
         self.osm_path = osm_path
         self.template = template
+        self.rl_edges = rl_edges
         self.additional_params = additional_params or {}
 
 

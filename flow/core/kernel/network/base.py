@@ -139,14 +139,15 @@ class BaseKernelNetwork(object):
         """Return the maximum achievable speed on any edge in the network."""
         raise NotImplementedError
 
-    def set_edge_speed(self, edge_id, speed):
+    def set_edge_speed(self, edge_ids, speeds):
         """Set speed limit of an edge.
         Parameters
         ----------
-        edge_id : str
-            name of the edge
-        speed : float
-            speed limit of the edge
+        edge_ids : list of (str or list of str)
+            list of edges. If an element in the list is itself a list of edges,
+            then all these edges are set to the same speed
+        speeds : list of float
+            list of speed limits of the edges
         """
         raise NotImplementedError
 
@@ -159,6 +160,11 @@ class BaseKernelNetwork(object):
 
     def get_edge_list(self):
         """Return the names of all edges in the network."""
+        raise NotImplementedError
+
+    def get_rl_ids(self):
+        """Return a list of edges controlled by RL.
+        """
         raise NotImplementedError
 
     def get_junction_list(self):

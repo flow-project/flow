@@ -42,6 +42,7 @@ class AimsunKernelNetwork(BaseKernelNetwork):
         self.network = None
         self._edges = None
         self._edge_list = None
+        self._rl_edges = None
         self._junction_list = None
         self.__max_speed = None
         self.__length = None
@@ -53,6 +54,7 @@ class AimsunKernelNetwork(BaseKernelNetwork):
     def generate_network(self, network):
         """See parent class."""
         self.network = network
+        self._rl_edges = network.net_params.rl_edges
 
         output = {
             "edges": network.edges,
@@ -62,6 +64,7 @@ class AimsunKernelNetwork(BaseKernelNetwork):
             "inflows": None,
             "vehicle_types": network.vehicles.types,
             "osm_path": network.net_params.osm_path,
+            "rl_edges": network.net_params.rl_edges,
             'render': self.sim_params.render,
             "sim_step": self.sim_params.sim_step,
             "traffic_lights": None,
@@ -296,11 +299,18 @@ class AimsunKernelNetwork(BaseKernelNetwork):
         return max(
             self.speed_limit(edge) for edge in self.get_edge_list())
 
-    def set_edge_speed(self, edge_id, speed):
+    def set_edge_speed(self, edge_ids, speeds):
         """See parent class."""
-        edge_id_aimsun = self.aimsun_edge_name(edge_id)
-        self.kernel_api.set_edge_speed(edge_id_aimsun, speed)
-        self._edges[edge_id]["speed"] = speed
+        for i in range(len(edge_ids)):
+            if len(edge_ids[i]) == 1:
+                edge_id_aimsun = self.aimsun_edge_name(edge_ids[i])
+                self.kernel_api.set_edge_speed(edge_id_aimsun, speeds[i])
+                self._edges[edge_ids[i]]["speed"] = speeds[i]
+            elif len(edge_ids[i]) > 1:
+                for j in range(len(edge_ids[i])):
+                    edge_id_aimsun = self.aimsun_edge_name(edge_ids[i][j])
+                    self.kernel_api.set_edge_speed(edge_id_aimsun, speeds[i])
+                    self._edges[edge_ids[i][j]]["speed"] = speeds[i]
 
     def num_lanes(self, edge_id):
         """See parent class."""
@@ -313,6 +323,10 @@ class AimsunKernelNetwork(BaseKernelNetwork):
     def get_edge_list(self):
         """See parent class."""
         return self._edge_list
+
+    def get_rl_ids(self):
+        """See parent class."""
+        return self._rl_edges
 
     def get_junction_list(self):
         """See parent class."""
