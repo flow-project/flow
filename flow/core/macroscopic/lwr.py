@@ -62,24 +62,19 @@ PARAMS = DictDescriptor(
 
 
 def visualize_plots(x, all_densities, all_speeds, time_steps):
-    """Creates surface plot for density and velocity evolution of simulation
+    """Create surface plot for density and velocity evolution of simulation.
 
-         Parameters
-        ----------
-        x : array-like or list
-            points of the road length to plot against
-        all_densities: N x M array-like matrix
-            density values on the road length M at every time step N.
-        all_speeds: N x M array-like matrix
-            velocity values on the road length M at every time step N.
-        time_steps: list
-            discrete time steps that the simulation has run for
-
-        Returns
-        -------
-        Subplots of density and velocity surface diagrams of simulation
-
-        """
+    Parameters
+    ----------
+    x : array-like or list
+        points of the road length to plot against
+    all_densities: N x M array-like matrix
+        density values on the road length M at every time step N.
+    all_speeds: N x M array-like matrix
+        velocity values on the road length M at every time step N.
+    time_steps: list
+        discrete time steps that the simulation has run for
+    """
     # density plot
     fig, plots = plt.subplots(2, figsize=(10, 10))
     fig.subplots_adjust(hspace=.5)
@@ -240,7 +235,15 @@ class LWR(MacroModelEnv):
         self.num_steps = None
 
     def run(self, rl_actions=1, visualize=True):
+        """Execute a rollout of the model.
 
+        Parameters
+        ----------
+        rl_actions : float or list of float
+            the actions to be performed by RL agents
+        visualize : bool
+            whether to plot the results once the rollout is done
+        """
         # initialize of simulation initial values
         self.obs = self.reset()
 
@@ -252,7 +255,6 @@ class LWR(MacroModelEnv):
         x = np.arange(0, self.length, self.dx)
 
         while t < self.total_time:
-
             # run simulation step
             obs, rew, done, _ = self.step(rl_actions)
             t = t + self.dt

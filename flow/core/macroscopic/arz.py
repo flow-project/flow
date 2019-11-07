@@ -66,9 +66,9 @@ PARAMS = DictDescriptor(
 
 
 def visualize_plots(x, all_densities, all_speeds, time_steps):
-    """Creates surface plot for density and velocity evolution of simulation
+    """Create surface plot for density and velocity evolution of simulation.
 
-     Parameters
+    Parameters
     ----------
     x : array-like or list
         points of the road length to plot against
@@ -78,13 +78,7 @@ def visualize_plots(x, all_densities, all_speeds, time_steps):
         velocity values on the road length M at every time step N.
     time_steps: list
         discrete time steps that the simulation has run for
-
-    Returns
-    -------
-    Subplots of density and velocity surface diagrams of simulation
-
     """
-
     # density plot
     fig, plots = plt.subplots(2, figsize=(10, 10))
     fig.subplots_adjust(hspace=.5)
@@ -273,7 +267,15 @@ class ARZ(MacroModelEnv):
         self.rhs = None
 
     def run(self, rl_actions=1, visualize=True):
+        """Execute a rollout of the model.
 
+        Parameters
+        ----------
+        rl_actions : float or list of float
+            the actions to be performed by RL agents
+        visualize : bool
+            whether to plot the results once the rollout is done
+        """
         # initialize of simulation initial values
         self.obs = self.reset()
 
