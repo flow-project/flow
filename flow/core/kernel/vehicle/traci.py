@@ -952,6 +952,12 @@ class TraCIVehicle(KernelVehicle):
             if route_choices[i] is not None:
                 self.kernel_api.vehicle.setRoute(
                     vehID=veh_id, edgeList=route_choices[i])
+                
+                if self.kernel_api.vehicle.getTypeID(veh_id) == "bus":
+                    self.set_next_stop(veh_id, 'bus_stop_0', 2)
+
+    def set_next_stop(self, veh_id, stop_id, duration=10):
+        self.kernel_api.vehicle.setBusStop(veh_id, stop_id, duration)
 
     def get_x_by_id(self, veh_id):
         """See parent class."""
@@ -1028,7 +1034,7 @@ class TraCIVehicle(KernelVehicle):
         
         if type_id == "bus":
             print(veh_id)
-            self.kernel_api.vehicle.setBusStop(veh_id, 'bus_stop_0', 10)
+            self.set_next_stop(veh_id, 'bus_stop_0', 2)
 
     def get_max_speed(self, veh_id, error=-1001):
         """See parent class."""

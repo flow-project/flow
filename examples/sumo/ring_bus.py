@@ -13,6 +13,11 @@ from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.networks.ring import RingNetwork, ADDITIONAL_NET_PARAMS
 
 
+class RingNetwork(RingNetwork):
+    def specify_bus_routes(self, net_params):
+        return [k['id'] for k, v in net_params.bus_stops.get().items()]
+
+
 def sugiyama_example(render=None):
     """
     Perform a simulation of vehicles on a ring road.
@@ -36,12 +41,12 @@ def sugiyama_example(render=None):
     vehicles = VehicleParams()
     vehicles.add(
         veh_id="bus",
-        acceleration_controller=(SimCarFollowingController, {}),
+        acceleration_controller=(IDMController, {}),
         car_following_params=SumoCarFollowingParams(
             min_gap=0,
             sigma=0,
             length=12,
-            gui_shape="bus"
+            gui_shape="bus",
         ),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=1)
@@ -57,8 +62,8 @@ def sugiyama_example(render=None):
     stops = BusStops()
     stops.add(
         edge="bottom",
-        start_pos=0,
-        end_pos=15
+        start_pos=-15,
+        end_pos=-0.1
     )
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
@@ -85,4 +90,4 @@ if __name__ == "__main__":
     exp = sugiyama_example()
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 200)
+    exp.run(1, 10000)

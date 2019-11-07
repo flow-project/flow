@@ -1213,6 +1213,7 @@ class InFlows:
         """Return the inflows of each edge."""
         return self.__flows
 
+
 class BusStops:
     """Used to add bus stops to a network.
 
