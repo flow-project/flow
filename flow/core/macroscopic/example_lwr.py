@@ -2,6 +2,7 @@
 import numpy as np
 from flow.core.macroscopic import LWR
 from flow.core.macroscopic.lwr import PARAMS as LWR_PARAMS
+from flow.core.macroscopic.utils import run
 import json
 
 params = LWR_PARAMS.copy()
@@ -19,4 +20,4 @@ params['boundary_conditions'] = "loop"
 
 if __name__ == "__main__":
     env = LWR(params)
-    env.run()
+    run(env, rl_actions=1, visualize=True)

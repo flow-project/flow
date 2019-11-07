@@ -61,39 +61,6 @@ PARAMS = DictDescriptor(
 )
 
 
-def visualize_plots(x, all_densities, all_speeds, time_steps):
-    """Create surface plot for density and velocity evolution of simulation.
-
-    Parameters
-    ----------
-    x : array-like or list
-        points of the road length to plot against
-    all_densities: N x M array-like matrix
-        density values on the road length M at every time step N.
-    all_speeds: N x M array-like matrix
-        velocity values on the road length M at every time step N.
-    time_steps: list
-        discrete time steps that the simulation has run for
-    """
-    # density plot
-    fig, plots = plt.subplots(2, figsize=(10, 10))
-    fig.subplots_adjust(hspace=.5)
-    y_vector, x_vector = np.meshgrid(x, time_steps)
-    first_plot = plots[0].contourf(x_vector, y_vector, all_densities, levels=900, cmap='jet')
-    plots[0].set(ylabel='Length (Position on Street in meters)', xlabel='Time (seconds)')
-    plots[0].set_title('LWR Density Evolution')
-    color_bar = fig.colorbar(first_plot, ax=plots[0], shrink=0.8)
-    color_bar.ax.set_title('Density\nLevels', fontsize=8)
-
-    # velocity plot
-    second_plot = plots[1].contourf(x_vector, y_vector, all_speeds, levels=900, cmap='jet')
-    plots[1].set(ylabel='Length (Position on Street in meters)', xlabel='Time (seconds)')
-    plots[1].set_title('LWR Velocity Evolution (m/s)')
-    color_bar1 = fig.colorbar(second_plot, ax=plots[1], shrink=0.8)
-    color_bar1.ax.set_title('Velocity\nLevels (m/s)', fontsize=8)
-    plt.show()
-
-
 class LWR(MacroModelEnv):
     """Lighthill-Whitham-Richards traffic flow model.
 
@@ -233,43 +200,6 @@ class LWR(MacroModelEnv):
 
         self.obs = None
         self.num_steps = None
-
-    def run(self, rl_actions=1, visualize=True):
-        """Execute a rollout of the model.
-
-        Parameters
-        ----------
-        rl_actions : float or list of float
-            the actions to be performed by RL agents
-        visualize : bool
-            whether to plot the results once the rollout is done
-        """
-        # initialize of simulation initial values
-        self.obs = self.reset()
-
-        # initialize plotting values
-        t = 0
-        time_steps = [t]
-        all_densities = [self.obs[:int(self.obs.shape[0] / 2)]]
-        all_speeds = [self.obs[int(self.obs.shape[0] / 2):]]
-        x = np.arange(0, self.length, self.dx)
-
-        while t < self.total_time:
-            # run simulation step
-            obs, rew, done, _ = self.step(rl_actions)
-            t = t + self.dt
-
-            if visualize:
-                # store values
-                time_steps.append(t)
-                density = self.obs[:int(self.obs.shape[0] / 2)]
-                speeds = self.obs[int(self.obs.shape[0] / 2):]
-                all_densities = np.concatenate((all_densities, [density]), axis=0)
-                all_speeds = np.concatenate((all_speeds, [speeds]), axis=0)
-
-        if visualize:
-            # call visualize function
-            visualize_plots(x, all_densities, all_speeds, time_steps)
 
     @property
     def observation_space(self):

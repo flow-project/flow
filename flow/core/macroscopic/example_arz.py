@@ -2,6 +2,7 @@
 import numpy as np
 from flow.core.macroscopic import ARZ
 from flow.core.macroscopic.arz import PARAMS as ARZ_PARAMS
+from flow.core.macroscopic.utils import run
 import json
 
 params = ARZ_PARAMS.copy()
@@ -19,4 +20,4 @@ params['boundary_conditions'] = "loop"
 
 if __name__ == "__main__":
     env = ARZ(params)
-    env.run()
+    run(env, rl_actions=1, visualize=True)
