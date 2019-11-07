@@ -554,17 +554,24 @@ class TrafficLightGridNetwork(Network):
             In SUMO, lanes are numbered from 0, starting from the rightmost lane. Thus, a legal left turn by a left lane
             would be lane n to lane n. A legal right turn from the rightmost lane would be lane 0 to lane 0."""
 
+            right_most_lane, left_most_lane = 0, self.horizontal_lanes - 1
+
+            # TODO: ONLY leftmost lanes can turn left i.e stop non leftmost lanes from turning left as well
             # build vertical connections for RIGHT edge (1,0)
             for hor_l in range(self.horizontal_lanes):
                 for vert_l in range(self.vertical_lanes):
                     # TODO: fix the strange lane turns
                     if legal_turns:
                         if hor_l == vert_l:
-                            node_cons_list += single_con_dict(right_edge_in, top_edge_out, hor_l, vert_l, signal_group)
-                            node_cons_list += single_con_dict(right_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
+                            if hor_l == right_most_lane and vert_l == right_most_lane: # only right most lane can turn right
+                                node_cons_list += single_con_dict(right_edge_in, top_edge_out, hor_l, vert_l, signal_group)
+                            if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                                node_cons_list += single_con_dict(right_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
                     else:
-                        node_cons_list += single_con_dict(right_edge_in, top_edge_out, hor_l, vert_l, signal_group)
-                        node_cons_list += single_con_dict(right_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
+                        if hor_l == right_most_lane and vert_l == right_most_lane:  # only right most lane can turn right
+                            node_cons_list += single_con_dict(right_edge_in, top_edge_out, hor_l, vert_l, signal_group)
+                        if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                            node_cons_list += single_con_dict(right_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
 
             # build horizontal connection for RIGHT edge (1,0)
             for hor_l1 in range(self.horizontal_lanes):
@@ -576,12 +583,16 @@ class TrafficLightGridNetwork(Network):
             for hor_l in range(self.horizontal_lanes):
                 for vert_l in range(self.vertical_lanes):
                     if legal_turns:
-                        if hor_l == vert_l:
-                            node_cons_list += single_con_dict(left_edge_in, top_edge_out, hor_l, vert_l, signal_group)
-                            node_cons_list += single_con_dict(left_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
+                        if hor_l == vert_l:  # only allow legal lane transitions
+                            if hor_l == right_most_lane and vert_l == right_most_lane: # only right most lane can turn right
+                                node_cons_list += single_con_dict(left_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
+                            if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                                node_cons_list += single_con_dict(left_edge_in, top_edge_out, hor_l, vert_l, signal_group)
                     else:
-                        node_cons_list += single_con_dict(left_edge_in, top_edge_out, hor_l, vert_l, signal_group)
-                        node_cons_list += single_con_dict(left_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
+                        if hor_l == right_most_lane and vert_l == right_most_lane:  # only right most lane can turn right
+                            node_cons_list += single_con_dict(left_edge_in, top_edge_out, hor_l, vert_l, signal_group)
+                        if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                            node_cons_list += single_con_dict(left_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
 
             # build horizontal connection for LEFT edge (-1,0)
             for hor_l1 in range(self.horizontal_lanes):
@@ -598,13 +609,25 @@ class TrafficLightGridNetwork(Network):
             # build horizontal connections for TOP edge (0, 1)
             for hor_l in range(self.horizontal_lanes):
                 for vert_l in range(self.vertical_lanes):
+                    # if legal_turns:
+                    #     if hor_l == vert_l:
+                    #         node_cons_list += single_con_dict(top_edge_in, left_edge_out, vert_l, hor_l, signal_group)
+                    #         node_cons_list += single_con_dict(top_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+                    # else:
+                    #     node_cons_list += single_con_dict(top_edge_in, left_edge_out, vert_l, hor_l, signal_group)
+                    #     node_cons_list += single_con_dict(top_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+
                     if legal_turns:
-                        if hor_l == vert_l:
-                            node_cons_list += single_con_dict(top_edge_in, left_edge_out, vert_l, hor_l, signal_group)
-                            node_cons_list += single_con_dict(top_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+                        if hor_l == vert_l:  # only allow legal lane transitions
+                            if hor_l == right_most_lane and vert_l == right_most_lane: # only right most lane can turn right
+                                node_cons_list += single_con_dict(top_edge_in, left_edge_out, hor_l, vert_l, signal_group)
+                            if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                                node_cons_list += single_con_dict(top_edge_in, right_edge_out, hor_l, vert_l, signal_group)
                     else:
-                        node_cons_list += single_con_dict(top_edge_in, left_edge_out, vert_l, hor_l, signal_group)
-                        node_cons_list += single_con_dict(top_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+                        if hor_l == right_most_lane and vert_l == right_most_lane:  # only right most lane can turn right
+                            node_cons_list += single_con_dict(top_edge_in, left_edge_out, hor_l, vert_l, signal_group)
+                        if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                            node_cons_list += single_con_dict(top_edge_in, right_edge_out, hor_l, vert_l, signal_group)
 
             # build vertical connection for BOTTOM edge (0, -1)
             for vert_l1 in range(self.horizontal_lanes):
@@ -615,13 +638,24 @@ class TrafficLightGridNetwork(Network):
             # build horizontal connections for BOTTOM edge (0, -1)
             for hor_l in range(self.horizontal_lanes):
                 for vert_l in range(self.vertical_lanes):
+                    # if legal_turns:
+                    #     if hor_l == vert_l:
+                    #         node_cons_list += single_con_dict(bottom_edge_in, left_edge_out, vert_l, hor_l, signal_group)
+                    #         node_cons_list += single_con_dict(bottom_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+                    # else:
+                    #     node_cons_list += single_con_dict(bottom_edge_in, left_edge_out, vert_l, hor_l, signal_group)
+                    #     node_cons_list += single_con_dict(bottom_edge_in, right_edge_out, vert_l, hor_l, signal_group)
                     if legal_turns:
-                        if hor_l == vert_l:
-                            node_cons_list += single_con_dict(bottom_edge_in, left_edge_out, vert_l, hor_l, signal_group)
-                            node_cons_list += single_con_dict(bottom_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+                        if hor_l == vert_l:  # only allow legal lane transitions
+                            if hor_l == right_most_lane and vert_l == right_most_lane: # only right most lane can turn right
+                                node_cons_list += single_con_dict(bottom_edge_in, right_edge_out, hor_l, vert_l, signal_group)
+                            if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                                node_cons_list += single_con_dict(bottom_edge_in, left_edge_out, hor_l, vert_l, signal_group)
                     else:
-                        node_cons_list += single_con_dict(bottom_edge_in, left_edge_out, vert_l, hor_l, signal_group)
-                        node_cons_list += single_con_dict(bottom_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+                        if hor_l == right_most_lane and vert_l == right_most_lane:  # only right most lane can turn right
+                            node_cons_list += single_con_dict(bottom_edge_in, right_edge_out, hor_l, vert_l, signal_group)
+                        if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                            node_cons_list += single_con_dict(bottom_edge_in, left_edge_out, hor_l, vert_l, signal_group)
 
             return node_cons_list
 
