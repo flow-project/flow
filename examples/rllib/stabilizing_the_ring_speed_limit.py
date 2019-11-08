@@ -22,7 +22,7 @@ from flow.core.params import EnvParams, InitialConfig, NetParams, \
 from flow.controllers import IDMController, ContinuousRouter
 
 # time horizon of a single rollout
-HORIZON = 300
+HORIZON = 30000
 # number of rollouts per training iteration
 N_ROLLOUTS = 1
 # number of parallel workers
@@ -54,7 +54,7 @@ flow_params = dict(
     # Aimsun-related parameters (see flow.core.params.AimsunParams)
     sim=AimsunParams(
         sim_step=0.5,
-        render=False,
+        render=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -64,7 +64,8 @@ flow_params = dict(
         clip_actions=False,
         additional_params={
             "max_speed_limit": 30,
-            "min_speed_limit": 5
+            "min_speed_limit": 5,
+            "target_velocity": 10
         },
     ),
 
@@ -77,7 +78,8 @@ flow_params = dict(
             "speed_limit": 30,
             "resolution": 40,
         },
-        rl_eddges=['top', ['bottom', 'left']]),
+        rl_edges=['top', ['bottom', 'left']]
+    ),
 
     # vehicles to be placed in the network at the start of a rollout (see
     # flow.core.params.VehicleParams)

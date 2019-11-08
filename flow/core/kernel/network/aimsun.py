@@ -301,16 +301,16 @@ class AimsunKernelNetwork(BaseKernelNetwork):
 
     def set_edge_speed(self, edge_ids, speeds):
         """See parent class."""
-        for i in range(len(edge_ids)):
-            if len(edge_ids[i]) == 1:
-                edge_id_aimsun = self.aimsun_edge_name(edge_ids[i])
-                self.kernel_api.set_edge_speed(edge_id_aimsun, speeds[i])
-                self._edges[edge_ids[i]]["speed"] = speeds[i]
-            elif len(edge_ids[i]) > 1:
-                for j in range(len(edge_ids[i])):
-                    edge_id_aimsun = self.aimsun_edge_name(edge_ids[i][j])
-                    self.kernel_api.set_edge_speed(edge_id_aimsun, speeds[i])
-                    self._edges[edge_ids[i][j]]["speed"] = speeds[i]
+        for edge, speed in zip(edge_ids, speeds):
+            if isinstance(edge, str):
+                edge_id_aimsun = self.aimsun_edge_name(edge)
+                self.kernel_api.set_edge_speed(edge_id_aimsun, speed)
+                self._edges[edge_ids[i]]["speed"] = speed
+            else:
+                for edge_i in edge:
+                    edge_id_aimsun = self.aimsun_edge_name(edge_i)
+                    self.kernel_api.set_edge_speed(edge_id_aimsun, speed)
+                    self._edges[edge_i]["speed"] = speed
 
     def num_lanes(self, edge_id):
         """See parent class."""

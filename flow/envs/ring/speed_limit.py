@@ -14,11 +14,6 @@ ADDITIONAL_ENV_PARAMS = {
     'min_speed_limit': 0,
     # desired velocity for all vehicles in the network, in m/s
     'target_velocity': 10,
-    # specifies whether vehicles are to be sorted by position during a
-    # simulation step. If set to True, the environment parameter
-    # self.sorted_ids will return a list of all vehicles sorted in accordance
-    # with the environment
-    'sort_vehicles': False
 }
 
 
@@ -106,9 +101,9 @@ class SpeedLimitEnv(Env):
     def get_state(self):
         """See class definition."""
         speed = [self.k.vehicle.get_speed(veh_id) / self.k.network.max_speed()
-                 for veh_id in self.sorted_ids]
+                 for veh_id in self.k.vehicle.get_ids()]
         pos = [self.k.vehicle.get_x_by_id(veh_id) / self.k.network.length()
-               for veh_id in self.sorted_ids]
+               for veh_id in self.k.vehicle.get_ids()]
 
         return np.array(speed + pos)
 
