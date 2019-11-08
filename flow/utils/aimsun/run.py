@@ -1,5 +1,8 @@
 # flake8: noqa
 """Script used to interact with Aimsun's API during the simulation phase."""
+import AAPI as aimsun_api
+from PyANGKernel import *
+import flow.utils.aimsun.control_plans as cp
 import json
 import numpy as np
 from thread import start_new_thread
@@ -12,9 +15,6 @@ import flow.config as config
 
 sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
                              'programming/Aimsun Next API/AAPIPython/Micro'))
-import flow.utils.aimsun.control_plans as cp
-from PyANGKernel import *
-import AAPI as aimsun_api
 
 model = GKSystem.getSystem().getActiveModel()
 PORT = int(model.getAuthor())
