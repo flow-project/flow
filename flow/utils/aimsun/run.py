@@ -1,8 +1,5 @@
 # flake8: noqa
 """Script used to interact with Aimsun's API during the simulation phase."""
-import AAPI as aimsun_api
-from PyANGKernel import *
-import flow.utils.aimsun.control_plans as cp
 import json
 import numpy as np
 from thread import start_new_thread
@@ -140,6 +137,14 @@ def threaded_client(conn, **kwargs):
             # thereby terminating the socket connection as well.
             elif data == ac.SIMULATION_TERMINATE:
                 send_message(conn, in_format='i', values=(0,))
+                done = True
+
+            # resets the simulation without closing AIMSUN
+            elif data == ac.SIMULATION_RESET:
+                send_message(conn, in_format='i', values=(0,))
+
+                # sends a signal to cancel the simulation
+                aimsun_api.ANGSetSimulationOrder(1, 0)
                 done = True
 
             elif data == ac.ADD_VEHICLE:

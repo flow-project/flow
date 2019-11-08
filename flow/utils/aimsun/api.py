@@ -34,7 +34,7 @@ def create_client(port, print_status=False):
         # try to connect
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(2)
+            # s.settimeout(2)
             s.connect(('localhost', port))
 
             # check the connection
@@ -180,6 +180,12 @@ class FlowAimsunAPI(object):
 
         # terminate the connection
         self.s.close()
+
+    def reset_simulation(self):
+        """Resets the simulation but doesn't close AIMSUN."""
+        # inform the simulation that it should cancel the simulation and the
+        # server connection
+        self._send_command(ac.SIMULATION_RESET, in_format=None, values=None, out_format=None)
 
     def get_edge_name(self, edge):
         """Get the name of an edge in Aimsun.

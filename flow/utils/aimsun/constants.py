@@ -10,13 +10,8 @@ SIMULATION_STEP = 0x00
 #: terminate the simulation
 SIMULATION_TERMINATE = 0x01
 
-
-###############################################################################
-#                               Network Commands                              #
-###############################################################################
-
-#: get the edge name in aimsun
-GET_EDGE_NAME = 0x02
+#: reset the simulation
+SIMULATION_RESET = 0x02
 
 
 ###############################################################################
@@ -141,3 +136,10 @@ DET_SET_STAT_INTERVAL = 0x24
 
 #: set detection interval for the scenairo
 DET_SET_DETECTION_INTERVAL = 0x25
+
+###############################################################################
+#                               Network Commands                              #
+###############################################################################
+
+#: get the edge name in aimsun
+GET_EDGE_NAME = 0x26
