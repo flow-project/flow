@@ -500,6 +500,7 @@ class SimCarFollowingController(BaseController):
         """See parent class."""
         return None
 
+
 class GippsController(BaseController):
     """Gipps' Model controller.
 
