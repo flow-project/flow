@@ -84,7 +84,7 @@ def setup_exps(version=0):
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config['clip_actions'] = False  # FIXME(ev) temporary ray bug
-    config["horizon"] = timehorizon//detector_step  # not same as env horizon. 
+    config["horizon"] = timehorizon//detector_step  # not same as env horizon.
     config["vf_loss_coeff"] = 1e-5
 
     # save the flow params for replay
