@@ -187,6 +187,9 @@ class FlowAimsunAPI(object):
         # server connection
         self._send_command(ac.SIMULATION_RESET, in_format=None, values=None, out_format=None)
 
+        # reconnect to the server
+        self.s = create_client(self.port)
+
     def get_edge_name(self, edge):
         """Get the name of an edge in Aimsun.
 
