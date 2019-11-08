@@ -27,7 +27,7 @@ class CoordinatedEnv(Env):
         super().__init__(env_params, sim_params, network, simulator)
         self.additional_params = env_params.additional_params
 
-        self.detection_interval = self.additional_params['detection_interval'][1]*60 # FIXME: assuming minutes for now
+        self.detection_interval = self.additional_params['detection_interval'][1]*60  # FIXME: assuming minutes for now
         self.k.simulation.set_detection_interval(*self.additional_params['detection_interval'])
         self.k.simulation.set_statistical_interval(*self.additional_params['statistical_interval'])
         self.k.traffic_light.set_replication_seed(np.random.randint(2e9))
