@@ -268,6 +268,9 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
     curr_phase = get_current_phase(node_id)
     ring_phases = np.cumsum(get_num_phases(node_id))
     global q
+    if time > 30:
+        print('stopping', time)
+        aapi.ANGSetSimulationOrder(1, 0)
 
     # print(aapi.ECIGetOffset(3370), 'offset')
     offset = -70
