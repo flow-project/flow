@@ -39,7 +39,7 @@ env_params = EnvParams(horizon=HORIZON,
 sim_params = AimsunParams(sim_step=sim_step,
                           render=False,
                           restart_instance=False,
-                        #   replication_name="Replication (one hour)",
+                          #   replication_name="Replication (one hour)",
                           replication_name=ADDITIONAL_ENV_PARAMS['replication_list'][0],
                           centroid_config_name="Centroid Configuration 8040652"
                           )
