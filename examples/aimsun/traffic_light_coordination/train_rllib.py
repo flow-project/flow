@@ -41,8 +41,7 @@ sim_params = AimsunParams(sim_step=sim_step,
                           restart_instance=False,
                           #   replication_name="Replication (one hour)",
                           replication_name=ADDITIONAL_ENV_PARAMS['replication_list'][0],
-                          centroid_config_name="Centroid Configuration 8040652"
-                          )
+                          centroid_config_name="Centroid Configuration 8040652")
 
 
 flow_params = dict(
