@@ -15,9 +15,9 @@ import flow.config as config
 
 sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
                              'programming/Aimsun Next API/AAPIPython/Micro'))
-import flow.utils.aimsun.control_plans as cp
-from PyANGKernel import *
-import AAPI as aimsun_api
+import flow.utils.aimsun.control_plans as cp  # noqa
+from PyANGKernel import *  # noqa
+import AAPI as aimsun_api  # noqa
 
 model = GKSystem.getSystem().getActiveModel()
 PORT = int(model.getAuthor())
