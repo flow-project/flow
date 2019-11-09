@@ -1,7 +1,7 @@
 """Traffic Light Grid example."""
 from flow.controllers import GridRouter
 from flow.core.experiment import Experiment
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
@@ -170,6 +170,15 @@ def traffic_light_grid_example(render=None, use_inflows=False):
     if render is not None:
         sim_params.render = render
 
+    lane_change_params = SumoLaneChangeParams(
+        lc_assertive=20,
+        lc_pushy=0.8,
+        lc_speed_gain=4.0,
+        model="LC2013",
+        lane_change_mode="strategic",   # TODO: check-is there a better way to change lanes?
+        lc_keep_right=0.8
+    )
+
     vehicles = VehicleParams()
     vehicles.add(
         veh_id="human",
@@ -178,37 +187,12 @@ def traffic_light_grid_example(render=None, use_inflows=False):
             min_gap=2.5,
             decel=7.5,  # avoid collisions at emergency stops
         ),
+        lane_change_params=lane_change_params, # TODO: check if this works Kevin
         num_vehicles=tot_cars)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     tl_logic = TrafficLightParams(baseline=False)
-    phases = [{
-        "duration": "15",
-        "minDur": "8",
-        "maxDur": "7",
-        "state": "ggggggggggggggggggrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrggg"
-    }, {
-        "duration": "6",
-        "minDur": "3",
-        "maxDur": "6",
-        "state": "ggggggggggggggggggrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
-    }, {
-        "duration": "31",
-        "minDur": "8",
-        "maxDur": "45",
-        "state": "rrrgggyyyrrrgggyyyrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
-    }, {
-        "duration": "6",
-        "minDur": "3",
-        "maxDur": "6",
-        "state": "rrrgggyyyrrrgggyyyrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
-    }]
-
-    # Here's an example of how you can manually set traffic lights
-    tl_logic.add("(1.1)", phases=phases, tls_type="actuated")
-    tl_logic.add("(2.1)", phases=phases, tls_type="actuated")
-    tl_logic.add("(3.1)", phases=phases, tls_type="actuated")
 
     additional_net_params = {
         "grid_array": grid_array,
@@ -216,6 +200,78 @@ def traffic_light_grid_example(render=None, use_inflows=False):
         "horizontal_lanes": 3,
         "vertical_lanes": 3
     }
+
+    # In SUMO, the traffic light states for an intersection start from the top incoming edge and move clockwise.
+    # Within one edge, the states start from the rightmost lane (lane 0) and move to the left. Within one lane, states
+    # start from right, straight to left turns
+
+    # Apparently, in the US, cars can turn right even if there's a red light. They just need to give way to cars going straight
+
+    def generate_tl_phases(phase_type, horiz_lanes, vert_lanes):
+        """Returns the tl phase string for the corresponding phase types. Note: right turns will have 'g' by default"""
+
+        if phase_type == "vertical_green":
+            vertical = "G" + vert_lanes * "G" + "r"    # right turn, straights, left turn
+            horizontal = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+            print(vertical + horizontal + vertical + horizontal)
+            print(len(vertical + horizontal + vertical + horizontal))
+            return vertical + horizontal + vertical + horizontal
+
+        elif phase_type == "horizontal_green":
+            return
+        elif phase_type == "protected_left_top":
+            return
+        elif phase_type == "protected_left_right":
+            return
+        elif phase_type == "protected_left_bottom":
+            return
+        elif phase_type == "protected_left_left":
+            return
+
+    num_straight_horz = additional_net_params.get("horizontal_lanes")
+    num_straight_vert = additional_net_params.get("vertical_lanes")
+
+    phases = [{
+        # vertical green lights - phase 1
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": generate_tl_phases("vertical_green", num_straight_horz, num_straight_vert)
+    }, {
+        # horizontal green lights
+        "duration": "6",
+        "minDur": "3",
+        "maxDur": "6",
+        "state": "ggggggggggggggggggrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrggg"
+    }, {
+        # protected left for incoming top edge
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": "ggggggggggggggggggrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrggg"
+    }, {
+        # protected left for incoming right edge
+        "duration": "6",
+        "minDur": "3",
+        "maxDur": "6",
+        "state": "rrrgggyyyrrrgggyyyrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+    }, {
+        # protected left for bottom incoming edge
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": "ggggggggggggggggggrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrggg"
+    }, {
+        # protected left for left incoming edge
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": "ggggggggggggggggggrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrggg"
+    }]
+    # Here's an example of how you can manually set traffic lights
+    tl_logic.add("(1.1)", phases=phases, tls_type="actuated")
+    tl_logic.add("(2.1)", phases=phases, tls_type="actuated")
+    tl_logic.add("(3.1)", phases=phases, tls_type="actuated")
 
     if use_inflows:
         initial_config, net_params = get_flow_params(

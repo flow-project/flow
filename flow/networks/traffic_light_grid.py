@@ -3,7 +3,6 @@
 from flow.networks.base import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
-from collections import defaultdict
 import numpy as np
 import networkx as nx
 from itertools import islice
@@ -563,11 +562,16 @@ class TrafficLightGridNetwork(Network):
                     # TODO: fix the strange lane turns
                     if legal_turns:
                         if hor_l == vert_l:
+                            # print(111111111111111111111111111)
+                            # print(hor_l, vert_l)
                             if hor_l == right_most_lane and vert_l == right_most_lane: # only right most lane can turn right
+                                print(right_edge_in, top_edge_out, hor_l, vert_l)
                                 node_cons_list += single_con_dict(right_edge_in, top_edge_out, hor_l, vert_l, signal_group)
                             if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
                                 node_cons_list += single_con_dict(right_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
                     else:
+                        print(9999999999999999999999)
+
                         if hor_l == right_most_lane and vert_l == right_most_lane:  # only right most lane can turn right
                             node_cons_list += single_con_dict(right_edge_in, top_edge_out, hor_l, vert_l, signal_group)
                         if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
