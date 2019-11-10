@@ -43,14 +43,28 @@ def gen_edges(col_num, row_num):
         names of all the outer edges
     """
     edges = []
-    for i in range(col_num):
-        edges += ['left' + str(row_num) + '_' + str(i)]
-        edges += ['right' + '0' + '_' + str(i)]
 
-    # build the left and then the right edges
-    for i in range(row_num):
-        edges += ['bot' + str(i) + '_' + '0']
-        edges += ['top' + str(i) + '_' + str(col_num)]
+    x_max = col_num + 1
+    y_max = row_num + 1
+
+    def new_edge(from_node, to_node):
+        return str(from_node) + "--" + str(to_node)
+
+    # Build the horizontal edges
+    for y in range(1, y_max):
+        for x in [0, x_max - 1]:
+            left_node = "({}.{})".format(x, y)
+            right_node = "({}.{})".format(x + 1, y)
+            edges += new_edge(left_node, right_node)
+            edges += new_edge(right_node, left_node)
+
+    # Build the vertical edges
+    for x in range(1, x_max):
+        for y in [0, y_max - 1]:
+            bottom_node = "({}.{})".format(x, y)
+            top_node = "({}.{})".format(x, y + 1)
+            edges += new_edge(bottom_node, top_node)
+            edges += new_edge(top_node, bottom_node)
 
     return edges
 
@@ -124,7 +138,6 @@ def get_non_flow_params(enter_speed, add_net_params):
 
     return initial, net
 
-
 V_ENTER = 15
 INNER_LENGTH = 300
 LONG_LENGTH = 100
@@ -152,7 +165,7 @@ grid_array = {
 
 additional_env_params = {
         'target_velocity': 50,
-        'switch_time': 3.0,
+        'switch_time': 3.0,      # switch traffic light phase time?
         'num_observed': 2,
         'discrete': False,
         'tl_type': 'controlled'
@@ -164,7 +177,7 @@ additional_net_params = {
     'horizontal_lanes': 1,
     'vertical_lanes': 1
 }
-
+# TODO: Kevin - are there lanes changes?? Says nothing here
 vehicles = VehicleParams()
 vehicles.add(
     veh_id='idm',

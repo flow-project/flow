@@ -187,7 +187,7 @@ def traffic_light_grid_example(render=None, use_inflows=False):
             min_gap=2.5,
             decel=7.5,  # avoid collisions at emergency stops
         ),
-        lane_change_params=lane_change_params, # TODO: check if this works Kevin
+        lane_change_params=lane_change_params,
         num_vehicles=tot_cars)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
