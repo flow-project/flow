@@ -504,49 +504,48 @@ class SimCarFollowingController(BaseController):
 class GippsController(BaseController):
     """Gipps' Model controller.
 
-            For more information on this controller, see:
-            Traffic Flow Dynamics written by M.Treiber and A.Kesting
-            By courtesy of Springer publisher, http://www.springer.com
+    For more information on this controller, see:
+    Traffic Flow Dynamics written by M.Treiber and A.Kesting
+    By courtesy of Springer publisher, http://www.springer.com
 
-            http://www.traffic-flow-dynamics.org/res/SampleChapter11.pdf
+    http://www.traffic-flow-dynamics.org/res/SampleChapter11.pdf
 
-            Usage
-            -----
-            See BaseController for usage example.
+    Usage
+    -----
+    See BaseController for usage example.
 
-            Attributes
-            ----------
-            veh_id : str
-                Vehicle ID for SUMO identification
-            car_following_params : flow.core.param.SumoCarFollowingParams
-                see parent class
-            v0 : float
-                desirable velocity, in m/s (default: 30)
-            acc : float
-                max acceleration, in m/s2 (default: 1.5)
-            b : float
-                comfortable deceleration, in m/s2 (default: -1)
-            b_l : float
-                comfortable deceleration for leading vehicle , in m/s2 (default: -1)
-            s0 : float
-                linear jam distance for saftey, in m (default: 2)
-            tau : float
-                reaction time in s (default: 1)
-            noise : float
-                std dev of normal perturbation to the acceleration (default: 0)
-            fail_safe : str
-                type of flow-imposed failsafe the vehicle should posses, defaults
-                to no failsafe (None)
-
-            """
+    Attributes
+    ----------
+    veh_id : str
+        Vehicle ID for SUMO identification
+    car_following_params : flow.core.param.SumoCarFollowingParams
+        see parent class
+    v0 : float
+        desirable velocity, in m/s (default: 30)
+    acc : float
+        max acceleration, in m/s2 (default: 1.5)
+    b : float
+        comfortable deceleration, in m/s2 (default: -1)
+    b_l : float
+        comfortable deceleration for leading vehicle , in m/s2 (default: -1)
+    s0 : float
+        linear jam distance for saftey, in m (default: 2)
+    tau : float
+        reaction time in s (default: 1)
+    noise : float
+        std dev of normal perturbation to the acceleration (default: 0)
+    fail_safe : str
+        type of flow-imposed failsafe the vehicle should posses, defaults
+        to no failsafe (None)
+    """
 
     def __init__(self,
                  veh_id,
                  car_following_params=None,
                  v0=30,
                  acc=1.5,
-                 b=- 1,
-                 b_l=- 1,
+                 b=-1,
+                 b_l=-1,
                  s0=2,
                  tau=1,
                  delay=0,
