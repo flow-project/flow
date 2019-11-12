@@ -8,8 +8,8 @@ import numpy as np
 import flow.config as config
 from flow.utils.aimsun.scripting_api import AimsunTemplate
 
-RLLIB_HORIZON = 4
-RLLIB_TRAINING_ITERATIONS = 100
+RLLIB_HORIZON = 6  # copy from train_rllib.py
+RLLIB_TRAINING_ITERATIONS = 100  # copy from train_rllib.py
 REPLICATION_LIST = ['Replication 8050297',  # 5-11
                     'Replication 8050315',  # 10-14
                     'Replication 8050322']  # 14-21

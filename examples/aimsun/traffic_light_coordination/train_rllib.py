@@ -23,11 +23,13 @@ detector_step = 300  # seconds
 
 time_horizon = 3600*4 - detector_step  # 14,100
 HORIZON = int(time_horizon//sim_step)
-N_ROLLOUTS = 4  # set in load.py
 
 RLLIB_N_CPUS = 6
-RLLIB_TRAINING_ITERATIONS = 100  # set in load.py
 RLLIB_HORIZON = int(time_horizon//detector_step)  # 47
+
+# set both of these in load.py
+RLLIB_N_ROLLOUTS = 6  # set in load.py
+RLLIB_TRAINING_ITERATIONS = 100  # set in load.py
 
 # ADDITIONAL_ENV_PARAMS['detection_interval'] = (detector_step//3600,  (detector_step%3600)//60, detector_step%60)
 # ADDITIONAL_ENV_PARAMS['statistical_interval'] = (detector_step//3600,  (detector_step%3600)//60, detector_step%60)
@@ -78,9 +80,9 @@ def setup_exps(version=0):
     config = agent_cls._default_config.copy()
     config["num_workers"] = RLLIB_N_CPUS
     # config["sgd_minibatch_size"] = 32  # remove me
-    config["sample_batch_size"] = RLLIB_HORIZON * N_ROLLOUTS
-    config["train_batch_size"] = RLLIB_HORIZON * N_ROLLOUTS
+    config["train_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
+    config["sample_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS
     config["model"].update({"fcnet_hiddens": [32, 32]})
     config["use_gae"] = True
     config["lambda"] = 0.97
