@@ -8,7 +8,6 @@ import numpy as np
 from scipy.optimize import fsolve
 from flow.core.macroscopic.base_model import MacroModelEnv
 from flow.core.macroscopic.utils import DictDescriptor
-import matplotlib.pyplot as plt
 
 
 PARAMS = DictDescriptor(
