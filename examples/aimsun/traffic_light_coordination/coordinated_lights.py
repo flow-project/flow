@@ -145,7 +145,6 @@ class CoordinatedEnv(Env):
         The sumo instance is reset with a new ring length, and a number of
         steps are performed with the rl vehicle acting as a human vehicle.
         """
-        print('reset called')
         # reset the step counter
         self.step_counter = 0
 
@@ -153,14 +152,7 @@ class CoordinatedEnv(Env):
             self.first_run = False
         else:
             self.k.simulation.reset_simulation()
-            print('sim reset')
-            # TODO: We need a run_replication call here.
-
-        # restart aimsun instance
-        # self.restart_simulation(sim_params=self.sim_params, render=self.sim_params.render)
-
-        # self.sim_params.replication_name = np.random.choice(ADDITIONAL_ENV_PARAMS['replication_list'])
-        # self.k.traffic_light.set_replication_seed(np.random.randint(2e9))
+            print('Resetting AIMSUN')
 
         # perform the generic reset function
         observation = super().reset()
