@@ -136,10 +136,6 @@ def get_link_measures(target_nodes):
 
 
 def AAPILoad():
-    catalog = model.getCatalog()
-    replication = catalog.find(8050330)
-    found = gk.GKSystem.getSystem().canExecuteAction("end", replication, [])
-    print("attempt to execute", found)
     # model.setActiveExperimentId(8050312)
     # print(model.getActiveExperimentId(), "experiment id")
 
@@ -268,9 +264,16 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
     curr_phase = get_current_phase(node_id)
     ring_phases = np.cumsum(get_num_phases(node_id))
     global q
-    if time > 30:
+    if time > 15:
         print('stopping', time)
         aapi.ANGSetSimulationOrder(1, 0)
+        print('sim canceled')
+
+        # aapi.ANGSetSimulationOrder(0, 0)
+        replication_id = model.getActiveReplicationId()
+        replication = model.getCatalog().find(replication_id)
+        gk.GKSystem.getSystem().executeAction("play", replication, [], "")
+        print('sim played')
 
     # print(aapi.ECIGetOffset(3370), 'offset')
     offset = -70
@@ -313,6 +316,11 @@ def AAPIFinish():
 
 
 def AAPIUnLoad():
+    print('unload')
+    replication_id = model.getActiveReplicationId()
+    replication = model.getCatalog().find(replication_id)
+    gk.GKSystem.getSystem().executeAction("play", replication, [], "")
+    print('sim played')
     return 0
 
 
