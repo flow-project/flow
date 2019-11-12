@@ -349,6 +349,29 @@ class VehicleParams:
         return self.__vehicles[veh_id]["type"]
 
 
+class PedestrianParams:
+
+    def __init__(self):
+        
+        self.ids = []
+        self.num_pedestrians = 0
+        self.params = {}
+
+        self.__pedestrians = collections.OrderedDict()
+
+    def add(self, ped_id, depart_time, start, end):
+        self.ids.append(ped_id)
+
+        self.num_pedestrians += 1
+
+        self.params[ped_id] = {'id': ped_id,
+                'depart': depart_time,
+                'departPos': 'random',
+                'from': start,
+                'to': end,
+                'arrivalPos': 'random'
+                }
+
 class SimParams(object):
     """Simulation-specific parameters.
 

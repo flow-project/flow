@@ -109,6 +109,7 @@ class TrafficLightGridNetwork(Network):
                  name,
                  vehicles,
                  net_params,
+                 pedestrians=None,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
         """Initialize an n*m traffic light grid network."""
@@ -162,6 +163,8 @@ class TrafficLightGridNetwork(Network):
 
         # name of the network (DO NOT CHANGE)
         self.name = "BobLoblawsLawBlog"
+
+        self.pedestrians = pedestrians
 
         super().__init__(name, vehicles, net_params, initial_config,
                          traffic_lights)

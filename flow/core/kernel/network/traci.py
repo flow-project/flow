@@ -16,7 +16,6 @@ RETRIES_ON_ERROR = 10
 # number of seconds to wait before trying to access the .net.xml file again
 WAIT_ON_ERROR = 1
 
-
 def _flow(name, vtype, route, **kwargs):
     return E('flow', id=name, route=route, type=vtype, **kwargs)
 
@@ -653,6 +652,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                       'http://sumo.dlr.de/xsd/additional_file.xsd')
 
         # add the types of vehicles to the xml file
+
         for params in self.network.vehicles.types:
             type_params_str = {
                 key: str(params['type_params'][key])
@@ -797,13 +797,37 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 else:
                     routes_data.append(_flow(**sumo_inflow))
 
+        if self.network.pedestrians != None:
+            for ped_id in self.network.pedestrians.ids:
+                pedestrian = E('person',
+                    id=ped_id,
+                    depart=self.network.pedestrians.params[ped_id]['depart'],
+                    departPos=self.network.pedestrians.params[ped_id]['departPos']
+                )
+                walk = etree.SubElement(pedestrian, 'walk',
+                        {'from': self.network.pedestrians.params[ped_id]['from'],
+                        'to': self.network.pedestrians.params[ped_id]['to'],
+                        'arrivalPos':self.network.pedestrians.params[ped_id]['arrivalPos'],
+                        })
+                '''
+                pedestrian.append(E('walk',
+                    #from=self.network.pedestrians.params[ped_id]['start'],
+                    to=self.network.pedestrians.params[ped_id]['to'],
+                    arrivalPos=self.network.pedestrians.params[ped_id]['arrivalPos']
+                    ).set('from', 'top_0_0'))
+                '''
+                routes_data.append(pedestrian)
+
+                #print(self.network.pedestrians.params[ped_id])
+
+
         printxml(routes_data, self.cfg_path + self.roufn)
 
         # this is the data that we will pass to the *.sumo.cfg file
         cfg = makexml('configuration',
                       'http://sumo.dlr.de/xsd/sumoConfiguration.xsd')
 
-        include_ped_routes = self.roufn + ',../net/pedestrians.trip.xml'
+        include_ped_routes = self.roufn #+ ',../net/pedestrians.trip.xml'
 
         cfg.append(
             _inputs(

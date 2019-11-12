@@ -3,6 +3,7 @@ from flow.controllers import GridRouter
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
+from flow.core.params import PedestrianParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import InFlows
@@ -168,6 +169,27 @@ def traffic_light_grid_example(render=None, use_inflows=False):
         ),
         num_vehicles=tot_cars)
 
+    pedestrians = PedestrianParams()
+    pedestrians.add(
+            ped_id='ped_1',
+            depart_time='4.00',
+            start='bot0_1',
+            end='top1_0')
+    pedestrians.add(
+            ped_id='ped_2',
+            depart_time='27.00',
+            start='right2_0',
+            end='top0_0')
+    pedestrians.add(
+            ped_id='ped_3',
+            depart_time='105.00',
+            start='right1_0',
+            end='top1_0')
+
+
+
+
+
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     tl_logic = TrafficLightParams(baseline=False)
@@ -216,6 +238,7 @@ def traffic_light_grid_example(render=None, use_inflows=False):
     network = TrafficLightGridNetwork(
         name="grid-intersection",
         vehicles=vehicles,
+        pedestrians=pedestrians,
         net_params=net_params,
         initial_config=initial_config,
         traffic_lights=tl_logic)
