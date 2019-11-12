@@ -63,10 +63,9 @@ class CoordinatedEnv(Env):
     @property
     def action_space(self):
         """See class definition."""
-        cycle_length = 120
         return Box(
             low=0,
-            high=cycle_length,
+            high=1,
             shape=(len(self.target_nodes),),
             dtype=np.float32)
 
@@ -79,10 +78,11 @@ class CoordinatedEnv(Env):
         return Box(low=0, high=5, shape=(shape, ), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
-        delta_offset = rl_actions - self.current_offset
+        actions = rl_actions * 120
+        delta_offset = actions - self.current_offset
         for node_id, action in zip(self.target_nodes, delta_offset):
             self.k.traffic_light.change_intersection_offset(node_id, action)
-        self.current_offset = rl_actions
+        self.current_offset = actions
 
     def get_state(self, rl_id=None, **kwargs):
         """See class definition."""
