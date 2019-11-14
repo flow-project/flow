@@ -22,11 +22,12 @@ class TestNumSteps(unittest.TestCase):
 
     def setUp(self):
         # create the environment and network classes for a ring road
-        _, _, flow_params = ring_road_exp_setup()
+        env, _, flow_params = ring_road_exp_setup()
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
         # instantiate an experiment class
         self.exp = Experiment(flow_params)
+        self.exp.env = env
 
     def tearDown(self):
         # free up used memory
@@ -51,6 +52,7 @@ class TestNumRuns(unittest.TestCase):
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
         exp = Experiment(flow_params)
+        exp.env = env
         exp.run(num_runs=1)
 
         vel1 = [exp.env.k.vehicle.get_speed(exp.env.k.vehicle.get_ids())]
@@ -62,6 +64,7 @@ class TestNumRuns(unittest.TestCase):
         flow_params['env'].horizon = 10
 
         exp = Experiment(flow_params)
+        exp.env = env
         exp.run(num_runs=2)
 
         vel2 = [exp.env.k.vehicle.get_speed(exp.env.k.vehicle.get_ids())]
@@ -91,11 +94,11 @@ class TestRLActions(unittest.TestCase):
             ),
             num_vehicles=1)
 
-        _, _, flow_params = ring_road_exp_setup(vehicles=vehicles)
+        env, _, flow_params = ring_road_exp_setup(vehicles=vehicles)
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
         exp = Experiment(flow_params)
-
+        exp.env = env
         exp.run(1, rl_actions=rl_actions)
 
         # check that the acceleration of the RL vehicle was that specified by
@@ -113,10 +116,11 @@ class TestConvertToCSV(unittest.TestCase):
     def test_convert_to_csv(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         sim_params = SumoParams(emission_path="{}/".format(dir_path))
-        _, network, flow_params = ring_road_exp_setup(sim_params=sim_params)
+        env, network, flow_params = ring_road_exp_setup(sim_params=sim_params)
         flow_params['sim'].render = False
         flow_params['env'].horizon = 10
         exp = Experiment(flow_params)
+        exp.env = env
         exp.run(num_runs=1, convert_to_csv=True)
 
         time.sleep(0.1)
