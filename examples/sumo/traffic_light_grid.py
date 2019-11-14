@@ -356,9 +356,9 @@ def traffic_light_grid_example(render=None, use_inflows=False):
     }]
 
     # Here's an example of how you can manually set traffic lights
-    tl_logic.add("(1.1)", phases=phases, tls_type="static")
-    tl_logic.add("(2.1)", phases=phases, tls_type="static")
-    tl_logic.add("(3.1)", phases=phases, tls_type="static")
+    tl_logic.add("(1.1)", phases=phases, tls_type="actuated")
+    tl_logic.add("(2.1)", phases=phases, tls_type="actuated")
+    tl_logic.add("(3.1)", phases=phases, tls_type="actuated")
 
     if use_inflows:
         initial_config, net_params = get_flow_params(

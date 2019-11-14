@@ -31,6 +31,101 @@ ADDITIONAL_PO_ENV_PARAMS = {
     "target_velocity": 30,
 }
 
+# For every edge, legal right turns are given either given priority green light or secondary green light
+# unless otherwise specified (as per US traffic light rules?)
+
+# vertical_green = cars on the vertical edges have green lights for going straight are free to go straight
+# vertical_green_to_yellow = cars on the vertical edges that were free to go straight now face a yellow light
+# horizontal_green = similar to vertical counterpart
+# vertical_green_to_yellow = similar to vertical counterpart
+
+# protected_left_X = cars on the X edge have a protected left turn i.e. priority greens for the X edge cars turning
+# left, going straight and turning right. Cars from other edges have red (apart from their secondary green right turns).
+# protected_left_X_to_yellow = cars on the X edge that were free to go left/straight now face a yellow light
+
+# Here, X in [top, right, bottom left]
+
+PHASE_NUM_TO_STR = {1: "vertical_green", 2: "vertical_green_to_yellow",
+                      3: "horizontal_green", 4: "horizontal_green_to_yellow",
+                      5: "protected_left_top", 6: "protected_left_top_to_yellow",
+                      7: "protected_left_right", 8: "protected_left_right_to_yellow",
+                      9: "protected_left_bottom", 10: "protected_left_bottom_to_yellow",
+                      11: "protected_left_left", 12: "protected_left_left_to_yellow"}
+
+def generate_tl_phases(phase_type, horiz_lanes, vert_lanes):
+    """Returns the tl phase string for the corresponding phase types.
+    Note: right turns will have 'g' by default"""
+
+    if phase_type == "vertical_green":
+        vertical = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
+        horizontal = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+        return vertical + horizontal + vertical + horizontal
+
+    elif phase_type == "vertical_green_to_yellow":
+        horizontal = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
+        vertical = "g" + horiz_lanes * "y" + "r"  # right turn, straights, left turn
+        return vertical + horizontal + vertical + horizontal
+
+    elif phase_type == "horizontal_green":
+        horizontal = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
+        vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+        return vertical + horizontal + vertical + horizontal
+
+    elif phase_type == "horizontal_green_to_yellow":
+        horizontal = "g" + vert_lanes * "y" + "r"  # right turn, straights, left turn
+        vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+        return vertical + horizontal + vertical + horizontal
+
+    elif phase_type == "protected_left_top":
+        top = "G" + "G" * vert_lanes + "G"
+        bot = "g" + "r" * vert_lanes + "r"
+        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+        return top + horizontal + bot + horizontal
+
+    elif phase_type == "protected_left_top_to_yellow":
+        top = "g" + "y" * vert_lanes + "y"
+        bot = "g" + "r" * vert_lanes + "r"
+        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+        return top + horizontal + bot + horizontal
+
+    elif phase_type == "protected_left_right":
+        vertical = "g" + "r" * vert_lanes + "r"
+        left = "g" + "r" * horiz_lanes + "r"
+        right = "g" + "G" * horiz_lanes + "G"
+        return vertical + right + vertical + left
+
+    elif phase_type == "protected_left_right_to_yellow":
+        vertical = "g" + "r" * vert_lanes + "r"
+        left = "g" + "r" * horiz_lanes + "r"
+        right = "g" + "y" * horiz_lanes + "y"
+        return vertical + right + vertical + left
+
+    elif phase_type == "protected_left_bottom":
+        bot = "G" + "G" * vert_lanes + "G"
+        top = "g" + "r" * vert_lanes + "r"
+        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+        return top + horizontal + bot + horizontal
+
+    elif phase_type == "protected_left_bottom_to_yellow":
+        bot = "g" + "y" * vert_lanes + "y"
+        top = "g" + "r" * vert_lanes + "r"
+        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+        return top + horizontal + bot + horizontal
+
+    elif phase_type == "protected_left_left":
+        vertical = "g" + "r" * vert_lanes + "r"
+        right = "g" + "r" * horiz_lanes + "r"
+        left = "g" + "G" * horiz_lanes + "G"
+        return vertical + right + vertical + left
+
+    elif phase_type == "protected_left_left_to_yellow":
+        vertical = "g" + "r" * vert_lanes + "r"
+        right = "g" + "r" * horiz_lanes + "r"
+        left = "g" + "y" * horiz_lanes + "y"
+        return vertical + right + vertical + left
+
+
+
 
 class TrafficLightGridEnv(Env):
     """Environment used to train traffic lights.
@@ -95,15 +190,25 @@ class TrafficLightGridEnv(Env):
         Multi-dimensional array keeping track, in timesteps, of how much time
         has passed since the last change to yellow for each traffic light    # TODO: Kevin - keeping track of last change to yellow, hmmmmmmm
     direction : np array [num_traffic_lights]x1 np array
+
         Multi-dimensional array keeping track of which direction in traffic    # TODO: Kevin - Ah, gotcha - this is hacky - only works for a 1 by 1, no turns tl grid, need phases?
         light is flowing. 0 indicates flow from top to bottom, and              # e.g. 0 indicates vertical_straight, 1 indicates horizontal_straight, 2 indicates protected_left_from**_top, etc
         1 indicates flow from left to right
+
+    # replace this 'direction' with something like "phase" 1, 2, 3 ,4, 5, 6, 7, 8, 9, 10, 11, 12
+
     currently_yellow : np array [num_traffic_lights]x1 np array
         Multi-dimensional array keeping track of whether or not each traffic  # what's: each traffic light is currently yellow? If only 2 phases, then default is either r/g or g/y?? Maybe not
         light is currently yellow. 1 if yellow, 0 if not
+
+    # replace this 'currently' yellow or delete it?? Not much point anymore, I think? Unless it's super relevant to the thing below
+
+    ?? Is this thing even necessary?? # TODO: Kevin - rationale behind this?
+
     min_switch_time : np array [num_traffic_lights]x1 np array
         The minimum time in timesteps that a light can be yellow. Serves
         as a lower bound
+
     discrete : bool
         Indicates whether or not the action space is discrete. See below for
         more information:
@@ -137,11 +242,14 @@ class TrafficLightGridEnv(Env):
         # Keeps track of the last time the traffic lights in an intersection
         # were allowed to change (the last time the lights were allowed to
         # change from a red-green state to a red-yellow state.)
+
+        # what's a red-yellow state? you mean a green-red state? Oh, from the POV of one edge/direction, it's still not red-yellow?
+
         self.last_change = np.zeros((self.rows * self.cols, 1))
-        # Keeps track of the direction of the intersection (the direction that
-        # is currently being allowed to flow. 0 indicates flow from top to
-        # bottom, and 1 indicates flow from left to right.)
+
+        # Keeps track of the phase of the intersection. See phase definitions above.
         self.direction = np.zeros((self.rows * self.cols, 1))
+
         # Value of 1 indicates that the intersection is in a red-yellow state.
         # value 0 indicates that the intersection is in a red-green state.
         self.currently_yellow = np.zeros((self.rows * self.cols, 1))   # TODO: Kevin - this is the total number of intersections -
@@ -155,11 +263,15 @@ class TrafficLightGridEnv(Env):
         # For third column, 0 signifies yellow and 1 green or red
         self.min_switch_time = env_params.additional_params["switch_time"]
 
-        if self.tl_type != "actuated":                  # what if tl_type is 'static'?
-            for i in range(self.rows * self.cols):
-                self.k.traffic_light.set_state(         # TODO: what's this k variable?
-                    node_id='center' + str(i), state="GrGr")    # TODO: yikes, change this
-                self.currently_yellow[i] = 0
+        x_max = self.cols + 1
+        y_max = self.rows + 1
+
+        if self.tl_type != "actuated":
+            for x in range(1, x_max):
+                for y in range(1, y_max):
+                    self.k.traffic_light.set_state(         # TODO: what's this k variable?
+                        node_id="({}.{})".format(x, y), state=PHASE_NUM_TO_STR[1])    # TODO: How should the grid be initialized? I'm not sure.
+                    self.currently_yellow[y * self.cols + x] = 0
 
         # # Additional Information for Plotting
         # self.edge_mapping = {"top": [], "bot": [], "right": [], "left": []}

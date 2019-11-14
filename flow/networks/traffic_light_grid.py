@@ -202,15 +202,15 @@ class TrafficLightGridNetwork(Network):
 
             routes_dict should have this form:
 
-            routes_dict = {"sn0": {"en0": [route_1(sn0 - en0), route_2(sn0 - en0), route_3(sn0 - en0), ... route_k(sn0, en0)],
-                                   "en1": [route_1(sn0 - en1), route_2(sn0 - en1), route_3(sn0 - en1), ... route_k(sn0, en1)],
+            routes_dict = {"sn0": {"en0": [route_1(sn0 - en0), route_2(sn0 - en0),  ... route_k(sn0, en0)],
+                                   "en1": [route_1(sn0 - en1), route_2(sn0 - en1),  ... route_k(sn0, en1)],
                                         ...
-                                   "enj": [route_1(sn0 - en2), route_2(sn0 - en2), route_3(sn0 - en2), ... route_k(sn0, en2)]},
+                                   "enj": [route_1(sn0 - en2), route_2(sn0 - en2),  ... route_k(sn0, en2)]},
 
-                           "sn1": {"en0": [route_1(sn1 - en0), route_2(sn1 - en0), route_3(sn1 - en0), ... route_k(sn1, en0)],
-                                   "en1": [route_1(sn1 - en1), route_2(sn1 - en1), route_3(sn1 - en1), ... route_k(sn1, en1)],
+                           "sn1": {"en0": [route_1(sn1 - en0), route_2(sn1 - en0),  ... route_k(sn1, en0)],
+                                   "en1": [route_1(sn1 - en1), route_2(sn1 - en1),  ... route_k(sn1, en1)],
                                         ...
-                                   "enj": [route_1(sn1 - enj), route_2(sn1 - enj), route_3(sn1 - enj), ... route_k(sn1, enj)]},
+                                   "enj": [route_1(sn1 - enj), route_2(sn1 - enj), ... route_k(sn1, enj)]},
                             ...
                            }
 
