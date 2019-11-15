@@ -125,8 +125,6 @@ def generate_tl_phases(phase_type, horiz_lanes, vert_lanes):
         return vertical + right + vertical + left
 
 
-
-
 class TrafficLightGridEnv(Env):
     """Environment used to train traffic lights.
 
@@ -302,7 +300,7 @@ class TrafficLightGridEnv(Env):
         """See class definition."""
         speed = Box(
             low=0,
-            high=1,
+            high=1,   #?
             shape=(self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
         dist_to_intersec = Box(
@@ -310,11 +308,13 @@ class TrafficLightGridEnv(Env):
             high=np.inf,
             shape=(self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
+        # is this supposed to represent the number of cars on a particular edge?
         edge_num = Box(
             low=0.,
             high=1,
             shape=(self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
+        # And, this is the number of traffic lights * 3?
         traffic_lights = Box(
             low=0.,
             high=1,
@@ -505,26 +505,38 @@ class TrafficLightGridEnv(Env):
         --- 0 --- 1 --- 2 ---
             |     |     |
 
+             |       |     |
+        --- 2.1 --- 2.2 --- 3.2 ---
+             |       |       |
+        --- 1.1 --- 1.2 --- 1.3 ---
+             |       |       |
+
+        TODO(kevin) remove this^
+
         See flow.networks.traffic_light_grid for more information.
 
         Example of function usage:
-        - Seeking the "top" direction to ":center0" would return 3.
-        - Seeking the "bottom" direction to ":center0" would return -1.
+        - Seeking the "top" direction to ":(1.1)" would return 3.
+        - Seeking the "bottom" direction to :(1.1)" would return -1.
 
         Parameters
         ----------
         agent_id : str
-            agent id of the form ":center#"
+            agent id of the form ":({}.{})".format(x_pos, y_pos)
         direction : str
             top, bottom, left, right
 
         Returns
         -------
         int
-            node number
+            node number # Nodes without traffic lights yield -1
         """
-        ID_IDX = 1
-        agent_id_num = int(agent_id.split("center")[ID_IDX])
+        # TODO(Kevin Lin) what's the point of the colon here?
+
+        agent_node_coords = [agent_id[i] for i in range(len(agent_id)) if agent_id[i].isdigit()]
+        agent_node_x, agent_node_y = int(agent_node_coords[0]), int(agent_node_coords[1])
+        agent_id_num = (agent_node_x - 1) + (agent_node_y - 1) * self.cols
+
         if direction == "top":
             node = agent_id_num + self.cols
             if node >= self.cols * self.rows:
@@ -599,6 +611,7 @@ class TrafficLightGridEnv(Env):
                 pos="0",
                 speed="max")
 
+    # TODO(Kevin Lin) Update to return the IDs of vehicles
     def get_closest_to_intersection(self, edges, num_closest, padding=False):
         """Return the IDs of the vehicles that are closest to an intersection.
 
@@ -770,6 +783,7 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         light and for each vehicle its velocity, distance to intersection,
         edge_number traffic light state. This is partially observed
         """
+
         speeds = []
         dist_to_intersec = []
         edge_number = []

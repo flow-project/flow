@@ -165,7 +165,7 @@ def traffic_light_grid_example(render=None, use_inflows=False):
         "cars_bot": num_cars_bot
     }
 
-    sim_params = SumoParams(sim_step=0.1, render=True)
+    sim_params = SumoParams(sim_step=1.0, render=True)
 
     if render is not None:
         sim_params.render = render
@@ -356,9 +356,27 @@ def traffic_light_grid_example(render=None, use_inflows=False):
     }]
 
     # Here's an example of how you can manually set traffic lights
-    tl_logic.add("(1.1)", phases=phases, tls_type="actuated")
-    tl_logic.add("(2.1)", phases=phases, tls_type="actuated")
-    tl_logic.add("(3.1)", phases=phases, tls_type="actuated")
+
+    x_max = grid_array["col_num"] + 1
+    y_max = grid_array["row_num"] + 1
+
+    def set_all_tl_logic(phases, tls_type):
+        """Set all traffic lights to the specified tls_type and phases"""
+        for x in range(1, x_max):
+            for y in range(1, y_max):
+                node_id = "({}.{})".format(x, y)
+                tl_logic.add(node_id, phases=phases, tls_type=tls_type)
+
+    set_all_tl_logic(phases, "actuated")
+
+    # Or, you could set these manually
+    # tl_logic.add("(1.1)", phases=phases, tls_type="actuated")
+    # tl_logic.add("(2.1)", phases=phases, tls_type="actuated")
+    # tl_logic.add("(3.1)", phases=phases, tls_type="actuated")
+    # tl_logic.add("(1.2)", phases=phases, tls_type="actuated")
+    # tl_logic.add("(2.2)", phases=phases, tls_type="actuated")
+    # tl_logic.add("(3.2)", phases=phases, tls_type="actuated")
+
 
     if use_inflows:
         initial_config, net_params = get_flow_params(
