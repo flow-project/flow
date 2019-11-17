@@ -16,66 +16,78 @@ This documentation walks you through applying car-following controllers (e.g., I
         cd 02_CarFollowingFunctionsModel
         vim behavioralModelParticular.cpp 
 
-4. The relative functions such as `evaluateCarFollwoing()`, `computeCarFollowingAccelerationComponentSpeed()` and  `computeCarFollowingDecelerationComponentSpeed()` need to be modified. For instance, an example of IDM car-following model implementation would be:
+4. The relative functions such as `computeCarFollowingAccelerationComponentSpeed()` and  `computeCarFollowingDecelerationComponentSpeed()` need to be modified. For instance, an example of IDM car-following model implementation would be:
 
-        bool UseIDM=true;
-
-        double behavioralModelParticular::computeCarFollowingAccelerationComponentSpeed( A2SimVehicle *vehicle, double VelActual, double VelDeseada, double RestoCiclo)
+        double behavioralModelParticular::computeCarFollowingAccelerationComponentSpeed(A2SimVehicle *vehicle,double speed,double v0, double sim_step)
         {
-            double speed = 0;
-            speed = compute_IDM_acc_speed( (simVehicleParticular*)vehicle, VelActual, VelDeseada, RestoCiclo);
+        double new_speed = min(v0, getIDMAccelerationSpeed((simVehicleParticular*)vehicle, speed, v0, sim_step));
 
-        return speed;
-        }
-        
-        double behavioralModelParticular::computeCarFollowingDecelerationComponentSpeed (A2SimVehicle *vehicle,double Shift,A2SimVehicle *vehicleLeader,double ShiftLeader,bool controlDecelMax, bool aside,int time)
-        {
-            double speed=0;
-            speed = compute_IDM_dec_speed((simVehicleParticular*)vehicle,Shift,(simVehicleParticular*)vehicleLeader,ShiftLeader);
-           
-            return speed;
-        }
-        
-        double behavioralModelParticular::computeMinimumGap(A2SimVehicle *vehicleUp,A2SimVehicle *vehicleDown, bool VehicleIspVehDw, int time)
-        {
-
-            double GapMin=0;
-            GapMin = get_IDM_minimum_gap((simVehicleParticular*)vehicleUp,(simVehicleParticular*)vehicleDown,Vup, Vdw, Gap);
-
-            return GapMin;
-        }
-        
-        double behavioralModelParticular::compute_IDM_acc_speed(simVehicleParticular *vehicle,double current_speed,double desired_speed, double sim_step)
-        {
-            double acceleration=max(vehicle->getDeceleration(),vehicle->getAcceleration()*(1.-pow(current_speed/desired_speed,4)));
-            double speed = max(0., current_speed + acceleration * sim_step);
-
-            return speed;
+        return new_speed;
         }
 
-        double behavioralModelParticular::compute_IDM_dec_speed(simVehicleParticular *vehicle,double Shift,simVehicleParticular *leader,double ShiftLeader)
+        double behavioralModelParticular::computeCarFollowingDecelerationComponentSpeed(A2SimVehicle *vehicle, double Shift, A2SimVehicle *vehicleLeader, double ShiftLeader, bool controlDecelMax, bool aside, int time)
         {
+            double v0 = vehicle->getFreeFlowSpeed();
+            double new_speed = min(v0, getIDMDecelerationSpeed((simVehicleParticular*)vehicle,Shift,(simVehicleParticular*)vehicleLeader,ShiftLeader));
+ 
+            return new_speed;
+        }
+
+        double behavioralModelParticular::computeMinimumGap(A2SimVehicle *vehicle, A2SimVehicle *leader, bool VehicleIspVehDw, int time )
+        {
+            double gap_min = 0;
+            double gap = 0;
+            double x_up, speed_up, x_down, speed_down;
+            double shift = 0,shift_leader = 0;
+            gap = vehicle->getGap(shift,  leader, shift_leader, x_up, speed_up, x_down, speed_down, time);
             double a=vehicle->getAcceleration();
-            double VelAnterior,PosAnterior,VelAnteriorLeader,PosAnteriorLeader;
-            double GapAnterior=vehicle->getGap(Shift,leader,ShiftLeader,PosAnterior,VelAnterior,PosAnteriorLeader,VelAnteriorLeader);
-            double DesiredGap=getIDMMinimumGap(vehicle,leader,VelAnterior,VelAnteriorLeader, GapAnterior);
-            double X=VelAnterior/vehicle->getFreeFlowSpeed();
-            double acceleration=a*(1-pow(X,4)-(DesiredGap/GapAnterior)*(DesiredGap/GapAnterior));
-            double speed=max(0.,VelAnterior+acceleration*getSimStep());
+            double speed = vehicle->getSpeed(vehicle->isUpdated());
+            double speed_leader = leader->getSpeed(leader->isUpdated());
+            double desired_gap = getIDMMinimumGap((simVehicleParticular*)vehicle,(simVehicleParticular*)leader,speed, speed_leader, gap);
 
-            return speed;
+            return desired_gap;
         }
 
-        double behavioralModelParticular::get_IDM_minimum_gap(simVehicleParticular* pVehUp,simVehicleParticular* pVehDw,double VelAnterior,double VelAnteriorLeader,double GapAnterior)
+        double behavioralModelParticular::getIDMDecelerationSpeed(simVehicleParticular *vehicle,double Shift,simVehicleParticular *leader,double ShiftLeader)
         {
-            double a=pVehUp->getAcceleration();
-            double b=-pVehUp->getDeceleration();
-            double DesiredGap=pVehUp->getMinimumDistanceInterVeh()+max(0.,VelAnterior*pVehUp->getMinimumHeadway()+VelAnterior*(VelAnteriorLeader-VelAnterior)/(2*sqrt(a*b)));
+            double a = vehicle->getAcceleration();
+            double v0 = vehicle->getFreeFlowSpeed();
+            double sim_step = getSimStep();
+            double speed, pos, speed_leader, pos_leader;
+            double gap = vehicle->getGap(Shift,leader,ShiftLeader,pos,speed,pos_leader,speed_leader);
+            double desired_gap = getIDMMinimumGap(vehicle,leader,speed,speed_leader, gap);
+            double acc = a * (1 - pow((speed/v0),4) - pow((desired_gap/gap),2));
+            double next_speed = max(0., speed + acc * getSimStep());
 
-            return DesiredGap;
+            return next_speed;
         }
 
-5. After modifying the .cpp file, create a make file and compile the program:
+        double behavioralModelParticular::getIDMMinimumGap(simVehicleParticular *vehicle,simVehicleParticular *leader,double speed,double speed_leader, double gap)
+        {
+            double a = vehicle->getAcceleration();
+            double b = vehicle->getDeceleration();
+            double s0 =  vehicle->getMinimumDistanceInterVeh();
+            double T = vehicle->getMinimumHeadway();
+            double desired_gap = s0 + max(0., speed*T + speed*(speed_leader-speed)/(2*sqrt(a*b)));
+
+            return desired_gap;
+        }
+
+        double behavioralModelParticular::getIDMAccelerationSpeed(simVehicleParticular *vehicle,double speed,double v0, double sim_step)
+        {
+            double a = vehicle->getAcceleration();
+            double acc = a * (1 - pow((speed/v0),4));
+            double next_speed = max(0., speed + acc * sim_step);
+
+            return next_speed;
+        }
+5. Define the new functions such as `getIDMDecelerationSpeed()` in the behavioralModelParticular.h header file, make sure to add them as follows:
+
+        double getIDMAccelerationSpeed (simVehicleParticular *vehicle,double speed,double desired_speed, double sim_step);
+        double getIDMDecelerationSpeed (simVehicleParticular *vehicle,double Shift,simVehicleParticular *leader,double ShiftLeader);
+        double getIDMMinimumGap(simVehicleParticular *vehicle,simVehicleParticular *leader,double speed,double speed_leader, double gap);
+
+5. After modifying the .cpp and .h files, create a make file and compile the program:
 
         qmake
         make
