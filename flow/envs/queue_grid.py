@@ -25,7 +25,7 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 ADDITIONAL_PO_ENV_PARAMS = {
-    # num of vehicles the agent can observe on each incoming edge
+    # num of vehicles the agent can observe on each incoming edge TODO(KevinLin) Huh? This would turn out to be useless in the new state observation format? I'll keep it for now.
     "num_observed": 2,
     # velocity to use in reward functions
     "target_velocity": 30,
@@ -45,12 +45,19 @@ ADDITIONAL_PO_ENV_PARAMS = {
 
 # Here, X in [top, right, bottom left]
 
-PHASE_NUM_TO_STR = {1: "vertical_green", 2: "vertical_green_to_yellow",
-                      3: "horizontal_green", 4: "horizontal_green_to_yellow",
-                      5: "protected_left_top", 6: "protected_left_top_to_yellow",
-                      7: "protected_left_right", 8: "protected_left_right_to_yellow",
-                      9: "protected_left_bottom", 10: "protected_left_bottom_to_yellow",
-                      11: "protected_left_left", 12: "protected_left_left_to_yellow"}
+PHASE_NUM_TO_STR = {0: "vertical_green", 6: "vertical_green_to_yellow",
+                    1: "horizontal_green", 7: "horizontal_green_to_yellow",
+                    2: "protected_left_top", 8: "protected_left_top_to_yellow",
+                    3: "protected_left_right", 9: "protected_left_right_to_yellow",
+                    4: "protected_left_bottom", 10: "protected_left_bottom_to_yellow",
+                    5: "protected_left_left", 11: "protected_left_left_to_yellow"}
+
+PHASE_REPEAT_PRESET_ORDER = {0: 1,
+                          1: 0,
+                          2: 3,
+                          3: 4,
+                          4: 5,
+                          5: 2}
 
 def generate_tl_phases(phase_type, horiz_lanes, vert_lanes):
     """Returns the tl phase string for the corresponding phase types.
@@ -139,16 +146,24 @@ class QueueGridEnv(Env):
       continuous
 
     States
-        An observation is the distance of each vehicle to its intersection, a
-        number uniquely identifying which edge the vehicle is on, and the speed
-        of the vehicle.
+        An observation consists of:
+        a) the number of cars in each lane
+        b) a timer of how long a traffic light has been in its current phase TODO(KevinLin) Either the purely green light phase or both the green and the yellow phase
+        c) the current traffic light phase for every intersection that has traffic lights (in this case, that's every intersection)
 
     Actions
-        The action space consist of a list of float variables ranging from 0-1  # TODO: Kevin - need a list of numbers
-                                                                                # TODO: from [0, 1, 2, 3, 4, 5] that specifies what phase the tl should be
-        specifying whether a traffic light is supposed to switch or not. The
-        actions are sent to the traffic light in the grid from left to right
+        The action space consists of a list of float variables ranging from 0-1 specifying:
+        a) [For a currently 'green' intersection] Whether an intersection should switch to its corresponding yellow phase
+        b) [For a currently 'yellow' intersection] The phase that the traffic lights of the intersection should switch to
+
+        Actions are sent to the traffic lights at intersections in the grid from left to right
         and then top to bottom.
+
+
+        Note: At the end of a 'yellow' phase, the RL agent may output a number that's equivalent to switching back to
+        the corresponding green phase intersection (e.g. phase 1 green -> phase 1 yellow -> phase 1 green). Instead of
+        allowing this repeat, we manually assign a non-current phase for the new phase. Specifically, we'll use the
+        PHASE_REPEAT_PRESET_ORDER dict (given above) to deal with this situation.
 
     Rewards
         The reward is the negative per vehicle delay minus a penalty for
@@ -171,8 +186,8 @@ class QueueGridEnv(Env):
         Number of rows in this traffic light grid network
     cols : int
         Number of columns in this traffic light grid network
-    num_traffic_lights : int
-        Number of intersection in this traffic light grid network   # TODO: number of intersections? or number of traffic lights? This seems hacky?
+    num_traffic_lights : int                                        # TODO(KevinLin) Why's this called "num_traffic_lights" instead of e.g num_tl intersections?
+        Number of intersections in this traffic light grid network
     tl_type : str
         Type of traffic lights, either 'actuated' or 'static'
     steps : int
@@ -184,17 +199,18 @@ class QueueGridEnv(Env):
         Dictionary mapping intersections / nodes (nomenclature is used
         interchangeably here) to the edges that are leading to said
         intersection / node
-    phase_time : np array [num_traffic_lights]x1 np array
+    phase_time : np array [num_traffic_lights]x1 np array           TODO(KevinLin) Why's this called "num_traffic_lights" instead of e.g num_tl intersections?
         Multi-dimensional array keeping track, in timesteps, of how much time
-        has passed since changing to the current phase    # TODO: Kevin - keeping track of last change to yellow, hmmmmmmm
-
-    phase : np array [num_traffic_lights]x1 np array
+        has passed since changing to the current phase
+    phase : np array [num_traffic_lights]x1 np array                TODO(KevinLin) Why's this called "num_traffic_lights" instead of e.g num_tl intersections?
         Multi-dimensional array keeping track of which phase a traffic light is currently in    # TODO: Kevin - Ah, gotcha - this is hacky - only works for a 1 by 1, no turns tl grid, need phases?
-        light is flowing. 0 indicates flow from top to bottom, and              # e.g. 0 indicates vertical_straight, 1 indicates horizontal_straight, 2 indicates protected_left_from**_top, etc
-
-    min_switch_time : np array [num_traffic_lights]x1 np array
-        The minimum time in timesteps that a light can be yellow. Serves
-        as a lower bound
+        light is flowing. Refer to the "PHASE_NUM_TO_STR" dict above for what a number represents.
+    min_yellow_time : np array [num_traffic_lights]x1 np array
+        The minimum time in timesteps that a light can be yellow. 5s by default.
+        Serves as a lower bound.
+    min_green_time : np array [num_traffic_lights]x1 np array
+        The minimum time in timesteps that a light can be yellow. 20s by default. # This is a somewhat arbitrary choice
+        Serves as a lower bound
 
     discrete : bool
         Indicates whether or not the action space is discrete. See below for
@@ -237,11 +253,11 @@ class QueueGridEnv(Env):
         # Keeps track of the phase of the intersection. See phase definitions above.
         self.phases = np.zeros((self.rows * self.cols, 1))
 
-        # when this hits min_switch_time we change from yellow to red
+        # when this hits min_switch_time we change from phase x's yellow to phase y's green (where x != y)
         # the second column indicates the direction that is currently being
         # allowed to flow. 0 is flowing top to bottom, 1 is left to right
         # For third column, 0 signifies yellow and 1 green or red
-        self.min_switch_time = env_params.additional_params["switch_time"]
+        self.min_yellow_time = env_params.additional_params["switch_time"]
 
         x_max = self.cols + 1
         y_max = self.rows + 1
@@ -250,7 +266,7 @@ class QueueGridEnv(Env):
             for x in range(1, x_max):
                 for y in range(1, y_max):
                     self.k.traffic_light.set_state(         # TODO: what's this k variable?
-                        node_id="({}.{})".format(x, y), state=PHASE_NUM_TO_STR[1])    # TODO: How should the grid be initialized? I'm not sure.
+                        node_id="({}.{})".format(x, y), state=PHASE_NUM_TO_STR[0])    # TODO(KevinLin): How should the grid be initialized?
                     self.currently_yellow[y * self.cols + x] = 0
 
         # # Additional Information for Plotting
@@ -390,41 +406,6 @@ class QueueGridEnv(Env):
     # ===============================
     # ============ UTILS ============
     # ===============================
-
-    def get_distance_to_intersection(self, veh_ids):
-        """Determine the distance from a vehicle to its next intersection.
-
-        Parameters
-        ----------
-        veh_ids : str or str list
-            vehicle(s) identifier(s)
-
-        Returns
-        -------
-        float (or float list)
-            distance to closest intersection
-        """
-        if isinstance(veh_ids, list):
-            return [self.get_distance_to_intersection(veh_id)
-                    for veh_id in veh_ids]
-        return self.find_intersection_dist(veh_ids)
-
-    def find_intersection_dist(self, veh_id):
-        """Return distance from intersection.
-
-        Return the distance from the vehicle's current position to the position
-        of the node it is heading toward.
-        """
-        edge_id = self.k.vehicle.get_edge(veh_id)
-        # FIXME this might not be the best way of handling this
-        if edge_id == "":
-            return -10
-        if 'center' in edge_id:
-            return 0
-        edge_len = self.k.network.edge_length(edge_id)
-        relative_pos = self.k.vehicle.get_position(veh_id)
-        dist = edge_len - relative_pos
-        return dist
 
     def _convert_edge(self, edges):
         """Convert the string edge to a number.
@@ -605,8 +586,7 @@ class QueueGridPOEnv(QueueGridEnv):
 
     * switch_time: minimum switch time for each traffic light (in seconds).
       Earlier RL commands are ignored.
-    * num_observed: number of vehicles nearest each intersection that is
-      observed in the state space; defaults to 2
+
 
     States
         An observation is the number of observed vehicles in each intersection
@@ -671,6 +651,8 @@ class QueueGridPOEnv(QueueGridEnv):
         Returns self.num_observed number of vehicles closest to each traffic
         light and for each vehicle its velocity, distance to intersection,
         edge_number traffic light state. This is partially observed
+
+
         """
 
         speeds = []
