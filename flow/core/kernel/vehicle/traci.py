@@ -757,8 +757,8 @@ class TraCIVehicle(KernelVehicle):
         num_lanes = self.master_kernel.network.num_lanes(this_edge)
 
         # set default values for all output values
-        headway = [1000] * num_lanes
-        tailway = [1000] * num_lanes
+        headway = [min(1000, self.master_kernel.network.length())] * num_lanes
+        tailway = [min(1000, self.master_kernel.network.length())] * num_lanes
         leader = [""] * num_lanes
         follower = [""] * num_lanes
 
@@ -821,7 +821,7 @@ class TraCIVehicle(KernelVehicle):
         pos = self.get_position(veh_id)
         edge = self.get_edge(veh_id)
 
-        headway = 1000  # env.network.length
+        headway = min(1000, self.master_kernel.network.length())  # env.network.length
         leader = ""
         add_length = 0  # length increment in headway
 
@@ -866,7 +866,7 @@ class TraCIVehicle(KernelVehicle):
         pos = self.get_position(veh_id)
         edge = self.get_edge(veh_id)
 
-        tailway = 1000  # env.network.length
+        tailway = min(1000, self.master_kernel.network.length())  # env.network.length
         follower = ""
         add_length = 0  # length increment in headway
 

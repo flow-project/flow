@@ -92,7 +92,7 @@ class LaneChangeAccelEnv(AccelEnv):
     def observation_space(self):
         """See class definition."""
         return Box(
-            low=0,
+            low=-1,
             high=1,
             shape=(3 * self.initial_vehicles.num_vehicles, ),
             dtype=np.float32)
