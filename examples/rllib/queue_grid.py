@@ -197,7 +197,7 @@ flow_params = dict(
     exp_tag='queue_grid',
 
     # name of the flow environment the experiment is running on
-    env_name=TrafficLightGridPOEnv,
+    env_name=QueueGridPOEnv,
 
     # name of the network class the experiment is running on
     network=TrafficLightGridNetwork,

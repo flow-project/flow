@@ -15,8 +15,10 @@ from flow.core import rewards
 from flow.envs.base import Env
 
 ADDITIONAL_ENV_PARAMS = {
-    # minimum switch time for each traffic light (in seconds)
-    "switch_time": 2.0,
+    # minimum time that each intersection's traffic lights should remain in a yellow phase for (in seconds)
+    "min_yellow_time": 5.0,
+    # minimum time that each intersection's traffic lights should remain in a green phase for (in seconds)
+    "min_green_time": 20.0,
     # whether the traffic lights should be actuated by sumo or RL
     # options are "controlled" and "actuated"
     "tl_type": "controlled",
@@ -30,20 +32,24 @@ ADDITIONAL_PO_ENV_PARAMS = {
     # velocity to use in reward functions
     "target_velocity": 30,
 }
+"""
+For every edge, legal right turns are given either given priority green light or secondary green light
+unless otherwise specified (as per US traffic light rules?)
 
-# For every edge, legal right turns are given either given priority green light or secondary green light
-# unless otherwise specified (as per US traffic light rules?)
+PHASE DEFINITIONS:
 
-# vertical_green = cars on the vertical edges have green lights for going straight are free to go straight
-# vertical_green_to_yellow = cars on the vertical edges that were free to go straight now face a yellow light
-# horizontal_green = similar to vertical counterpart
-# vertical_green_to_yellow = similar to vertical counterpart
+vertical_green = cars on the vertical edges have green lights for going straight are free to go straight
+vertical_green_to_yellow = cars on the vertical edges that were free to go straight now face a yellow light
+horizontal_green = similar to vertical counterpart
+vertical_green_to_yellow = similar to vertical counterpart
 
-# protected_left_X = cars on the X edge have a protected left turn i.e. priority greens for the X edge cars turning
-# left, going straight and turning right. Cars from other edges have red (apart from their secondary green right turns).
-# protected_left_X_to_yellow = cars on the X edge that were free to go left/straight now face a yellow light
+protected_left_X = cars on the X edge have a protected left turn i.e. priority greens for the X edge cars turning
+left, going straight and turning right. Cars from other edges have red (apart from their secondary green right turns).
+protected_left_X_to_yellow = cars on the X edge that were free to go left/straight now face a yellow light
 
-# Here, X in [top, right, bottom left]
+Here, X in [top, right, bottom left]
+
+"""
 
 PHASE_NUM_TO_STR = {0: "vertical_green", 6: "vertical_green_to_yellow",
                     1: "horizontal_green", 7: "horizontal_green_to_yellow",
@@ -51,85 +57,15 @@ PHASE_NUM_TO_STR = {0: "vertical_green", 6: "vertical_green_to_yellow",
                     3: "protected_left_right", 9: "protected_left_right_to_yellow",
                     4: "protected_left_bottom", 10: "protected_left_bottom_to_yellow",
                     5: "protected_left_left", 11: "protected_left_left_to_yellow"}
-
+"""
+In the case that the RL 
+"""
 PHASE_REPEAT_PRESET_ORDER = {0: 1,
                           1: 0,
                           2: 3,
                           3: 4,
                           4: 5,
                           5: 2}
-
-def generate_tl_phases(phase_type, horiz_lanes, vert_lanes):
-    """Returns the tl phase string for the corresponding phase types.
-    Note: right turns will have 'g' by default"""
-
-    if phase_type == "vertical_green":
-        vertical = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
-        horizontal = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
-        return vertical + horizontal + vertical + horizontal
-
-    elif phase_type == "vertical_green_to_yellow":
-        horizontal = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
-        vertical = "g" + horiz_lanes * "y" + "r"  # right turn, straights, left turn
-        return vertical + horizontal + vertical + horizontal
-
-    elif phase_type == "horizontal_green":
-        horizontal = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
-        vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
-        return vertical + horizontal + vertical + horizontal
-
-    elif phase_type == "horizontal_green_to_yellow":
-        horizontal = "g" + vert_lanes * "y" + "r"  # right turn, straights, left turn
-        vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
-        return vertical + horizontal + vertical + horizontal
-
-    elif phase_type == "protected_left_top":
-        top = "G" + "G" * vert_lanes + "G"
-        bot = "g" + "r" * vert_lanes + "r"
-        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-        return top + horizontal + bot + horizontal
-
-    elif phase_type == "protected_left_top_to_yellow":
-        top = "g" + "y" * vert_lanes + "y"
-        bot = "g" + "r" * vert_lanes + "r"
-        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-        return top + horizontal + bot + horizontal
-
-    elif phase_type == "protected_left_right":
-        vertical = "g" + "r" * vert_lanes + "r"
-        left = "g" + "r" * horiz_lanes + "r"
-        right = "g" + "G" * horiz_lanes + "G"
-        return vertical + right + vertical + left
-
-    elif phase_type == "protected_left_right_to_yellow":
-        vertical = "g" + "r" * vert_lanes + "r"
-        left = "g" + "r" * horiz_lanes + "r"
-        right = "g" + "y" * horiz_lanes + "y"
-        return vertical + right + vertical + left
-
-    elif phase_type == "protected_left_bottom":
-        bot = "G" + "G" * vert_lanes + "G"
-        top = "g" + "r" * vert_lanes + "r"
-        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-        return top + horizontal + bot + horizontal
-
-    elif phase_type == "protected_left_bottom_to_yellow":
-        bot = "g" + "y" * vert_lanes + "y"
-        top = "g" + "r" * vert_lanes + "r"
-        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-        return top + horizontal + bot + horizontal
-
-    elif phase_type == "protected_left_left":
-        vertical = "g" + "r" * vert_lanes + "r"
-        right = "g" + "r" * horiz_lanes + "r"
-        left = "g" + "G" * horiz_lanes + "G"
-        return vertical + right + vertical + left
-
-    elif phase_type == "protected_left_left_to_yellow":
-        vertical = "g" + "r" * vert_lanes + "r"
-        right = "g" + "r" * horiz_lanes + "r"
-        left = "g" + "y" * horiz_lanes + "y"
-        return vertical + right + vertical + left
 
 
 class QueueGridEnv(Env):
@@ -186,8 +122,8 @@ class QueueGridEnv(Env):
         Number of rows in this traffic light grid network
     cols : int
         Number of columns in this traffic light grid network
-    num_traffic_lights : int                                        # TODO(KevinLin) Why's this called "num_traffic_lights" instead of e.g num_tl intersections?
-        Number of intersections in this traffic light grid network
+    num_tl_intersections : int
+        Number of intersections (with traffic lights) in this traffic light grid network
     tl_type : str
         Type of traffic lights, either 'actuated' or 'static'
     steps : int
@@ -199,18 +135,27 @@ class QueueGridEnv(Env):
         Dictionary mapping intersections / nodes (nomenclature is used
         interchangeably here) to the edges that are leading to said
         intersection / node
-    phase_time : np array [num_traffic_lights]x1 np array           TODO(KevinLin) Why's this called "num_traffic_lights" instead of e.g num_tl intersections?
+
+    ### For all of the following attributes, each entry in the array corresponds to one particular intersection
+
+    curr_phase_duration : np array [num_tl_intersections]x1 np array
         Multi-dimensional array keeping track, in timesteps, of how much time
         has passed since changing to the current phase
-    phase : np array [num_traffic_lights]x1 np array                TODO(KevinLin) Why's this called "num_traffic_lights" instead of e.g num_tl intersections?
-        Multi-dimensional array keeping track of which phase a traffic light is currently in    # TODO: Kevin - Ah, gotcha - this is hacky - only works for a 1 by 1, no turns tl grid, need phases?
-        light is flowing. Refer to the "PHASE_NUM_TO_STR" dict above for what a number represents.
-    min_yellow_time : np array [num_traffic_lights]x1 np array
+    curr_phase : np array [num_tl_intersections]x1 np array                T
+        Multi-dimensional array keeping track of the phase that the traffic lights corresponding to particular
+        intersections are currently in. Refer to the "PHASE_NUM_TO_STR" dict above for what a number represents.
+    currently_green : np array [num_tl_intersections]x1 np array
+        Multi-dimensional array keeping track of whether an intersection of traffic lights is currently in the green
+        part of its phase.
+        1 if green, 0 if yellow
+    min_yellow_time : np array [num_tl_intersections]x1 np array
         The minimum time in timesteps that a light can be yellow. 5s by default.
         Serves as a lower bound.
-    min_green_time : np array [num_traffic_lights]x1 np array
+    min_green_time : np array [num_tl_intersections]x1 np array
         The minimum time in timesteps that a light can be yellow. 20s by default. # This is a somewhat arbitrary choice
         Serves as a lower bound
+
+    ###
 
     discrete : bool
         Indicates whether or not the action space is discrete. See below for
@@ -228,8 +173,9 @@ class QueueGridEnv(Env):
         self.grid_array = network.net_params.additional_params["grid_array"]
         self.rows = self.grid_array["row_num"]
         self.cols = self.grid_array["col_num"]
-        # self.num_observed = self.grid_array.get("num_observed", 3)
-        self.num_traffic_lights = self.rows * self.cols
+        self.horizontal_lanes = self.network.net_params.additional_params["horizontal_lanes"]
+        self.vertical_lanes = self.network.net_params.additional_params["vertical_lanes"]
+        self.num_tl_intersections = self.rows * self.cols
         self.tl_type = env_params.additional_params.get('tl_type')
 
         super().__init__(env_params, sim_params, network, simulator)
@@ -237,27 +183,26 @@ class QueueGridEnv(Env):
         # Saving env variables for plotting
         self.steps = env_params.horizon
         self.obs_var_labels = {
-            'edges': np.zeros((self.steps, self.k.vehicle.num_vehicles)),
-            'velocities': np.zeros((self.steps, self.k.vehicle.num_vehicles)),
-            'positions': np.zeros((self.steps, self.k.vehicle.num_vehicles))
+            'cars_per_lane': np.zeros((self.steps, self.k.vehicle.num_vehicles)),
+            'curr_phase_duration': np.zeros((self.steps, self.k.vehicle.num_vehicles)),
+            'curr_phase': np.zeros((self.steps, self.k.vehicle.num_vehicles))
         }
 
-        # Keeps track of the last time the traffic lights in an intersection
-        # were allowed to change (the last time the lights were allowed to
-        # change from a red-green state to a red-yellow state.)
+        # Keeps track of how long the traffic lights in an intersection have been in their current green phase
+        # or yellow phase (e.g. when switching from phase 1 green to phase 1 yellow, the timer resets)
+        self.curr_phase_duration = np.zeros((self.num_tl_intersections, 1))
 
-        # what's a red-yellow state? you mean a green-red state? Oh, from the POV of one edge/direction, it's still not red-yellow?
+        # when this hits min_switch_time, we change from phase x's yellow to phase y's green (where x != y)
 
-        self.last_change = np.zeros((self.rows * self.cols, 1))
+        self.min_yellow_time = env_params.additional_params["min_yellow_time"]
+        self.min_green_time = env_params.additional_params["min_green_time"]
 
-        # Keeps track of the phase of the intersection. See phase definitions above.
-        self.phases = np.zeros((self.rows * self.cols, 1))
+        # Keeps track of the traffic light phase of each intersection. See phase definitions above.
+        self.phases = np.zeros((self.num_tl_intersections, 1))
 
-        # when this hits min_switch_time we change from phase x's yellow to phase y's green (where x != y)
-        # the second column indicates the direction that is currently being
-        # allowed to flow. 0 is flowing top to bottom, 1 is left to right
-        # For third column, 0 signifies yellow and 1 green or red
-        self.min_yellow_time = env_params.additional_params["switch_time"]
+        # Value of 1 indicates that the intersection is in its phase's green state
+        # Value of 0 indicates that the intersection is in its phases' yellow state
+        self.currently_green = np.zeros((self.num_tl_intersections, 1))
 
         x_max = self.cols + 1
         y_max = self.rows + 1
@@ -267,7 +212,7 @@ class QueueGridEnv(Env):
                 for y in range(1, y_max):
                     self.k.traffic_light.set_state(         # TODO: what's this k variable?
                         node_id="({}.{})".format(x, y), state=PHASE_NUM_TO_STR[0])    # TODO(KevinLin): How should the grid be initialized?
-                    self.currently_yellow[y * self.cols + x] = 0
+                    self.currently_green[y * self.cols + x] = 1
 
         # # Additional Information for Plotting
         # self.edge_mapping = {"top": [], "bot": [], "right": [], "left": []}
@@ -285,74 +230,55 @@ class QueueGridEnv(Env):
     def action_space(self):
         """See class definition."""
         if self.discrete:
-            return Discrete(2 ** self.num_traffic_lights)
-        else:
+            return Discrete(2 ** self.num_tl_intersections)
+        else:   # TODO(KevinLin) why's this low = -1 and high = 1??
             return Box(
                 low=-1,
                 high=1,
-                shape=(self.num_traffic_lights,),
+                shape=(self.num_tl_intersections,),
                 dtype=np.float32)
 
     @property
     def observation_space(self):
         """See class definition."""
-        speed = Box(
-            low=0,
-            high=1,   #?
-            shape=(self.initial_vehicles.num_vehicles,),
+        cars_per_lane = Box(
+            low=0.,
+            high=1,
+            shape=(self.total_lanes()),      # look at all the lanes
+            dtype=np.float32)  # check how discrete values work
+        # Check what the low=0, high=1 means
+        curr_phase_duration = Box(
+            low=0.,
+            high=1,
+            shape=(self.num_tl_intersections,),
+            dtype=np.float32)
+        curr_phase = Box(
+            low=0.,
+            high=1,
+            shape=(self.num_tl_intersections,),
+            dtype=np.float32)
+        currently_green = Box(
+            low=0.,
+            high=1,
+            shape=(self.num_tl_intersections,),
             dtype=np.float32)
 
-        dist_to_intersec = Box(
-            low=0.,
-            high=np.inf,
-            shape=(self.initial_vehicles.num_vehicles,),
-            dtype=np.float32)
-        # is this supposed to represent the number of cars on a particular edge?
-        edge_num = Box(
-            low=0.,
-            high=1,
-            shape=(self.initial_vehicles.num_vehicles,),
-            dtype=np.float32)
-        # And, this is the number of traffic lights * 3?
-        traffic_lights = Box(
-            low=0.,
-            high=1,
-            shape=(3 * self.rows * self.cols,),
-            dtype=np.float32)
-        return Tuple((speed, dist_to_intersec, edge_num, traffic_lights))
+        return Tuple((cars_per_lane, curr_phase_duration, curr_phase, currently_green))
+        # TODO(KevinLin) any advantage of tuple over one large box?
 
     def get_state(self):
         """See class definition."""
-        # compute the normalizers
-        grid_array = self.net_params.additional_params["grid_array"]
-        max_dist = max(grid_array["short_length"],
-                       grid_array["long_length"],
-                       grid_array["inner_length"])
 
         # get the state arrays
-        speeds = [
-            self.k.vehicle.get_speed(veh_id) / self.k.network.max_speed()
-            for veh_id in self.k.vehicle.get_ids()
-        ]
-        dist_to_intersec = [
-            self.get_distance_to_intersection(veh_id) / max_dist
-            for veh_id in self.k.vehicle.get_ids()
-        ]
-        edges = [
-            self._convert_edge(self.k.vehicle.get_edge(veh_id)) /
-            (self.k.network.network.num_edges - 1)
-            for veh_id in self.k.vehicle.get_ids()
-        ]
+        cars_per_lane = 20
 
         state = [
-            speeds, dist_to_intersec, edges,
-            self.last_change.flatten().tolist(),
-            self.direction.flatten().tolist(),
-            self.currently_yellow.flatten().tolist()        # vs - return number of cars in each lane
-                                                            # - timer of how long we’ve been in a phase
-                                                            # - the phase we’re currently in
-                                                            # Then, the utility function? e.g. distance to intersection?
+            cars_per_lane,
+            self.curr_phase_duration.flatten().tolist(),
+            self.curr_phase.flatten().tolist(),
+            self.currently_green.flatten().tolist()
         ]
+
         return np.array(state)
 
     def _apply_rl_actions(self, rl_actions):
@@ -361,7 +287,7 @@ class QueueGridEnv(Env):
         if self.discrete:
             # convert single value to list of 0's and 1's
             rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
-            rl_mask = [0] * (self.num_traffic_lights - len(rl_mask)) + rl_mask
+            rl_mask = [0] * (self.num_tl_intersections - len(rl_mask)) + rl_mask
         else:
             # convert values less than 0 to zero and above 0 to 1. 0 indicates
             # that should not switch the direction, and 1 indicates that switch
@@ -406,6 +332,86 @@ class QueueGridEnv(Env):
     # ===============================
     # ============ UTILS ============
     # ===============================
+
+    def generate_tl_phases(self, phase_type, horiz_lanes, vert_lanes):
+        """Returns the tl phase string for the corresponding phase types.
+        Note: right turns will have 'g' by default"""
+
+        if phase_type == "vertical_green":
+            vertical = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
+            horizontal = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+            return vertical + horizontal + vertical + horizontal
+
+        elif phase_type == "vertical_green_to_yellow":
+            horizontal = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
+            vertical = "g" + horiz_lanes * "y" + "r"  # right turn, straights, left turn
+            return vertical + horizontal + vertical + horizontal
+
+        elif phase_type == "horizontal_green":
+            horizontal = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
+            vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+            return vertical + horizontal + vertical + horizontal
+
+        elif phase_type == "horizontal_green_to_yellow":
+            horizontal = "g" + vert_lanes * "y" + "r"  # right turn, straights, left turn
+            vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+            return vertical + horizontal + vertical + horizontal
+
+        elif phase_type == "protected_left_top":
+            top = "G" + "G" * vert_lanes + "G"
+            bot = "g" + "r" * vert_lanes + "r"
+            horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+            return top + horizontal + bot + horizontal
+
+        elif phase_type == "protected_left_top_to_yellow":
+            top = "g" + "y" * vert_lanes + "y"
+            bot = "g" + "r" * vert_lanes + "r"
+            horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+            return top + horizontal + bot + horizontal
+
+        elif phase_type == "protected_left_right":
+            vertical = "g" + "r" * vert_lanes + "r"
+            left = "g" + "r" * horiz_lanes + "r"
+            right = "g" + "G" * horiz_lanes + "G"
+            return vertical + right + vertical + left
+
+        elif phase_type == "protected_left_right_to_yellow":
+            vertical = "g" + "r" * vert_lanes + "r"
+            left = "g" + "r" * horiz_lanes + "r"
+            right = "g" + "y" * horiz_lanes + "y"
+            return vertical + right + vertical + left
+
+        elif phase_type == "protected_left_bottom":
+            bot = "G" + "G" * vert_lanes + "G"
+            top = "g" + "r" * vert_lanes + "r"
+            horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+            return top + horizontal + bot + horizontal
+
+        elif phase_type == "protected_left_bottom_to_yellow":
+            bot = "g" + "y" * vert_lanes + "y"
+            top = "g" + "r" * vert_lanes + "r"
+            horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+            return top + horizontal + bot + horizontal
+
+        elif phase_type == "protected_left_left":
+            vertical = "g" + "r" * vert_lanes + "r"
+            right = "g" + "r" * horiz_lanes + "r"
+            left = "g" + "G" * horiz_lanes + "G"
+            return vertical + right + vertical + left
+
+        elif phase_type == "protected_left_left_to_yellow":
+            vertical = "g" + "r" * vert_lanes + "r"
+            right = "g" + "r" * horiz_lanes + "r"
+            left = "g" + "y" * horiz_lanes + "y"
+            return vertical + right + vertical + left
+
+    def total_lanes(self):
+        """Computes the total number of lanes in a queue grid"""
+        horiz_lanes = self.horizontal_lanes
+        vert_lanes = self.vertical_lanes
+        print("TO IMPLEMENT - KEVINLIN")
+        return horiz_lanes * vert_lanes
+
 
     def _convert_edge(self, edges):
         """Convert the string edge to a number.
@@ -506,7 +512,7 @@ class QueueGridEnv(Env):
 
         if direction == "top":
             node = agent_id_num + self.cols
-            if node >= self.cols * self.rows:
+            if node >= self.num_tl_intersections:
                 node = -1
         elif direction == "bottom":
             node = agent_id_num - self.cols
@@ -639,9 +645,9 @@ class QueueGridPOEnv(QueueGridEnv):
         tl_box = Box(
             low=0.,
             high=1,
-            shape=(3 * 4 * self.num_observed * self.num_traffic_lights +
+            shape=(3 * 4 * self.num_observed * self.num_tl_intersections +
                    2 * len(self.k.network.get_edge_list()) +
-                   3 * self.num_traffic_lights,),
+                   3 * self.num_tl_intersections,),
             dtype=np.float32)
         return tl_box
 
