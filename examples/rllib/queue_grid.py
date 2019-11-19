@@ -11,6 +11,7 @@ from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
 from flow.envs import TrafficLightGridPOEnv
+from flow.envs import QueueGridPOEnv
 from flow.networks import TrafficLightGridNetwork
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder

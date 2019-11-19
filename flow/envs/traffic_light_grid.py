@@ -144,8 +144,7 @@ class TrafficLightGridEnv(Env):
         of the vehicle.
 
     Actions
-        The action space consist of a list of float variables ranging from 0-1  # TODO: Kevin - need a list of numbers
-                                                                                # TODO: from [0, 1, 2, 3, 4, 5] that specifies what phase the tl should be
+        The action space consist of a list of float variables ranging from 0-1
         specifying whether a traffic light is supposed to switch or not. The
         actions are sent to the traffic light in the grid from left to right
         and then top to bottom.
@@ -172,7 +171,7 @@ class TrafficLightGridEnv(Env):
     cols : int
         Number of columns in this traffic light grid network
     num_traffic_lights : int
-        Number of intersection in this traffic light grid network   # TODO: number of intersections? or number of traffic lights? This seems hacky?
+        Number of intersection in this traffic light grid network
     tl_type : str
         Type of traffic lights, either 'actuated' or 'static'
     steps : int
@@ -186,22 +185,18 @@ class TrafficLightGridEnv(Env):
         intersection / node
     last_change : np array [num_traffic_lights]x1 np array
         Multi-dimensional array keeping track, in timesteps, of how much time
-        has passed since the last change to yellow for each traffic light    # TODO: Kevin - keeping track of last change to yellow, hmmmmmmm
+        has passed since the last change to yellow for each traffic light
     direction : np array [num_traffic_lights]x1 np array
 
-        Multi-dimensional array keeping track of which direction in traffic    # TODO: Kevin - Ah, gotcha - this is hacky - only works for a 1 by 1, no turns tl grid, need phases?
-        light is flowing. 0 indicates flow from top to bottom, and              # e.g. 0 indicates vertical_straight, 1 indicates horizontal_straight, 2 indicates protected_left_from**_top, etc
+        Multi-dimensional array keeping track of which direction in traffic
+        light is flowing. 0 indicates flow from top to bottom, and
         1 indicates flow from left to right
 
     # replace this 'direction' with something like "phase" 1, 2, 3 ,4, 5, 6, 7, 8, 9, 10, 11, 12
 
     currently_yellow : np array [num_traffic_lights]x1 np array
-        Multi-dimensional array keeping track of whether or not each traffic  # what's: each traffic light is currently yellow? If only 2 phases, then default is either r/g or g/y?? Maybe not
+        Multi-dimensional array keeping track of whether or not each traffic
         light is currently yellow. 1 if yellow, 0 if not
-
-    # replace this 'currently' yellow or delete it?? Not much point anymore, I think? Unless it's super relevant to the thing below
-
-    ?? Is this thing even necessary?? # TODO: Kevin - rationale behind this?
 
     min_switch_time : np array [num_traffic_lights]x1 np array
         The minimum time in timesteps that a light can be yellow. Serves
@@ -250,10 +245,7 @@ class TrafficLightGridEnv(Env):
 
         # Value of 1 indicates that the intersection is in a red-yellow state.
         # value 0 indicates that the intersection is in a red-green state.
-        self.currently_yellow = np.zeros((self.rows * self.cols, 1))   # TODO: Kevin - this is the total number of intersections -
-                                                                        # what does it mean for intersection to be in a red-yellow state? Doesn't it depend on how you're looking at it?
-                                                                        # e.g. from top/bot it's red/green, from left/right it's green/yellow? Also, what's a red-yellow state? When does a light ever
-                                                                        # change from red to yellow?
+        self.currently_yellow = np.zeros((self.rows * self.cols, 1))
 
         # when this hits min_switch_time we change from yellow to red
         # the second column indicates the direction that is currently being
@@ -267,8 +259,8 @@ class TrafficLightGridEnv(Env):
         if self.tl_type != "actuated":
             for x in range(1, x_max):
                 for y in range(1, y_max):
-                    self.k.traffic_light.set_state(         # TODO: what's this k variable?
-                        node_id="({}.{})".format(x, y), state=PHASE_NUM_TO_STR[1])    # TODO: How should the grid be initialized? I'm not sure.
+                    self.k.traffic_light.set_state(
+                        node_id="({}.{})".format(x, y), state=PHASE_NUM_TO_STR[1])
                     self.currently_yellow[y * self.cols + x] = 0
 
         # # Additional Information for Plotting
@@ -379,8 +371,8 @@ class TrafficLightGridEnv(Env):
                     else:
                         self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
-                            state='rGrG')                                   # TODO: Kevin - found it! Change this thing, and other dependencies
-                                                                            # Yikes, looks like I'm going to have fun understanding what Kathy? wrote!
+                            state='rGrG')
+
                     self.currently_yellow[i] = 0
             else:
                 if action:
@@ -471,7 +463,7 @@ class TrafficLightGridEnv(Env):
         """Act as utility function for convert_edge."""
         if edge:
             if edge[0] == ":":  # center
-                center_index = int(edge.split("center")[1][0])          # TODO: Kevin Yikes, change this too
+                center_index = int(edge.split("center")[1][0])
                 base = ((self.cols + 1) * self.rows * 2) \
                     + ((self.rows + 1) * self.cols * 2)
                 return base + center_index + 1
@@ -511,8 +503,6 @@ class TrafficLightGridEnv(Env):
         --- 1.1 --- 1.2 --- 1.3 ---
              |       |       |
 
-        TODO(kevin) remove this^
-
         See flow.networks.traffic_light_grid for more information.
 
         Example of function usage:
@@ -531,8 +521,7 @@ class TrafficLightGridEnv(Env):
         int
             node number # Nodes without traffic lights yield -1
         """
-        # TODO(Kevin Lin) what's the point of the colon here?
-
+        # TODO(KevinLin) Change this?
         agent_node_coords = [agent_id[i] for i in range(len(agent_id)) if agent_id[i].isdigit()]
         agent_node_x, agent_node_y = int(agent_node_coords[0]), int(agent_node_coords[1])
         agent_id_num = (agent_node_x - 1) + (agent_node_y - 1) * self.cols
