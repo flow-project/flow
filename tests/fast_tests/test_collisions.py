@@ -57,13 +57,13 @@ class TestCollisions(unittest.TestCase):
             vehicles=vehicles,
             net_params=net_params)
 
+        # create an experiment object
+        exp = Experiment(flow_params)
+        env = exp.env
         # go through the env and set all the lights to green
         for i in range(env.rows * env.cols):
             env.k.traffic_light.set_state(
                 node_id='center' + str(i), state="gggggggggggg")
-
-        # create an experiment object
-        exp = Experiment(flow_params)
 
         exp.run(50)
 
