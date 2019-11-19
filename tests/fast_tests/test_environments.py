@@ -82,7 +82,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
         self.assertTrue(test_space(
             env.observation_space,
             expected_size=3 * env.initial_vehicles.num_vehicles,
-            expected_min=0,
+            expected_min=-1,
             expected_max=1)
         )
 
@@ -252,7 +252,7 @@ class TestAccelEnv(unittest.TestCase):
         self.assertTrue(test_space(
             env.observation_space,
             expected_size=2 * env.initial_vehicles.num_vehicles,
-            expected_min=0, expected_max=1))
+            expected_min=-1, expected_max=1))
 
         # check the action space
         self.assertTrue(test_space(
