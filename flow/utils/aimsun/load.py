@@ -2,10 +2,17 @@
 """Script to load an Aimsun instance from a template."""
 import os
 import json
+import sys
+import numpy as np
 
 import flow.config as config
 from flow.utils.aimsun.scripting_api import AimsunTemplate
-import sys
+
+RLLIB_HORIZON = 6  # copy from train_rllib.py
+RLLIB_TRAINING_ITERATIONS = 100  # copy from train_rllib.py
+REPLICATION_LIST = ['Replication 8050297',  # 5-11
+                    'Replication 8050315',  # 10-14
+                    'Replication 8050322']  # 14-21
 
 
 def load_network():
@@ -199,5 +206,23 @@ open(check_file_path, 'a').close()
 col_sim = model.get_column('GKExperiment::simStepAtt')
 # set new simulation step value
 experiment.set_data_value(col_sim, data['sim_step'])
-# run the simulation
-model.run_replication(replication=replication, render=data['render'])
+
+for i in range(RLLIB_TRAINING_ITERATIONS * RLLIB_HORIZON):  # training_iteration * N_ROLLOUTS (from train_rllib.py)
+    # run the simulation
+    replication_name = np.random.choice(REPLICATION_LIST)
+    replication = model.find_by_name(model.replications, replication_name)
+
+    if replication is None:
+        print('[load.py] ERROR: Replication ' + replication_name + ' does not exist.')
+
+    # retrieve experiment and scenario
+    experiment = replication.experiment
+    scenario = experiment.scenario
+    scenario_data = scenario.input_data
+    scenario_data.add_extension(os.path.join(config.PROJECT_PATH, 'flow/utils/aimsun/run.py'), True)
+
+    # set new simulation step value
+    experiment.set_data_value(col_sim, data['sim_step'])
+
+    print('[load.py] ' + replication_name + ' running.')
+    model.run_replication(replication=replication, render=data['render'])

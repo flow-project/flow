@@ -12,9 +12,9 @@ import flow.config as config
 
 sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
                              'programming/Aimsun Next API/AAPIPython/Micro'))
-import flow.utils.aimsun.control_plans as cp
-from PyANGKernel import *
-import AAPI as aimsun_api
+import flow.utils.aimsun.control_plans as cp  # noqa
+from PyANGKernel import *  # noqa
+import AAPI as aimsun_api  # noqa
 
 model = GKSystem.getSystem().getActiveModel()
 PORT = int(model.getAuthor())
@@ -137,6 +137,14 @@ def threaded_client(conn, **kwargs):
             # thereby terminating the socket connection as well.
             elif data == ac.SIMULATION_TERMINATE:
                 send_message(conn, in_format='i', values=(0,))
+                done = True
+
+            # resets the simulation without closing AIMSUN
+            elif data == ac.SIMULATION_RESET:
+                send_message(conn, in_format='i', values=(0,))
+
+                # sends a signal to cancel the simulation
+                aimsun_api.ANGSetSimulationOrder(1, 0)
                 done = True
 
             elif data == ac.ADD_VEHICLE:

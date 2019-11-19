@@ -13,6 +13,7 @@ ADDITIONAL_ENV_PARAMS = {'target_nodes': [3369, 3341, 3370, 3344, 3329],
                          'replication_list': ['Replication 8050297',  # 5-11
                                               'Replication 8050315',  # 10-14
                                               'Replication 8050322']}  # 14-21
+# the replication list should be copied in load.py
 
 np.random.seed(1234567890)
 
@@ -27,7 +28,8 @@ class CoordinatedEnv(Env):
         super().__init__(env_params, sim_params, network, simulator)
         self.additional_params = env_params.additional_params
 
-        self.detection_interval = self.additional_params['detection_interval'][1]*60 # FIXME: assuming minutes for now
+        self.first_run = True
+        self.detection_interval = self.additional_params['detection_interval'][1]*60  # FIXME: assuming minutes for now
         self.k.simulation.set_detection_interval(*self.additional_params['detection_interval'])
         self.k.simulation.set_statistical_interval(*self.additional_params['statistical_interval'])
         self.k.traffic_light.set_replication_seed(np.random.randint(2e9))
@@ -62,10 +64,9 @@ class CoordinatedEnv(Env):
     @property
     def action_space(self):
         """See class definition."""
-        cycle_length = 120
         return Box(
             low=0,
-            high=cycle_length,
+            high=1,
             shape=(len(self.target_nodes),),
             dtype=np.float32)
 
@@ -78,10 +79,11 @@ class CoordinatedEnv(Env):
         return Box(low=0, high=5, shape=(shape, ), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
-        delta_offset = rl_actions - self.current_offset
+        actions = rl_actions * 120
+        delta_offset = actions - self.current_offset
         for node_id, action in zip(self.target_nodes, delta_offset):
             self.k.traffic_light.change_intersection_offset(node_id, action)
-        self.current_offset = rl_actions
+        self.current_offset = actions
 
     def get_state(self, rl_id=None, **kwargs):
         """See class definition."""
@@ -147,13 +149,11 @@ class CoordinatedEnv(Env):
         # reset the step counter
         self.step_counter = 0
 
-        # restart aimsun instance
-        self.restart_simulation(
-            sim_params=self.sim_params,
-            render=self.sim_params.render)
-
-        # self.sim_params.replication_name = np.random.choice(ADDITIONAL_ENV_PARAMS['replication_list'])
-        # self.k.traffic_light.set_replication_seed(np.random.randint(2e9))
+        if self.first_run:
+            self.first_run = False
+        else:
+            self.k.simulation.reset_simulation()
+            print('Resetting AIMSUN')
 
         # perform the generic reset function
         observation = super().reset()

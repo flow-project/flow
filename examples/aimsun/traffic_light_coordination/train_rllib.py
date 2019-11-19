@@ -21,10 +21,15 @@ sim_step = 0.8  # seconds
 detector_step = 300  # seconds
 # detector_step = 1.6  # seconds
 
-timehorizon = 3600*4 - detector_step
-HORIZON = int(timehorizon//sim_step)
-N_ROLLOUTS = 20
-# N_ROLLOUTS = 10
+time_horizon = 3600*4 - detector_step  # 14,100
+HORIZON = int(time_horizon//sim_step)
+
+RLLIB_N_CPUS = 6
+RLLIB_HORIZON = int(time_horizon//detector_step)  # 47
+
+# set both of these in load.py
+RLLIB_N_ROLLOUTS = 6  # set in load.py
+RLLIB_TRAINING_ITERATIONS = 100  # set in load.py
 
 # ADDITIONAL_ENV_PARAMS['detection_interval'] = (detector_step//3600,  (detector_step%3600)//60, detector_step%60)
 # ADDITIONAL_ENV_PARAMS['statistical_interval'] = (detector_step//3600,  (detector_step%3600)//60, detector_step%60)
@@ -39,10 +44,9 @@ env_params = EnvParams(horizon=HORIZON,
 sim_params = AimsunParams(sim_step=sim_step,
                           render=False,
                           restart_instance=False,
-                        #   replication_name="Replication (one hour)",
+                          #   replication_name="Replication (one hour)",
                           replication_name=ADDITIONAL_ENV_PARAMS['replication_list'][0],
-                          centroid_config_name="Centroid Configuration 8040652"
-                          )
+                          centroid_config_name="Centroid Configuration 8040652")
 
 
 flow_params = dict(
@@ -74,17 +78,18 @@ def setup_exps(version=0):
 
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
-    config["num_workers"] = N_CPUS
-    config["sgd_minibatch_size"] = 32  # remove me
-    config["train_batch_size"] = (timehorizon//detector_step)*N_ROLLOUTS
+    config["num_workers"] = RLLIB_N_CPUS
+    # config["sgd_minibatch_size"] = 32  # remove me
+    config["train_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
+    config["sample_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS
     config["model"].update({"fcnet_hiddens": [32, 32]})
     config["use_gae"] = True
     config["lambda"] = 0.97
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
-    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
-    config["horizon"] = timehorizon//detector_step  # not same as env horizon. 
+    config['clip_actions'] = False  # (ev) temporary ray bug
+    config["horizon"] = RLLIB_HORIZON  # not same as env horizon.
     config["vf_loss_coeff"] = 1e-5
 
     # save the flow params for replay
@@ -101,8 +106,7 @@ def setup_exps(version=0):
 
 
 if __name__ == "__main__":
-    N_CPUS = 6
-    ray.init(num_cpus=N_CPUS + 1, object_store_memory=int(1e9))
+    ray.init(num_cpus=RLLIB_N_CPUS + 1, object_store_memory=int(1e9))
 
     alg_run, gym_name, config = setup_exps()
     trials = run_experiments({
@@ -116,7 +120,7 @@ if __name__ == "__main__":
             "checkpoint_at_end": True,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 100,
+                "training_iteration": RLLIB_TRAINING_ITERATIONS,  # set this value in load.py
             },
             # "local_dir": os.path.abspath("./ray_results"),
         }
