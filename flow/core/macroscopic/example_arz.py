@@ -17,11 +17,11 @@ def main():
     # density initial_data
     rho_L_side = 0.5 * (x < max(x) / 2)
     rho_R_side = 0.5 * (x > max(x) / 2)
-    u_data_rho_rho = rho_L_side + rho_R_side
+    u_data_rho_rho = np.append([0.5], rho_L_side + rho_R_side)
     # velocity initial_data
     u_L_side = 0.7 * (x < max(x) / 2)
     u_R_side = 0.1 * (x > max(x) / 2)
-    u_data_rho_velocity = u_L_side + u_R_side
+    u_data_rho_velocity = np.append([0.7], u_L_side + u_R_side)
 
     params["dx"] = dx
     params['initial_conditions'] = (u_data_rho_rho, u_data_rho_velocity)
