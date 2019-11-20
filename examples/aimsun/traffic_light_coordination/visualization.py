@@ -27,7 +27,7 @@ def reload_checkpoint(result_dir, checkpoint_num, gen_emission=False, version=0,
     # Determine agent and checkpoint
     config_run = config['env_config'].get("run", None)
     agent_cls = get_agent_class(config_run)
-        
+
     sim_params.restart_instance = True
     dir_path = os.path.dirname(os.path.realpath(__file__))
     emission_path = '{0}/emission/'.format(dir_path)
@@ -54,6 +54,7 @@ def reload_checkpoint(result_dir, checkpoint_num, gen_emission=False, version=0,
 
     return env, env_params, agent
 
+
 def replay(env, env_params, agent):
     # Replay simulations
     state = env.reset()
@@ -63,11 +64,12 @@ def replay(env, env_params, agent):
         state, reward, done, _ = env.step(action)
         if done:
             break
-        
+
     # terminate the environment
     env.unwrapped.terminate()
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     import re
     regex = re.compile(r'checkpoint_(\d+)')
     ray.init(num_cpus=1)
@@ -76,7 +78,8 @@ if __name__=="__main__":
 
     result_dirs = os.listdir(experiment_dir)
     for result_dir in result_dirs:
-        if result_dir[0]=='.': continue
+        if result_dir[0] == '.':
+            continue
         result_dir = "{}/{}".format(experiment_dir, result_dir)
         print("Processing {}".format(result_dir))
 
