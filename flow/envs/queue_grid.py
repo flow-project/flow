@@ -203,17 +203,17 @@ class QueueGridEnv(Env):
         # Value of 0 indicates that the intersection is in its phase's green state
         # Value of 1 indicates that the intersection is in its phases' yellow state
         self.green_or_yellow = np.zeros((self.num_tl_intersections, 1))
-        print(self.cols)
-        print(self.rows)
-        print(self.green_or_yellow.shape)
-        print(1111111111111111111111111111111111111111111111111111111111111111111)
+        # print(self.cols)
+        # print(self.rows)
+        # print(self.green_or_yellow.shape)
+        # print(1111111111111111111111111111111111111111111111111111111111111111111)
 
         x_max = self.cols + 1
         y_max = self.rows + 1
 
         if self.tl_type != "actuated":
-            for x in range(1, x_max - 1):
-                for y in range(0, y_max - 1):
+            for x in range(1, x_max):
+                for y in range(1, y_max):
                     self.k.traffic_light.set_state(
                         node_id="({}.{})".format(x, y), state=PHASE_NUM_TO_STR[0])
                     self.green_or_yellow[(y - 1) * self.cols + (x - 1)] = 0
@@ -245,29 +245,35 @@ class QueueGridEnv(Env):
     @property
     def observation_space(self):
         """See class definition."""
-        cars_per_lane = Box(
-            low=0.,
-            high=1,
-            shape=(self.total_lanes()),      # Each lane has its own entry for the number of cars
-            dtype=np.float32)  # check how discrete values work
-        # Check what the low=0, high=1 means
-        curr_phase_duration = Box(
-            low=0.,
-            high=1,
-            shape=(self.num_tl_intersections,),
-            dtype=np.float32)
-        curr_phase = Box(
-            low=0.,
-            high=1,
-            shape=(self.num_tl_intersections,),
-            dtype=np.float32)
-        currently_green = Box(
-            low=0.,
-            high=1,
-            shape=(self.num_tl_intersections,),
+        # cars_per_lane = Box(
+        #     low=-1.0,
+        #     high=2,
+        #     shape=(self.total_lanes(),),      # Each lane has its own entry for the number of cars
+        #     dtype=np.float32)  # check how discrete values work
+        # # Check what the low=0, high=1 means
+        # curr_phase_duration = Box(
+        #     low=-1.0,
+        #     high=2,
+        #     shape=(self.num_tl_intersections,),
+        #     dtype=np.float32)
+        # curr_phase = Box(
+        #     low=-1.0,
+        #     high=2,
+        #     shape=(self.num_tl_intersections,),
+        #     dtype=np.float32)
+        # currently_green = Box(
+        #     low=-1.0,
+        #     high=2,
+        #     shape=(self.num_tl_intersections,),
+        #     dtype=np.float32)
+
+        obs = Box(
+            low=-1.0,
+            high=2,
+            shape=(self.total_lanes() + self.num_tl_intersections * 3,),
             dtype=np.float32)
 
-        return Tuple((cars_per_lane, curr_phase_duration, curr_phase, currently_green))
+        return obs
         # TODO(KevinLin) any advantage of tuple over one large box?
 
     def get_state(self):
@@ -278,14 +284,12 @@ class QueueGridEnv(Env):
         for laneID in self.k.kernel_api.lane.getIDList():
             cars_per_lane.append(self.k.kernel_api.lane.getLastStepVehicleNumber(laneID))
 
-        state = [
-            cars_per_lane,
+        state = [cars_per_lane,
             self.curr_phase_duration.flatten().tolist(),
             self.curr_phase.flatten().tolist(),
-            self.green_or_yellow.flatten().tolist()
-        ]
+            self.green_or_yellow.flatten().tolist()]
 
-        return np.array(state)
+        return state
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
