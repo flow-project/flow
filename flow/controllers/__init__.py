@@ -14,7 +14,7 @@ from flow.controllers.rlcontroller import RLController
 from flow.controllers.base_controller import BaseController
 from flow.controllers.car_following_models import CFMController, \
     BCMController, OVMController, LinearOVM, IDMController, \
-    SimCarFollowingController, LACController
+    SimCarFollowingController, LACController, GippsController
 from flow.controllers.velocity_controllers import FollowerStopper, \
     PISaturation
 
@@ -34,5 +34,6 @@ __all__ = [
     "CFMController", "BCMController", "OVMController", "LinearOVM",
     "IDMController", "SimCarFollowingController", "FollowerStopper",
     "PISaturation", "StaticLaneChanger", "SimLaneChangeController",
-    "ContinuousRouter", "GridRouter", "BayBridgeRouter", "LACController"
+    "ContinuousRouter", "GridRouter", "BayBridgeRouter", "LACController",
+    "GippsController"
 ]

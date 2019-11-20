@@ -7,7 +7,8 @@ from flow.core.params import SumoCarFollowingParams
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController, \
-    OVMController, BCMController, LinearOVM, CFMController, LACController
+    OVMController, BCMController, LinearOVM, CFMController, LACController, \
+    GippsController
 from flow.controllers import FollowerStopper, PISaturation
 from tests.setup_scripts import ring_road_exp_setup
 import os
@@ -631,6 +632,62 @@ class TestLACController(unittest.TestCase):
         ]
 
         expected_accel = [0., 1.5, 3., 4.5, 6.]
+
+        np.testing.assert_array_almost_equal(requested_accel, expected_accel)
+
+
+class TestGippsontroller(unittest.TestCase):
+    """
+    Tests that the Gipps Controller returning mathematically accurate values.
+    """
+
+    def setUp(self):
+        # add a few vehicles to the network using the requested model
+        # also make sure that the input params are what is expected
+        contr_params = {
+            "v0": 30,
+            "acc": 1.5,
+            "b": -1,
+            "b_l": -1,
+            "s0": 2,
+            "tau": 1,
+            "delay": 0,
+            "noise": 0,
+        }
+
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(GippsController, contr_params),
+            routing_controller=(ContinuousRouter, {}),
+            car_following_params=SumoCarFollowingParams(
+                accel=15, decel=5),
+            num_vehicles=5)
+
+        # create the environment and network classes for a ring road
+        self.env, _ = ring_road_exp_setup(vehicles=vehicles)
+
+    def tearDown(self):
+        # terminate the traci instance
+        self.env.terminate()
+
+        # free data used by the class
+        self.env = None
+
+    def test_get_action(self):
+        self.env.reset()
+        ids = self.env.k.vehicle.get_ids()
+
+        test_headways = [2, 4, 6, 8, 10]
+        for i, veh_id in enumerate(ids):
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
+
+        requested_accel = [
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
+            for veh_id in ids
+        ]
+
+        expected_accel = [0., 5.929271, 5.929271, 5.929271, 5.929271]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
