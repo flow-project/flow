@@ -881,7 +881,7 @@ class TraCIVehicle(KernelVehicle):
             try:
                 if len(edge_dict[edge][lane]) > 0:
                     tailway = pos - edge_dict[edge][lane][-1][1] + add_length \
-                              - self.get_length(veh_id)
+                        - self.get_length(veh_id)
                     follower = edge_dict[edge][lane][-1][0]
             except KeyError:
                 # current edge has no vehicles, so move on
@@ -950,14 +950,12 @@ class TraCIVehicle(KernelVehicle):
 
         for i, veh_id in enumerate(veh_ids):
             if route_choices[i] is not None:
-                self.kernel_api.vehicle.setRoute(
-                    vehID=veh_id, edgeList=route_choices[i])
-                
-                if self.kernel_api.vehicle.getTypeID(veh_id) == "bus":
-                    self.set_next_stop(veh_id, 'bus_stop_0', 2)
-
-    def set_next_stop(self, veh_id, stop_id, duration=10):
-        self.kernel_api.vehicle.setBusStop(veh_id, stop_id, duration)
+                if isinstance(route_choices[i], str):
+                    self.kernel_api.vehicle.setRouteID(
+                        vehID=veh_id, routeID=route_choices[i])
+                else:
+                    self.kernel_api.vehicle.setRoute(
+                        vehID=veh_id, edgeList=route_choices[i])
 
     def get_x_by_id(self, veh_id):
         """See parent class."""
@@ -1023,6 +1021,8 @@ class TraCIVehicle(KernelVehicle):
             frac = [val[1] for val in self.master_kernel.network.rts[edge]]
             route_id = 'route{}_{}'.format(edge, np.random.choice(
                 [i for i in range(num_routes)], size=1, p=frac)[0])
+            if type_id == "bus":
+                route_id = "bus_"+route_id
 
         self.kernel_api.vehicle.addFull(
             veh_id,
@@ -1031,10 +1031,6 @@ class TraCIVehicle(KernelVehicle):
             departLane=str(lane),
             departPos=str(pos),
             departSpeed=str(speed))
-        
-        if type_id == "bus":
-            print(veh_id)
-            self.set_next_stop(veh_id, 'bus_stop_0', 2)
 
     def get_max_speed(self, veh_id, error=-1001):
         """See parent class."""

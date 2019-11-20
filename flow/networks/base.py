@@ -337,6 +337,7 @@ class Network(object):
 
         # specify routes vehicles can take
         self.routes = self.specify_routes(net_params)
+        self.bus_routes = self.specify_bus_routes(net_params)
 
         if net_params.template is None and net_params.osm_path is None:
             # specify the attributes of the nodes
@@ -633,6 +634,9 @@ class Network(object):
             traverse *OR* a list of (route, probability) tuples for each
             starting edge
         """
+        return None
+
+    def specify_bus_routes(self, net_params):
         return None
 
     @staticmethod

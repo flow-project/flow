@@ -173,6 +173,7 @@ class Env(gym.Env):
         # vehicles can traverse; to be used when routes need to be chosen
         # dynamically
         self.available_routes = self.k.network.rts
+        self.available_bus_routes = self.k.network.bus_rts
 
         # store the initial vehicle ids
         self.initial_ids = deepcopy(self.network.vehicles.ids)

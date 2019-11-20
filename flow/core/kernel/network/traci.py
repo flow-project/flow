@@ -201,11 +201,13 @@ class TraCIKernelNetwork(BaseKernelNetwork):
 
         # specify routes vehicles can take  # TODO: move into a method
         self.rts = self.network.routes
+        self.bus_rts = self.network.bus_routes
 
         # create the sumo configuration files
         cfg_name = self.generate_cfg(self.network.net_params,
                                      self.network.traffic_lights,
-                                     self.network.routes)
+                                     self.network.routes,
+                                     self.network.bus_routes)
 
         # specify the location of the sumo configuration file
         self.cfg = self.cfg_path + cfg_name
@@ -613,7 +615,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
 
         return edges_dict, conn_dict
 
-    def generate_cfg(self, net_params, traffic_lights, routes):
+    def generate_cfg(self, net_params, traffic_lights, routes, bus_routes):
         """Generate .sumo.cfg files using net files and netconvert.
 
         This method is responsible for creating the following config files:
@@ -773,6 +775,22 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                     id='route{}_{}'.format(route_id, i),
                     edges=' '.join(r)
                 ))
+        for bus_route_id, b_routes in bus_routes.items():
+            # in this case, we only have one route, convert into into a
+            # list of bus routes with one element
+            if isinstance(b_routes[0], list):
+                b_routes = [(b_routes[0], 1, b_routes[1])]
+                bus_routes[bus_route_id] = b_routes
+
+            # add each route incrementally, and add a second term to denote
+            # the route number of the given route at the given edge
+            for i, (edges, _, stops) in enumerate(b_routes):
+                bus_route = etree.SubElement(routes_data,
+                                             'route',
+                                             id='bus_route{}_{}'.format(bus_route_id, i),
+                                             edges=' '.join(edges))
+                for stop in stops:
+                    etree.SubElement(bus_route, 'stop', busStop=stop, duration='2')
 
         # add the inflows from various edges to the xml file
         if self.network.net_params.inflows is not None:
