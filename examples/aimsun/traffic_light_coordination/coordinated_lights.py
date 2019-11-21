@@ -29,7 +29,7 @@ class CoordinatedEnv(Env):
         self.additional_params = env_params.additional_params
 
         self.first_run = True
-        self.detection_interval = self.additional_params['detection_interval'][1]*60  # FIXME: assuming minutes for now
+        self.detection_interval = self.additional_params['detection_interval'][1]*60  # assuming minutes for now
         self.k.simulation.set_detection_interval(*self.additional_params['detection_interval'])
         self.k.simulation.set_statistical_interval(*self.additional_params['statistical_interval'])
         self.k.traffic_light.set_replication_seed(np.random.randint(2e9))
@@ -125,20 +125,15 @@ class CoordinatedEnv(Env):
     def compute_reward(self, rl_actions, **kwargs):
         """Computes the average speed of vehicles in the network."""
         running_sum = 0
-        for section_id, past_queue in self.past_cumul_queue.items():
-            cumul_queue = self.k.traffic_light.get_cumulative_queue_length(section_id)
-            queue = cumul_queue - self.past_cumul_queue[section_id]
-            self.past_cumul_queue[section_id] = cumul_queue
-            running_sum += queue**2
-        print(self.current_offset)
+        for section_id in self.past_cumul_queue:
+            current_cumul_queue = self.k.traffic_light.get_cumulative_queue_length(section_id)
+            delta_queue = current_cumul_queue - self.past_cumul_queue[section_id]
+            self.past_cumul_queue[section_id] = current_cumul_queue
+            running_sum += delta_queue**2
+        print(self.current_offset, -running_sum)
 
         # reward is negative queues
         return -running_sum
-
-    def additional_command(self):
-        """Additional commands that may be performed by the step method."""
-        # print(self.current_offset)
-        pass
 
     def reset(self):
         """See parent class.
@@ -153,7 +148,7 @@ class CoordinatedEnv(Env):
             self.first_run = False
         else:
             self.k.simulation.reset_simulation()
-            print('Resetting AIMSUN')
+            print('\n----------------\nResetting AIMSUN\n----------------\n')
 
         # perform the generic reset function
         observation = super().reset()
