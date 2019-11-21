@@ -143,12 +143,6 @@ class CoordinatedEnv(Env):
         # reset the step counter
         self.step_counter = 0
 
-        # reset the timer to zero
-        self.time_counter = 0
-
-        # perform the generic reset function
-        observation = super().reset()
-
         if self.episode_count:
             self.k.simulation.reset_simulation()
             print('-----------------------')
@@ -156,10 +150,17 @@ class CoordinatedEnv(Env):
             print('Resetting AIMSUN')
             print('-----------------------')
 
+        # perform the generic reset function
+        observation = super().reset()
+
+        # reset the timer to zero
+        self.time_counter = 0
+
         # increment episode count
         self.episode_count += 1
 
         # reset variables
+        self.current_offset = np.zeros(len(self.target_nodes))
         for section_id in self.past_cumul_queue:
             self.past_cumul_queue[section_id] = 0
 
