@@ -7,18 +7,15 @@ class BaseRouter:
     These controllers are used to dynamically change the routes of vehicles
     after initialization.
 
-    Usage: 
+    Usage
+    -----
+    >>> from flow.core.params import VehicleParams
+    >>> from flow.controllers import ContinuousRouter
+    >>> vehicles = VehicleParams()
+    >>> vehicles.add("human", routing_controller=(ContinuousRouter, {}))
 
-        >>> from flow.core.vehicles import Vehicles
-        >>> from flow.controllers import ContinuousRouter
-        >>> vehicles = Vehicles()
-        >>> veh_id = "human"
-        >>> vehicles.add(veh_id, routing_controller=(ContinuousRouter, {}))
-
-    You can replace "ContinuousRouter" with any routing controller you want. In order 
-    to collect the list of all vehicles in the next, run:
-
-        >>> veh_ids = vehicles.get_ids()
+    Note: You can replace "ContinuousRouter" with any routing controller you
+    want.
 
     Parameters
     ----------
@@ -39,7 +36,7 @@ class BaseRouter:
         Parameters
         ----------
         env : flow.envs.Env
-            see flow/envs/base_env.py
+            see flow/envs/base.py
 
         Returns
         -------

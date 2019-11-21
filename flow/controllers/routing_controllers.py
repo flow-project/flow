@@ -7,12 +7,14 @@ from flow.controllers.base_routing_controller import BaseRouter
 
 
 class ContinuousRouter(BaseRouter):
-    """A router used to continuously re-route of the vehicle in a closed loop.
+    """A router used to continuously re-route of the vehicle in a closed ring.
 
     This class is useful if vehicles are expected to continuously follow the
     same route, and repeat said route once it reaches its end.
 
-    Usage: See base class for usage example.
+    Usage
+    -----
+    See base class for usage example.
     """
 
     def choose_route(self, env):
@@ -42,11 +44,17 @@ class ContinuousRouter(BaseRouter):
 
 
 class MinicityRouter(BaseRouter):
-    """A router used to continuously re-route vehicles in minicity scenario.
+    """A router used to continuously re-route vehicles in minicity network.
 
     This class allows the vehicle to pick a random route at junctions.
 
+<<<<<<< HEAD
     Usage: See base class for usage example.
+=======
+    Usage
+    -----
+    See base class for usage example.
+>>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
     """
 
     def choose_route(self, env):
@@ -55,8 +63,8 @@ class MinicityRouter(BaseRouter):
         veh_id = self.veh_id
         veh_edge = vehicles.get_edge(veh_id)
         veh_route = vehicles.get_route(veh_id)
-        veh_next_edge = env.k.scenario.next_edge(veh_edge,
-                                                 vehicles.get_lane(veh_id))
+        veh_next_edge = env.k.network.next_edge(veh_edge,
+                                                vehicles.get_lane(veh_id))
         not_an_edge = ":"
         no_next = 0
 
@@ -65,7 +73,7 @@ class MinicityRouter(BaseRouter):
         elif veh_route[-1] == veh_edge:
             random_route = random.randint(0, len(veh_next_edge) - 1)
             while veh_next_edge[0][0][0] == not_an_edge:
-                veh_next_edge = env.k.scenario.next_edge(
+                veh_next_edge = env.k.network.next_edge(
                     veh_next_edge[random_route][0],
                     veh_next_edge[random_route][1])
             next_route = [veh_edge, veh_next_edge[0][0]]
@@ -79,9 +87,17 @@ class MinicityRouter(BaseRouter):
 
 
 class GridRouter(BaseRouter):
+<<<<<<< HEAD
     """A router used to re-route a vehicle within a grid environment.
 
     Usage: See base class for usage example.
+=======
+    """A router used to re-route a vehicle in a traffic light grid environment.
+
+    Usage
+    -----
+    See base class for usage example.
+>>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
     """
 
     def choose_route(self, env):
@@ -98,11 +114,17 @@ class GridRouter(BaseRouter):
 
 
 class BayBridgeRouter(ContinuousRouter):
-    """Assists in choosing routes in select cases for the Bay Bridge scenario.
+    """Assists in choosing routes in select cases for the Bay Bridge network.
 
     Extension to the Continuous Router.
 
+<<<<<<< HEAD
     Usage: See base class for usage example.
+=======
+    Usage
+    -----
+    See base class for usage example.
+>>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
     """
 
     def choose_route(self, env):

@@ -1,6 +1,6 @@
 """Test environment used to run simulations in the absence of autonomy."""
 
-from flow.envs.base_env import Env
+from flow.envs.base import Env
 from gym.spaces.box import Box
 import numpy as np
 

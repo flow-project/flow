@@ -17,7 +17,9 @@ from flow.controllers.base_controller import BaseController
 class CFMController(BaseController):
     """CFM controller.
 
-    Usage: See BaseController for usage example.
+    Usage
+    -----
+    See BaseController for usage example.
 
     Attributes
     ----------
@@ -91,7 +93,13 @@ class BCMController(BaseController):
 
     This model looks ahead and behind when computing its acceleration.
 
+<<<<<<< HEAD
     Usage: See BaseController for usage example.
+=======
+    Usage
+    -----
+    See BaseController for usage example.
+>>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
 
     Attributes
     ----------
@@ -244,7 +252,13 @@ class LACController(BaseController):
 class OVMController(BaseController):
     """Optimal Vehicle Model controller.
 
+<<<<<<< HEAD
     Usage: See BaseController for usage example.
+=======
+    Usage
+    -----
+    See BaseController for usage example.
+>>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
 
     Attributes
     ----------
@@ -325,7 +339,13 @@ class OVMController(BaseController):
 class LinearOVM(BaseController):
     """Linear OVM controller.
 
+<<<<<<< HEAD
     Usage: See BaseController for usage example.
+=======
+    Usage
+    -----
+    See BaseController for usage example.
+>>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
 
     Attributes
     ----------
@@ -397,9 +417,15 @@ class IDMController(BaseController):
     states in empirical observations and microscopic simulations." Physical
     review E 62.2 (2000): 1805.
 
+<<<<<<< HEAD
 
     Usage: See BaseController for usage example.
     
+=======
+    Usage
+    -----
+    See BaseController for usage example.
+>>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
 
     Attributes
     ----------
@@ -491,3 +517,88 @@ class SimCarFollowingController(BaseController):
     def get_accel(self, env):
         """See parent class."""
         return None
+
+
+class GippsController(BaseController):
+    """Gipps' Model controller.
+
+    For more information on this controller, see:
+    Traffic Flow Dynamics written by M.Treiber and A.Kesting
+    By courtesy of Springer publisher, http://www.springer.com
+
+    http://www.traffic-flow-dynamics.org/res/SampleChapter11.pdf
+
+    Usage
+    -----
+    See BaseController for usage example.
+
+    Attributes
+    ----------
+    veh_id : str
+        Vehicle ID for SUMO identification
+    car_following_params : flow.core.param.SumoCarFollowingParams
+        see parent class
+    v0 : float
+        desirable velocity, in m/s (default: 30)
+    acc : float
+        max acceleration, in m/s2 (default: 1.5)
+    b : float
+        comfortable deceleration, in m/s2 (default: -1)
+    b_l : float
+        comfortable deceleration for leading vehicle , in m/s2 (default: -1)
+    s0 : float
+        linear jam distance for saftey, in m (default: 2)
+    tau : float
+        reaction time in s (default: 1)
+    noise : float
+        std dev of normal perturbation to the acceleration (default: 0)
+    fail_safe : str
+        type of flow-imposed failsafe the vehicle should posses, defaults
+        to no failsafe (None)
+    """
+
+    def __init__(self,
+                 veh_id,
+                 car_following_params=None,
+                 v0=30,
+                 acc=1.5,
+                 b=-1,
+                 b_l=-1,
+                 s0=2,
+                 tau=1,
+                 delay=0,
+                 noise=0,
+                 fail_safe=None):
+        """Instantiate a Gipps' controller."""
+        BaseController.__init__(
+            self,
+            veh_id,
+            car_following_params,
+            delay=delay,
+            fail_safe=fail_safe,
+            noise=noise
+            )
+
+        self.v_desired = v0
+        self.acc = acc
+        self.b = b
+        self.b_l = b_l
+        self.s0 = s0
+        self.tau = tau
+
+    def get_accel(self, env):
+        """See parent class."""
+        v = env.k.vehicle.get_speed(self.veh_id)
+        h = env.k.vehicle.get_headway(self.veh_id)
+        v_l = env.k.vehicle.get_speed(
+            env.k.vehicle.get_leader(self.veh_id))
+
+        # get velocity dynamics
+        v_acc = v + (2.5 * self.acc * self.tau * (
+                1 - (v / self.v_desired)) * np.sqrt(0.025 + (v / self.v_desired)))
+        v_safe = (self.tau * self.b) + np.sqrt(((self.tau**2) * (self.b**2)) - (
+                self.b * ((2 * (h-self.s0)) - (self.tau * v) - ((v_l**2) / self.b_l))))
+
+        v_next = min(v_acc, v_safe, self.v_desired)
+
+        return (v_next-v)/env.sim_step

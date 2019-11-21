@@ -3,7 +3,7 @@
 import logging
 import collections
 
-from flow.utils.flow_warnings import deprecation_warning
+from flow.utils.flow_warnings import deprecated_attribute
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
@@ -47,7 +47,7 @@ class TrafficLightParams:
     def __init__(self, baseline=False):
         """Instantiate base traffic light.
 
-        Parameters
+        Attributes
         ----------
         baseline: bool
         """
@@ -159,9 +159,9 @@ class TrafficLightParams:
         return self.__tls_properties
 
     def actuated_default(self):
-        """Return the default values for an actuated scenario.
+        """Return the default values for an actuated network.
 
-        An actuated scenario is a scenario for a system where
+        An actuated network is a network for a system where
         all junctions are actuated traffic lights.
 
         Returns
@@ -374,22 +374,7 @@ class SimParams(object):
 
     All subsequent parameters of the same type must extend this.
 
-    Usage: (Example for using a subclass -- Sumo_Params)
-    
-        >>> from flow.core.params import SumoParams
-        >>> sumo_params = SumoParams(sim_step=0.1, render=False)
-        >>> flow_params = dict(
-                                ...
-                                # sumo-related parameters (see flow.core.params.SumoParams)
-                                sim=sumo_params
-                                ...
-                        )
-        >>> flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
-                           indent=4)  # generating a string version of flow_params
-        >>> config['env_config']['flow_params'] = flow_json 
-
-
-    Parameters
+    Attributes
     ----------
     sim_step : float optional
         seconds per simulation step; 0.1 by default
@@ -450,9 +435,7 @@ class AimsunParams(SimParams):
 
     Extends SimParams.
 
-    Usage: See Base Class for example.
-
-    Parameters
+    Attributes
     ----------
     sim_step : float optional
         seconds per simulation step; 0.1 by default
@@ -482,15 +465,15 @@ class AimsunParams(SimParams):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
-    scenario_name : str, optional
-        name of the scenario generated in Aimsun.
+    network_name : str, optional
+        name of the network generated in Aimsun.
     experiment_name : str, optional
         name of the experiment generated in Aimsun
     replication_name : str, optional
         name of the replication generated in Aimsun. When loading
         an Aimsun template, this parameter must be set to the name
         of the replication to be run by the simulation; in this case,
-        the scenario_name and experiment_name parameters are not
+        the network_name and experiment_name parameters are not
         necessary as they will be obtained from the replication name.
     centroid_config_name : str, optional
         name of the centroid configuration to load in Aimsun. This
@@ -514,7 +497,7 @@ class AimsunParams(SimParams):
                  show_radius=False,
                  pxpm=2,
                  # set to match Flow_Aimsun.ang's scenario name
-                 scenario_name="Dynamic Scenario 866",
+                 network_name="Dynamic Scenario 866",
                  # set to match Flow_Aimsun.ang's experiment name
                  experiment_name="Micro SRC Experiment 867",
                  # set to match Flow_Aimsun.ang's replication name
@@ -525,7 +508,7 @@ class AimsunParams(SimParams):
         super(AimsunParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
             sight_radius, show_radius, pxpm)
-        self.scenario_name = scenario_name
+        self.network_name = network_name
         self.experiment_name = experiment_name
         self.replication_name = replication_name
         self.centroid_config_name = centroid_config_name
@@ -542,9 +525,8 @@ class SumoParams(SimParams):
     specifying whether to use sumo's gui during a run, and other features
     described in the Attributes below.
 
-    Usage: See Base Class for example.
 
-    Parameters
+    Attributes
     ----------
     port : int, optional
         Port for Traci to connect to; finds an empty port by default
@@ -635,7 +617,7 @@ class EnvParams:
     coefficients to the reward function, as well as specifying how the
     positions of vehicles are modified in between rollouts.
 
-    Parameters
+    Attributes
     ----------
     additional_params : dict, optional
         Specify additional environment params for a specific
@@ -711,23 +693,20 @@ class NetParams:
     lanes, and speed limit.
 
     In order to determine which additional_params variable may be needed
-    for a specific scenario, refer to the ADDITIONAL_NET_PARAMS variable
-    located in the scenario file.
+    for a specific network, refer to the ADDITIONAL_NET_PARAMS variable
+    located in the network file.
 
-    Parameters
+    Attributes
     ----------
     inflows : InFlows type, optional
         specifies the inflows of specific edges and the types of vehicles
         entering the network from these edges
     osm_path : str, optional
         path to the .osm file that should be used to generate the network
-        configuration files. This parameter is only needed / used if the
-        OpenStreetMapScenario class is used.
+        configuration files
     template : str, optional
-        path to the .net.xml file that should be passed to SUMO. This is
-        only needed / used if the NetFileScenario class is used, such as
-        in the case of Bay Bridge experiments (which use a custom net.xml
-        file)
+        path to the network template file that can be used to instantiate a
+        netowrk in the simulator of choice
     additional_params : dict, optional
         network specific parameters; see each subclass for a description of
         what is needed
@@ -765,7 +744,7 @@ class InitialConfig:
     network at the start of a rollout. By default, vehicles are uniformly
     distributed in the network.
 
-    Parameters
+    Attributes
     ----------
     shuffle : bool, optional  # TODO: remove
         specifies whether the ordering of vehicles in the Vehicles class
@@ -841,7 +820,7 @@ class InitialConfig:
 class SumoCarFollowingParams:
     """Parameters for sumo-controlled acceleration behavior.
 
-    Parameters
+    Attributes
     ----------
     speed_mode : str or int, optional
         may be one of the following:
@@ -915,27 +894,27 @@ class SumoCarFollowingParams:
         """Instantiate SumoCarFollowingParams."""
         # check for deprecations (minGap)
         if "minGap" in kwargs:
-            deprecation_warning(self, "minGap", "min_gap")
+            deprecated_attribute(self, "minGap", "min_gap")
             min_gap = kwargs["minGap"]
 
         # check for deprecations (maxSpeed)
         if "maxSpeed" in kwargs:
-            deprecation_warning(self, "maxSpeed", "max_speed")
+            deprecated_attribute(self, "maxSpeed", "max_speed")
             max_speed = kwargs["maxSpeed"]
 
         # check for deprecations (speedFactor)
         if "speedFactor" in kwargs:
-            deprecation_warning(self, "speedFactor", "speed_factor")
+            deprecated_attribute(self, "speedFactor", "speed_factor")
             speed_factor = kwargs["speedFactor"]
 
         # check for deprecations (speedDev)
         if "speedDev" in kwargs:
-            deprecation_warning(self, "speedDev", "speed_dev")
+            deprecated_attribute(self, "speedDev", "speed_dev")
             speed_dev = kwargs["speedDev"]
 
         # check for deprecations (carFollowModel)
         if "carFollowModel" in kwargs:
-            deprecation_warning(self, "carFollowModel", "car_follow_model")
+            deprecated_attribute(self, "carFollowModel", "car_follow_model")
             car_follow_model = kwargs["carFollowModel"]
 
         # create a controller_params dict with all the specified parameters
@@ -966,7 +945,7 @@ class SumoCarFollowingParams:
 class SumoLaneChangeParams:
     """Parameters for sumo-controlled lane change behavior.
 
-    Parameters
+    Attributes
     ----------
     lane_change_mode : str or int, optional
         may be one of the following:
@@ -1044,69 +1023,69 @@ class SumoLaneChangeParams:
         """Instantiate SumoLaneChangeParams."""
         # check for deprecations (lcStrategic)
         if "lcStrategic" in kwargs:
-            deprecation_warning(self, "lcStrategic", "lc_strategic")
+            deprecated_attribute(self, "lcStrategic", "lc_strategic")
             lc_strategic = kwargs["lcStrategic"]
 
         # check for deprecations (lcCooperative)
         if "lcCooperative" in kwargs:
-            deprecation_warning(self, "lcCooperative", "lc_cooperative")
+            deprecated_attribute(self, "lcCooperative", "lc_cooperative")
             lc_cooperative = kwargs["lcCooperative"]
 
         # check for deprecations (lcSpeedGain)
         if "lcSpeedGain" in kwargs:
-            deprecation_warning(self, "lcSpeedGain", "lc_speed_gain")
+            deprecated_attribute(self, "lcSpeedGain", "lc_speed_gain")
             lc_speed_gain = kwargs["lcSpeedGain"]
 
         # check for deprecations (lcKeepRight)
         if "lcKeepRight" in kwargs:
-            deprecation_warning(self, "lcKeepRight", "lc_keep_right")
+            deprecated_attribute(self, "lcKeepRight", "lc_keep_right")
             lc_keep_right = kwargs["lcKeepRight"]
 
         # check for deprecations (lcLookaheadLeft)
         if "lcLookaheadLeft" in kwargs:
-            deprecation_warning(self, "lcLookaheadLeft", "lc_look_ahead_left")
+            deprecated_attribute(self, "lcLookaheadLeft", "lc_look_ahead_left")
             lc_look_ahead_left = kwargs["lcLookaheadLeft"]
 
         # check for deprecations (lcSpeedGainRight)
         if "lcSpeedGainRight" in kwargs:
-            deprecation_warning(self, "lcSpeedGainRight",
-                                "lc_speed_gain_right")
+            deprecated_attribute(self, "lcSpeedGainRight",
+                                 "lc_speed_gain_right")
             lc_speed_gain_right = kwargs["lcSpeedGainRight"]
 
         # check for deprecations (lcSublane)
         if "lcSublane" in kwargs:
-            deprecation_warning(self, "lcSublane", "lc_sublane")
+            deprecated_attribute(self, "lcSublane", "lc_sublane")
             lc_sublane = kwargs["lcSublane"]
 
         # check for deprecations (lcPushy)
         if "lcPushy" in kwargs:
-            deprecation_warning(self, "lcPushy", "lc_pushy")
+            deprecated_attribute(self, "lcPushy", "lc_pushy")
             lc_pushy = kwargs["lcPushy"]
 
         # check for deprecations (lcPushyGap)
         if "lcPushyGap" in kwargs:
-            deprecation_warning(self, "lcPushyGap", "lc_pushy_gap")
+            deprecated_attribute(self, "lcPushyGap", "lc_pushy_gap")
             lc_pushy_gap = kwargs["lcPushyGap"]
 
         # check for deprecations (lcAssertive)
         if "lcAssertive" in kwargs:
-            deprecation_warning(self, "lcAssertive", "lc_assertive")
+            deprecated_attribute(self, "lcAssertive", "lc_assertive")
             lc_assertive = kwargs["lcAssertive"]
 
         # check for deprecations (lcImpatience)
         if "lcImpatience" in kwargs:
-            deprecation_warning(self, "lcImpatience", "lc_impatience")
+            deprecated_attribute(self, "lcImpatience", "lc_impatience")
             lc_impatience = kwargs["lcImpatience"]
 
         # check for deprecations (lcTimeToImpatience)
         if "lcTimeToImpatience" in kwargs:
-            deprecation_warning(self, "lcTimeToImpatience",
-                                "lc_time_to_impatience")
+            deprecated_attribute(self, "lcTimeToImpatience",
+                                 "lc_time_to_impatience")
             lc_time_to_impatience = kwargs["lcTimeToImpatience"]
 
         # check for deprecations (lcAccelLat)
         if "lcAccelLat" in kwargs:
-            deprecation_warning(self, "lcAccelLat", "lc_accel_lat")
+            deprecated_attribute(self, "lcAccelLat", "lc_accel_lat")
             lc_accel_lat = kwargs["lcAccelLat"]
 
         # check for valid model
@@ -1284,7 +1263,7 @@ class InFlows:
         """
         # check for deprecations
         def deprecate(old, new):
-            deprecation_warning(self, old, new)
+            deprecated_attribute(self, old, new)
             new_val = kwargs[old]
             del kwargs[old]
             return new_val

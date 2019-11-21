@@ -10,7 +10,10 @@ class FollowerStopper(BaseController):
     Dissipation of stop-and-go waves via control of autonomous vehicles:
     Field experiments https://arxiv.org/abs/1705.01693
 
-    Usage: See base class for example. 
+    Usage
+    -----
+    See base class for example.
+    
 
     Parameters
     ----------
@@ -51,7 +54,7 @@ class FollowerStopper(BaseController):
         Parameters
         ----------
         env : flow.envs.Env
-            see flow/envs/base_env.py
+            see flow/envs/base.py
 
         Returns
         -------
@@ -65,7 +68,7 @@ class FollowerStopper(BaseController):
             return -10
         if 'center' in edge_id:
             return 0
-        edge_len = env.k.scenario.edge_length(edge_id)
+        edge_len = env.k.network.edge_length(edge_id)
         relative_pos = env.k.vehicle.get_position(self.veh_id)
         dist = edge_len - relative_pos
         return dist
@@ -120,7 +123,13 @@ class PISaturation(BaseController):
     Dissipation of stop-and-go waves via control of autonomous vehicles:
     Field experiments https://arxiv.org/abs/1705.01693
 
+<<<<<<< HEAD
     Usage: See base class for example. 
+=======
+    Usage
+    -----
+    See base class for example.
+>>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
 
     Parameters
     ----------

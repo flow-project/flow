@@ -7,7 +7,7 @@ Local Installation of Flow
 To get Flow running, you need three things: Flow,
 
 SUMO, and (recommended to explore the full suite of Flow's capabilities)
-a reinforcement learning library (RLlib/rllab). If you wish to use Flow with
+a reinforcement learning library (RLlib). If you wish to use Flow with
 the traffic simulator Aimsun, this can be achieved by following the setup
 instructions under the "Installing Aimsun" subsection.
 If you choose not to install a reinforcement learning library, you will
@@ -46,7 +46,8 @@ script. Be sure to run the below commands from ``/path/to/flow``.
 
     # create a conda environment
     conda env create -f environment.yml
-    source activate flow
+    conda activate flow
+    python setup.py develop
 
 If the conda install fails, you can also install the requirements using pip by calling
 
@@ -118,12 +119,12 @@ sure to enter your conda environment by typing:
 
 ::
 
-    source activate flow
+    conda activate flow
 
 Let’s see some traffic action:
 
 ::
-
+    
     python examples/sumo/sugiyama.py
 
 Running the following should result in the loading of the SUMO GUI.
@@ -141,14 +142,14 @@ can be achieved by following the installation instructions located in:
 https://www.aimsun.com/aimsun-next/download/.
 
 Once Aimsun has been installed, copy the path to the `Aimsun_Next` main
-directory and place it in under the `AIMSUN_NEXT_PATH` variable in the
-"flow/config.py" folder. This will allow Flow to locate and use this binary
+directory and place it in under the `AIMSUN_NEXT_PATH` variable in your bashrc.
+This will allow Flow to locate and use this binary
 during the execution of various tasks. The path should look something like:
 
 ::
 
-    /home/user/Aimsun_Next_X_Y_Z/                   # Linux
-    /Applications/Aimsun Next.app/Contents/MacOS/   # OS X
+    export AIMSUN_NEXT_PATH="/home/user/Aimsun_Next_X_Y_Z/"                   # Linux
+    export AIMSUN_NEXT_PATH="/Applications/Aimsun Next.app/Contents/MacOS/"   # OS X
 
 `Note for Mac users:` when you download Aimsun, you will get a folder named "Programming". You need to rename it to "programming" (all lowercase) and to move it inside the "Aimsun Next.app/Contents/MacOS/" directory so that the python API can work.
 
@@ -177,9 +178,12 @@ The latter command should return an output similar to:
 
     /path/to/envs/aimsun_flow/bin/python
 
-Copy the path up until right before /bin (i.e. /path/to/envs/aimsun_flow) and
-place it under the `AIMSUN_SITEPACKAGES` variable in flow/config.py.
+Copy the path up until right before /lib (i.e. /path/to/envs/aimsun_flow) and
+place it under the `AIMSUN_SITEPACKAGES` variable in your bashrc, like this:
 
+::
+
+    export AIMSUN_SITEPACKAGES="/path/to/envs/aimsun_flow"
 
 Testing your installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -194,6 +198,8 @@ to activate the `flow` env. Type:
     source activate flow
     python examples/aimsun/sugiyama.py
 
+*Troubleshootig for Ubuntu users with Aimsun 8.4*: when you run the above example, you may get a subprocess.Popen error ``OSError: [Errno 8] Exec format error:``.  
+To fix this, go to the `Aimsun Next` main directory, open the `Aimsun_Next` binary with a text editor and add the shebang to the first line of the script ``#!/bin/sh``.
 
 (Optional) Install Ray RLlib
 ----------------------------
@@ -222,6 +228,19 @@ required libraries as specified at
 <http://ray.readthedocs.io/en/latest/installation.html> and
 then follow the setup instructions.
 
+(Optional) Install Stable Baselines
+----------------------------
+
+An additional library that Flow supports is the fork of OpenAI's Baselines, Stable-Baselines.
+First visit <https://stable-baselines.readthedocs.io/en/master/guide/install.html> and
+install the required packages and pip install the stable baselines package as described in their
+installation instructions.
+
+You can test your installation by running
+
+::
+
+    python examples/stable_baselines/stabilizing_the_ring.py
 
 Testing your installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -232,7 +251,7 @@ To run any of the RL examples, make sure to run
 
 ::
 
-    source activate flow
+    conda activate flow
 
 In order to test run an Flow experiment in RLlib, try the following command:
 
@@ -264,54 +283,6 @@ jobs from there.
     pip install boto3
     ray create-or-update scripts/ray_autoscale.yaml
     ray teardown scripts/ray_autoscale.yaml
-
-
-(Optional) Install Rllab-multiagent
------------------------------------
-
-`rllab-multiagent` is another RL library that is compatible with Flow.
-In order to install the `rllab-multiagent` library, follow the below instructions:
-
-::
-
-    cd ~
-    git clone https://github.com/cathywu/rllab-multiagent.git
-    cd rllab-multiagent
-    python setup.py develop
-
-For linux run
-
-::
-
-    echo 'export PYTHONPATH="$HOME/rllab-multiagent:$PYTHONPATH"' >> ~/.bashrc
-    source ~/.bashrc
-
-For mac run
-
-::
-
-    echo 'export PYTHONPATH="$HOME/rllab-multiagent:$PYTHONPATH"' >> ~/.bash_profile
-    source ~/.bash_profile
-
-
-Testing your installation
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To run any of the RL examples, make sure to run
-
-::
-
-    source activate flow
-
-In order to test run an Flow experiment in rllab-multiagent, try the following
-command:
-
-::
-
-    python examples/rllab/stabilizing_the_ring.py
-
-If it does not fail, this means that you have Flow properly configured with
-rllab-multiagent.
 
 
 (Optional) Direct install of SUMO from GitHub
