@@ -1,7 +1,8 @@
-from flow.envs import Env
-from flow.networks import Network
 import numpy as np
 from gym.spaces.box import Box
+
+from flow.envs import Env
+from flow.networks import Network
 
 ADDITIONAL_ENV_PARAMS = {'target_nodes': [3369, 3341, 3370, 3344, 3329],
                          'num_incoming_edges_per_node': 4,

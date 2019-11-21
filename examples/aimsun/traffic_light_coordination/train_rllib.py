@@ -1,13 +1,12 @@
-from ray.tune import run_experiments
-from ray.tune.registry import register_env
+import os
+import json
+
+import ray
+import numpy as np
+
 from flow.utils.rllib import FlowParamsEncoder
 from flow.utils.registry import make_create_env
 from flow.core.params import AimsunParams, NetParams, VehicleParams, EnvParams, InitialConfig
-
-import os
-import ray
-import json
-import numpy as np
 
 from coordinated_lights import CoordinatedNetwork, CoordinatedEnv, ADDITIONAL_ENV_PARAMS
 
@@ -101,7 +100,7 @@ def setup_exps(version=0):
     create_env, gym_name = make_create_env(params=flow_params, version=version)
 
     # Register as rllib env
-    register_env(gym_name, create_env)
+    ray.tune.registry.register_env(gym_name, create_env)
     return alg_run, gym_name, config
 
 
@@ -109,7 +108,7 @@ if __name__ == "__main__":
     ray.init(num_cpus=RLLIB_N_CPUS + 1, object_store_memory=int(1e9))
 
     alg_run, gym_name, config = setup_exps()
-    trials = run_experiments({
+    trials = ray.tune.run_experiments({
         flow_params["exp_tag"]: {
             "run": alg_run,
             "env": gym_name,
