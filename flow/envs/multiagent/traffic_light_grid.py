@@ -67,7 +67,7 @@ class MultiTrafficLightGridPOEnv(TrafficLightGridPOEnv, MultiEnv):
         """
         tl_box = Box(
             low=0.,
-            high=1,
+            high=5,
             shape=(3 * 4 * self.num_observed +
                    2 * self.num_local_edges +
                    3 * (1 + self.num_local_lights),
