@@ -207,7 +207,7 @@ col_sim = model.get_column('GKExperiment::simStepAtt')
 # set new simulation step value
 experiment.set_data_value(col_sim, data['sim_step'])
 
-for i in range(RLLIB_TRAINING_ITERATIONS * RLLIB_HORIZON):  # training_iteration * N_ROLLOUTS (from train_rllib.py)
+while True:
     # run the simulation
     replication_name = np.random.choice(REPLICATION_LIST)
     replication = model.find_by_name(model.replications, replication_name)
@@ -226,3 +226,7 @@ for i in range(RLLIB_TRAINING_ITERATIONS * RLLIB_HORIZON):  # training_iteration
 
     print('[load.py] ' + replication_name + ' running.')
     model.run_replication(replication=replication, render=data['render'])
+
+    # only use the loop for training
+    if data['render']:
+        break
