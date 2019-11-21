@@ -1,5 +1,7 @@
 import os
 import ray
+import gym
+
 try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
