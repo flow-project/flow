@@ -190,7 +190,7 @@ class QueueGridEnv(Env):
 
         # Keeps track of how long the traffic lights in an intersection have been in their current green phase
         # or yellow phase (e.g. when switching from phase 1 green to phase 1 yellow, the timer resets)
-        self.curr_phase_duration = np.zeros((self.num_tl_intersections, 1))
+        self.curr_phase_duration = np.zeros((self.num_tl_intersections, 1), dtype=np.int32)
 
         # when this hits min_switch_time, we change from phase x's yellow to phase y's green (where x != y)
 
@@ -198,15 +198,11 @@ class QueueGridEnv(Env):
         self.min_green_time = env_params.additional_params["min_green_time"]
 
         # Keeps track of the traffic light phase of each intersection. See phase definitions above.
-        self.curr_phase = np.zeros((self.num_tl_intersections, 1))
+        self.curr_phase = np.zeros((self.num_tl_intersections, 1), dtype=np.int32)
 
         # Value of 0 indicates that the intersection is in its phase's green state
         # Value of 1 indicates that the intersection is in its phases' yellow state
-        self.green_or_yellow = np.zeros((self.num_tl_intersections, 1))
-        # print(self.cols)
-        # print(self.rows)
-        # print(self.green_or_yellow.shape)
-        # print(1111111111111111111111111111111111111111111111111111111111111111111)
+        self.green_or_yellow = np.zeros((self.num_tl_intersections, 1), dtype=np.int32)
 
         x_max = self.cols + 1
         y_max = self.rows + 1
@@ -237,43 +233,46 @@ class QueueGridEnv(Env):
             return Discrete(2 ** self.num_tl_intersections)     # TODO(KEVINLIN)   # also not sure if I can index into the Box, so I"ll hard code for now
         else:                                                   # TODO(KevinLin) why's this low = -1 and high = 1?? RL_gives an action for each tl_intersection
             return Box(
-                low=-1,
-                high=1,
+                low=-2,
+                high=2,
                 shape=(self.num_tl_intersections,),
                 dtype=np.float32)
 
     @property
     def observation_space(self):
         """See class definition."""
-        # cars_per_lane = Box(
-        #     low=-1.0,
-        #     high=2,
-        #     shape=(self.total_lanes(),),      # Each lane has its own entry for the number of cars
-        #     dtype=np.float32)  # check how discrete values work
-        # # Check what the low=0, high=1 means
-        # curr_phase_duration = Box(
-        #     low=-1.0,
-        #     high=2,
-        #     shape=(self.num_tl_intersections,),
-        #     dtype=np.float32)
-        # curr_phase = Box(
-        #     low=-1.0,
-        #     high=2,
-        #     shape=(self.num_tl_intersections,),
-        #     dtype=np.float32)
-        # currently_green = Box(
-        #     low=-1.0,
-        #     high=2,
-        #     shape=(self.num_tl_intersections,),
-        #     dtype=np.float32)
-
-        obs = Box(
-            low=-1.0,
-            high=2,
-            shape=(self.total_lanes() + self.num_tl_intersections * 3,),
+        cars_per_lane = Box(
+            low=-1,
+            high=np.inf,
+            shape=(self.total_lanes(),),      # Each lane has its own entry for the number of cars
+            dtype=np.int32)  # check how discrete values work
+        # Check what the low=0, high=1 means
+        curr_phase_duration = Box(
+            low=-1,
+            high=np.inf,
+            shape=(self.num_tl_intersections,),
             dtype=np.float32)
+        curr_phase = Box(
+            low=-1,
+            high=6,
+            shape=(self.num_tl_intersections,),
+            dtype=np.int32)
+        green_or_yellow = Box(
+            low=-1,
+            high=1,
+            shape=(self.num_tl_intersections,),
+            dtype=np.int32)
 
-        return obs
+        # TODO (KevinLin) deal with the Tuple, or just change the high/low values
+
+        # TODO(KevinLin) We need a different 'low' and 'high' for the number of cars in a lane, right?
+        # obs = Box(
+        #     low=-2.0,
+        #     high=2,
+        #     shape=(self.total_lanes() + self.num_tl_intersections * 3,),
+        #     dtype=np.float32)
+
+        return Tuple((cars_per_lane, curr_phase_duration, curr_phase, green_or_yellow))
         # TODO(KevinLin) any advantage of tuple over one large box?
 
     def get_state(self):
@@ -284,12 +283,12 @@ class QueueGridEnv(Env):
         for laneID in self.k.kernel_api.lane.getIDList():
             cars_per_lane.append(self.k.kernel_api.lane.getLastStepVehicleNumber(laneID))
 
-        state = [cars_per_lane,
-            self.curr_phase_duration.flatten().tolist(),
-            self.curr_phase.flatten().tolist(),
-            self.green_or_yellow.flatten().tolist()]
+        state = cars_per_lane + \
+            self.curr_phase_duration.flatten().tolist() + \
+            self.curr_phase.flatten().tolist() + \
+            self.green_or_yellow.flatten().tolist()
 
-        return state
+        return np.array(state)
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
@@ -313,7 +312,8 @@ class QueueGridEnv(Env):
                         self.curr_phase_duration[i] = 0
                         self.k.traffic_light.set_state(
                             node_id=self.index_to_tl_id(i),
-                            state=PHASE_NUM_TO_STR[self.curr_phase[i] + 6])
+                            state=PHASE_NUM_TO_STR[self.curr_phase[i][0] + 6])   # Index into np.array value, add 6 to get yellow phase
+                        print(self.green_or_yellow)
 
             if self.green_or_yellow[i] == 1:  # currently yellow
                 if self.curr_phase_duration[i] >= self.min_yellow_time:
@@ -321,9 +321,9 @@ class QueueGridEnv(Env):
                     if action != self.curr_phase[i]:
                         self.k.traffic_light.set_state(
                             node_id=self.index_to_tl_id(i),
-                            state=PHASE_NUM_TO_STR[self.curr_phase[i]])
+                            state=PHASE_NUM_TO_STR[self.curr_phase[i][0]])
                     else:   # case where RL decides to perform a green->yellow->green loop
-                        new_phase = PHASE_REPEAT_PRESET_ORDER[self.curr_phase[i]]
+                        new_phase = PHASE_REPEAT_PRESET_ORDER[self.curr_phase[i][0]]
                         self.k.traffic_light.set_state(
                             node_id=self.index_to_tl_id(i),
                             state=PHASE_NUM_TO_STR[new_phase])
@@ -420,7 +420,8 @@ class QueueGridEnv(Env):
     def index_to_tl_id(self, i):
         """Takes in an index and converts the index into the corresponding node_id"""
         x_axis = i % self.cols + 1  # add one to both x and y because the 0th node starts at (1,1)
-        y_axis = i / self.cols + 1
+        y_axis = int(i / self.cols + 1)
+        print(y_axis)
         return "({}.{})".format(x_axis, y_axis)
 
     def total_lanes(self):
