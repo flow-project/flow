@@ -152,12 +152,6 @@ class CoordinatedEnv(Env):
             print('Resetting AIMSUN')
             print('-----------------------')
 
-        # perform the generic reset function
-        observation = super().reset()
-
-        # reset the timer to zero
-        self.time_counter = 0
-
         # increment episode count
         self.episode_count += 1
 
@@ -165,6 +159,12 @@ class CoordinatedEnv(Env):
         self.current_offset = np.zeros(len(self.target_nodes))
         for section_id in self.past_cumul_queue:
             self.past_cumul_queue[section_id] = 0
+
+        # perform the generic reset function
+        observation = super().reset()
+
+        # reset the timer to zero
+        self.time_counter = 0
 
         return observation
 
