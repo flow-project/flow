@@ -37,9 +37,6 @@ class CoordinatedEnv(Env):
         self.k.simulation.set_statistical_interval(*self.additional_params['statistical_interval'])
         self.k.traffic_light.set_replication_seed(np.random.randint(2e9))
 
-        # veh_types = ["Car"]
-        # self.k.vehicle.tracked_vehicle_types.update(veh_types)
-
         # target intersections
         self.target_nodes = env_params.additional_params["target_nodes"]
         self.current_offset = np.zeros(len(self.target_nodes))
