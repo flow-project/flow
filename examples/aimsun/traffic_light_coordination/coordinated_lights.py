@@ -163,10 +163,6 @@ class CoordinatedEnv(Env):
         for section_id in self.past_cumul_queue:
             self.past_cumul_queue[section_id] = 0
 
-        self.k.simulation.set_detection_interval(*self.additional_params['detection_interval'])
-        self.k.simulation.set_statistical_interval(*self.additional_params['statistical_interval'])
-        self.k.traffic_light.set_replication_seed(np.random.randint(2e9))
-
         return observation
 
 
