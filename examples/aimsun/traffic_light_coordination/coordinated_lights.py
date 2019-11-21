@@ -16,6 +16,8 @@ ADDITIONAL_ENV_PARAMS = {'target_nodes': [3369, 3341, 3370, 3344, 3329],
                                               'Replication 8050322']}  # 14-21
 # the replication list should be copied in load.py
 
+RLLIB_N_ROLLOUTS = 6  # copied from train_rllib.py
+
 np.random.seed(1234567890)
 
 
@@ -29,7 +31,7 @@ class CoordinatedEnv(Env):
         super().__init__(env_params, sim_params, network, simulator)
         self.additional_params = env_params.additional_params
 
-        self.first_run = True
+        self.episode_count = 0
         self.detection_interval = self.additional_params['detection_interval'][1]*60  # assuming minutes for now
         self.k.simulation.set_detection_interval(*self.additional_params['detection_interval'])
         self.k.simulation.set_statistical_interval(*self.additional_params['statistical_interval'])
@@ -130,7 +132,7 @@ class CoordinatedEnv(Env):
             current_cumul_queue = self.k.traffic_light.get_cumulative_queue_length(section_id)
             delta_queue = current_cumul_queue - self.past_cumul_queue[section_id]
             self.past_cumul_queue[section_id] = current_cumul_queue
-            running_sum += delta_queue**2
+            running_sum += np.copysign(delta_queue**2, delta_queue)
         print(self.current_offset, -running_sum)
 
         # reward is negative queues
@@ -145,17 +147,35 @@ class CoordinatedEnv(Env):
         # reset the step counter
         self.step_counter = 0
 
-        if self.first_run:
-            self.first_run = False
-        else:
-            self.k.simulation.reset_simulation()
-            print('\n----------------\nResetting AIMSUN\n----------------\n')
+        # reset the timer to zero
+        self.time_counter = 0
 
         # perform the generic reset function
         observation = super().reset()
 
-        # reset the timer to zero
-        self.time_counter = 0
+        if self.episode_count:
+            self.k.simulation.reset_simulation()
+            print('-----------------------')
+            print(f'Episode {self.episode_count % RLLIB_N_ROLLOUTS} of {RLLIB_N_ROLLOUTS} complete')
+            print('Resetting AIMSUN')
+            print('-----------------------')
+
+        # increment episode count
+        self.episode_count += 1
+
+        # reset_offsets
+        self.current_offset = np.zeros(len(self.target_nodes))
+        for node_id in self.target_nodes:
+            default_offset = self.k.traffic_light.get_intersection_offset(node_id)
+            self.k.traffic_light.change_intersection_offset(node_id, -default_offset)
+
+        # reset variables
+        for section_id in self.past_cumul_queue:
+            self.past_cumul_queue[section_id] = 0
+
+        self.k.simulation.set_detection_interval(*self.additional_params['detection_interval'])
+        self.k.simulation.set_statistical_interval(*self.additional_params['statistical_interval'])
+        self.k.traffic_light.set_replication_seed(np.random.randint(2e9))
 
         return observation
 
