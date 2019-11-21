@@ -111,9 +111,9 @@ class CoordinatedEnv(Env):
                     elif detector_type == 'advanced':
                         flow, occupancy = 0, 0
                         for detector in detector_ids:
-                            output = self.k.traffic_light.get_detector_count_and_occupancy(int(detector))
-                            flow += (output[0]/self.detection_interval)/(2000/3600)
-                            occupancy += output[1]
+                            count, occupancy = self.k.traffic_light.get_detector_count_and_occupancy(int(detector))
+                            flow += (count/self.detection_interval)/(2000/3600)
+                            occupancy += occupancy
                         index = (i, j, ap['num_stopbars'])
                         the_state[(*index, 0)] = flow
                         the_state[(*index, 1)] = occupancy
