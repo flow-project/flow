@@ -82,6 +82,8 @@ class CoordinatedEnv(Env):
         actions = rl_actions * 120
         delta_offset = actions - self.current_offset
         for node_id, action in zip(self.target_nodes, delta_offset):
+            if action < 0:
+                action += 120
             self.k.traffic_light.change_intersection_offset(node_id, action)
         self.current_offset = actions
 
