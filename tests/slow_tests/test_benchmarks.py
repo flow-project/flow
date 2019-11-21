@@ -40,7 +40,7 @@ ray.init(num_cpus=N_CPUS)
 os.environ['TEST_FLAG'] = 'True'
 
 
-class TestBenchmarks(unittest.TestCase):
+class TestBenchmarks():
 
     """
     Tests that the baselines in the benchmarks folder are running and
