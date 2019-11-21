@@ -215,7 +215,14 @@ class Env(gym.Env):
             # render a frame
             self.render(reset=True)
         elif self.sim_params.render in [True, False]:
-            pass  # default to sumo-gui (if True) or sumo (if False)
+            # default to sumo-gui (if True) or sumo (if False)
+            if (self.sim_params.render is True) and self.sim_params.save_render:
+                path = os.path.expanduser('~')+'/flow_rendering/'
+                dir_time = time.strftime("%Y-%m-%d-%H%M%S")
+                if not os.path.exists(path):
+                    os.mkdir(path)
+                self.path = path + dir_time
+                os.mkdir(self.path)
         else:
             raise FatalFlowError(
                 'Mode %s is not supported!' % self.sim_params.render)
@@ -671,6 +678,18 @@ class Env(gym.Env):
             # close pyglet renderer
             if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
                 self.renderer.close()
+            # generate video
+            elif (self.sim_params.render is True) and self.sim_params.save_render:
+                save_dir = os.path.expanduser('~') + '/flow_movies'
+                images_dir = self.path.split('/')[-1]
+                if not os.path.exists(save_dir):
+                    os.mkdir(save_dir)
+                speedup = 10  # speedup multiplier
+                fps = speedup//self.sim_step
+                os_cmd = "ffmpeg -y -r {fps} -i {path}/frame_%06d.png".format(path=self.path, fps=fps)
+                os_cmd += " -pix_fmt yuv420p " + self.path+"/%s.mp4"%images_dir
+                os_cmd += "&& cp " + self.path+"/%s.mp4 "%images_dir + save_dir + "/"
+                os.system(os_cmd)  # only works in Unix
         except FileNotFoundError:
             # Skip automatic termination. Connection is probably already closed
             print(traceback.format_exc())
@@ -700,6 +719,9 @@ class Env(gym.Env):
                 if len(self.frame_buffer) > buffer_length:
                     self.frame_buffer.pop(0)
                     self.sights_buffer.pop(0)
+        elif (self.sim_params.render is True) and self.sim_params.save_render:
+            # sumo-gui render
+            self.k.kernel_api.gui.screenshot("View #0", self.path+"/frame_%06d.png" % self.time_counter)
 
     def pyglet_render(self):
         """Render a frame using pyglet."""
