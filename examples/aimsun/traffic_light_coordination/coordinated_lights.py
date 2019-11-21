@@ -21,10 +21,10 @@ np.random.seed(1234567890)
 
 class CoordinatedEnv(Env):
     def __init__(self, env_params, sim_params, network, simulator='aimsun'):
-        for p in ADDITIONAL_ENV_PARAMS.keys():
-            if p not in env_params.additional_params:
+        for param in ADDITIONAL_ENV_PARAMS:
+            if param not in env_params.additional_params:
                 raise KeyError(
-                    'Environment parameter "{}" not supplied'.format(p))
+                    'Environment parameter "{}" not supplied'.format(param))
 
         super().__init__(env_params, sim_params, network, simulator)
         self.additional_params = env_params.additional_params
@@ -101,7 +101,7 @@ class CoordinatedEnv(Env):
 
         for i, (node, edge) in enumerate(self.edge_detector_dict.items()):
             for j, (edge_id, detector_info) in enumerate(edge.items()):
-                for k, (detector_type, detector_ids) in enumerate(detector_info.items()):
+                for detector_type, detector_ids in detector_info.items():
                     if detector_type == 'stopbar':
                         assert len(detector_ids) <= 3
                         for m, detector in enumerate(detector_ids):
