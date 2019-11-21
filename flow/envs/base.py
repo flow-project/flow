@@ -686,8 +686,8 @@ class Env(gym.Env):
                 speedup = 10  # speedup multiplier
                 fps = speedup//self.sim_step
                 os_cmd = "ffmpeg -y -r {fps} -i {path}/frame_%06d.png".format(path=self.path, fps=fps)
-                os_cmd += " -pix_fmt yuv420p " + self.path+"/%s.mp4"%images_dir
-                os_cmd += "&& cp " + self.path+"/%s.mp4 "%images_dir + save_dir + "/"
+                os_cmd += " -pix_fmt yuv420p " + self.path+"/%s.mp4" % images_dir
+                os_cmd += "&& cp " + self.path+"/%s.mp4 " % images_dir + save_dir + "/"
                 os.system(os_cmd)  # only works in Unix
         except FileNotFoundError:
             # Skip automatic termination. Connection is probably already closed
