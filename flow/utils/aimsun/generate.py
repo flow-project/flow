@@ -29,8 +29,10 @@ gui.newDoc(os.path.join(config.PROJECT_PATH,
            "EPSG:32601")
 model = gui.getActiveModel()
 
+TEMPLATE_NAME = 'flow.ang'
+
 # HACK: Store port in author
-port_string = sys.argv[1]
+port_string = sys.argv[-1]  # Correction for Flow: changed from 1 to -1.
 model.setAuthor(port_string)
 
 def generate_net(nodes,
@@ -278,7 +280,7 @@ def generate_net(nodes,
         config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
 
     # save
-    gui.save(model, 'flow.ang', GGui.GGuiSaveType.eSaveAs)
+    gui.save(model, TEMPLATE_NAME, GGui.eSaveAs)
 
 
 def generate_net_osm(file_name, inflows, veh_types):
@@ -377,7 +379,7 @@ def generate_net_osm(file_name, inflows, veh_types):
         config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
 
     # save
-    gui.save(model, 'flow.ang', GGui.GGuiSaveType.eSaveAs)
+    gui.save(model, TEMPLATE_NAME, GGui.eSaveAs)
 
 
 def get_junctions(nodes):
@@ -798,7 +800,7 @@ def set_sim_step(experiment, sim_step):
 
 
 # collect the network-specific data
-data_file = 'flow/core/kernel/network/data_%s.json'%port_string
+data_file = 'flow/core/kernel/network/data_%s.json' % port_string
 with open(os.path.join(config.PROJECT_PATH, data_file)) as f:
     data = json.load(f)
 
