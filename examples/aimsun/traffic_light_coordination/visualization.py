@@ -47,10 +47,9 @@ def reload_checkpoint(result_dir, checkpoint_num, gen_emission=False, version=0,
     checkpoint = checkpoint + '/checkpoint-{}'.format(checkpoint_num)
     agent.restore(checkpoint)
 
-    env = agent.local_evaluator.env
+    env = gym.make(env_name)
 
-    env.restart_simulation(
-        sim_params=sim_params, render=sim_params.render)
+    env.restart_simulation(sim_params=sim_params, render=sim_params.render)
 
     return env, env_params, agent
 
