@@ -96,7 +96,7 @@ class CoordinatedEnv(Env):
         num_measures = (ap['num_measures'])
 
         shape = (num_nodes, num_edges, num_detectors_types, num_measures)
-        the_state = np.zeros(shape)
+        state = np.zeros(shape)
 
         for i, (node, edge) in enumerate(self.edge_detector_dict.items()):
             for j, (edge_id, detector_info) in enumerate(edge.items()):
@@ -106,8 +106,8 @@ class CoordinatedEnv(Env):
                         for m, detector in enumerate(detector_ids):
                             count, occupancy = self.k.traffic_light.get_detector_count_and_occupancy(int(detector))
                             index = (i, j, m)
-                            the_state[(*index, 0)] = (count/self.detection_interval)/(2000/3600)
-                            the_state[(*index, 1)] = occupancy
+                            state[(*index, 0)] = (count/self.detection_interval)/(2000/3600)
+                            state[(*index, 1)] = occupancy
                     elif detector_type == 'advanced':
                         flow, occupancy = 0, 0
                         for detector in detector_ids:
@@ -115,12 +115,12 @@ class CoordinatedEnv(Env):
                             flow += (count/self.detection_interval)/(2000/3600)
                             occupancy += occupancy
                         index = (i, j, ap['num_stopbars'])
-                        the_state[(*index, 0)] = flow
-                        the_state[(*index, 1)] = occupancy
+                        state[(*index, 0)] = flow
+                        state[(*index, 1)] = occupancy
                     if 7674941 in detector_ids:
                         print("%.2f\t%.2f\t%.2f" % (self.k.simulation.time, flow, occupancy))
 
-        return the_state.flatten()
+        return state.flatten()
 
     def compute_reward(self, rl_actions, **kwargs):
         """Computes the average speed of vehicles in the network."""
