@@ -48,13 +48,9 @@ class MinicityRouter(BaseRouter):
 
     This class allows the vehicle to pick a random route at junctions.
 
-<<<<<<< HEAD
-    Usage: See base class for usage example.
-=======
     Usage
     -----
     See base class for usage example.
->>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
     """
 
     def choose_route(self, env):
@@ -87,17 +83,11 @@ class MinicityRouter(BaseRouter):
 
 
 class GridRouter(BaseRouter):
-<<<<<<< HEAD
-    """A router used to re-route a vehicle within a grid environment.
-
-    Usage: See base class for usage example.
-=======
     """A router used to re-route a vehicle in a traffic light grid environment.
 
     Usage
     -----
     See base class for usage example.
->>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
     """
 
     def choose_route(self, env):
@@ -118,13 +108,9 @@ class BayBridgeRouter(ContinuousRouter):
 
     Extension to the Continuous Router.
 
-<<<<<<< HEAD
-    Usage: See base class for usage example.
-=======
     Usage
     -----
     See base class for usage example.
->>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
     """
 
     def choose_route(self, env):

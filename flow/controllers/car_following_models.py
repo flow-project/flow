@@ -93,13 +93,9 @@ class BCMController(BaseController):
 
     This model looks ahead and behind when computing its acceleration.
 
-<<<<<<< HEAD
-    Usage: See BaseController for usage example.
-=======
     Usage
     -----
     See BaseController for usage example.
->>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
 
     Attributes
     ----------
@@ -252,13 +248,9 @@ class LACController(BaseController):
 class OVMController(BaseController):
     """Optimal Vehicle Model controller.
 
-<<<<<<< HEAD
-    Usage: See BaseController for usage example.
-=======
     Usage
     -----
     See BaseController for usage example.
->>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
 
     Attributes
     ----------
@@ -339,13 +331,9 @@ class OVMController(BaseController):
 class LinearOVM(BaseController):
     """Linear OVM controller.
 
-<<<<<<< HEAD
-    Usage: See BaseController for usage example.
-=======
     Usage
     -----
     See BaseController for usage example.
->>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
 
     Attributes
     ----------
@@ -417,15 +405,9 @@ class IDMController(BaseController):
     states in empirical observations and microscopic simulations." Physical
     review E 62.2 (2000): 1805.
 
-<<<<<<< HEAD
-
-    Usage: See BaseController for usage example.
-    
-=======
     Usage
     -----
     See BaseController for usage example.
->>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
 
     Attributes
     ----------

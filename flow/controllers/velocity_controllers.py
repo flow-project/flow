@@ -123,13 +123,9 @@ class PISaturation(BaseController):
     Dissipation of stop-and-go waves via control of autonomous vehicles:
     Field experiments https://arxiv.org/abs/1705.01693
 
-<<<<<<< HEAD
-    Usage: See base class for example. 
-=======
     Usage
     -----
     See base class for example.
->>>>>>> 27f0cfd0b382b535736568b0f154add08b89c6ce
 
     Parameters
     ----------
