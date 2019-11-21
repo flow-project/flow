@@ -123,7 +123,7 @@ class CoordinatedEnv(Env):
         return state.flatten()
 
     def compute_reward(self, rl_actions, **kwargs):
-        """Computes the average speed of vehicles in the network."""
+        """Computes the sum of queue lengths at all intersections in the network."""
         running_sum = 0
         for section_id in self.past_cumul_queue:
             current_cumul_queue = self.k.traffic_light.get_cumulative_queue_length(section_id)
@@ -138,8 +138,7 @@ class CoordinatedEnv(Env):
     def reset(self):
         """See parent class.
 
-        The sumo instance is reset with a new ring length, and a number of
-        steps are performed with the rl vehicle acting as a human vehicle.
+        The AIMSUN simulation is reset along with other variables.
         """
         # reset the step counter
         self.step_counter = 0
