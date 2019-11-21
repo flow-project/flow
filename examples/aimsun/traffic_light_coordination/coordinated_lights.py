@@ -160,12 +160,6 @@ class CoordinatedEnv(Env):
         # increment episode count
         self.episode_count += 1
 
-        # reset_offsets
-        self.current_offset = np.zeros(len(self.target_nodes))
-        for node_id in self.target_nodes:
-            default_offset = self.k.traffic_light.get_intersection_offset(node_id)
-            self.k.traffic_light.change_intersection_offset(node_id, -default_offset)
-
         # reset variables
         for section_id in self.past_cumul_queue:
             self.past_cumul_queue[section_id] = 0
