@@ -82,8 +82,6 @@ class CoordinatedEnv(Env):
         actions = rl_actions * 120
         delta_offset = actions - self.current_offset
         for node_id, action in zip(self.target_nodes, delta_offset):
-            if action < 0:
-                action += 120
             self.k.traffic_light.change_intersection_offset(node_id, action)
         self.current_offset = actions
 
@@ -131,8 +129,12 @@ class CoordinatedEnv(Env):
             current_cumul_queue = self.k.traffic_light.get_cumulative_queue_length(section_id)
             delta_queue = current_cumul_queue - self.past_cumul_queue[section_id]
             self.past_cumul_queue[section_id] = current_cumul_queue
-            running_sum += np.copysign(delta_queue**2, delta_queue)
-        print(self.current_offset, -running_sum)
+            if delta_queue < 0:
+                print('reward < 0: ', delta_queue)
+            running_sum += delta_queue**2
+
+        print("Reward: ", -running_sum)
+        print("self.current_offset: ", self.current_offset, '\n')
 
         # reward is negative queues
         return -running_sum
