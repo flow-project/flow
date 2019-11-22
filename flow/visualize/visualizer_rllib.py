@@ -117,8 +117,9 @@ def visualizer_rllib(args):
     elif args.render_mode == 'no_render':
         sim_params.render = False
     if args.save_render:
-        sim_params.render = 'drgb'
-        sim_params.pxpm = 4
+        if args.render_mode != 'sumo_gui':
+            sim_params.render = 'drgb'
+            sim_params.pxpm = 4
         sim_params.save_render = True
 
     # Create and register a gym+rllib env
