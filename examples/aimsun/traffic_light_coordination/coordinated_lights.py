@@ -152,7 +152,7 @@ class CoordinatedEnv(Env):
             episode = self.episode_count % RLLIB_N_ROLLOUTS
 
             print('-----------------------')
-            print(f'Episode {6 if not episode else episode} of {RLLIB_N_ROLLOUTS} complete')
+            print(f'Episode {RLLIB_N_ROLLOUTS if not episode else episode} of {RLLIB_N_ROLLOUTS} complete')
             print('Resetting AIMSUN')
             print('-----------------------')
 
