@@ -127,11 +127,11 @@ class CoordinatedEnv(Env):
         running_sum = 0
         for section_id in self.past_cumul_queue:
             current_cumul_queue = self.k.traffic_light.get_cumulative_queue_length(section_id)
-            delta_queue = current_cumul_queue - self.past_cumul_queue[section_id]
+            queue = current_cumul_queue - self.past_cumul_queue[section_id]
             self.past_cumul_queue[section_id] = current_cumul_queue
-            if delta_queue < 0:
-                print('reward < 0: ', delta_queue)
-            running_sum += delta_queue**2
+            if queue < 0:
+                print('reward < 0: ', queue)
+            running_sum += queue**2
 
         print("Reward: ", -running_sum)
         print("self.current_offset: ", self.current_offset, '\n')
@@ -149,8 +149,11 @@ class CoordinatedEnv(Env):
 
         if self.episode_count:
             self.k.simulation.reset_simulation()
+
+            episode = self.episode_count % RLLIB_N_ROLLOUTS
+
             print('-----------------------')
-            print(f'Episode {self.episode_count % RLLIB_N_ROLLOUTS} of {RLLIB_N_ROLLOUTS} complete')
+            print(f'Episode {6 if not episode else episode} of {RLLIB_N_ROLLOUTS} complete')
             print('Resetting AIMSUN')
             print('-----------------------')
 
