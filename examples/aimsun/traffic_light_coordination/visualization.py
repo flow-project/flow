@@ -73,9 +73,9 @@ def replay(env, env_params, agent):
 if __name__ == "__main__":
     import re
     regex = re.compile(r'checkpoint_(\d+)')
-    ray.init(num_cpus=1)
+    ray.init(num_cpus=1, object_store_memory=1000 * 1000 * 1000)  # cap at 1GB
 
-    experiment_dir = "ray_results/coordinated_traffic_lights"
+    experiment_dir = "/Users/umang/ray_results/coordinated_traffic_lights"
 
     result_dirs = os.listdir(experiment_dir)
     for result_dir in result_dirs:
