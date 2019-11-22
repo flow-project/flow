@@ -23,7 +23,7 @@ detector_step = 300  # seconds
 time_horizon = 3600*4 - detector_step  # 14,100
 HORIZON = int(time_horizon//sim_step)
 
-RLLIB_N_CPUS = 6
+RLLIB_N_CPUS = 2
 RLLIB_HORIZON = int(time_horizon//detector_step)  # 47
 
 # set both of these in load.py
@@ -82,14 +82,14 @@ def setup_exps(version=0):
     config["train_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["sample_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS
-    config["model"].update({"fcnet_hiddens": [32, 32]})
+    config["model"].update({"fcnet_hiddens": [32, 16, 8]})
     config["use_gae"] = True
     config["lambda"] = 0.97
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config['clip_actions'] = False  # (ev) temporary ray bug
     config["horizon"] = RLLIB_HORIZON  # not same as env horizon.
-    config["vf_loss_coeff"] = 1e-8
+    config["vf_loss_coeff"] = 1e-6
 
     # save the flow params for replay
     flow_json = json.dumps(
