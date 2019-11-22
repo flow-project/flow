@@ -167,24 +167,24 @@ class TestRllibExamples(unittest.TestCase):
         self.run_exp(singleagent_bottleneck)
 
     def test_multi_figure_eight(self):
-        from examples.exp_configs.multiagent.multiagent_figure_eight import POLICY_GRAPHS
-        from examples.exp_configs.multiagent.multiagent_figure_eight import policy_mapping_fn
+        from examples.exp_configs.multiagent.multiagent_figure_eight import POLICY_GRAPHS as mf8pg
+        from examples.exp_configs.multiagent.multiagent_figure_eight import policy_mapping_fn as mf8pmf
 
         kwargs = {
-            "policy_graphs": POLICY_GRAPHS,
-            "policy_mapping_fn": policy_mapping_fn
+            "policy_graphs": mf8pg,
+            "policy_mapping_fn": mf8pmf
         }
         self.run_exp(multiagent_figure_eight, **kwargs)
 
     def test_multi_ring(self):
-        from examples.exp_configs.multiagent.multiagent_ring import POLICY_GRAPHS
-        from examples.exp_configs.multiagent.multiagent_ring import POLICIES_TO_TRAIN
-        from examples.exp_configs.multiagent.multiagent_ring import policy_mapping_fn
+        from examples.exp_configs.multiagent.multiagent_ring import POLICY_GRAPHS as mrpg
+        from examples.exp_configs.multiagent.multiagent_ring import POLICIES_TO_TRAIN as mrpt
+        from examples.exp_configs.multiagent.multiagent_ring import policy_mapping_fn as mrpmf
 
         kwargs = {
-            "policy_graphs": POLICY_GRAPHS,
-            "policies_to_train": POLICIES_TO_TRAIN,
-            "policy_mapping_fn": policy_mapping_fn
+            "policy_graphs": mrpg,
+            "policies_to_train": mrpt,
+            "policy_mapping_fn": mrpmf
         }
         self.run_exp(multiagent_ring, **kwargs)
 
@@ -192,14 +192,14 @@ class TestRllibExamples(unittest.TestCase):
         pass  # FIXME
 
     def test_multi_highway(self):
-        from examples.exp_configs.multiagent.multiagent_highway import POLICY_GRAPHS
-        from examples.exp_configs.multiagent.multiagent_highway import POLICIES_TO_TRAIN
-        from examples.exp_configs.multiagent.multiagent_highway import policy_mapping_fn
+        from examples.exp_configs.multiagent.multiagent_highway import POLICY_GRAPHS as mhpg
+        from examples.exp_configs.multiagent.multiagent_highway import POLICIES_TO_TRAIN as mhpt
+        from examples.exp_configs.multiagent.multiagent_highway import policy_mapping_fn as mhpmf
 
         kwargs = {
-            "policy_graphs": POLICY_GRAPHS,
-            "policies_to_train": POLICIES_TO_TRAIN,
-            "policy_mapping_fn": policy_mapping_fn
+            "policy_graphs": mhpg,
+            "policies_to_train": mhpt,
+            "policy_mapping_fn": mhpmf
         }
         self.run_exp(multiagent_highway, **kwargs)
 

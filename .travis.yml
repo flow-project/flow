@@ -65,7 +65,7 @@ install:
   - pip install stable_baselines==2.7.0
 
 script:
-  - nose2 tests.fast_tests.test_aimsun_api tests.fast_tests.test_aimsun_scripting_api tests.fast_tests.test_collisions tests.fast_tests.test_controllers tests.fast_tests.test_environments --with-coverage
+  - nose2 --with-coverage
 
 after_success:
   - coveralls
