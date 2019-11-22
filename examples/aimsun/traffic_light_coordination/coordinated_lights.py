@@ -124,20 +124,19 @@ class CoordinatedEnv(Env):
 
     def compute_reward(self, rl_actions, **kwargs):
         """Computes the sum of queue lengths at all intersections in the network."""
-        running_sum = 0
+        reward = 0
         for section_id in self.past_cumul_queue:
             current_cumul_queue = self.k.traffic_light.get_cumulative_queue_length(section_id)
             queue = current_cumul_queue - self.past_cumul_queue[section_id]
             self.past_cumul_queue[section_id] = current_cumul_queue
-            if queue < 0:
-                print('reward < 0: ', queue)
-            running_sum += queue**2
+            
+            # reward is negative queues
+            reward -= queue**2
 
-        print("Reward: ", -running_sum)
+        print("reward: ", reward)
         print("self.current_offset: ", self.current_offset, '\n')
 
-        # reward is negative queues
-        return -running_sum
+        return reward
 
     def reset(self):
         """See parent class.
