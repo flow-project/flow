@@ -241,54 +241,55 @@ class QueueGridEnv(Env):
     @property
     def observation_space(self):
         """See class definition."""
-        cars_per_lane = Box(
-            low=-1,
-            high=np.inf,
-            shape=(self.total_lanes(),),      # Each lane has its own entry for the number of cars
-            dtype=np.int32)  # check how discrete values work
-        # Check what the low=0, high=1 means
-        curr_phase_duration = Box(
-            low=-1,
-            high=np.inf,
-            shape=(self.num_tl_intersections,),
-            dtype=np.float32)
-        curr_phase = Box(
-            low=-1,
-            high=6,
-            shape=(self.num_tl_intersections,),
-            dtype=np.int32)
-        green_or_yellow = Box(
-            low=-1,
-            high=1,
-            shape=(self.num_tl_intersections,),
-            dtype=np.int32)
+        # cars_per_lane = Box(
+        #     low=-1,
+        #     high=np.inf,
+        #     shape=(self.total_lanes(),),      # Each lane has its own entry for the number of cars
+        #     dtype=np.int32)  # check how discrete values work
+        # # Check what the low=0, high=1 means
+        # curr_phase_duration = Box(
+        #     low=-1,
+        #     high=np.inf,
+        #     shape=(self.num_tl_intersections,),
+        #     dtype=np.float32)
+        # curr_phase = Box(
+        #     low=-1,
+        #     high=6,
+        #     shape=(self.num_tl_intersections,),
+        #     dtype=np.int32)
+        # green_or_yellow = Box(
+        #     low=-1,
+        #     high=1,
+        #     shape=(self.num_tl_intersections,),
+        #     dtype=np.int32)
 
         # TODO (KevinLin) deal with the Tuple, or just change the high/low values
 
         # TODO(KevinLin) We need a different 'low' and 'high' for the number of cars in a lane, right?
-        # obs = Box(
-        #     low=-2.0,
-        #     high=2,
-        #     shape=(self.total_lanes() + self.num_tl_intersections * 3,),
-        #     dtype=np.float32)
+        obs = Box(
+            low=-2.0,
+            high=2,
+            shape=(self.total_lanes() + self.num_tl_intersections * 3,),
+            dtype=np.float32)
 
-        return Tuple((cars_per_lane, curr_phase_duration, curr_phase, green_or_yellow))
+        #return Tuple((cars_per_lane, curr_phase_duration, curr_phase, green_or_yellow))
         # TODO(KevinLin) any advantage of tuple over one large box?
+        return obs
 
     def get_state(self):
         """See class definition."""
-
+        max_phase_duration = 90
         # get the state arrays
         cars_per_lane = []
         for laneID in self.k.kernel_api.lane.getIDList():
             cars_per_lane.append(self.k.kernel_api.lane.getLastStepVehicleNumber(laneID))
 
         state = cars_per_lane + \
-            self.curr_phase_duration.flatten().tolist() + \
-            self.curr_phase.flatten().tolist() + \
+            (self.curr_phase_duration / max_phase_duration).flatten().tolist() + \
+            (self.curr_phase / 5).flatten().tolist() + \
             self.green_or_yellow.flatten().tolist()
 
-        return np.array(state)
+        return state
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
