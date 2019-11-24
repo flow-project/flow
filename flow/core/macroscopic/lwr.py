@@ -15,25 +15,23 @@ PARAMS = DictDescriptor(
     #                           Network parameters                            #
     # ======================================================================= #
 
-    ("length", 10000, float, "length of the stretch of highway"),
+    ("length", 35, float, "length of the stretch of highway"),
 
-    ("dx", 100, float, "length of individual sections on the highway. Speeds "
-                       "and densities are computed on these sections. Must be "
-                       "a factor of the length"),
+    ("dx", 35/150, float, "length of individual sections on the highway. "
+                          "Speeds and densities are computed on these "
+                          "sections. Must be a factor of the length"),
 
-    ("rho_max", 0.2, float, "maximum density term in the LWR model (in "
-                            "veh/m)"),
+    ("rho_max", 4, float, "maximum density term in the LWR model (in veh/m)"),
 
-    ("rho_max_max", 0.2, float, "maximum possible density of the network (in "
-                                "veh/m)"),
+    ("rho_max_max", 4, float, "maximum possible density of the network (in "
+                              "veh/m)"),
 
-    ("v_max", 27.5, float, "initial speed limit of the LWR model. If not "
-                           "actions are provided during the simulation "
-                           "procedure, this value is kept constant throughout "
-                           "the simulation."),
+    ("v_max", 1, float, "initial speed limit of the LWR model. If not actions "
+                        "are provided during the simulation procedure, this "
+                        "value is kept constant throughout the simulation."),
 
-    ("v_max_max", 27.5, float, "max speed limit that the network can be "
-                               "assigned"),
+    ("v_max_max", 1, float, "max speed limit that the network can be "
+                            "assigned"),
 
     ("CFL", 0.95, float, "Courant-Friedrichs-Lewy (CFL) condition. Must be a "
                          "value between 0 and 1."),
@@ -42,18 +40,23 @@ PARAMS = DictDescriptor(
     #                          Simulation parameters                          #
     # ======================================================================= #
 
-    ("total_time", 500, float, "time horizon (in seconds)"),
+    ("total_time", 110.5, float, "time horizon (in seconds)"),
 
-    ("dt", 1, float, "time discretization (in seconds/step)"),
+    ("dt", 0.221, float, "time discretization (in seconds/step)"),
 
     # ======================================================================= #
     #                      Initial / boundary conditions                      #
     # ======================================================================= #
 
-    ("initial_conditions", [0 for _ in range(100)], None,  # FIXME
+    ("initial_conditions", [0], None,
      "list of initial densities. Must be of length int(length/dx)"),
 
-    ("boundary_conditions", (0, 0), None, "TODO: define what that is"),
+    ("boundary_conditions", 'extend_both', None,
+     "conditions at road left and right ends; should either dict or string"
+     " ie. {'constant_both': (value, value)}, constant value of both ends"
+     "loop, loop edge values as a ring"
+     "extend_both, extrapolate last value on both ends"
+     ),
 )
 
 
@@ -109,10 +112,6 @@ class LWR(MacroModelEnv):
         environment's time horizon, in steps
     initial_conditions : array_like
         list of initial densities. Must be of length int(length/dx)
-    boundary_left : float
-        left boundary conditions
-    boundary_right : float
-        right boundary conditions
     obs : array_like
         current observation
     num_steps : int
@@ -145,7 +144,12 @@ class LWR(MacroModelEnv):
             * dt (float): time discretization (in seconds/step)
             * initial_conditions (list of float): list of initial densities.
               Must be of length int(length/dx)
-            * boundary_conditions ((float, float)): TODO: define what that is
+            * boundary_conditions (string) or (dict): string  of either "loop" or "extend_both " or a
+                dict of {"condition": (density, density)} specifying densities at left edge
+                of road and right edge of road respectively as initial boundary conditions.
+                Boundary conditions are important to maintain conservation laws
+                because at each calculation of the flux, we lose information at the boundaries
+                and so we have to keep updating/specifying them from t=1 (unless in special cases).
         """
         super(LWR, self).__init__(params)
 
@@ -167,9 +171,9 @@ class LWR(MacroModelEnv):
         assert params['dt'] <= params['CFL'] * params['dx']/params['v_max'], \
             "CFL condition not satisfied. Make sure dt <= CFL * dx / v_max"
 
-        # assert len(params['initial_conditions']) == \
-        #     int(params['length'] / params['dx']), \
-        #     "Initial conditions must be a list of size: length/dx."
+        assert len(params['initial_conditions']) == \
+            int(params['length'] / params['dx']), \
+            "Initial conditions must be a list of size: length/dx."
 
         self.params = params.copy()
         self.length = params['length']
@@ -183,8 +187,15 @@ class LWR(MacroModelEnv):
         self.dt = params['dt']
         self.horizon = int(self.total_time / self.dt)
         self.initial_conditions = params['initial_conditions']
-        self.boundary_left = params['boundary_conditions'][0]
-        self.boundary_right = params['boundary_conditions'][1]
+        self.boundaries = params["boundary_conditions"]
+        self.boundary_left = None
+        self.boundary_right = None
+
+        # lam is an exponent of the Green-shield velocity function
+        self.lam = 1
+        # critical density defined by the Green-shield Model
+        self.rho_critical = self.rho_max / 2
+        self.speeds = None
 
         self.obs = None
         self.num_steps = None
@@ -230,13 +241,11 @@ class LWR(MacroModelEnv):
         # advance the state of the simulation by one step
         rho = self.ibvp(
             self.obs[:int(self.length/self.dx)],
-            self.boundary_right,
-            self.boundary_left,
         )
         speed = self.speed_info(rho)
 
         # compute the new observation
-        self.obs = np.concatenate((rho / self.rho_max_max, speed / self.v_max))
+        self.obs = np.concatenate((rho, speed))
 
         # compute the reward value
         rew = np.mean(np.square(speed - self.v_max) * rho)
@@ -259,21 +268,25 @@ class LWR(MacroModelEnv):
         array_like
             array of fluxes calibrated at every point of our data
         """
+        rho_critical = self.rho_critical
+        q_max = rho_critical * self.speed_info(rho_critical)
+
         # demand
-        d = self.v_max * rho_t * (1 - rho_t / self.rho_max) \
-            * (rho_t < 0.5 * self.rho_max) \
-            + 0.25 * self.v_max * self.rho_max * (rho_t >= 0.5 * self.rho_max)
+        d = rho_t * self.speed_info(rho_t) \
+            * (rho_t < rho_critical) \
+            + q_max * (rho_t >= rho_critical)
 
         # supply
-        s = self.v_max * rho_t * (1 - rho_t / self.rho_max) \
-            * (rho_t > 0.5 * self.rho_max) \
-            + 0.25 * self.v_max * self.rho_max * (rho_t <= 0.5 * self.rho_max)
+        s = rho_t * self.speed_info(rho_t)\
+            * (rho_t > rho_critical) \
+            + q_max * (rho_t <= rho_critical)
+
         s = np.append(s[1:], s[len(s) - 1])
 
         # Godunov flux
         return np.minimum(d, s)
 
-    def ibvp(self, rho_t, u_right, u_left):
+    def ibvp(self, rho_t):
         """Implement Godunov scheme for multi-populations.
 
         Friedrich, Jan & Kolb, Oliver & Goettlich, Simone. (2018). A Godunov
@@ -286,20 +299,19 @@ class LWR(MacroModelEnv):
             density data to be analyzed and calculate next points for this data
             using Godunov scheme.
             Note: at time = 0, rho_t = initial density data
-        u_right : double
-            right boundary condition
-        u_left : double
-            left boundary condition
 
         Returns
         -------
         array_like
               next density data points as calculated by the Godunov scheme
         """
-        # lam = time/distance step
-        lam = self.dt / self.dx
+        # step = time/distance step
+        step = self.dt / self.dx
 
-        rho_t = np.insert(np.append(rho_t, u_right), 0, u_left)
+        # store loop boundary conditions for ring-like experiment
+        if self.boundaries == "loop":
+            self.boundary_left = rho_t[len(rho_t) - 1]
+            self.boundary_right = rho_t[len(rho_t) - 2]
 
         # Godunov numerical flux
         f = self.godunov_flux(rho_t)
@@ -307,13 +319,27 @@ class LWR(MacroModelEnv):
         fm = np.insert(f[0:len(f) - 1], 0, f[0])
 
         # Godunov scheme (updating rho_t)
-        rho_t = rho_t - lam * (f - fm)
+        rho_t = rho_t - step * (f - fm)
 
-        rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], u_right),
-                          0, u_left)
+        # update loop boundary conditions for ring-like experiment
+        if self.boundaries == "loop":
+            rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
+                              0, self.boundary_left)
 
-        # remove the boundary conditions from the output
-        rho_t = rho_t[1:len(rho_t) - 1]
+        # update boundary conditions by extending/extrapolating boundaries (reduplication)
+        if self.boundaries == "extend_both":
+            self.boundary_left = rho_t[0]
+            self.boundary_right = rho_t[len(rho_t) - 1]
+            rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
+                              0, self.boundary_left)
+
+        # update boundary conditions by keeping boundaries constant
+        if type(self.boundaries) == dict:
+            if list(self.boundaries.keys())[0] == "constant_both":
+                self.boundary_left = self.boundaries["constant_both"][0]
+                self.boundary_right = self.boundaries["constant_both"][1]
+                rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
+                                  0, self.boundary_left)
 
         return rho_t
 
@@ -334,7 +360,8 @@ class LWR(MacroModelEnv):
         array_like
             equilibrium velocity at every specified point on road
         """
-        return self.v_max * (1 - (density / self.rho_max))
+        self.speeds = self.v_max * ((1 - (density / self.rho_max)) ** self.lam)
+        return self.speeds
 
     def reset(self):
         """Reset the environment.
@@ -353,8 +380,8 @@ class LWR(MacroModelEnv):
 
         # reset the observation to match the initial condition
         initial_conditions = np.asarray(self.initial_conditions)
-        rho_init = initial_conditions / self.rho_max_max
-        v_init = self.speed_info(initial_conditions) / self.v_max_max
+        rho_init = initial_conditions
+        v_init = self.speed_info(initial_conditions)
         self.obs = np.concatenate((rho_init, v_init))
 
         return self.obs.copy()
