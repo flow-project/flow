@@ -279,12 +279,13 @@ class QueueGridEnv(Env):
     def get_state(self):
         """See class definition."""
         max_phase_duration = 90
+        max_lane_vehicles = 50 # This too is hard coded
         # get the state arrays
         cars_per_lane = []
         for laneID in self.k.kernel_api.lane.getIDList():
             cars_per_lane.append(self.k.kernel_api.lane.getLastStepVehicleNumber(laneID))
-
-        state = cars_per_lane + \
+        total_vehicles = sum(cars_per_lane)
+        state = [cars / total_vehicles for cars in cars_per_lane] + \
             (self.curr_phase_duration / max_phase_duration).flatten().tolist() + \
             (self.curr_phase / 5).flatten().tolist() + \
             self.green_or_yellow.flatten().tolist()
@@ -314,7 +315,7 @@ class QueueGridEnv(Env):
                         self.k.traffic_light.set_state(
                             node_id=self.index_to_tl_id(i),
                             state=PHASE_NUM_TO_STR[self.curr_phase[i][0] + 6])   # Index into np.array value, add 6 to get yellow phase
-                        print(self.green_or_yellow)
+                        #print(self.green_or_yellow)
 
             if self.green_or_yellow[i] == 1:  # currently yellow
                 if self.curr_phase_duration[i] >= self.min_yellow_time:
@@ -422,7 +423,7 @@ class QueueGridEnv(Env):
         """Takes in an index and converts the index into the corresponding node_id"""
         x_axis = i % self.cols + 1  # add one to both x and y because the 0th node starts at (1,1)
         y_axis = int(i / self.cols + 1)
-        print(y_axis)
+        # print(y_axis)
         return "({}.{})".format(x_axis, y_axis)
 
     def total_lanes(self):
