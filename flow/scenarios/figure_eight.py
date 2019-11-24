@@ -1,32 +1,26 @@
-"""Contains the figure eight scenario class."""
+"""Pending deprecation file.
 
-import numpy as np
-from numpy import pi, sin, cos, linspace
-
-from flow.core.params import InitialConfig
-from flow.core.params import TrafficLightParams
-from flow.scenarios.base_scenario import Scenario
-
-ADDITIONAL_NET_PARAMS = {
-    # radius of the circular components
-    "radius_ring": 30,
-    # number of lanes
-    "lanes": 1,
-    # speed limit for all edges
-    "speed_limit": 30,
-    # resolution of the curved portions
-    "resolution": 40
-}
+To view the actual content, go to: flow/networks/figure_eight.py
+"""
+from flow.utils.flow_warnings import deprecated
+from flow.networks.figure_eight import FigureEightNetwork
+from flow.networks.figure_eight import ADDITIONAL_NET_PARAMS  # noqa: F401
 
 
-class Figure8Scenario(Scenario):
-    """Figure eight scenario class.
+@deprecated('flow.scenarios.figure_eight',
+            'flow.networks.figure_eight.FigureEightNetwork')
+class FigureEightScenario(FigureEightNetwork):
+    """See parent class."""
 
-    The figure eight network is an extension of the ring road network: Two
-    rings, placed at opposite ends of the network, are connected by an
-    intersection with road segments of length equal to the diameter of the
-    rings. Serves as a simulation of a closed loop intersection.
+    pass
 
+
+@deprecated('flow.scenarios.figure_eight',
+            'flow.networks.figure_eight.FigureEightNetwork')
+class Figure8Scenario(FigureEightNetwork):
+    """See parent class."""
+
+<<<<<<< HEAD
     Requires from net_params:
 
     * **ring_radius** : radius of the circular portions of the network. Also
@@ -226,3 +220,6 @@ class Figure8Scenario(Scenario):
             ("lower_ring", 2 * self.intersection_len + 3 * self.ring_edgelen)]
 
         return edgestarts
+=======
+    pass
+>>>>>>> 44e21a3a711c8f08fc49bf5945fb074e9f41c61d

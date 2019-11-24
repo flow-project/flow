@@ -5,39 +5,38 @@ from flow.core.params import SumoParams, EnvParams, \
     SumoLaneChangeParams
 from flow.core.params import VehicleParams
 from flow.core.experiment import Experiment
-from flow.scenarios.highway_ramps import HighwayRampsScenario, \
-                                         ADDITIONAL_NET_PARAMS
-from flow.controllers import IDMController
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.networks.highway_ramps import HighwayRampsNetwork, \
+    ADDITIONAL_NET_PARAMS
+from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 
 # lengths
-additional_net_params["highway_length"] = 600
-additional_net_params["on_ramps_length"] = 65
-additional_net_params["off_ramps_length"] = 65
+additional_net_params["highway_length"] = 1200
+additional_net_params["on_ramps_length"] = 200
+additional_net_params["off_ramps_length"] = 200
 
 # number of lanes
-additional_net_params["highway_lanes"] = 4
+additional_net_params["highway_lanes"] = 3
 additional_net_params["on_ramps_lanes"] = 1
 additional_net_params["off_ramps_lanes"] = 1
 
 # speed limits
-additional_net_params["highway_speed"] = 15
-additional_net_params["on_ramps_speed"] = 10
-additional_net_params["off_ramps_speed"] = 10
+additional_net_params["highway_speed"] = 30
+additional_net_params["on_ramps_speed"] = 20
+additional_net_params["off_ramps_speed"] = 20
 
 # ramps
-additional_net_params["on_ramps_pos"] = [200, 400]
-additional_net_params["off_ramps_pos"] = [300, 500]
+additional_net_params["on_ramps_pos"] = [400]
+additional_net_params["off_ramps_pos"] = [800]
 
 # probability of exiting at the next off-ramp
-additional_net_params["next_off_ramp_proba"] = 0.05
+additional_net_params["next_off_ramp_proba"] = 0.25
 
 # inflow rates in vehs/hour
-HIGHWAY_INFLOW_RATE = 1000
-ON_RAMPS_INFLOW_RATE = 200
+HIGHWAY_INFLOW_RATE = 4000
+ON_RAMPS_INFLOW_RATE = 350
 
 
 def highway_ramps_example(render=None):
@@ -67,11 +66,9 @@ def highway_ramps_example(render=None):
     vehicles = VehicleParams()
     vehicles.add(
         veh_id="human",
-        acceleration_controller=(IDMController, {
-            "noise": 0.2
-        }),
         car_following_params=SumoCarFollowingParams(
-            speed_mode="obey_safe_speed",
+            speed_mode="obey_safe_speed",  # for safer behavior at the merges
+            tau=1.5  # larger distance between cars
         ),
         lane_change_params=SumoLaneChangeParams(lane_change_mode=1621))
 
@@ -101,15 +98,15 @@ def highway_ramps_example(render=None):
         inflows=inflows,
         additional_params=additional_net_params)
 
-    initial_config = InitialConfig(spacing="uniform", perturbation=5.0)
+    initial_config = InitialConfig()  # no vehicles initially
 
-    scenario = HighwayRampsScenario(
+    network = HighwayRampsNetwork(
         name="highway-ramp",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = AccelEnv(env_params, sim_params, scenario)
+    env = AccelEnv(env_params, sim_params, network)
 
     return Experiment(env)
 

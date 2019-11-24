@@ -239,10 +239,10 @@ class TestPlotters(unittest.TestCase):
     def test_time_space_diagram_ring_road(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         emission_data = tsd.import_data_from_emission(
-            os.path.join(dir_path, 'test_files/loop_230_emission.csv'))
+            os.path.join(dir_path, 'test_files/ring_230_emission.csv'))
 
         flow_params = tsd.get_flow_params(
-            os.path.join(dir_path, 'test_files/loop_230.json'))
+            os.path.join(dir_path, 'test_files/ring_230.json'))
         pos, speed, _ = tsd.get_time_space_data(emission_data, flow_params)
 
         expected_pos = np.array(

@@ -28,16 +28,12 @@ micro-simulator Aimsun.
 previous point, but in the present of autonomous vehicle (AV) or traffic light 
 agents being trained through RL algorithms provided by *RLlib*.
 
-**examples/rllab/** provides similar examples as the one above, but where the 
-RL agents are controlled and training the RL library *rllab*. Before running 
-any experiment here, be sure to run `source activate flow`.
-
 
 ## Simulated Examples
 
 The following networks are available for simulation within flow, and 
 specifically the **examples/sumo** folder. Similar networks are available with 
-trainable variants in the examples/rllib and examples/rllab folders; however, 
+trainable variants in the examples/rllib and examples/aimsun folders; however, 
 they may be under different names.
 
 ### bay_bridge.py \& bay_bridge_toll.py
@@ -65,9 +61,9 @@ average speed of vehicles in the network.
 
 ![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/figure_eight.gif)
 
-### grid.py
+### traffic_light_grid.py
 
-Performs a simulation of vehicles on a grid.
+Performs a simulation of vehicles on a traffic light grid.
 
 ![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/grid.gif)
 
@@ -76,12 +72,6 @@ Performs a simulation of vehicles on a grid.
 Example of an open multi-lane network with human-driven vehicles.
 
 ![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/highway.gif)
-
-### loop_merges.py
-
-Example of ring road with larger merging ring.
-
-![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/loop_merge.gif)
 
 ### merge.py
 

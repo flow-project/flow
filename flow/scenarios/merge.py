@@ -1,28 +1,18 @@
-"""Contains the merge scenario class."""
+"""Pending deprecation file.
 
-from flow.scenarios.base_scenario import Scenario
-from flow.core.params import InitialConfig
-from flow.core.params import TrafficLightParams
-from numpy import pi, sin, cos
+To view the actual content, go to: flow/networks/merge.py
+"""
+from flow.utils.flow_warnings import deprecated
+from flow.networks.merge import MergeNetwork
+from flow.networks.merge import ADDITIONAL_NET_PARAMS  # noqa: F401
 
-INFLOW_EDGE_LEN = 100  # length of the inflow edges (needed for resets)
-VEHICLE_LENGTH = 5
 
-ADDITIONAL_NET_PARAMS = {
-    # length of the merge edge
-    "merge_length": 100,
-    # length of the highway leading to the merge
-    "pre_merge_length": 200,
-    # length of the highway past the merge
-    "post_merge_length": 100,
-    # number of lanes in the merge
-    "merge_lanes": 1,
-    # number of lanes in the highway
-    "highway_lanes": 1,
-    # max speed limit of the network
-    "speed_limit": 30,
-}
+@deprecated('flow.scenarios.merge',
+            'flow.networks.merge.MergeNetwork')
+class MergeScenario(MergeNetwork):
+    """See parent class."""
 
+<<<<<<< HEAD
 
 class MergeScenario(Scenario):
     """Scenario class for highways with a single in-merge.
@@ -203,3 +193,4 @@ class MergeScenario(Scenario):
             ("bottom", 2 * INFLOW_EDGE_LEN + premerge + postmerge)]
 
         return edgestarts
+    pass

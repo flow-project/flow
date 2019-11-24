@@ -79,7 +79,7 @@ if __name__ == "__main__":
     alg_run = "ARS"
 
     # initialize a ray instance
-    ray.init(redirect_output=True)
+    ray.init()
 
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()

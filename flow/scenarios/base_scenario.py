@@ -1,27 +1,17 @@
-"""Contains the base scenario class."""
+"""Pending deprecation file.
 
-from flow.core.params import InitialConfig
-from flow.core.params import TrafficLightParams
-from flow.core.params import SumoCarFollowingParams
-from flow.core.params import SumoLaneChangeParams
-import time
-import xml.etree.ElementTree as ElementTree
-from lxml import etree
-from collections import defaultdict
+To view the actual content, go to: flow/scenarios/base.py
+"""
+from flow.utils.flow_warnings import deprecated
+from flow.networks.base import Network
 
-try:
-    # Import serializable if rllab is installed
-    from rllab.core.serializable import Serializable
-except ImportError:
-    Serializable = object
 
-# default sumo probability value  TODO (ak): remove
-DEFAULT_PROBABILITY = 0
-# default sumo vehicle length value (in meters) TODO (ak): remove
-DEFAULT_LENGTH = 5
-# default sumo vehicle class class TODO (ak): remove
-DEFAULT_VCLASS = 0
+@deprecated('flow.scenarios.base_scenario',
+            'flow.networks.base.Network')
+class Scenario(Network):
+    """See parent class."""
 
+<<<<<<< HEAD
 
 class Scenario(Serializable):
     """Base scenario class.
@@ -778,3 +768,6 @@ class Scenario(Serializable):
         """Return the name of the scenario and the number of vehicles."""
         return 'Scenario ' + self.name + ' with ' + \
                str(self.vehicles.num_vehicles) + ' vehicles.'
+=======
+    pass
+>>>>>>> 44e21a3a711c8f08fc49bf5945fb074e9f41c61d

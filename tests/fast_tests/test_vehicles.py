@@ -225,7 +225,7 @@ class TestMultiLaneData(unittest.TestCase):
 
         initial_config = InitialConfig(lanes_distribution=float("inf"))
 
-        env, scenario = ring_road_exp_setup(
+        env, _ = ring_road_exp_setup(
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -279,7 +279,7 @@ class TestMultiLaneData(unittest.TestCase):
                        "start_lanes": [1, 2, 0]}
         initial_config.additional_params = initial_pos
 
-        env, scenario = highway_exp_setup(
+        env, _ = highway_exp_setup(
             sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
@@ -355,7 +355,7 @@ class TestMultiLaneData(unittest.TestCase):
                        "start_lanes": [0, 0, 0, 1, 1, 2, 2, 3, 3]}
         initial_config.additional_params = initial_pos
 
-        env, scenario = highway_exp_setup(
+        env, _ = highway_exp_setup(
             sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
@@ -419,7 +419,7 @@ class TestMultiLaneData(unittest.TestCase):
                        "start_lanes": [1, 2, 0]}
         initial_config.additional_params = initial_pos
 
-        env, scenario = highway_exp_setup(
+        env, _ = highway_exp_setup(
             sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
@@ -486,7 +486,7 @@ class TestMultiLaneData(unittest.TestCase):
                        "start_lanes": [0, 0, 0]}
         initial_config.additional_params = initial_pos
 
-        env, scenario = highway_exp_setup(
+        env, _ = highway_exp_setup(
             sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
@@ -538,11 +538,11 @@ class TestIdsByEdge(unittest.TestCase):
     """
 
     def setUp(self):
-        # create the environment and scenario classes for a figure eight
+        # create the environment and network classes for a figure eight
         vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=20)
 
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        self.env, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # free data used by the class

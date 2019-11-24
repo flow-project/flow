@@ -1,22 +1,18 @@
-"""Contains the ring road scenario class."""
+"""Pending deprecation file.
 
-from flow.scenarios.base_scenario import Scenario
-from flow.core.params import InitialConfig
-from flow.core.params import TrafficLightParams
-from numpy import pi, sin, cos, linspace
-
-ADDITIONAL_NET_PARAMS = {
-    # length of the ring road
-    "length": 230,
-    # number of lanes
-    "lanes": 1,
-    # speed limit for all edges
-    "speed_limit": 30,
-    # resolution of the curves on the ring
-    "resolution": 40
-}
+To view the actual content, go to: flow/networks/ring.py
+"""
+from flow.utils.flow_warnings import deprecated
+from flow.networks.ring import RingNetwork
+from flow.networks.ring import ADDITIONAL_NET_PARAMS  # noqa: F401
 
 
+@deprecated('flow.scenarios.loop',
+            'flow.networks.ring.RingNetwork')
+class LoopScenario(RingNetwork):
+    """See parent class."""
+
+<<<<<<< HEAD
 class LoopScenario(Scenario):
     """Ring road scenario.
 
@@ -201,3 +197,6 @@ class LoopScenario(Scenario):
                       ("left", 0.75 * ring_length)]
 
         return edgestarts
+=======
+    pass
+>>>>>>> 44e21a3a711c8f08fc49bf5945fb074e9f41c61d
