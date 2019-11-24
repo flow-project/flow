@@ -515,6 +515,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 ' --output-file=' + self.cfg_path + self.netfn +
                 ' --no-internal-links="false"'
             ],
+            stdout=subprocess.DEVNULL,
             shell=True)
 
         # collect data from the generated network configuration file

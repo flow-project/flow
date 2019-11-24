@@ -21,7 +21,7 @@ See [our website](https://flow-project.github.io/) for more information on the a
 
 # Technical questions
 
-Please direct your technical questions to [Stack Overflow](https://stackoverflow.com) using the [flow-project](https://stackoverflow.com/questions/tagged/flow-project) tag.
+If you have a bug, please report it. Otherwise, join the [Flow Users group](https://forms.gle/CuVBu6QtX3dfNaxz6) on Slack! You'll recieve an email shortly after filling out the form. 
 
 # Getting involved
 
