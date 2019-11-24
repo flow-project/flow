@@ -7,6 +7,8 @@ import time
 import traceback
 import numpy as np
 import random
+import shutil
+import subprocess
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
 from flow.utils.flow_warnings import deprecated_attribute
 
@@ -216,12 +218,8 @@ class Env(gym.Env):
         elif self.sim_params.render in [True, False]:
             # default to sumo-gui (if True) or sumo (if False)
             if (self.sim_params.render is True) and self.sim_params.save_render:
-                path = os.path.expanduser('~')+'/flow_rendering/'
-                dir_time = time.strftime("%Y-%m-%d-%H%M%S")
-                if not os.path.exists(path):
-                    os.mkdir(path)
-                self.path = path + dir_time
-                os.mkdir(self.path)
+                self.path = os.path.expanduser('~')+'/flow_rendering/' + self.network.name
+                os.makedirs(self.path, exist_ok=True)
         else:
             raise FatalFlowError(
                 'Mode %s is not supported!' % self.sim_params.render)
@@ -679,16 +677,13 @@ class Env(gym.Env):
                 self.renderer.close()
             # generate video
             elif (self.sim_params.render is True) and self.sim_params.save_render:
-                save_dir = os.path.expanduser('~') + '/flow_movies'
                 images_dir = self.path.split('/')[-1]
-                if not os.path.exists(save_dir):
-                    os.mkdir(save_dir)
-                speedup = 10  # speedup multiplier
+                speedup = 10  # multiplier: renders video so that `speedup` seconds is rendered in 1 real second
                 fps = speedup//self.sim_step
-                os_cmd = "ffmpeg -y -r {fps} -i {path}/frame_%06d.png".format(path=self.path, fps=fps)
-                os_cmd += " -pix_fmt yuv420p " + self.path+"/%s.mp4" % images_dir
-                os_cmd += "&& cp " + self.path+"/%s.mp4 " % images_dir + save_dir + "/"
-                os.system(os_cmd)  # only works in Unix
+                p = subprocess.Popen(["ffmpeg", "-y", "-r", str(fps), "-i", self.path+"/frame_%06d.png",
+                                      "-pix_fmt", "yuv420p", "%s/../%s.mp4" % (self.path, images_dir)])
+                p.wait()
+                shutil.rmtree(self.path)
         except FileNotFoundError:
             # Skip automatic termination. Connection is probably already closed
             print(traceback.format_exc())
