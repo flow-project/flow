@@ -497,6 +497,7 @@ class TraCIVehicle(KernelVehicle):
     def get_speed(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
+            #print(self.kernel_api.person.getSpeed('ped_1'))
             return [self.get_speed(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
 

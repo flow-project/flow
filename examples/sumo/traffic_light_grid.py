@@ -172,7 +172,7 @@ def traffic_light_grid_example(render=None, use_inflows=False):
     pedestrians = PedestrianParams()
     pedestrians.add(
             ped_id='ped_1',
-            depart_time='4.00',
+            depart_time='0.00',
             start='bot0_1',
             end='top1_0')
     pedestrians.add(
@@ -185,10 +185,6 @@ def traffic_light_grid_example(render=None, use_inflows=False):
             depart_time='105.00',
             start='right1_0',
             end='top1_0')
-
-
-
-
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
