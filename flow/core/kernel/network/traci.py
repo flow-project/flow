@@ -168,7 +168,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         self.edgestarts = self.network.edge_starts
 
         # if no edge_starts are specified, generate default values to be used
-        # by the "get_x" method
+        # by the "get_edge" method
         if self.edgestarts is None:
             length = 0
             self.edgestarts = []
@@ -178,18 +178,14 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 # increment the total length of the network with the length of
                 # the current edge
                 length += self._edges[edge_id]['length']
+        # sort the edgestarts by position
+        self.edgestarts.sort(key=lambda tup: tup[1])
 
-        # these optional parameters need only be used if "no-internal-links"
-        # is set to "false" while calling sumo's netconvert function
-        self.internal_edgestarts = self._gen_internal_edgestarts()
-        self.internal_edgestarts_dict = dict(self.internal_edgestarts)
-
-        # total_edgestarts and total_edgestarts_dict contain all of the above
-        # edges, with the former being ordered by position
-        self.total_edgestarts = self.edgestarts + self.internal_edgestarts
-        self.total_edgestarts.sort(key=lambda tup: tup[1])
-
+        # total_edgestarts and total_edgestarts_dict contain all main and
+        # internal edges, with the former being ordered by position
+        self.total_edgestarts = self._gen_internal_edgestarts()
         self.total_edgestarts_dict = dict(self.total_edgestarts)
+        print
 
         self.__length = sum(
             self._edges[edge_id]['length'] for edge_id in self._edges
@@ -247,9 +243,9 @@ class TraCIKernelNetwork(BaseKernelNetwork):
             except OSError:
                 pass
 
-    def get_edge(self, x):
+    def _get_edge(self, x):
         """See parent class."""
-        for (edge, start_pos) in reversed(self.total_edgestarts):
+        for (edge, start_pos) in reversed(self.edgestarts):
             if x >= start_pos:
                 return edge, x - start_pos
 
@@ -262,7 +258,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
 
         if edge[0] == ':':
             try:
-                return self.internal_edgestarts_dict[edge] + position
+                return self.total_edgestarts_dict[edge] + position
             except KeyError:
                 # in case several internal links are being generalized for
                 # by a single element (for backwards compatibility)
@@ -948,24 +944,23 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         Returns
         -------
         list of (str, float)
-            list of internal junction names and starting positions,
+            list of all edge names and starting positions,
             ex: [(internal0, pos0), (internal1, pos1), ...]
         """
-        # sort the regular edgestarts
-        self.edgestarts.sort(key=lambda tup: tup[1])
+        edgestarts = deepcopy(self.edgestarts)
 
         # the length that needs to be added to all next edges in the list of
         # sorted edges
         prev_junction_lengths = 0
 
         internal_edgestarts = []
-        for i in range(len(self.edgestarts)):
-            edge, pos = self.edgestarts[i]
+        for i in range(len(edgestarts)):
+            edge, pos = edgestarts[i]
 
             # increment the position with the junction length increment, and
             # add it back to the edgestarts
             pos += prev_junction_lengths
-            self.edgestarts[i] = (edge, pos)
+            edgestarts[i] = (edge, pos)
 
             # collect the names of all next junctions from the current edge
             all_next_edges = []
@@ -991,4 +986,8 @@ class TraCIKernelNetwork(BaseKernelNetwork):
             for next_edge in all_next_edges:
                 internal_edgestarts.append((next_edge, next_pos))
 
-        return internal_edgestarts
+        # combine and sort the edgestarts and internal edgestarts
+        total_edgestarts = edgestarts + internal_edgestarts
+        total_edgestarts.sort(key=lambda tup: tup[1])
+
+        return total_edgestarts
