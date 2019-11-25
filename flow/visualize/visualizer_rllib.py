@@ -110,7 +110,7 @@ def visualizer_rllib(args):
         sim_params.render = 'drgb'
         sim_params.pxpm = 4
     elif args.render_mode == 'sumo_gui':
-        sim_params.render = False # will be set to True below
+        sim_params.render = False  # will be set to True below
     elif args.render_mode == 'no_render':
         sim_params.render = False
     if args.save_render:
@@ -155,9 +155,9 @@ def visualizer_rllib(args):
         env = agent.local_evaluator.env
     else:
         env = gym.make(env_name)
-    
+
     if args.render_mode == 'sumo_gui':
-        env.sim_params.render = True # set to True after initializing agent and env
+        env.sim_params.render = True  # set to True after initializing agent and env
 
     if multiagent:
         rets = {}
@@ -185,7 +185,7 @@ def visualizer_rllib(args):
             ]
     else:
         use_lstm = False
-    
+
     # if restart_instance, don't restart here because env.reset will restart later
     if not sim_params.restart_instance:
         env.restart_simulation(sim_params=sim_params, render=sim_params.render)
