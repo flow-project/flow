@@ -110,10 +110,7 @@ def visualizer_rllib(args):
         sim_params.render = 'drgb'
         sim_params.pxpm = 4
     elif args.render_mode == 'sumo_gui':
-        sim_params.render = True
-        print('NOTE: With render mode {}, an extra instance of the SUMO GUI '
-              'will display before the GUI for visualizing the result. Click '
-              'the green Play arrow to continue.'.format(args.render_mode))
+        sim_params.render = False # will be set to True below
     elif args.render_mode == 'no_render':
         sim_params.render = False
     if args.save_render:
@@ -158,6 +155,9 @@ def visualizer_rllib(args):
         env = agent.local_evaluator.env
     else:
         env = gym.make(env_name)
+    
+    if args.render_mode == 'sumo_gui':
+        env.sim_params.render = True # set to True after initializing agent and env
 
     if multiagent:
         rets = {}
@@ -185,9 +185,10 @@ def visualizer_rllib(args):
             ]
     else:
         use_lstm = False
-
-    env.restart_simulation(
-        sim_params=sim_params, render=sim_params.render)
+    
+    # if restart_instance, don't restart here because env.reset will restart later
+    if not sim_params.restart_instance:
+        env.restart_simulation(sim_params=sim_params, render=sim_params.render)
 
     # Simulate and collect metrics
     final_outflows = []
