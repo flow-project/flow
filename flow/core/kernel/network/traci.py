@@ -185,7 +185,6 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         # internal edges, with the former being ordered by position
         self.total_edgestarts = self._gen_internal_edgestarts()
         self.total_edgestarts_dict = dict(self.total_edgestarts)
-        print
 
         self.__length = sum(
             self._edges[edge_id]['length'] for edge_id in self._edges
