@@ -178,12 +178,12 @@ The latter command should return an output similar to:
 
     /path/to/envs/aimsun_flow/bin/python
 
-Copy the path up until right before /lib (i.e. /path/to/envs/aimsun_flow/bin/python) and
+Copy the path up until right before /lib (i.e. /path/to/envs/aimsun_flow) and
 place it under the `AIMSUN_SITEPACKAGES` variable in your bashrc, like this:
 
 ::
 
-    export AIMSUN_SITEPACKAGES="/path/to/envs/aimsun_flow/bin/python"
+    export AIMSUN_SITEPACKAGES="/path/to/envs/aimsun_flow"
 
 Testing your Aimsun installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -198,6 +198,8 @@ to activate the `flow` env. Type:
     source activate flow
     python examples/simulate.py ring --aimsun
 
+*Troubleshootig for Ubuntu users with Aimsun 8.4*: when you run the above example, you may get a subprocess.Popen error ``OSError: [Errno 8] Exec format error:``.  
+To fix this, go to the `Aimsun Next` main directory, open the `Aimsun_Next` binary with a text editor and add the shebang to the first line of the script ``#!/bin/sh``.
 
 (Optional) Install Ray RLlib
 ----------------------------
