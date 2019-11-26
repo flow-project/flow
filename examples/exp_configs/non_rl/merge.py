@@ -9,7 +9,8 @@ from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows, SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.controllers import IDMController
-from flow.envs.merge import ADDITIONAL_ENV_PARAMS
+from flow.envs.merge import MergePOEnv, ADDITIONAL_ENV_PARAMS
+from flow.networks import MergeNetwork
 
 # inflow rate at the highway
 FLOW_RATE = 2000
@@ -45,10 +46,10 @@ flow_params = dict(
     exp_tag='merge-baseline',
 
     # name of the flow environment the experiment is running on
-    env_name='MergePOEnv',
+    env_name=MergePOEnv,
 
     # name of the network class the experiment is running on
-    network='MergeNetwork',
+    network=MergeNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

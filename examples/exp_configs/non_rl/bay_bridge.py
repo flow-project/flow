@@ -9,6 +9,8 @@ from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.networks.bay_bridge import EDGES_DISTRIBUTION
 from flow.controllers import SimCarFollowingController, BayBridgeRouter
+from flow.envs import BayBridgeEnv
+from flow.networks import BayBridgeNetwork
 
 USE_TRAFFIC_LIGHTS = False
 USE_INFLOWS = False
@@ -147,10 +149,10 @@ flow_params = dict(
     exp_tag='bay_bridge',
 
     # name of the flow environment the experiment is running on
-    env_name='BayBridgeEnv',
+    env_name=BayBridgeEnv,
 
     # name of the network class the experiment is running on
-    network='BayBridgeNetwork',
+    network=BayBridgeNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

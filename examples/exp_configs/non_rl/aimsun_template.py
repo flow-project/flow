@@ -3,6 +3,8 @@ from flow.core.params import AimsunParams, EnvParams, NetParams
 from flow.core.params import VehicleParams
 from flow.core.params import InFlows
 import flow.config as config
+from flow.envs import TestEnv
+from flow.networks import Network
 import os
 
 # inflow rate at the highway
@@ -21,10 +23,10 @@ flow_params = dict(
     exp_tag='aimsun_small_template',
 
     # name of the flow environment the experiment is running on
-    env_name='TestEnv',
+    env_name=TestEnv,
 
     # name of the network class the experiment is running on
-    network='Network',
+    network=Network,
 
     # simulator that is used by the experiment
     simulator='aimsun',

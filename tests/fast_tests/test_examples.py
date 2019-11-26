@@ -8,7 +8,7 @@ from flow.core.experiment import Experiment
 
 from examples.exp_configs.singleagent.singleagent_figure_eight import flow_params as singleagent_figure_eight
 # from examples.exp_configs.singleagent.green_wave import flow_params as singleagent_green_wave
-from examples.exp_configs.singleagent.singleagent_highway import flow_params as singleagent_highway
+from examples.exp_configs.singleagent.singleagent_merge import flow_params as singleagent_merge
 from examples.exp_configs.singleagent.singleagent_ring import flow_params as singleagent_ring
 from examples.exp_configs.singleagent.singleagent_bottleneck import flow_params as singleagent_bottleneck
 
@@ -126,8 +126,8 @@ class TestStableBaselineExamples(unittest.TestCase):
     def test_green_wave_inflows(self):
         pass  # FIXME
 
-    def test_singleagent_highway(self):
-        self.run_exp(singleagent_highway)
+    def test_singleagent_merge(self):
+        self.run_exp(singleagent_merge)
 
     def test_ring(self):
         self.run_exp(singleagent_ring)
@@ -157,8 +157,8 @@ class TestRllibExamples(unittest.TestCase):
     def test_traffic_light_grid_inflows(self):
         pass  # FIXME
 
-    def test_singleagent_highway(self):
-        self.run_exp(singleagent_highway)
+    def test_singleagent_merge(self):
+        self.run_exp(singleagent_merge)
 
     def test_ring(self):
         self.run_exp(singleagent_ring)

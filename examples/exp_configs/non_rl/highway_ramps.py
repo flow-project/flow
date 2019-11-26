@@ -4,7 +4,8 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import InFlows, VehicleParams, TrafficLightParams
 from flow.networks.highway_ramps import ADDITIONAL_NET_PARAMS
-from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
+from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.networks import HighwayRampsNetwork
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 
@@ -67,10 +68,10 @@ flow_params = dict(
     exp_tag='highway-ramp',
 
     # name of the flow environment the experiment is running on
-    env_name='AccelEnv',
+    env_name=AccelEnv,
 
     # name of the network class the experiment is running on
-    network='HighwayRampsNetwork',
+    network=HighwayRampsNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

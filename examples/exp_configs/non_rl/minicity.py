@@ -4,8 +4,9 @@ from flow.controllers import RLController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
-from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
+from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.controllers.routing_controllers import MinicityRouter
+from flow.networks import MiniCityNetwork
 
 
 vehicles = VehicleParams()
@@ -37,10 +38,10 @@ flow_params = dict(
     exp_tag='minicity',
 
     # name of the flow environment the experiment is running on
-    env_name='AccelEnv',
+    env_name=AccelEnv,
 
     # name of the network class the experiment is running on
-    network='MiniCityNetwork',
+    network=MiniCityNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

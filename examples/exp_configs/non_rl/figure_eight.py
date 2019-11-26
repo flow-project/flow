@@ -9,6 +9,8 @@ from flow.core.params import SumoParams, EnvParams, NetParams
 from flow.core.params import VehicleParams, SumoCarFollowingParams
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.networks.figure_eight import ADDITIONAL_NET_PARAMS
+from flow.envs import AccelEnv
+from flow.networks import FigureEightNetwork
 
 vehicles = VehicleParams()
 vehicles.add(
@@ -29,10 +31,10 @@ flow_params = dict(
     exp_tag='figure8',
 
     # name of the flow environment the experiment is running on
-    env_name='AccelEnv',
+    env_name=AccelEnv,
 
     # name of the network class the experiment is running on
-    network='FigureEightNetwork',
+    network=FigureEightNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

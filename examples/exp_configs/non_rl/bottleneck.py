@@ -5,6 +5,8 @@ from flow.core.params import InFlows, SumoLaneChangeParams, SumoCarFollowingPara
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.controllers import SimLaneChangeController, ContinuousRouter
+from flow.envs import BottleneckEnv
+from flow.networks import BottleneckNetwork
 
 SCALING = 1
 DISABLE_TB = True
@@ -47,10 +49,10 @@ flow_params = dict(
     exp_tag='bay_bridge_toll',
 
     # name of the flow environment the experiment is running on
-    env_name='BottleneckEnv',
+    env_name=BottleneckEnv,
 
     # name of the network class the experiment is running on
-    network='BottleneckNetwork',
+    network=BottleneckNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',

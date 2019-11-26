@@ -85,7 +85,7 @@ if __name__ == '__main__':
     flags = parse_args(sys.argv[1:])
 
     # Get the flow_params object.
-    module = __import__('exp_configs.non_rl', fromlist=[flags.exp_config])
+    module = __import__('exp_configs.singleagent', fromlist=[flags.exp_config])
     flow_params = getattr(module, flags.exp_config).flow_params
 
     # Path to the saved files

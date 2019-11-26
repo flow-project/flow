@@ -125,8 +125,14 @@ for i in range(len(additional_net_params['on_ramps_pos'])):
 flow_params = dict(
     # name of the experiment
     exp_tag='multiagent_highway',
+
+    # name of the flow environment the experiment is running on
     env_name=MultiAgentHighwayPOEnv,
+
+    # name of the network class the experiment is running on
     network=HighwayRampsNetwork,
+
+    # simulator that is used by the experiment
     simulator='traci',
 
     # environment related parameters (see flow.core.params.EnvParams)

@@ -4,7 +4,8 @@ from flow.controllers import IDMController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from flow.core.params import VehicleParams, InFlows
 from flow.envs.ring.lane_change_accel import ADDITIONAL_ENV_PARAMS
-from flow.networks.highway import ADDITIONAL_NET_PARAMS
+from flow.networks.highway import HighwayNetwork, ADDITIONAL_NET_PARAMS
+from flow.envs import LaneChangeAccelEnv
 
 vehicles = VehicleParams()
 vehicles.add(
@@ -38,10 +39,10 @@ flow_params = dict(
     exp_tag='highway',
 
     # name of the flow environment the experiment is running on
-    env_name='LaneChangeAccelEnv',
+    env_name=LaneChangeAccelEnv,
 
     # name of the network class the experiment is running on
-    network='HighwayNetwork',
+    network=HighwayNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
