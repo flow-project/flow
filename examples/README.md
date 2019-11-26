@@ -130,8 +130,9 @@ point before exiting the network.
 
 ### minicity.py
 
-Example of modified mini city developed under a [collaboration with University of Delaware]
-(https://sites.google.com/view/iccps-policy-transfer), with human-driven vehicles.
+Example of modified mini city developed under a 
+[collaboration with University of Delaware](https://sites.google.com/view/iccps-policy-transfer),
+with human-driven vehicles.
 
 ![](https://raw.githubusercontent.com/flow-project/flow/master/docs/img/minicity.gif)
 
