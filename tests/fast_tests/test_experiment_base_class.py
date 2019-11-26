@@ -4,9 +4,13 @@ import time
 
 from flow.core.experiment import Experiment
 from flow.core.params import VehicleParams
-from flow.controllers import RLController, ContinuousRouter
+from flow.controllers import IDMController, RLController, ContinuousRouter
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoParams
+from flow.core.params import EnvParams, InitialConfig, NetParams
+from flow.core.params import TrafficLightParams
+from flow.envs import AccelEnv
+from flow.networks import RingNetwork
 
 from tests.setup_scripts import ring_road_exp_setup
 
@@ -116,26 +120,64 @@ class TestConvertToCSV(unittest.TestCase):
     def test_convert_to_csv(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         sim_params = SumoParams(emission_path="{}/".format(dir_path))
-        env, network, flow_params = ring_road_exp_setup(sim_params=sim_params)
-        flow_params['sim'].render = False
-        flow_params['env'].horizon = 10
+
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="idm",
+            acceleration_controller=(IDMController, {}),
+            routing_controller=(ContinuousRouter, {}),
+            car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
+            num_vehicles=1)
+
+        additional_env_params = {
+            "target_velocity": 8,
+            "max_accel": 1,
+            "max_decel": 1,
+            "sort_vehicles": False,
+        }
+        env_params = EnvParams(
+            horizon=10,
+            additional_params=additional_env_params)
+
+        additional_net_params = {
+            "length": 230,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40
+        }
+        net_params = NetParams(additional_params=additional_net_params)
+
+        flow_params = dict(
+            exp_tag="RingRoadTest",
+            env_name=AccelEnv,
+            network=RingNetwork,
+            simulator='traci',
+            sim=sim_params,
+            env=env_params,
+            net=net_params,
+            veh=vehicles,
+            initial=InitialConfig(lanes_distribution=1),
+            tls=TrafficLightParams(),
+        )
+
         exp = Experiment(flow_params)
-        exp.env = env
         exp.run(num_runs=1, convert_to_csv=True)
 
-        time.sleep(0.1)
+        time.sleep(1.0)
 
         # check that both the csv file exists and the xml file doesn't.
         self.assertFalse(os.path.isfile(dir_path + "/{}-emission.xml".format(
-            network.name)))
+            exp.env.network.name)))
         self.assertTrue(os.path.isfile(dir_path + "/{}-emission.csv".format(
-            network.name)))
+            exp.env.network.name)))
 
         time.sleep(0.1)
 
         # delete the files
         os.remove(os.path.expanduser(dir_path + "/{}-emission.csv".format(
-            network.name)))
+            exp.env.network.name)))
 
 
 if __name__ == '__main__':

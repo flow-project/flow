@@ -666,7 +666,7 @@ class TestGippsontroller(unittest.TestCase):
             num_vehicles=5)
 
         # create the environment and network classes for a ring road
-        self.env, _ = ring_road_exp_setup(vehicles=vehicles)
+        self.env, _, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
