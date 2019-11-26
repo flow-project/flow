@@ -124,7 +124,7 @@ class Experiment:
                 print(self.env.k.pedestrian.get_edge('ped_1'))
                 print(self.env.k.pedestrian.get_speed('ped_1'))
                 #position crashes if pedestrian exitted
-                #print(self.env.k.pedestrian.get_position('ped_1'))               
+                print(self.env.k.pedestrian.get_position('ped_1'))               
                 
                 state, reward, done, _ = self.env.step(rl_actions(state))
                 vel[j] = np.mean(
