@@ -109,7 +109,7 @@ def setup_exps(flow_params,
     if policies_to_train is not None:
         config['multiagent'].update({'policies_to_train': policies_to_train})
 
-    create_env, gym_name = make_create_env(params=flow_params, version=0)
+    create_env, gym_name = make_create_env(params=flow_params)
 
     # Register as rllib env
     register_env(gym_name, create_env)

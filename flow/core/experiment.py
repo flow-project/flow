@@ -59,7 +59,7 @@ class Experiment:
     def __init__(self, flow_params):
         """Instantiate Experiment."""
         # Get the env name and a creator for the environment.
-        create_env, _ = make_create_env(flow_params, version=0)
+        create_env, _ = make_create_env(flow_params)
 
         # Create the environment.
         self.env = create_env()
