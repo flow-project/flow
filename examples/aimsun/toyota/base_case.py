@@ -11,26 +11,27 @@ import os
 
 # Setting parameters
 SIM_STEP = 0.8  # seconds
-# REPLICATION_NAME = # "Replication (one hour)"
-# CENTROID_CONF_NAME = # "Centroid Configuration 8040652"
-SIM_LOCATION = "flow.ang" # Until I can make intersection the base case compatible with old Aimsun version
+REPLICATION_NAME = "Toyota - Case 1" 
+CENTROID_CONF_NAME = "Centroid Configuration 8050393" 
+SIM_LOCATION = "examples/aimsun/toyota/base.ang" # Until I can make intersection the base case compatible with old Aimsun version
 NETWORK_NAME = "toyota_base_case1"
 RENDER = True
+GET_ENERGY = True
 
 
 sim_params = AimsunParams(sim_step=SIM_STEP,
                           render=RENDER,
                           restart_instance=False,
-                          emission_path='data')#,
-                          #replication_name=REPLICATION_NAME, 
-                          #centroid_config_name=CENTROID_CONF_NAME)
+                          emission_path='data',
+                          replication_name=REPLICATION_NAME, 
+                          centroid_config_name=CENTROID_CONF_NAME)
     
 
 env_params = EnvParams()
-env_params = EnvParams(horizon=HORIZON,
-                       warmup_steps=int(np.ceil(120/detector_step)),
-                       sims_per_step=int(detector_step/sim_step),
-                       additional_params=ADDITIONAL_ENV_PARAMS)
+# env_params = EnvParams(horizon=HORIZON,
+#                        warmup_steps=int(np.ceil(120/detector_step)),
+#                        sims_per_step=int(detector_step/sim_step),
+#                        additional_params=ADDITIONAL_ENV_PARAMS)
 
 
 vehicles = VehicleParams()
