@@ -117,8 +117,6 @@ class CoordinatedEnv(Env):
                         index = (i, j, ap['num_stopbars'])
                         state[(*index, 0)] = flow
                         state[(*index, 1)] = occupancy
-                    if 7674941 in detector_ids:
-                        print("%.2f\t%.2f\t%.2f" % (self.k.simulation.time, flow, occupancy))
 
         return state.flatten()
 
