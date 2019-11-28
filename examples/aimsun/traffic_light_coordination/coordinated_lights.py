@@ -127,10 +127,11 @@ class CoordinatedEnv(Env):
             current_cumul_queue = self.k.traffic_light.get_cumulative_queue_length(section_id)
             queue = current_cumul_queue - self.past_cumul_queue[section_id]
             self.past_cumul_queue[section_id] = current_cumul_queue
-            
-            # reward is negative queues
-            reward -= queue**2
 
+            # reward is negative queues
+            reward -= (queue**2) * 100
+
+        print(self.k.simulation_time)
         print("reward: ", reward)
         print("self.current_offset: ", self.current_offset, '\n')
 
