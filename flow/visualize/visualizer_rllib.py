@@ -13,7 +13,6 @@ parser : ArgumentParser
 """
 
 import argparse
-from datetime import datetime
 import gym
 import numpy as np
 import os
@@ -114,8 +113,9 @@ def visualizer_rllib(args):
     elif args.render_mode == 'no_render':
         sim_params.render = False
     if args.save_render:
-        sim_params.render = 'drgb'
-        sim_params.pxpm = 4
+        if args.render_mode != 'sumo_gui':
+            sim_params.render = 'drgb'
+            sim_params.pxpm = 4
         sim_params.save_render = True
 
     # Create and register a gym+rllib env
@@ -313,23 +313,6 @@ def visualizer_rllib(args):
 
         # delete the .xml version of the emission file
         os.remove(emission_path)
-
-    # if we wanted to save the render, here we create the movie
-    if args.save_render:
-        dirs = os.listdir(os.path.expanduser('~')+'/flow_rendering')
-        # Ignore hidden files
-        dirs = [d for d in dirs if d[0] != '.']
-        dirs.sort(key=lambda date: datetime.strptime(date, "%Y-%m-%d-%H%M%S"))
-        recent_dir = dirs[-1]
-        # create the movie
-        movie_dir = os.path.expanduser('~') + '/flow_rendering/' + recent_dir
-        save_dir = os.path.expanduser('~') + '/flow_movies'
-        if not os.path.exists(save_dir):
-            os.mkdir(save_dir)
-        os_cmd = "cd " + movie_dir + " && ffmpeg -i frame_%06d.png"
-        os_cmd += " -pix_fmt yuv420p " + dirs[-1] + ".mp4"
-        os_cmd += "&& cp " + dirs[-1] + ".mp4 " + save_dir + "/"
-        os.system(os_cmd)
 
 
 def create_parser():
