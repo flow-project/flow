@@ -119,7 +119,7 @@ class AimsunKernelNetwork(BaseKernelNetwork):
             with open(file_path, 'w') as f:
                 f.write("%s_%s" % (template_path, self.sim_params.port))
             # instances must have unique template paths to avoid crashing?
-            os.popen('cp %s %s_%s' % (template_path, template_path, self.sim_params.port)) 
+            os.popen('cp %s %s_%s' % (template_path, template_path, self.sim_params.port))
 
         # start the aimsun process
         aimsun_call = [aimsun_path, "-script", script_path, str(self.sim_params.port)]
@@ -261,8 +261,13 @@ class AimsunKernelNetwork(BaseKernelNetwork):
         # delete the json file that was used to read the network data
         cur_dir = os.path.join(config.PROJECT_PATH,
                                'flow/core/kernel/network')
-        os.remove(os.path.join(cur_dir, 'data_%s.json' % self.sim_params.port))
-        os.remove('%s_%s' % (self.network.net_params.template, self.sim_params.port))
+        data_file_path = os.path.join(cur_dir, 'data_%s.json' % self.sim_params.port)
+        if os.path.exists(data_file_path):
+            os.remove(data_file_path)
+
+        template_file_path = '%s_%s' % (self.network.net_params.template, self.sim_params.port)
+        if os.path.exists(template_file_path):
+            os.remove(template_file_path)
 
     ###########################################################################
     #                        State acquisition methods                        #
