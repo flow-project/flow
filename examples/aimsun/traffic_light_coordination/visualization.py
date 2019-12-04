@@ -1,6 +1,7 @@
 import os
 import ray
 import gym
+import sys
 
 try:
     from ray.rllib.agents.agent import get_agent_class
@@ -75,17 +76,28 @@ if __name__ == "__main__":
     regex = re.compile(r'checkpoint_(\d+)')
     ray.init(num_cpus=1, object_store_memory=1000 * 1000 * 1000)  # cap at 1GB
 
-    experiment_dir = "/Users/umang/ray_results/coordinated_traffic_lights"
+    if len(sys.argv) > 1:
+        experiment_dir = sys.argv[1]
+        print("Processing " + experiment_dir)
 
-    result_dirs = os.listdir(experiment_dir)
-    for result_dir in result_dirs:
-        if result_dir[0] == '.':
-            continue
-        result_dir = "{}/{}".format(experiment_dir, result_dir)
-        print("Processing {}".format(result_dir))
-
-        checkpoints = [regex.findall(i)[0] for i in os.listdir(result_dir) if 'checkpoint' in i]
+        checkpoints = [regex.findall(i)[0] for i in os.listdir(experiment_dir) if 'checkpoint' in i]
         latest_checkpoint = max(map(int, checkpoints))
 
-        env, env_params, agent = reload_checkpoint(result_dir, latest_checkpoint, version=0, render=True)
+        env, env_params, agent = reload_checkpoint(experiment_dir, latest_checkpoint, version=0, render=True)
         replay(env, env_params, agent)
+    else:
+        print('No experiment directory passed in as an argument.')
+        experiment_dir = "/Users/umang/ray_results/coordinated_traffic_lights"
+
+        result_dirs = os.listdir(experiment_dir)
+        for result_dir in result_dirs:
+            if result_dir[0] == '.':
+                continue
+            result_dir = "{}/{}".format(experiment_dir, result_dir)
+            print("Processing {}".format(result_dir))
+
+            checkpoints = [regex.findall(i)[0] for i in os.listdir(result_dir) if 'checkpoint' in i]
+            latest_checkpoint = max(map(int, checkpoints))
+
+            env, env_params, agent = reload_checkpoint(result_dir, latest_checkpoint, version=0, render=True)
+            replay(env, env_params, agent)
