@@ -89,7 +89,8 @@ def setup_exps(version=0):
     config["num_sgd_iter"] = 10
     config['clip_actions'] = False  # (ev) temporary ray bug
     config["horizon"] = RLLIB_HORIZON  # not same as env horizon.
-    config["vf_loss_coeff"] = 1e-6
+    config["vf_loss_coeff"] = 1e-12
+    config["lr"] = 5e-4
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -121,6 +122,7 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": RLLIB_TRAINING_ITERATIONS,  # set this value in load.py
             },
+            # "restore": '/Users/umang/ray_results/coordinated_traffic_lights/PPO_CoordinatedEnv-v0_0_2019-11-25_18-25-29g__xajcz/checkpoint_63/checkpoint-63'
             # "local_dir": os.path.abspath("./ray_results"),
         }
     }, resume=False)
