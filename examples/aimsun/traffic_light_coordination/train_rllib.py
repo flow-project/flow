@@ -27,7 +27,7 @@ RLLIB_N_CPUS = 2
 RLLIB_HORIZON = int(time_horizon//detector_step)  # 47
 
 # set both of these in load.py
-RLLIB_N_ROLLOUTS = 6  # set in load.py
+RLLIB_N_ROLLOUTS = 12  # set in load.py and coordinated_lights.py
 RLLIB_TRAINING_ITERATIONS = 100  # set in load.py
 
 # ADDITIONAL_ENV_PARAMS['detection_interval'] = (detector_step//3600,  (detector_step%3600)//60, detector_step%60)
