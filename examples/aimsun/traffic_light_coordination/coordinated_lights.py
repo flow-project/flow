@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces.box import Box
+from gym.spaces import Box, Tuple, Discrete
 
 from flow.envs import Env
 from flow.networks import Network
@@ -64,11 +64,7 @@ class CoordinatedEnv(Env):
     @property
     def action_space(self):
         """See class definition."""
-        return Box(
-            low=0,
-            high=1,
-            shape=(len(self.target_nodes),),
-            dtype=np.float32)
+        return Tuple(len(self.target_nodes) * (Discrete(120, ),))
 
     @property
     def observation_space(self):
@@ -79,7 +75,7 @@ class CoordinatedEnv(Env):
         return Box(low=0, high=5, shape=(shape, ), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
-        actions = rl_actions * 120
+        actions = np.array(rl_actions)
         delta_offset = actions - self.current_offset
         for node_id, action in zip(self.target_nodes, delta_offset):
             self.k.traffic_light.change_intersection_offset(node_id, action)
