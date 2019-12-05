@@ -16,7 +16,7 @@ ADDITIONAL_ENV_PARAMS = {'target_nodes': [3369, 3341, 3370, 3344, 3329],
                                               'Replication 8050322']}  # 14-21
 # the replication list should be copied in load.py
 
-RLLIB_N_ROLLOUTS = 8  # copied from train_rllib.py
+RLLIB_N_ROLLOUTS = 12  # copied from train_rllib.py
 
 np.random.seed(1234567890)
 
