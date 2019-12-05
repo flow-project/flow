@@ -18,7 +18,6 @@ except ImportError:
 
 sim_step = 0.8  # seconds
 detector_step = 300  # seconds
-# detector_step = 1.6  # seconds
 
 time_horizon = 3600*4 - detector_step  # 14,100
 HORIZON = int(time_horizon//sim_step)
