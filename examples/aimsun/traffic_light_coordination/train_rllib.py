@@ -86,7 +86,7 @@ def setup_exps(version=0):
     config["num_sgd_iter"] = 10
     config['clip_actions'] = False  # (ev) temporary ray bug
     config["horizon"] = RLLIB_HORIZON  # not same as env horizon.
-    config["vf_loss_coeff"] = 1e-12
+    config["vf_loss_coeff"] = 1e-9
     config["lr"] = 5e-4
 
     # save the flow params for replay
