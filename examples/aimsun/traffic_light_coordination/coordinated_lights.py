@@ -183,12 +183,14 @@ class CoordinatedEnv(Env):
 
             print('-----------------------')
             print(f'Episode {RLLIB_N_ROLLOUTS if not episode else episode} of {RLLIB_N_ROLLOUTS} complete')
-            print('Resetting AIMSUN')
-            print('-----------------------')
+            print('Resetting simulation')
 
             # restart AIMSUN instance to prevent crashes
             if not self.episode_counter % (RLLIB_N_ROLLOUTS * 5):
                 self.restart_simulation(self.sim_params)
+                print('Restarting AIMSUN')
+
+            print('-----------------------')
 
         # increment episode count
         self.episode_counter += 1
