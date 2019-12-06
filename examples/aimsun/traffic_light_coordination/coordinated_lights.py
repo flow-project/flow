@@ -128,7 +128,7 @@ class CoordinatedEnv(Env):
             # reward is negative queues
             reward -= (queue**2) * 100
 
-        print(f'{self.k.simulation.time:.0f}\t{reward:.2f}\t{self.current_offset}')
+        print(f'{self.k.simulation.time:.0f}', '\t', f'{reward:.2f}', '\t', self.current_offset)
 
         return reward
 
