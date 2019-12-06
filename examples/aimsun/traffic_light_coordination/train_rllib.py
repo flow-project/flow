@@ -16,30 +16,28 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 
 
-sim_step = 0.8  # seconds
-detector_step = 300  # seconds
+SIM_STEP = 0.8  # copy to run.py
 
-time_horizon = 3600*4 - detector_step  # 14,100
-HORIZON = int(time_horizon//sim_step)
+# hardcoded to AIMSUN's statistics update interval (5 minutes)
+DETECTOR_STEP = 300  # copy to run.py
+
+TIME_HORIZON = 3600*4 - DETECTOR_STEP  # 14,100
+HORIZON = int(TIME_HORIZON//SIM_STEP)
 
 RLLIB_N_CPUS = 2
-RLLIB_HORIZON = int(time_horizon//detector_step)  # 47
+RLLIB_HORIZON = int(TIME_HORIZON//DETECTOR_STEP)  # 47
 
-# set both of these in load.py
-RLLIB_N_ROLLOUTS = 12  # set in load.py and coordinated_lights.py
-RLLIB_TRAINING_ITERATIONS = 100  # set in load.py
-
-# ADDITIONAL_ENV_PARAMS['detection_interval'] = (detector_step//3600,  (detector_step%3600)//60, detector_step%60)
-# ADDITIONAL_ENV_PARAMS['statistical_interval'] = (detector_step//3600,  (detector_step%3600)//60, detector_step%60)
+RLLIB_N_ROLLOUTS = 12  # copy to coordinated_lights.py
+RLLIB_TRAINING_ITERATIONS = 100
 
 net_params = NetParams(template=os.path.abspath("no_api_scenario.ang"))
 initial_config = InitialConfig()
 vehicles = VehicleParams()
 env_params = EnvParams(horizon=HORIZON,
-                       warmup_steps=int(np.ceil(120/detector_step)),
-                       sims_per_step=int(detector_step/sim_step),
+                       warmup_steps=int(np.ceil(120/DETECTOR_STEP)),
+                       sims_per_step=int(DETECTOR_STEP/SIM_STEP),
                        additional_params=ADDITIONAL_ENV_PARAMS)
-sim_params = AimsunParams(sim_step=sim_step,
+sim_params = AimsunParams(sim_step=SIM_STEP,
                           render=False,
                           restart_instance=False,
                           #   replication_name="Replication (one hour)",
