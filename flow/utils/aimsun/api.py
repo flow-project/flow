@@ -699,12 +699,10 @@ class FlowAimsunAPI(object):
         list
             list of current phases as ints
         """
-        phases = self._send_command(ac.INT_CHANGE_OFFSET,
-                                    in_format='i f',
-                                    values=(node_id, offset,),
-                                    out_format='str')
-
-        return [int(phase) for phase in phases.split(',')]
+        self._send_command(ac.INT_CHANGE_OFFSET,
+                           in_format='i f',
+                           values=(node_id, offset,),
+                           out_format=None)
 
     def get_incoming_edges(self, node_id):
         """

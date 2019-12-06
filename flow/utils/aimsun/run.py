@@ -487,11 +487,7 @@ def threaded_client(conn, **kwargs):
                 time = kwargs.get('time')
                 timeSta = kwargs.get('timeSta')
                 acycle = kwargs.get('acycle')
-                phases = cp.change_offset(node_id, offset, time, timeSta, acycle)
-
-                output = ','.join(str(i) for i in phases)
-
-                send_message(conn, in_format='str', values=(output,))
+                cp.change_offset(node_id, offset, time, timeSta, acycle)
 
             elif data == ac.INT_GET_IN_EDGES:
                 send_message(conn, in_format='i', values=(0,))

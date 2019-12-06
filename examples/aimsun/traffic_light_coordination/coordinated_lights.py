@@ -78,7 +78,8 @@ class CoordinatedEnv(Env):
         actions = np.array(rl_actions)
         delta_offset = actions - self.current_offset
         for node_id, action in zip(self.target_nodes, delta_offset):
-            self.k.traffic_light.change_intersection_offset(node_id, action)
+            if action:
+                self.k.traffic_light.change_intersection_offset(node_id, action)
         self.current_offset = actions
 
     def get_state(self, rl_id=None, **kwargs):
