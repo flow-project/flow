@@ -28,7 +28,7 @@ RLLIB_N_CPUS = 2
 RLLIB_HORIZON = int(TIME_HORIZON//DETECTOR_STEP)  # 47
 
 RLLIB_N_ROLLOUTS = 12  # copy to coordinated_lights.py
-RLLIB_TRAINING_ITERATIONS = 100
+RLLIB_TRAINING_ITERATIONS = 1000
 
 net_params = NetParams(template=os.path.abspath("no_api_scenario.ang"))
 initial_config = InitialConfig()
