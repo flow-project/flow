@@ -31,7 +31,7 @@ class CoordinatedEnv(Env):
         super().__init__(env_params, sim_params, network, simulator)
         self.additional_params = env_params.additional_params
 
-        self.episode_count = 0
+        self.episode_counter = 0
         self.detection_interval = self.additional_params['detection_interval'][1]*60  # assuming minutes for now
         self.k.simulation.set_detection_interval(*self.additional_params['detection_interval'])
         self.k.simulation.set_statistical_interval(*self.additional_params['statistical_interval'])
@@ -176,18 +176,22 @@ class CoordinatedEnv(Env):
         # reset the step counter
         self.step_counter = 0
 
-        if self.episode_count:
+        if self.episode_counter:
             self.k.simulation.reset_simulation()
 
-            episode = self.episode_count % RLLIB_N_ROLLOUTS
+            episode = self.episode_counter % RLLIB_N_ROLLOUTS
 
             print('-----------------------')
             print(f'Episode {RLLIB_N_ROLLOUTS if not episode else episode} of {RLLIB_N_ROLLOUTS} complete')
             print('Resetting AIMSUN')
             print('-----------------------')
 
+            # restart AIMSUN instance to prevent crashes
+            if not self.episode_counter % (RLLIB_N_ROLLOUTS * 5):
+                self.restart_simulation(self.sim_params)
+
         # increment episode count
-        self.episode_count += 1
+        self.episode_counter += 1
 
         # reset variables
         self.current_offset = np.zeros(len(self.target_nodes))
