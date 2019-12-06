@@ -563,18 +563,20 @@ def AAPIInit():
 
 def AAPIManage(time, timeSta, timeTrans, acycle):
     """Execute commands before an Aimsun simulation step."""
-    # tcp/ip connection from the aimsun process
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_socket.bind(('localhost', PORT))
+    # Create a thread when data needs to be sent back to FLOW
+    if not time % (300 * 0.8): # DETECTOR_STEP * SIM_STEP (copy from train_rllib.py)
+        # tcp/ip connection from the aimsun process
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server_socket.bind(('localhost', PORT))
 
-    # connect to the Flow instance
-    server_socket.listen(10)
-    c, address = server_socket.accept()
+        # connect to the Flow instance
+        server_socket.listen(10)
+        c, address = server_socket.accept()
 
-    # start the threaded process
-    kwargs = {"time": time, "timeSta": timeSta, "timeTrans": timeTrans, "acycle": acycle}
-    start_new_thread(threaded_client, (c,), kwargs)
+        # start the threaded process
+        kwargs = {"time": time, "timeSta": timeSta, "timeTrans": timeTrans, "acycle": acycle}
+        start_new_thread(threaded_client, (c,), kwargs)
 
     return 0
 

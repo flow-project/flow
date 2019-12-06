@@ -134,6 +134,42 @@ class CoordinatedEnv(Env):
 
         return reward
 
+    def step(self, rl_actions):
+        """See parent class."""
+
+        self.time_counter += self.env_params.sims_per_step
+        self.step_counter += self.env_params.sims_per_step
+
+        self.apply_rl_actions(rl_actions)
+
+        # advance the simulation in the simulator by one step
+        self.k.simulation.simulation_step()
+
+        for _ in range(self.env_params.sims_per_step):
+            self.k.simulation.update(reset=False)
+
+        states = self.get_state()
+
+        # collect information of the state of the network based on the
+        # environment class used
+        self.state = np.asarray(states).T
+
+        # collect observation new state associated with action
+        next_observation = np.copy(states)
+
+        # test if the environment should terminate due to a collision or the
+        # time horizon being met
+        done = (self.time_counter >= self.env_params.warmup_steps +
+                self.env_params.horizon)  # or crash
+
+        # compute the info for each agent
+        infos = {}
+
+        # compute the reward
+        reward = self.compute_reward(rl_actions)
+
+        return next_observation, reward, done, infos
+
     def reset(self):
         """See parent class.
 
