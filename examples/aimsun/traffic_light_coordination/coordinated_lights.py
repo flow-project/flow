@@ -187,8 +187,8 @@ class CoordinatedEnv(Env):
 
             # restart AIMSUN instance to prevent crashes
             if not self.episode_counter % (RLLIB_N_ROLLOUTS * 5):
-                self.restart_simulation(self.sim_params)
                 print('Restarting AIMSUN')
+                self.restart_simulation(self.sim_params)
 
             print('-----------------------')
 
