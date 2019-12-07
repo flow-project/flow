@@ -79,7 +79,7 @@ def setup_exps(version=0):
     config["train_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["sample_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS
-    config["model"].update({"fcnet_hiddens": [32, 16, 8]})
+    config["model"].update({"fcnet_hiddens": [64, 64, 64]})
     config["use_gae"] = True
     config["lambda"] = 0.97
     config["kl_target"] = 0.02
