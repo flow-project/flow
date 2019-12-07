@@ -119,7 +119,7 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": RLLIB_TRAINING_ITERATIONS,
             },
-            # "restore": '/Users/umang/ray_results/coordinated_traffic_lights/PPO_CoordinatedEnv-v0_0_2019-11-25_18-25-29g__xajcz/checkpoint_63/checkpoint-63'
+            "restore": '/Users/umang/ray_results/coordinated_traffic_lights/PPO_CoordinatedEnv-v0_0_2019-12-05_20-03-085u1e3s7d/checkpoint_52/checkpoint-52'
             # "local_dir": os.path.abspath("./ray_results"),
         }
-    }, resume=False)
+    }, resume=True)

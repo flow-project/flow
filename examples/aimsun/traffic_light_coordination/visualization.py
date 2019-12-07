@@ -74,6 +74,7 @@ def replay(env, env_params, agent):
             break
 
     # terminate the environment
+    input("Press Enter when you're finished...")
     env.unwrapped.terminate()
 
 
