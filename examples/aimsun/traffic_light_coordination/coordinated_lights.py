@@ -39,7 +39,7 @@ class CoordinatedEnv(Env):
 
         # target intersections
         self.target_nodes = env_params.additional_params["target_nodes"]
-        self.current_offset = np.zeros((len(self.target_nodes), 1))
+        self.current_offset = np.zeros(len(self.target_nodes))
 
         # reset_offsets
         for node_id in self.target_nodes:
@@ -75,7 +75,7 @@ class CoordinatedEnv(Env):
         return Box(low=0, high=5, shape=(shape, ), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
-        actions = np.array(rl_actions)
+        actions = np.array(rl_actions).flatten()
         delta_offset = actions - self.current_offset
         for node_id, action in zip(self.target_nodes, delta_offset):
             if action:
@@ -190,7 +190,7 @@ class CoordinatedEnv(Env):
         self.episode_counter += 1
 
         # reset variables
-        self.current_offset = np.zeros((len(self.target_nodes), 1))
+        self.current_offset = np.zeros(len(self.target_nodes))
         for section_id in self.past_cumul_queue:
             self.past_cumul_queue[section_id] = 0
 
