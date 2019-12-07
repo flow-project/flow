@@ -38,6 +38,7 @@ def reload_checkpoint(result_dir, checkpoint_num, gen_emission=False, version=0,
 
     # pick your rendering mode
     sim_params.render = render
+    sim_params.restart_instance = False
     create_env, env_name = make_create_env(params=flow_params, version=version)
     register_env(env_name, create_env)
 
@@ -52,8 +53,7 @@ def reload_checkpoint(result_dir, checkpoint_num, gen_emission=False, version=0,
 
     env = gym.make(env_name)
 
-    # if restart_instance, don't restart here because env.reset will restart later
-    if not sim_params.restart_instance:
+    if sim_params.restart_instance:
         env.restart_simulation(sim_params=sim_params, render=sim_params.render)
 
     return env, env_params, agent
