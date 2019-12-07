@@ -39,7 +39,7 @@ class CoordinatedEnv(Env):
 
         # target intersections
         self.target_nodes = env_params.additional_params["target_nodes"]
-        self.current_offset = np.zeros(len(self.target_nodes))
+        self.current_offset = np.zeros((len(self.target_nodes), 1))
 
         # reset_offsets
         for node_id in self.target_nodes:
@@ -190,7 +190,7 @@ class CoordinatedEnv(Env):
         self.episode_counter += 1
 
         # reset variables
-        self.current_offset = np.zeros(len(self.target_nodes))
+        self.current_offset = np.zeros((len(self.target_nodes), 1))
         for section_id in self.past_cumul_queue:
             self.past_cumul_queue[section_id] = 0
 
