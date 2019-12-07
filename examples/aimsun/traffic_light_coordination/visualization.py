@@ -56,6 +56,9 @@ def reload_checkpoint(result_dir, checkpoint_num, gen_emission=False, version=0,
     if sim_params.restart_instance:
         env.restart_simulation(sim_params=sim_params, render=sim_params.render)
 
+    # Necessary due to the way our env works
+    env.k.simulation.reset_simulation()
+
     return env, env_params, agent
 
 
