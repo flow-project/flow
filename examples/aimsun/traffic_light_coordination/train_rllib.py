@@ -27,7 +27,7 @@ HORIZON = int(TIME_HORIZON//SIM_STEP)
 RLLIB_N_CPUS = 2
 RLLIB_HORIZON = int(TIME_HORIZON//DETECTOR_STEP)  # 47
 
-RLLIB_N_ROLLOUTS = 12  # copy to coordinated_lights.py
+RLLIB_N_ROLLOUTS = 3  # copy to coordinated_lights.py
 RLLIB_TRAINING_ITERATIONS = 1000
 
 net_params = NetParams(template=os.path.abspath("no_api_scenario.ang"))
@@ -86,7 +86,8 @@ def setup_exps(version=0):
     config["num_sgd_iter"] = 10
     config['clip_actions'] = False  # (ev) temporary ray bug
     config["horizon"] = RLLIB_HORIZON  # not same as env horizon.
-    config["vf_loss_coeff"] = 1e-9
+    config["vf_loss_coeff"] = 1e-8
+    config["vf_clip_param"] = 600
     config["lr"] = 5e-4
 
     # save the flow params for replay
@@ -119,7 +120,7 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": RLLIB_TRAINING_ITERATIONS,
             },
-            # "restore": '/Users/umang/ray_results/coordinated_traffic_lights/PPO_CoordinatedEnv-v0_0_2019-12-05_20-03-085u1e3s7d/checkpoint_91/checkpoint-91'
+            # "restore": '/Users/umang/ray_results/coordinated_traffic_lights/PPO_CoordinatedEnv-v0_0_2019-12-07_16-03-40qh2emtjb/checkpoint_48/checkpoint-48'
             # "local_dir": os.path.abspath("./ray_results"),
         }
     }, resume=False)
