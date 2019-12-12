@@ -70,7 +70,7 @@ class TestCollisions(unittest.TestCase):
     def test_collide_inflows(self):
         """Tests collisions in the presence of inflows."""
         # create the environment and network classes for a ring road
-        sim_params = SumoParams(sim_step=1, render=False)
+        sim_params = SumoParams(sim_step=1, render=False, seed=40)
         total_vehicles = 0
         vehicles = VehicleParams()
         vehicles.add(
