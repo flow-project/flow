@@ -11,6 +11,7 @@ abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 from flow.core.params import InitialConfig
 from flow.core.params import NetParams
 from flow.envs.base import Env
+from flow.utils.exceptions import FatalFlowError
 
 from gym.spaces.box import Box
 
@@ -207,7 +208,14 @@ class WaveAttenuationEnv(Env):
             render=self.sim_params.render)
 
         # perform the generic reset function
-        observation = super().reset()
+        successful_reset = False
+        while not successful_reset:
+            try:
+                observation = super().reset()
+                successful_reset = True
+            except FatalFlowError as ex:
+                print(ex)
+                print("Retrying base environment reset function after invalid start position error.")
 
         # reset the timer to zero
         self.time_counter = 0
