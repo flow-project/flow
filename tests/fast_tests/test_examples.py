@@ -1,5 +1,6 @@
 import os
 import unittest
+import random
 
 import ray
 from ray.tune import run_experiments
@@ -36,10 +37,8 @@ from examples.exp_configs.non_rl.ring import flow_params as non_rl_ring
 
 os.environ['TEST_FLAG'] = 'True'
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-import random
 
 random.seed(a=10)
-
 
 
 class TestNonRLExamples(unittest.TestCase):
