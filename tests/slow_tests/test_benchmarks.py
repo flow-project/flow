@@ -34,6 +34,10 @@ from flow.benchmarks.stable_baselines.trpo_runner import run_model
 from flow.benchmarks.stable_baselines.trpo_runner import parse_args
 from flow.benchmarks.stable_baselines.trpo_runner import save_model
 
+import random
+
+random.seed(a=10)
+
 N_CPUS = 1
 ray.init(num_cpus=N_CPUS)
 
