@@ -61,6 +61,8 @@ class CoordinatedEnv(Env):
                 self.edge_detector_dict[node_id][edge_id] = type_map
                 self.past_cumul_queue[edge_id] = 0
 
+        self.ignore_policy = False
+
     @property
     def action_space(self):
         """See class definition."""
@@ -75,6 +77,9 @@ class CoordinatedEnv(Env):
         return Box(low=0, high=5, shape=(shape, ), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
+        if self.ignore_policy:
+            print('self.ignore_policy is True')
+            return
         actions = np.array(rl_actions).flatten()
         delta_offset = actions - self.current_offset
         for node_id, action in zip(self.target_nodes, delta_offset):

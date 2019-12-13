@@ -59,17 +59,19 @@ def reload_checkpoint(result_dir, checkpoint_num, gen_emission=False, version=0,
     return env, env_params, agent
 
 
-def replay(env, env_params, agent):
+def replay(env, env_params, agent, ignore_policy):
     # Necessary due to the way our env works
     print('\nPlease press "Play" in AIMSUN.')
     env.k.simulation.reset_simulation()
-
+    env.ignore_policy = ignore_policy
+    total_reward = 0
     # Replay simulations
     state = env.reset()
     for _ in range(env_params.horizon):
         vehicles = env.unwrapped.k.vehicle
         action = agent.compute_action(state)
         state, reward, done, _ = env.step(action)
+        total_reward += reward
         if done:
             break
 
@@ -77,6 +79,7 @@ def replay(env, env_params, agent):
     input("Press Enter when you're finished...")
     env.unwrapped.terminate()
 
+    return total_reward
 
 if __name__ == "__main__":
     import re
@@ -85,13 +88,18 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1:
         experiment_dir = sys.argv[1]
+        ignore_policy = False
+        if len(sys.argv) > 2:
+            ignore_policy = (sys.argv[2] == 'y')
+            print('ignore_policy is True')
         print("Processing " + experiment_dir)
 
         checkpoints = [regex.findall(i)[0] for i in os.listdir(experiment_dir) if 'checkpoint' in i]
         latest_checkpoint = max(map(int, checkpoints))
 
         env, env_params, agent = reload_checkpoint(experiment_dir, latest_checkpoint, version=0, render=True)
-        replay(env, env_params, agent)
+        total_reward = replay(env, env_params, agent, ignore_policy)
+        print(f'Total reward: {total_reward}')
     else:
         print('No experiment directory passed in as an argument.')
         experiment_dir = "/Users/umang/ray_results/coordinated_traffic_lights"
