@@ -36,6 +36,7 @@ from flow.benchmarks.stable_baselines.trpo_runner import save_model
 
 import random
 
+# This removes the randomness in this test
 random.seed(a=10)
 
 N_CPUS = 1
