@@ -654,6 +654,21 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 for key in params['type_params']
             }
             add.append(E('vType', id=params['veh_id'], **type_params_str))
+        
+        if self.network.template_detectors:
+            for key in self.network.template_detectors:
+                # TODO: Universalize for all detectors
+                det_params = dict()
+                det_params = {
+                    'id': key,
+                    'length': self.network.template_detectors[key]['length'],
+                    'lane': self.network.template_detectors[key]['lane'],
+                    'pos': self.network.template_detectors[key]['pos'],
+                    'freq': self.network.template_detectors[key]['freq'],
+                    # 'friendlyPos': area_detector.attrib['friendlyPos'],
+                    'file': self.network.template_detectors[key]['file']
+                }
+                add.append(E('e2Detector', **det_params))
 
         # add (optionally) the traffic light properties to the .add.xml file
         num_traffic_lights = len(list(traffic_lights.get_properties().keys()))

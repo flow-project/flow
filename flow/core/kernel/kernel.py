@@ -4,6 +4,7 @@ import warnings
 from flow.core.kernel.simulation import TraCISimulation, AimsunKernelSimulation
 from flow.core.kernel.network import TraCIKernelNetwork, AimsunKernelNetwork
 from flow.core.kernel.vehicle import TraCIVehicle, AimsunKernelVehicle
+from flow.core.kernel.induction_loops import TraCILaneAreaDetector
 from flow.core.kernel.traffic_light import TraCITrafficLight, \
     AimsunKernelTrafficLight
 from flow.utils.exceptions import FatalFlowError
@@ -67,6 +68,7 @@ class Kernel(object):
             self.network = TraCIKernelNetwork(self, sim_params)
             self.vehicle = TraCIVehicle(self, sim_params)
             self.traffic_light = TraCITrafficLight(self)
+            self.lane_area_detector = TraCILaneAreaDetector(self)
         elif simulator == 'aimsun':
             self.simulation = AimsunKernelSimulation(self)
             self.network = AimsunKernelNetwork(self, sim_params)
@@ -83,6 +85,7 @@ class Kernel(object):
         self.network.pass_api(kernel_api)
         self.vehicle.pass_api(kernel_api)
         self.traffic_light.pass_api(kernel_api)
+        self.lane_area_detector.pass_api(kernel_api)
 
     def update(self, reset):
         """Update the kernel subclasses after a simulation step.
@@ -102,6 +105,7 @@ class Kernel(object):
         self.traffic_light.update(reset)
         self.network.update(reset)
         self.simulation.update(reset)
+        self.lane_area_detector.update(reset)
 
     def close(self):
         """Terminate all components within the simulation and network."""
