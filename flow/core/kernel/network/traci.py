@@ -9,8 +9,6 @@ import xml.etree.ElementTree as ElementTree
 from lxml import etree
 from copy import deepcopy
 
-import json
-
 E = etree.Element
 
 # Number of retries on accessing the .net.xml file before giving up
