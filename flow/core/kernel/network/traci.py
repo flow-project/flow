@@ -659,7 +659,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
             for key in self.network.template_detectors:
                 det_params = dict()
                 det_params = {
-                    det_key: self.network.template_detectors[key][det_key] 
+                    det_key: self.network.template_detectors[key][det_key]
                     for det_key in self.network.template_detectors[key]
                 }
                 add.append(E('e2Detector', **det_params))
