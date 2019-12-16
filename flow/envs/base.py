@@ -162,8 +162,8 @@ class Env(gym.Env):
         # initial the vehicles kernel using the VehicleParams object
         self.k.vehicle.initialize(deepcopy(self.network.vehicles))
 
-        if self.k.lane_area_detector:
-            self.k.lane_area_detector.initialize(deepcopy(self.network.template_detectors))
+        # if self.k.lane_area_detector:
+        #     self.k.lane_area_detector.initialize(deepcopy(self.network.template_detectors))
 
         # initialize the simulation using the simulation kernel. This will use
         # the network kernel as an input in order to determine what network

@@ -9,6 +9,8 @@ import xml.etree.ElementTree as ElementTree
 from lxml import etree
 from copy import deepcopy
 
+import json
+
 E = etree.Element
 
 # Number of retries on accessing the .net.xml file before giving up
@@ -657,16 +659,9 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         
         if self.network.template_detectors:
             for key in self.network.template_detectors:
-                # TODO: Universalize for all detectors
                 det_params = dict()
                 det_params = {
-                    'id': key,
-                    'length': self.network.template_detectors[key]['length'],
-                    'lane': self.network.template_detectors[key]['lane'],
-                    'pos': self.network.template_detectors[key]['pos'],
-                    'freq': self.network.template_detectors[key]['freq'],
-                    # 'friendlyPos': area_detector.attrib['friendlyPos'],
-                    'file': self.network.template_detectors[key]['file']
+                    det_key: self.network.template_detectors[key][det_key] for det_key in self.network.template_detectors[key]
                 }
                 add.append(E('e2Detector', **det_params))
 

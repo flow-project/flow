@@ -4,7 +4,7 @@ import warnings
 from flow.core.kernel.simulation import TraCISimulation, AimsunKernelSimulation
 from flow.core.kernel.network import TraCIKernelNetwork, AimsunKernelNetwork
 from flow.core.kernel.vehicle import TraCIVehicle, AimsunKernelVehicle
-from flow.core.kernel.induction_loops import TraCILaneAreaDetector
+from flow.core.kernel.lane_area_detectors import TraCILaneAreaDetector
 from flow.core.kernel.traffic_light import TraCITrafficLight, \
     AimsunKernelTrafficLight
 from flow.utils.exceptions import FatalFlowError
