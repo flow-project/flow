@@ -53,35 +53,34 @@ class KernelLaneAreaDetector(object):
         """
         raise NotImplementedError
 
-    # TODO: Add documentation
     def get_ids(self):
-
+        """Return the ids of all lane area detectors."""
         raise NotImplementedError
 
     def get_n_veh_seen(self, detector_id):
-        
+        """Return number of seen vehicles."""
         raise NotImplementedError
 
     def get_m_jam_length(self, detector_id):
-        
+        """Return length of jam in meters."""
         raise NotImplementedError
 
     def get_v_jam_length(self, detector_id):
-        
+        """Return length of jam by number of vehicles."""
         raise NotImplementedError
 
     def get_n_halting(self, detector_id):
-        
+        """Return number of vehicles that halted."""
         raise NotImplementedError
     
     def get_mean_speed(self, detector_id):
-        
+        """Return the mean speed of the vehicles."""
         raise NotImplementedError
     
     def get_occupancy(self, detector_id):
-        
+        """Return how much the detector was occupied."""
         raise NotImplementedError
     
     def get_v_id_list(self, detector_id):
-        
+        """Return the ids of all vehicles that were on the detector."""
         raise NotImplementedError
