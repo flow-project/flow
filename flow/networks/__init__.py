@@ -15,11 +15,10 @@ from flow.networks.merge import MergeNetwork
 from flow.networks.multi_ring import MultiRingNetwork
 from flow.networks.minicity import MiniCityNetwork
 from flow.networks.highway_ramps import HighwayRampsNetwork
-from flow.networks.induction_net import InductionNet
 
 __all__ = [
     "Network", "BayBridgeNetwork", "BayBridgeTollNetwork",
     "BottleneckNetwork", "FigureEightNetwork", "TrafficLightGridNetwork",
     "HighwayNetwork", "RingNetwork", "MergeNetwork", "MultiRingNetwork",
-    "MiniCityNetwork", "HighwayRampsNetwork", "InductionNet"
+    "MiniCityNetwork", "HighwayRampsNetwork"
 ]
