@@ -259,8 +259,6 @@ class Env(gym.Env):
 
         self.k.network.generate_network(self.network)
         self.k.vehicle.initialize(deepcopy(self.network.vehicles))
-        if self.k.lane_area_detector:
-            self.k.lane_area_detector.initialize(deepcopy(self.network.template_detectors))
             
         kernel_api = self.k.simulation.start_simulation(
             network=self.k.network, sim_params=self.sim_params)
