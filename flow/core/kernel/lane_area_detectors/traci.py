@@ -139,7 +139,7 @@ class TraCILaneAreaDetector(KernelLaneAreaDetector):
             return self.__subscription_results[detector_id][tc.LAST_STEP_VEHICLE_HALTING_NUMBER]
         except ValueError:
             print("did you specify this subscription in the initialization?")
-            
+
     def get_mean_speed(self, detector_id):
         """See parent class."""
         try:
@@ -160,4 +160,3 @@ class TraCILaneAreaDetector(KernelLaneAreaDetector):
             return self.__subscription_results[detector_id][tc.LAST_STEP_VEHICLE_ID_LIST]
         except ValueError:
             print("did you specify this subscription in the initialization?")
-            

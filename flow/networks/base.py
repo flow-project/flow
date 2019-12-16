@@ -371,7 +371,7 @@ class Network(object):
 
                 # vehicles to be added with different departure times
                 self.template_vehicles = veh
-            
+
             if 'det' in net_params.template:
                 det = self._detector_infos(net_params.template['det'])
                 self.template_detectors = det
@@ -767,7 +767,6 @@ class Network(object):
             # find all e2Detectors in the file and return them with the
             # detector_data dict.
             for area_detector in root.findall('e2Detector'):
-                
                 detector_data[area_detector.attrib['id']] = {
                     key: area_detector.attrib[key] for key in area_detector.attrib
                 }

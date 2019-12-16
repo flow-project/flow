@@ -73,7 +73,7 @@ class KernelLaneAreaDetector(object):
     def get_n_halting(self, detector_id):
         """Return number of vehicles that halted."""
         raise NotImplementedError
-    
+
     def get_mean_speed(self, detector_id):
         """Return the mean speed of the vehicles."""
         raise NotImplementedError
@@ -85,4 +85,3 @@ class KernelLaneAreaDetector(object):
     def get_v_id_list(self, detector_id):
         """Return the ids of all vehicles that were on the detector."""
         raise NotImplementedError
-    
