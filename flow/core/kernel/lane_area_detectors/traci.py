@@ -23,13 +23,13 @@ class TraCILaneAreaDetector(KernelLaneAreaDetector):
 
         # List of Strings variables that shall be updated while simulating
         """possible values in the list:
-        
+
         "mJamLength": Jam length in meters
         "vJamLength": Jam length in vehicles
         "nHalting": Number of vehicles that were halting
         "meanSpeed": Mean speed of vehicles
         "occupancy": How much space occupied by vehicles
-        "vIDs": List of vehicle ids 
+        "vIDs": List of vehicle ids
         "nVehicles": Number of vehicles
         """
         self.variables_to_retrieve = variables_to_retrieve
@@ -116,47 +116,48 @@ class TraCILaneAreaDetector(KernelLaneAreaDetector):
         """See parent class."""
         try:
             return self.__subscription_results[detector_id][tc.LAST_STEP_VEHICLE_NUMBER]
-        except: 
+        except ValueError:
             print("did you specify this subscription in the initialization?")
 
     def get_m_jam_length(self, detector_id):
         """See parent class."""
         try:
             return self.__subscription_results[detector_id][tc.JAM_LENGTH_METERS]
-        except: 
+        except ValueError:
             print("did you specify this subscription in the initialization?")
 
     def get_v_jam_length(self, detector_id):
         """See parent class."""
         try:
             return self.__subscription_results[detector_id][tc.JAM_LENGTH_VEHICLE]
-        except: 
+        except ValueError:
             print("did you specify this subscription in the initialization?")
 
     def get_n_halting(self, detector_id):
         """See parent class."""
         try:
             return self.__subscription_results[detector_id][tc.LAST_STEP_VEHICLE_HALTING_NUMBER]
-        except: 
+        except ValueError:
             print("did you specify this subscription in the initialization?")
-    
+            
     def get_mean_speed(self, detector_id):
         """See parent class."""
         try:
             return self.__subscription_results[detector_id][tc.LAST_STEP_MEAN_SPEED]
-        except: 
+        except ValueError:
             print("did you specify this subscription in the initialization?")
-    
+
     def get_occupancy(self, detector_id):
         """See parent class."""
         try:
             return self.__subscription_results[detector_id][tc.LAST_STEP_OCCUPANCY]
-        except: 
+        except ValueError:
             print("did you specify this subscription in the initialization?")
-    
+
     def get_v_id_list(self, detector_id):
         """See parent class."""
         try:
             return self.__subscription_results[detector_id][tc.LAST_STEP_VEHICLE_ID_LIST]
-        except: 
+        except ValueError:
             print("did you specify this subscription in the initialization?")
+            

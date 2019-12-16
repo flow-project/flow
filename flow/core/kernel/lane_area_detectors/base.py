@@ -1,5 +1,6 @@
 """Script containing the base lane area kernel class."""
 
+
 class KernelLaneAreaDetector(object):
     """Base traffic light kernel.
 
@@ -76,11 +77,12 @@ class KernelLaneAreaDetector(object):
     def get_mean_speed(self, detector_id):
         """Return the mean speed of the vehicles."""
         raise NotImplementedError
-    
+
     def get_occupancy(self, detector_id):
         """Return how much the detector was occupied."""
         raise NotImplementedError
-    
+
     def get_v_id_list(self, detector_id):
         """Return the ids of all vehicles that were on the detector."""
         raise NotImplementedError
+    

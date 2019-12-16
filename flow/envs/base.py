@@ -259,7 +259,7 @@ class Env(gym.Env):
 
         self.k.network.generate_network(self.network)
         self.k.vehicle.initialize(deepcopy(self.network.vehicles))
-            
+        
         kernel_api = self.k.simulation.start_simulation(
             network=self.k.network, sim_params=self.sim_params)
         self.k.pass_api(kernel_api)

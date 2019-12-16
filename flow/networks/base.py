@@ -334,7 +334,7 @@ class Network(object):
         self.net_params = net_params
         self.initial_config = initial_config
         self.traffic_lights = traffic_lights
-        self.template_detectors = None # gets filled if detectors were specified in a template
+        self.template_detectors = None  # gets filled if detectors were specified in a template
 
         # specify routes vehicles can take
         self.routes = self.specify_routes(net_params)
@@ -764,12 +764,10 @@ class Network(object):
             tree = ElementTree.parse(filename, parser=parser)
             root = tree.getroot()
 
-            # find all e2Detectors in the file and return them with the 
+            # find all e2Detectors in the file and return them with the
             # detector_data dict.
             for area_detector in root.findall('e2Detector'):
                 
-                print(area_detector.attrib["length"])
-
                 detector_data[area_detector.attrib['id']] = {
                     key: area_detector.attrib[key] for key in area_detector.attrib
                 }

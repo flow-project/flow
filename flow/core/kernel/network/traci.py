@@ -654,12 +654,13 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 for key in params['type_params']
             }
             add.append(E('vType', id=params['veh_id'], **type_params_str))
-        
+
         if self.network.template_detectors:
             for key in self.network.template_detectors:
                 det_params = dict()
                 det_params = {
-                    det_key: self.network.template_detectors[key][det_key] for det_key in self.network.template_detectors[key]
+                    det_key: self.network.template_detectors[key][det_key] \
+                            for det_key in self.network.template_detectors[key]
                 }
                 add.append(E('e2Detector', **det_params))
 
