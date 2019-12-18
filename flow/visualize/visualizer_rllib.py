@@ -204,7 +204,12 @@ def visualizer_rllib(args):
             ret = 0
         for _ in range(env_params.horizon):
             vehicles = env.unwrapped.k.vehicle
-            vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
+            speeds = vehicles.get_speed(vehicles.get_ids())
+
+            # only include non-empty speeds
+            if speeds:
+                vel.append(np.mean(speeds))
+
             if multiagent:
                 action = {}
                 for agent_id in state.keys():
