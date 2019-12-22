@@ -41,8 +41,8 @@ ADDITIONAL_NET_PARAMS = {
 }
 
 
-class TrafficLightGridNetwork(Network):
-    """Traffic Light Grid network class.
+class PedestrianTrafficLightGridNetwork(Network):
+    """Pedestrian Light Grid network class.
 
     The traffic light grid network consists of m vertical lanes and n
     horizontal lanes, with a total of nxm intersections where the vertical

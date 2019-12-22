@@ -3,11 +3,12 @@ from flow.controllers import GridRouter
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
+from flow.core.params import PedestrianParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import InFlows
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.networks import TrafficLightGridNetwork
+from flow.networks import PedestrianTrafficLightGridNetwork
 
 
 def gen_edges(col_num, row_num):
@@ -133,7 +134,7 @@ def traffic_light_grid_example(render=None, use_inflows=False):
     long_length = 500
     short_length = 300
     n_rows = 2
-    n_columns = 3
+    n_columns = 1
     num_cars_left = 20
     num_cars_right = 20
     num_cars_top = 20
@@ -167,6 +168,24 @@ def traffic_light_grid_example(render=None, use_inflows=False):
             decel=7.5,  # avoid collisions at emergency stops
         ),
         num_vehicles=tot_cars)
+
+    pedestrians = PedestrianParams()
+    pedestrians.add(
+            ped_id='ped_1',
+            depart_time='0.00',
+            start='bot0_1',
+            end='top1_0')
+    pedestrians.add(
+            ped_id='ped_2',
+            depart_time='27.00',
+            start='right2_0',
+            end='top0_0')
+    pedestrians.add(
+            ped_id='ped_3',
+            depart_time='105.00',
+            start='right1_0',
+            end='top1_0')
+
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     tl_logic = TrafficLightParams(baseline=False)
@@ -192,8 +211,8 @@ def traffic_light_grid_example(render=None, use_inflows=False):
         "state": "ryryryryryry"
     }]
     tl_logic.add("center0", phases=phases, programID=1)
-    tl_logic.add("center1", phases=phases, programID=1)
-    tl_logic.add("center2", phases=phases, programID=1, tls_type="actuated")
+    #tl_logic.add("center1", phases=phases, programID=1)
+    #tl_logic.add("center2", phases=phases, programID=1, tls_type="actuated")
 
     additional_net_params = {
         "grid_array": grid_array,
@@ -212,9 +231,10 @@ def traffic_light_grid_example(render=None, use_inflows=False):
             enter_speed=v_enter,
             add_net_params=additional_net_params)
 
-    network = TrafficLightGridNetwork(
+    network = PedestrianTrafficLightGridNetwork(
         name="grid-intersection",
         vehicles=vehicles,
+        pedestrians=pedestrians,
         net_params=net_params,
         initial_config=initial_config,
         traffic_lights=tl_logic)
@@ -229,4 +249,4 @@ if __name__ == "__main__":
     exp = traffic_light_grid_example()
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 1500)
+    exp.run(1, 15000)

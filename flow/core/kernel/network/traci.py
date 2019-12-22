@@ -480,7 +480,6 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                     connection['fromLane'] = str(connection['fromLane'])
                 if 'toLane' in connection:
                     connection['toLane'] = str(connection['toLane'])
-            #x = makexml('connections', 'http://sumo.dlr.de/xsd/connections_file.xsd')
 
             for connection_attributes in connections:
                 if 'signal_group' in connection_attributes:
@@ -809,13 +808,6 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                         'to': self.network.pedestrians.params[ped_id]['to'],
                         'arrivalPos':self.network.pedestrians.params[ped_id]['arrivalPos'],
                         })
-                '''
-                pedestrian.append(E('walk',
-                    #from=self.network.pedestrians.params[ped_id]['start'],
-                    to=self.network.pedestrians.params[ped_id]['to'],
-                    arrivalPos=self.network.pedestrians.params[ped_id]['arrivalPos']
-                    ).set('from', 'top_0_0'))
-                '''
                 routes_data.append(pedestrian)
 
                 #print(self.network.pedestrians.params[ped_id])
@@ -827,13 +819,11 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         cfg = makexml('configuration',
                       'http://sumo.dlr.de/xsd/sumoConfiguration.xsd')
 
-        include_ped_routes = self.roufn #+ ',../net/pedestrians.trip.xml'
-
         cfg.append(
             _inputs(
                 net=self.netfn,
                 add=self.addfn,
-                rou=include_ped_routes,
+                rou=self.roufn,
                 gui=self.guifn))
         t = E('time')
         t.append(E('begin', value=repr(0)))
@@ -936,8 +926,6 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         # collect connection data
         for connection in root.findall('connection'):
 
-            #print(connection.attrib)
-
             from_edge = connection.attrib['from']
             to_edge = connection.attrib['to']
             from_lane = int(connection.attrib['fromLane'])
@@ -945,17 +933,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
             if from_edge[0] != ":" and to_edge[0] != ":":
                 # if the edge is not an internal link, then get the next
                 # edge/lane pair from the "via" element
-
-                #TODO
-                '''
-                try:
-                    via = connection.attrib['via'].rsplit('_', 1)
-                except:
-                    import ipdb; ipdb.set_trace()
-                '''
-
                 via = connection.attrib['via'].rsplit('_', 1)
-
                 to_edge = via[0]
                 to_lane = int(via[1])
             else:
