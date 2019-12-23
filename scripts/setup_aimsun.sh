@@ -5,7 +5,8 @@ conda config --append channels https://repo.anaconda.com/pkgs/free
 conda config --append channels https://repo.anaconda.com/pkgs/pro
 
 # create the conda environment
-conda create -y -n aimsun_flow python=2.7.4
+#conda create -y -n aimsun_flow python=2.7.4
+conda create -y -n aimsun_flow python=2.7.13
 
 # install numpy within the environment
 source activate aimsun_flow

@@ -16,7 +16,6 @@ RETRIES_ON_ERROR = 10
 # number of seconds to wait before trying to access the .net.xml file again
 WAIT_ON_ERROR = 1
 
-
 def _flow(name, vtype, route, **kwargs):
     return E('flow', id=name, route=route, type=vtype, **kwargs)
 
@@ -142,6 +141,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 self.network.traffic_lights,
                 self.network.nodes,
                 self.network.edges,
+                self.network.crossings,
                 self.network.types,
                 connections
             )
@@ -335,6 +335,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                      traffic_lights,
                      nodes,
                      edges,
+                     crossings=None,
                      types=None,
                      connections=None):
         """Generate Net files for the transportation network.
@@ -470,6 +471,8 @@ class TraCIKernelNetwork(BaseKernelNetwork):
 
         # xml for connections: specifies which lanes connect to which in the
         # edges
+        x = makexml('connections', 'http://sumo.dlr.de/xsd/connections_file.xsd')
+
         if connections is not None:
             # modify the fromLane and toLane values
             for connection in connections:
@@ -478,12 +481,13 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 if 'toLane' in connection:
                     connection['toLane'] = str(connection['toLane'])
 
-            x = makexml('connections',
-                        'http://sumo.dlr.de/xsd/connections_file.xsd')
             for connection_attributes in connections:
                 if 'signal_group' in connection_attributes:
                     del connection_attributes['signal_group']
                 x.append(E('connection', **connection_attributes))
+
+            for cross in crossings:
+                x.append(E('crossing', **cross))
             printxml(x, self.net_path + self.confn)
 
         # xml file for configuration, which specifies:
@@ -648,6 +652,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                       'http://sumo.dlr.de/xsd/additional_file.xsd')
 
         # add the types of vehicles to the xml file
+
         for params in self.network.vehicles.types:
             type_params_str = {
                 key: str(params['type_params'][key])
@@ -792,6 +797,22 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 else:
                     routes_data.append(_flow(**sumo_inflow))
 
+        if self.network.pedestrians != None:
+            for ped_id in self.network.pedestrians.ids:
+                pedestrian = E('person',
+                    id=ped_id,
+                    depart=self.network.pedestrians.params[ped_id]['depart'],
+                    departPos=self.network.pedestrians.params[ped_id]['departPos']
+                )
+                walk = etree.SubElement(pedestrian, 'walk',
+                        {'from': self.network.pedestrians.params[ped_id]['from'],
+                        'to': self.network.pedestrians.params[ped_id]['to'],
+                        'arrivalPos':self.network.pedestrians.params[ped_id]['arrivalPos'],
+                        })
+                routes_data.append(pedestrian)
+
+                #print(self.network.pedestrians.params[ped_id])
+
         printxml(routes_data, self.cfg_path + self.roufn)
 
         # this is the data that we will pass to the *.sumo.cfg file
@@ -904,10 +925,12 @@ class TraCIKernelNetwork(BaseKernelNetwork):
 
         # collect connection data
         for connection in root.findall('connection'):
+
             from_edge = connection.attrib['from']
+            to_edge = connection.attrib['to']
             from_lane = int(connection.attrib['fromLane'])
 
-            if from_edge[0] != ":":
+            if from_edge[0] != ":" and to_edge[0] != ":":
                 # if the edge is not an internal link, then get the next
                 # edge/lane pair from the "via" element
                 via = connection.attrib['via'].rsplit('_', 1)
