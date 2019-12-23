@@ -311,7 +311,8 @@ class Network(object):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLightParams()):
+                 traffic_lights=TrafficLightParams(),
+                 pedestrians=None):
         """Instantiate the base network class.
 
         Attributes
@@ -334,6 +335,7 @@ class Network(object):
         self.net_params = net_params
         self.initial_config = initial_config
         self.traffic_lights = traffic_lights
+        self.pedestrians=pedestrians
 
         # specify routes vehicles can take
         self.routes = self.specify_routes(net_params)
@@ -351,7 +353,8 @@ class Network(object):
             self.crossings = self.specify_crossings(net_params)
 
         # this is to be used if file paths other than the the network geometry
-        # file is specified
+        # file is specified                 pedestrians=None,
+
         elif type(net_params.template) is dict:
             if 'rou' in net_params.template:
                 veh, rou = self._vehicle_infos(net_params.template['rou'])
@@ -458,9 +461,10 @@ class Network(object):
         """
         raise NotImplementedError
 
-    
+
     def specify_crossings(self, net_params):
-        raise NotImplementedError
+        # default to having no crossings
+        return []
 
     # TODO: convert to property
     def specify_edges(self, net_params):

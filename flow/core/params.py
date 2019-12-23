@@ -352,7 +352,7 @@ class VehicleParams:
 class PedestrianParams:
 
     def __init__(self):
-        
+
         self.ids = []
         self.num_pedestrians = 0
         self.params = {}
@@ -746,6 +746,9 @@ class InitialConfig:
         * dict of edges: where the key is the name of the edge to be
           utilized, and the elements are the number of cars to place on
           each edge
+    sidewalks : boolean, optional
+        determines whether a network has sidewalks which are 0-indexed lanes
+
     additional_params : dict, optional
         some other network-specific params
     """
@@ -759,6 +762,7 @@ class InitialConfig:
                  bunching=0,
                  lanes_distribution=float("inf"),
                  edges_distribution="all",
+                 sidewalks=False,
                  additional_params=None):
         """Instantiate InitialConfig.
 
@@ -774,6 +778,7 @@ class InitialConfig:
         self.bunching = bunching
         self.lanes_distribution = lanes_distribution
         self.edges_distribution = edges_distribution
+        self.sidewalks = sidewalks
         self.additional_params = additional_params or dict()
 
 

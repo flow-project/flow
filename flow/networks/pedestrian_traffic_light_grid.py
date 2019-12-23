@@ -164,15 +164,14 @@ class PedestrianTrafficLightGridNetwork(Network):
         # name of the network (DO NOT CHANGE)
         self.name = "BobLoblawsLawBlog"
 
-        self.pedestrians = pedestrians
-
+        print(pedestrians)
         super().__init__(name, vehicles, net_params, initial_config,
-                         traffic_lights)
-    
+                         traffic_lights, pedestrians=pedestrians)
+
     def specify_crossings(self, net_params):
 
         crossings = []
-        
+
         for i_node in self._inner_nodes:
             adjacent_edges = set()
             for e in self._inner_edges + self._outer_edges:
@@ -187,7 +186,7 @@ class PedestrianTrafficLightGridNetwork(Network):
                         alt_edge = 'right' + edge_id[4:]
                     elif edge_id[:5] == 'right':
                         alt_edge = 'left' + edge_id[5:]
-                    
+
                     if alt_edge in adjacent_edges:
                         adjacent_edges.remove(alt_edge)
                         adjacent_edges.add(edge_id + ' ' + alt_edge)
@@ -198,7 +197,7 @@ class PedestrianTrafficLightGridNetwork(Network):
                 crossings.append({"node": i_node['id'],
                     "edges": cross_edges,
                     "width": str(self.sidewalk_width)})
-        
+
         return crossings
 
     def specify_nodes(self, net_params):

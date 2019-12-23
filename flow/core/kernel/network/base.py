@@ -247,6 +247,14 @@ class BaseKernelNetwork(object):
             raise FatalFlowError('"spacing" argument in initial_config does '
                                  'not contain a valid option')
 
+        # If network has sidewalks, then increment all vehicle edges (sidewalks
+        # are right-most edges)
+        # TODO: adapt to enable networks to have a mix of edges that have
+        # sidewalks and others that do not
+        if initial_config.sidewalks:
+            for i in range(len(startlanes)):
+                startlanes[i] += 1
+
         return startpositions, startlanes
 
     def gen_even_start_pos(self, initial_config, num_vehicles):

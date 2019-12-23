@@ -62,7 +62,7 @@ def get_flow_params(col_num, row_num, additional_net_params):
         network-specific parameters used to generate the network
     """
     initial = InitialConfig(
-        spacing='custom', lanes_distribution=float('inf'), shuffle=True)
+        spacing='custom',sidewalks=True, lanes_distribution=float('inf'), shuffle=True)
 
     inflow = InFlows()
     outer_edges = gen_edges(col_num, row_num)
@@ -105,7 +105,7 @@ def get_non_flow_params(enter_speed, add_net_params):
     """
     additional_init_params = {'enter_speed': enter_speed}
     initial = InitialConfig(
-        spacing='custom', additional_params=additional_init_params)
+        spacing='custom', sidewalks=True, additional_params=additional_init_params)
     net = NetParams(additional_params=add_net_params)
 
     return initial, net

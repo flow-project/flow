@@ -116,8 +116,6 @@ class Experiment:
             ret = 0
             ret_list = []
             state = self.env.reset()
-            
-
             for j in range(num_steps):
                
                 '''

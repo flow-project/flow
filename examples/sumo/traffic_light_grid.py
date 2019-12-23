@@ -167,6 +167,7 @@ def traffic_light_grid_example(render=None, use_inflows=False):
             decel=7.5,  # avoid collisions at emergency stops
         ),
         num_vehicles=tot_cars)
+
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     tl_logic = TrafficLightParams(baseline=False)

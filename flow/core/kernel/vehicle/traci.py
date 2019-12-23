@@ -1022,8 +1022,7 @@ class TraCIVehicle(KernelVehicle):
             veh_id,
             route_id,
             typeID=str(type_id),
-            #TODO: if sidewalks exsist, then lane += 1
-            departLane=str(1),
+            departLane=str(lane),
             departPos=str(pos),
             departSpeed=str(speed))
 

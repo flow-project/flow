@@ -109,7 +109,6 @@ class TrafficLightGridNetwork(Network):
                  name,
                  vehicles,
                  net_params,
-                 pedestrians=None,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
         """Initialize an n*m traffic light grid network."""
@@ -146,9 +145,6 @@ class TrafficLightGridNetwork(Network):
         self.cars_heading_left = self.grid_array["cars_left"]
         self.cars_heading_right = self.grid_array["cars_right"]
 
-        # TODO add param for this
-        self.sidewalk_width = 2
-
         # specifies whether or not there will be traffic lights at the
         # intersections (True by default)
         self.use_traffic_lights = net_params.additional_params.get(
@@ -164,42 +160,8 @@ class TrafficLightGridNetwork(Network):
         # name of the network (DO NOT CHANGE)
         self.name = "BobLoblawsLawBlog"
 
-        self.pedestrians = pedestrians
-
         super().__init__(name, vehicles, net_params, initial_config,
                          traffic_lights)
-    
-    def specify_crossings(self, net_params):
-
-        crossings = []
-        
-        for i_node in self._inner_nodes:
-            adjacent_edges = set()
-            for e in self._inner_edges + self._outer_edges:
-                edge_id = e['id']
-                if e['from'] == i_node['id'] or e['to'] == i_node['id']:
-                    alt_edge = ''
-                    if edge_id[:3] == 'top':
-                        alt_edge = 'bot' + edge_id[3:]
-                    elif edge_id[:3] == 'bot':
-                        alt_edge = 'top' + edge_id[3:]
-                    elif edge_id[:4] == 'left':
-                        alt_edge = 'right' + edge_id[4:]
-                    elif edge_id[:5] == 'right':
-                        alt_edge = 'left' + edge_id[5:]
-                    
-                    if alt_edge in adjacent_edges:
-                        adjacent_edges.remove(alt_edge)
-                        adjacent_edges.add(edge_id + ' ' + alt_edge)
-                    else:
-                        adjacent_edges.add(edge_id)
-
-            for cross_edges in adjacent_edges:
-                crossings.append({"node": i_node['id'],
-                    "edges": cross_edges,
-                    "width": str(self.sidewalk_width)})
-        
-        return crossings
 
     def specify_nodes(self, net_params):
         """See parent class."""
@@ -402,9 +364,7 @@ class TrafficLightGridNetwork(Network):
                 "priority": 78,
                 "from": "center" + str(from_node),
                 "to": "center" + str(to_node),
-                "length": self.inner_length,
-                "disallow": "pedestrian",
-                "sidewalkWidth": str(self.sidewalk_width)
+                "length": self.inner_length
             }]
 
         # Build the horizontal inner edges
@@ -481,9 +441,7 @@ class TrafficLightGridNetwork(Network):
                 "priority": 78,
                 "from": from_node,
                 "to": to_node,
-                "length": length,
-                "disallow": "pedestrian",
-                "sidewalkWidth": str(self.sidewalk_width)
+                "length": length
             }]
 
         for i in range(self.col_num):
@@ -552,10 +510,10 @@ class TrafficLightGridNetwork(Network):
                 top_node_id = "{}_{}".format(i + 1, j)
 
                 conn = []
-                for lane in range(self.vertical_lanes + 1):
+                for lane in range(self.vertical_lanes):
                     conn += new_con("bot", node_id, right_node_id, lane, 1)
                     conn += new_con("top", right_node_id, node_id, lane, 1)
-                for lane in range(self.horizontal_lanes + 1):
+                for lane in range(self.horizontal_lanes):
                     conn += new_con("right", node_id, top_node_id, lane, 2)
                     conn += new_con("left", top_node_id, node_id, lane, 2)
 
