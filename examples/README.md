@@ -48,7 +48,7 @@ where `EXP_CONFIG` is the name of the experiment configuration file, as located 
 `exp_configs/rl/singleagent` or  `exp_configs/rl/multiagent.`
 
 
-**RL examples based on "stable" baselines** provides similar networks as those 
+**RL examples based on stable_baselines** provides similar networks as those 
 presented in the first point, but in the present of autonomous vehicle (AV) or traffic 
 light agents being trained through RL algorithms provided by OpenAI *stable 
 baselines*.
