@@ -7,19 +7,19 @@ from ray.tune import run_experiments
 
 from flow.core.experiment import Experiment
 
-from examples.exp_configs.singleagent.singleagent_figure_eight import flow_params as singleagent_figure_eight
-# from examples.exp_configs.singleagent.green_wave import flow_params as singleagent_green_wave
-from examples.exp_configs.singleagent.singleagent_merge import flow_params as singleagent_merge
-from examples.exp_configs.singleagent.singleagent_ring import flow_params as singleagent_ring
-from examples.exp_configs.singleagent.singleagent_bottleneck import flow_params as singleagent_bottleneck
+from examples.exp_configs.rl.singleagent.singleagent_figure_eight import flow_params as singleagent_figure_eight
+# from examples.exp_configs.rl.singleagent.green_wave import flow_params as singleagent_green_wave
+from examples.exp_configs.rl.singleagent.singleagent_merge import flow_params as singleagent_merge
+from examples.exp_configs.rl.singleagent.singleagent_ring import flow_params as singleagent_ring
+from examples.exp_configs.rl.singleagent.singleagent_bottleneck import flow_params as singleagent_bottleneck
 
-from examples.exp_configs.multiagent.multiagent_figure_eight import flow_params as multiagent_figure_eight
-from examples.exp_configs.multiagent.multiagent_ring import \
+from examples.exp_configs.rl.multiagent.multiagent_figure_eight import flow_params as multiagent_figure_eight
+from examples.exp_configs.rl.multiagent.multiagent_ring import \
     flow_params as multiagent_ring
-# from examples.exp_configs.multiagent.multiagent_traffic_light_grid import setup_exps_PPO as multi_grid_setup
-# from examples.exp_configs.multiagent.multiagent_traffic_light_grid import \
+# from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import setup_exps_PPO as multi_grid_setup
+# from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import \
 #     make_flow_params as multi_grid_setup_flow_params
-from examples.exp_configs.multiagent.multiagent_highway import flow_params as multiagent_highway
+from examples.exp_configs.rl.multiagent.multiagent_highway import flow_params as multiagent_highway
 
 from examples.train_stable_baselines import run_model as run_stable_baselines_model
 from examples.train_rllib import setup_exps as setup_rllib_exps
@@ -112,7 +112,7 @@ class TestNonRLExamples(unittest.TestCase):
 
 
 class TestStableBaselineExamples(unittest.TestCase):
-    """Tests the example scripts in examples/exp_configs/singleagent for stable_baselines.
+    """Tests the example scripts in examples/exp_configs/rl/singleagent for stable_baselines.
 
     This is done by running each experiment in that folder for five time-steps
     and confirming that it completes one rollout with two workers.
@@ -141,8 +141,8 @@ class TestStableBaselineExamples(unittest.TestCase):
 
 
 class TestRllibExamples(unittest.TestCase):
-    """Tests the example scripts in examples/exp_configs/singleagent and
-    examples/exp_configs/multiagent for RLlib.
+    """Tests the example scripts in examples/exp_configs/rl/singleagent and
+    examples/exp_configs/rl/multiagent for RLlib.
 
     This is done by running each experiment in that folder for five time-steps
     and confirming that it completes one rollout with two workers.
@@ -171,8 +171,8 @@ class TestRllibExamples(unittest.TestCase):
         self.run_exp(singleagent_bottleneck)
 
     def test_multi_figure_eight(self):
-        from examples.exp_configs.multiagent.multiagent_figure_eight import POLICY_GRAPHS as mf8pg
-        from examples.exp_configs.multiagent.multiagent_figure_eight import policy_mapping_fn as mf8pmf
+        from examples.exp_configs.rl.multiagent.multiagent_figure_eight import POLICY_GRAPHS as mf8pg
+        from examples.exp_configs.rl.multiagent.multiagent_figure_eight import policy_mapping_fn as mf8pmf
 
         kwargs = {
             "policy_graphs": mf8pg,
@@ -181,9 +181,9 @@ class TestRllibExamples(unittest.TestCase):
         self.run_exp(multiagent_figure_eight, **kwargs)
 
     def test_multi_ring(self):
-        from examples.exp_configs.multiagent.multiagent_ring import POLICY_GRAPHS as mrpg
-        from examples.exp_configs.multiagent.multiagent_ring import POLICIES_TO_TRAIN as mrpt
-        from examples.exp_configs.multiagent.multiagent_ring import policy_mapping_fn as mrpmf
+        from examples.exp_configs.rl.multiagent.multiagent_ring import POLICY_GRAPHS as mrpg
+        from examples.exp_configs.rl.multiagent.multiagent_ring import POLICIES_TO_TRAIN as mrpt
+        from examples.exp_configs.rl.multiagent.multiagent_ring import policy_mapping_fn as mrpmf
 
         kwargs = {
             "policy_graphs": mrpg,
@@ -196,9 +196,9 @@ class TestRllibExamples(unittest.TestCase):
         pass  # FIXME
 
     def test_multi_highway(self):
-        from examples.exp_configs.multiagent.multiagent_highway import POLICY_GRAPHS as mhpg
-        from examples.exp_configs.multiagent.multiagent_highway import POLICIES_TO_TRAIN as mhpt
-        from examples.exp_configs.multiagent.multiagent_highway import policy_mapping_fn as mhpmf
+        from examples.exp_configs.rl.multiagent.multiagent_highway import POLICY_GRAPHS as mhpg
+        from examples.exp_configs.rl.multiagent.multiagent_highway import POLICIES_TO_TRAIN as mhpt
+        from examples.exp_configs.rl.multiagent.multiagent_highway import policy_mapping_fn as mhpmf
 
         kwargs = {
             "policy_graphs": mhpg,

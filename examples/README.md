@@ -45,7 +45,7 @@ To execute these examples, run
  python train_rllib.py EXP_CONFIG
 ```
 where `EXP_CONFIG` is the name of the experiment configuration file, as located in 
-`exp_configs/singleagent` or  `exp_configs/multiagent.`
+`exp_configs/rl/singleagent` or  `exp_configs/rl/multiagent.`
 
 
 **RL examples based on "stable" baselines** provides similar networks as those 
@@ -59,7 +59,7 @@ To execute these examples, run
  python train_stable_baselines.py EXP_CONFIG
 ```
 where `EXP_CONFIG` is the name of the experiment configuration file, as located in 
-`exp_configs/singleagent.`
+`exp_configs/rl/singleagent.`
 
 There are several *optional* arguments that can be added to the above command:
 

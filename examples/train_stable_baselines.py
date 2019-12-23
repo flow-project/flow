@@ -34,7 +34,7 @@ def parse_args(args):
     parser.add_argument(
         'exp_config', type=str,
         help='Name of the experiment configuration file, as located in '
-             'exp_configs/singleagent.')
+             'exp_configs/rl/singleagent.')
 
     # optional input parameters
     parser.add_argument(
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     flags = parse_args(sys.argv[1:])
 
     # Get the flow_params object.
-    module = __import__('exp_configs.singleagent', fromlist=[flags.exp_config])
+    module = __import__('exp_configs.rl.singleagent', fromlist=[flags.exp_config])
     flow_params = getattr(module, flags.exp_config).flow_params
 
     # Path to the saved files

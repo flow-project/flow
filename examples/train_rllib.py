@@ -39,7 +39,7 @@ def parse_args(args):
     parser.add_argument(
         'exp_config', type=str,
         help='Name of the experiment configuration file, as located in '
-             'exp_configs/singleagent' or 'exp_configs/multiagent.')
+             'exp_configs/rl/singleagent' or 'exp_configs/rl/multiagent.')
 
     return parser.parse_known_args(args)[0]
 
@@ -120,8 +120,8 @@ if __name__ == "__main__":
     flags = parse_args(sys.argv[1:])
 
     # import relevant information from the exp_config script
-    module = __import__("exp_configs.singleagent", fromlist=[flags.exp_config])
-    module_ma = __import__("exp_configs.multiagent", fromlist=[flags.exp_config])
+    module = __import__("exp_configs.rl.singleagent", fromlist=[flags.exp_config])
+    module_ma = __import__("exp_configs.rl.multiagent", fromlist=[flags.exp_config])
     if hasattr(module, flags.exp_config):
         submodule = getattr(module, flags.exp_config)
     elif hasattr(module_ma, flags.exp_config):
