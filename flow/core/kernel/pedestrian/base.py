@@ -20,7 +20,7 @@ class KernelPedestrian(object):
     def remove(self, ped_id):
         raise NotImplementedError
 
-    # State accquestion methods
+    # State acquisition methods
 
     def get_speed(self, ped_if, error=-1001):
         raise NotImplementedError
