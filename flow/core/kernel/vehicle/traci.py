@@ -1026,6 +1026,7 @@ class TraCIVehicle(KernelVehicle):
             # the case of network templates.
             route_id = 'route{}_0'.format(veh_id)
         else:
+            # import pdb; pdb.set_trace()
             num_routes = len(self.master_kernel.network.rts[edge])
             frac = [val[1] for val in self.master_kernel.network.rts[edge]]
             route_id = 'route{}_{}'.format(edge, np.random.choice(

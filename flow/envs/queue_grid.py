@@ -15,8 +15,10 @@ from flow.core import rewards
 from flow.envs.base import Env
 
 ADDITIONAL_ENV_PARAMS = {
-    # minimum switch time for each traffic light (in seconds)
-    "switch_time": 2.0,
+    # minimum time that each intersection's traffic lights should remain in a yellow phase for (in seconds)
+    "min_yellow_time": 5.0,
+    # minimum time that each intersection's traffic lights should remain in a green phase for (in seconds)
+    "min_green_time": 20.0,
     # whether the traffic lights should be actuated by sumo or RL
     # options are "controlled" and "actuated"
     "tl_type": "controlled",
@@ -25,107 +27,48 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 ADDITIONAL_PO_ENV_PARAMS = {
-    # num of vehicles the agent can observe on each incoming edge
+    # num of vehicles the agent can observe on each incoming edge TODO(KevinLin) Huh? This would turn out to be useless in the new state observation format? I'll keep it for now.
     "num_observed": 2,
     # velocity to use in reward functions
     "target_velocity": 30,
 }
+"""
+For every edge, legal right turns are given either given priority green light or secondary green light
+unless otherwise specified (as per US traffic light rules?)
 
-# For every edge, legal right turns are given either given priority green light or secondary green light
-# unless otherwise specified (as per US traffic light rules?)
+PHASE DEFINITIONS:
 
-# vertical_green = cars on the vertical edges have green lights for going straight are free to go straight
-# vertical_green_to_yellow = cars on the vertical edges that were free to go straight now face a yellow light
-# horizontal_green = similar to vertical counterpart
-# vertical_green_to_yellow = similar to vertical counterpart
+vertical_green = cars on the vertical edges have green lights for going straight are free to go straight
+vertical_green_to_yellow = cars on the vertical edges that were free to go straight now face a yellow light
+horizontal_green = similar to vertical counterpart
+vertical_green_to_yellow = similar to vertical counterpart
 
-# protected_left_X = cars on the X edge have a protected left turn i.e. priority greens for the X edge cars turning
-# left, going straight and turning right. Cars from other edges have red (apart from their secondary green right turns).
-# protected_left_X_to_yellow = cars on the X edge that were free to go left/straight now face a yellow light
+protected_left_X = cars on the X edge have a protected left turn i.e. priority greens for the X edge cars turning
+left, going straight and turning right. Cars from other edges have red (apart from their secondary green right turns).
+protected_left_X_to_yellow = cars on the X edge that were free to go left/straight now face a yellow light
 
-# Here, X in [top, right, bottom left]
+Here, X in [top, right, bottom left]
 
-PHASE_NUM_TO_STR = {1: "vertical_green", 2: "vertical_green_to_yellow",
-                      3: "horizontal_green", 4: "horizontal_green_to_yellow",
-                      5: "protected_left_top", 6: "protected_left_top_to_yellow",
-                      7: "protected_left_right", 8: "protected_left_right_to_yellow",
-                      9: "protected_left_bottom", 10: "protected_left_bottom_to_yellow",
-                      11: "protected_left_left", 12: "protected_left_left_to_yellow"}
+"""
 
-def generate_tl_phases(phase_type, horiz_lanes, vert_lanes):
-    """Returns the tl phase string for the corresponding phase types.
-    Note: right turns will have 'g' by default"""
-
-    if phase_type == "vertical_green":
-        vertical = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
-        horizontal = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
-        return vertical + horizontal + vertical + horizontal
-
-    elif phase_type == "vertical_green_to_yellow":
-        horizontal = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
-        vertical = "g" + horiz_lanes * "y" + "r"  # right turn, straights, left turn
-        return vertical + horizontal + vertical + horizontal
-
-    elif phase_type == "horizontal_green":
-        horizontal = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
-        vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
-        return vertical + horizontal + vertical + horizontal
-
-    elif phase_type == "horizontal_green_to_yellow":
-        horizontal = "g" + vert_lanes * "y" + "r"  # right turn, straights, left turn
-        vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
-        return vertical + horizontal + vertical + horizontal
-
-    elif phase_type == "protected_left_top":
-        top = "G" + "G" * vert_lanes + "G"
-        bot = "g" + "r" * vert_lanes + "r"
-        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-        return top + horizontal + bot + horizontal
-
-    elif phase_type == "protected_left_top_to_yellow":
-        top = "g" + "y" * vert_lanes + "y"
-        bot = "g" + "r" * vert_lanes + "r"
-        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-        return top + horizontal + bot + horizontal
-
-    elif phase_type == "protected_left_right":
-        vertical = "g" + "r" * vert_lanes + "r"
-        left = "g" + "r" * horiz_lanes + "r"
-        right = "g" + "G" * horiz_lanes + "G"
-        return vertical + right + vertical + left
-
-    elif phase_type == "protected_left_right_to_yellow":
-        vertical = "g" + "r" * vert_lanes + "r"
-        left = "g" + "r" * horiz_lanes + "r"
-        right = "g" + "y" * horiz_lanes + "y"
-        return vertical + right + vertical + left
-
-    elif phase_type == "protected_left_bottom":
-        bot = "G" + "G" * vert_lanes + "G"
-        top = "g" + "r" * vert_lanes + "r"
-        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-        return top + horizontal + bot + horizontal
-
-    elif phase_type == "protected_left_bottom_to_yellow":
-        bot = "g" + "y" * vert_lanes + "y"
-        top = "g" + "r" * vert_lanes + "r"
-        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-        return top + horizontal + bot + horizontal
-
-    elif phase_type == "protected_left_left":
-        vertical = "g" + "r" * vert_lanes + "r"
-        right = "g" + "r" * horiz_lanes + "r"
-        left = "g" + "G" * horiz_lanes + "G"
-        return vertical + right + vertical + left
-
-    elif phase_type == "protected_left_left_to_yellow":
-        vertical = "g" + "r" * vert_lanes + "r"
-        right = "g" + "r" * horiz_lanes + "r"
-        left = "g" + "y" * horiz_lanes + "y"
-        return vertical + right + vertical + left
+PHASE_NUM_TO_STR = {0: "vertical_green", 6: "vertical_green_to_yellow",
+                    1: "horizontal_green", 7: "horizontal_green_to_yellow",
+                    2: "protected_left_top", 8: "protected_left_top_to_yellow",
+                    3: "protected_left_right", 9: "protected_left_right_to_yellow",
+                    4: "protected_left_bottom", 10: "protected_left_bottom_to_yellow",
+                    5: "protected_left_left", 11: "protected_left_left_to_yellow"}
+"""
+In the case that the RL 
+"""
+PHASE_REPEAT_PRESET_ORDER = {0: 1,
+                          1: 0,
+                          2: 3,
+                          3: 4,
+                          4: 5,
+                          5: 2}
 
 
-class TrafficLightGridEnv(Env):
+class QueueGridEnv(Env):
     """Environment used to train traffic lights.
 
     Required from env_params:
@@ -139,16 +82,24 @@ class TrafficLightGridEnv(Env):
       continuous
 
     States
-        An observation is the distance of each vehicle to its intersection, a
-        number uniquely identifying which edge the vehicle is on, and the speed
-        of the vehicle.
+        An observation consists of:
+        a) the number of cars in each lane
+        b) a timer of how long a traffic light has been in its current phase TODO(KevinLin) Either the purely green light phase or both the green and the yellow phase
+        c) the current traffic light phase for every intersection that has traffic lights (in this case, that's every intersection)
 
     Actions
-        The action space consist of a list of float variables ranging from 0-1  # TODO: Kevin - need a list of numbers
-                                                                                # TODO: from [0, 1, 2, 3, 4, 5] that specifies what phase the tl should be
-        specifying whether a traffic light is supposed to switch or not. The
-        actions are sent to the traffic light in the grid from left to right
+        The action space consists of a list of float variables ranging from 0-1 specifying:
+        a) [For a currently 'green' intersection] Whether an intersection should switch to its corresponding yellow phase
+        b) [For a currently 'yellow' intersection] The phase that the traffic lights of the intersection should switch to
+
+        Actions are sent to the traffic lights at intersections in the grid from left to right
         and then top to bottom.
+
+
+        Note: At the end of a 'yellow' phase, the RL agent may output a number that's equivalent to switching back to
+        the corresponding green phase intersection (e.g. phase 1 green -> phase 1 yellow -> phase 1 green). Instead of
+        allowing this repeat, we manually assign a non-current phase for the new phase. Specifically, we'll use the
+        PHASE_REPEAT_PRESET_ORDER dict (given above) to deal with this situation.
 
     Rewards
         The reward is the negative per vehicle delay minus a penalty for
@@ -171,8 +122,8 @@ class TrafficLightGridEnv(Env):
         Number of rows in this traffic light grid network
     cols : int
         Number of columns in this traffic light grid network
-    num_traffic_lights : int
-        Number of intersection in this traffic light grid network   # TODO: number of intersections? or number of traffic lights? This seems hacky?
+    num_tl_intersections : int
+        Number of intersections (with traffic lights) in this traffic light grid network
     tl_type : str
         Type of traffic lights, either 'actuated' or 'static'
     steps : int
@@ -184,28 +135,27 @@ class TrafficLightGridEnv(Env):
         Dictionary mapping intersections / nodes (nomenclature is used
         interchangeably here) to the edges that are leading to said
         intersection / node
-    last_change : np array [num_traffic_lights]x1 np array
+
+    ### For all of the following attributes, each entry in the array corresponds to one particular intersection
+
+    curr_phase_duration : np array [num_tl_intersections]x1 np array
         Multi-dimensional array keeping track, in timesteps, of how much time
-        has passed since the last change to yellow for each traffic light    # TODO: Kevin - keeping track of last change to yellow, hmmmmmmm
-    direction : np array [num_traffic_lights]x1 np array
+        has passed since changing to the current phase
+    curr_phase : np array [num_tl_intersections]x1 np array                T
+        Multi-dimensional array keeping track of the phase that the traffic lights corresponding to particular
+        intersections are currently in. Refer to the "PHASE_NUM_TO_STR" dict above for what a number represents.
+    currently_green : np array [num_tl_intersections]x1 np array
+        Multi-dimensional array keeping track of whether an intersection of traffic lights is currently in the green
+        part of its phase.
+        1 if green, 0 if yellow
+    min_yellow_time : np array [num_tl_intersections]x1 np array
+        The minimum time in timesteps that a light can be yellow. 5s by default.
+        Serves as a lower bound.
+    min_green_time : np array [num_tl_intersections]x1 np array
+        The minimum time in timesteps that a light can be yellow. 20s by default. # This is a somewhat arbitrary choice
+        Serves as a lower bound
 
-        Multi-dimensional array keeping track of which direction in traffic    # TODO: Kevin - Ah, gotcha - this is hacky - only works for a 1 by 1, no turns tl grid, need phases?
-        light is flowing. 0 indicates flow from top to bottom, and              # e.g. 0 indicates vertical_straight, 1 indicates horizontal_straight, 2 indicates protected_left_from**_top, etc
-        1 indicates flow from left to right
-
-    # replace this 'direction' with something like "phase" 1, 2, 3 ,4, 5, 6, 7, 8, 9, 10, 11, 12
-
-    currently_yellow : np array [num_traffic_lights]x1 np array
-        Multi-dimensional array keeping track of whether or not each traffic  # what's: each traffic light is currently yellow? If only 2 phases, then default is either r/g or g/y?? Maybe not
-        light is currently yellow. 1 if yellow, 0 if not
-
-    # replace this 'currently' yellow or delete it?? Not much point anymore, I think? Unless it's super relevant to the thing below
-
-    ?? Is this thing even necessary?? # TODO: Kevin - rationale behind this?
-
-    min_switch_time : np array [num_traffic_lights]x1 np array
-        The minimum time in timesteps that a light can be yellow. Serves
-        as a lower bound
+    ###
 
     discrete : bool
         Indicates whether or not the action space is discrete. See below for
@@ -223,8 +173,9 @@ class TrafficLightGridEnv(Env):
         self.grid_array = network.net_params.additional_params["grid_array"]
         self.rows = self.grid_array["row_num"]
         self.cols = self.grid_array["col_num"]
-        # self.num_observed = self.grid_array.get("num_observed", 3)
-        self.num_traffic_lights = self.rows * self.cols
+        self.horizontal_lanes = self.network.net_params.additional_params["horizontal_lanes"]
+        self.vertical_lanes = self.network.net_params.additional_params["vertical_lanes"]
+        self.num_tl_intersections = self.rows * self.cols
         self.tl_type = env_params.additional_params.get('tl_type')
 
         super().__init__(env_params, sim_params, network, simulator)
@@ -232,34 +183,26 @@ class TrafficLightGridEnv(Env):
         # Saving env variables for plotting
         self.steps = env_params.horizon
         self.obs_var_labels = {
-            'edges': np.zeros((self.steps, self.k.vehicle.num_vehicles)),
-            'velocities': np.zeros((self.steps, self.k.vehicle.num_vehicles)),
-            'positions': np.zeros((self.steps, self.k.vehicle.num_vehicles))
+            'cars_per_lane': np.zeros((self.steps, self.k.vehicle.num_vehicles)),
+            'curr_phase_duration': np.zeros((self.steps, self.k.vehicle.num_vehicles)),
+            'curr_phase': np.zeros((self.steps, self.k.vehicle.num_vehicles))
         }
 
-        # Keeps track of the last time the traffic lights in an intersection
-        # were allowed to change (the last time the lights were allowed to
-        # change from a red-green state to a red-yellow state.)
+        # Keeps track of how long the traffic lights in an intersection have been in their current green phase
+        # or yellow phase (e.g. when switching from phase 1 green to phase 1 yellow, the timer resets)
+        self.curr_phase_duration = np.zeros((self.num_tl_intersections, 1))
 
-        # what's a red-yellow state? you mean a green-red state? Oh, from the POV of one edge/direction, it's still not red-yellow?
+        # when this hits min_switch_time, we change from phase x's yellow to phase y's green (where x != y)
 
-        self.last_change = np.zeros((self.rows * self.cols, 1))
+        self.min_yellow_time = env_params.additional_params["min_yellow_time"]
+        self.min_green_time = env_params.additional_params["min_green_time"]
 
-        # Keeps track of the phase of the intersection. See phase definitions above.
-        self.direction = np.zeros((self.rows * self.cols, 1))
+        # Keeps track of the traffic light phase of each intersection. See phase definitions above.
+        self.phases = np.zeros((self.num_tl_intersections, 1))
 
-        # Value of 1 indicates that the intersection is in a red-yellow state.
-        # value 0 indicates that the intersection is in a red-green state.
-        self.currently_yellow = np.zeros((self.rows * self.cols, 1))   # TODO: Kevin - this is the total number of intersections -
-                                                                        # what does it mean for intersection to be in a red-yellow state? Doesn't it depend on how you're looking at it?
-                                                                        # e.g. from top/bot it's red/green, from left/right it's green/yellow? Also, what's a red-yellow state? When does a light ever
-                                                                        # change from red to yellow?
-
-        # when this hits min_switch_time we change from yellow to red
-        # the second column indicates the direction that is currently being
-        # allowed to flow. 0 is flowing top to bottom, 1 is left to right
-        # For third column, 0 signifies yellow and 1 green or red
-        self.min_switch_time = env_params.additional_params["switch_time"]
+        # Value of 1 indicates that the intersection is in its phase's green state
+        # Value of 0 indicates that the intersection is in its phases' yellow state
+        self.currently_green = np.zeros((self.num_tl_intersections, 1))
 
         x_max = self.cols + 1
         y_max = self.rows + 1
@@ -268,8 +211,8 @@ class TrafficLightGridEnv(Env):
             for x in range(1, x_max):
                 for y in range(1, y_max):
                     self.k.traffic_light.set_state(         # TODO: what's this k variable?
-                        node_id="({}.{})".format(x, y), state=PHASE_NUM_TO_STR[1])    # TODO: How should the grid be initialized? I'm not sure.
-                    self.currently_yellow[y * self.cols + x] = 0
+                        node_id="({}.{})".format(x, y), state=PHASE_NUM_TO_STR[0])    # TODO(KevinLin): How should the grid be initialized?
+                    self.currently_green[y * self.cols + x] = 1
 
         # # Additional Information for Plotting
         # self.edge_mapping = {"top": [], "bot": [], "right": [], "left": []}
@@ -287,70 +230,55 @@ class TrafficLightGridEnv(Env):
     def action_space(self):
         """See class definition."""
         if self.discrete:
-            return Discrete(2 ** self.num_traffic_lights)
-        else:
+            return Discrete(2 ** self.num_tl_intersections)
+        else:   # TODO(KevinLin) why's this low = -1 and high = 1??
             return Box(
                 low=-1,
                 high=1,
-                shape=(self.num_traffic_lights,),
+                shape=(self.num_tl_intersections,),
                 dtype=np.float32)
 
     @property
     def observation_space(self):
         """See class definition."""
-        speed = Box(
-            low=0,
-            high=1,   #?
-            shape=(self.initial_vehicles.num_vehicles,),
-            dtype=np.float32)
-        dist_to_intersec = Box(
-            low=0.,
-            high=np.inf,
-            shape=(self.initial_vehicles.num_vehicles,),
-            dtype=np.float32)
-        # is this supposed to represent the number of cars on a particular edge?
-        edge_num = Box(
+        cars_per_lane = Box(
             low=0.,
             high=1,
-            shape=(self.initial_vehicles.num_vehicles,),
-            dtype=np.float32)
-        # And, this is the number of traffic lights * 3?
-        traffic_lights = Box(
+            shape=(self.total_lanes()),      # look at all the lanes
+            dtype=np.float32)  # check how discrete values work
+        # Check what the low=0, high=1 means
+        curr_phase_duration = Box(
             low=0.,
             high=1,
-            shape=(3 * self.rows * self.cols,),
+            shape=(self.num_tl_intersections,),
             dtype=np.float32)
-        return Tuple((speed, dist_to_intersec, edge_num, traffic_lights))
+        curr_phase = Box(
+            low=0.,
+            high=1,
+            shape=(self.num_tl_intersections,),
+            dtype=np.float32)
+        currently_green = Box(
+            low=0.,
+            high=1,
+            shape=(self.num_tl_intersections,),
+            dtype=np.float32)
+
+        return Tuple((cars_per_lane, curr_phase_duration, curr_phase, currently_green))
+        # TODO(KevinLin) any advantage of tuple over one large box?
 
     def get_state(self):
         """See class definition."""
-        # compute the normalizers
-        grid_array = self.net_params.additional_params["grid_array"]
-        max_dist = max(grid_array["short_length"],
-                       grid_array["long_length"],
-                       grid_array["inner_length"])
 
         # get the state arrays
-        speeds = [
-            self.k.vehicle.get_speed(veh_id) / self.k.network.max_speed()
-            for veh_id in self.k.vehicle.get_ids()
-        ]
-        dist_to_intersec = [
-            self.get_distance_to_intersection(veh_id) / max_dist
-            for veh_id in self.k.vehicle.get_ids()
-        ]
-        edges = [
-            self._convert_edge(self.k.vehicle.get_edge(veh_id)) /
-            (self.k.network.network.num_edges - 1)
-            for veh_id in self.k.vehicle.get_ids()
-        ]
+        cars_per_lane = 20
 
         state = [
-            speeds, dist_to_intersec, edges,
-            self.last_change.flatten().tolist(),
-            self.direction.flatten().tolist(),
-            self.currently_yellow.flatten().tolist()
+            cars_per_lane,
+            self.curr_phase_duration.flatten().tolist(),
+            self.curr_phase.flatten().tolist(),
+            self.currently_green.flatten().tolist()
         ]
+
         return np.array(state)
 
     def _apply_rl_actions(self, rl_actions):
@@ -359,7 +287,7 @@ class TrafficLightGridEnv(Env):
         if self.discrete:
             # convert single value to list of 0's and 1's
             rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
-            rl_mask = [0] * (self.num_traffic_lights - len(rl_mask)) + rl_mask
+            rl_mask = [0] * (self.num_tl_intersections - len(rl_mask)) + rl_mask
         else:
             # convert values less than 0 to zero and above 0 to 1. 0 indicates
             # that should not switch the direction, and 1 indicates that switch
@@ -405,40 +333,85 @@ class TrafficLightGridEnv(Env):
     # ============ UTILS ============
     # ===============================
 
-    def get_distance_to_intersection(self, veh_ids):
-        """Determine the distance from a vehicle to its next intersection.
+    def generate_tl_phases(self, phase_type, horiz_lanes, vert_lanes):
+        """Returns the tl phase string for the corresponding phase types.
+        Note: right turns will have 'g' by default"""
 
-        Parameters
-        ----------
-        veh_ids : str or str list
-            vehicle(s) identifier(s)
+        if phase_type == "vertical_green":
+            vertical = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
+            horizontal = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+            return vertical + horizontal + vertical + horizontal
 
-        Returns
-        -------
-        float (or float list)
-            distance to closest intersection
-        """
-        if isinstance(veh_ids, list):
-            return [self.get_distance_to_intersection(veh_id)
-                    for veh_id in veh_ids]
-        return self.find_intersection_dist(veh_ids)
+        elif phase_type == "vertical_green_to_yellow":
+            horizontal = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
+            vertical = "g" + horiz_lanes * "y" + "r"  # right turn, straights, left turn
+            return vertical + horizontal + vertical + horizontal
 
-    def find_intersection_dist(self, veh_id):
-        """Return distance from intersection.
+        elif phase_type == "horizontal_green":
+            horizontal = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
+            vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+            return vertical + horizontal + vertical + horizontal
 
-        Return the distance from the vehicle's current position to the position
-        of the node it is heading toward.
-        """
-        edge_id = self.k.vehicle.get_edge(veh_id)
-        # FIXME this might not be the best way of handling this
-        if edge_id == "":
-            return -10
-        if 'center' in edge_id:
-            return 0
-        edge_len = self.k.network.edge_length(edge_id)
-        relative_pos = self.k.vehicle.get_position(veh_id)
-        dist = edge_len - relative_pos
-        return dist
+        elif phase_type == "horizontal_green_to_yellow":
+            horizontal = "g" + vert_lanes * "y" + "r"  # right turn, straights, left turn
+            vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+            return vertical + horizontal + vertical + horizontal
+
+        elif phase_type == "protected_left_top":
+            top = "G" + "G" * vert_lanes + "G"
+            bot = "g" + "r" * vert_lanes + "r"
+            horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+            return top + horizontal + bot + horizontal
+
+        elif phase_type == "protected_left_top_to_yellow":
+            top = "g" + "y" * vert_lanes + "y"
+            bot = "g" + "r" * vert_lanes + "r"
+            horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+            return top + horizontal + bot + horizontal
+
+        elif phase_type == "protected_left_right":
+            vertical = "g" + "r" * vert_lanes + "r"
+            left = "g" + "r" * horiz_lanes + "r"
+            right = "g" + "G" * horiz_lanes + "G"
+            return vertical + right + vertical + left
+
+        elif phase_type == "protected_left_right_to_yellow":
+            vertical = "g" + "r" * vert_lanes + "r"
+            left = "g" + "r" * horiz_lanes + "r"
+            right = "g" + "y" * horiz_lanes + "y"
+            return vertical + right + vertical + left
+
+        elif phase_type == "protected_left_bottom":
+            bot = "G" + "G" * vert_lanes + "G"
+            top = "g" + "r" * vert_lanes + "r"
+            horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+            return top + horizontal + bot + horizontal
+
+        elif phase_type == "protected_left_bottom_to_yellow":
+            bot = "g" + "y" * vert_lanes + "y"
+            top = "g" + "r" * vert_lanes + "r"
+            horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+            return top + horizontal + bot + horizontal
+
+        elif phase_type == "protected_left_left":
+            vertical = "g" + "r" * vert_lanes + "r"
+            right = "g" + "r" * horiz_lanes + "r"
+            left = "g" + "G" * horiz_lanes + "G"
+            return vertical + right + vertical + left
+
+        elif phase_type == "protected_left_left_to_yellow":
+            vertical = "g" + "r" * vert_lanes + "r"
+            right = "g" + "r" * horiz_lanes + "r"
+            left = "g" + "y" * horiz_lanes + "y"
+            return vertical + right + vertical + left
+
+    def total_lanes(self):
+        """Computes the total number of lanes in a queue grid"""
+        horiz_lanes = self.horizontal_lanes
+        vert_lanes = self.vertical_lanes
+        print("TO IMPLEMENT - KEVINLIN")
+        return horiz_lanes * vert_lanes
+
 
     def _convert_edge(self, edges):
         """Convert the string edge to a number.
@@ -539,7 +512,7 @@ class TrafficLightGridEnv(Env):
 
         if direction == "top":
             node = agent_id_num + self.cols
-            if node >= self.cols * self.rows:
+            if node >= self.num_tl_intersections:
                 node = -1
         elif direction == "bottom":
             node = agent_id_num - self.cols
@@ -611,113 +584,15 @@ class TrafficLightGridEnv(Env):
                 pos="0",
                 speed="max")
 
-    # TODO(Kevin Lin) Update to return the IDs of vehicles
-    def get_closest_to_intersection(self, edges, num_closest, padding=False):
-        """Return the IDs of the vehicles that are closest to an intersection.
 
-        For each edge in edges, return the IDs (veh_id) of the num_closest
-        vehicles in edge that are closest to an intersection (the intersection
-        they are heading towards).
-
-        This function performs no check on whether or not edges are going
-        towards an intersection or not, it just gets the vehicles that are
-        closest to the end of their edges.
-
-        If there are less than num_closest vehicles on an edge, the function
-        performs padding by adding empty strings "" instead of vehicle ids if
-        the padding parameter is set to True.
-
-        Parameters
-        ----------
-        edges : str | str list
-            ID of an edge or list of edge IDs.
-        num_closest : int (> 0)
-            Number of vehicles to consider on each edge.
-        padding : bool (default False)
-            If there are less than num_closest vehicles on an edge, perform
-            padding by adding empty strings "" instead of vehicle ids if the
-            padding parameter is set to True (note: leaving padding to False
-            while passing a list of several edges as parameter can lead to
-            information loss since you will not know which edge, if any,
-            contains less than num_closest vehicles).
-
-        Usage
-        -----
-        For example, consider the following network, composed of 4 edges
-        whose ids are "edge0", "edge1", "edge2" and "edge3", the numbers
-        being vehicles all headed towards intersection x. The ID of the vehicle
-        with number n is "veh{n}" (edge "veh0", "veh1"...).
-
-                            edge1
-                            |   |
-                            | 7 |
-                            | 8 |
-               -------------|   |-------------
-        edge0    1 2 3 4 5 6  x                 edge2
-               -------------|   |-------------
-                            | 9 |
-                            | 10|
-                            | 11|
-                            edge3
-
-        And consider the following example calls on the previous network:
-
-        >>> get_closest_to_intersection("edge0", 4)
-        ["veh6", "veh5", "veh4", "veh3"]
-
-        >>> get_closest_to_intersection("edge0", 8)
-        ["veh6", "veh5", "veh4", "veh3", "veh2", "veh1"]
-
-        >>> get_closest_to_intersection("edge0", 8, padding=True)
-        ["veh6", "veh5", "veh4", "veh3", "veh2", "veh1", "", ""]
-
-        >>> get_closest_to_intersection(["edge0", "edge1", "edge2", "edge3"],
-                                         3, padding=True)
-        ["veh6", "veh5", "veh4", "veh8", "veh7", "", "", "", "", "veh9",
-         "veh10", "veh11"]
-
-        Returns
-        -------
-        str list
-            If n is the number of edges given as parameters, then the returned
-            list contains n * num_closest vehicle IDs.
-
-        Raises
-        ------
-        ValueError
-            if num_closest <= 0
-        """
-        if num_closest <= 0:
-            raise ValueError("Function get_closest_to_intersection called with"
-                             "parameter num_closest={}, but num_closest should"
-                             "be positive".format(num_closest))
-
-        if isinstance(edges, list):
-            ids = [self.get_closest_to_intersection(edge, num_closest)
-                   for edge in edges]
-            # flatten the list and return it
-            return [veh_id for sublist in ids for veh_id in sublist]
-
-        # get the ids of all the vehicles on the edge 'edges' ordered by
-        # increasing distance to end of edge (intersection)
-        veh_ids_ordered = sorted(self.k.vehicle.get_ids_by_edge(edges),
-                                 key=self.get_distance_to_intersection)
-
-        # return the ids of the num_closest vehicles closest to the
-        # intersection, potentially with ""-padding.
-        pad_lst = [""] * (num_closest - len(veh_ids_ordered))
-        return veh_ids_ordered[:num_closest] + (pad_lst if padding else [])
-
-
-class TrafficLightGridPOEnv(TrafficLightGridEnv):
+class QueueGridPOEnv(QueueGridEnv):
     """Environment used to train traffic lights.
 
     Required from env_params:
 
     * switch_time: minimum switch time for each traffic light (in seconds).
       Earlier RL commands are ignored.
-    * num_observed: number of vehicles nearest each intersection that is
-      observed in the state space; defaults to 2
+
 
     States
         An observation is the number of observed vehicles in each intersection
@@ -770,18 +645,20 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         tl_box = Box(
             low=0.,
             high=1,
-            shape=(3 * 4 * self.num_observed * self.num_traffic_lights +
+            shape=(3 * 4 * self.num_observed * self.num_tl_intersections +
                    2 * len(self.k.network.get_edge_list()) +
-                   3 * self.num_traffic_lights,),
+                   3 * self.num_tl_intersections,),
             dtype=np.float32)
         return tl_box
 
-    def get_state(self):
+    def get_state(self):            # TODO: Density?
         """See parent class.
 
         Returns self.num_observed number of vehicles closest to each traffic
         light and for each vehicle its velocity, distance to intersection,
         edge_number traffic light state. This is partially observed
+
+
         """
 
         speeds = []
@@ -862,7 +739,7 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         [self.k.vehicle.set_observed(veh_id) for veh_id in self.observed_ids]
 
 
-class TrafficLightGridTestEnv(TrafficLightGridEnv):
+class QueueGridTestEnv(QueueGridEnv):
     """
     Class for use in testing.
 

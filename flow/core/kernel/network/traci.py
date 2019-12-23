@@ -675,7 +675,8 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 else:
                     show_detector = {'key': 'show-detectors', 'value': 'false'}
 
-                nodes = self._inner_nodes  # nodes where there's traffic lights
+                nodes = self._tl_nodes  # nodes where there are traffic lights - Kevin why is this thing unresolved?
+
                 tll = []
                 for node in nodes:
                     tll.append({

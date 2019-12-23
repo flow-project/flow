@@ -1,7 +1,7 @@
 """Traffic Light Grid example."""
 from flow.controllers import GridRouter
 from flow.core.experiment import Experiment
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
@@ -27,15 +27,27 @@ def gen_edges(col_num, row_num):
     """
     edges = []
 
-    # build the left and then the right edges
-    for i in range(col_num):
-        edges += ['left' + str(row_num) + '_' + str(i)]
-        edges += ['right' + '0' + '_' + str(i)]
+    x_max = col_num + 1
+    y_max = row_num + 1
 
-    # build the bottom and then top edges
-    for i in range(row_num):
-        edges += ['bot' + str(i) + '_' + '0']
-        edges += ['top' + str(i) + '_' + str(col_num)]
+    def new_edge(from_node, to_node):
+        return str(from_node) + "--" + str(to_node)
+
+    # Build the horizontal edges
+    for y in range(1, y_max):
+        for x in [0, x_max - 1]:
+            left_node = "({}.{})".format(x, y)
+            right_node = "({}.{})".format(x + 1, y)
+            edges += new_edge(left_node, right_node)
+            edges += new_edge(right_node, left_node)
+
+    # Build the vertical edges
+    for x in range(1, x_max):
+        for y in [0, y_max - 1]:
+            bottom_node = "({}.{})".format(x, y)
+            top_node = "({}.{})".format(x, y + 1)
+            edges += new_edge(bottom_node, top_node)
+            edges += new_edge(top_node, bottom_node)
 
     return edges
 
@@ -153,10 +165,19 @@ def traffic_light_grid_example(render=None, use_inflows=False):
         "cars_bot": num_cars_bot
     }
 
-    sim_params = SumoParams(sim_step=0.1, render=True)
+    sim_params = SumoParams(sim_step=1.0, render=True)
 
     if render is not None:
         sim_params.render = render
+
+    lane_change_params = SumoLaneChangeParams(
+        lc_assertive=20,
+        lc_pushy=0.8,
+        lc_speed_gain=4.0,
+        model="LC2013",
+        lane_change_mode="strategic",   # TODO: check-is there a better way to change lanes?
+        lc_keep_right=0.8
+    )
 
     vehicles = VehicleParams()
     vehicles.add(
@@ -166,42 +187,196 @@ def traffic_light_grid_example(render=None, use_inflows=False):
             min_gap=2.5,
             decel=7.5,  # avoid collisions at emergency stops
         ),
+        lane_change_params=lane_change_params,
         num_vehicles=tot_cars)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     tl_logic = TrafficLightParams(baseline=False)
-    phases = [{
-        "duration": "31",
-        "minDur": "8",
-        "maxDur": "45",
-        "state": "GrGrGrGrGrGr"
-    }, {
-        "duration": "6",
-        "minDur": "3",
-        "maxDur": "6",
-        "state": "yryryryryryr"
-    }, {
-        "duration": "31",
-        "minDur": "8",
-        "maxDur": "45",
-        "state": "rGrGrGrGrGrG"
-    }, {
-        "duration": "6",
-        "minDur": "3",
-        "maxDur": "6",
-        "state": "ryryryryryry"
-    }]
-    tl_logic.add("center0", phases=phases, programID=1)
-    tl_logic.add("center1", phases=phases, programID=1)
-    tl_logic.add("center2", phases=phases, programID=1, tls_type="actuated")
 
     additional_net_params = {
         "grid_array": grid_array,
         "speed_limit": 35,
-        "horizontal_lanes": 1,
-        "vertical_lanes": 1
+        "horizontal_lanes": 3,
+        "vertical_lanes": 3
     }
+
+    # In SUMO, the traffic light states for an intersection start from the top incoming edge and move clockwise.
+    # Within one edge, the states start from the rightmost lane (lane 0) and move to the left. Within one lane, states
+    # start from right, straight to left turns
+
+    # Apparently, in the US, cars can turn right even if there's a red light. They just need to give way to cars going straight
+
+    def generate_tl_phases(phase_type, horiz_lanes, vert_lanes):
+        """Returns the tl phase string for the corresponding phase types. Note: right turns will have 'g' by default"""
+
+        if phase_type == "vertical_green":
+            vertical = "G" + vert_lanes * "G" + "r"    # right turn, straights, left turn
+            horizontal = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+            return vertical + horizontal + vertical + horizontal
+
+        elif phase_type == "vertical_green_to_yellow":
+            horizontal = "G" + vert_lanes * "G" + "r"    # right turn, straights, left turn
+            vertical = "g" + horiz_lanes * "y" + "r"  # right turn, straights, left turn
+            return vertical + horizontal + vertical + horizontal
+
+        elif phase_type == "horizontal_green":
+            horizontal = "G" + vert_lanes * "G" + "r"    # right turn, straights, left turn
+            vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+            return vertical + horizontal + vertical + horizontal
+
+        elif phase_type == "horizontal_green_to_yellow":
+            horizontal = "g" + vert_lanes * "y" + "r"    # right turn, straights, left turn
+            vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+            return vertical + horizontal + vertical + horizontal
+
+        elif phase_type == "protected_left_top":
+            top = "G" + "G" * vert_lanes + "G"
+            bot = "g" + "r" * vert_lanes + "r"
+            horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+            return top + horizontal + bot + horizontal
+
+        elif phase_type == "protected_left_top_to_yellow":
+            top = "g" + "y" * vert_lanes + "y"
+            bot = "g" + "r" * vert_lanes + "r"
+            horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+            return top + horizontal + bot + horizontal
+
+        elif phase_type == "protected_left_right":
+            vertical = "g" + "r" * vert_lanes + "r"
+            left = "g" + "r" * horiz_lanes + "r"
+            right = "g" + "G" * horiz_lanes + "G"
+            return vertical + right + vertical + left
+
+        elif phase_type == "protected_left_right_to_yellow":
+            vertical = "g" + "r" * vert_lanes + "r"
+            left = "g" + "r" * horiz_lanes + "r"
+            right = "g" + "y" * horiz_lanes + "y"
+            return vertical + right + vertical + left
+
+        elif phase_type == "protected_left_bottom":
+            bot = "G" + "G" * vert_lanes + "G"
+            top = "g" + "r" * vert_lanes + "r"
+            horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+            return top + horizontal + bot + horizontal
+
+        elif phase_type == "protected_left_bottom_to_yellow":
+            bot = "g" + "y" * vert_lanes + "y"
+            top = "g" + "r" * vert_lanes + "r"
+            horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+            return top + horizontal + bot + horizontal
+
+        elif phase_type == "protected_left_left":
+            vertical = "g" + "r" * vert_lanes + "r"
+            right = "g" + "r" * horiz_lanes + "r"
+            left = "g" + "G" * horiz_lanes + "G"
+            return vertical + right + vertical + left
+
+        elif phase_type == "protected_left_left_to_yellow":
+            vertical = "g" + "r" * vert_lanes + "r"
+            right = "g" + "r" * horiz_lanes + "r"
+            left = "g" + "y" * horiz_lanes + "y"
+            return vertical + right + vertical + left
+
+    straight_horz = additional_net_params.get("horizontal_lanes") # number of horizontal lanes that go straight (all of them)
+    straight_vert = additional_net_params.get("vertical_lanes") # number of horizontal lanes that go straight (all of them)
+
+    phases = [{
+        # vertical green lights
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": generate_tl_phases("vertical_green", straight_horz, straight_vert)
+    }, {
+        # vertical green lights to yellow/red
+        "duration": "6",
+        "minDur": "3",
+        "maxDur": "6",
+        "state": generate_tl_phases("vertical_green_to_yellow", straight_horz, straight_vert)
+    }, {
+        # horizontal green lights
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": generate_tl_phases("horizontal_green", straight_horz, straight_vert)
+    }, {
+        # horizontal green lights to yellow/red
+        "duration": "6",
+        "minDur": "3",
+        "maxDur": "6",
+        "state": generate_tl_phases("horizontal_green_to_yellow", straight_horz, straight_vert)
+    }, {
+        # protected left for incoming top edge
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": generate_tl_phases("protected_left_top", straight_horz, straight_vert)
+    }, {
+        # protected left for incoming top edge to yellow/red
+        "duration": "6",
+        "minDur": "3",
+        "maxDur": "6",
+        "state": generate_tl_phases("protected_left_top_to_yellow", straight_horz, straight_vert)
+    }, {
+        # protected left for incoming right edge
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": generate_tl_phases("protected_left_right", straight_horz, straight_vert)
+    }, {
+        # protected left for incoming right edge to yellow/red
+        "duration": "6",
+        "minDur": "3",
+        "maxDur": "6",
+        "state": generate_tl_phases("protected_left_right_to_yellow", straight_horz, straight_vert)
+    }, {
+        # protected left for incoming bottom edge
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": generate_tl_phases("protected_left_bottom", straight_horz, straight_vert)
+    }, {
+        # protected left for incoming bottom edge to yellow/red
+        "duration": "6",
+        "minDur": "3",
+        "maxDur": "6",
+        "state": generate_tl_phases("protected_left_bottom_to_yellow", straight_horz, straight_vert)
+    }, {
+        # protected left for left incoming edge
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": generate_tl_phases("protected_left_left", straight_horz, straight_vert)
+    }, {
+        # protected left for left incoming edge to yellow/red
+        "duration": "6",
+        "minDur": "3",
+        "maxDur": "6",
+        "state": generate_tl_phases("protected_left_left_to_yellow", straight_horz, straight_vert)
+    }]
+
+    # Here's an example of how you can manually set traffic lights
+
+    x_max = grid_array["col_num"] + 1
+    y_max = grid_array["row_num"] + 1
+
+    def set_all_tl_logic(phases, tls_type):
+        """Set all traffic lights to the specified tls_type and phases"""
+        for x in range(1, x_max):
+            for y in range(1, y_max):
+                node_id = "({}.{})".format(x, y)
+                tl_logic.add(node_id, phases=phases, tls_type=tls_type)
+
+    set_all_tl_logic(phases, "actuated")
+
+    # Or, you could set these manually
+    # tl_logic.add("(1.1)", phases=phases, tls_type="actuated")
+    # tl_logic.add("(2.1)", phases=phases, tls_type="actuated")
+    # tl_logic.add("(3.1)", phases=phases, tls_type="actuated")
+    # tl_logic.add("(1.2)", phases=phases, tls_type="actuated")
+    # tl_logic.add("(2.2)", phases=phases, tls_type="actuated")
+    # tl_logic.add("(3.2)", phases=phases, tls_type="actuated")
+
 
     if use_inflows:
         initial_config, net_params = get_flow_params(
@@ -220,6 +395,7 @@ def traffic_light_grid_example(render=None, use_inflows=False):
         initial_config=initial_config,
         traffic_lights=tl_logic)
 
+
     env = AccelEnv(env_params, sim_params, network)
 
     return Experiment(env)
@@ -228,6 +404,5 @@ def traffic_light_grid_example(render=None, use_inflows=False):
 if __name__ == "__main__":
     # import the experiment variable
     exp = traffic_light_grid_example()
-
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

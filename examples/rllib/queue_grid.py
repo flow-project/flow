@@ -165,7 +165,8 @@ grid_array = {
 
 additional_env_params = {
         'target_velocity': 50,
-        'switch_time': 3.0,      # switch traffic light phase time?
+        'min_yellow_time': 5.0,   # minimum time the traffic lights must remain in their corresponding yellow phase
+        'min_green_time': 15.0,   # minimum time the traffic lights must remain in their corresponding green phase
         'num_observed': 2,
         'discrete': False,
         'tl_type': 'controlled'
@@ -193,10 +194,10 @@ vehicles.add(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='traffic_light_grid',
+    exp_tag='queue_grid',
 
     # name of the flow environment the experiment is running on
-    env_name=TrafficLightGridPOEnv,
+    env_name=QueueGridPOEnv,
 
     # name of the network class the experiment is running on
     network=TrafficLightGridNetwork,

@@ -287,6 +287,7 @@ class Env(gym.Env):
             edge = start_pos[i][0]
 
             self.initial_state[veh_id] = (type_id, edge, lane, pos, speed)
+        print(self.initial_state)
 
     def step(self, rl_actions):
         """Advance the environment by one step.
