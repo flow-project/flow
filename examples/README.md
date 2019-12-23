@@ -120,7 +120,7 @@ Example of a highway section network with on/off ramps
 
 ### merge.py
 
-Example of a straight road with merge-in with human-driven vehicles.
+Example of a straight road with an on-ramp merge.
 
 In the absence of autonomous vehicles, the network exhibits properties of
 convective instability, with perturbations propagating upstream from the merge
