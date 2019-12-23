@@ -7,8 +7,8 @@ https://flow.readthedocs.io/en/latest/flow_setup.html).
 The **examples** folder provides several examples demonstrating how 
 both non-RL simulation and RL-oriented simulatons can be setup and executed 
 within the Flow framework on a variety of traffic problems. These examples are 
-python files that may be executed either from terminal or via a text editor (or 
-Python IDE). For example, in order to execute the non-RL Ring example we run:
+python files that may be executed either from terminal or via a text editor. 
+For example, in order to execute the non-RL Ring example we run:
 
 ```shell
 python simulate.py ring
