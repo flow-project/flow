@@ -42,7 +42,7 @@ PARAMS = DictDescriptor(
 
     ("total_time", 110.5, float, "time horizon (in seconds)"),
 
-    ("dt", 0.221, float, "time discretization (in seconds/step)"),
+    ("dt", 0.0001, float, "time discretization (in seconds/step)"),
 
     # ======================================================================= #
     #                      Initial / boundary conditions                      #
@@ -156,8 +156,8 @@ class LWR(MacroModelEnv):
         assert (params['length'] / params['dx']).is_integer(), \
             "The 'length' variable in params must be divisible by 'dx'."
 
-        assert (params['total_time'] / params['dt']).is_integer(), \
-            "The 'total_time' variable in params must be divisible by 'dt'."
+        # assert (params['total_time'] / params['dt']).is_integer(), \
+        #     "The 'total_time' variable in params must be divisible by 'dt'."
 
         assert params['rho_max'] <= params['rho_max_max'], \
             "The 'rho_max' must be less than or equal to 'rho_max_max'"
@@ -165,13 +165,14 @@ class LWR(MacroModelEnv):
         assert params['v_max'] <= params['v_max_max'], \
             "The 'v_max' must be less than or equal to 'v_max_max'"
 
-        assert 0 <= params['CFL'] <= 1, \
+        assert 0 <= params['CFL'] <= 1 or None, \
             "'CFL' variable must be between 0 and 1"
 
-        assert params['dt'] <= params['CFL'] * params['dx']/params['v_max'], \
+        assert params['dt'] <= params['CFL'] * params['dx']/params['v_max'] or None, \
             "CFL condition not satisfied. Make sure dt <= CFL * dx / v_max"
 
         assert len(params['initial_conditions']) == \
+            int(params['length'] / params['dx']) or len(params['initial_conditions'][0]) == \
             int(params['length'] / params['dx']), \
             "Initial conditions must be a list of size: length/dx."
 
@@ -182,9 +183,17 @@ class LWR(MacroModelEnv):
         self.rho_max_max = params['rho_max_max']
         self.v_max = params['v_max']
         self.v_max_max = params['v_max_max']
-        self.CFL = params['CFL']
         self.total_time = params['total_time']
-        self.dt = params['dt']
+
+        if params['CFL'] is None:
+            self.CFL = params['dt'] * self.v_max / self.dx
+        else:
+            self.CFL = params['CFL']
+        if params['dt'] is None:
+            self.dt = self.CFL * self.dx / self.v_max
+        else:
+            self.dt = params['dt']
+
         self.horizon = int(self.total_time / self.dt)
         self.initial_conditions = params['initial_conditions']
         self.boundaries = params["boundary_conditions"]
@@ -193,8 +202,6 @@ class LWR(MacroModelEnv):
 
         # lam is an exponent of the Green-shield velocity function
         self.lam = 1
-        # critical density defined by the Green-shield Model
-        self.rho_critical = self.rho_max / 2
         self.speeds = None
 
         self.obs = None
@@ -238,55 +245,82 @@ class LWR(MacroModelEnv):
         if rl_actions is not None:
             self.v_max = rl_actions
 
-        # advance the state of the simulation by one step
-        rho = self.ibvp(
-            self.obs[:int(self.length/self.dx)],
-        )
-        speed = self.speed_info(rho)
-
-        # compute the new observation
-        self.obs = np.concatenate((rho, speed))
-
-        # compute the reward value
-        rew = np.mean(np.square(speed - self.v_max) * rho)
+        rew, self.obs = self._step(self.obs, self.v_max, self.rho_max, self.CFL)
 
         # compute the done mask
         done = self.num_steps >= self.horizon
 
         return self.obs.copy(), rew, done, {}
 
-    def godunov_flux(self, rho_t):
+    def _step(self, obs, v_max, rho_max, cfl):
+
+        # advance the state of the simulation by one step
+        if len(np.shape(obs)) > 1:
+            rho = self.ibvp(
+                obs[:int(len(obs)/2)],
+                v_max, rho_max, cfl)
+
+        else:
+            rho = self.ibvp(
+                obs[0:int(self.length/self.dx)],
+                v_max, rho_max, cfl)
+        speed = self.speed_info(rho, v_max, rho_max)
+
+        # compute the reward value
+        rew = np.mean(np.square(speed - v_max) * rho)
+
+        # compute the new observation
+        return rew, np.concatenate((rho, speed))
+
+    def godunov_flux(self, rho_t, v_max, rho_max):
         """Calculate the Godunov numerical flux vector of our data.
 
         Parameters
         ----------
         rho_t : array_like
            densities containing boundary conditions to be analysed
+        v_max : see parent class
+        rho_max : see parent class
 
         Returns
         -------
         array_like
             array of fluxes calibrated at every point of our data
         """
-        rho_critical = self.rho_critical
-        q_max = rho_critical * self.speed_info(rho_critical)
+        # critical density defined by the Green-shield Model
+        rho_critical = rho_max / 2
+        q_max = rho_critical * self.speed_info(rho_critical, v_max, rho_max)
 
-        # demand
-        d = rho_t * self.speed_info(rho_t) \
-            * (rho_t < rho_critical) \
-            + q_max * (rho_t >= rho_critical)
+        if len(np.shape(rho_t)) > 1:
+            # demand
+            d = rho_t * self.speed_info(rho_t, v_max, rho_max) \
+                * (rho_t < rho_critical) \
+                + q_max * (rho_t >= rho_critical)
 
-        # supply
-        s = rho_t * self.speed_info(rho_t)\
-            * (rho_t > rho_critical) \
-            + q_max * (rho_t <= rho_critical)
+            # supply
+            s = rho_t * self.speed_info(rho_t, v_max, rho_max) \
+                * (rho_t > rho_critical) \
+                + q_max * (rho_t <= rho_critical)
 
-        s = np.append(s[1:], s[len(s) - 1])
+            new_col = s[:, len(s) - 1].reshape(len(s), 1)
+            s = np.concatenate((s[:, 1:], new_col), axis=1)
+        else:
+            # demand
+            d = rho_t * self.speed_info(rho_t, v_max, rho_max) \
+                * (rho_t < rho_critical) \
+                + q_max * (rho_t >= rho_critical)
+
+            # supply
+            s = rho_t * self.speed_info(rho_t, v_max, rho_max) \
+                * (rho_t > rho_critical) \
+                + q_max * (rho_t <= rho_critical)
+
+            s = np.append(s[1:], s[len(s) - 1])
 
         # Godunov flux
         return np.minimum(d, s)
 
-    def ibvp(self, rho_t):
+    def ibvp(self, rho_t, v_max, rho_max, cfl):
         """Implement Godunov scheme for multi-populations.
 
         Friedrich, Jan & Kolb, Oliver & Goettlich, Simone. (2018). A Godunov
@@ -299,51 +333,89 @@ class LWR(MacroModelEnv):
             density data to be analyzed and calculate next points for this data
             using Godunov scheme.
             Note: at time = 0, rho_t = initial density data
+        v_max : see parent class
+        rho_max : see parent class
+        cfl : see parent class
 
         Returns
         -------
         array_like
               next density data points as calculated by the Godunov scheme
         """
+        # Hacked dt to explicitly depend CFL(see line 189) <-- this is helpful for calibration
+        self.dt = cfl * self.dx / v_max
+
         # step = time/distance step
         step = self.dt / self.dx
 
         # store loop boundary conditions for ring-like experiment
         if self.boundaries == "loop":
-            self.boundary_left = rho_t[len(rho_t) - 1]
-            self.boundary_right = rho_t[len(rho_t) - 2]
+            # check if rho_t is 1D array or Matrix
+            if len(np.shape(rho_t)) > 1:
+                self.boundary_left = rho_t[:, np.shape(rho_t)[1] - 1]
+                self.boundary_right = rho_t[:, np.shape(rho_t)[1] - 2]
+            else:
+                self.boundary_left = rho_t[np.shape(rho_t)[0] - 1]
+                self.boundary_right = rho_t[np.shape(rho_t)[0] - 2]
 
         # Godunov numerical flux
-        f = self.godunov_flux(rho_t)
+        f = self.godunov_flux(rho_t, v_max, rho_max)
 
-        fm = np.insert(f[0:len(f) - 1], 0, f[0])
+        # check if rho_t is 1D array or Matrix
+        if len(np.shape(rho_t)) > 1:
+            fm = np.insert(f[:, 0:len(f[0]) - 1], 0, f[:, 0], axis=1)
+        else:
+            fm = np.insert(f[0:len(f) - 1], 0, f[0])
 
         # Godunov scheme (updating rho_t)
         rho_t = rho_t - step * (f - fm)
 
         # update loop boundary conditions for ring-like experiment
         if self.boundaries == "loop":
-            rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
-                              0, self.boundary_left)
-
-        # update boundary conditions by extending/extrapolating boundaries (reduplication)
-        if self.boundaries == "extend_both":
-            self.boundary_left = rho_t[0]
-            self.boundary_right = rho_t[len(rho_t) - 1]
-            rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
-                              0, self.boundary_left)
-
-        # update boundary conditions by keeping boundaries constant
-        if type(self.boundaries) == dict:
-            if list(self.boundaries.keys())[0] == "constant_both":
-                self.boundary_left = self.boundaries["constant_both"][0]
-                self.boundary_right = self.boundaries["constant_both"][1]
+            # check if rho_t is 1D array or Matrix
+            if len(np.shape(rho_t)) > 1:
+                rho_t = np.insert(np.append(rho_t[:, 1:np.shape(rho_t)[1] - 1],
+                                            self.boundary_right.reshape(len(self.boundary_right), 1), axis=1),
+                                  0, self.boundary_left, axis=1)
+            else:
                 rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
                                   0, self.boundary_left)
 
+        # update boundary conditions by extending/extrapolating boundaries (reduplication)
+        if self.boundaries == "extend_both":
+            # check if rho_t is 1D array or Matrix
+            if len(np.shape(rho_t)) > 1:
+                self.boundary_left = rho_t[:, 0]
+                self.boundary_right = rho_t[:, len(rho_t[0]) - 1]
+                rho_t = np.insert(np.append(rho_t[:, 1:np.shape(rho_t)[1] - 1],
+                                            self.boundary_right.reshape(len(self.boundary_right), 1), axis=1),
+                                  0, self.boundary_left, axis=1)
+            else:
+                self.boundary_left = rho_t[0]
+                self.boundary_right = rho_t[len(rho_t) - 1]
+                rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
+                                  0, self.boundary_left)
+
+        # update boundary conditions by keeping boundaries constant
+        if type(self.boundaries) == dict:
+            # check if rho_t is 1D array or Matrix
+            if list(self.boundaries.keys())[0] == "constant_both":
+
+                if len(np.shape(rho_t)) > 1:
+                    self.boundary_left = self.boundaries["constant_both"][0]
+                    self.boundary_right = self.boundaries["constant_both"][1]
+                    rho_t = np.insert(np.append(rho_t[:, 1:np.shape(rho_t)[1] - 1],
+                                                self.boundary_right.reshape(len(self.boundary_right), 1), axis=1),
+                                      0, self.boundary_left, axis=1)
+                else:
+                    self.boundary_left = self.boundaries["constant_both"][0]
+                    self.boundary_right = self.boundaries["constant_both"][1]
+                    rho_t = np.insert(np.append(rho_t[1:len(rho_t) - 1], self.boundary_right),
+                                      0, self.boundary_left)
+
         return rho_t
 
-    def speed_info(self, density):
+    def speed_info(self, density, v_max, rho_max):
         """Implement the Greenshields model for the equilibrium velocity.
 
         Greenshields, B. D., Ws Channing, and Hh Miller. "A study of traffic
@@ -354,13 +426,15 @@ class LWR(MacroModelEnv):
         ----------
         density : array_like
             densities of every specified point on the road
+        v_max : see parent class
+        rho_max : see parent class
 
         Returns
         -------
         array_like
             equilibrium velocity at every specified point on road
         """
-        self.speeds = self.v_max * ((1 - (density / self.rho_max)) ** self.lam)
+        self.speeds = v_max * ((1 - (density / rho_max)) ** self.lam)
         return self.speeds
 
     def reset(self):
@@ -381,7 +455,7 @@ class LWR(MacroModelEnv):
         # reset the observation to match the initial condition
         initial_conditions = np.asarray(self.initial_conditions)
         rho_init = initial_conditions
-        v_init = self.speed_info(initial_conditions)
+        v_init = self.speed_info(initial_conditions, self.v_max, self.rho_max)
         self.obs = np.concatenate((rho_init, v_init))
 
         return self.obs.copy()

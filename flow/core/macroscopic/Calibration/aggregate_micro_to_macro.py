@@ -1,10 +1,9 @@
 import numpy as np
 
-L = 25
-dx = 5
+L = 2000
+dx = 10
 positions = np.array([10, 15, 20, 25])
-velocities = np.array([11, 5, 4, 5])
-
+velocities = np.array([4, 11, 3, 10])
 
 def agg_func(car_positions, vel, L, dx,looking_distance=10):
     """ Agrregate microscopic positions to densities and
@@ -41,7 +40,7 @@ def agg_func(car_positions, vel, L, dx,looking_distance=10):
     for car in car_positions:
         car_dict["position"].append((car-car_length, car, vel[n]))
         n += 1
-    print(car_dict)
+    # print(car_dict)
     discrete_points = np.arange(0, L+dx, dx)
     rho = []
     final_vel = []
@@ -77,7 +76,7 @@ def agg_func(car_positions, vel, L, dx,looking_distance=10):
         d_l = 0
         speed = []
 
-        print(str(i) + "<<<<<<<")
+        # print(str(i) + "<<<<<<<")
         for points in car_dict["position"]:
             a = left_bound
             b = right_bound
@@ -121,9 +120,11 @@ def agg_func(car_positions, vel, L, dx,looking_distance=10):
 
             elif b <= l:
                 d_r += 0
+                speed = np.append(speed, 0)
 
             elif r <= m:
                 d_r += 0
+                speed = np.append(speed, 0)
 
             elif l < m < b < r:
                 d_r += b - m
@@ -167,16 +168,19 @@ def agg_func(car_positions, vel, L, dx,looking_distance=10):
 
             elif m <= l:
                 d_l += 0
+                speed = np.append(speed, 0)
 
             elif r <= a:
                 d_l += 0
+                speed = np.append(speed, 0)
 
             elif l < a < m < r:
                 d_l += m - a
                 speed = np.append(speed, points[2])
 
+
         # print(d_r + d_l)
-        print("speed:  " + str(speed))
+        # print("speed:  " + str(speed))
         avg_vel = np.mean(speed)
         avg_density = np.mean([d_r / looking_distance, d_l / looking_distance])
 
@@ -187,4 +191,5 @@ def agg_func(car_positions, vel, L, dx,looking_distance=10):
 if __name__ == "__main__":
     # run function
     rho, vel = agg_func(positions, velocities, L, dx)
+    # print(rho, vel)
     # velocity = agg_func(positions, 10, L, dx)
