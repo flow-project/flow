@@ -63,9 +63,16 @@ def make_create_env(params, version=0, render=None):
     if isinstance(params["env_name"], str):
         print("""Passing of strings for env_name will be deprecated.
         Please pass the Env instance instead.""")
-        env_name = params["env_name"] + '-v{}'.format(version)
+        base_env_name = params["env_name"]
     else:
-        env_name = params["env_name"].__name__ + '-v{}'.format(version)
+        base_env_name = params["env_name"].__name__
+
+    # deal with multiple environments being created under the same name
+    all_envs = gym.envs.registry.all()
+    env_ids = [env_spec.id for env_spec in all_envs]
+    while "{}-v{}".format(base_env_name, version) in env_ids:
+        version += 1
+    env_name = "{}-v{}".format(base_env_name, version)
 
     if isinstance(params["network"], str):
         print("""Passing of strings for network will be deprecated.
@@ -109,18 +116,17 @@ def make_create_env(params, version=0, render=None):
         else:
             entry_point = params["env_name"].__module__ + ':' + params["env_name"].__name__
 
-        try:
-            register(
-                id=env_name,
-                entry_point=entry_point,
-                kwargs={
-                    "env_params": env_params,
-                    "sim_params": sim_params,
-                    "network": network,
-                    "simulator": params['simulator']
-                })
-        except Exception:
-            pass
+        # register the environment with OpenAI gym
+        register(
+            id=env_name,
+            entry_point=entry_point,
+            kwargs={
+                "env_params": env_params,
+                "sim_params": sim_params,
+                "network": network,
+                "simulator": params['simulator']
+            })
+
         return gym.envs.make(env_name)
 
     return create_env, env_name
