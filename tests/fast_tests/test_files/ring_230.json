@@ -15,7 +15,7 @@
         "warmup_steps": 750
     },
     "env_name": "WaveAttenuationPOEnv",
-    "exp_tag": "stabilizing_the_ring",
+    "exp_tag": "singleagent_ring",
     "initial": {
         "additional_params": {},
         "bunching": 0,

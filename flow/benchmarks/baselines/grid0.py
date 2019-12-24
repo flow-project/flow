@@ -5,7 +5,6 @@ Baseline is an actuated traffic light provided by SUMO.
 
 import numpy as np
 from flow.core.experiment import Experiment
-from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from flow.benchmarks.grid0 import flow_params
 from flow.benchmarks.grid0 import N_ROWS
@@ -28,12 +27,8 @@ def grid0_baseline(num_runs, render=True):
         flow.core.experiment.Experiment
             class needed to run simulations
     """
-    exp_tag = flow_params['exp_tag']
     sim_params = flow_params['sim']
-    vehicles = flow_params['veh']
     env_params = flow_params['env']
-    net_params = flow_params['net']
-    initial_config = flow_params.get('initial', InitialConfig())
 
     # define the traffic light logic
     tl_logic = TrafficLightParams(baseline=False)
@@ -57,27 +52,10 @@ def grid0_baseline(num_runs, render=True):
     # set the evaluation flag to True
     env_params.evaluate = True
 
-    # import the network class
-    network_class = flow_params['network']
+    flow_params['env'].horizon = env_params.horizon
+    exp = Experiment(flow_params)
 
-    # create the network object
-    network = network_class(
-        name=exp_tag,
-        vehicles=vehicles,
-        net_params=net_params,
-        initial_config=initial_config,
-        traffic_lights=tl_logic
-    )
-
-    # import the environment class
-    env_class = flow_params['env_name']
-
-    # create the environment object
-    env = env_class(env_params, sim_params, network)
-
-    exp = Experiment(env)
-
-    results = exp.run(num_runs, env_params.horizon)
+    results = exp.run(num_runs)
     total_delay = np.mean(results['returns'])
 
     return total_delay

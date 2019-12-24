@@ -34,7 +34,7 @@ def start():
         initial_config=initial_config)
 
     env = AccelEnv(env_params, sim_params, network)
-    env._close()
+    env.close()
 
 
 ray.init()
