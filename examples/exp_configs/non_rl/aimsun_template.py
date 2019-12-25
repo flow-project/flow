@@ -29,7 +29,7 @@ flow_params = dict(
     # simulator that is used by the experiment
     simulator='aimsun',
 
-    # sumo-related parameters (see flow.core.params.SumoParams)
+    # Aimsun-related parameters
     sim=AimsunParams(
         sim_step=0.1,
         render=True,
