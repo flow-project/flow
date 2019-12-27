@@ -3,11 +3,13 @@ from flow.controllers import GridRouter
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
+from flow.core.params import PedestrianParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import InFlows
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.networks import TrafficLightGridNetwork
+import sys
 
 
 def gen_edges(col_num, row_num):
@@ -40,7 +42,7 @@ def gen_edges(col_num, row_num):
     return edges
 
 
-def get_flow_params(col_num, row_num, additional_net_params):
+def get_flow_params(col_num, row_num, additional_net_params, pedestrians=False):
     """Define the network and initial params in the presence of inflows.
 
     Parameters
@@ -62,6 +64,9 @@ def get_flow_params(col_num, row_num, additional_net_params):
     """
     initial = InitialConfig(
         spacing='custom', lanes_distribution=float('inf'), shuffle=True)
+    if pedestrians:
+        initial = InitialConfig(
+            spacing='custom', sidewalks=True, lanes_distribution=float('inf'), shuffle=True)
 
     inflow = InFlows()
     outer_edges = gen_edges(col_num, row_num)
@@ -80,7 +85,7 @@ def get_flow_params(col_num, row_num, additional_net_params):
     return initial, net
 
 
-def get_non_flow_params(enter_speed, add_net_params):
+def get_non_flow_params(enter_speed, add_net_params, pedestrians=False):
     """Define the network and initial params in the absence of inflows.
 
     Note that when a vehicle leaves a network in this case, it is immediately
@@ -105,12 +110,15 @@ def get_non_flow_params(enter_speed, add_net_params):
     additional_init_params = {'enter_speed': enter_speed}
     initial = InitialConfig(
         spacing='custom', additional_params=additional_init_params)
+    if pedestrians:
+        initial = InitialConfig(
+            spacing='custom', sidewalks=True, additional_params=additional_init_params)
     net = NetParams(additional_params=add_net_params)
 
     return initial, net
 
 
-def traffic_light_grid_example(render=None, use_inflows=False):
+def traffic_light_grid_example(pedestrians=False, render=None, use_inflows=False):
     """
     Perform a simulation of vehicles on a traffic light grid.
 
@@ -128,12 +136,15 @@ def traffic_light_grid_example(render=None, use_inflows=False):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles and balanced traffic lights on a traffic light grid.
     """
+
+    print("Using pedestrians:", pedestrians)
+
     v_enter = 10
     inner_length = 300
     long_length = 500
     short_length = 300
     n_rows = 2
-    n_columns = 3
+    n_columns = 1
     num_cars_left = 20
     num_cars_right = 20
     num_cars_top = 20
@@ -168,6 +179,25 @@ def traffic_light_grid_example(render=None, use_inflows=False):
         ),
         num_vehicles=tot_cars)
 
+    pedestrian_params = None
+    if pedestrians:
+        pedestrian_params = PedestrianParams()
+        pedestrian_params.add(
+                ped_id='ped_1',
+                depart_time='0.00',
+                start='bot0_1',
+                end='top1_0')
+        pedestrian_params.add(
+                ped_id='ped_2',
+                depart_time='27.00',
+                start='right2_0',
+                end='top0_0')
+        pedestrian_params.add(
+                ped_id='ped_4',
+                depart_time='105.00',
+                start='right1_0',
+                end='top1_0')
+
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     tl_logic = TrafficLightParams(baseline=False)
@@ -193,8 +223,6 @@ def traffic_light_grid_example(render=None, use_inflows=False):
         "state": "ryryryryryry"
     }]
     tl_logic.add("center0", phases=phases, programID=1)
-    tl_logic.add("center1", phases=phases, programID=1)
-    tl_logic.add("center2", phases=phases, programID=1, tls_type="actuated")
 
     additional_net_params = {
         "grid_array": grid_array,
@@ -207,15 +235,18 @@ def traffic_light_grid_example(render=None, use_inflows=False):
         initial_config, net_params = get_flow_params(
             col_num=n_columns,
             row_num=n_rows,
-            additional_net_params=additional_net_params)
+            additional_net_params=additional_net_params,
+            pedestrians=pedestrians)
     else:
         initial_config, net_params = get_non_flow_params(
             enter_speed=v_enter,
-            add_net_params=additional_net_params)
+            add_net_params=additional_net_params,
+            pedestrians=pedestrians)
 
     network = TrafficLightGridNetwork(
         name="grid-intersection",
         vehicles=vehicles,
+        pedestrians=pedestrian_params,
         net_params=net_params,
         initial_config=initial_config,
         traffic_lights=tl_logic)
@@ -226,8 +257,12 @@ def traffic_light_grid_example(render=None, use_inflows=False):
 
 
 if __name__ == "__main__":
+    pedestrians = False
+    if '--pedestrians' in sys.argv:
+        pedestrians = True
+
     # import the experiment variable
-    exp = traffic_light_grid_example()
+    exp = traffic_light_grid_example(pedestrians=pedestrians)
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)
