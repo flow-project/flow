@@ -165,8 +165,6 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
     exp = Experiment(flow_params)
     exp.env = env
 
-    
-    
     exp = Experiment(flow_params)
     exp.env = env
 
