@@ -43,7 +43,7 @@ PARAMS = DictDescriptor(
     #                          Simulation parameters                          #
     # ======================================================================= #
 
-    ("total_time", 660, float, "time horizon (in seconds)"),
+    ("total_time", 66, float, "time horizon (in seconds)"),
 
     ("dt", 0.066, float, "time discretization (in seconds/step)"),
 
@@ -174,8 +174,8 @@ class ARZ(MacroModelEnv):
         assert (params['length'] / params['dx']).is_integer(), \
             "The 'length' variable in params must be divisible by 'dx'."
 
-        assert (params['total_time'] / params['dt']).is_integer(), \
-            "The 'total_time' variable in params must be divisible by 'dt'."
+        # assert (params['total_time'] / params['dt']).is_integer(), \
+        #     "The 'total_time' variable in params must be divisible by 'dt'."
 
         assert params['rho_max'] <= params['rho_max_max'], \
             "The 'rho_max' must be less than or equal to 'rho_max_max'"
@@ -190,10 +190,12 @@ class ARZ(MacroModelEnv):
             "CFL condition not satisfied. Make sure dt <= CFL * dx / v_max"
 
         assert len(params['initial_conditions'][0]) == \
+            int(params['length'] / params['dx']) or len(params['initial_conditions'][0][0]) == \
             int(params['length'] / params['dx']), \
             "Initial conditions must be a list of size: (length/dx)."
 
         assert len(params['initial_conditions'][1]) == \
+            int(params['length'] / params['dx']) or len(params['initial_conditions'][1][0]) == \
             int(params['length'] / params['dx']), \
             "Initial conditions must be a list of size: length/dx."
 
@@ -204,10 +206,18 @@ class ARZ(MacroModelEnv):
         self.rho_max_max = params['rho_max_max']
         self.v_max = params['v_max']
         self.v_max_max = params['v_max_max']
-        self.CFL = params['CFL']
+
+        if params['CFL'] is None:
+            self.CFL = params['dt'] * self.v_max / self.dx
+        else:
+            self.CFL = params['CFL']
+        if params['dt'] is None:
+            self.dt = self.CFL * self.dx / self.v_max
+        else:
+            self.dt = params['dt']
+
         self.tau = params['tau']
         self.total_time = params['total_time']
-        self.dt = params['dt']
         self.horizon = int(self.total_time / self.dt)
         self.initial_conditions_density = params['initial_conditions'][0]
         self.initial_conditions_velocity = params['initial_conditions'][1]
@@ -216,7 +226,7 @@ class ARZ(MacroModelEnv):
         # lam is an exponent of the Green-shield velocity function
         self.lam = 1
         self.initial_conditions_relative_flow = self.relative_flow(
-            self.initial_conditions_density, self.initial_conditions_velocity)
+            self.initial_conditions_density, self.initial_conditions_velocity, self.v_max, self.rho_max)
         self.initial_conditions = (self.initial_conditions_density,
                                    self.initial_conditions_relative_flow)
         self.list_values = []
@@ -255,25 +265,36 @@ class ARZ(MacroModelEnv):
 
         # extract the densities and relative speed
         obs = self.obs.copy()
-        rho = obs[:int(obs.shape[0]/2)]
-        speed = obs[int(obs.shape[0]/2):]
-        relative_flow = self.relative_flow(rho, speed)
 
-        # advance the state of the simulation by one step
-        rho, rel_flow = self.arz_solve((rho, relative_flow))
-
-        # compute the speed at the current time step
-        self.speed = self.u(rho, rel_flow)
-
-        # compute the new observation
-        self.obs = np.concatenate((rho, self.speed))
-        # compute the reward value
-        rew = np.mean(np.square(self.speed - self.v_max_max) * rho)
+        rew, self.obs = self._step(obs, self.v_max, self.rho_max, self.CFL, self.tau)
 
         # compute the done mask
         done = self.num_steps >= self.horizon
 
         return self.obs, rew, done, {}
+
+    def _step(self, obs, v_max, rho_max, cfl, tau):
+
+        if len(np.shape(obs)) > 1:
+
+            rho = obs[:int(len(obs)/2)]
+            speed = obs[int(len(obs)/2):]
+            relative_flow = self.relative_flow(rho, speed, v_max, rho_max)
+            rho, rel_flow = self.arz_solve((rho, relative_flow), v_max, rho_max, cfl, tau)
+        else:
+
+            rho = obs[:int(obs.shape[0] / 2)]
+            speed = obs[int(obs.shape[0] / 2):]
+            relative_flow = self.relative_flow(rho, speed, v_max, rho_max)
+            rho, rel_flow = self.arz_solve((rho, relative_flow), v_max, rho_max, cfl, tau)
+
+        speed = self.speed = self.u(rho, rel_flow, v_max, rho_max)
+
+        # compute the reward value
+        rew = np.mean(np.square(speed - v_max) * rho)
+
+        # compute the new observation
+        return rew, np.concatenate((rho, speed))
 
     def reset(self):
         """Reset the environment.
@@ -292,13 +313,14 @@ class ARZ(MacroModelEnv):
 
         # reset the observation to match the initial condition
         densities, relative_flows = self.initial_conditions
-        speeds = self.u(densities, relative_flows)
-        self.obs = np.concatenate((densities / self.rho_max_max,
-                                   speeds / self.v_max_max))
+        # speeds = self.u(densities, relative_flows)
+        speeds = self.initial_conditions_velocity
+        self.obs = np.concatenate((densities,
+                                   speeds))
 
         return self.obs
 
-    def arz_solve(self, u_full):
+    def arz_solve(self, u_full, v_max, rho_max, cfl, tau):
         """Implement Godunov Semi-Implicit scheme for multi-populations.
 
         Fan, Shimao et al. “Comparative model accuracy of a data-fitted
@@ -312,6 +334,10 @@ class ARZ(MacroModelEnv):
             relative flow: array_ike
                relative flow data points on the road length
             Note: at time = 0, u_full = initial density data
+        v_max : see parent class
+        rho_max : see parent class
+        cfl : see parent class
+        tau : see parent class
 
         Returns
         -------
@@ -324,15 +350,21 @@ class ARZ(MacroModelEnv):
         """
         # store loop boundary conditions for ring-like experiment
         if self.boundaries == "loop":
-            self.boundary_left = u_full[0][len(u_full[1]) - 1], u_full[1][len(u_full[1]) - 1]
-            self.boundary_right = u_full[0][len(u_full[1]) - 2], u_full[1][len(u_full[1]) - 2]
+
+            if len(np.shape(u_full[0])) > 1:
+                self.boundary_left = u_full[0][:, np.shape(u_full)[1] - 1], u_full[1][:, np.shape(u_full)[1] - 1]
+                self.boundary_right = u_full[0][:, np.shape(u_full)[1] - 2], u_full[1][:, np.shape(u_full)[1] - 2]
+
+            else:
+                self.boundary_left = u_full[0][len(u_full[1]) - 1], u_full[1][len(u_full[1]) - 1]
+                self.boundary_right = u_full[0][len(u_full[1]) - 2], u_full[1][len(u_full[1]) - 2]
 
         # full array with boundary conditions
         u_all = u_full
 
         # compute flux
         fp_higher_half, fp_lower_half, fy_higher_half, fy_lower_half, \
-            rho_init, y_init = self.compute_flux(u_all)
+            rho_init, y_init = self.compute_flux(u_all, v_max, rho_max)
 
         # update new points
         new_points = self.arz_update_points(
@@ -342,40 +374,85 @@ class ARZ(MacroModelEnv):
             fy_lower_half,
             rho_init,
             y_init,
+            cfl,
+            v_max,
+            rho_max,
+            tau
         )
 
         # update loop boundary conditions for ring-like experiment
         if self.boundaries == "loop":
-            new_points = (np.insert(np.append(new_points[0], self.boundary_right[0]),
-                                    0, self.boundary_left[0]),
-                          np.insert(np.append(new_points[1], self.boundary_right[1]),
-                                    0, self.boundary_left[1]))
+            if len(np.shape(u_full[0])) > 1:
+                rho_array = np.insert(np.append(new_points[0][:, 1:np.shape(new_points[0])[1] - 1],
+                                                self.boundary_right[0].reshape(len(self.boundary_right[0]), 1), axis=1),
+                                      0, self.boundary_left[0], axis=1)
+                y_array = np.insert(np.append(new_points[1][:, 1:np.shape(new_points[1])[1] - 1],
+                                              self.boundary_right[1].reshape(len(self.boundary_right[1]), 1), axis=1),
+                                    0, self.boundary_left[1], axis=1)
 
-        # update boundary conditions by extending/extrapolating boundaries (reduplication)
-        if self.boundaries == "extend_both":
-            self.boundary_left = (new_points[0][0], new_points[1][0])
-            self.boundary_right = (new_points[0][len(new_points[1]) - 1],
-                                   new_points[1][len(new_points[1]) - 1])
-            new_points = (np.insert(np.append(new_points[0], self.boundary_right[0]),
-                                    0, self.boundary_left[0]),
-                          np.insert(np.append(new_points[1], self.boundary_right[1]),
-                                    0, self.boundary_left[1]))
+                new_points = (rho_array, y_array)
 
-        # update boundary conditions by keeping boundaries constant
-        if type(self.boundaries) == dict:
-            if list(self.boundaries.keys())[0] == "constant_both":
-                self.boundary_left = (self.boundaries["constant_both"][0][0],
-                                      self.boundaries["constant_both"][0][1])
-                self.boundary_right = (self.boundaries["constant_both"][1][0],
-                                       self.boundaries["constant_both"][1][1])
+            else:
                 new_points = (np.insert(np.append(new_points[0], self.boundary_right[0]),
                                         0, self.boundary_left[0]),
                               np.insert(np.append(new_points[1], self.boundary_right[1]),
                                         0, self.boundary_left[1]))
 
+        # update boundary conditions by extending/extrapolating boundaries (reduplication)
+        if self.boundaries == "extend_both":
+            if len(np.shape(u_full[0])) > 1:
+                self.boundary_left = u_full[0][:, 0], u_full[1][:, 0]
+                self.boundary_right = u_full[0][:, np.shape(u_full)[1] - 1], u_full[1][:, np.shape(u_full)[1] - 1]
+                rho_array = np.insert(np.append(new_points[0][:, 1:np.shape(new_points[0])[1] - 1],
+                                                self.boundary_right[0].reshape(len(self.boundary_right[0]), 1), axis=1),
+                                      0, self.boundary_left[0], axis=1)
+                y_array = np.insert(np.append(new_points[1][:, 1:np.shape(new_points[1])[1] - 1],
+                                              self.boundary_right[1].reshape(len(self.boundary_right[1]), 1), axis=1),
+                                    0, self.boundary_left[1], axis=1)
+
+                new_points = (rho_array, y_array)
+            else:
+                self.boundary_left = (new_points[0][0], new_points[1][0])
+                self.boundary_right = (new_points[0][len(new_points[1]) - 1],
+                                       new_points[1][len(new_points[1]) - 1])
+                new_points = (np.insert(np.append(new_points[0], self.boundary_right[0]),
+                                        0, self.boundary_left[0]),
+                              np.insert(np.append(new_points[1], self.boundary_right[1]),
+                                        0, self.boundary_left[1]))
+
+        # update boundary conditions by keeping boundaries constant
+        if type(self.boundaries) == dict:
+            if list(self.boundaries.keys())[0] == "constant_both":
+
+                if len(np.shape(u_full[0])) > 1:
+
+                    self.boundary_left = self.boundaries["constant_both"][0]
+                    self.boundary_right = self.boundaries["constant_both"][1]
+                    ones = np.reshape(np.ones(len(u_full[0])), (len(u_full[0]), 1))
+
+                    rho_array = np.insert(np.append(new_points[0][:, 1:np.shape(new_points[0])[1] - 1],
+                                                    self.boundary_right[0] * ones,
+                                                    axis=1),
+                                          0, self.boundary_left[0] * ones, axis=1)
+                    y_array = np.insert(np.append(new_points[1][:, 1:np.shape(new_points[1])[1] - 1],
+                                                  self.boundary_right[1] * ones,
+                                                  axis=1),
+                                        0, self.boundary_left[1] * ones, axis=1)
+
+                    new_points = (rho_array, y_array)
+                else:
+
+                    self.boundary_left = (self.boundaries["constant_both"][0][0],
+                                          self.boundaries["constant_both"][0][1])
+                    self.boundary_right = (self.boundaries["constant_both"][1][0],
+                                           self.boundaries["constant_both"][1][1])
+                    new_points = (np.insert(np.append(new_points[0], self.boundary_right[0]),
+                                            0, self.boundary_left[0]),
+                                  np.insert(np.append(new_points[1], self.boundary_right[1]),
+                                            0, self.boundary_left[1]))
         return new_points
 
-    def compute_flux(self, u_all):
+    def compute_flux(self, u_all, v_max, rho_max):
         """Implement the Flux Supply and Demand Model for flux funtion.
 
         'Lebacque, Jean-Patrick & Haj-Salem, Habib & Mammar, Salim. (2005).
@@ -392,6 +469,8 @@ class ARZ(MacroModelEnv):
                conditions
 
             Note: at time = 0, U_all = initial density data
+        v_max : see parent class
+        rho_max : see parent class
 
         Returns
         -------
@@ -411,17 +490,28 @@ class ARZ(MacroModelEnv):
             (midpoint of cell)
         """
         rho_full = u_all[0]
+        # hack
+        mask = rho_full == 0
+        rho_full[mask] = 0.0000000001
+
         y_full = u_all[1]
 
-        rho_critical = self.rho_critical
-        q_max = ((rho_critical * self.ve(rho_critical)) + y_full)
+        rho_critical = rho_max / 2
+        q_max = ((rho_critical * self.ve(rho_critical, v_max, rho_max)) + y_full)
 
         # demand
-        d = (rho_full * self.ve(rho_full) + y_full) * (rho_full < rho_critical) + q_max * (rho_full >= rho_critical)
+        d = (rho_full * self.ve(rho_full, v_max, rho_max) + y_full) * \
+            (rho_full < rho_critical) + q_max * (rho_full >= rho_critical)
 
         # supply
-        s = (rho_full * self.ve(rho_full) + y_full) * (rho_full > rho_critical) + q_max * (rho_full <= rho_critical)
-        s = np.append(s[1:], s[len(s) - 1])
+        s = (rho_full * self.ve(rho_full, v_max, rho_max) + y_full) * \
+            (rho_full > rho_critical) + q_max * (rho_full <= rho_critical)
+
+        if len(np.shape(rho_full)) > 1:
+            new_col = s[:, len(s) - 1].reshape(len(s), 1)
+            s = np.concatenate((s[:, 1:], new_col), axis=1)
+        else:
+            s = np.append(s[1:], s[len(s) - 1])
 
         # flow flux
         q = np.minimum(d, s)
@@ -430,8 +520,13 @@ class ARZ(MacroModelEnv):
         p = q * (y_full / rho_full)
 
         # fluxes at left cell boundaries
-        qm = np.append(q[0], q[0:len(q) - 1])
-        pm = np.append(p[0], p[0:len(p) - 1])
+        if len(np.shape(rho_full)) > 1:
+            qm = np.insert(q[:, 0:len(q[0]) - 1], 0, q[:, 0], axis=1)
+            pm = np.insert(p[:, 0:len(p[0]) - 1], 0, p[:, 0], axis=1)
+
+        else:
+            qm = np.append(q[0], q[0:len(q) - 1])
+            pm = np.append(p[0], p[0:len(p) - 1])
 
         fp_higher_half = q
         fp_lower_half = qm
@@ -449,7 +544,11 @@ class ARZ(MacroModelEnv):
                           fy_higher_half,
                           fy_lower_half,
                           rho_init,
-                          y_init):
+                          y_init,
+                          cfl,
+                          v_max,
+                          rho_max,
+                          tau):
         """Update our current density and relative flow values.
 
         Parameters
@@ -468,6 +567,10 @@ class ARZ(MacroModelEnv):
         y_init : array_like
             current values for relative flow at each point on the road
             (midpoint of cell)
+        v_max : see parent class
+        rho_max : see parent class
+        cfl : see parent class
+        tau : see parent class
 
         Returns
         -------
@@ -477,6 +580,9 @@ class ARZ(MacroModelEnv):
             next relative flow values at each point on the road
         """
         # time and cell step
+        # Hacked dt to explicitly depend CFL(see line 209) <-- this is helpful for calibration
+        self.dt = cfl * self.dx / v_max
+
         step = self.dt / self.dx  # where are we referencing this?
 
         # updating density
@@ -485,35 +591,54 @@ class ARZ(MacroModelEnv):
         # updating relative flow
         # right hand side constant -> we use fsolve to find our roots
         self.rhs = y_init + (step * (fy_lower_half - fy_higher_half)) \
-            + (self.dt / self.tau) * self.rho_next * self.ve(self.rho_next)
+            + (self.dt / tau) * self.rho_next * self.ve(self.rho_next, v_max, rho_max)
         x0 = y_init
-        y_next = fsolve(self.myfun, x0)
+        y_next = fsolve(self.myfun, x0, args=(tau, v_max, rho_max))
+        if len(np.shape(self.rho_next)) > 1:
+            y_next = np.reshape(y_next, ((len(self.rho_next)), len(self.rho_next[0])))
 
-        self.rho_next = self.rho_next[1:len(self.rho_next) - 1]
-        y_next = y_next[1:len(y_next) - 1]
+        if len(np.shape(rho_init)) > 1:
+            self.rho_next = self.rho_next[:, 1: len(self.rho_next[0]) - 1]
+            y_next = y_next[:, 1: len(y_next[0]) - 1]
+
+        else:
+            self.rho_next = self.rho_next[1:len(self.rho_next) - 1]
+            y_next = y_next[1:len(y_next) - 1]
 
         return self.rho_next, y_next
 
-    def myfun(self, y_next):
+    def myfun(self, y_next, *args):
         """Help fsolve update our relative flow data.
 
         Parameters
         ----------
         y_next : array_like
             array whose values to be determined
+        args :  v_max : see parent class
+                rho_max : see parent class
+                cfl : see parent class
+                tau : see parent class
 
         Returns
         -------
         array_like or tuple
             functions to be minimized/maximized based on initial values
         """
-        func = y_next + ((self.dt / self.tau) *
-                         (self.rho_next * self.u(self.rho_next, y_next)) -
+        tau, v_max, rho_max = args
+        if len(np.shape(self.rho_next)) > 1:
+            y_next = np.reshape(y_next, ((len(self.rho_next)), len(self.rho_next[0])))
+
+        func = y_next + ((self.dt / tau) *
+                         (self.rho_next * self.u(self.rho_next, y_next, v_max, rho_max)) -
                          self.rhs)
 
-        return func
+        if len(np.shape(self.rho_next)) > 1:
+            return np.reshape(func, (len(self.rho_next[0]) * len(self.rho_next),))
 
-    def ve(self, density):
+        else:
+            return func
+
+    def ve(self, density, v_max, rho_max):
         """Implement the 'Greenshields model for the equilibrium velocity'.
 
         Fan, Shimao et al. “Comparative model accuracy of a data-fitted
@@ -523,16 +648,19 @@ class ARZ(MacroModelEnv):
         ----------
         density : array_like
             density data at every specified point on road
+        v_max : see parent class
+        rho_max : see parent class
 
         Returns
         -------
         array_like
             equilibrium velocity at every specified point on road
         """
-        return self.v_max * ((1 - (density / self.rho_max)) ** self.lam)
+        return v_max * ((1 - (density / rho_max)) ** self.lam)
 
-    def u(self, density, y_value):
+    def u(self, density, y_value, v_max, rho_max):
         """Calculate actual velocity from density and relative flow.
+            Note: if density is zero, make density = 0.0000001
 
         Parameters
         ----------
@@ -540,15 +668,21 @@ class ARZ(MacroModelEnv):
             density data at every specified point on road
         y_value : array_like
             relative flow data at every specified point on road
-
+        v_max : see parent class
+        rho_max : see parent class
+        
         Returns
         -------
         array_like
             velocity at every specified point on road
         """
-        return (y_value / density) + self.ve(density)
+        # hack
+        mask = density == 0
+        density[mask] = 0.0000000001
 
-    def relative_flow(self, density, velocity):
+        return (y_value / density) + self.ve(density, v_max, rho_max)
+
+    def relative_flow(self, density, velocity, v_max, rho_max):
         """Calculate actual relative flow from density and  velocity.
 
         Parameters
@@ -557,10 +691,12 @@ class ARZ(MacroModelEnv):
             density data at every specified point on road
         velocity : array_like
             velocity at every specified point on road
+        v_max : see parent class
+        rho_max : see parent class
 
         Returns
         -------
         array_like
             relative flow at every specified point on road
         """
-        return (velocity - self.ve(density)) * density
+        return (velocity - self.ve(density, v_max, rho_max)) * density

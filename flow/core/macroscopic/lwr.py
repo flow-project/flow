@@ -254,7 +254,6 @@ class LWR(MacroModelEnv):
 
     def _step(self, obs, v_max, rho_max, cfl):
 
-        # advance the state of the simulation by one step
         if len(np.shape(obs)) > 1:
             rho = self.ibvp(
                 obs[:int(len(obs)/2)],
