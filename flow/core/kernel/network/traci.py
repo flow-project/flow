@@ -810,8 +810,6 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                         })
                 routes_data.append(pedestrian)
 
-                #print(self.network.pedestrians.params[ped_id])
-
         printxml(routes_data, self.cfg_path + self.roufn)
 
         # this is the data that we will pass to the *.sumo.cfg file
