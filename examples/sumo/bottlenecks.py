@@ -54,7 +54,7 @@ class BottleneckDensityExperiment(Experiment):
             ret_list = []
             step_outflows = []
             step_densities = []
-            state = self.env.reset()
+            state = self.env.reset
             for j in range(num_steps):
                 state, reward, done, _ = self.env.step(rl_actions(state))
                 vel[j] = np.mean(self.env.k.vehicle.get_speed(

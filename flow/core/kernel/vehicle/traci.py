@@ -1,6 +1,5 @@
 """Script containing the TraCI vehicle kernel class."""
 import traceback
-
 from flow.core.kernel.vehicle import KernelVehicle
 import traci.constants as tc
 from traci.exceptions import FatalTraCIError, TraCIException
@@ -1013,11 +1012,15 @@ class TraCIVehicle(KernelVehicle):
             # the case of network templates.
             route_id = 'route{}_0'.format(veh_id)
         else:
-            # import pdb; pdb.set_trace()
             num_routes = len(self.master_kernel.network.rts[edge])
             frac = [val[1] for val in self.master_kernel.network.rts[edge]]
             route_id = 'route{}_{}'.format(edge, np.random.choice(
                 [i for i in range(num_routes)], size=1, p=frac)[0])
+        # print("before adding vehicles, we have these this number of vehicles: ")
+        # print(tc.LAST_STEP_VEHICLE_ID_LIST)
+
+        # try:
+        # import ipdb; ipdb.set_trace()
 
         self.kernel_api.vehicle.addFull(
             veh_id,
@@ -1026,6 +1029,17 @@ class TraCIVehicle(KernelVehicle):
             departLane=str(lane),
             departPos=str(pos),
             departSpeed=str(speed))
+        # except:
+        #     import ipdb; ipdb.set_trace()
+            # print(100000000000)
+            # print('veh_id is ' + veh_id)
+            # print('departLane is ' + str(lane))
+            # print('typeID' + ' is ' + str(type_id))
+            # print('departPos is' + str(pos))
+            # print('veh_id has type ' + str(type(veh_id)))
+            # print('departLane has type ' + str(type(lane)))
+            # print('typeID' + ' is ' + str((type(type_id))))
+            # print('departPos is' + str(pos))
 
     def get_max_speed(self, veh_id, error=-1001):
         """See parent class."""

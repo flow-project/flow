@@ -236,8 +236,6 @@ class TrafficLightGridEnv(Env):
         # were allowed to change (the last time the lights were allowed to
         # change from a red-green state to a red-yellow state.)
 
-        # what's a red-yellow state? you mean a green-red state? Oh, from the POV of one edge/direction, it's still not red-yellow?
-
         self.last_change = np.zeros((self.rows * self.cols, 1))
 
         # Keeps track of the phase of the intersection. See phase definitions above.
@@ -261,7 +259,7 @@ class TrafficLightGridEnv(Env):
                 for y in range(1, y_max):
                     self.k.traffic_light.set_state(
                         node_id="({}.{})".format(x, y), state=PHASE_NUM_TO_STR[1])
-                    self.currently_yellow[y * self.cols + x] = 0
+                    self.currently_yellow[(y - 1) * self.cols + (x - 1)] = 0
 
         # # Additional Information for Plotting
         # self.edge_mapping = {"top": [], "bot": [], "right": [], "left": []}
@@ -290,9 +288,10 @@ class TrafficLightGridEnv(Env):
     @property
     def observation_space(self):
         """See class definition."""
+        print(self.initial_vehicles.num_vehicles, self.initial_vehicles.num_vehicles, self.initial_vehicles.num_vehicles, )
         speed = Box(
             low=0,
-            high=1,   #?
+            high=1,
             shape=(self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
         dist_to_intersec = Box(
@@ -300,19 +299,18 @@ class TrafficLightGridEnv(Env):
             high=np.inf,
             shape=(self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
-        # is this supposed to represent the number of cars on a particular edge?
         edge_num = Box(
             low=0.,
             high=1,
             shape=(self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
-        # And, this is the number of traffic lights * 3?
         traffic_lights = Box(
             low=0.,
             high=1,
             shape=(3 * self.rows * self.cols,),
             dtype=np.float32)
         return Tuple((speed, dist_to_intersec, edge_num, traffic_lights))
+
 
     def get_state(self):
         """See class definition."""
@@ -366,11 +364,11 @@ class TrafficLightGridEnv(Env):
                 if self.last_change[i] >= self.min_switch_time:
                     if self.direction[i] == 0:
                         self.k.traffic_light.set_state(
-                            node_id='center{}'.format(i),
+                            node_id=self.index_to_tl_id(i),
                             state="GrGr")
                     else:
                         self.k.traffic_light.set_state(
-                            node_id='center{}'.format(i),
+                            node_id=self.index_to_tl_id(i),
                             state='rGrG')
 
                     self.currently_yellow[i] = 0
@@ -378,11 +376,11 @@ class TrafficLightGridEnv(Env):
                 if action:
                     if self.direction[i] == 0:
                         self.k.traffic_light.set_state(
-                            node_id='center{}'.format(i),
+                            node_id=self.index_to_tl_id(i),
                             state='yryr')
                     else:
                         self.k.traffic_light.set_state(
-                            node_id='center{}'.format(i),
+                            node_id=self.index_to_tl_id(i),
                             state='ryry')
                     self.last_change[i] = 0.0
                     self.direction[i] = not self.direction[i]
@@ -697,6 +695,13 @@ class TrafficLightGridEnv(Env):
         pad_lst = [""] * (num_closest - len(veh_ids_ordered))
         return veh_ids_ordered[:num_closest] + (pad_lst if padding else [])
 
+    def index_to_tl_id(self, i):
+        """Takes in an index and converts the index into the corresponding node_id"""
+        x_axis = i % self.cols + 1  # add one to both x and y because the 0th node starts at (1,1)
+        y_axis = int(i / self.cols + 1)
+        # print(y_axis)
+        return "({}.{})".format(x_axis, y_axis)
+
 
 class TrafficLightGridPOEnv(TrafficLightGridEnv):
     """Environment used to train traffic lights.
@@ -829,6 +834,8 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
                 density += [0]
                 velocity_avg += [0]
         self.observed_ids = all_observed_ids
+        if max(self.last_change >= 1):
+            print(self.last_change)
         return np.array(
             np.concatenate([
                 speeds, dist_to_intersec, edge_number, density, velocity_avg,

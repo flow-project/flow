@@ -9,7 +9,6 @@ import re
 
 from gym.spaces.box import Box
 from gym.spaces.discrete import Discrete
-from gym.spaces import Tuple
 
 from flow.core import rewards
 from flow.envs.base import Env
@@ -230,8 +229,8 @@ class QueueGridEnv(Env):
     def action_space(self):
         """See class definition."""
         if self.discrete:
-            return Discrete(2 ** self.num_tl_intersections)     # TODO(KEVINLIN)   # also not sure if I can index into the Box, so I"ll hard code for now
-        else:                                                   # TODO(KevinLin) why's this low = -1 and high = 1?? RL_gives an action for each tl_intersection
+            return Discrete(2 ** self.num_tl_intersections)
+        else:
             return Box(
                 low=-2,
                 high=2,

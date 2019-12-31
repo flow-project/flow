@@ -134,7 +134,7 @@ if __name__ == "__main__":
     flow_params['sim'].render = True
     env_constructor = env_constructor(params=flow_params, version=0)()
     env = DummyVecEnv([lambda: env_constructor])  # The algorithms require a vectorized environment to run
-    obs = env.reset()
+    obs = env.reset
     reward = 0
     for i in range(flow_params['env'].horizon):
         action, _states = model.predict(obs)

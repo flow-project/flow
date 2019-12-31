@@ -377,7 +377,6 @@ def traffic_light_grid_example(render=None, use_inflows=False):
     # tl_logic.add("(2.2)", phases=phases, tls_type="actuated")
     # tl_logic.add("(3.2)", phases=phases, tls_type="actuated")
 
-
     if use_inflows:
         initial_config, net_params = get_flow_params(
             col_num=n_columns,

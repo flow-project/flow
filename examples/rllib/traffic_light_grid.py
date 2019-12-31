@@ -24,7 +24,7 @@ HORIZON = 200
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 0
 
 
 def gen_edges(col_num, row_num):
@@ -296,7 +296,7 @@ def setup_exps(use_inflows=False):
 
 if __name__ == '__main__':
     alg_run, gym_name, config = setup_exps()
-    ray.init(num_cpus=N_CPUS + 1)
+    ray.init(local_mode=True)
     trials = run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,

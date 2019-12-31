@@ -100,7 +100,7 @@ def get_flow_params(col_num, row_num, additional_net_params):
             veh_type='idm',
             edge=outer_edges[i],
             probability=0.25,
-            departLane='free',
+            depart_lane='free',
             departSpeed=10)
 
     net = NetParams(
@@ -179,7 +179,6 @@ additional_net_params = {
     'horizontal_lanes': 1,
     'vertical_lanes': 1
 }
-# TODO: Kevin - are there lanes changes?? Says nothing here
 vehicles = VehicleParams()
 vehicles.add(
     veh_id='idm',
@@ -190,6 +189,7 @@ vehicles.add(
         max_speed=V_ENTER,
         speed_mode="all_checks",
     ),
+    # depart_lane="free",
     routing_controller=(GridRouter, {}),
     num_vehicles=tot_cars)
 
