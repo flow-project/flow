@@ -24,7 +24,7 @@ HORIZON = 200
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-N_CPUS = 0
+N_CPUS = 1
 
 
 def gen_edges(col_num, row_num):
@@ -67,7 +67,6 @@ def gen_edges(col_num, row_num):
             edges += new_edge(top_node, bottom_node)
 
     return edges
-
 
 def get_flow_params(col_num, row_num, additional_net_params):
     """Define the network and initial params in the presence of inflows.
@@ -138,6 +137,7 @@ def get_non_flow_params(enter_speed, add_net_params):
 
     return initial, net
 
+
 V_ENTER = 15
 INNER_LENGTH = 300
 LONG_LENGTH = 100
@@ -165,7 +165,7 @@ grid_array = {
 
 additional_env_params = {
         'target_velocity': 50,
-        'switch_time': 3.0,      # switch traffic light phase time?
+        'switch_time': 3.0,
         'num_observed': 2,
         'discrete': False,
         'tl_type': 'controlled'
@@ -177,7 +177,7 @@ additional_net_params = {
     'horizontal_lanes': 1,
     'vertical_lanes': 1
 }
-# TODO: Kevin - are there lanes changes?? Says nothing here
+
 vehicles = VehicleParams()
 vehicles.add(
     veh_id='idm',
@@ -297,7 +297,7 @@ def setup_exps(use_inflows=False):
 
 if __name__ == '__main__':
     alg_run, gym_name, config = setup_exps()
-    ray.init(local_mode=True)
+    ray.init(num_cpus=N_CPUS + 1)
     trials = run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,
