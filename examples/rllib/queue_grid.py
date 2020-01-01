@@ -210,6 +210,7 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=1,
         render=False,
+        restart_instance=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)

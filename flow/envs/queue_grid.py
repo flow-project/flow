@@ -240,50 +240,26 @@ class QueueGridEnv(Env):
     @property
     def observation_space(self):
         """See class definition."""
-        # cars_per_lane = Box(
-        #     low=-1,
-        #     high=np.inf,
-        #     shape=(self.total_lanes(),),      # Each lane has its own entry for the number of cars
-        #     dtype=np.int32)  # check how discrete values work
-        # # Check what the low=0, high=1 means
-        # curr_phase_duration = Box(
-        #     low=-1,
-        #     high=np.inf,
-        #     shape=(self.num_tl_intersections,),
-        #     dtype=np.float32)
-        # curr_phase = Box(
-        #     low=-1,
-        #     high=6,
-        #     shape=(self.num_tl_intersections,),
-        #     dtype=np.int32)
-        # green_or_yellow = Box(
-        #     low=-1,
-        #     high=1,
-        #     shape=(self.num_tl_intersections,),
-        #     dtype=np.int32)
-
-        # TODO (KevinLin) deal with the Tuple, or just change the high/low values
-
-        # TODO(KevinLin) We need a different 'low' and 'high' for the number of cars in a lane, right?
         obs = Box(
             low=-2.0,
             high=2,
             shape=(self.total_lanes() + self.num_tl_intersections * 3,),
             dtype=np.float32)
 
-        #return Tuple((cars_per_lane, curr_phase_duration, curr_phase, green_or_yellow))
-        # TODO(KevinLin) any advantage of tuple over one large box?
         return obs
 
     def get_state(self):
         """See class definition."""
-        max_phase_duration = 90
-        max_lane_vehicles = 50 # This too is hard coded  TODO(KevinLin) do the mean normalization for this
+
         # get the state arrays
         cars_per_lane = []
         for laneID in self.k.kernel_api.lane.getIDList():
             cars_per_lane.append(self.k.kernel_api.lane.getLastStepVehicleNumber(laneID))
+
+        # set normalizer values
         total_vehicles = sum(cars_per_lane)
+        max_phase_duration = 90
+
         state = [cars / total_vehicles for cars in cars_per_lane] + \
             (self.curr_phase_duration / max_phase_duration).flatten().tolist() + \
             (self.curr_phase / 5).flatten().tolist() + \
@@ -429,177 +405,6 @@ class QueueGridEnv(Env):
         """Return the total number of lanes in a queue grid"""
 
         return len(self.k.kernel_api.lane.getIDList())
-
-    def _convert_edge(self, edges):
-        """Convert the string edge to a number.
-
-        Start at the bottom left vertical edge and going right and then up, so
-        the bottom left vertical edge is zero, the right edge beside it  is 1.
-
-        The numbers are assigned along the lowest column, then the lowest row,
-        then the second lowest column, etc. Left goes before right, top goes
-        before bottom.
-
-        The values are zero indexed.
-
-        Parameters
-        ----------
-        edges : list of str or str
-            name of the edge(s)
-
-        Returns
-        -------
-        list of int or int
-            a number uniquely identifying each edge
-        """
-        if isinstance(edges, list):
-            return [self._split_edge(edge) for edge in edges]
-        else:
-            return self._split_edge(edges)
-
-    def _split_edge(self, edge):
-        """Act as utility function for convert_edge."""
-        if edge:
-            if edge[0] == ":":  # center
-                center_index = int(edge.split("center")[1][0])          # TODO: Kevin Yikes, change this too
-                base = ((self.cols + 1) * self.rows * 2) \
-                    + ((self.rows + 1) * self.cols * 2)
-                return base + center_index + 1
-            else:
-                pattern = re.compile(r"[a-zA-Z]+")
-                edge_type = pattern.match(edge).group()
-                edge = edge.split(edge_type)[1].split('_')
-                row_index, col_index = [int(x) for x in edge]
-                if edge_type in ['bot', 'top']:
-                    rows_below = 2 * (self.cols + 1) * row_index
-                    cols_below = 2 * (self.cols * (row_index + 1))
-                    edge_num = rows_below + cols_below + 2 * col_index + 1
-                    return edge_num if edge_type == 'bot' else edge_num + 1
-                if edge_type in ['left', 'right']:
-                    rows_below = 2 * (self.cols + 1) * row_index
-                    cols_below = 2 * (self.cols * row_index)
-                    edge_num = rows_below + cols_below + 2 * col_index + 1
-                    return edge_num if edge_type == 'left' else edge_num + 1
-        else:
-            return 0
-
-    def _get_relative_node(self, agent_id, direction):
-        """Yield node number of traffic light agent in a given direction.
-
-        For example, the nodes in a traffic light grid with 2 rows and 3
-        columns are indexed as follows:
-
-            |     |     |
-        --- 3 --- 4 --- 5 ---
-            |     |     |
-        --- 0 --- 1 --- 2 ---
-            |     |     |
-
-             |       |     |
-        --- 2.1 --- 2.2 --- 3.2 ---
-             |       |       |
-        --- 1.1 --- 1.2 --- 1.3 ---
-             |       |       |
-
-        TODO(kevin) remove this^
-
-        See flow.networks.traffic_light_grid for more information.
-
-        Example of function usage:
-        - Seeking the "top" direction to ":(1.1)" would return 3.
-        - Seeking the "bottom" direction to :(1.1)" would return -1.
-
-        Parameters
-        ----------
-        agent_id : str
-            agent id of the form ":({}.{})".format(x_pos, y_pos)
-        direction : str
-            top, bottom, left, right
-
-        Returns
-        -------
-        int
-            node number # Nodes without traffic lights yield -1
-        """
-        # TODO(Kevin Lin) what's the point of the colon here?
-
-        agent_node_coords = [agent_id[i] for i in range(len(agent_id)) if agent_id[i].isdigit()]
-        agent_node_x, agent_node_y = int(agent_node_coords[0]), int(agent_node_coords[1])
-        agent_id_num = (agent_node_x - 1) + (agent_node_y - 1) * self.cols
-
-        if direction == "top":
-            node = agent_id_num + self.cols
-            if node >= self.num_tl_intersections:
-                node = -1
-        elif direction == "bottom":
-            node = agent_id_num - self.cols
-            if node < 0:
-                node = -1
-        elif direction == "left":
-            if agent_id_num % self.cols == 0:
-                node = -1
-            else:
-                node = agent_id_num - 1
-        elif direction == "right":
-            if agent_id_num % self.cols == self.cols - 1:
-                node = -1
-            else:
-                node = agent_id_num + 1
-        else:
-            raise NotImplementedError
-
-        return node
-
-    def additional_command(self):
-        """See parent class.
-
-        Used to insert vehicles that are on the exit edge and place them
-        back on their entrance edge.
-        """
-        for veh_id in self.k.vehicle.get_ids():
-            self._reroute_if_final_edge(veh_id)
-
-    def _reroute_if_final_edge(self, veh_id):
-        """Reroute vehicle associated with veh_id.
-
-        Checks if an edge is the final edge. If it is return the route it
-        should start off at.
-        """
-        edge = self.k.vehicle.get_edge(veh_id)
-        if edge == "":
-            return
-        if edge[0] == ":":  # center edge
-            return
-        pattern = re.compile(r"[a-zA-Z]+")
-        edge_type = pattern.match(edge).group()
-        edge = edge.split(edge_type)[1].split('_')
-        row_index, col_index = [int(x) for x in edge]
-
-        # find the route that we're going to place the vehicle on if we are
-        # going to remove it
-        route_id = None
-        if edge_type == 'bot' and col_index == self.cols:       # TODO: Kevin :) Change these to new scheme
-            route_id = "bot{}_0".format(row_index)
-        elif edge_type == 'top' and col_index == 0:
-            route_id = "top{}_{}".format(row_index, self.cols)
-        elif edge_type == 'left' and row_index == 0:
-            route_id = "left{}_{}".format(self.rows, col_index)
-        elif edge_type == 'right' and row_index == self.rows:
-            route_id = "right0_{}".format(col_index)
-
-        if route_id is not None:
-            type_id = self.k.vehicle.get_type(veh_id)
-            lane_index = self.k.vehicle.get_lane(veh_id)
-            # remove the vehicle
-            self.k.vehicle.remove(veh_id)
-            # reintroduce it at the start of the network
-            self.k.vehicle.add(
-                veh_id=veh_id,
-                edge=route_id,
-                type_id=str(type_id),
-                lane=str(lane_index),
-                pos="0",
-                speed="max")
 
 
 class QueueGridPOEnv(QueueGridEnv):

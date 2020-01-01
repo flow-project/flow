@@ -320,6 +320,8 @@ class TrafficLightGridEnv(Env):
                        grid_array["long_length"],
                        grid_array["inner_length"])
 
+        max_phase_duration = 90
+
         # get the state arrays
         speeds = [
             self.k.vehicle.get_speed(veh_id) / self.k.network.max_speed()
@@ -337,7 +339,7 @@ class TrafficLightGridEnv(Env):
 
         state = [
             speeds, dist_to_intersec, edges,
-            self.last_change.flatten().tolist(),
+            (self.last_change / max_phase_duration).flatten().tolist(),
             self.direction.flatten().tolist(),
             self.currently_yellow.flatten().tolist()
         ]
