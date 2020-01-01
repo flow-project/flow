@@ -763,7 +763,7 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         """
         tl_box = Box(
             low=0.,
-            high=1,
+            high=2,
             shape=(3 * 4 * self.num_observed * self.num_traffic_lights +
                    2 * len(self.k.network.get_edge_list()) +
                    3 * self.num_traffic_lights,),
@@ -778,6 +778,7 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         edge_number traffic light state. This is partially observed
         """
 
+        max_phase_time = 90 # define this constant to normalize state variables "self.last_change"
         speeds = []
         dist_to_intersec = []
         edge_number = []
@@ -834,15 +835,14 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
                 density += [0]
                 velocity_avg += [0]
         self.observed_ids = all_observed_ids
-        if max(self.last_change >= 1):
-            print(self.last_change)
+
         return np.array(
-            np.concatenate([
-                speeds, dist_to_intersec, edge_number, density, velocity_avg,
-                self.last_change.flatten().tolist(),
-                self.direction.flatten().tolist(),
-                self.currently_yellow.flatten().tolist()
-            ]))
+                        np.concatenate([
+                            speeds, dist_to_intersec, edge_number, density, velocity_avg,
+                            (self.last_change / max_phase_time).flatten().tolist(),
+                            self.direction.flatten().tolist(),
+                            self.currently_yellow.flatten().tolist()
+                        ]))
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""

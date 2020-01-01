@@ -278,7 +278,7 @@ class QueueGridEnv(Env):
     def get_state(self):
         """See class definition."""
         max_phase_duration = 90
-        max_lane_vehicles = 50 # This too is hard coded
+        max_lane_vehicles = 50 # This too is hard coded  TODO(KevinLin) do the mean normalization for this
         # get the state arrays
         cars_per_lane = []
         for laneID in self.k.kernel_api.lane.getIDList():
