@@ -3,8 +3,9 @@
 from flow.networks.base import Network
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
-from collections import defaultdict
 import numpy as np
+import networkx as nx
+from itertools import islice
 
 ADDITIONAL_NET_PARAMS = {
     # dictionary of traffic light grid array data
@@ -13,7 +14,7 @@ ADDITIONAL_NET_PARAMS = {
         "row_num": 3,
         # number of vertical columns of edges
         "col_num": 2,
-        # length of inner edges in the traffic light grid network
+        # length of edges in the traffic light grid network
         "inner_length": None,
         # length of edges where vehicles enter the network
         "short_length": None,
@@ -43,15 +44,11 @@ ADDITIONAL_NET_PARAMS = {
 
 class TrafficLightGridNetwork(Network):
     """Traffic Light Grid network class.
-
     The traffic light grid network consists of m vertical lanes and n
     horizontal lanes, with a total of nxm intersections where the vertical
     and horizontal edges meet.
-
     Requires from net_params:
-
     * **grid_array** : dictionary of grid array data, with the following keys
-
       * **row_num** : number of horizontal rows of edges
       * **col_num** : number of vertical columns of edges
       * **inner_length** : length of inner edges in traffic light grid network
@@ -64,13 +61,11 @@ class TrafficLightGridNetwork(Network):
         left
       * **cars_right** : number of cars starting at the edges heading to the
         right
-
     * **horizontal_lanes** : number of lanes in the horizontal edges
     * **vertical_lanes** : number of lanes in the vertical edges
     * **speed_limit** : speed limit for all edges. This may be represented as a
       float value, or a dictionary with separate values for vertical and
       horizontal lanes.
-
     Usage
     -----
     >>> from flow.core.params import NetParams
@@ -151,8 +146,8 @@ class TrafficLightGridNetwork(Network):
             "traffic_lights", True)
 
         # radius of the inner nodes (ie of the intersections)
-        self.inner_nodes_radius = 2.9 + 3.3 * max(self.vertical_lanes,
-                                                  self.horizontal_lanes)
+        self.nodes_radius = 2.9 + 3.3 * max(self.vertical_lanes,
+                                            self.horizontal_lanes)
 
         # total number of edges in the network
         self.num_edges = 4 * ((self.col_num + 1) * self.row_num + self.col_num)
@@ -165,33 +160,161 @@ class TrafficLightGridNetwork(Network):
 
     def specify_nodes(self, net_params):
         """See parent class."""
-        return self._inner_nodes + self._outer_nodes
+        return self._nodes
 
     def specify_edges(self, net_params):
         """See parent class."""
-        return self._inner_edges + self._outer_edges
+        return self._edges
 
     def specify_routes(self, net_params):
-        """See parent class."""
-        routes = defaultdict(list)
+        """Generate dict representing all (perhaps we don't want ALL) possible routes of the network via the
+        "Multiple routes per edge" format described in the networks tutorial (tutorial 5, as of 1st Nov, 2019).
 
-        # build row routes (vehicles go from left to right and vice versa)
-        for i in range(self.row_num):
-            bot_id = "bot{}_0".format(i)
-            top_id = "top{}_{}".format(i, self.col_num)
-            for j in range(self.col_num + 1):
-                routes[bot_id] += ["bot{}_{}".format(i, j)]
-                routes[top_id] += ["top{}_{}".format(i, self.col_num - j)]
+        Returns
+        -------
+        routes_dict <list <tuple>>
 
-        # build column routes (vehicles go from top to bottom and vice versa)
-        for j in range(self.col_num):
-            left_id = "left{}_{}".format(self.row_num, j)
-            right_id = "right0_{}".format(j)
-            for i in range(self.row_num + 1):
-                routes[left_id] += ["left{}_{}".format(self.row_num - i, j)]
-                routes[right_id] += ["right{}_{}".format(i, j)]
+        The format of routes_dict is as follows:
 
-        return routes
+                routes_dict = {"edge0":     [(Route A beginning with edge0, Pr(route A)),
+                                             (Route B beginning with edge0, Pr(route B))],
+                               "edge1":     [(Route A beginning with edge1, Pr(route A)),
+                                             (Route B beginning with edge1, Pr(route B)]
+                                }
+        Each route is a list of edges
+        """
+
+        routes_dict = {}
+
+        def generate_node_routes_list(k=5):
+            """Create a list of k shortest routes for all possible pairs of source and destination outer nodes. By default,
+            for any two pairs of source and destination nodes, generate k shortest routes.
+
+            Returns
+            -------
+            routes_dict_nodes, a dict of dicts.
+
+            The keys to the outer dict are the names of the starting nodes e.g "(0.1)". The value of the outer dict are
+            more dicts. e.g. routes_dict["(0.1)"] returns another dict. Let's call this dict "(0.1)-routes". The keys to
+            this "(0.1)-routes" dict are the names of an ending node e.g. "(0.4)". The value for a "(0.1)-routes" dict is
+            a list of all routes (in terms of a sequence of nodes in a list). This list is ordered from the path with the
+            shortest number of nodes to the kth shortest path.
+
+            routes_dict should have this form:
+
+            routes_dict = {"sn0": {"en0": [route_1(sn0 - en0), route_2(sn0 - en0), route_3(sn0 - en0), ... route_k(sn0, en0)],
+                                   "en1": [route_1(sn0 - en1), route_2(sn0 - en1), route_3(sn0 - en1), ... route_k(sn0, en1)],
+                                        ...
+                                   "enj": [route_1(sn0 - en2), route_2(sn0 - en2), route_3(sn0 - en2), ... route_k(sn0, en2)]},
+
+                           "sn1": {"en0": [route_1(sn1 - en0), route_2(sn1 - en0), route_3(sn1 - en0), ... route_k(sn1, en0)],
+                                   "en1": [route_1(sn1 - en1), route_2(sn1 - en1), route_3(sn1 - en1), ... route_k(sn1, en1)],
+                                        ...
+                                   "enj": [route_1(sn1 - enj), route_2(sn1 - enj), route_3(sn1 - enj), ... route_k(sn1, enj)]},
+                            ...
+                           }
+
+            (Here, sn is shorthand for "start node", and en is shorthand for "end node")
+
+            routes_nodes_dict = {start_node:
+                                    {end_node: [rt1, rt2, rt3]}
+                                                                ... }
+            """
+
+            routes_nodes_dict = {}
+            g = nx.DiGraph()
+            src_dst_nodes = []  # list of all outer nodes that function as starting (and ending) nodes
+
+            x_max = self.col_num + 1
+            y_max = self.row_num + 1
+
+            def k_shortest_paths(G, source, target, len_k, weight=None):
+                """Takes in a graph, source and target and returns a list of k lists. Each inner list contains a sequence
+                 of nodes that form a path between a source and target node.
+
+                Source: https://networkx.github.io/documentation/stable/reference/algorithms/generated/networkx.algorithms.
+                simple_paths.shortest_simple_paths.html#networkx.algorithms.simple_paths.shortest_simple_paths"""
+
+                return list(islice(nx.shortest_simple_paths(G, source, target, weight=weight), len_k))
+
+            # Generate all nodes in the grid for the graph
+            for x in range(x_max + 1):
+                for y in range(y_max + 1):
+                    if (x, y) not in [(0, 0), (x_max, 0), (0, y_max), (x_max, y_max)]:
+                        g.add_node("({}.{})".format(x, y))
+                        if x == x_max or x == 0 or y == y_max or y == 0:
+                            src_dst_nodes += ["({}.{})".format(x, y)]
+
+            # Build all the 'horizontal' edges for the graph
+            for y in range(1, y_max):
+                for x in range(x_max):
+                    left_node = "({}.{})".format(x, y)
+                    right_node = "({}.{})".format(x + 1, y)
+                    g.add_edge(left_node, right_node, weight=1)
+                    g.add_edge(right_node, left_node, weight=1)
+
+            # Build all the 'vertical' edges for the graph
+            for x in range(1, x_max):
+                for y in range(y_max):
+                    bottom_node = "({}.{})".format(x, y)
+                    top_node = "({}.{})".format(x, y + 1)
+                    g.add_edge(bottom_node, top_node, weight=1)
+                    g.add_edge(top_node, bottom_node, weight=1)
+
+            # Loop through all src and dest nodes to generate list of node sequences that represent possible paths
+            for src in src_dst_nodes:
+                routes_nodes_dict[src] = {}
+                for dst in src_dst_nodes:
+                    if src != dst:  # In reality, one would probably want to be able to return to a particular node
+                        curr_src_dict = routes_nodes_dict[src].get(dst, {})
+                        curr_src_dict_lst = curr_src_dict.get(dst, [])
+                        curr_src_dict_lst.extend(k_shortest_paths(g, src, dst, k))
+                        routes_nodes_dict[src][dst] = curr_src_dict_lst
+                        # if src != dst: do we want cars to be able to return to the same edge it came from?
+
+            return routes_nodes_dict
+
+        def node_route_to_edge_route(node_route):
+            """Convert a shortest path specified by a sequence of nodes to a shortest path specified by a sequence of edges
+            Returns a list of edges"""
+
+            edge_route = []
+            for node_index in range(len(node_route) - 1):
+                curr_node = node_route[node_index]
+                next_node = node_route[node_index + 1]
+                curr_edge = curr_node + "--" + next_node
+                edge_route.append(curr_edge)
+
+            return edge_route
+
+        node_routes = generate_node_routes_list(5)  # for all src-dst node pairs, generate the top 5 shortest node paths
+
+        # Convert node routes into edge routes
+        for start_node in node_routes:
+            start_node_routes_dict = node_routes[start_node]
+            for end_node in start_node_routes_dict:
+                start_end_node_routes_list = node_routes[start_node][end_node]
+                num_rts = len(start_end_node_routes_list) # TODO: change probs to non-hard coded (uniform) distribution?
+                for node_route in start_end_node_routes_list:
+                    edge_route = node_route_to_edge_route(node_route)
+                    start_edge = edge_route[0]
+                    curr_start_edge_routes = routes_dict.get(start_edge, [])
+                    curr_start_edge_routes.append((edge_route, 1 / num_rts))
+                    routes_dict[start_edge] = curr_start_edge_routes
+
+        # normalise probabilities of choosing a particular route
+        for start_edge in routes_dict:
+            routes_list = routes_dict[start_edge]
+            total_prob = 0
+            new_routes_list = [] # replace old list with normalised list
+            for (rt1, prob) in routes_list:
+                total_prob += prob
+            for (rt1, prob) in routes_list:
+                new_routes_list.append((rt1, prob / total_prob))
+
+            routes_dict[start_edge] = new_routes_list
+
+        return routes_dict
 
     def specify_types(self, net_params):
         """See parent class."""
@@ -212,144 +335,109 @@ class TrafficLightGridNetwork(Network):
     # ===============================
 
     @property
-    def _inner_nodes(self):
-        """Build out the inner nodes of the network.
-
-        The inner nodes correspond to the intersections between the roads. They
-        are numbered from bottom left, increasing first across the columns and
-        then across the rows.
+    def _nodes(self):
+        """Build out the nodes of the network.
+        The nodes correspond to the intersections between the roads and the starting and ending positions of edges.
+        The labeled according to their position in an x-y plane, with the bottom left corner being node "(0.0)"
 
         For example, the nodes in a traffic light grid with 2 rows and 3 columns
         would be indexed as follows:
 
-            |     |     |
-        --- 3 --- 4 --- 5 ---
-            |     |     |
-        --- 0 --- 1 --- 2 ---
-            |     |     |
+               ^ y
+               |
+            3  -          (1.3)     (2.3)     (3.3)
+               |            |         |         |
+               |            |         |         |
+            2  -(0.2) --- (1.2) --- (2.2) --- (3.2) --- (4.2)
+               |            |         |         |
+               |            |         |         |
+            1  -(0.1) --- (1.1) --- (2.1) --- (3.1) --- (4.1)
+               |            |         |         |
+               |            |         |         |
+            0  -          (1.0)     (2.0)     (3.0)
+               |
+               ----|--------|---------|---------|---------|---> x
+                   0        1         2         3         4
 
-        The id of a node is then "center{index}", for instance "center0" for
-        node 0, "center1" for node 1 etc.
+        The id of a node is then "({x}.{y})", for instance "(1.0)" for
+        the node at x,y coordinates of (1,0). Note that we're taking the bottom
+        left corner as the origin, i.e. (0,0). Also, note that we're using a dot "."
+        instead of a comma "," to separate the x and y co-ordinate in the node ids.
 
         Returns
         -------
         list <dict>
-            List of inner nodes
+            List of all the nodes in the network
         """
+
         node_type = "traffic_light" if self.use_traffic_lights else "priority"
+        x_max = self.col_num + 1
+        y_max = self.row_num + 1
 
         nodes = []
-        for row in range(self.row_num):
-            for col in range(self.col_num):
+        for x in range(x_max + 1):
+            for y in range(y_max + 1):
+                if (x, y) not in [(0, 0), (x_max, 0), (0, y_max), (x_max, y_max)]:
+                    nodes.append({
+                        "id": "({}.{})".format(x, y),
+                        "x": x * self.inner_length,
+                        "y": y * self.inner_length,
+                        "type": node_type,
+                        "radius": self.nodes_radius
+                    })
+
+        return nodes
+
+    @property
+    def _tl_nodes(self):
+
+        node_type = "traffic_light" if self.use_traffic_lights else "priority"
+        x_max = self.col_num + 1
+        y_max = self.row_num + 1
+
+        nodes = []
+        for x in range(1, x_max):
+            for y in range(1, y_max):
                 nodes.append({
-                    "id": "center{}".format(row * self.col_num + col),
-                    "x": col * self.inner_length,
-                    "y": row * self.inner_length,
+                    "id": "({}.{})".format(x, y),
+                    "x": x * self.inner_length,
+                    "y": y * self.inner_length,
                     "type": node_type,
-                    "radius": self.inner_nodes_radius
+                    "radius": self.nodes_radius
                 })
 
         return nodes
 
     @property
-    def _outer_nodes(self):
-        """Build out the outer nodes of the network.
-
-        The outer nodes correspond to the extremities of the roads. There are
-        two at each extremity, one where the vehicles enter the network
-        (inflow) and one where the vehicles exit the network (outflow).
-
-        Consider the following network with 2 rows and 3 columns, where the
-        extremities are marked by 'x', the rows are labeled from 0 to 1 and the
-        columns are labeled from 0 to 2:
-
-                 x     x     x
-                 |     |     |
-        (1) x----|-----|-----|----x (*)
-                 |     |     |
-        (0) x----|-----|-----|----x
-                 |     |     |
-                 x     x     x
-                (0)   (1)   (2)
-
-        On row i, there are two nodes at the left extremity of the row, labeled
-        "left_row_short{i}" and "left_row_long{i}", as well as two nodes at the
-        right extremity labeled "right_row_short{i}" and "right_row_long{i}".
-
-        On column j, there are two nodes at the bottom extremity of the column,
-        labeled "bot_col_short{j}" and "bot_col_long{j}", as well as two nodes
-        at the top extremity labeled "top_col_short{j}" and "top_col_long{j}".
-
-        The "short" nodes correspond to where vehicles enter the network while
-        the "long" nodes correspond to where vehicles exit the network.
-
-        For example, at extremity (*) on row (1):
-        - the id of the input node is "right_row_short1"
-        - the id of the output node is "right_row_long1"
-
-        Returns
-        -------
-        list <dict>
-            List of outer nodes
-        """
-        nodes = []
-
-        def new_node(x, y, name, i):
-            return [{"id": name + str(i), "x": x, "y": y, "type": "priority"}]
-
-        # build nodes at the extremities of columns
-        for col in range(self.col_num):
-            x = col * self.inner_length
-            y = (self.row_num - 1) * self.inner_length
-            nodes += new_node(x, - self.short_length, "bot_col_short", col)
-            nodes += new_node(x, - self.long_length, "bot_col_long", col)
-            nodes += new_node(x, y + self.short_length, "top_col_short", col)
-            nodes += new_node(x, y + self.long_length, "top_col_long", col)
-
-        # build nodes at the extremities of rows
-        for row in range(self.row_num):
-            x = (self.col_num - 1) * self.inner_length
-            y = row * self.inner_length
-            nodes += new_node(- self.short_length, y, "left_row_short", row)
-            nodes += new_node(- self.long_length, y, "left_row_long", row)
-            nodes += new_node(x + self.short_length, y, "right_row_short", row)
-            nodes += new_node(x + self.long_length, y, "right_row_long", row)
-
-        return nodes
-
-    @property
-    def _inner_edges(self):
-        """Build out the inner edges of the network.
-
-        The inner edges are the edges joining the inner nodes to each other.
-
+    def _edges(self):
+        """Build out the edges of the network.
+        Edges join nodes to each other.
         Consider the following network with n = 2 rows and m = 3 columns,
-        where the rows are indexed from 0 to 1 and the columns from 0 to 2, and
-        the inner nodes are marked by 'x':
+        where the nodes are marked by 'x':
 
-                |     |     |
-        (1) ----x-----x-----x----
-                |     |     |
-        (0) ----x-----x-(*)-x----
-                |     |     |
-               (0)   (1)   (2)
+        y
+        ^
+        |
+    3   -         x     x     x
+        |         |     |     |
+    2   -    x----x-----x-----x----x
+        |         |     |     |
+    1   -    x----x-----x-(*)-x----x
+        |         |     |     |
+    0   -         x     x     x
+        |
+        ----|-----|-----|-----|----|----> x
+             0    1     2     3    4
 
-        There are n * (m - 1) = 4 horizontal inner edges and (n - 1) * m = 3
-        vertical inner edges, all that multiplied by two because each edge
+
+        There are n * (m + 1) = 8 horizontal edges and m * (n + 1) = 9
+        vertical edges, all that multiplied by two because each edge
         consists of two roads going in opposite directions traffic-wise.
+        Edge ids take the format of "({from_node})--({to_node})".
 
-        On an horizontal edge, the id of the top road is "top{i}_{j}" and the
-        id of the bottom road is "bot{i}_{j}", where i is the index of the row
-        where the edge is and j is the index of the column to the right of it.
-
-        On a vertical edge, the id of the right road is "right{i}_{j}" and the
-        id of the left road is "left{i}_{j}", where i is the index of the row
-        above the edge and j is the index of the column where the edge is.
-
-        For example, on edge (*) on row (0): the id of the bottom road (traffic
-        going from left to right) is "bot0_2" and the id of the top road
-        (traffic going from right to left) is "top0_2".
-
+        For example, on edge (*) the id of the bottom road (traffic
+        going from left to right) is "(2.1)--(3.1)" and the id of the top road
+        (traffic going from right to left) is "(3.1)--(2.1)".
         Returns
         -------
         list <dict>
@@ -357,232 +445,226 @@ class TrafficLightGridNetwork(Network):
         """
         edges = []
 
-        def new_edge(index, from_node, to_node, orientation, lane):
+        x_max = self.col_num + 1
+        y_max = self.row_num + 1
+
+        def new_edge(from_node, to_node, orientation):
             return [{
-                "id": lane + index,
+                "id": str(from_node) + "--" + str(to_node),
                 "type": orientation,
                 "priority": 78,
-                "from": "center" + str(from_node),
-                "to": "center" + str(to_node),
+                "from": str(from_node),
+                "to": str(to_node),
                 "length": self.inner_length
             }]
 
-        # Build the horizontal inner edges
-        for i in range(self.row_num):
-            for j in range(self.col_num - 1):
-                node_index = i * self.col_num + j
-                index = "{}_{}".format(i, j + 1)
-                edges += new_edge(index, node_index + 1, node_index,
-                                  "horizontal", "top")
-                edges += new_edge(index, node_index, node_index + 1,
-                                  "horizontal", "bot")
-
-        # Build the vertical inner edges
-        for i in range(self.row_num - 1):
-            for j in range(self.col_num):
-                node_index = i * self.col_num + j
-                index = "{}_{}".format(i + 1, j)
-                edges += new_edge(index, node_index, node_index + self.col_num,
-                                  "vertical", "right")
-                edges += new_edge(index, node_index + self.col_num, node_index,
-                                  "vertical", "left")
+        # Build the horizontal edges
+        for y in range(1, y_max):
+            for x in range(x_max):
+                left_node = "({}.{})".format(x, y)
+                right_node = "({}.{})".format(x + 1, y)
+                edges += new_edge(left_node, right_node,
+                                  "horizontal")
+                edges += new_edge(right_node, left_node,
+                                  "horizontal")
+        # Build the vertical edges
+        for x in range(1, x_max):
+            for y in range(y_max):
+                bottom_node = "({}.{})".format(x, y)
+                top_node = "({}.{})".format(x, y + 1)
+                edges += new_edge(bottom_node, top_node,
+                                  "vertical")
+                edges += new_edge(top_node, bottom_node,
+                                  "vertical")
 
         return edges
 
-    @property
-    def _outer_edges(self):
-        """Build out the outer edges of the network.
+    def specify_connections(self, net_params, legal_turns=True):
+        """Build out connections at each node (aside from those nodes where vehicles enter and exit).
+        Connections describe what happens at the intersections. We specify the connections of an entire network using
+        a dict, where keys are the individual node ids and the values are a list of all connections directly related to
+        a particular node. For a particular node, we specify the node's connections using a list of "from" edges and "to"
+        edges. Here, we link lanes with all possible adjacent lanes. This means vehicles can make
+        turns at any intersection and can turn to any particular adjacent lane.
 
-        The outer edges are the edges joining the inner nodes to the outer
-        nodes.
+        Movement restrictions:
+        Right lanes can travel only straight or right.
+        Middle lanes can travel only straight.
+        Left lanes can travel only straight or left.
 
-        Consider the following network with n = 2 rows and m = 3 columns,
-        where the rows are indexed from 0 to 1 and the columns from 0 to 2, the
-        inner nodes are marked by 'x' and the outer nodes by 'o':
-
-                o    o    o
-                |    |    |
-        (1) o---x----x----x-(*)-o
-                |    |    |
-        (0) o---x----x----x-----o
-                |    |    |
-                o    o    o
-               (0)  (1)  (2)
-
-        There are n * 2 = 4 horizontal outer edges and m * 2 = 6 vertical outer
-        edges, all that multiplied by two because each edge consists of two
-        roads going in opposite directions traffic-wise.
-
-        On row i, there are four horizontal edges: the left ones labeled
-        "bot{i}_0" (in) and "top{i}_0" (out) and the right ones labeled
-        "bot{i}_{m}" (out) and "top{i}_{m}" (in).
-
-        On column j, there are four vertical edges: the bottom ones labeled
-        "left0_{j}" (out) and "right0_{j}" (in) and the top ones labeled
-        "left{n}_{j}" (in) and "right{n}_{j}" (out).
-
-        For example, on edge (*) on row (1): the id of the bottom road (out)
-        is "bot1_3" and the id of the top road is "top1_3".
-
-        Edges labeled by "in" are edges where vehicles enter the network while
-        edges labeled by "out" are edges where vehicles exit the network.
+        (N.B. turns can only be legal turns i.e. allowed by law)
 
         Returns
         -------
-        list <dict>
-            List of outer edges
-        """
-        edges = []
-
-        def new_edge(index, from_node, to_node, orientation, length):
-            return [{
-                "id": index,
-                "type": {"v": "vertical", "h": "horizontal"}[orientation],
-                "priority": 78,
-                "from": from_node,
-                "to": to_node,
-                "length": length
-            }]
-
-        for i in range(self.col_num):
-            # bottom edges
-            id1 = "right0_{}".format(i)
-            id2 = "left0_{}".format(i)
-            node1 = "bot_col_short{}".format(i)
-            node2 = "center{}".format(i)
-            node3 = "bot_col_long{}".format(i)
-            edges += new_edge(id1, node1, node2, "v", self.short_length)
-            edges += new_edge(id2, node2, node3, "v", self.long_length)
-
-            # top edges
-            id1 = "left{}_{}".format(self.row_num, i)
-            id2 = "right{}_{}".format(self.row_num, i)
-            node1 = "top_col_short{}".format(i)
-            node2 = "center{}".format((self.row_num - 1) * self.col_num + i)
-            node3 = "top_col_long{}".format(i)
-            edges += new_edge(id1, node1, node2, "v", self.short_length)
-            edges += new_edge(id2, node2, node3, "v", self.long_length)
-
-        for j in range(self.row_num):
-            # left edges
-            id1 = "bot{}_0".format(j)
-            id2 = "top{}_0".format(j)
-            node1 = "left_row_short{}".format(j)
-            node2 = "center{}".format(j * self.col_num)
-            node3 = "left_row_long{}".format(j)
-            edges += new_edge(id1, node1, node2, "h", self.short_length)
-            edges += new_edge(id2, node2, node3, "h", self.long_length)
-
-            # right edges
-            id1 = "top{}_{}".format(j, self.col_num)
-            id2 = "bot{}_{}".format(j, self.col_num)
-            node1 = "right_row_short{}".format(j)
-            node2 = "center{}".format((j + 1) * self.col_num - 1)
-            node3 = "right_row_long{}".format(j)
-            edges += new_edge(id1, node1, node2, "h", self.short_length)
-            edges += new_edge(id2, node2, node3, "h", self.long_length)
-
-        return edges
-
-    def specify_connections(self, net_params):
-        """Build out connections at each inner node.
-
-        Connections describe what happens at the intersections. Here we link
-        lanes in straight lines, which means vehicles cannot turn at
-        intersections, they can only continue in a straight line.
+        dict<list<dict>>
+            Dict of all the connections in the network
         """
         con_dict = {}
+        x_max = self.col_num + 1
+        y_max = self.row_num + 1
 
-        def new_con(side, from_id, to_id, lane, signal_group):
-            return [{
-                "from": side + from_id,
-                "to": side + to_id,
-                "fromLane": str(lane),
-                "toLane": str(lane),
-                "signal_group": signal_group
-            }]
+        def node_cons(x, y, signal_group):
+            """Takes the (x, y) co-ordinates of an intersection node, and returns a list of dicts. Each dict specifies
+            a single connections from a specific lane to another specific lane. We build ALL possible connections
+            for this intersection, apart from the connection from a lane back to a lane in the same edge of the opposite
+            direction."""
 
-        # build connections at each inner node
-        for i in range(self.row_num):
-            for j in range(self.col_num):
-                node_id = "{}_{}".format(i, j)
-                right_node_id = "{}_{}".format(i, j + 1)
-                top_node_id = "{}_{}".format(i + 1, j)
+            def single_con_dict(from_edge, to_edge, from_lane, to_lane, signal_group):
+                """Takes in the information for one specific connection and
+                returns the dict to specify the connection"""
 
-                conn = []
-                for lane in range(self.vertical_lanes):
-                    conn += new_con("bot", node_id, right_node_id, lane, 1)
-                    conn += new_con("top", right_node_id, node_id, lane, 1)
-                for lane in range(self.horizontal_lanes):
-                    conn += new_con("right", node_id, top_node_id, lane, 2)
-                    conn += new_con("left", top_node_id, node_id, lane, 2)
+                return [{
+                    "from": from_edge,
+                    "to": to_edge,
+                    "fromLane": str(from_lane),
+                    "toLane": str(to_lane),
+                    "signal_group": signal_group
+                }]
 
-                node_id = "center{}".format(i * self.col_num + j)
-                con_dict[node_id] = conn
+            node_cons_list = []
+            # origin_edges = [(1, 0), (0, 1), (-1, 0), (0, -1)]  # right, top, left, bottom
+
+            # Ids of the nodes adjacent to the intersection node
+            right_node_id = "({}.{})".format(x + 1, y)
+            top_node_id = "({}.{})".format(x, y + 1)
+            left_node_id = "({}.{})".format(x - 1, y)
+            bottom_node_id = "({}.{})".format(x, y - 1)
+            center_node_id = "({}.{})".format(x, y)
+
+            # {}_edge_in denotes an edge coming into the specified intersection node
+            # {}_edge_out denotes an edge leaving the specified intersection node
+
+            right_edge_in = right_node_id + "--" + center_node_id
+            top_edge_in = top_node_id + "--" + center_node_id
+            left_edge_in = left_node_id + "--" + center_node_id
+            bottom_edge_in = bottom_node_id + "--" + center_node_id
+
+            right_edge_out = center_node_id + "--" + right_node_id
+            top_edge_out = center_node_id + "--" + top_node_id
+            left_edge_out = center_node_id + "--" + left_node_id
+            bottom_edge_out = center_node_id + "--" + bottom_node_id
+
+            """
+            Movement restrictions:
+            Right lanes can travel only straight or right.            
+            Middle lanes can travel only straight.
+            Left lanes can travel only straight or left.
+            
+            In SUMO, lanes are numbered from 0, starting from the rightmost lane. Thus, a legal left turn by a left lane
+            would be lane n to lane n. A legal right turn from the rightmost lane would be lane 0 to lane 0."""
+
+            right_most_lane, left_most_lane = 0, self.horizontal_lanes - 1
+
+            # TODO: ONLY leftmost lanes can turn left i.e stop non leftmost lanes from turning left as well
+            # build vertical connections for RIGHT edge (1,0)
+            for hor_l in range(self.horizontal_lanes):
+                for vert_l in range(self.vertical_lanes):
+                    # TODO: fix the strange lane turns
+                    if legal_turns:
+                        if hor_l == vert_l:
+                            if hor_l == right_most_lane and vert_l == right_most_lane: # only right most lane can turn right
+                                print(right_edge_in, top_edge_out, hor_l, vert_l)
+                                node_cons_list += single_con_dict(right_edge_in, top_edge_out, hor_l, vert_l, signal_group)
+                            if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                                node_cons_list += single_con_dict(right_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
+                    else:
+                        if hor_l == right_most_lane and vert_l == right_most_lane:  # only right most lane can turn right
+                            node_cons_list += single_con_dict(right_edge_in, top_edge_out, hor_l, vert_l, signal_group)
+                        if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                            node_cons_list += single_con_dict(right_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
+
+            # build horizontal connection for RIGHT edge (1,0)
+            for hor_l1 in range(self.horizontal_lanes):
+                for hor_l2 in range(self.horizontal_lanes):
+                    if hor_l1 == hor_l2: # when going straight, you can only go directly straight
+                        node_cons_list += single_con_dict(right_edge_in, left_edge_out, hor_l1, hor_l2, signal_group)
+
+            # build vertical connections for LEFT edge (-1,0)
+            for hor_l in range(self.horizontal_lanes):
+                for vert_l in range(self.vertical_lanes):
+                    if legal_turns:
+                        if hor_l == vert_l:  # only allow legal lane transitions
+                            if hor_l == right_most_lane and vert_l == right_most_lane: # only right most lane can turn right
+                                node_cons_list += single_con_dict(left_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
+                            if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                                node_cons_list += single_con_dict(left_edge_in, top_edge_out, hor_l, vert_l, signal_group)
+                    else:
+                        if hor_l == right_most_lane and vert_l == right_most_lane:  # only right most lane can turn right
+                            node_cons_list += single_con_dict(left_edge_in, top_edge_out, hor_l, vert_l, signal_group)
+                        if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                            node_cons_list += single_con_dict(left_edge_in, bottom_edge_out, hor_l, vert_l, signal_group)
+
+            # build horizontal connection for LEFT edge (-1,0)
+            for hor_l1 in range(self.horizontal_lanes):
+                for hor_l2 in range(self.horizontal_lanes):
+                    if hor_l1 == hor_l2:
+                        node_cons_list += single_con_dict(left_edge_in, right_edge_out, hor_l1, hor_l2, signal_group)
+
+            # build vertical connection for TOP edge (0, 1)
+            for vert_l1 in range(self.vertical_lanes):
+                for vert_l2 in range(self.vertical_lanes):
+                    if vert_l1 == vert_l2:
+                        node_cons_list += single_con_dict(top_edge_in, bottom_edge_out, vert_l1, vert_l2, signal_group)
+
+            # build horizontal connections for TOP edge (0, 1)
+            for vert_l in range(self.vertical_lanes):
+                for hor_l in range(self.horizontal_lanes):
+                    if legal_turns:
+                        if vert_l == hor_l:  # only allow legal lane transitions
+                            if vert_l == right_most_lane and hor_l == right_most_lane: # only right most lane can turn right
+                                node_cons_list += single_con_dict(top_edge_in, left_edge_out, vert_l, hor_l, signal_group)
+                            if vert_l == left_most_lane and hor_l == left_most_lane:  # only left most lane can turn left
+                                node_cons_list += single_con_dict(top_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+                    else:
+                        if hor_l == right_most_lane and vert_l == right_most_lane:  # only right most lane can turn right
+                            node_cons_list += single_con_dict(top_edge_in, left_edge_out, vert_l, hor_l, signal_group)
+                        if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                            node_cons_list += single_con_dict(top_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+
+            # build vertical connection for BOTTOM edge (0, -1)
+            for vert_l1 in range(self.horizontal_lanes):
+                for vert_l2 in range(self.vertical_lanes):
+                    if vert_l1 == vert_l2:
+                        node_cons_list += single_con_dict(bottom_edge_in, top_edge_out, vert_l1, vert_l2, signal_group)
+
+            # build horizontal connections for BOTTOM edge (0, -1)
+            for hor_l in range(self.horizontal_lanes):
+                for vert_l in range(self.vertical_lanes):
+                    # if legal_turns:
+                    #     if hor_l == vert_l:
+                    #         node_cons_list += single_con_dict(bottom_edge_in, left_edge_out, vert_l, hor_l, signal_group)
+                    #         node_cons_list += single_con_dict(bottom_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+                    # else:
+                    #     node_cons_list += single_con_dict(bottom_edge_in, left_edge_out, vert_l, hor_l, signal_group)
+                    #     node_cons_list += single_con_dict(bottom_edge_in, right_edge_out, vert_l, hor_l, signal_group)
+                    if legal_turns:
+                        if hor_l == vert_l:  # only allow legal lane transitions
+                            if hor_l == right_most_lane and vert_l == right_most_lane: # only right most lane can turn right
+                                node_cons_list += single_con_dict(bottom_edge_in, right_edge_out, hor_l, vert_l, signal_group)
+                            if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                                node_cons_list += single_con_dict(bottom_edge_in, left_edge_out, hor_l, vert_l, signal_group)
+                    else:
+                        if hor_l == right_most_lane and vert_l == right_most_lane:  # only right most lane can turn right
+                            node_cons_list += single_con_dict(bottom_edge_in, right_edge_out, hor_l, vert_l, signal_group)
+                        if hor_l == left_most_lane and vert_l == left_most_lane:  # only left most lane can turn left
+                            node_cons_list += single_con_dict(bottom_edge_in, left_edge_out, hor_l, vert_l, signal_group)
+
+            return node_cons_list
+
+        # build connections at each intersection node
+        for x in range(1, x_max):
+            for y in range(1, y_max):
+                node_id = "({}.{})".format(x, y)
+                con_dict[node_id] = node_cons(x, y, 1)  # Still confused about what a signal_group does...,
+                # but made all connections with all lanes!
 
         return con_dict
-
-    # TODO necessary?
-    def specify_edge_starts(self):
-        """See parent class."""
-        edgestarts = []
-        for i in range(self.col_num + 1):
-            for j in range(self.row_num + 1):
-                index = "{}_{}".format(j, i)
-                if i != self.col_num:
-                    edgestarts += [("left" + index, 0 + i * 50 + j * 5000),
-                                   ("right" + index, 10 + i * 50 + j * 5000)]
-                if j != self.row_num:
-                    edgestarts += [("top" + index, 15 + i * 50 + j * 5000),
-                                   ("bot" + index, 20 + i * 50 + j * 5000)]
-
-        return edgestarts
-
-    # TODO necessary?
-    @staticmethod
-    def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
-        """See parent class."""
-        grid_array = net_params.additional_params["grid_array"]
-        row_num = grid_array["row_num"]
-        col_num = grid_array["col_num"]
-        cars_heading_left = grid_array["cars_left"]
-        cars_heading_right = grid_array["cars_right"]
-        cars_heading_top = grid_array["cars_top"]
-        cars_heading_bot = grid_array["cars_bot"]
-
-        start_pos = []
-
-        x0 = 6  # position of the first car
-        dx = 10  # distance between each car
-
-        start_lanes = []
-        for i in range(col_num):
-            start_pos += [("right0_{}".format(i), x0 + k * dx)
-                          for k in range(cars_heading_right)]
-            start_pos += [("left{}_{}".format(row_num, i), x0 + k * dx)
-                          for k in range(cars_heading_left)]
-            horz_lanes = np.random.randint(low=0, high=net_params.additional_params["horizontal_lanes"],
-                                           size=cars_heading_left + cars_heading_right).tolist()
-            start_lanes += horz_lanes
-
-        for i in range(row_num):
-            start_pos += [("top{}_{}".format(i, col_num), x0 + k * dx)
-                          for k in range(cars_heading_top)]
-            start_pos += [("bot{}_0".format(i), x0 + k * dx)
-                          for k in range(cars_heading_bot)]
-            vert_lanes = np.random.randint(low=0, high=net_params.additional_params["vertical_lanes"],
-                                           size=cars_heading_left + cars_heading_right).tolist()
-            start_lanes += vert_lanes
-
-        return start_pos, start_lanes
 
     @property
     def node_mapping(self):
         """Map nodes to edges.
-
         Returns a list of pairs (node, connected edges) of all inner nodes
         and for each of them, the 4 edges that leave this node.
-
         The nodes are listed in alphabetical order, and within that, edges are
         listed in order: [bot, right, top, left].
         """
@@ -601,3 +683,56 @@ class TrafficLightGridNetwork(Network):
                                     right_edge_id, top_edge_id]
 
         return sorted(mapping.items(), key=lambda x: x[0])
+
+
+    # TODO necessary?
+    @staticmethod
+    def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
+        """See parent class."""
+        grid_array = net_params.additional_params["grid_array"]
+        row_num = grid_array["row_num"]
+        col_num = grid_array["col_num"]
+
+        # ah, I also need to change these params
+
+        cars_heading_left = grid_array["cars_left"]
+        cars_heading_right = grid_array["cars_right"]
+        cars_heading_top = grid_array["cars_top"]
+        cars_heading_bot = grid_array["cars_bot"]
+
+        start_pos = []
+
+        x_max = col_num + 1
+        y_max = row_num + 1
+
+        x0 = 6  # position of the first car
+        dx = 10  # distance between each car
+
+        start_lanes = []
+        # cars heading up and down
+        for x in range(1, x_max):
+            bot_edge = "({}.{})--({}.{})".format(x, 0, x, 1)
+            top_edge = "({}.{})--({}.{})".format(x, y_max, x, y_max - 1)
+
+            start_pos += [(bot_edge, x0 + k * dx)
+                          for k in range(cars_heading_top)]
+            start_pos += [(top_edge, x0 + k * dx)
+                          for k in range(cars_heading_bot)]
+            vert_lanes = np.random.randint(low=0, high=net_params.additional_params["vertical_lanes"],
+                                           size=cars_heading_top + cars_heading_bot).tolist()
+            start_lanes += vert_lanes
+
+        # cars heading left and right
+        for y in range(1, y_max):
+            left_edge = "({}.{})--({}.{})".format(0, y, 1, y)
+            right_edge = "({}.{})--({}.{})".format(x_max, y, x_max - 1, y)
+
+            start_pos += [(left_edge, x0 + k * dx)
+                          for k in range(cars_heading_top)]
+            start_pos += [(right_edge, x0 + k * dx)
+                          for k in range(cars_heading_bot)]
+            horz_lanes = np.random.randint(low=0, high=net_params.additional_params["horizontal_lanes"],
+                                           size=cars_heading_left + cars_heading_right).tolist()
+            start_lanes += horz_lanes
+
+        return start_pos, start_lanes
