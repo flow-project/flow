@@ -194,7 +194,8 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
         sim_step=1,
-        render=False,
+        render=True,
+        restart_instance=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)

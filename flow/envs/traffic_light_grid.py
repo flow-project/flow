@@ -31,6 +31,99 @@ ADDITIONAL_PO_ENV_PARAMS = {
     "target_velocity": 30,
 }
 
+# For every edge, legal right turns are given either given priority green light or secondary green light
+# unless otherwise specified (as per US traffic light rules?)
+
+# vertical_green = cars on the vertical edges have green lights for going straight are free to go straight
+# vertical_green_to_yellow = cars on the vertical edges that were free to go straight now face a yellow light
+# horizontal_green = similar to vertical counterpart
+# vertical_green_to_yellow = similar to vertical counterpart
+
+# protected_left_X = cars on the X edge have a protected left turn i.e. priority greens for the X edge cars turning
+# left, going straight and turning right. Cars from other edges have red (apart from their secondary green right turns).
+# protected_left_X_to_yellow = cars on the X edge that were free to go left/straight now face a yellow light
+
+# Here, X in [top, right, bottom left]
+
+PHASE_NUM_TO_STR = {1: "vertical_green", 2: "vertical_green_to_yellow",
+                      3: "horizontal_green", 4: "horizontal_green_to_yellow",
+                      5: "protected_left_top", 6: "protected_left_top_to_yellow",
+                      7: "protected_left_right", 8: "protected_left_right_to_yellow",
+                      9: "protected_left_bottom", 10: "protected_left_bottom_to_yellow",
+                      11: "protected_left_left", 12: "protected_left_left_to_yellow"}
+
+def generate_tl_phases(phase_type, horiz_lanes, vert_lanes):
+    """Returns the tl phase string for the corresponding phase types.
+    Note: right turns will have 'g' by default"""
+
+    if phase_type == "vertical_green":
+        vertical = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
+        horizontal = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+        return vertical + horizontal + vertical + horizontal
+
+    elif phase_type == "vertical_green_to_yellow":
+        horizontal = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
+        vertical = "g" + horiz_lanes * "y" + "r"  # right turn, straights, left turn
+        return vertical + horizontal + vertical + horizontal
+
+    elif phase_type == "horizontal_green":
+        horizontal = "G" + vert_lanes * "G" + "r"  # right turn, straights, left turn
+        vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+        return vertical + horizontal + vertical + horizontal
+
+    elif phase_type == "horizontal_green_to_yellow":
+        horizontal = "g" + vert_lanes * "y" + "r"  # right turn, straights, left turn
+        vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
+        return vertical + horizontal + vertical + horizontal
+
+    elif phase_type == "protected_left_top":
+        top = "G" + "G" * vert_lanes + "G"
+        bot = "g" + "r" * vert_lanes + "r"
+        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+        return top + horizontal + bot + horizontal
+
+    elif phase_type == "protected_left_top_to_yellow":
+        top = "g" + "y" * vert_lanes + "y"
+        bot = "g" + "r" * vert_lanes + "r"
+        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+        return top + horizontal + bot + horizontal
+
+    elif phase_type == "protected_left_right":
+        vertical = "g" + "r" * vert_lanes + "r"
+        left = "g" + "r" * horiz_lanes + "r"
+        right = "g" + "G" * horiz_lanes + "G"
+        return vertical + right + vertical + left
+
+    elif phase_type == "protected_left_right_to_yellow":
+        vertical = "g" + "r" * vert_lanes + "r"
+        left = "g" + "r" * horiz_lanes + "r"
+        right = "g" + "y" * horiz_lanes + "y"
+        return vertical + right + vertical + left
+
+    elif phase_type == "protected_left_bottom":
+        bot = "G" + "G" * vert_lanes + "G"
+        top = "g" + "r" * vert_lanes + "r"
+        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+        return top + horizontal + bot + horizontal
+
+    elif phase_type == "protected_left_bottom_to_yellow":
+        bot = "g" + "y" * vert_lanes + "y"
+        top = "g" + "r" * vert_lanes + "r"
+        horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
+        return top + horizontal + bot + horizontal
+
+    elif phase_type == "protected_left_left":
+        vertical = "g" + "r" * vert_lanes + "r"
+        right = "g" + "r" * horiz_lanes + "r"
+        left = "g" + "G" * horiz_lanes + "G"
+        return vertical + right + vertical + left
+
+    elif phase_type == "protected_left_left_to_yellow":
+        vertical = "g" + "r" * vert_lanes + "r"
+        right = "g" + "r" * horiz_lanes + "r"
+        left = "g" + "y" * horiz_lanes + "y"
+        return vertical + right + vertical + left
+
 
 class TrafficLightGridEnv(Env):
     """Environment used to train traffic lights.
@@ -82,7 +175,7 @@ class TrafficLightGridEnv(Env):
     tl_type : str
         Type of traffic lights, either 'actuated' or 'static'
     steps : int
-        Horizon of this experiment, see EnvParams.horion
+        Horizon of this experiment, see EnvParams.horizon
     obs_var_labels : dict
         Referenced in the visualizer. Tells the visualizer which
         metrics to track
@@ -94,15 +187,21 @@ class TrafficLightGridEnv(Env):
         Multi-dimensional array keeping track, in timesteps, of how much time
         has passed since the last change to yellow for each traffic light
     direction : np array [num_traffic_lights]x1 np array
+
         Multi-dimensional array keeping track of which direction in traffic
         light is flowing. 0 indicates flow from top to bottom, and
         1 indicates flow from left to right
+
+    # replace this 'direction' with something like "phase" 1, 2, 3 ,4, 5, 6, 7, 8, 9, 10, 11, 12
+
     currently_yellow : np array [num_traffic_lights]x1 np array
         Multi-dimensional array keeping track of whether or not each traffic
         light is currently yellow. 1 if yellow, 0 if not
+
     min_switch_time : np array [num_traffic_lights]x1 np array
         The minimum time in timesteps that a light can be yellow. Serves
         as a lower bound
+
     discrete : bool
         Indicates whether or not the action space is discrete. See below for
         more information:
@@ -136,11 +235,12 @@ class TrafficLightGridEnv(Env):
         # Keeps track of the last time the traffic lights in an intersection
         # were allowed to change (the last time the lights were allowed to
         # change from a red-green state to a red-yellow state.)
+
         self.last_change = np.zeros((self.rows * self.cols, 1))
-        # Keeps track of the direction of the intersection (the direction that
-        # is currently being allowed to flow. 0 indicates flow from top to
-        # bottom, and 1 indicates flow from left to right.)
+
+        # Keeps track of the phase of the intersection. See phase definitions above.
         self.direction = np.zeros((self.rows * self.cols, 1))
+
         # Value of 1 indicates that the intersection is in a red-yellow state.
         # value 0 indicates that the intersection is in a red-green state.
         self.currently_yellow = np.zeros((self.rows * self.cols, 1))
@@ -151,11 +251,15 @@ class TrafficLightGridEnv(Env):
         # For third column, 0 signifies yellow and 1 green or red
         self.min_switch_time = env_params.additional_params["switch_time"]
 
+        x_max = self.cols + 1
+        y_max = self.rows + 1
+
         if self.tl_type != "actuated":
-            for i in range(self.rows * self.cols):
-                self.k.traffic_light.set_state(
-                    node_id='center' + str(i), state="GrGr")
-                self.currently_yellow[i] = 0
+            for x in range(1, x_max):
+                for y in range(1, y_max):
+                    self.k.traffic_light.set_state(
+                        node_id="({}.{})".format(x, y), state=PHASE_NUM_TO_STR[1])
+                    self.currently_yellow[(y - 1) * self.cols + (x - 1)] = 0
 
         # # Additional Information for Plotting
         # self.edge_mapping = {"top": [], "bot": [], "right": [], "left": []}
@@ -184,6 +288,7 @@ class TrafficLightGridEnv(Env):
     @property
     def observation_space(self):
         """See class definition."""
+        print(self.initial_vehicles.num_vehicles, self.initial_vehicles.num_vehicles, self.initial_vehicles.num_vehicles, )
         speed = Box(
             low=0,
             high=1,
@@ -206,6 +311,7 @@ class TrafficLightGridEnv(Env):
             dtype=np.float32)
         return Tuple((speed, dist_to_intersec, edge_num, traffic_lights))
 
+
     def get_state(self):
         """See class definition."""
         # compute the normalizers
@@ -213,6 +319,8 @@ class TrafficLightGridEnv(Env):
         max_dist = max(grid_array["short_length"],
                        grid_array["long_length"],
                        grid_array["inner_length"])
+
+        max_phase_duration = 90
 
         # get the state arrays
         speeds = [
@@ -231,7 +339,7 @@ class TrafficLightGridEnv(Env):
 
         state = [
             speeds, dist_to_intersec, edges,
-            self.last_change.flatten().tolist(),
+            (self.last_change / max_phase_duration).flatten().tolist(),
             self.direction.flatten().tolist(),
             self.currently_yellow.flatten().tolist()
         ]
@@ -258,22 +366,23 @@ class TrafficLightGridEnv(Env):
                 if self.last_change[i] >= self.min_switch_time:
                     if self.direction[i] == 0:
                         self.k.traffic_light.set_state(
-                            node_id='center{}'.format(i),
+                            node_id=self.index_to_tl_id(i),
                             state="GrGr")
                     else:
                         self.k.traffic_light.set_state(
-                            node_id='center{}'.format(i),
+                            node_id=self.index_to_tl_id(i),
                             state='rGrG')
+
                     self.currently_yellow[i] = 0
             else:
                 if action:
                     if self.direction[i] == 0:
                         self.k.traffic_light.set_state(
-                            node_id='center{}'.format(i),
+                            node_id=self.index_to_tl_id(i),
                             state='yryr')
                     else:
                         self.k.traffic_light.set_state(
-                            node_id='center{}'.format(i),
+                            node_id=self.index_to_tl_id(i),
                             state='ryry')
                     self.last_change[i] = 0.0
                     self.direction[i] = not self.direction[i]
@@ -388,26 +497,35 @@ class TrafficLightGridEnv(Env):
         --- 0 --- 1 --- 2 ---
             |     |     |
 
+             |       |     |
+        --- 2.1 --- 2.2 --- 3.2 ---
+             |       |       |
+        --- 1.1 --- 1.2 --- 1.3 ---
+             |       |       |
+
         See flow.networks.traffic_light_grid for more information.
 
         Example of function usage:
-        - Seeking the "top" direction to ":center0" would return 3.
-        - Seeking the "bottom" direction to ":center0" would return -1.
+        - Seeking the "top" direction to ":(1.1)" would return 3.
+        - Seeking the "bottom" direction to :(1.1)" would return -1.
 
         Parameters
         ----------
         agent_id : str
-            agent id of the form ":center#"
+            agent id of the form ":({}.{})".format(x_pos, y_pos)
         direction : str
             top, bottom, left, right
 
         Returns
         -------
         int
-            node number
+            node number # Nodes without traffic lights yield -1
         """
-        ID_IDX = 1
-        agent_id_num = int(agent_id.split("center")[ID_IDX])
+        # TODO(KevinLin) Change this?
+        agent_node_coords = [agent_id[i] for i in range(len(agent_id)) if agent_id[i].isdigit()]
+        agent_node_x, agent_node_y = int(agent_node_coords[0]), int(agent_node_coords[1])
+        agent_id_num = (agent_node_x - 1) + (agent_node_y - 1) * self.cols
+
         if direction == "top":
             node = agent_id_num + self.cols
             if node >= self.cols * self.rows:
@@ -459,7 +577,7 @@ class TrafficLightGridEnv(Env):
         # find the route that we're going to place the vehicle on if we are
         # going to remove it
         route_id = None
-        if edge_type == 'bot' and col_index == self.cols:
+        if edge_type == 'bot' and col_index == self.cols:       # TODO: Kevin :) Change these to new scheme
             route_id = "bot{}_0".format(row_index)
         elif edge_type == 'top' and col_index == 0:
             route_id = "top{}_{}".format(row_index, self.cols)
@@ -482,6 +600,7 @@ class TrafficLightGridEnv(Env):
                 pos="0",
                 speed="max")
 
+    # TODO(Kevin Lin) Update to return the IDs of vehicles
     def get_closest_to_intersection(self, edges, num_closest, padding=False):
         """Return the IDs of the vehicles that are closest to an intersection.
 
@@ -578,6 +697,13 @@ class TrafficLightGridEnv(Env):
         pad_lst = [""] * (num_closest - len(veh_ids_ordered))
         return veh_ids_ordered[:num_closest] + (pad_lst if padding else [])
 
+    def index_to_tl_id(self, i):
+        """Takes in an index and converts the index into the corresponding node_id"""
+        x_axis = i % self.cols + 1  # add one to both x and y because the 0th node starts at (1,1)
+        y_axis = int(i / self.cols + 1)
+        # print(y_axis)
+        return "({}.{})".format(x_axis, y_axis)
+
 
 class TrafficLightGridPOEnv(TrafficLightGridEnv):
     """Environment used to train traffic lights.
@@ -639,7 +765,7 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         """
         tl_box = Box(
             low=0.,
-            high=1,
+            high=2,
             shape=(3 * 4 * self.num_observed * self.num_traffic_lights +
                    2 * len(self.k.network.get_edge_list()) +
                    3 * self.num_traffic_lights,),
@@ -653,6 +779,8 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         light and for each vehicle its velocity, distance to intersection,
         edge_number traffic light state. This is partially observed
         """
+
+        max_phase_time = 90 # define this constant to normalize state variables "self.last_change"
         speeds = []
         dist_to_intersec = []
         edge_number = []
@@ -709,13 +837,14 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
                 density += [0]
                 velocity_avg += [0]
         self.observed_ids = all_observed_ids
+
         return np.array(
-            np.concatenate([
-                speeds, dist_to_intersec, edge_number, density, velocity_avg,
-                self.last_change.flatten().tolist(),
-                self.direction.flatten().tolist(),
-                self.currently_yellow.flatten().tolist()
-            ]))
+                        np.concatenate([
+                            speeds, dist_to_intersec, edge_number, density, velocity_avg,
+                            (self.last_change / max_phase_time).flatten().tolist(),
+                            self.direction.flatten().tolist(),
+                            self.currently_yellow.flatten().tolist()
+                        ]))
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
