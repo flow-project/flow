@@ -57,7 +57,7 @@ class KernelLaneAreaDetector(object):
     def get_ids(self):
         """Return the ids of all lane area detectors."""
         raise NotImplementedError
-    
+
     """All following methods are using the API of the lane area detectors from traci:
     https://sumo.dlr.de/docs/TraCI/Lane_Area_Detector_Value_Retrieval.html
     """
