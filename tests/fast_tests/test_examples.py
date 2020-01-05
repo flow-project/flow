@@ -119,7 +119,8 @@ class TestStableBaselineExamples(unittest.TestCase):
     """
     @staticmethod
     def run_exp(flow_params):
-        run_stable_baselines_model(flow_params, 2, 5, 5)
+        train_model = run_stable_baselines_model(flow_params, 1, 4, 4)
+        train_model.env.close()
 
     def test_singleagent_figure_eight(self):
         self.run_exp(singleagent_figure_eight)
