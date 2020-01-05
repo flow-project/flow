@@ -1,7 +1,7 @@
 """Generates capacity diagrams for the bottleneck.
 
 This method accepts as input a csv file containing the inflows and outflows
-from several simulations as created by the file `examples/sumo/density_exp.py`,
+from several simulations as created by the file `examples/exp_scripts/bottleneck_density_sweep_capacity_diagram.py`,
 e.g.
 
     1000, 978

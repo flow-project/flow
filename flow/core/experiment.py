@@ -7,6 +7,7 @@ import time
 import os
 
 from flow.core.util import emission_to_csv
+from flow.utils.registry import make_create_env
 
 
 class Experiment:
@@ -18,15 +19,15 @@ class Experiment:
     the actions of RL agents in the network, type the following:
 
         >>> from flow.envs import Env
-        >>> env = Env(...)
-        >>> exp = Experiment(env)  # for some env
-        >>> exp.run(num_runs=1, num_steps=1000)
+        >>> flow_params = dict(...)  # see the examples in exp_config
+        >>> exp = Experiment(flow_params)  # for some experiment configuration
+        >>> exp.run(num_runs=1)
 
     If you wish to specify the actions of RL agents in the network, this may be
     done as follows:
 
         >>> rl_actions = lambda state: 0  # replace with something appropriate
-        >>> exp.run(num_runs=1, num_steps=1000, rl_actions=rl_actions)
+        >>> exp.run(num_runs=1, rl_actions=rl_actions)
 
     Finally, if you would like to like to plot and visualize your results, this
     class can generate csv files from emission files produced by sumo. These
@@ -37,12 +38,12 @@ class Experiment:
     ``emission_path`` attribute in ``SimParams`` to some path.
 
         >>> from flow.core.params import SimParams
-        >>> sim_params = SimParams(emission_path="./data")
+        >>> flow_params['sim'] = SimParams(emission_path="./data")
 
     Once you have included this in your environment, run your Experiment object
     as follows:
 
-        >>> exp.run(num_runs=1, num_steps=1000, convert_to_csv=True)
+        >>> exp.run(num_runs=1, convert_to_csv=True)
 
     After the experiment is complete, look at the "./data" directory. There
     will be two files, one with the suffix .xml and another with the suffix
@@ -55,24 +56,26 @@ class Experiment:
         the environment object the simulator will run
     """
 
-    def __init__(self, env):
+    def __init__(self, flow_params):
         """Instantiate Experiment."""
-        self.env = env
+        # Get the env name and a creator for the environment.
+        create_env, _ = make_create_env(flow_params)
+
+        # Create the environment.
+        self.env = create_env()
 
         logging.info(" Starting experiment {} at {}".format(
-            env.network.name, str(datetime.datetime.utcnow())))
+            self.env.network.name, str(datetime.datetime.utcnow())))
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, num_steps, rl_actions=None, convert_to_csv=False):
-        """Run the given network for a set number of runs and steps per run.
+    def run(self, num_runs, rl_actions=None, convert_to_csv=False):
+        """Run the given network for a set number of runs.
 
         Parameters
         ----------
         num_runs : int
             number of runs the experiment should perform
-        num_steps : int
-            number of steps to be performs in each run of the experiment
         rl_actions : method, optional
             maps states to actions to be performed by the RL agents (if
             there are any)
@@ -85,6 +88,8 @@ class Experiment:
         info_dict : dict
             contains returns, average speed per step
         """
+        num_steps = self.env.env_params.horizon
+
         # raise an error if convert_to_csv is set to True but no emission
         # file will be generated, to avoid getting an error at the end of the
         # simulation
