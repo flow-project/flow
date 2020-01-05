@@ -7,8 +7,6 @@ from flow.envs import TestEnv
 from flow.networks import Network
 import os
 
-# inflow rate at the highway
-FLOW_RATE = 2000
 
 # no vehicles in the network
 vehicles = VehicleParams()
@@ -31,7 +29,7 @@ flow_params = dict(
     # simulator that is used by the experiment
     simulator='aimsun',
 
-    # sumo-related parameters (see flow.core.params.SumoParams)
+    # Aimsun-related parameters
     sim=AimsunParams(
         sim_step=0.1,
         render=True,
