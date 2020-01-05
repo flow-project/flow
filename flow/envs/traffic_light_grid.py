@@ -221,7 +221,7 @@ class TrafficLightGridEnv(Env):
         # self.num_observed = self.grid_array.get("num_observed", 3)
         self.num_traffic_lights = self.rows * self.cols
         self.tl_type = env_params.additional_params.get('tl_type')
-
+        print(self.tl_type == 'controlled')
         super().__init__(env_params, sim_params, network, simulator)
 
         # Saving env variables for plotting
@@ -359,6 +359,7 @@ class TrafficLightGridEnv(Env):
             rl_mask = rl_actions > 0.0
 
         for i, action in enumerate(rl_mask):
+
             if self.currently_yellow[i] == 1:  # currently yellow
                 self.last_change[i] += self.sim_step
                 # Check if our timer has exceeded the yellow phase, meaning it
