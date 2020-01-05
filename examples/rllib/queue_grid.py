@@ -10,7 +10,6 @@ except ImportError:
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
-from flow.envs import TrafficLightGridPOEnv
 from flow.envs import QueueGridPOEnv
 from flow.networks import TrafficLightGridNetwork
 from flow.utils.registry import make_create_env
@@ -143,7 +142,7 @@ V_ENTER = 15
 INNER_LENGTH = 300
 LONG_LENGTH = 100
 SHORT_LENGTH = 300
-N_ROWS = 3
+N_ROWS = 2
 N_COLUMNS = 3
 NUM_CARS_LEFT = 1
 NUM_CARS_RIGHT = 1
@@ -161,7 +160,7 @@ grid_array = {
     "cars_left": NUM_CARS_LEFT,
     "cars_right": NUM_CARS_RIGHT,
     "cars_top": NUM_CARS_TOP,
-    "cars_bot": NUM_CARS_BOT
+    "cars_bot": NUM_CARS_BOT,
 }
 
 additional_env_params = {
@@ -176,8 +175,8 @@ additional_env_params = {
 additional_net_params = {
     'speed_limit': 35,
     'grid_array': grid_array,
-    'horizontal_lanes': 1,
-    'vertical_lanes': 1
+    'horizontal_lanes': 3,
+    'vertical_lanes': 3
 }
 vehicles = VehicleParams()
 vehicles.add(
@@ -209,7 +208,7 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
         sim_step=1,
-        render=False,
+        render=True,
         restart_instance=True,
     ),
 
