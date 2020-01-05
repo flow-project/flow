@@ -175,8 +175,8 @@ additional_env_params = {
 additional_net_params = {
     'speed_limit': 35,
     'grid_array': grid_array,
-    'horizontal_lanes': 3,
-    'vertical_lanes': 3
+    'horizontal_lanes': 1,
+    'vertical_lanes': 1
 }
 vehicles = VehicleParams()
 vehicles.add(

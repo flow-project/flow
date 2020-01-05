@@ -212,6 +212,8 @@ class QueueGridEnv(Env):
                     self.k.traffic_light.set_state(
                         node_id="({}.{})".format(x, y), state=PHASE_NUM_TO_STR[0])
                     self.green_or_yellow[(y - 1) * self.cols + (x - 1)] = 0
+        print(11111111111111)
+        print(self.green_or_yellow)
 
         # # Additional Information for Plotting
         # self.edge_mapping = {"top": [], "bot": [], "right": [], "left": []}
