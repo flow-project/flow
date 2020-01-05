@@ -12,6 +12,8 @@ omit =
     *aimsun/api.py
     *aimsun/generate.py
     *aimsun/load.py
+    *flow/multiagent_*
+    *flow/singleagent_*
 
 exclude_lines =
     if __name__ == .__main__.:
