@@ -118,7 +118,7 @@ class TestVehiclesClass(unittest.TestCase):
             num_vehicles=4,
             acceleration_controller=(IDMController, {}))
 
-        env, _ = ring_road_exp_setup(vehicles=vehicles)
+        env, _, _ = ring_road_exp_setup(vehicles=vehicles)
 
         self.assertEqual(env.k.vehicle.num_vehicles, 7)
         self.assertEqual(len(env.k.vehicle.get_ids()), 7)
@@ -138,7 +138,7 @@ class TestVehiclesClass(unittest.TestCase):
             num_vehicles=10,
             acceleration_controller=(RLController, {}))
 
-        env, _ = ring_road_exp_setup(vehicles=vehicles)
+        env, _, _ = ring_road_exp_setup(vehicles=vehicles)
 
         self.assertEqual(env.k.vehicle.num_vehicles, 10)
         self.assertEqual(len(env.k.vehicle.get_ids()), 10)
@@ -160,7 +160,7 @@ class TestVehiclesClass(unittest.TestCase):
             num_vehicles=10,
             acceleration_controller=(RLController, {}))
 
-        env, _ = ring_road_exp_setup(vehicles=vehicles)
+        env, _, _ = ring_road_exp_setup(vehicles=vehicles)
 
         # remove one human-driven vehicle and on rl vehicle
         env.k.vehicle.remove("test_0")
@@ -225,7 +225,7 @@ class TestMultiLaneData(unittest.TestCase):
 
         initial_config = InitialConfig(lanes_distribution=float("inf"))
 
-        env, _ = ring_road_exp_setup(
+        env, _, _ = ring_road_exp_setup(
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -279,7 +279,7 @@ class TestMultiLaneData(unittest.TestCase):
                        "start_lanes": [1, 2, 0]}
         initial_config.additional_params = initial_pos
 
-        env, _ = highway_exp_setup(
+        env, _, _ = highway_exp_setup(
             sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
@@ -355,7 +355,7 @@ class TestMultiLaneData(unittest.TestCase):
                        "start_lanes": [0, 0, 0, 1, 1, 2, 2, 3, 3]}
         initial_config.additional_params = initial_pos
 
-        env, _ = highway_exp_setup(
+        env, _, _ = highway_exp_setup(
             sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
@@ -419,7 +419,7 @@ class TestMultiLaneData(unittest.TestCase):
                        "start_lanes": [1, 2, 0]}
         initial_config.additional_params = initial_pos
 
-        env, _ = highway_exp_setup(
+        env, _, _ = highway_exp_setup(
             sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
@@ -486,7 +486,7 @@ class TestMultiLaneData(unittest.TestCase):
                        "start_lanes": [0, 0, 0]}
         initial_config.additional_params = initial_pos
 
-        env, _ = highway_exp_setup(
+        env, _, _ = highway_exp_setup(
             sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
@@ -542,7 +542,7 @@ class TestIdsByEdge(unittest.TestCase):
         vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=20)
 
-        self.env, _ = ring_road_exp_setup(vehicles=vehicles)
+        self.env, _, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # free data used by the class
@@ -563,7 +563,7 @@ class TestObservedIDs(unittest.TestCase):
         vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=10)
 
-        env, _ = ring_road_exp_setup(vehicles=vehicles)
+        env, _, _ = ring_road_exp_setup(vehicles=vehicles)
 
         # test setting new observed values
         env.k.vehicle.set_observed("test_0")

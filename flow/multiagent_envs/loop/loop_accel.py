@@ -1,6 +1,6 @@
 """Pending deprecation file.
 
-To view the actual content, go to: flow/envs/multiagent/traffic_light_grid.py
+To view the actual content, go to: flow/envs/multiagent/ring/accel.py
 """
 from flow.utils.flow_warnings import deprecated
 from flow.envs.multiagent.ring.accel import MultiAgentAccelEnv as MAAEnv
