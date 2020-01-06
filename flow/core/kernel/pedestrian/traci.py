@@ -36,8 +36,7 @@ class TraCIPedestrian(KernelPedestrian):
         # Querying the position of a pedestrian in the simulation throws an error
         # TODO: fix the above note
         for ped_id in obs_ids:
-            valid = self.kernel_api.person.getSpeed(ped_id) != 0
-            if ped_id not in self.__ids and valid:
+            if ped_id not in self.__ids:
                 obs = self._add_departed(ped_id)
                 ped_obs[ped_id] = obs
 
