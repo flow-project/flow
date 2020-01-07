@@ -124,7 +124,7 @@ class TestStableBaselineExamples(unittest.TestCase):
         self.run_exp(singleagent_figure_eight)
 
     def test_singleagent_traffic_light_grid(self):
-        pass  # FIXME
+        self.run_exp(singleagent_traffic_light_grid)
 
     def test_singleagent_merge(self):
         self.run_exp(singleagent_merge)
@@ -152,7 +152,7 @@ class TestRllibExamples(unittest.TestCase):
         self.run_exp(singleagent_figure_eight)
 
     def test_singleagent_traffic_light_grid(self):
-        pass  # FIXME
+        self.run_exp(singleagent_traffic_light_grid)
 
     def test_singleagent_traffic_light_grid_inflows(self):
         pass  # FIXME
