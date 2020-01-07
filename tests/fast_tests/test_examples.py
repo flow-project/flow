@@ -8,7 +8,8 @@ from ray.tune import run_experiments
 from flow.core.experiment import Experiment
 
 from examples.exp_configs.rl.singleagent.singleagent_figure_eight import flow_params as singleagent_figure_eight
-from examples.exp_configs.rl.singleagent.singleagent_traffic_light_grid import flow_params as singleagent_traffic_light_grid
+from examples.exp_configs.rl.singleagent.singleagent_traffic_light_grid import \
+    flow_params as singleagent_traffic_light_grid
 from examples.exp_configs.rl.singleagent.singleagent_merge import flow_params as singleagent_merge
 from examples.exp_configs.rl.singleagent.singleagent_ring import flow_params as singleagent_ring
 from examples.exp_configs.rl.singleagent.singleagent_bottleneck import flow_params as singleagent_bottleneck
@@ -16,7 +17,8 @@ from examples.exp_configs.rl.singleagent.singleagent_bottleneck import flow_para
 from examples.exp_configs.rl.multiagent.multiagent_figure_eight import flow_params as multiagent_figure_eight
 from examples.exp_configs.rl.multiagent.multiagent_ring import \
     flow_params as multiagent_ring
-from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import flow_params as multiagent_traffic_light_grid
+from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import \
+    flow_params as multiagent_traffic_light_grid
 from examples.exp_configs.rl.multiagent.multiagent_highway import flow_params as multiagent_highway
 
 from examples.train_stable_baselines import run_model as run_stable_baselines_model
