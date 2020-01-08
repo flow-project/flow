@@ -1,9 +1,3 @@
-"""Runner script for implementing stable-baseline experiments with Flow.
-
-Usage
-    python train_stable_baselines.py EXP_CONFIG
-"""
-
 """Runner script for single and multi-agent reinforcement learning experiments.
 
 This script performs an RL experiment using the PPO algorithm. Choice of
@@ -26,7 +20,6 @@ import ray
 from ray import tune
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
-from flow.utils.rllib import FlowParamsEncoder
 from flow.utils.registry import make_create_env
 try:
     from ray.rllib.agents.agent import get_agent_class
@@ -62,7 +55,7 @@ def parse_args(args):
     parser.add_argument(
         '--rl_trainer', type=str, default="RLlib",
         help='the RL trainer to use. either RLlib or Stable-Baselines')
-    
+
     parser.add_argument(
         '--num_cpus', type=int, default=1,
         help='How many CPUs to use')
@@ -108,11 +101,11 @@ def run_model_stablebaseline(flow_params, num_cpus=1, rollout_size=50, num_steps
 
 
 def setup_exps_rllib(flow_params,
-                    n_cpus,
-                    n_rollouts,
-                    policy_graphs=None,
-                    policy_mapping_fn=None,
-                    policies_to_train=None):
+                     n_cpus,
+                     n_rollouts,
+                     policy_graphs=None,
+                     policy_mapping_fn=None,
+                     policies_to_train=None):
     """Return the relevant components of an RLlib experiment.
 
     Parameters
@@ -240,7 +233,7 @@ if __name__ == "__main__":
         # dump the flow params
         with open(os.path.join(path, result_name) + '.json', 'w') as outfile:
             json.dump(flow_params, outfile,
-                    cls=FlowParamsEncoder, sort_keys=True, indent=4)
+                      cls=FlowParamsEncoder, sort_keys=True, indent=4)
 
         # Replay the result by loading the model
         print('Loading the trained model and testing it out!')
