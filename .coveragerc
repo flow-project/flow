@@ -5,7 +5,6 @@ omit =
     *__init__*
     */scripts/*
     */setup.py
-    *rllab*
     */flow/utils/shflags
     *dummy_server.py
     *aimsun.py
