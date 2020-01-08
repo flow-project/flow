@@ -243,7 +243,7 @@ In order to test run an Flow experiment in RLlib, try the following command:
 
 ::
 
-    python examples/train_rllib.py singleagent_ring
+    python examples/train.py singleagent_ring
 
 
 If it does not fail, this means that you have Flow properly configured with
@@ -264,7 +264,7 @@ You can test your installation by running
 
 ::
 
-    python examples/train_stable_baselines.py singleagent_ring
+    python examples/train.py singleagent_ring --rl_trainer Stable-Baselines
 
 
 

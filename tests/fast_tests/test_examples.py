@@ -21,8 +21,8 @@ from examples.exp_configs.rl.multiagent.multiagent_ring import \
 #     make_flow_params as multi_grid_setup_flow_params
 from examples.exp_configs.rl.multiagent.multiagent_highway import flow_params as multiagent_highway
 
-from examples.train_stable_baselines import run_model as run_stable_baselines_model
-from examples.train_rllib import setup_exps as setup_rllib_exps
+from examples.train import run_model_stablebaseline as run_stable_baselines_model
+from examples.train import setup_exps_rllib as setup_rllib_exps
 
 from examples.exp_configs.non_rl.bay_bridge import flow_params as non_rl_bay_bridge
 from examples.exp_configs.non_rl.bay_bridge_toll import flow_params as non_rl_bay_bridge_toll
