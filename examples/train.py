@@ -182,9 +182,9 @@ if __name__ == "__main__":
         submodule = getattr(module, flags.exp_config)
     elif hasattr(module_ma, flags.exp_config):
         submodule = getattr(module_ma, flags.exp_config)
-        if flags.rl_trainer == "Stable-Baselines":
-            assert False, "Currently, multiagent experiments are only supported through "\
-                           "RLlib. Try running this experiment using RLlib: 'python train.py EXP_CONFIG'"
+        assert flags.rl_trainer == "RLlib", \
+            "Currently, multiagent experiments are only supported through "\
+            "RLlib. Try running this experiment using RLlib: 'python train.py EXP_CONFIG'"
     else:
         assert False, "Unable to find experiment config!"
     if flags.rl_trainer == "RLlib":
