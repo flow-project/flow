@@ -49,7 +49,7 @@ def parse_args(args):
     parser.add_argument(
         'exp_config', type=str,
         help='Name of the experiment configuration file, as located in '
-             'exp_configs/rl/singleagent' or 'exp_configs/rl/multiagent.')
+             'exp_configs/rl/singleagent or exp_configs/rl/multiagent.')
 
     # optional input parameters
     parser.add_argument(
@@ -182,6 +182,9 @@ if __name__ == "__main__":
         submodule = getattr(module, flags.exp_config)
     elif hasattr(module_ma, flags.exp_config):
         submodule = getattr(module_ma, flags.exp_config)
+        if flags.rl_trainer == "Stable-Baselines":
+            assert False, "Currently, multiagent experiments are only supported through "\
+                           "RLlib. Try running this experiment using RLlib: 'python train.py EXP_CONFIG'"
     else:
         assert False, "Unable to find experiment config!"
     if flags.rl_trainer == "RLlib":
@@ -214,6 +217,7 @@ if __name__ == "__main__":
         })
 
     elif flags.rl_trainer == "Stable-Baselines":
+        flow_params = submodule.flow_params
         # Path to the saved files
         exp_tag = flow_params['exp_tag']
         result_name = '{}/{}'.format(exp_tag, strftime("%Y-%m-%d-%H:%M:%S"))
