@@ -8,7 +8,8 @@ from ray.tune import run_experiments
 from flow.core.experiment import Experiment
 
 from examples.exp_configs.rl.singleagent.singleagent_figure_eight import flow_params as singleagent_figure_eight
-# from examples.exp_configs.rl.singleagent.green_wave import flow_params as singleagent_green_wave
+from examples.exp_configs.rl.singleagent.singleagent_traffic_light_grid import \
+    flow_params as singleagent_traffic_light_grid
 from examples.exp_configs.rl.singleagent.singleagent_merge import flow_params as singleagent_merge
 from examples.exp_configs.rl.singleagent.singleagent_ring import flow_params as singleagent_ring
 from examples.exp_configs.rl.singleagent.singleagent_bottleneck import flow_params as singleagent_bottleneck
@@ -16,9 +17,8 @@ from examples.exp_configs.rl.singleagent.singleagent_bottleneck import flow_para
 from examples.exp_configs.rl.multiagent.multiagent_figure_eight import flow_params as multiagent_figure_eight
 from examples.exp_configs.rl.multiagent.multiagent_ring import \
     flow_params as multiagent_ring
-# from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import setup_exps_PPO as multi_grid_setup
-# from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import \
-#     make_flow_params as multi_grid_setup_flow_params
+from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import \
+    flow_params as multiagent_traffic_light_grid
 from examples.exp_configs.rl.multiagent.multiagent_highway import flow_params as multiagent_highway
 
 from examples.train import run_model_stablebaseline as run_stable_baselines_model
@@ -125,19 +125,16 @@ class TestStableBaselineExamples(unittest.TestCase):
     def test_singleagent_figure_eight(self):
         self.run_exp(singleagent_figure_eight)
 
-    def test_run_traffic_light_grid(self):
-        pass  # FIXME
-
-    def test_green_wave_inflows(self):
-        pass  # FIXME
+    def test_singleagent_traffic_light_grid(self):
+        self.run_exp(singleagent_traffic_light_grid)
 
     def test_singleagent_merge(self):
         self.run_exp(singleagent_merge)
 
-    def test_ring(self):
+    def test_singleagent_ring(self):
         self.run_exp(singleagent_ring)
 
-    def test_bottleneck(self):
+    def test_singleagent_bottleneck(self):
         self.run_exp(singleagent_bottleneck)
 
 
@@ -156,19 +153,19 @@ class TestRllibExamples(unittest.TestCase):
     def test_singleagent_figure_eight(self):
         self.run_exp(singleagent_figure_eight)
 
-    def test_traffic_light_grid(self):
-        pass  # FIXME
+    def test_singleagent_traffic_light_grid(self):
+        self.run_exp(singleagent_traffic_light_grid)
 
-    def test_traffic_light_grid_inflows(self):
+    def test_singleagent_traffic_light_grid_inflows(self):
         pass  # FIXME
 
     def test_singleagent_merge(self):
         self.run_exp(singleagent_merge)
 
-    def test_ring(self):
+    def test_singleagent_ring(self):
         self.run_exp(singleagent_ring)
 
-    def test_bottleneck(self):
+    def test_singleagent_bottleneck(self):
         self.run_exp(singleagent_bottleneck)
 
     def test_multi_figure_eight(self):
@@ -193,8 +190,17 @@ class TestRllibExamples(unittest.TestCase):
         }
         self.run_exp(multiagent_ring, **kwargs)
 
-    def test_multi_grid(self):
-        pass  # FIXME
+    def test_multi_traffic_light_grid(self):
+        from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import POLICY_GRAPHS as mtlpg
+        from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import POLICIES_TO_TRAIN as mtlpt
+        from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import policy_mapping_fn as mtlpmf
+
+        kwargs = {
+            "policy_graphs": mtlpg,
+            "policies_to_train": mtlpt,
+            "policy_mapping_fn": mtlpmf
+        }
+        self.run_exp(multiagent_traffic_light_grid, **kwargs)
 
     def test_multi_highway(self):
         from examples.exp_configs.rl.multiagent.multiagent_highway import POLICY_GRAPHS as mhpg
