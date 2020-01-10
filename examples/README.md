@@ -33,9 +33,9 @@ where `EXP_CONFIG` is the name of the experiment configuration file, as located 
 There are several *optional* arguments that can be added to the above command:
 
 ```shell
- python simulate.py EXP_CONFIG --num_runs n --render --aimsun --gen_emission
+ python simulate.py EXP_CONFIG --num_runs n --no_render --aimsun --gen_emission
 ```
-where `--num_runs` indicates the number of simulations to run (default of `n` is 1), `--render` indicates whether to run the simulation during runtime (default is False), `--aimsun` indicates whether to run the simulation using the simulator Aimsun (the default simulator is SUMO), and `--gen_emission` indicates whether to generate an emission file from the simulation.
+where `--num_runs` indicates the number of simulations to run (default of `n` is 1), `--no_render` indicates whether to deactivate the simulation GUI during runtime (by default simulation GUI is active), `--aimsun` indicates whether to run the simulation using the simulator Aimsun (the default simulator is SUMO), and `--gen_emission` indicates whether to generate an emission file from the simulation.
 
 ## RL examples based on RLlib 
 
