@@ -1,5 +1,6 @@
 """Traffic Light Grid example."""
 
+import argparse
 import json
 
 import ray
@@ -209,6 +210,7 @@ flow_params = dict(
         sim_step=1,
         render=True,
         restart_instance=True,
+        rllib_training=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -296,8 +298,15 @@ def setup_exps(use_inflows=False):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser('Parse some arguments bruv')
+    parser.add_argument('--local_mode', action='store_true', default=False,
+                        help='If true, we run things on one CPU. Very useful for debugging.')
+    args = parser.parse_args()
     alg_run, gym_name, config = setup_exps()
-    ray.init(num_cpus=N_CPUS + 1)
+    if args.local_mode:
+        ray.init(local_mode=True)
+    else:
+        ray.init()
     trials = run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,

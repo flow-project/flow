@@ -386,6 +386,8 @@ class SimParams(object):
         specifies rendering resolution (pixel / meter)
     color_vehicles : bool, optional
         whether or not to automatically color vehicles according to their types
+    rllib_training : bool, optional
+        whether we are training with rllib. This is purely helpful if you're using rllib
     """
 
     def __init__(self,
@@ -397,7 +399,8 @@ class SimParams(object):
                  sight_radius=25,
                  show_radius=False,
                  pxpm=2,
-                 color_vehicles=True):
+                 color_vehicles=True,
+                 rllib_training=False):
         """Instantiate SimParams."""
         self.sim_step = sim_step
         self.render = render
@@ -408,6 +411,7 @@ class SimParams(object):
         self.pxpm = pxpm
         self.show_radius = show_radius
         self.color_vehicles = color_vehicles
+        self.rllib_training = rllib_training
 
 
 class AimsunParams(SimParams):
@@ -556,6 +560,8 @@ class SumoParams(SimParams):
         they teleport after teleport_time seconds
     num_clients : int, optional
         Number of clients that will connect to Traci
+    rllib_training : bool, optional
+        whether we are training with rllib. This is purely helpful if you're using rllib
     """
 
     def __init__(self,
@@ -574,7 +580,8 @@ class SumoParams(SimParams):
                  restart_instance=False,
                  print_warnings=True,
                  teleport_time=-1,
-                 num_clients=1):
+                 num_clients=1,
+                 rllib_training=False):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
@@ -587,6 +594,7 @@ class SumoParams(SimParams):
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
         self.num_clients = num_clients
+        self.rllib_training = rllib_training
 
 
 class EnvParams:
