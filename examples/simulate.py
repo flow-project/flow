@@ -1,7 +1,7 @@
 """Runner script for non-RL simulations in flow.
 
 Usage
-    python simulate.py EXP_CONFIG --render
+    python simulate.py EXP_CONFIG --no_render
 """
 import argparse
 import sys
@@ -19,7 +19,7 @@ def parse_args(args):
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="Parse argument used when running a Flow simulation.",
-        epilog="python simulate.py EXP_CONFIG --num_runs INT --render")
+        epilog="python simulate.py EXP_CONFIG --num_runs INT --no_render")
 
     # required input parameters
     parser.add_argument(
@@ -32,7 +32,7 @@ def parse_args(args):
         '--num_runs', type=int, default=1,
         help='Number of simulations to run. Defaults to 1.')
     parser.add_argument(
-        '--render',
+        '--no_render',
         action='store_true',
         help='Specifies whether to run the simulation during runtime.')
     parser.add_argument(
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     flow_params = getattr(module, flags.exp_config).flow_params
 
     # Update some variables based on inputs.
-    flow_params['sim'].render = flags.render
+    flow_params['sim'].render = not flags.no_render
     flow_params['simulator'] = 'aimsun' if flags.aimsun else 'traci'
 
     # specify an emission path if they are meant to be generated
