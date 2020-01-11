@@ -7,6 +7,7 @@ from flow.envs.multiagent.ring.wave_attenuation import \
 from flow.envs.multiagent.ring.accel import MultiAgentAccelEnv
 from flow.envs.multiagent.traffic_light_grid import MultiTrafficLightGridPOEnv
 from flow.envs.multiagent.highway import MultiAgentHighwayPOEnv
+from flow.envs.multiagent.bayesian_env_1 import BayesianEnv1
 
 __all__ = ['MultiEnv', 'MultiAgentAccelEnv', 'MultiWaveAttenuationPOEnv',
-           'MultiTrafficLightGridPOEnv', 'MultiAgentHighwayPOEnv']
+           'MultiTrafficLightGridPOEnv', 'MultiAgentHighwayPOEnv', 'BayesianEnv1']

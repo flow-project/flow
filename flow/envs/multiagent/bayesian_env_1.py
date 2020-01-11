@@ -19,7 +19,7 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 
-class MultiAgentHighwayPOEnv(MultiEnv):
+class BayesianEnv1(MultiEnv):
     """Testing whether an agent can learn to navigate successfully crossing the env described
     in scenario 1 of Jakob's diagrams. Please refer to the sketch for more details. Basically,
     inferring that the human is going to cross allows one of the vehicles to succesfully cross.
@@ -89,6 +89,7 @@ class MultiAgentHighwayPOEnv(MultiEnv):
         obs = {}
         for rl_id in self.k.vehicle.get_rl_ids():
             # TODO add get x y as something that we store from TraCI
+            # TODO(@nliu)
             observation = np.zeros(self.observation_space.shape[0])
             visible_ids = self.find_visible_objects(rl_id, self.search_radius)
             veh_x, veh_y = self.k.vehicle.get_x_y(rl_id)
@@ -96,9 +97,11 @@ class MultiAgentHighwayPOEnv(MultiEnv):
                 x, y = self.k.vehicle.get_x_y(obj_id)
                 rel_x = veh_x - x
                 rel_y = veh_y - y
+                # TODO(@nliu)
                 # TODO add a check for whether an object is a pedestrian
                 is_ped = self.k.pedestrian.is_pedestrian(obj_id)
                 if is_ped:
+                    # TODO(@nliu) is this even possible?
                     # TODO implement yaw checking
                     speed = self.k.pedestrian.get_speed(obj_id)
                     yaw = self.k.pedestrian.get_yaw(obj_id)
@@ -119,7 +122,8 @@ class MultiAgentHighwayPOEnv(MultiEnv):
 
         rewards = {}
         for rl_id in self.k.vehicle.get_rl_ids():
-            # TODO pick the right reward
+
+            # TODO(@evinitsky) pick the right reward
             reward = 0
 
             rewards[rl_id] = reward
