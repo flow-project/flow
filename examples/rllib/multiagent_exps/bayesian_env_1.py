@@ -77,7 +77,8 @@ def make_flow_params():
         routing_controller=(GridRouter, {}),
         num_vehicles=1)
 
-    # inflows of vehicles are place on all outer edges (listed here)
+    #TODO(klin) Convert these to new coordinates
+    # inflows of vehicles are placed on all outer edges (listed here)
     n_rows = 1
     n_columns = 1
     outer_edges = []
@@ -93,7 +94,7 @@ def make_flow_params():
         # name of the flow environment the experiment is running on
         env_name=BayesianEnv1,
 
-        # name of the network class the experiment is running on
+        # name of the network class the experiment is running on TODO(KLin) change this to the correct network
         network=TrafficLightGridNetwork,
 
         # simulator that is used by the experiment

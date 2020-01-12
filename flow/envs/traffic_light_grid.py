@@ -316,9 +316,7 @@ class TrafficLightGridEnv(Env):
         """See class definition."""
         # compute the normalizers
         grid_array = self.net_params.additional_params["grid_array"]
-        max_dist = max(grid_array["short_length"],
-                       grid_array["long_length"],
-                       grid_array["inner_length"])
+        max_dist = grid_array["inner_length"]
 
         max_phase_duration = 90
 
@@ -789,8 +787,7 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
             self.k.network.speed_limit(edge)
             for edge in self.k.network.get_edge_list())
         grid_array = self.net_params.additional_params["grid_array"]
-        max_dist = max(grid_array["short_length"], grid_array["long_length"],
-                       grid_array["inner_length"])
+        max_dist = grid_array["inner_length"]
         all_observed_ids = []
 
         for _, edges in self.network.node_mapping:

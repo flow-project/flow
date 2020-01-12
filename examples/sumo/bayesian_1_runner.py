@@ -8,7 +8,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.networks import TrafficLightGridNetwork
+from flow.networks import Bayesian1Network
 
 
 def gen_edges(col_num, row_num):
@@ -56,7 +56,7 @@ def gen_edges(col_num, row_num):
 def get_non_flow_params(enter_speed, add_net_params):
     """Define the network and initial params in the absence of inflows.
 
-    Note that when a vehicle leaves a network in this case, it is immediately
+    Note that when a vehicle leaves a network in this case, it is immediately #TODO(KLin) Does this actually happen?
     returns to the start of the row/column it was traversing, and in the same
     direction as it was before.
 
@@ -100,8 +100,6 @@ def traffic_light_grid_example(render=None):
     """
     v_enter = 10
     inner_length = 50
-    long_length = 50
-    short_length = 50
     n_rows = 1
     n_columns = 1
     # TODO(@nliu) add the pedestrian in
@@ -110,12 +108,11 @@ def traffic_light_grid_example(render=None):
     num_cars_top = 1
     num_cars_bot = 1
     tot_cars = (num_cars_left + num_cars_right) * n_columns \
-        + (num_cars_top + num_cars_bot) * n_rows
+        + (num_cars_top + num_cars_bot) * n_rows              # Why's this * n_rows and not n_cols?
+
 
     grid_array = {
-        "short_length": short_length,
         "inner_length": inner_length,
-        "long_length": long_length,
         "row_num": n_rows,
         "col_num": n_columns,
         "cars_left": num_cars_left,
@@ -150,6 +147,7 @@ def traffic_light_grid_example(render=None):
         lane_change_params=lane_change_params,
         num_vehicles=tot_cars)
 
+
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     additional_net_params = {
@@ -163,7 +161,7 @@ def traffic_light_grid_example(render=None):
         enter_speed=v_enter,
             add_net_params=additional_net_params)
 
-    network = TrafficLightGridNetwork(
+    network = Bayesian1Network(
         name="grid-intersection",
         vehicles=vehicles,
         net_params=net_params,

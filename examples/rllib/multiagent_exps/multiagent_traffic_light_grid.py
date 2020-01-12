@@ -30,8 +30,6 @@ N_CPUS = 63  # number of parallel workers
 HORIZON = 400  # time horizon of a single rollout
 V_ENTER = 30  # enter speed for departing vehicles
 INNER_LENGTH = 300  # length of inner edges in the traffic light grid network
-LONG_LENGTH = 100  # length of final edge in route
-SHORT_LENGTH = 300  # length of edges that vehicles start on
 # number of vehicles originating in the left, right, top, and bottom edges
 N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 1, 1, 1, 1
 
@@ -130,9 +128,7 @@ def make_flow_params(n_rows, n_columns, edge_inflow):
             additional_params={
                 "speed_limit": V_ENTER + 5,  # inherited from grid0 benchmark
                 "grid_array": {
-                    "short_length": SHORT_LENGTH,
                     "inner_length": INNER_LENGTH,
-                    "long_length": LONG_LENGTH,
                     "row_num": n_rows,
                     "col_num": n_columns,
                     "cars_left": N_LEFT,

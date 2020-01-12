@@ -141,8 +141,6 @@ def get_non_flow_params(enter_speed, add_net_params):
 
 V_ENTER = 15
 INNER_LENGTH = 300
-LONG_LENGTH = 100
-SHORT_LENGTH = 300
 N_ROWS = 2
 N_COLUMNS = 3
 NUM_CARS_LEFT = 1
@@ -153,9 +151,7 @@ tot_cars = (NUM_CARS_LEFT + NUM_CARS_RIGHT) * N_COLUMNS \
            + (NUM_CARS_BOT + NUM_CARS_TOP) * N_ROWS
 
 grid_array = {
-    "short_length": SHORT_LENGTH,
     "inner_length": INNER_LENGTH,
-    "long_length": LONG_LENGTH,
     "row_num": N_ROWS,
     "col_num": N_COLUMNS,
     "cars_left": NUM_CARS_LEFT,
