@@ -70,7 +70,7 @@ class MultiTrafficLightGridPOEnv(TrafficLightGridPOEnv, MultiEnv):
             high=5,
             shape=(3 * 4 * self.num_observed +
                    2 * self.num_local_edges +
-                   3 * (1 + self.num_local_lights),
+                   2 * (1 + self.num_local_lights),
                    ),
             dtype=np.float32)
         return tl_box
@@ -167,14 +167,12 @@ class MultiTrafficLightGridPOEnv(TrafficLightGridPOEnv, MultiEnv):
         self.observed_ids = all_observed_ids
 
         # Traffic light information
-        last_change = self.last_change.flatten()
         direction = self.direction.flatten()
         currently_yellow = self.currently_yellow.flatten()
         # This is a catch-all for when the relative_node method returns a -1
         # (when there is no node in the direction sought). We add a last
         # item to the lists here, which will serve as a default value.
         # TODO(cathywu) are these values reasonable?
-        last_change = np.append(last_change, [0])
         direction = np.append(direction, [0])
         currently_yellow = np.append(currently_yellow, [1])
 
@@ -194,7 +192,7 @@ class MultiTrafficLightGridPOEnv(TrafficLightGridPOEnv, MultiEnv):
             observation = np.array(np.concatenate(
                 [speeds[rl_id_num], dist_to_intersec[rl_id_num],
                  edge_number[rl_id_num], density[local_edge_numbers],
-                 velocity_avg[local_edge_numbers], last_change[local_id_nums],
+                 velocity_avg[local_edge_numbers],
                  direction[local_id_nums], currently_yellow[local_id_nums]
                  ]))
             obs.update({rl_id: observation})

@@ -121,6 +121,11 @@ class MultiEnv(MultiAgentEnv, Env):
         else:
             reward = self.compute_reward(rl_actions, fail=crash)
 
+        for rl_id in self.k.vehicle.get_arrived_rl_ids():
+            done[rl_id] = True
+            reward[rl_id] = 0
+            states[rl_id] = np.zeros(self.observation_space.shape[0])
+
         return states, reward, done, infos
 
     def reset(self, new_inflow_rate=None):

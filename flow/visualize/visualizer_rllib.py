@@ -13,7 +13,6 @@ parser : ArgumentParser
 """
 
 import argparse
-from datetime import datetime
 import gym
 import numpy as np
 import os
@@ -110,15 +109,13 @@ def visualizer_rllib(args):
         sim_params.render = 'drgb'
         sim_params.pxpm = 4
     elif args.render_mode == 'sumo_gui':
-        sim_params.render = True
-        print('NOTE: With render mode {}, an extra instance of the SUMO GUI '
-              'will display before the GUI for visualizing the result. Click '
-              'the green Play arrow to continue.'.format(args.render_mode))
+        sim_params.render = False  # will be set to True below
     elif args.render_mode == 'no_render':
         sim_params.render = False
     if args.save_render:
-        sim_params.render = 'drgb'
-        sim_params.pxpm = 4
+        if args.render_mode != 'sumo_gui':
+            sim_params.render = 'drgb'
+            sim_params.pxpm = 4
         sim_params.save_render = True
 
     # Create and register a gym+rllib env
@@ -159,6 +156,9 @@ def visualizer_rllib(args):
     else:
         env = gym.make(env_name)
 
+    if args.render_mode == 'sumo_gui':
+        env.sim_params.render = True  # set to True after initializing agent and env
+
     if multiagent:
         rets = {}
         # map the agent id to its policy
@@ -186,8 +186,9 @@ def visualizer_rllib(args):
     else:
         use_lstm = False
 
-    env.restart_simulation(
-        sim_params=sim_params, render=sim_params.render)
+    # if restart_instance, don't restart here because env.reset will restart later
+    if not sim_params.restart_instance:
+        env.restart_simulation(sim_params=sim_params, render=sim_params.render)
 
     # Simulate and collect metrics
     final_outflows = []
@@ -203,7 +204,12 @@ def visualizer_rllib(args):
             ret = 0
         for _ in range(env_params.horizon):
             vehicles = env.unwrapped.k.vehicle
-            vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
+            speeds = vehicles.get_speed(vehicles.get_ids())
+
+            # only include non-empty speeds
+            if speeds:
+                vel.append(np.mean(speeds))
+
             if multiagent:
                 action = {}
                 for agent_id in state.keys():
@@ -312,23 +318,6 @@ def visualizer_rllib(args):
 
         # delete the .xml version of the emission file
         os.remove(emission_path)
-
-    # if we wanted to save the render, here we create the movie
-    if args.save_render:
-        dirs = os.listdir(os.path.expanduser('~')+'/flow_rendering')
-        # Ignore hidden files
-        dirs = [d for d in dirs if d[0] != '.']
-        dirs.sort(key=lambda date: datetime.strptime(date, "%Y-%m-%d-%H%M%S"))
-        recent_dir = dirs[-1]
-        # create the movie
-        movie_dir = os.path.expanduser('~') + '/flow_rendering/' + recent_dir
-        save_dir = os.path.expanduser('~') + '/flow_movies'
-        if not os.path.exists(save_dir):
-            os.mkdir(save_dir)
-        os_cmd = "cd " + movie_dir + " && ffmpeg -i frame_%06d.png"
-        os_cmd += " -pix_fmt yuv420p " + dirs[-1] + ".mp4"
-        os_cmd += "&& cp " + dirs[-1] + ".mp4 " + save_dir + "/"
-        os.system(os_cmd)
 
 
 def create_parser():
