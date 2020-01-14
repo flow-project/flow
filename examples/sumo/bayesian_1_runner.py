@@ -8,7 +8,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.envs.bayesian_1_env import BayesianEnv1, ADDITIONAL_ENV_PARAMS
+from flow.envs.bayesian_1_env import Bayesian1Env, ADDITIONAL_ENV_PARAMS
 from flow.networks import Bayesian1Network
 
 
