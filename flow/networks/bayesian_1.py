@@ -11,15 +11,11 @@ ADDITIONAL_NET_PARAMS = {
     # dictionary of bayesian scenario 1 grid array data
     "grid_array": {
         # number of horizontal rows of edges
-        "row_num": 3,
+        "row_num": 1,
         # number of vertical columns of edges
-        "col_num": 2,
+        "col_num": 1,
         # length of edges in the traffic light grid network
         "inner_length": None,
-        # length of edges where vehicles enter the network
-        "short_length": None,
-        # length of edges where vehicles exit the network
-        "long_length": None,
         # number of cars starting at the edges heading to the top
         "cars_top": 20,
         # number of cars starting at the edges heading to the bottom
@@ -79,11 +75,9 @@ class Bayesian1Network(TrafficLightGridNetwork):
     >>>     net_params=NetParams(
     >>>         additional_params={
     >>>             'grid_array': {
-    >>>                 'row_num': 3,
-    >>>                 'col_num': 2,
+    >>>                 'row_num': 1,
+    >>>                 'col_num': 1,
     >>>                 'inner_length': 500,
-    >>>                 'short_length': 500,
-    >>>                 'long_length': 500,
     >>>                 'cars_top': 20,
     >>>                 'cars_bot': 20,
     >>>                 'cars_left': 20,
@@ -107,56 +101,31 @@ class Bayesian1Network(TrafficLightGridNetwork):
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
         """Initialize an n*m traffic light grid network."""
-        optional = ["tl_logic"]
-        for p in ADDITIONAL_NET_PARAMS.keys():
-            if p not in net_params.additional_params and p not in optional:
-                raise KeyError('Network parameter "{}" not supplied'.format(p))
-
-        for p in ADDITIONAL_NET_PARAMS["grid_array"].keys():
-            if p not in net_params.additional_params["grid_array"]:
-                raise KeyError(
-                    'Grid array parameter "{}" not supplied'.format(p))
-
-        # retrieve all additional parameters
-        # refer to the ADDITIONAL_NET_PARAMS dict for more documentation
-        self.vertical_lanes = net_params.additional_params["vertical_lanes"]
-        self.horizontal_lanes = net_params.additional_params[
-            "horizontal_lanes"]
-        self.speed_limit = net_params.additional_params["speed_limit"]
-        if not isinstance(self.speed_limit, dict):
-            self.speed_limit = {
-                "horizontal": self.speed_limit,
-                "vertical": self.speed_limit
-            }
-
-        self.grid_array = net_params.additional_params["grid_array"]
-        self.row_num = self.grid_array["row_num"]
-        self.col_num = self.grid_array["col_num"]
-        self.inner_length = self.grid_array["inner_length"]
-        self.short_length = self.grid_array["short_length"]
-        self.long_length = self.grid_array["long_length"]
-        self.cars_heading_top = self.grid_array["cars_top"]
-        self.cars_heading_bot = self.grid_array["cars_bot"]
-        self.cars_heading_left = self.grid_array["cars_left"]
-        self.cars_heading_right = self.grid_array["cars_right"]
-
-        # specifies whether or not there will be traffic lights at the
-        # intersections (True by default)
-        self.use_traffic_lights = net_params.additional_params.get(
-            "traffic_lights", True)
-
-        # radius of the inner nodes (ie of the intersections)
-        self.nodes_radius = 2.9 + 3.3 * max(self.vertical_lanes,
-                                            self.horizontal_lanes)
-
-        # total number of edges in the network
-        self.num_edges = 4 * ((self.col_num + 1) * self.row_num + self.col_num)
-
-        # name of the network (DO NOT CHANGE)
-        self.name = "BobLoblawsLawBlog"
-
         super().__init__(name, vehicles, net_params, initial_config,
                          traffic_lights)
+        self.use_traffic_lights = False
+        self.nodes = self._nodes
+
+    @property
+    def _nodes(self):
+        """See parent class"""
+        node_type = "traffic_light" if self.use_traffic_lights else "priority"
+        x_max = self.col_num + 1
+        y_max = self.row_num + 1
+
+        nodes = []
+        for x in range(x_max + 1):
+            for y in range(y_max + 1):
+                if (x, y) not in [(0, 0), (x_max, 0), (0, y_max), (x_max, y_max)]:
+                    nodes.append({
+                        "id": "({}.{})".format(x, y),
+                        "x": x * self.inner_length,
+                        "y": y * self.inner_length,
+                        "type": node_type,
+                        "radius": self.nodes_radius
+                    })
+
+        return nodes
 
     def specify_nodes(self, net_params):
         """See parent class."""
@@ -167,155 +136,21 @@ class Bayesian1Network(TrafficLightGridNetwork):
         return self._edges
 
     def specify_routes(self, net_params):
-        """Generate dict representing all (perhaps we don't want ALL) possible routes of the network via the
-        "Multiple routes per edge" format described in the networks tutorial (tutorial 5, as of 1st Nov, 2019).
 
-        Returns
-        -------
-        routes_dict <list <tuple>>
+        car_1_start_edge = "(2.1)--(1.1)"
+        car_1_end_edge = "(1.1)--(0.1)"
 
-        The format of routes_dict is as follows:
+        car_2_start_edge = "(1.2)--(1.1)"
+        car_2_end_edge = "(1.1)--(2.1)"
 
-                routes_dict = {"edge0":     [(Route A beginning with edge0, Pr(route A)),
-                                             (Route B beginning with edge0, Pr(route B))],
-                               "edge1":     [(Route A beginning with edge1, Pr(route A)),
-                                             (Route B beginning with edge1, Pr(route B)]
-                                }
-        Each route is a list of edges
-        """
+        car_3_start_edge = "(1.0)--(1.1)"
+        car_3_end_edge = "(1.1)--(2.1)"
 
-        routes_dict = {}
+        rts = {car_1_start_edge: [car_1_start_edge, car_1_end_edge],
+               car_2_start_edge: [car_2_start_edge, car_2_end_edge],
+               car_3_start_edge: [car_3_start_edge, car_3_end_edge]}
 
-        def generate_node_routes_list(k=5):
-            """Create a list of k shortest routes for all possible pairs of source and destination outer nodes. By default,
-            for any two pairs of source and destination nodes, generate k shortest routes.
-
-            Returns
-            -------
-            routes_dict_nodes, a dict of dicts.
-
-            The keys to the outer dict are the names of the starting nodes e.g "(0.1)". The value of the outer dict are
-            more dicts. e.g. routes_dict["(0.1)"] returns another dict. Let's call this dict "(0.1)-routes". The keys to
-            this "(0.1)-routes" dict are the names of an ending node e.g. "(0.4)". The value for a "(0.1)-routes" dict is
-            a list of all routes (in terms of a sequence of nodes in a list). This list is ordered from the path with the
-            shortest number of nodes to the kth shortest path.
-
-            routes_dict should have this form:
-
-            routes_dict = {"sn0": {"en0": [route_1(sn0 - en0), route_2(sn0 - en0), route_3(sn0 - en0), ... route_k(sn0, en0)],
-                                   "en1": [route_1(sn0 - en1), route_2(sn0 - en1), route_3(sn0 - en1), ... route_k(sn0, en1)],
-                                        ...
-                                   "enj": [route_1(sn0 - en2), route_2(sn0 - en2), route_3(sn0 - en2), ... route_k(sn0, en2)]},
-
-                           "sn1": {"en0": [route_1(sn1 - en0), route_2(sn1 - en0), route_3(sn1 - en0), ... route_k(sn1, en0)],
-                                   "en1": [route_1(sn1 - en1), route_2(sn1 - en1), route_3(sn1 - en1), ... route_k(sn1, en1)],
-                                        ...
-                                   "enj": [route_1(sn1 - enj), route_2(sn1 - enj), route_3(sn1 - enj), ... route_k(sn1, enj)]},
-                            ...
-                           }
-
-            (Here, sn is shorthand for "start node", and en is shorthand for "end node")
-
-            routes_nodes_dict = {start_node:
-                                    {end_node: [rt1, rt2, rt3]}
-                                                                ... }
-            """
-
-            routes_nodes_dict = {}
-            g = nx.DiGraph()
-            src_dst_nodes = []  # list of all outer nodes that function as starting (and ending) nodes
-
-            x_max = self.col_num + 1
-            y_max = self.row_num + 1
-
-            def k_shortest_paths(G, source, target, len_k, weight=None):
-                """Takes in a graph, source and target and returns a list of k lists. Each inner list contains a sequence
-                 of nodes that form a path between a source and target node.
-
-                Source: https://networkx.github.io/documentation/stable/reference/algorithms/generated/networkx.algorithms.
-                simple_paths.shortest_simple_paths.html#networkx.algorithms.simple_paths.shortest_simple_paths"""
-
-                return list(islice(nx.shortest_simple_paths(G, source, target, weight=weight), len_k))
-
-            # Generate all nodes in the grid for the graph
-            for x in range(x_max + 1):
-                for y in range(y_max + 1):
-                    if (x, y) not in [(0, 0), (x_max, 0), (0, y_max), (x_max, y_max)]:
-                        g.add_node("({}.{})".format(x, y))
-                        if x == x_max or x == 0 or y == y_max or y == 0:
-                            src_dst_nodes += ["({}.{})".format(x, y)]
-
-            # Build all the 'horizontal' edges for the graph
-            for y in range(1, y_max):
-                for x in range(x_max):
-                    left_node = "({}.{})".format(x, y)
-                    right_node = "({}.{})".format(x + 1, y)
-                    g.add_edge(left_node, right_node, weight=1)
-                    g.add_edge(right_node, left_node, weight=1)
-
-            # Build all the 'vertical' edges for the graph
-            for x in range(1, x_max):
-                for y in range(y_max):
-                    bottom_node = "({}.{})".format(x, y)
-                    top_node = "({}.{})".format(x, y + 1)
-                    g.add_edge(bottom_node, top_node, weight=1)
-                    g.add_edge(top_node, bottom_node, weight=1)
-
-            # Loop through all src and dest nodes to generate list of node sequences that represent possible paths
-            for src in src_dst_nodes:
-                routes_nodes_dict[src] = {}
-                for dst in src_dst_nodes:
-                    if src != dst:  # In reality, one would probably want to be able to return to a particular node
-                        curr_src_dict = routes_nodes_dict[src].get(dst, {})
-                        curr_src_dict_lst = curr_src_dict.get(dst, [])
-                        curr_src_dict_lst.extend(k_shortest_paths(g, src, dst, k))
-                        routes_nodes_dict[src][dst] = curr_src_dict_lst
-                        # if src != dst: do we want cars to be able to return to the same edge it came from?
-
-            return routes_nodes_dict
-
-        def node_route_to_edge_route(node_route):
-            """Convert a shortest path specified by a sequence of nodes to a shortest path specified by a sequence of edges
-            Returns a list of edges"""
-
-            edge_route = []
-            for node_index in range(len(node_route) - 1):
-                curr_node = node_route[node_index]
-                next_node = node_route[node_index + 1]
-                curr_edge = curr_node + "--" + next_node
-                edge_route.append(curr_edge)
-
-            return edge_route
-
-        node_routes = generate_node_routes_list(5)  # for all src-dst node pairs, generate the top 5 shortest node paths
-
-        # Convert node routes into edge routes
-        for start_node in node_routes:
-            start_node_routes_dict = node_routes[start_node]
-            for end_node in start_node_routes_dict:
-                start_end_node_routes_list = node_routes[start_node][end_node]
-                num_rts = len(
-                    start_end_node_routes_list)  # TODO: change probs to non-hard coded (uniform) distribution?
-                for node_route in start_end_node_routes_list:
-                    edge_route = node_route_to_edge_route(node_route)
-                    start_edge = edge_route[0]
-                    curr_start_edge_routes = routes_dict.get(start_edge, [])
-                    curr_start_edge_routes.append((edge_route, 1 / num_rts))
-                    routes_dict[start_edge] = curr_start_edge_routes
-
-        # normalise probabilities of choosing a particular route
-        for start_edge in routes_dict:
-            routes_list = routes_dict[start_edge]
-            total_prob = 0
-            new_routes_list = []  # replace old list with normalised list
-            for (rt1, prob) in routes_list:
-                total_prob += prob
-            for (rt1, prob) in routes_list:
-                new_routes_list.append((rt1, prob / total_prob))
-
-            routes_dict[start_edge] = new_routes_list
-
-        return routes_dict
+        return rts
 
     def specify_types(self, net_params):
         """See parent class."""
@@ -371,7 +206,7 @@ class Bayesian1Network(TrafficLightGridNetwork):
             List of all the nodes in the network
         """
 
-        node_type = "traffic_light" if self.use_traffic_lights else "priority"
+        node_type = "traffic_light" if self.use_traffic_lights else "allway_stop"
         x_max = self.col_num + 1
         y_max = self.row_num + 1
 
@@ -700,51 +535,27 @@ class Bayesian1Network(TrafficLightGridNetwork):
     # TODO necessary? KevinLin Note that initial_config isn't used here at all
     @staticmethod
     def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
-        """See parent class."""
-        grid_array = net_params.additional_params["grid_array"]
-        row_num = grid_array["row_num"]
-        col_num = grid_array["col_num"]
+        """See parent class for full explanation
 
-        # ah, I also need to change these params
+        Return 2 lists:
+        1. list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        2. list of start lanes [lane0, lane1, lane 2, ...]"""
 
-        cars_heading_left = grid_array["cars_left"]
-        cars_heading_right = grid_array["cars_right"]
-        cars_heading_top = grid_array["cars_top"]
-        cars_heading_bot = grid_array["cars_bot"]
+        # pos = 0 starts from the starting node of the edge
+        car_1_start_edge = "(2.1)--(1.1)"
+        car_1_end_edge = "(1.1)--(0.1)"
+        car_1_start_pos = 30
 
-        start_pos = []
+        car_2_start_edge = "(1.2)--(1.1)"
+        car_2_end_edge = "(1.1)--(2.1)"
+        car_2_start_pos = 20
 
-        x_max = col_num + 1
-        y_max = row_num + 1
+        car_3_start_edge = "(1.0)--(1.1)"
+        car_3_end_edge = "(1.1)--(2.1)"
+        car_3_start_pos = 10
 
-        x0 = 6  # position of the first car
-        dx = 10  # distance between each car
-
-        start_lanes = []
-        # cars heading up and down
-        for x in range(1, x_max):
-            bot_edge = "({}.{})--({}.{})".format(x, 0, x, 1)
-            top_edge = "({}.{})--({}.{})".format(x, y_max, x, y_max - 1)
-
-            start_pos += [(bot_edge, x0 + k * dx)
-                          for k in range(cars_heading_top)]
-            start_pos += [(top_edge, x0 + k * dx)
-                          for k in range(cars_heading_bot)]
-            vert_lanes = np.random.randint(low=0, high=net_params.additional_params["vertical_lanes"],
-                                           size=cars_heading_top + cars_heading_bot).tolist()
-            start_lanes += vert_lanes
-
-        # cars heading left and right
-        for y in range(1, y_max):
-            left_edge = "({}.{})--({}.{})".format(0, y, 1, y)
-            right_edge = "({}.{})--({}.{})".format(x_max, y, x_max - 1, y)
-
-            start_pos += [(left_edge, x0 + k * dx)
-                          for k in range(cars_heading_top)]
-            start_pos += [(right_edge, x0 + k * dx)
-                          for k in range(cars_heading_bot)]
-            horz_lanes = np.random.randint(low=0, high=net_params.additional_params["horizontal_lanes"],
-                                           size=cars_heading_left + cars_heading_right).tolist()
-            start_lanes += horz_lanes
+        start_pos = [(car_1_start_edge, car_1_start_pos), (car_2_start_edge, car_2_start_pos), (car_3_start_edge, car_3_start_pos)]
+        # In SUMO, lanes are zero-indexed starting from the right-most lane
+        start_lanes = [0, 0, 0]
 
         return start_pos, start_lanes

@@ -725,4 +725,6 @@ class TrafficLightGridNetwork(Network):
                                            size=cars_heading_left + cars_heading_right).tolist()
             start_lanes += horz_lanes
 
+        print(start_pos, start_lanes)
+        print("\n")
         return start_pos, start_lanes

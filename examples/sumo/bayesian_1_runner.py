@@ -8,6 +8,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.bayesian_1_env import BayesianEnv1, ADDITIONAL_ENV_PARAMS
 from flow.networks import Bayesian1Network
 
 
@@ -83,7 +84,7 @@ def get_non_flow_params(enter_speed, add_net_params):
     return initial, net
 
 
-def traffic_light_grid_example(render=None):
+def bayesian_1_example(render=None):
     """
     Perform a simulation of vehicles on a traffic light grid.
 
@@ -103,13 +104,12 @@ def traffic_light_grid_example(render=None):
     n_rows = 1
     n_columns = 1
     # TODO(@nliu) add the pedestrian in
-    num_cars_left = 1
+    num_cars_left = 0
     num_cars_right = 1
     num_cars_top = 1
     num_cars_bot = 1
     tot_cars = (num_cars_left + num_cars_right) * n_columns \
         + (num_cars_top + num_cars_bot) * n_rows              # Why's this * n_rows and not n_cols?
-
 
     grid_array = {
         "inner_length": inner_length,
@@ -162,7 +162,7 @@ def traffic_light_grid_example(render=None):
             add_net_params=additional_net_params)
 
     network = Bayesian1Network(
-        name="grid-intersection",
+        name="bayesian_1",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
@@ -174,6 +174,6 @@ def traffic_light_grid_example(render=None):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = traffic_light_grid_example()
+    exp = bayesian_1_example(True)
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)
