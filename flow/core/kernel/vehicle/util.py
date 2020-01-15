@@ -1,6 +1,6 @@
 import math
 
-def observed(position, orientation, target_position, fov=90, looking_distance=20):
+def observed(position, orientation, target_position, fov=90, looking_distance=50):
 
     """ Checks if a single vehicle/pedestrian can see another vehicle/pedestrian
 
@@ -9,7 +9,7 @@ def observed(position, orientation, target_position, fov=90, looking_distance=20
     position : 2D tuple
         (x, y) position of observer
     orientation : double
-        angle of observer in degrees (0 deg is West, 90 deg is North)
+        angle of observer in degrees (0 deg is East, 90 deg is North)
     target_position: 2D tuple
         (x, y) position of the target
     fov: double
@@ -55,10 +55,3 @@ def get_angle(x, y):
         return math.degrees(math.atan(y / x)) + 180
 
     return math.degrees(math.atan(y / x))
-
-pos_1 = (2.4, -1.23)
-theta_1 = 45
-pos_2 = (2.48, -0.3)
-
-print(observed(pos_1, theta_1, pos_2))
-print(observed(pos_2, theta_1, pos_1))
