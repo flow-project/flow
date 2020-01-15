@@ -46,7 +46,8 @@ script. Be sure to run the below commands from ``/path/to/flow``.
 
     # create a conda environment
     conda env create -f environment.yml
-    source activate flow
+    conda activate flow
+    python setup.py develop
 
 If the conda install fails, you can also install the requirements using pip by calling
 
@@ -118,12 +119,12 @@ sure to enter your conda environment by typing:
 
 ::
 
-    source activate flow
+    conda activate flow
 
 Let’s see some traffic action:
 
 ::
-
+    
     python examples/sumo/sugiyama.py
 
 Running the following should result in the loading of the SUMO GUI.
@@ -177,7 +178,7 @@ The latter command should return an output similar to:
 
     /path/to/envs/aimsun_flow/bin/python
 
-Copy the path up until right before /bin (i.e. /path/to/envs/aimsun_flow) and
+Copy the path up until right before /lib (i.e. /path/to/envs/aimsun_flow/bin/python) and
 place it under the `AIMSUN_SITEPACKAGES` variable in your bashrc, like this:
 
 ::
@@ -248,7 +249,7 @@ To run any of the RL examples, make sure to run
 
 ::
 
-    source activate flow
+    conda activate flow
 
 In order to test run an Flow experiment in RLlib, try the following command:
 
@@ -280,26 +281,6 @@ jobs from there.
     pip install boto3
     ray create-or-update scripts/ray_autoscale.yaml
     ray teardown scripts/ray_autoscale.yaml
-
-
-Testing your installation
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To run any of the RL examples, make sure to run
-
-::
-
-    source activate flow
-
-In order to test run an Flow experiment in rllib, try the following
-command:
-
-::
-
-    python examples/rllib/stabilizing_the_ring.py
-
-If it does not fail, this means that you have Flow properly configured with
-rllib.
 
 
 (Optional) Direct install of SUMO from GitHub

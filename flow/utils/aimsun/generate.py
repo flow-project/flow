@@ -267,15 +267,15 @@ def generate_net(nodes,
     set_vehicles_color(model)
 
     # set API
-    scenario_name = data["scenario_name"]
+    network_name = data["network_name"]
     scenario = model.getCatalog().findByName(
-        scenario_name, model.getType("GKScenario"))  # find scenario
+        network_name, model.getType("GKScenario"))  # find scenario
     scenario_data = scenario.getInputData()
     scenario_data.addExtension(os.path.join(
         config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
 
     # save
-    gui.saveAs('flow.ang')
+    gui.save(model, 'flow.ang', GGui.GGuiSaveType.eSaveAs)
 
 
 def generate_net_osm(file_name, inflows, veh_types):
@@ -366,15 +366,15 @@ def generate_net_osm(file_name, inflows, veh_types):
     set_vehicles_color(model)
 
     # set API
-    scenario_name = data["scenario_name"]
+    network_name = data["network_name"]
     scenario = model.getCatalog().findByName(
-        scenario_name, model.getType("GKScenario"))  # find scenario
+        network_name, model.getType("GKScenario"))  # find scenario
     scenario_data = scenario.getInputData()
     scenario_data.addExtension(os.path.join(
         config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
 
     # save
-    gui.saveAs('flow.ang')
+    gui.save(model, 'flow.ang', GGui.GGuiSaveType.eSaveAs)
 
 
 def get_junctions(nodes):
@@ -685,7 +685,7 @@ def create_meter(model, edge):
     """
     section = model.getCatalog().findByName(edge, model.getType("GKSection"))
     meter_length = 2
-    pos = section.getLanesLength2D() - meter_length
+    pos = section.length2D() - meter_length
     type = model.getType("GKMetering")
     cmd = model.createNewCmd(model.getType("GKSectionObject"))
     # TODO double check the zeros
@@ -825,7 +825,7 @@ if osm_path is not None:
         for s in types.itervalues():
             s_id = s.getId()
             num_lanes = s.getNbFullLanes()
-            length = s.getLanesLength2D()
+            length = s.length2D()
             speed = s.getSpeed()
             edge_osm[s_id] = {"speed": speed,
                               "length": length,

@@ -138,6 +138,8 @@ class Env(gym.Env):
         self.time_counter = 0
         # step_counter: number of total steps taken
         self.step_counter = 0
+        # rollout_counter: number of total rollouts
+        self.rollout_counter = 0
         # initial_state:
         self.initial_state = {}
         self.state = None
@@ -160,6 +162,12 @@ class Env(gym.Env):
         # initial the vehicles kernel using the VehicleParams object
         self.k.vehicle.initialize(deepcopy(self.network.vehicles))
 
+        # this is a hack used to prevent rllib from opening 1000 windows before anything happens
+        # this is a flag used to track that we should turn rendering back on
+        self.turn_render_back = False
+        if sim_params.render and sim_params.rllib_training:
+            sim_params.render = False
+            self.turn_render_back = True
         # initialize the simulation using the simulation kernel. This will use
         # the network kernel as an input in order to determine what network
         # needs to be simulated.
@@ -237,6 +245,10 @@ class Env(gym.Env):
             specifies whether to use the gui
         """
         self.k.close()
+
+        if self.turn_render_back and self.rollout_counter >= 2:
+            self.turn_render_back = False
+            sim_params.render = True
 
         # killed the sumo process if using sumo/TraCI
         if self.simulator == 'traci':
@@ -420,6 +432,7 @@ class Env(gym.Env):
         """
         # reset the time counter
         self.time_counter = 0
+        self.rollout_counter += 1
 
         # warn about not using restart_instance when using inflows
         if len(self.net_params.inflows.get()) > 0 and \

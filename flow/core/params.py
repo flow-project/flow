@@ -409,6 +409,8 @@ class SimParams(object):
         specifies rendering resolution (pixel / meter)
     color_vehicles : bool, optional
         whether or not to automatically color vehicles according to their types
+    rllib_training : bool, optional
+        whether we are training with rllib. This is purely helpful if you're using rllib
     """
 
     def __init__(self,
@@ -420,7 +422,8 @@ class SimParams(object):
                  sight_radius=25,
                  show_radius=False,
                  pxpm=2,
-                 color_vehicles=True):
+                 color_vehicles=True,
+                 rllib_training=False):
         """Instantiate SimParams."""
         self.sim_step = sim_step
         self.render = render
@@ -431,6 +434,7 @@ class SimParams(object):
         self.pxpm = pxpm
         self.show_radius = show_radius
         self.color_vehicles = color_vehicles
+        self.rllib_training = rllib_training
 
 
 class AimsunParams(SimParams):
@@ -468,7 +472,7 @@ class AimsunParams(SimParams):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
-    scenario_name : str, optional
+    network_name : str, optional
         name of the network generated in Aimsun.
     experiment_name : str, optional
         name of the experiment generated in Aimsun
@@ -476,7 +480,7 @@ class AimsunParams(SimParams):
         name of the replication generated in Aimsun. When loading
         an Aimsun template, this parameter must be set to the name
         of the replication to be run by the simulation; in this case,
-        the scenario_name and experiment_name parameters are not
+        the network_name and experiment_name parameters are not
         necessary as they will be obtained from the replication name.
     centroid_config_name : str, optional
         name of the centroid configuration to load in Aimsun. This
@@ -500,7 +504,7 @@ class AimsunParams(SimParams):
                  show_radius=False,
                  pxpm=2,
                  # set to match Flow_Aimsun.ang's scenario name
-                 scenario_name="Dynamic Scenario 866",
+                 network_name="Dynamic Scenario 866",
                  # set to match Flow_Aimsun.ang's experiment name
                  experiment_name="Micro SRC Experiment 867",
                  # set to match Flow_Aimsun.ang's replication name
@@ -511,7 +515,7 @@ class AimsunParams(SimParams):
         super(AimsunParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
             sight_radius, show_radius, pxpm)
-        self.scenario_name = scenario_name
+        self.network_name = network_name
         self.experiment_name = experiment_name
         self.replication_name = replication_name
         self.centroid_config_name = centroid_config_name
@@ -579,6 +583,8 @@ class SumoParams(SimParams):
         they teleport after teleport_time seconds
     num_clients : int, optional
         Number of clients that will connect to Traci
+    rllib_training : bool, optional
+        whether we are training with rllib. This is purely helpful if you're using rllib
     """
 
     def __init__(self,
@@ -597,7 +603,8 @@ class SumoParams(SimParams):
                  restart_instance=False,
                  print_warnings=True,
                  teleport_time=-1,
-                 num_clients=1):
+                 num_clients=1,
+                 rllib_training=False):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
@@ -610,6 +617,7 @@ class SumoParams(SimParams):
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
         self.num_clients = num_clients
+        self.rllib_training = rllib_training
 
 
 class EnvParams:

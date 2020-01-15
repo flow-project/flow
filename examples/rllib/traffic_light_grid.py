@@ -1,5 +1,6 @@
 """Traffic Light Grid example."""
 
+import argparse
 import json
 
 import ray
@@ -24,7 +25,7 @@ HORIZON = 200
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 1
 
 
 def gen_edges(col_num, row_num):
@@ -43,17 +44,30 @@ def gen_edges(col_num, row_num):
         names of all the outer edges
     """
     edges = []
-    for i in range(col_num):
-        edges += ['left' + str(row_num) + '_' + str(i)]
-        edges += ['right' + '0' + '_' + str(i)]
 
-    # build the left and then the right edges
-    for i in range(row_num):
-        edges += ['bot' + str(i) + '_' + '0']
-        edges += ['top' + str(i) + '_' + str(col_num)]
+    x_max = col_num + 1
+    y_max = row_num + 1
+
+    def new_edge(from_node, to_node):
+        return str(from_node) + "--" + str(to_node)
+
+    # Build the horizontal edges
+    for y in range(1, y_max):
+        for x in [0, x_max - 1]:
+            left_node = "({}.{})".format(x, y)
+            right_node = "({}.{})".format(x + 1, y)
+            edges += new_edge(left_node, right_node)
+            edges += new_edge(right_node, left_node)
+
+    # Build the vertical edges
+    for x in range(1, x_max):
+        for y in [0, y_max - 1]:
+            bottom_node = "({}.{})".format(x, y)
+            top_node = "({}.{})".format(x, y + 1)
+            edges += new_edge(bottom_node, top_node)
+            edges += new_edge(top_node, bottom_node)
 
     return edges
-
 
 def get_flow_params(col_num, row_num, additional_net_params):
     """Define the network and initial params in the presence of inflows.
@@ -127,9 +141,7 @@ def get_non_flow_params(enter_speed, add_net_params):
 
 V_ENTER = 15
 INNER_LENGTH = 300
-LONG_LENGTH = 100
-SHORT_LENGTH = 300
-N_ROWS = 3
+N_ROWS = 2
 N_COLUMNS = 3
 NUM_CARS_LEFT = 1
 NUM_CARS_RIGHT = 1
@@ -139,9 +151,7 @@ tot_cars = (NUM_CARS_LEFT + NUM_CARS_RIGHT) * N_COLUMNS \
            + (NUM_CARS_BOT + NUM_CARS_TOP) * N_ROWS
 
 grid_array = {
-    "short_length": SHORT_LENGTH,
     "inner_length": INNER_LENGTH,
-    "long_length": LONG_LENGTH,
     "row_num": N_ROWS,
     "col_num": N_COLUMNS,
     "cars_left": NUM_CARS_LEFT,
@@ -194,7 +204,9 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
         sim_step=1,
-        render=False,
+        render=True,
+        restart_instance=True,
+        rllib_training=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -282,8 +294,15 @@ def setup_exps(use_inflows=False):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser('Parse some arguments bruv')
+    parser.add_argument('--local_mode', action='store_true', default=False,
+                        help='If true, we run things on one CPU. Very useful for debugging.')
+    args = parser.parse_args()
     alg_run, gym_name, config = setup_exps()
-    ray.init(num_cpus=N_CPUS + 1)
+    if args.local_mode:
+        ray.init(local_mode=True)
+    else:
+        ray.init()
     trials = run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,
