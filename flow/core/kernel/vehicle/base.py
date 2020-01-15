@@ -179,6 +179,18 @@ class KernelVehicle(object):
         """
         raise NotImplementedError
 
+    def set_length(self, veh_id, length):
+        """Set the length of a single vehicle.
+
+        Parameters
+        ----------
+        veh_id : string
+            vehicle identifier
+        length : float
+            vehicle length in meters
+        """
+        raise NotImplementedError
+
     ###########################################################################
     # Methods to visually distinguish vehicles by {RL, observed, unobserved}  #
     ###########################################################################

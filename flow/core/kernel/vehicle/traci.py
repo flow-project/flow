@@ -301,7 +301,7 @@ class TraCIVehicle(KernelVehicle):
                     self.__controlled_ids.append(veh_id)
                 if lc_controller[0] != SimLaneChangeController:
                     self.__controlled_lc_ids.append(veh_id)
-
+        import ipdb; ipdb.set_trace()
         # subscribe the new vehicle
         self.kernel_api.vehicle.subscribe(veh_id, [
             tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
@@ -309,7 +309,6 @@ class TraCIVehicle(KernelVehicle):
             tc.VAR_SPEED_WITHOUT_TRACI
         ])
         self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
-
         # some constant vehicle parameters to the vehicles class
         self.__vehicles[veh_id]["length"] = self.kernel_api.vehicle.getLength(
             veh_id)
@@ -1026,6 +1025,11 @@ class TraCIVehicle(KernelVehicle):
             departPos=str(pos),
             departSpeed=str(speed))
 
+        # import ipdb; ipdb.set_trace()
+        # a = self.__vehicles[veh_id]["length"] # Ha, ipdb tells me that right now, veh_id doesn't have a length  - length
+        #                                         # seems to be set in _add_departed
+
+
     def get_max_speed(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
@@ -1035,3 +1039,7 @@ class TraCIVehicle(KernelVehicle):
     def set_max_speed(self, veh_id, max_speed):
         """See parent class."""
         self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
+
+    def set_length(self, veh_id, length):
+        """See parent class."""
+        self.kernel_api.vehicle.setLength(veh_id, length)
