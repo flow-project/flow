@@ -15,7 +15,7 @@ from ray.tune.registry import register_env
 from ray.tune import run_experiments
 
 from flow.envs.multiagent import Bayesian1Env
-from flow.networks import TrafficLightGridNetwork
+from flow.networks import Bayesian1Network
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import SumoCarFollowingParams, VehicleParams
 from flow.controllers import SimCarFollowingController, GridRouter, RLController
@@ -32,10 +32,8 @@ HORIZON = 400  # time horizon of a single rollout
 # TODO(@klin) make sure these parameters match what you've set up in the SUMO version here
 V_ENTER = 30  # enter speed for departing vehicles
 INNER_LENGTH = 50  # length of inner edges in the traffic light grid network
-LONG_LENGTH = 50  # length of final edge in route
-SHORT_LENGTH = 50  # length of edges that vehicles start on
 # number of vehicles originating in the left, right, top, and bottom edges
-N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 1, 1, 1, 1
+N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 0, 1, 1, 1
 
 
 def make_flow_params():
@@ -54,7 +52,6 @@ def make_flow_params():
     # total number specified above. We also use a "right_of_way" speed mode to
     # support traffic light compliance
     vehicles = VehicleParams()
-    num_vehicles = (N_LEFT + N_RIGHT) + (N_BOTTOM + N_TOP)
     vehicles.add(
         veh_id="human",
         acceleration_controller=(SimCarFollowingController, {}),
@@ -65,7 +62,7 @@ def make_flow_params():
             speed_mode="right_of_way",
         ),
         routing_controller=(GridRouter, {}),
-        num_vehicles=num_vehicles - 1)
+        num_vehicles=1)
 
     #TODO(klin) make sure the autonomous vehicle being placed here is placed in the right position
     vehicles.add(
@@ -77,25 +74,30 @@ def make_flow_params():
         routing_controller=(GridRouter, {}),
         num_vehicles=1)
 
-    #TODO(klin) Convert these to new coordinates
-    # inflows of vehicles are placed on all outer edges (listed here)
+    vehicles.add(
+        veh_id="human",
+        acceleration_controller=(SimCarFollowingController, {}),
+        car_following_params=SumoCarFollowingParams(
+            min_gap=2.5,
+            max_speed=V_ENTER,
+            decel=7.5,  # avoid collisions at emergency stops
+            speed_mode="right_of_way",
+        ),
+        routing_controller=(GridRouter, {}),
+        num_vehicles=1)
+
     n_rows = 1
     n_columns = 1
-    outer_edges = []
-    outer_edges += ["left{}_{}".format(n_rows, i) for i in range(n_columns)]
-    outer_edges += ["right0_{}".format(i) for i in range(n_rows)]
-    outer_edges += ["bot{}_0".format(i) for i in range(n_rows)]
-    outer_edges += ["top{}_{}".format(i, n_columns) for i in range(n_rows)]
 
     flow_params = dict(
         # name of the experiment
-        exp_tag="bayesian_env_1",
+        exp_tag="bayesian_1_env",
 
         # name of the flow environment the experiment is running on
-        env_name=BayesianEnv1,
+        env_name=Bayesian1Env,
 
         # name of the network class the experiment is running on TODO(KLin) change this to the correct network
-        network=TrafficLightGridNetwork,
+        network=Bayesian1Network,
 
         # simulator that is used by the experiment
         simulator='traci',
@@ -130,9 +132,7 @@ def make_flow_params():
             additional_params={
                 "speed_limit": V_ENTER + 5,  # inherited from grid0 benchmark
                 "grid_array": {
-                    "short_length": SHORT_LENGTH,
                     "inner_length": INNER_LENGTH,
-                    "long_length": LONG_LENGTH,
                     "row_num": n_rows,
                     "col_num": n_columns,
                     "cars_left": N_LEFT,

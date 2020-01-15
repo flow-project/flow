@@ -19,7 +19,7 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 
-class BayesianEnv1(MultiEnv):
+class Bayesian1Env(MultiEnv):
     """Testing whether an agent can learn to navigate successfully crossing the env described
     in scenario 1 of Jakob's diagrams. Please refer to the sketch for more details. Basically,
     inferring that the human is going to cross allows one of the vehicles to succesfully cross.
@@ -84,7 +84,7 @@ class BayesianEnv1(MultiEnv):
 
     def get_state(self):
         """For a radius around the car, return the 3 closest objects with their X, Y position relative to you,
-        their speed, aflag indicating if they are a pedestrian or not, and their yaw."""
+        their speed, a flag indicating if they are a pedestrian or not, and their yaw."""
 
         obs = {}
         for rl_id in self.k.vehicle.get_rl_ids():
@@ -128,6 +128,7 @@ class BayesianEnv1(MultiEnv):
 
             rewards[rl_id] = reward
         return rewards
+
 
     def find_visible_objects(self, veh_id, radius):
         """For a given vehicle ID, find the IDs of all the objects that are within a radius of them
