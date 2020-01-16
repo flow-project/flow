@@ -190,6 +190,11 @@ def traffic_light_grid_example(pedestrians=False, render=None, use_inflows=False
     pedestrian_params = None
     if pedestrians:
         pedestrian_params = PedestrianParams()
+        pedestrian_params.add(
+                ped_id='ped_1',
+                depart_time='0.00',
+                start='(1.1)--(2.1)',
+                end='(1.1)--(1.0)')
 
     vehicles = VehicleParams()
     vehicles.add(
@@ -407,4 +412,4 @@ if __name__ == "__main__":
     # import the experiment variable
     exp = traffic_light_grid_example(pedestrians=pedestrians)
     # run for a set number of rollouts / time steps
-    exp.run(1, 1500)
+    exp.run(1, 15000)
