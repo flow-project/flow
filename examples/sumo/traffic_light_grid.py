@@ -195,6 +195,36 @@ def traffic_light_grid_example(pedestrians=False, render=None, use_inflows=False
                 depart_time='0.00',
                 start='(1.1)--(2.1)',
                 end='(1.1)--(1.0)')
+        pedestrian_params.add(
+                ped_id='ped_2',
+                depart_time='0.00',
+                start='(2.1)--(1.1)',
+                end='(1.1)--(0.1)')
+        pedestrian_params.add(
+                ped_id='ped_3',
+                depart_time='0.00',
+                start='(1.2)--(1.1)',
+                end='(1.1)--(2.1)')
+        pedestrian_params.add(
+                ped_id='ped_4',
+                depart_time='0.00',
+                start='(1.1)--(2.1)',
+                end='(1.1)--(1.0)')
+        pedestrian_params.add(
+                ped_id='ped_5',
+                depart_time='0.00',
+                start='(1.1)--(2.1)',
+                end='(1.1)--(1.0)')
+        pedestrian_params.add(
+                ped_id='ped_6',
+                depart_time='0.00',
+                start='(1.1)--(2.1)',
+                end='(1.1)--(1.2)')
+        pedestrian_params.add(
+                ped_id='ped_7',
+                depart_time='0.00',
+                start='(1.1)--(0.1)',
+                end='(1.1)--(1.0)')
 
     vehicles = VehicleParams()
     vehicles.add(
@@ -373,9 +403,9 @@ def traffic_light_grid_example(pedestrians=False, render=None, use_inflows=False
     }]
 
     # Here's an example of how you can manually set traffic lights
-    tl_logic.add("(1.1)", phases=phases, tls_type="static")
-    tl_logic.add("(2.1)", phases=phases, tls_type="static")
-    tl_logic.add("(3.1)", phases=phases, tls_type="static")
+    #tl_logic.add("(1.1)", phases=phases, tls_type="static")
+    #tl_logic.add("(2.1)", phases=phases, tls_type="static")
+    #tl_logic.add("(3.1)", phases=phases, tls_type="static")
 
     if use_inflows:
         initial_config, net_params = get_flow_params(
