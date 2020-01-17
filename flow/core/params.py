@@ -364,7 +364,7 @@ class PedestrianParams:
 
         self.__pedestrians = collections.OrderedDict()
 
-    def add(self, ped_id, depart_time, start, end):
+    def add(self, ped_id, depart_time, start, end, depart_pos='random'):
         """Add a pedestrian to the list of pedestrians in the network.
 
         Parameters
@@ -377,6 +377,8 @@ class PedestrianParams:
             Name of the edge the pedestrian starts at at depart_time
         end: str
             Name of the edge the pedestrian walks to
+        depart_pos: str
+            Position that the pedestrians begins on the edge
         """
  
         self.ids.append(ped_id)
@@ -385,7 +387,7 @@ class PedestrianParams:
 
         self.params[ped_id] = {'id': ped_id,
                 'depart': depart_time,
-                'departPos': 'random',
+                'departPos': depart_pos,
                 'from': start,
                 'to': end,
                 'arrivalPos': 'random'

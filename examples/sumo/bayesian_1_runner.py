@@ -5,11 +5,12 @@ from flow.controllers import GridRouter
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
-from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.envs.bayesian_1_env import Bayesian1Env, ADDITIONAL_ENV_PARAMS
 from flow.networks import Bayesian1Network
+from flow.core.params import PedestrianParams
+import argparse
 
 
 def gen_edges(col_num, row_num):
@@ -54,7 +55,7 @@ def gen_edges(col_num, row_num):
     return edges
 
 
-def get_non_flow_params(enter_speed, add_net_params):
+def get_non_flow_params(enter_speed, add_net_params, pedestrians=False):
     """Define the network and initial params in the absence of inflows.
 
     Note that when a vehicle leaves a network in this case, it is immediately #TODO(KLin) Does this actually happen?
@@ -79,12 +80,15 @@ def get_non_flow_params(enter_speed, add_net_params):
     additional_init_params = {'enter_speed': enter_speed}
     initial = InitialConfig(
         spacing='custom', additional_params=additional_init_params)
+    if pedestrians:
+        initial = InitialConfig(
+            spacing='custom', sidewalks=True, lanes_distribution=float('inf'), shuffle=True)
     net = NetParams(additional_params=add_net_params)
 
     return initial, net
 
 
-def bayesian_1_example(render=None):
+def bayesian_1_example(render=None, pedestrians=False):
     """
     Perform a simulation of vehicles on a traffic light grid.
 
@@ -135,7 +139,16 @@ def bayesian_1_example(render=None):
         lc_keep_right=0.8
     )
 
-    # TODO(@klin) can you make it so that the vehicles have the appropriate routes as specified in the scenario?
+    pedestrian_params = None
+    if pedestrians:
+        pedestrian_params = PedestrianParams()
+        pedestrian_params.add(
+             ped_id='ped_0',
+             depart_time='0.00',
+             start='(1.2)--(1.1)',
+             end='(1.1)--(1.0)',
+             depart_pos='60')
+
     vehicles = VehicleParams()
     vehicles.add(
         veh_id="human",
@@ -146,6 +159,8 @@ def bayesian_1_example(render=None):
         ),
         lane_change_params=lane_change_params,
         num_vehicles=tot_cars)
+
+
 
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
@@ -159,12 +174,14 @@ def bayesian_1_example(render=None):
 
     initial_config, net_params = get_non_flow_params(
         enter_speed=v_enter,
-            add_net_params=additional_net_params)
+        add_net_params=additional_net_params,
+        pedestrians=pedestrians)
 
     network = Bayesian1Network(
         name="bayesian_1",
         vehicles=vehicles,
         net_params=net_params,
+        pedestrians=pedestrian_params,
         initial_config=initial_config)
 
     env = AccelEnv(env_params, sim_params, network)
@@ -173,7 +190,16 @@ def bayesian_1_example(render=None):
 
 
 if __name__ == "__main__":
+    # check for pedestrians
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pedestrians",
+                        help="use pedestrians, sidewalks, and crossings in the simulation",
+                        action="store_true")
+
+    args = parser.parse_args()
+    pedestrians = args.pedestrians
+
     # import the experiment variable
-    exp = bayesian_1_example(True)
+    exp = bayesian_1_example(pedestrians=pedestrians)
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

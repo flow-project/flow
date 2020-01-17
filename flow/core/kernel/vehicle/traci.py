@@ -301,7 +301,6 @@ class TraCIVehicle(KernelVehicle):
                     self.__controlled_ids.append(veh_id)
                 if lc_controller[0] != SimLaneChangeController:
                     self.__controlled_lc_ids.append(veh_id)
-        import ipdb; ipdb.set_trace()
         # subscribe the new vehicle
         self.kernel_api.vehicle.subscribe(veh_id, [
             tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,

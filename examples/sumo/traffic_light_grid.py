@@ -438,16 +438,14 @@ def traffic_light_grid_example(pedestrians=False, render=None, use_inflows=False
 
 
 if __name__ == "__main__":
-
+    # check for pedestrians
     parser = argparse.ArgumentParser()
     parser.add_argument("--pedestrians",
             help="use pedestrians, sidewalks, and crossings in the simulation",
             action="store_true")
-    args = parser.parse_args()
 
-    pedestrians = False
-    if args.pedestrians:
-        pedestrians = True
+    args = parser.parse_args()
+    pedestrians = args.pedestrians
 
     # import the experiment variable
     exp = traffic_light_grid_example(pedestrians=pedestrians)
