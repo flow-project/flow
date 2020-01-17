@@ -117,6 +117,7 @@ class Experiment:
             ret_list = []
             state = self.env.reset()
             for j in range(num_steps):
+
                 state, reward, done, _ = self.env.step(rl_actions(state))
                 vel[j] = np.mean(
                     self.env.k.vehicle.get_speed(self.env.k.vehicle.get_ids()))
