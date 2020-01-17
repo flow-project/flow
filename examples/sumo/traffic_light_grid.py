@@ -256,74 +256,78 @@ def traffic_light_grid_example(pedestrians=False, render=None, use_inflows=False
 
     def generate_tl_phases(phase_type, horiz_lanes, vert_lanes):
         """Returns the tl phase string for the corresponding phase types. Note: right turns will have 'g' by default"""
+        
+        crossing = ''
+        if pedestrians:
+            crossing = 'GGGG'
 
         if phase_type == "vertical_green":
             vertical = "G" + vert_lanes * "G" + "r"    # right turn, straights, left turn
             horizontal = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
-            return vertical + horizontal + vertical + horizontal
+            return vertical + horizontal + vertical + horizontal + crossing
 
         elif phase_type == "vertical_green_to_yellow":
             horizontal = "G" + vert_lanes * "G" + "r"    # right turn, straights, left turn
             vertical = "g" + horiz_lanes * "y" + "r"  # right turn, straights, left turn
-            return vertical + horizontal + vertical + horizontal
+            return vertical + horizontal + vertical + horizontal + crossing
 
         elif phase_type == "horizontal_green":
             horizontal = "G" + vert_lanes * "G" + "r"    # right turn, straights, left turn
             vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
-            return vertical + horizontal + vertical + horizontal
+            return vertical + horizontal + vertical + horizontal + crossing
 
         elif phase_type == "horizontal_green_to_yellow":
             horizontal = "g" + vert_lanes * "y" + "r"    # right turn, straights, left turn
             vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
-            return vertical + horizontal + vertical + horizontal
+            return vertical + horizontal + vertical + horizontal + crossing
 
         elif phase_type == "protected_left_top":
             top = "G" + "G" * vert_lanes + "G"
             bot = "g" + "r" * vert_lanes + "r"
             horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-            return top + horizontal + bot + horizontal
+            return top + horizontal + bot + horizontal + crossing
 
         elif phase_type == "protected_left_top_to_yellow":
             top = "g" + "y" * vert_lanes + "y"
             bot = "g" + "r" * vert_lanes + "r"
             horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-            return top + horizontal + bot + horizontal
+            return top + horizontal + bot + horizontal + crossing
 
         elif phase_type == "protected_left_right":
             vertical = "g" + "r" * vert_lanes + "r"
             left = "g" + "r" * horiz_lanes + "r"
             right = "g" + "G" * horiz_lanes + "G"
-            return vertical + right + vertical + left
+            return vertical + right + vertical + left + crossing
 
         elif phase_type == "protected_left_right_to_yellow":
             vertical = "g" + "r" * vert_lanes + "r"
             left = "g" + "r" * horiz_lanes + "r"
             right = "g" + "y" * horiz_lanes + "y"
-            return vertical + right + vertical + left
+            return vertical + right + vertical + left + crossing
 
         elif phase_type == "protected_left_bottom":
             bot = "G" + "G" * vert_lanes + "G"
             top = "g" + "r" * vert_lanes + "r"
             horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-            return top + horizontal + bot + horizontal
+            return top + horizontal + bot + horizontal + crossing
 
         elif phase_type == "protected_left_bottom_to_yellow":
             bot = "g" + "y" * vert_lanes + "y"
             top = "g" + "r" * vert_lanes + "r"
             horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-            return top + horizontal + bot + horizontal
+            return top + horizontal + bot + horizontal + crossing
 
         elif phase_type == "protected_left_left":
             vertical = "g" + "r" * vert_lanes + "r"
             right = "g" + "r" * horiz_lanes + "r"
             left = "g" + "G" * horiz_lanes + "G"
-            return vertical + right + vertical + left
+            return vertical + right + vertical + left + crossing
 
         elif phase_type == "protected_left_left_to_yellow":
             vertical = "g" + "r" * vert_lanes + "r"
             right = "g" + "r" * horiz_lanes + "r"
             left = "g" + "y" * horiz_lanes + "y"
-            return vertical + right + vertical + left
+            return vertical + right + vertical + left + crossing
 
     straight_horz = additional_net_params.get("horizontal_lanes") # number of horizontal lanes that go straight (all of them)
     straight_vert = additional_net_params.get("vertical_lanes") # number of horizontal lanes that go straight (all of them)
@@ -403,9 +407,9 @@ def traffic_light_grid_example(pedestrians=False, render=None, use_inflows=False
     }]
 
     # Here's an example of how you can manually set traffic lights
-    #tl_logic.add("(1.1)", phases=phases, tls_type="static")
-    #tl_logic.add("(2.1)", phases=phases, tls_type="static")
-    #tl_logic.add("(3.1)", phases=phases, tls_type="static")
+    tl_logic.add("(1.1)", phases=phases, tls_type="static")
+    tl_logic.add("(2.1)", phases=phases, tls_type="static")
+    tl_logic.add("(3.1)", phases=phases, tls_type="static")
 
     if use_inflows:
         initial_config, net_params = get_flow_params(

@@ -327,6 +327,8 @@ class TrafficLightGridNetwork(Network):
     def specify_crossings(self, net_params):
 
         crossings = []
+        if not self.pedestrians:
+            return crossings
         
         for r in range(1, self.row_num + 1):
             for c in range(1, self.col_num + 1):
