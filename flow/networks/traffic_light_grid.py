@@ -96,9 +96,9 @@ class TrafficLightGridNetwork(Network):
                  name,
                  vehicles,
                  net_params,
-                 pedestrians=None,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLightParams()):
+                 traffic_lights=TrafficLightParams(),
+                 pedestrians=None):
         """Initialize an n*m traffic light grid network."""
         optional = ["tl_logic"]
         for p in ADDITIONAL_NET_PARAMS.keys():
