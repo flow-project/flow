@@ -9,7 +9,7 @@ from flow.core.params import SumoCarFollowingParams
 from flow.core.params import InFlows
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.networks import TrafficLightGridNetwork
-import sys
+import argparse
 
 def gen_edges(col_num, row_num):
     """Generate the names of the outer edges in the traffic light grid network.
@@ -439,8 +439,14 @@ def traffic_light_grid_example(pedestrians=False, render=None, use_inflows=False
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pedestrians",
+            help="use pedestrians, sidewalks, and crossings in the simulation",
+            action="store_true")
+    args = parser.parse_args()
+
     pedestrians = False
-    if '--pedestrians' in sys.argv:
+    if args.pedestrians:
         pedestrians = True
 
     # import the experiment variable

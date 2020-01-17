@@ -350,9 +350,14 @@ class VehicleParams:
 
 
 class PedestrianParams:
+    
+    """Base pedestrian class.
+
+    This is used to describe the state of all pedestrians in the network.
+    """
 
     def __init__(self):
-
+        """Instantiate the base pedestrian class."""
         self.ids = []
         self.num_pedestrians = 0
         self.params = {}
@@ -360,6 +365,20 @@ class PedestrianParams:
         self.__pedestrians = collections.OrderedDict()
 
     def add(self, ped_id, depart_time, start, end):
+        """Add a pedestrian to the list of pedestrians in the network.
+
+        Parameters
+        ----------
+        ped_id : str
+            base pedestrian ID for the pedestrians
+        depart_time : float
+            Time in the simulation the pedestrian spawns
+        start: str
+            Name of the edge the pedestrian starts at at depart_time
+        end: str
+            Name of the edge the pedestrian walks to
+        """
+ 
         self.ids.append(ped_id)
 
         self.num_pedestrians += 1
