@@ -487,7 +487,7 @@ class Network(object):
               "edge_1 edge_2".
 
         Other attributes may also be specified. See:
-        http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Edge_Descriptions
+        https://sumo.dlr.de/docs/Networks/PlainXML.html#pedestrian_crossings
         """
         return []
 
