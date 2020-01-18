@@ -12,7 +12,6 @@ class TraCIPedestrian(KernelPedestrian):
     def __init__(self,
             master_kernel):
         """See parent class."""
-
         KernelPedestrian.__init__(self, master_kernel)
 
         # ids of all pedestrians in the simulation
@@ -71,7 +70,7 @@ class TraCIPedestrian(KernelPedestrian):
         self.__sumo_obs = ped_obs
 
     def _add_departed(self, ped_id):
-        """Add a pedestrian that entered the network
+        """Add a pedestrian that entered the network.
 
         Parameters
         ----------
@@ -83,7 +82,6 @@ class TraCIPedestrian(KernelPedestrian):
         dict
             subscription results from the new pedestrian
         """
-
         if ped_id not in self.__ids:
             self.__ids.add(ped_id)
 
@@ -105,7 +103,6 @@ class TraCIPedestrian(KernelPedestrian):
 
     def remove(self, ped_id):
         """See parent class."""
-
         if ped_id in self.kernel_api.person.getIDList():
             self.kernel_api.person.unsubscribe(ped_id)
             self.kernel_api.person.remove(ped_id)
