@@ -142,12 +142,12 @@ def bayesian_1_example(render=None, pedestrians=False):
     pedestrian_params = None
     if pedestrians:
         pedestrian_params = PedestrianParams()
-        pedestrian_params.add(
-             ped_id='ped_0',
-             depart_time='0.00',
-             start='(1.2)--(1.1)',
-             end='(1.1)--(1.0)',
-             depart_pos='60')
+        # pedestrian_params.add(
+        #      ped_id='ped_0',
+        #      depart_time='0.00',
+        #      start='(1.2)--(1.1)',
+        #      end='(1.1)--(1.0)',
+        #      depart_pos='60')
 
     vehicles = VehicleParams()
     vehicles.add(
@@ -156,6 +156,7 @@ def bayesian_1_example(render=None, pedestrians=False):
         car_following_params=SumoCarFollowingParams(
             min_gap=2.5,
             decel=7.5,  # avoid collisions at emergency stops
+            speed_mode="right_of_way",
         ),
         lane_change_params=lane_change_params,
         num_vehicles=tot_cars)

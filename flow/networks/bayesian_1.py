@@ -103,14 +103,15 @@ class Bayesian1Network(TrafficLightGridNetwork):
                  pedestrians=None):
         """Initialize an n*m traffic light grid network."""
         super().__init__(name, vehicles, net_params, initial_config,
-                         traffic_lights, pedestrians)
-        self.use_traffic_lights = False
+                         traffic_lights, pedestrians, use_traffic_lights=False)
         self.nodes = self._nodes
 
     @property
     def _nodes(self):
         """See parent class"""
         node_type = "traffic_light" if self.use_traffic_lights else "allway_stop"
+        print("use traffic lights: {}".format(self.use_traffic_lights))
+        print(node_type)
         x_max = self.col_num + 1
         y_max = self.row_num + 1
 

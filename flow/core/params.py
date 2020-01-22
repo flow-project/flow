@@ -349,8 +349,7 @@ class VehicleParams:
         return self.__vehicles[veh_id]["type"]
 
 
-class PedestrianParams:
-    
+class PedestrianParams: 
     """Base pedestrian class.
 
     This is used to describe the state of all pedestrians in the network.
@@ -380,7 +379,6 @@ class PedestrianParams:
         depart_pos: str
             Position that the pedestrians begins on the edge
         """
- 
         self.ids.append(ped_id)
 
         self.num_pedestrians += 1
