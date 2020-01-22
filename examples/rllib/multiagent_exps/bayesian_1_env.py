@@ -75,7 +75,7 @@ def make_flow_params():
         num_vehicles=1)
 
     vehicles.add(
-        veh_id="human",
+        veh_id="human_1",
         acceleration_controller=(SimCarFollowingController, {}),
         car_following_params=SumoCarFollowingParams(
             min_gap=2.5,

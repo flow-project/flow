@@ -161,8 +161,6 @@ def bayesian_1_example(render=None, pedestrians=False):
         num_vehicles=tot_cars)
 
 
-
-
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     additional_net_params = {
