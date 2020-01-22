@@ -6,7 +6,7 @@ from flow.envs.ring.accel import AccelEnv
 from flow.envs.multiagent.base import MultiEnv
 
 
-class MultiAgentAccelEnv(AccelEnv, MultiEnv):
+class AdversarialAccelEnv(AccelEnv, MultiEnv):
     """Adversarial multi-agent env.
 
     Multi-agent env with an adversarial agent perturbing

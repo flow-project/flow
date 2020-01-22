@@ -19,7 +19,7 @@ from flow.core.params import SumoParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.networks.figure_eight import ADDITIONAL_NET_PARAMS
-from flow.envs.multiagent import MultiAgentAccelEnv
+from flow.envs.multiagent import AdversarialAccelEnv
 from flow.networks import FigureEightNetwork
 from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
@@ -58,10 +58,10 @@ vehicles.add(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='multiagent_figure_eight',
+    exp_tag='adversarial_figure_eight',
 
     # name of the flow environment the experiment is running on
-    env_name=MultiAgentAccelEnv,
+    env_name=AdversarialAccelEnv,
 
     # name of the network class the experiment is running on
     network=FigureEightNetwork,
