@@ -98,7 +98,7 @@ class KernelPedestrian(object):
         raise NotImplementedError
 
     def get_position(self, ped_id, error=-1001):
-         """ Returns the position of the pedestrian relative to its current edge.
+        """ Returns the position of the pedestrian relative to its current edge.
         
         Parameters
         ----------
