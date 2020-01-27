@@ -93,11 +93,9 @@ class Bayesian1Env(MultiEnv):
             observation = np.zeros(self.observation_space.shape[0])
             visible_ids = self.find_visible_objects(rl_id, self.search_radius)
 
-            #veh_x, veh_y = self.k.vehicle.get_x_y(rl_id)
             veh_x, veh_y, _ = self.k.vehicle.get_orientation(rl_id)
 
             for index, obj_id in enumerate(visible_ids):
-                #x, y = self.k.vehicle.get_x_y(obj_id)
                 x, y, _ = self.k.vehicle.get_orientation(obj_id)
                 rel_x = veh_x - x
                 rel_y = veh_y - y
@@ -105,10 +103,8 @@ class Bayesian1Env(MultiEnv):
                 # TODO add a check for whether an object is a pedestrian
                 is_ped = self.k.pedestrian.is_pedestrian(obj_id)
                 if is_ped:
-                    # TODO(@nliu) is this even possible?
-                    # TODO implement yaw checking
                     speed = self.k.pedestrian.get_speed(obj_id)
-                    yaw = self.k.pedestrian.get_yaw(obj_id)
+                    yaw = self.k.pedestrian.get_yaw(obj_id) # TOD0(KL) check what get_angle actually returns, else done
                 else:
                     speed = self.k.vehicle.get_speed(obj_id)
                     yaw = self.k.vehicle.get_yaw(obj_id)

@@ -330,6 +330,22 @@ class KernelVehicle(object):
         """
         raise NotImplementedError
 
+    def get_yaw(self, veh_id, error=-1001):
+        """Return the yaw of the specified vehicle. TODO(KL) check what yaw and still confused about what yaw is
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        float
+        """
+        raise NotImplementedError
+
     def get_position(self, veh_id, error=-1001):
         """Return the position of the vehicle relative to its current edge.
 
