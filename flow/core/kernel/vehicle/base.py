@@ -179,6 +179,18 @@ class KernelVehicle(object):
         """
         raise NotImplementedError
 
+    def set_length(self, veh_id, length):
+        """Set the length of a single vehicle.
+
+        Parameters
+        ----------
+        veh_id : string
+            vehicle identifier
+        length : float
+            vehicle length in meters
+        """
+        raise NotImplementedError
+
     ###########################################################################
     # Methods to visually distinguish vehicles by {RL, observed, unobserved}  #
     ###########################################################################
@@ -304,6 +316,22 @@ class KernelVehicle(object):
 
     def get_default_speed(self, veh_id, error=-1001):
         """Return the expected speed if no control were applied.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        float
+        """
+        raise NotImplementedError
+
+    def get_yaw(self, veh_id, error=-1001):
+        """Return the yaw of the specified vehicle. TODO(KL) check what yaw and still confused about what yaw is
 
         Parameters
         ----------

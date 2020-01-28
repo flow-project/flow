@@ -96,9 +96,10 @@ class TrafficLightGridNetwork(Network):
                  name,
                  vehicles,
                  net_params,
-                 pedestrians=None,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLightParams()):
+                 traffic_lights=TrafficLightParams(),
+                 pedestrians=None,
+                 use_traffic_lights=True):
         """Initialize an n*m traffic light grid network."""
         optional = ["tl_logic"]
         for p in ADDITIONAL_NET_PARAMS.keys():
@@ -136,8 +137,9 @@ class TrafficLightGridNetwork(Network):
 
         # specifies whether or not there will be traffic lights at the
         # intersections (True by default)
-        self.use_traffic_lights = net_params.additional_params.get(
-            "traffic_lights", True)
+        self.use_traffic_lights = use_traffic_lights
+        # self.use_traffic_lights = net_params.additional_params.get(
+        #     "traffic_lights", True)
 
         # radius of the inner nodes (ie of the intersections)
         self.nodes_radius = 2.9 + 3.3 * max(self.vertical_lanes,
@@ -324,6 +326,43 @@ class TrafficLightGridNetwork(Network):
 
         return types
 
+    def specify_crossings(self, net_params):
+
+        crossings = []
+        if not self.pedestrians:
+            return crossings
+        
+        for r in range(1, self.row_num + 1):
+            for c in range(1, self.col_num + 1):
+                junction = '({}.{})'.format(c, r)
+                left_junction = '({}.{})'.format(c - 1, r)
+                right_junction = '({}.{})'.format(c + 1, r)
+                top_junction = '({}.{})'.format(c, r + 1)
+                bottom_junction = '({}.{})'.format(c, r - 1)
+
+                cross = top_junction + '--' + junction + ' ' + junction + '--' + top_junction
+                crossings.append({"node": junction,
+                    "edges": cross,
+                    "width": str(self.sidewalk_width)})
+                
+                cross = bottom_junction + '--' + junction + ' ' + junction + '--' + bottom_junction
+                crossings.append({"node": junction,
+                    "edges": cross,
+                    "width": str(self.sidewalk_width)})
+
+                cross = left_junction + '--' + junction + ' ' + junction + '--' + left_junction
+                crossings.append({"node": junction,
+                    "edges": cross,
+                    "width": str(self.sidewalk_width)})
+
+                cross = right_junction + '--' + junction + ' ' + junction + '--' + right_junction
+                crossings.append({"node": junction,
+                    "edges": cross,
+                    "width": str(self.sidewalk_width)})
+        
+        return crossings
+        
+
     # ===============================
     # ============ UTILS ============
     # ===============================
@@ -365,6 +404,7 @@ class TrafficLightGridNetwork(Network):
         """
 
         node_type = "traffic_light" if self.use_traffic_lights else "priority"
+        print(node_type, 111)
         x_max = self.col_num + 1
         y_max = self.row_num + 1
 
@@ -496,6 +536,7 @@ class TrafficLightGridNetwork(Network):
         dict<list<dict>>
             Dict of all the connections in the network
         """
+
         con_dict = {}
         x_max = self.col_num + 1
         y_max = self.row_num + 1
@@ -551,11 +592,16 @@ class TrafficLightGridNetwork(Network):
             would be lane n to lane n. A legal right turn from the rightmost lane would be lane 0 to lane 0."""
 
             right_most_lane, left_most_lane = 0, self.horizontal_lanes - 1
-
+            if self.pedestrians:
+                right_most_lane, left_most_lane = 1, self.horizontal_lanes
+            
             # TODO: ONLY leftmost lanes can turn left i.e stop non leftmost lanes from turning left as well
             # build vertical connections for RIGHT edge (1,0)
             for hor_l in range(self.horizontal_lanes):
                 for vert_l in range(self.vertical_lanes):
+                    if self.pedestrians:
+                        hor_l += 1
+                        vert_l += 1
                     # TODO: fix the strange lane turns
                     if legal_turns:
                         if hor_l == vert_l:
@@ -573,12 +619,18 @@ class TrafficLightGridNetwork(Network):
             # build horizontal connection for RIGHT edge (1,0)
             for hor_l1 in range(self.horizontal_lanes):
                 for hor_l2 in range(self.horizontal_lanes):
+                    if self.pedestrians:
+                        hor_l1 += 1
+                        hor_l2 += 1
                     if hor_l1 == hor_l2: # when going straight, you can only go directly straight
                         node_cons_list += single_con_dict(right_edge_in, left_edge_out, hor_l1, hor_l2, signal_group)
 
             # build vertical connections for LEFT edge (-1,0)
             for hor_l in range(self.horizontal_lanes):
                 for vert_l in range(self.vertical_lanes):
+                    if self.pedestrians:
+                        hor_l += 1
+                        vert_l += 1
                     if legal_turns:
                         if hor_l == vert_l:  # only allow legal lane transitions
                             if hor_l == right_most_lane and vert_l == right_most_lane: # only right most lane can turn right
@@ -594,18 +646,27 @@ class TrafficLightGridNetwork(Network):
             # build horizontal connection for LEFT edge (-1,0)
             for hor_l1 in range(self.horizontal_lanes):
                 for hor_l2 in range(self.horizontal_lanes):
+                    if self.pedestrians:
+                        hor_l1 += 1
+                        hor_l2 += 1
                     if hor_l1 == hor_l2:
                         node_cons_list += single_con_dict(left_edge_in, right_edge_out, hor_l1, hor_l2, signal_group)
 
             # build vertical connection for TOP edge (0, 1)
             for vert_l1 in range(self.vertical_lanes):
                 for vert_l2 in range(self.vertical_lanes):
+                    if self.pedestrians:
+                        vert_l1 += 1
+                        vert_l2 += 1
                     if vert_l1 == vert_l2:
                         node_cons_list += single_con_dict(top_edge_in, bottom_edge_out, vert_l1, vert_l2, signal_group)
 
             # build horizontal connections for TOP edge (0, 1)
             for vert_l in range(self.vertical_lanes):
                 for hor_l in range(self.horizontal_lanes):
+                    if self.pedestrians:
+                        vert_l += 1
+                        hor_l += 1
                     if legal_turns:
                         if vert_l == hor_l:  # only allow legal lane transitions
                             if vert_l == right_most_lane and hor_l == right_most_lane: # only right most lane can turn right
@@ -621,12 +682,18 @@ class TrafficLightGridNetwork(Network):
             # build vertical connection for BOTTOM edge (0, -1)
             for vert_l1 in range(self.horizontal_lanes):
                 for vert_l2 in range(self.vertical_lanes):
+                    if self.pedestrians:
+                        vert_l1 += 1
+                        vert_l2 += 1
                     if vert_l1 == vert_l2:
                         node_cons_list += single_con_dict(bottom_edge_in, top_edge_out, vert_l1, vert_l2, signal_group)
 
             # build horizontal connections for BOTTOM edge (0, -1)
             for hor_l in range(self.horizontal_lanes):
                 for vert_l in range(self.vertical_lanes):
+                    if self.pedestrians:
+                        vert_l += 1
+                        hor_l += 1
                     # if legal_turns:
                     #     if hor_l == vert_l:
                     #         node_cons_list += single_con_dict(bottom_edge_in, left_edge_out, vert_l, hor_l, signal_group)

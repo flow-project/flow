@@ -1,16 +1,15 @@
-"""Sets up and runs the basic bayesian example. This script is just for debugging and checking that everything
+"""Sets up and runs the second bayesian example. This script is just for debugging and checking that everything
 actually arrives at the desired time so that the conflict occurs. """
 
 from flow.controllers import GridRouter
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams
+from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.envs.bayesian_1_env import Bayesian1Env, ADDITIONAL_ENV_PARAMS
 from flow.networks import Bayesian1Network
-from flow.core.params import PedestrianParams
-import argparse
 
 
 def gen_edges(col_num, row_num):
@@ -55,7 +54,7 @@ def gen_edges(col_num, row_num):
     return edges
 
 
-def get_non_flow_params(enter_speed, add_net_params, pedestrians=False):
+def get_non_flow_params(enter_speed, add_net_params):
     """Define the network and initial params in the absence of inflows.
 
     Note that when a vehicle leaves a network in this case, it is immediately #TODO(KLin) Does this actually happen?
@@ -80,15 +79,12 @@ def get_non_flow_params(enter_speed, add_net_params, pedestrians=False):
     additional_init_params = {'enter_speed': enter_speed}
     initial = InitialConfig(
         spacing='custom', additional_params=additional_init_params)
-    if pedestrians:
-        initial = InitialConfig(
-            spacing='custom', sidewalks=True, lanes_distribution=float('inf'), shuffle=True)
     net = NetParams(additional_params=add_net_params)
 
     return initial, net
 
 
-def bayesian_1_example(render=None, pedestrians=False):
+def bayesian_1_example(render=None):
     """
     Perform a simulation of vehicles on a traffic light grid.
 
@@ -105,15 +101,15 @@ def bayesian_1_example(render=None, pedestrians=False):
     """
     v_enter = 10
     inner_length = 50
-    n_rows = 1
-    n_columns = 1
+    n_rows = 2
+    n_columns = 2
     # TODO(@nliu) add the pedestrian in
-    num_cars_left = 0
-    num_cars_right = 1
-    num_cars_top = 1
-    num_cars_bot = 1
-    tot_cars = (num_cars_left + num_cars_right) * n_columns \
-        + (num_cars_top + num_cars_bot) * n_rows              # Why's this * n_rows and not n_cols?
+    num_cars_left = 2
+    num_cars_right = 2
+    num_cars_top = 0
+    num_cars_bot = 2
+    tot_cars = (num_cars_left + num_cars_right) * n_rows \
+        + (num_cars_top + num_cars_bot) * n_columns              # Why's this * n_rows and not n_cols?
 
     grid_array = {
         "inner_length": inner_length,
@@ -139,16 +135,6 @@ def bayesian_1_example(render=None, pedestrians=False):
         lc_keep_right=0.8
     )
 
-    pedestrian_params = None
-    if pedestrians:
-        pedestrian_params = PedestrianParams()
-        # pedestrian_params.add(
-        #      ped_id='ped_0',
-        #      depart_time='0.00',
-        #      start='(1.2)--(1.1)',
-        #      end='(1.1)--(1.0)',
-        #      depart_pos='60')
-
     vehicles = VehicleParams()
     vehicles.add(
         veh_id="human",
@@ -156,7 +142,6 @@ def bayesian_1_example(render=None, pedestrians=False):
         car_following_params=SumoCarFollowingParams(
             min_gap=2.5,
             decel=7.5,  # avoid collisions at emergency stops
-            speed_mode="right_of_way",
         ),
         lane_change_params=lane_change_params,
         num_vehicles=tot_cars)
@@ -173,14 +158,12 @@ def bayesian_1_example(render=None, pedestrians=False):
 
     initial_config, net_params = get_non_flow_params(
         enter_speed=v_enter,
-        add_net_params=additional_net_params,
-        pedestrians=pedestrians)
+            add_net_params=additional_net_params)
 
     network = Bayesian1Network(
         name="bayesian_1",
         vehicles=vehicles,
         net_params=net_params,
-        pedestrians=pedestrian_params,
         initial_config=initial_config)
 
     env = AccelEnv(env_params, sim_params, network)
@@ -189,16 +172,7 @@ def bayesian_1_example(render=None, pedestrians=False):
 
 
 if __name__ == "__main__":
-    # check for pedestrians
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--pedestrians",
-                        help="use pedestrians, sidewalks, and crossings in the simulation",
-                        action="store_true")
-
-    args = parser.parse_args()
-    pedestrians = args.pedestrians
-
     # import the experiment variable
-    exp = bayesian_1_example(pedestrians=pedestrians)
+    exp = bayesian_1_example(True)
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

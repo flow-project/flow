@@ -13,7 +13,7 @@ ADDITIONAL_ENV_PARAMS = {
     # desired velocity for all vehicles in the network, in m/s
     "target_velocity": 25,
     # how many objects in our local radius we want to return
-    "max_object_num": 3,
+    "max_num_objects": 3,
     # how large of a radius to search in for a given vehicle in meters
     "search_radius": 20
 }
@@ -92,19 +92,19 @@ class Bayesian1Env(MultiEnv):
             # TODO(@nliu)
             observation = np.zeros(self.observation_space.shape[0])
             visible_ids = self.find_visible_objects(rl_id, self.search_radius)
-            veh_x, veh_y = self.k.vehicle.get_x_y(rl_id)
+
+            veh_x, veh_y, _ = self.k.vehicle.get_orientation(rl_id)
+
             for index, obj_id in enumerate(visible_ids):
-                x, y = self.k.vehicle.get_x_y(obj_id)
+                x, y, _ = self.k.vehicle.get_orientation(obj_id)
                 rel_x = veh_x - x
                 rel_y = veh_y - y
                 # TODO(@nliu)
                 # TODO add a check for whether an object is a pedestrian
                 is_ped = self.k.pedestrian.is_pedestrian(obj_id)
                 if is_ped:
-                    # TODO(@nliu) is this even possible?
-                    # TODO implement yaw checking
                     speed = self.k.pedestrian.get_speed(obj_id)
-                    yaw = self.k.pedestrian.get_yaw(obj_id)
+                    yaw = self.k.pedestrian.get_yaw(obj_id) # TOD0(KL) check what get_angle actually returns, else done
                 else:
                     speed = self.k.vehicle.get_speed(obj_id)
                     yaw = self.k.vehicle.get_yaw(obj_id)

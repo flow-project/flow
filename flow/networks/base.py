@@ -463,7 +463,32 @@ class Network(object):
 
 
     def specify_crossings(self, net_params):
-        # default to having no crossings
+        """Specify the attributes of intersection crossings for pedestrians.
+
+        Defaults to returning an empty list, indicating no pedestrian crossings
+        are to be generated.
+
+        Parameters
+        ----------
+        net_params : flow.core.params.NetParams
+            see flow/core/params.py
+
+        Returns
+        -------
+        list of dict
+
+            A list of crossing attributes (a separate dict for each crossing).
+            Crossing attributes must include:
+
+            * node {string} -- name of the interesection/junction
+            * edges {string} -- the name of the two edges to be connected by
+              the crossing separated by a space in order of the departure and
+              arrival edges (ie. to go from edge_1 to edge_2 we pass in the string
+              "edge_1 edge_2".
+
+        Other attributes may also be specified. See:
+        https://sumo.dlr.de/docs/Networks/PlainXML.html#pedestrian_crossings
+        """
         return []
 
     # TODO: convert to property

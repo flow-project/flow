@@ -75,7 +75,7 @@ def make_flow_params():
         num_vehicles=1)
 
     vehicles.add(
-        veh_id="human",
+        veh_id="human_1",
         acceleration_controller=(SimCarFollowingController, {}),
         car_following_params=SumoCarFollowingParams(
             min_gap=2.5,
@@ -120,7 +120,7 @@ def make_flow_params():
                 # desired velocity for all vehicles in the network, in m/s
                 "target_velocity": 25,
                 # how many objects in our local radius we want to return
-                "max_object_num": 3,
+                "max_num_objects": 3,
                 # how large of a radius to search in for a given vehicle in meters
                 "search_radius": 20
             },

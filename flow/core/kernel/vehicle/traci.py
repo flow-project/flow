@@ -124,9 +124,8 @@ class TraCIVehicle(KernelVehicle):
         vehicle_obs = {}
         for veh_id in self.__ids:
             vehicle_obs[veh_id] = \
-                self.kernel_api.vehicle.getSubscriptionResults(veh_id)
-        sim_obs = self.kernel_api.simulation.getSubscriptionResults()
-
+                self.kernel_api.vehicle.x(veh_id)
+        sim_obs = self.kernel_api.simulation.getSubscriptionResults()   #TODO(KL) is this up to date? https://github.com/eclipse/sumo/issues/4486
         # remove exiting vehicles from the vehicles class
         for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
             if veh_id in sim_obs[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
@@ -200,7 +199,7 @@ class TraCIVehicle(KernelVehicle):
             try:
                 _position = vehicle_obs.get(veh_id, {}).get(
                     tc.VAR_POSITION, -1001)
-                _angle = vehicle_obs.get(veh_id, {}).get(tc.VAR_ANGLE, -1001)
+                _angle = vehicle_obs.get(veh_id, {}).get(tc.VAR_ANGLE, -1001) # TODO(KL) Check the angle vs orientation?
                 _time_step = sim_obs[tc.VAR_TIME_STEP]
                 _time_delta = sim_obs[tc.VAR_DELTA_T]
                 self.__vehicles[veh_id]["orientation"] = \
@@ -302,15 +301,13 @@ class TraCIVehicle(KernelVehicle):
                     self.__controlled_ids.append(veh_id)
                 if lc_controller[0] != SimLaneChangeController:
                     self.__controlled_lc_ids.append(veh_id)
-
         # subscribe the new vehicle
         self.kernel_api.vehicle.subscribe(veh_id, [
             tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
             tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
-            tc.VAR_SPEED_WITHOUT_TRACI
+            tc.VAR_SPEED_WITHOUT_TRACI, tc.POSITION_2D
         ])
         self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
-
         # some constant vehicle parameters to the vehicles class
         self.__vehicles[veh_id]["length"] = self.kernel_api.vehicle.getLength(
             veh_id)
@@ -517,6 +514,11 @@ class TraCIVehicle(KernelVehicle):
             return [self.get_default_speed(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED_WITHOUT_TRACI,
                                                    error)
+    def get_yaw(self, veh_id, error=-1001):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_speed(vehID, error) for vehID in veh_id]
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_ANGLE, error)
 
     def get_position(self, veh_id, error=-1001):
         """See parent class."""
@@ -1046,3 +1048,7 @@ class TraCIVehicle(KernelVehicle):
     def set_max_speed(self, veh_id, max_speed):
         """See parent class."""
         self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
+
+    def set_length(self, veh_id, length):
+        """See parent class."""
+        self.kernel_api.vehicle.setLength(veh_id, length)

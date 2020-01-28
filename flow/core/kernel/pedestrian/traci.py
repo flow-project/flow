@@ -1,12 +1,17 @@
+"""Script containing the TraCI pedestrian kernel class."""
 from flow.core.kernel.pedestrian import KernelPedestrian
 import traci.constants as tc
 import numpy as np
 
 class TraCIPedestrian(KernelPedestrian):
+    """Flow kernel for the TraCI API.
+
+    Extends flow.core.kernel.pedestrian.base.KernelPedestrian
+    """
 
     def __init__(self,
             master_kernel):
-
+        """See parent class."""
         KernelPedestrian.__init__(self, master_kernel)
 
         # ids of all pedestrians in the simulation
@@ -18,7 +23,21 @@ class TraCIPedestrian(KernelPedestrian):
         self.__sumo_obs = {}
 
     def update(self, reset):
+        """See parent class.
+        
+        The following actions are performed:
 
+        * The state of all pedestrians is modified to match their state at the
+          current time step.
+        * If pedestrians exit the network, they are removed from the pedestrians
+          class, and newly departed pedestrians are introduced to the class.
+
+        Parameters
+        ----------
+        reset : bool
+            specifies whether the simulation was reset in the last simulation
+            step
+        """
         # subscribed variables of active pedestrians
         ped_obs = {}
 
@@ -51,6 +70,18 @@ class TraCIPedestrian(KernelPedestrian):
         self.__sumo_obs = ped_obs
 
     def _add_departed(self, ped_id):
+        """Add a pedestrian that entered the network.
+
+        Parameters
+        ----------
+        ped_id : str
+            name of the pedestrians
+
+        Returns
+        -------
+        dict
+            subscription results from the new pedestrian
+        """
         if ped_id not in self.__ids:
             self.__ids.add(ped_id)
 
@@ -71,8 +102,7 @@ class TraCIPedestrian(KernelPedestrian):
         return new_obs
 
     def remove(self, ped_id):
-
-        # remove from sumo
+        """See parent class."""
         if ped_id in self.kernel_api.person.getIDList():
             self.kernel_api.person.unsubscribe(ped_id)
             self.kernel_api.person.remove(ped_id)
@@ -86,16 +116,19 @@ class TraCIPedestrian(KernelPedestrian):
         return list(self.__ids)
 
     def get_speed(self, ped_id, error=-1001):
+        """See parent class."""
         if isinstance(ped_id, (list, np.ndarray)):
             return [self.get_speed(pedID, error) for pedID in ped_id]
         return self.__sumo_obs.get(ped_id, {}).get(tc.VAR_SPEED, error)
 
     def get_position(self, ped_id, error=-1001):
+        """See parent class."""
         if isinstance(ped_id, (list, np.ndarray)):
             return [self.get_position(pedID, error) for pedID in ped_id]
         return self.__sumo_obs.get(ped_id, {}).get(tc.VAR_POSITION, error)
 
     def get_edge(self, ped_id, error=-1001):
+        """See parent class."""
         if isinstance(ped_id, (list, np.ndarray)):
             return [self.get_edge(pedID, error) for pedID in ped_id]
         return self.__sumo_obs.get(ped_id, {}).get(tc.VAR_ROAD_ID, error)

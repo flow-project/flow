@@ -9,7 +9,7 @@ from flow.core.params import SumoCarFollowingParams
 from flow.core.params import InFlows
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.networks import TrafficLightGridNetwork
-import sys
+import argparse
 
 def gen_edges(col_num, row_num):
     """Generate the names of the outer edges in the traffic light grid network.
@@ -190,6 +190,41 @@ def traffic_light_grid_example(pedestrians=False, render=None, use_inflows=False
     pedestrian_params = None
     if pedestrians:
         pedestrian_params = PedestrianParams()
+        pedestrian_params.add(
+                ped_id='ped_1',
+                depart_time='0.00',
+                start='(1.1)--(2.1)',
+                end='(1.1)--(1.0)')
+        pedestrian_params.add(
+                ped_id='ped_2',
+                depart_time='0.00',
+                start='(2.1)--(1.1)',
+                end='(1.1)--(0.1)')
+        pedestrian_params.add(
+                ped_id='ped_3',
+                depart_time='0.00',
+                start='(1.2)--(1.1)',
+                end='(1.1)--(2.1)')
+        pedestrian_params.add(
+                ped_id='ped_4',
+                depart_time='0.00',
+                start='(1.1)--(2.1)',
+                end='(1.1)--(1.0)')
+        pedestrian_params.add(
+                ped_id='ped_5',
+                depart_time='0.00',
+                start='(1.1)--(2.1)',
+                end='(1.1)--(1.0)')
+        pedestrian_params.add(
+                ped_id='ped_6',
+                depart_time='0.00',
+                start='(1.1)--(2.1)',
+                end='(1.1)--(1.2)')
+        pedestrian_params.add(
+                ped_id='ped_7',
+                depart_time='0.00',
+                start='(1.1)--(0.1)',
+                end='(1.1)--(1.0)')
 
     vehicles = VehicleParams()
     vehicles.add(
@@ -221,74 +256,78 @@ def traffic_light_grid_example(pedestrians=False, render=None, use_inflows=False
 
     def generate_tl_phases(phase_type, horiz_lanes, vert_lanes):
         """Returns the tl phase string for the corresponding phase types. Note: right turns will have 'g' by default"""
+        
+        crossing = ''
+        if pedestrians:
+            crossing = 'GGGG'
 
         if phase_type == "vertical_green":
             vertical = "G" + vert_lanes * "G" + "r"    # right turn, straights, left turn
             horizontal = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
-            return vertical + horizontal + vertical + horizontal
+            return vertical + horizontal + vertical + horizontal + crossing
 
         elif phase_type == "vertical_green_to_yellow":
             horizontal = "G" + vert_lanes * "G" + "r"    # right turn, straights, left turn
             vertical = "g" + horiz_lanes * "y" + "r"  # right turn, straights, left turn
-            return vertical + horizontal + vertical + horizontal
+            return vertical + horizontal + vertical + horizontal + crossing
 
         elif phase_type == "horizontal_green":
             horizontal = "G" + vert_lanes * "G" + "r"    # right turn, straights, left turn
             vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
-            return vertical + horizontal + vertical + horizontal
+            return vertical + horizontal + vertical + horizontal + crossing
 
         elif phase_type == "horizontal_green_to_yellow":
             horizontal = "g" + vert_lanes * "y" + "r"    # right turn, straights, left turn
             vertical = "g" + horiz_lanes * "r" + "r"  # right turn, straights, left turn
-            return vertical + horizontal + vertical + horizontal
+            return vertical + horizontal + vertical + horizontal + crossing
 
         elif phase_type == "protected_left_top":
             top = "G" + "G" * vert_lanes + "G"
             bot = "g" + "r" * vert_lanes + "r"
             horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-            return top + horizontal + bot + horizontal
+            return top + horizontal + bot + horizontal + crossing
 
         elif phase_type == "protected_left_top_to_yellow":
             top = "g" + "y" * vert_lanes + "y"
             bot = "g" + "r" * vert_lanes + "r"
             horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-            return top + horizontal + bot + horizontal
+            return top + horizontal + bot + horizontal + crossing
 
         elif phase_type == "protected_left_right":
             vertical = "g" + "r" * vert_lanes + "r"
             left = "g" + "r" * horiz_lanes + "r"
             right = "g" + "G" * horiz_lanes + "G"
-            return vertical + right + vertical + left
+            return vertical + right + vertical + left + crossing
 
         elif phase_type == "protected_left_right_to_yellow":
             vertical = "g" + "r" * vert_lanes + "r"
             left = "g" + "r" * horiz_lanes + "r"
             right = "g" + "y" * horiz_lanes + "y"
-            return vertical + right + vertical + left
+            return vertical + right + vertical + left + crossing
 
         elif phase_type == "protected_left_bottom":
             bot = "G" + "G" * vert_lanes + "G"
             top = "g" + "r" * vert_lanes + "r"
             horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-            return top + horizontal + bot + horizontal
+            return top + horizontal + bot + horizontal + crossing
 
         elif phase_type == "protected_left_bottom_to_yellow":
             bot = "g" + "y" * vert_lanes + "y"
             top = "g" + "r" * vert_lanes + "r"
             horizontal = "g" + "r" * horiz_lanes + "r"  # right turn, straights, left turn
-            return top + horizontal + bot + horizontal
+            return top + horizontal + bot + horizontal + crossing
 
         elif phase_type == "protected_left_left":
             vertical = "g" + "r" * vert_lanes + "r"
             right = "g" + "r" * horiz_lanes + "r"
             left = "g" + "G" * horiz_lanes + "G"
-            return vertical + right + vertical + left
+            return vertical + right + vertical + left + crossing
 
         elif phase_type == "protected_left_left_to_yellow":
             vertical = "g" + "r" * vert_lanes + "r"
             right = "g" + "r" * horiz_lanes + "r"
             left = "g" + "y" * horiz_lanes + "y"
-            return vertical + right + vertical + left
+            return vertical + right + vertical + left + crossing
 
     straight_horz = additional_net_params.get("horizontal_lanes") # number of horizontal lanes that go straight (all of them)
     straight_vert = additional_net_params.get("vertical_lanes") # number of horizontal lanes that go straight (all of them)
@@ -399,12 +438,16 @@ def traffic_light_grid_example(pedestrians=False, render=None, use_inflows=False
 
 
 if __name__ == "__main__":
+    # check for pedestrians
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pedestrians",
+            help="use pedestrians, sidewalks, and crossings in the simulation",
+            action="store_true")
 
-    pedestrians = False
-    if '--pedestrians' in sys.argv:
-        pedestrians = True
+    args = parser.parse_args()
+    pedestrians = args.pedestrians
 
     # import the experiment variable
     exp = traffic_light_grid_example(pedestrians=pedestrians)
     # run for a set number of rollouts / time steps
-    exp.run(1, 1500)
+    exp.run(1, 15000)
