@@ -5,14 +5,15 @@ from flow.envs import Env
 from flow.networks import Network
 
 ADDITIONAL_ENV_PARAMS = {'target_nodes': [3369, 3341, 3370, 3344, 3329],
+                         'observed_nodes': [3386, 3371, 3362, 3373],
                          'num_incoming_edges_per_node': 4,
                          'num_stopbars': 3,
                          'num_advanced': 1,
                          'num_measures': 2,
-                         'detection_interval': (0, 5, 0),
-                         'statistical_interval': (0, 5, 0),
+                         'detection_interval': (0, 15, 0),
+                         'statistical_interval': (0, 15, 0),
                          'replication_list': ['Replication 8050297',  # 5-11
-                                              'Replication 8050315',  # 10-14
+                                              # 'Replication 8050315',  # 10-14
                                               'Replication 8050322']}  # 14-21
 # the replication list should be copied in load.py
 
@@ -39,6 +40,7 @@ class CoordinatedEnv(Env):
 
         # target intersections
         self.target_nodes = env_params.additional_params["target_nodes"]
+        self.observed_nodes = env_params.additional_params["observed_nodes"]
         self.current_offset = np.zeros(len(self.target_nodes))
 
         # reset_offsets
@@ -49,7 +51,7 @@ class CoordinatedEnv(Env):
         self.edge_detector_dict = {}
         self.edges_with_detectors = {}
         self.past_cumul_queue = {}
-        for node_id in self.target_nodes:
+        for node_id in self.target_nodes + self.observed_nodes:
             incoming_edges = self.k.traffic_light.get_incoming_edges(node_id)
             self.edge_detector_dict[node_id] = {}
             for edge_id in incoming_edges:
@@ -72,7 +74,7 @@ class CoordinatedEnv(Env):
     def observation_space(self):
         """See class definition."""
         ap = self.additional_params
-        shape = len(self.target_nodes)*ap['num_incoming_edges_per_node']\
+        shape = (len(self.target_nodes)+len(self.observed_nodes))*ap['num_incoming_edges_per_node']\
             * (ap['num_stopbars']+ap['num_advanced'])*ap['num_measures']
         return Box(low=0, high=5, shape=(shape, ), dtype=np.float32)
 
@@ -92,7 +94,7 @@ class CoordinatedEnv(Env):
 
         ap = self.additional_params
 
-        num_nodes = len(self.target_nodes)
+        num_nodes = len(self.target_nodes) + len(self.observed_nodes)
         num_edges = ap['num_incoming_edges_per_node']
         num_detectors_types = (ap['num_stopbars']+ap['num_advanced'])
         num_measures = (ap['num_measures'])
