@@ -85,7 +85,7 @@ class AdversarialAccelEnv(AccelEnv, MultiEnv):
         return {'av': state, 'adversary': state}
 
 
-class MultiAgentAccelPOEnv(AccelEnv, MultiEnv):
+class MultiAgentAccelPOEnv(MultiEnv):
     """Multi-agent acceleration environment for shared policies.
 
     This environment can used to train autonomous vehicles to achieve certain
