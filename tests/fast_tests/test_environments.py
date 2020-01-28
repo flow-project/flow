@@ -18,6 +18,7 @@ from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
     TestEnv, BottleneckDesiredVelocityEnv, BottleneckEnv, BottleneckAccelEnv
 from flow.envs.ring.wave_attenuation import v_eq_max_function
 from flow.envs.multiagent import MultiAgentHighwayPOEnv
+from flow.envs.multiagent import MultiAgentAccelPOEnv
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -942,6 +943,76 @@ class TestBottleneckDesiredVelocityEnv(unittest.TestCase):
             env.step(rl_actions=None)
         self.assertAlmostEqual(
             env.k.vehicle.get_inflow_rate(250)/expected_inflow, 1, 1)
+
+
+class TestMultiAgentAccelPOEnv(unittest.TestCase):
+    """Tests the MultiAgentAccelPOEnv environment in
+       flow/envs/multiagent/ring/accel.py"""
+
+    def setUp(self):
+        vehicles = VehicleParams()
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=2)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
+
+        self.sim_params = SumoParams()
+        self.network = RingNetwork(
+            name="test_ring",
+            vehicles=vehicles,
+            net_params=NetParams(additional_params=RING_PARAMS.copy()),
+        )
+        self.env_params = EnvParams(
+            additional_params={
+                'max_accel': 1,
+                'max_decel': 1,
+                "target_velocity": 25
+            }
+        )
+
+    def tearDown(self):
+        self.sim_params = None
+        self.network = None
+        self.env_params = None
+
+    def test_additional_env_params(self):
+        """Ensures that not returning the correct params leads to an error."""
+        self.assertTrue(
+            test_additional_params(
+                env_class=MultiAgentAccelPOEnv,
+                sim_params=self.sim_params,
+                network=self.network,
+                additional_params={
+                    "max_accel": 1,
+                    "max_decel": 1,
+                    "target_velocity": 10,
+                }
+            )
+        )
+
+    def test_observation_action_space(self):
+        """Tests the observation and action spaces upon initialization."""
+        # create the environment
+        env = MultiAgentAccelPOEnv(
+            sim_params=self.sim_params,
+            network=self.network,
+            env_params=self.env_params
+        )
+
+        # check the observation space
+        self.assertTrue(test_space(
+            env.observation_space,
+            expected_size=6,
+            expected_min=-1,
+            expected_max=1
+        ))
+
+        # check the action space
+        self.assertTrue(test_space(
+            env.action_space,
+            expected_size=1, expected_min=-1, expected_max=1))
+
+        env.terminate()
 
 
 class TestMultiAgentHighwayPOEnv(unittest.TestCase):
