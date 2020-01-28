@@ -136,7 +136,7 @@ class MultiAgentAccelPOEnv(MultiEnv):
         return Box(
             low=-abs(self.env_params.additional_params["max_decel"]),
             high=self.env_params.additional_params["max_accel"],
-            shape=(self.num_rl, ),
+            shape=(1, ),
             dtype=np.float32)
 
     @property
