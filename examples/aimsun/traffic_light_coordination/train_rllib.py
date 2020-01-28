@@ -19,18 +19,18 @@ except ImportError:
 SIM_STEP = 0.8  # copy to run.py
 
 # hardcoded to AIMSUN's statistics update interval (5 minutes)
-DETECTOR_STEP = 300  # copy to run.py
+DETECTOR_STEP = 900  # copy to run.py #K:changed from 5 minuts to 15 mins
 
-TIME_HORIZON = 3600*4 - DETECTOR_STEP  # 14,100
+TIME_HORIZON = 3600*4 - DETECTOR_STEP  # 14,100 #K: 13,500
 HORIZON = int(TIME_HORIZON//SIM_STEP)
 
 RLLIB_N_CPUS = 2
-RLLIB_HORIZON = int(TIME_HORIZON//DETECTOR_STEP)  # 47
+RLLIB_HORIZON = int(TIME_HORIZON//DETECTOR_STEP)  # 47 #K: down to 15
 
 RLLIB_N_ROLLOUTS = 3  # copy to coordinated_lights.py
 RLLIB_TRAINING_ITERATIONS = 1000
 
-net_params = NetParams(template=os.path.abspath("no_api_scenario.ang"))
+net_params = NetParams(template=os.path.abspath("scenario_one_hour.ang"))
 initial_config = InitialConfig()
 vehicles = VehicleParams()
 env_params = EnvParams(horizon=HORIZON,
@@ -75,8 +75,8 @@ def setup_exps(version=0):
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = RLLIB_N_CPUS
-    # config["sgd_minibatch_size"] = 32  # remove me
-    config["train_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS
+    config["sgd_minibatch_size"] = 16
+    config["train_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS * RLLIB_N_CPUS
     config["gamma"] = 0.999  # discount rate
     config["sample_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS
     config["model"].update({"fcnet_hiddens": [64, 64, 64]})
@@ -120,7 +120,8 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": RLLIB_TRAINING_ITERATIONS,
             },
-            # "restore": '/Users/umang/ray_results/coordinated_traffic_lights/PPO_CoordinatedEnv-v0_0_2019-12-07_16-03-40qh2emtjb/checkpoint_48/checkpoint-48'
+            "restore": '/home/kadiaz/ray_results/coordinated_traffic_lights/PPO_CoordinatedEnv-v0_0_2020-01-27_22-18-40pt7lzaxo/checkpoint_650/checkpoint-650',
             # "local_dir": os.path.abspath("./ray_results"),
+            "keep_checkpoints_num": 3
         }
     }, resume=False)
