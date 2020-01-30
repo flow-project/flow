@@ -2,6 +2,7 @@
 import traceback
 
 from flow.core.kernel.vehicle import KernelVehicle
+from flow.core.kernel.vehicle import util
 import traci.constants as tc
 from traci.exceptions import FatalTraCIError, TraCIException
 import numpy as np
@@ -416,6 +417,16 @@ class TraCIVehicle(KernelVehicle):
     def get_initial_speed(self, veh_id):
         """Return the initial speed of the vehicle of veh_id."""
         return self.__vehicles[veh_id]["initial_speed"]
+
+    def get_observed_pedestrians(self, veh_id, pedestrians):
+        position = self.get_orientation(veh_id)[:2]
+        orientation = self.get_orientation(veh_id)[2]
+        orientation += 90 # orientation is 0 when facing North in SUMO, but 0 when facing EAST in util.py
+        observed_pedestrians = []
+        for ped_id in pedestrians.get_ids():
+            if util.observed(position, orientation, pedestrians.get_position(ped_id)):
+                observed_pedestrians.append(ped_id)
+        return observed_pedestrians
 
     def get_ids(self):
         """See parent class."""
