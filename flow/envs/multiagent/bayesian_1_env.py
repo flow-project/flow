@@ -101,6 +101,8 @@ class Bayesian1Env(MultiEnv):
                 rel_y = veh_y - y
                 # TODO(@nliu)
                 # TODO add a check for whether an object is a pedestrian
+                # This check is currently not needed as find_visible_objects is only
+                # returning pedestrians. 
                 is_ped = self.k.pedestrian.is_pedestrian(obj_id)
                 if is_ped:
                     speed = self.k.pedestrian.get_speed(obj_id)
@@ -147,4 +149,6 @@ class Bayesian1Env(MultiEnv):
 
         """
         # TODO(@nliu)
-        pass
+        viewable_pedestrians = self.k.vehicle.get_observed_pedestrians(veh_id, \
+                self.k.pedestrian, radius)
+        return viewable_pedestrians

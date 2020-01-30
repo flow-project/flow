@@ -418,13 +418,13 @@ class TraCIVehicle(KernelVehicle):
         """Return the initial speed of the vehicle of veh_id."""
         return self.__vehicles[veh_id]["initial_speed"]
 
-    def get_observed_pedestrians(self, veh_id, pedestrians):
+    def get_observed_pedestrians(self, veh_id, pedestrians, radius=50):
         position = self.get_orientation(veh_id)[:2]
         orientation = self.get_orientation(veh_id)[2]
         orientation += 90 # orientation is 0 when facing North in SUMO, but 0 when facing EAST in util.py
         observed_pedestrians = []
         for ped_id in pedestrians.get_ids():
-            if util.observed(position, orientation, pedestrians.get_position(ped_id)):
+            if util.observed(position, orientation, pedestrians.get_position(ped_id), looking_distance=radius):
                 observed_pedestrians.append(ped_id)
         return observed_pedestrians
 
