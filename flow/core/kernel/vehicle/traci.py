@@ -123,7 +123,8 @@ class TraCIVehicle(KernelVehicle):
         vehicle_obs = {}
         for veh_id in self.__ids:
             vehicle_obs[veh_id] = \
-                self.kernel_api.vehicle.x(veh_id)
+                self.kernel_api.vehicle.getSubscriptionResults(veh_id)
+                #self.kernel_api.vehicle.x(veh_id)
         sim_obs = self.kernel_api.simulation.getSubscriptionResults()   #TODO(KL) is this up to date? https://github.com/eclipse/sumo/issues/4486
         # remove exiting vehicles from the vehicles class
         for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
