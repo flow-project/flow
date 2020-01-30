@@ -112,6 +112,9 @@ class TraCIPedestrian(KernelPedestrian):
         if ped_id in self.__sumo_obs:
             del self.__sumo_obs[ped_id]
 
+    def get_ids(self):
+        return list(self.__ids)
+
     def get_speed(self, ped_id, error=-1001):
         """See parent class."""
         if isinstance(ped_id, (list, np.ndarray)):

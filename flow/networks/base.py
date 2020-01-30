@@ -335,7 +335,7 @@ class Network(object):
         self.net_params = net_params
         self.initial_config = initial_config
         self.traffic_lights = traffic_lights
-        self.pedestrians=pedestrians
+        self.pedestrians = pedestrians
 
         # specify routes vehicles can take
         self.routes = self.specify_routes(net_params)

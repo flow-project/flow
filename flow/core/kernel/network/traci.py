@@ -796,6 +796,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 else:
                     routes_data.append(_flow(**sumo_inflow))
 
+        # add pedestrians to the network
         if self.network.pedestrians != None:
             for ped_id in self.network.pedestrians.ids:
                 pedestrian = E('person',
