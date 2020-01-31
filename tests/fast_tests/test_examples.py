@@ -19,6 +19,7 @@ from examples.exp_configs.rl.multiagent.multiagent_figure_eight import flow_para
 from examples.exp_configs.rl.multiagent.multiagent_merge import flow_params as multiagent_merge
 from examples.exp_configs.rl.multiagent.lord_of_the_rings import \
     flow_params as lord_of_the_rings
+from examples.exp_configs.rl.multiagent.multiagent_ring import flow_params as multiagent_ring
 from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import \
     flow_params as multiagent_traffic_light_grid
 from examples.exp_configs.rl.multiagent.multiagent_highway import flow_params as multiagent_highway
@@ -201,6 +202,16 @@ class TestRllibExamples(unittest.TestCase):
             "policy_mapping_fn": ltrpmf
         }
         self.run_exp(lord_of_the_rings, **kwargs)
+
+    def multiagent_ring(self):
+        from examples.exp_configs.rl.multiagent.multiagent_ring import POLICY_GRAPHS as mrpg
+        from examples.exp_configs.rl.multiagent.multiagent_ring import policy_mapping_fn as mrpmf
+
+        kwargs = {
+            "policy_graphs": mrpg,
+            "policy_mapping_fn": mrpmf
+        }
+        self.run_exp(multiagent_ring, **kwargs)
 
     def test_multiagent_merge(self):
         from examples.exp_configs.rl.multiagent.multiagent_merge import POLICY_GRAPHS as mmpg

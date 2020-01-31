@@ -182,7 +182,7 @@ class MultiAgentWaveAttenuationPOEnv(MultiEnv):
     @property
     def observation_space(self):
         """See class definition."""
-        return Box(low=-1, high=1, shape=(3,), dtype=np.float32)
+        return Box(low=-5, high=5, shape=(3,), dtype=np.float32)
 
     @property
     def action_space(self):
@@ -241,7 +241,7 @@ class MultiAgentWaveAttenuationPOEnv(MultiEnv):
 
         # punish accelerations (should lead to reduced stop-and-go waves)
         eta = 4  # 0.25
-        mean_actions = np.mean(np.abs(np.array(rl_actions)))
+        mean_actions = np.mean(np.abs(list(rl_actions.values())))
         accel_threshold = 0
 
         if mean_actions > accel_threshold:
