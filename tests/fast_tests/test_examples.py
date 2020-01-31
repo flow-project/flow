@@ -15,6 +15,7 @@ from examples.exp_configs.rl.singleagent.singleagent_ring import flow_params as 
 from examples.exp_configs.rl.singleagent.singleagent_bottleneck import flow_params as singleagent_bottleneck
 
 from examples.exp_configs.rl.multiagent.adversarial_figure_eight import flow_params as adversarial_figure_eight
+from examples.exp_configs.rl.multiagent.multiagent_figure_eight import flow_params as multiagent_figure_eight
 from examples.exp_configs.rl.multiagent.multiagent_ring import \
     flow_params as multiagent_ring
 from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import \
@@ -169,14 +170,24 @@ class TestRllibExamples(unittest.TestCase):
         self.run_exp(singleagent_bottleneck)
 
     def test_adversarial_figure_eight(self):
-        from examples.exp_configs.rl.multiagent.adversarial_figure_eight import POLICY_GRAPHS as mf8pg
-        from examples.exp_configs.rl.multiagent.adversarial_figure_eight import policy_mapping_fn as mf8pmf
+        from examples.exp_configs.rl.multiagent.adversarial_figure_eight import POLICY_GRAPHS as af8pg
+        from examples.exp_configs.rl.multiagent.adversarial_figure_eight import policy_mapping_fn as af8pmf
+
+        kwargs = {
+            "policy_graphs": af8pg,
+            "policy_mapping_fn": af8pmf
+        }
+        self.run_exp(adversarial_figure_eight, **kwargs)
+
+    def test_multiagent_figure_eight(self):
+        from examples.exp_configs.rl.multiagent.multiagent_figure_eight import POLICY_GRAPHS as mf8pg
+        from examples.exp_configs.rl.multiagent.multiagent_figure_eight import policy_mapping_fn as mf8pmf
 
         kwargs = {
             "policy_graphs": mf8pg,
             "policy_mapping_fn": mf8pmf
         }
-        self.run_exp(adversarial_figure_eight, **kwargs)
+        self.run_exp(multiagent_figure_eight, **kwargs)
 
     def test_multi_ring(self):
         from examples.exp_configs.rl.multiagent.multiagent_ring import POLICY_GRAPHS as mrpg

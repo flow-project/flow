@@ -128,6 +128,9 @@ class MultiAgentAccelPOEnv(MultiEnv):
                 raise KeyError(
                     'Environment parameter "{}" not supplied'.format(p))
 
+        self.leader = []
+        self.follower = []
+
         super().__init__(env_params, sim_params, network, simulator)
 
     @property
@@ -142,7 +145,7 @@ class MultiAgentAccelPOEnv(MultiEnv):
     @property
     def observation_space(self):
         """See class definition."""
-        return Box(low=-1, high=1, shape=(6,), dtype=np.float32)
+        return Box(low=-5, high=5, shape=(6,), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
@@ -159,13 +162,15 @@ class MultiAgentAccelPOEnv(MultiEnv):
 
     def get_state(self, **kwargs):  # FIXME
         """See class definition."""
+        self.leader = []
+        self.follower = []
         obs = {}
 
         # normalizing constants
         max_speed = self.k.network.max_speed()
         max_length = self.k.network.length()
 
-        for i, rl_id in enumerate(self.rl_veh):
+        for rl_id in self.k.vehicle.get_rl_ids():
             this_pos = self.k.vehicle.get_x_by_id(rl_id)
             this_speed = self.k.vehicle.get_speed(rl_id)
             lead_id = self.k.vehicle.get_leader(rl_id)
@@ -202,3 +207,23 @@ class MultiAgentAccelPOEnv(MultiEnv):
             ])
 
         return obs
+
+    def additional_command(self):
+        """See parent class.
+
+        This method defines which vehicles are observed for visualization
+        purposes.
+        """
+        # specify observed vehicles
+        for veh_id in self.leader + self.follower:
+            self.k.vehicle.set_observed(veh_id)
+
+    def reset(self):
+        """See parent class.
+
+        In addition, a few variables that are specific to this class are
+        emptied before they are used by the new rollout.
+        """
+        self.leader = []
+        self.follower = []
+        return super().reset()
