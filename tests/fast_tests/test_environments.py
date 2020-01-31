@@ -954,7 +954,7 @@ class TestMultiAgentAccelPOEnv(unittest.TestCase):
     def setUp(self):
         vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}),
-                     num_vehicles=2)
+                     num_vehicles=1)
         vehicles.add("human", acceleration_controller=(IDMController, {}),
                      num_vehicles=1)
 
@@ -1015,6 +1015,18 @@ class TestMultiAgentAccelPOEnv(unittest.TestCase):
             expected_size=1, expected_min=-1, expected_max=1))
 
         env.terminate()
+
+    def test_observed(self):
+        """Ensures that the observed ids are returning the correct vehicles."""
+        self.assertTrue(
+            test_observed(
+                env_class=MultiAgentMergePOEnv,
+                sim_params=self.sim_params,
+                network=self.network,
+                env_params=self.env_params,
+                expected_observed=["human_0"]
+            )
+        )
 
 
 class TestMultiAgentWaveAttenuationPOEnv(unittest.TestCase):
