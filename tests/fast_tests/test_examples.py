@@ -16,6 +16,7 @@ from examples.exp_configs.rl.singleagent.singleagent_bottleneck import flow_para
 
 from examples.exp_configs.rl.multiagent.adversarial_figure_eight import flow_params as adversarial_figure_eight
 from examples.exp_configs.rl.multiagent.multiagent_figure_eight import flow_params as multiagent_figure_eight
+from examples.exp_configs.rl.multiagent.multiagent_merge import flow_params as multiagent_merge
 from examples.exp_configs.rl.multiagent.multiagent_ring import \
     flow_params as multiagent_ring
 from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import \
@@ -200,6 +201,16 @@ class TestRllibExamples(unittest.TestCase):
             "policy_mapping_fn": mrpmf
         }
         self.run_exp(multiagent_ring, **kwargs)
+
+    def test_multiagent_merge(self):
+        from examples.exp_configs.rl.multiagent.multiagent_merge import POLICY_GRAPHS as mmpg
+        from examples.exp_configs.rl.multiagent.multiagent_merge import policy_mapping_fn as mmpmf
+
+        kwargs = {
+            "policy_graphs": mmpg,
+            "policy_mapping_fn": mmpmf
+        }
+        self.run_exp(multiagent_merge, **kwargs)
 
     def test_multi_traffic_light_grid(self):
         from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import POLICY_GRAPHS as mtlpg

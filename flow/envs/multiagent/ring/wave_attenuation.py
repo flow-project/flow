@@ -247,7 +247,7 @@ class MultiAgentWaveAttenuationPOEnv(MultiEnv):
         if mean_actions > accel_threshold:
             reward += eta * (accel_threshold - mean_actions)
 
-        return reward
+        return {key: reward for key in self.k.vehicle.get_rl_ids()}
 
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""

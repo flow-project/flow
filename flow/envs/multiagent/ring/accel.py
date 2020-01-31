@@ -158,7 +158,7 @@ class MultiAgentAccelPOEnv(MultiEnv):
         reward = rewards.desired_velocity(self, fail=kwargs['fail'])
 
         # Reward is shared by all agents.
-        return reward
+        return {key: reward for key in self.k.vehicle.get_rl_ids()}
 
     def get_state(self, **kwargs):  # FIXME
         """See class definition."""

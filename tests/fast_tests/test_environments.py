@@ -1183,8 +1183,8 @@ class TestMultiAgentMergePOEnv(unittest.TestCase):
         self.assertTrue(test_space(
             env.observation_space,
             expected_size=5,
-            expected_min=-1,
-            expected_max=1
+            expected_min=-5,
+            expected_max=5
         ))
 
         # check the action space

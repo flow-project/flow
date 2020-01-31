@@ -1,6 +1,6 @@
 """Environment for training vehicles to reduce congestion in a merge."""
 
-from flow.envs.base import Env
+from flow.envs.multiagent.base import MultiEnv
 from flow.core import rewards
 from gym.spaces.box import Box
 import numpy as np
@@ -16,7 +16,7 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 
-class MultiAgentMergePOEnv(Env):
+class MultiAgentMergePOEnv(MultiEnv):
     """Partially observable multi-agent merge environment.
 
     This environment is used to train autonomous vehicles to attenuate the
@@ -85,11 +85,14 @@ class MultiAgentMergePOEnv(Env):
     @property
     def observation_space(self):
         """See class definition."""
-        return Box(low=-1, high=1, shape=(5,), dtype=np.float32)
+        return Box(low=-5, high=5, shape=(5,), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         for rl_id in enumerate(self.k.vehicle.get_rl_ids()):
+            if rl_id not in rl_actions.keys():
+                # the vehicle just entered, so ignore
+                continue
             self.k.vehicle.apply_acceleration(rl_id, rl_actions[rl_id])
 
     def get_state(self, rl_id=None, **kwargs):
@@ -164,7 +167,8 @@ class MultiAgentMergePOEnv(Env):
             # weights for cost1 and cost2, respectively
             eta1, eta2 = 1.00, 0.10
 
-            return max(eta1 * cost1 + eta2 * cost2, 0)
+            reward = max(eta1 * cost1 + eta2 * cost2, 0)
+            return {key: reward for key in self.k.vehicle.get_rl_ids()}
 
     def additional_command(self):
         """See parent class.
@@ -175,7 +179,7 @@ class MultiAgentMergePOEnv(Env):
         for veh_id in self.leader + self.follower:
             self.k.vehicle.set_observed(veh_id)
 
-    def reset(self):
+    def reset(self, new_inflow_rate=None):
         """See parent class.
 
         In addition, a few variables that are specific to this class are
