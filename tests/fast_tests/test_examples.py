@@ -203,7 +203,7 @@ class TestRllibExamples(unittest.TestCase):
         }
         self.run_exp(lord_of_the_rings, **kwargs)
 
-    def multiagent_ring(self):
+    def test_multiagent_ring(self):
         from examples.exp_configs.rl.multiagent.multiagent_ring import POLICY_GRAPHS as mrpg
         from examples.exp_configs.rl.multiagent.multiagent_ring import policy_mapping_fn as mrpmf
 
