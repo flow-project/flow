@@ -19,6 +19,8 @@ from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
 from flow.envs.ring.wave_attenuation import v_eq_max_function
 from flow.envs.multiagent import MultiAgentHighwayPOEnv
 from flow.envs.multiagent import MultiAgentAccelPOEnv
+from flow.envs.multiagent import MultiAgentWaveAttenuationPOEnv
+from flow.envs.multiagent import MultiAgentMergePOEnv
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -1015,6 +1017,196 @@ class TestMultiAgentAccelPOEnv(unittest.TestCase):
         env.terminate()
 
 
+class TestMultiAgentWaveAttenuationPOEnv(unittest.TestCase):
+    """Tests the MultiAgentWaveAttenuationPOEnv environment in
+       flow/envs/multiagent/ring/wave_attenuation.py"""
+
+    def setUp(self):
+        vehicles = VehicleParams()
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
+
+        self.sim_params = SumoParams()
+        self.network = RingNetwork(
+            name="test_ring",
+            vehicles=vehicles,
+            net_params=NetParams(additional_params=RING_PARAMS.copy()),
+        )
+        self.env_params = EnvParams(
+            additional_params={
+                'max_accel': 1,
+                'max_decel': 1,
+                "ring_length": [220, 270]
+            }
+        )
+
+    def tearDown(self):
+        self.sim_params = None
+        self.network = None
+        self.env_params = None
+
+    def test_additional_env_params(self):
+        """Ensures that not returning the correct params leads to an error."""
+        self.assertTrue(
+            test_additional_params(
+                env_class=MultiAgentWaveAttenuationPOEnv,
+                sim_params=self.sim_params,
+                network=self.network,
+                additional_params={
+                    "max_accel": 1,
+                    "max_decel": 1,
+                    "ring_length": [220, 270],
+                }
+            )
+        )
+
+    def test_observation_action_space(self):
+        """Tests the observation and action spaces upon initialization."""
+        # create the environment
+        env = MultiAgentWaveAttenuationPOEnv(
+            sim_params=self.sim_params,
+            network=self.network,
+            env_params=self.env_params
+        )
+
+        # check the observation space
+        self.assertTrue(test_space(
+            env.observation_space,
+            expected_size=3,
+            expected_min=-1,
+            expected_max=1
+        ))
+
+        # check the action space
+        self.assertTrue(test_space(
+            env.action_space,
+            expected_size=1,
+            expected_min=-1,
+            expected_max=1
+        ))
+
+        env.terminate()
+
+    def test_observed(self):
+        """Ensures that the observed ids are returning the correct vehicles."""
+        self.assertTrue(
+            test_observed(
+                env_class=MultiAgentWaveAttenuationPOEnv,
+                sim_params=self.sim_params,
+                network=self.network,
+                env_params=self.env_params,
+                expected_observed=["human_0"]
+            )
+        )
+
+    def test_reset(self):
+        """
+        Tests that the reset method creating new ring lengths within the
+        requested range.
+        """
+        # set a random seed to ensure the network lengths are always the same
+        # during testing
+        random.seed(9001)
+
+        # create the environment
+        env = MultiAgentWaveAttenuationPOEnv(
+            sim_params=self.sim_params,
+            network=self.network,
+            env_params=self.env_params
+        )
+
+        # reset the network several times and check its length
+        self.assertEqual(env.k.network.non_internal_length(), 230)
+        env.reset()
+        self.assertEqual(env.k.network.non_internal_length(), 239)
+        env.reset()
+        self.assertEqual(env.k.network.non_internal_length(), 256)
+
+
+class TestMultiAgentMergePOEnv(unittest.TestCase):
+    """Tests the MultiAgentMergePOEnv environment in
+       flow/envs/multiagent/merge.py"""
+
+    def setUp(self):
+        vehicles = VehicleParams()
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        vehicles.add("human", acceleration_controller=(IDMController, {}),
+                     num_vehicles=1)
+
+        self.sim_params = SumoParams()
+        self.network = MergeNetwork(
+            name="test_merge",
+            vehicles=vehicles,
+            net_params=NetParams(additional_params=MERGE_PARAMS.copy()),
+        )
+        self.env_params = EnvParams(
+            additional_params={
+                'max_accel': 1,
+                'max_decel': 1,
+                "target_velocity": 25
+            }
+        )
+
+    def tearDown(self):
+        self.sim_params = None
+        self.network = None
+        self.env_params = None
+
+    def test_additional_env_params(self):
+        """Ensures that not returning the correct params leads to an error."""
+        self.assertTrue(
+            test_additional_params(
+                env_class=MultiAgentMergePOEnv,
+                sim_params=self.sim_params,
+                network=self.network,
+                additional_params={
+                    "max_accel": 1,
+                    "max_decel": 1,
+                    "target_velocity": 10,
+                }
+            )
+        )
+
+    def test_observation_action_space(self):
+        """Tests the observation and action spaces upon initialization."""
+        # create the environment
+        env = MultiAgentMergePOEnv(
+            sim_params=self.sim_params,
+            network=self.network,
+            env_params=self.env_params
+        )
+
+        # check the observation space
+        self.assertTrue(test_space(
+            env.observation_space,
+            expected_size=5,
+            expected_min=-1,
+            expected_max=1
+        ))
+
+        # check the action space
+        self.assertTrue(test_space(
+            env.action_space,
+            expected_size=1, expected_min=-1, expected_max=1))
+
+        env.terminate()
+
+    def test_observed(self):
+        """Ensures that the observed ids are returning the correct vehicles."""
+        self.assertTrue(
+            test_observed(
+                env_class=MultiAgentMergePOEnv,
+                sim_params=self.sim_params,
+                network=self.network,
+                env_params=self.env_params,
+                expected_observed=["human_0"]
+            )
+        )
+
+
 class TestMultiAgentHighwayPOEnv(unittest.TestCase):
 
     def setUp(self):
@@ -1032,7 +1224,9 @@ class TestMultiAgentHighwayPOEnv(unittest.TestCase):
         )
         self.env_params = EnvParams(
             additional_params={
-                'max_accel': 1, 'max_decel': 1, "target_velocity": 25
+                'max_accel': 1,
+                'max_decel': 1,
+                "target_velocity": 25
             }
         )
 

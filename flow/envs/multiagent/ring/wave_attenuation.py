@@ -10,8 +10,14 @@ abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 
 import numpy as np
 from gym.spaces.box import Box
+import random
+from scipy.optimize import fsolve
+from copy import deepcopy
+
+from flow.core.params import InitialConfig
+from flow.core.params import NetParams
 from flow.envs.multiagent.base import MultiEnv
-from flow.envs.ring.wave_attenuation import WaveAttenuationEnv
+from flow.envs.ring.wave_attenuation import v_eq_max_function
 
 
 ADDITIONAL_ENV_PARAMS = {
@@ -134,7 +140,7 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
                 'right_{}'.format(i), 'bottom_{}'.format(i)]
 
 
-class MultiAgentWaveAttenuationPOEnv(MultiEnv, WaveAttenuationEnv):
+class MultiAgentWaveAttenuationPOEnv(MultiEnv):
     """Multi-agent variant of WaveAttenuationPOEnv.
 
     Required from env_params:
@@ -164,6 +170,14 @@ class MultiAgentWaveAttenuationPOEnv(MultiEnv, WaveAttenuationEnv):
         A rollout is terminated if the time horizon is reached or if two
         vehicles collide into one another.
     """
+
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
+        for p in ADDITIONAL_ENV_PARAMS.keys():
+            if p not in env_params.additional_params:
+                raise KeyError(
+                    'Environment parameter \'{}\' not supplied'.format(p))
+
+        super().__init__(env_params, sim_params, network, simulator)
 
     @property
     def observation_space(self):
@@ -211,7 +225,7 @@ class MultiAgentWaveAttenuationPOEnv(MultiEnv, WaveAttenuationEnv):
         """See class definition."""
         # in the warmup steps
         if rl_actions is None:
-            return {}
+            return 0
 
         vel = np.array([
             self.k.vehicle.get_speed(veh_id)
@@ -233,7 +247,7 @@ class MultiAgentWaveAttenuationPOEnv(MultiEnv, WaveAttenuationEnv):
         if mean_actions > accel_threshold:
             reward += eta * (accel_threshold - mean_actions)
 
-        return {key: float(reward) for key in self.k.vehicle.get_rl_ids()}
+        return reward
 
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""
@@ -241,3 +255,63 @@ class MultiAgentWaveAttenuationPOEnv(MultiEnv, WaveAttenuationEnv):
         for rl_id in self.k.vehicle.get_rl_ids():
             lead_id = self.k.vehicle.get_leader(rl_id) or rl_id
             self.k.vehicle.set_observed(lead_id)
+
+    def reset(self, new_inflow_rate=None):
+        """See parent class.
+
+        The sumo instance is reset with a new ring length, and a number of
+        steps are performed with the rl vehicle acting as a human vehicle.
+        """
+        # skip if ring length is None
+        if self.env_params.additional_params['ring_length'] is None:
+            return super().reset()
+
+        # reset the step counter
+        self.step_counter = 0
+
+        # update the network
+        initial_config = InitialConfig(bunching=50, min_gap=0)
+        length = random.randint(
+            self.env_params.additional_params['ring_length'][0],
+            self.env_params.additional_params['ring_length'][1])
+        additional_net_params = {
+            'length':
+                length,
+            'lanes':
+                self.net_params.additional_params['lanes'],
+            'speed_limit':
+                self.net_params.additional_params['speed_limit'],
+            'resolution':
+                self.net_params.additional_params['resolution']
+        }
+        net_params = NetParams(additional_params=additional_net_params)
+
+        self.network = self.network.__class__(
+            self.network.orig_name, self.network.vehicles,
+            net_params, initial_config)
+        self.k.vehicle = deepcopy(self.initial_vehicles)
+        self.k.vehicle.kernel_api = self.k.kernel_api
+        self.k.vehicle.master_kernel = self.k
+
+        # solve for the velocity upper bound of the ring
+        v_guess = 4
+        v_eq_max = fsolve(v_eq_max_function, np.array(v_guess),
+                          args=(len(self.initial_ids), length))[0]
+
+        print('\n-----------------------')
+        print('ring length:', net_params.additional_params['length'])
+        print('v_max:', v_eq_max)
+        print('-----------------------')
+
+        # restart the sumo instance
+        self.restart_simulation(
+            sim_params=self.sim_params,
+            render=self.sim_params.render)
+
+        # perform the generic reset function
+        observation = super().reset()
+
+        # reset the timer to zero
+        self.time_counter = 0
+
+        return observation
