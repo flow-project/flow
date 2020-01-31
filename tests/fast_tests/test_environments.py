@@ -1086,6 +1086,29 @@ class TestMultiAgentWaveAttenuationPOEnv(unittest.TestCase):
 
         env.terminate()
 
+    def test_reset(self):
+        """
+        Tests that the reset method creating new ring lengths within the
+        requested range.
+        """
+        # set a random seed to ensure the network lengths are always the same
+        # during testing
+        random.seed(9001)
+
+        # create the environment
+        env = MultiAgentWaveAttenuationPOEnv(
+            sim_params=self.sim_params,
+            network=self.network,
+            env_params=self.env_params
+        )
+
+        # reset the network several times and check its length
+        self.assertEqual(env.k.network.non_internal_length(), 230)
+        env.reset()
+        self.assertEqual(env.k.network.non_internal_length(), 236)
+        env.reset()
+        self.assertEqual(env.k.network.non_internal_length(), 265)
+
 
 class TestMultiAgentMergePOEnv(unittest.TestCase):
     """Tests the MultiAgentMergePOEnv environment in
@@ -1186,7 +1209,9 @@ class TestMultiAgentHighwayPOEnv(unittest.TestCase):
         )
         self.env_params = EnvParams(
             additional_params={
-                'max_accel': 1, 'max_decel': 1, "target_velocity": 25
+                'max_accel': 1,
+                'max_decel': 1,
+                "target_velocity": 25
             }
         )
 
