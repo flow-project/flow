@@ -12,6 +12,7 @@ from flow.core.params import InitialConfig
 from flow.core.params import NetParams
 from flow.core.params import SumoParams
 from flow.core.params import VehicleParams
+from flow.core.params import SumoCarFollowingParams
 from flow.envs.multiagent import MultiWaveAttenuationPOEnv
 from flow.networks import MultiRingNetwork
 from flow.utils.registry import make_create_env
@@ -35,6 +36,9 @@ for i in range(NUM_RINGS):
         acceleration_controller=(IDMController, {
             'noise': 0.2
         }),
+        car_following_params=SumoCarFollowingParams(
+            min_gap=0
+        ),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=21)
     vehicles.add(
