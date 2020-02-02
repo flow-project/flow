@@ -6,6 +6,7 @@ This example consists of 22 IDM cars on a ring creating shockwaves.
 from flow.controllers import IDMController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
+from flow.core.params import SumoCarFollowingParams
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.networks.ring import RingNetwork, ADDITIONAL_NET_PARAMS
 
@@ -15,6 +16,9 @@ vehicles.add(
     veh_id="idm",
     acceleration_controller=(IDMController, {}),
     routing_controller=(ContinuousRouter, {}),
+    car_following_params=SumoCarFollowingParams(
+        min_gap=0,
+    ),
     num_vehicles=22)
 
 
