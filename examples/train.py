@@ -172,6 +172,25 @@ def setup_exps_rllib(flow_params,
     return alg_run, gym_name, config
 
 
+
+
+
+def on_episode_step(info):
+    #print(info["episode"].last_info_for())
+
+    episode = info["episode"]
+    customData = episode.last_info_for()
+
+    if customData is not None:
+        #print(customData['average delay'])
+        episode.custom_metrics["average_delay"] = customData['average_delay']
+        episode.custom_metrics["standstill_vehicles"] = customData['standstill_vehicles']
+        episode.custom_metrics["number_RL_commands"] = customData['number_RL_commands']
+        episode.custom_metrics["average_speed"] = customData['average_speed']
+
+
+
+
 if __name__ == "__main__":
     flags = parse_args(sys.argv[1:])
 
@@ -205,7 +224,10 @@ if __name__ == "__main__":
                 "run": alg_run,
                 "env": gym_name,
                 "config": {
-                    **config
+                    **config,
+                    'callbacks': {
+                        "on_episode_step": tune.function(on_episode_step),
+                    }
                 },
                 "checkpoint_freq": 20,
                 "checkpoint_at_end": True,

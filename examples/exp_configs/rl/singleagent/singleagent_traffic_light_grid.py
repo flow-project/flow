@@ -160,7 +160,7 @@ vehicles.add(
     veh_id='idm',
     acceleration_controller=(SimCarFollowingController, {}),
     car_following_params=SumoCarFollowingParams(
-        minGap=2.5,
+        min_gap=2.5,
         decel=7.5,  # avoid collisions at emergency stops
         max_speed=V_ENTER,
         speed_mode="all_checks",
