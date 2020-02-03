@@ -164,6 +164,12 @@ class AimsunKernelVehicle(KernelVehicle):
         added_vehicles = self.kernel_api.get_entered_ids()
         exited_vehicles = self.kernel_api.get_exited_ids()
 
+        # updated the list of departed and arrived vehicles
+        self._num_departed.append(len(added_vehicles))
+        self._num_arrived.append(len(exited_vehicles))
+        self._departed_ids.append(added_vehicles)
+        self._arrived_ids.append(exited_vehicles)
+
         # add the new vehicles if they should be tracked
         for aimsun_id in added_vehicles:
             veh_type = self.kernel_api.get_vehicle_type_name(aimsun_id)
