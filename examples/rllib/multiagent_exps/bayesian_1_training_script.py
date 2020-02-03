@@ -1,5 +1,4 @@
-"""Sets up and runs the basic bayesian example. This script is just for debugging and checking that everything
-actually arrives at the desired time so that the conflict occurs. """
+"""Multi-agent traffic light example (single shared policy)."""
 
 import json
 import argparse
@@ -14,34 +13,39 @@ from ray import tune
 from ray.tune.registry import register_env
 from ray.tune import run_experiments
 
-from flow.envs.multiagent import Bayesian1Env
-from flow.networks import Bayesian1Network
+from flow.envs.multiagent import MultiTrafficLightGridPOEnv
+from flow.networks import TrafficLightGridNetwork
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.params import SumoCarFollowingParams, VehicleParams
-from flow.controllers import SimCarFollowingController, GridRouter, RLController
+from flow.core.params import InFlows, SumoCarFollowingParams, VehicleParams
+from flow.controllers import SimCarFollowingController, GridRouter
 
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
 # Experiment parameters
-N_ROLLOUTS = 10  # number of rollouts per training iteration
-N_CPUS = 1  # number of parallel workers
+N_ROLLOUTS = 63  # number of rollouts per training iteration
+N_CPUS = 63  # number of parallel workers
 
 # Environment parameters
 HORIZON = 400  # time horizon of a single rollout
-# TODO(@klin) make sure these parameters match what you've set up in the SUMO version here
 V_ENTER = 30  # enter speed for departing vehicles
-INNER_LENGTH = 50  # length of inner edges in the traffic light grid network
+INNER_LENGTH = 300  # length of inner edges in the traffic light grid network
 # number of vehicles originating in the left, right, top, and bottom edges
-N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 0, 1, 1, 1
+N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 1, 1, 1, 1
 
 
-def make_flow_params():
+def make_flow_params(n_rows, n_columns, edge_inflow):
     """
     Generate the flow params for the experiment.
 
     Parameters
     ----------
+    n_rows : int
+        number of rows in the traffic light grid
+    n_columns : int
+        number of columns in the traffic light grid
+    edge_inflow : float
+
 
     Returns
     -------
@@ -52,6 +56,7 @@ def make_flow_params():
     # total number specified above. We also use a "right_of_way" speed mode to
     # support traffic light compliance
     vehicles = VehicleParams()
+    num_vehicles = (N_LEFT + N_RIGHT) * n_columns + (N_BOTTOM + N_TOP) * n_rows
     vehicles.add(
         veh_id="human",
         acceleration_controller=(SimCarFollowingController, {}),
@@ -62,43 +67,35 @@ def make_flow_params():
             speed_mode="right_of_way",
         ),
         routing_controller=(GridRouter, {}),
-        num_vehicles=1)
-    # import ipdb; ipdb.set_trace()
+        num_vehicles=num_vehicles)
 
-    vehicles.add(
-        veh_id="human_1",
-        acceleration_controller=(SimCarFollowingController, {}),
-        car_following_params=SumoCarFollowingParams(
-            min_gap=2.5,
-            max_speed=V_ENTER,
-            decel=7.5,  # avoid collisions at emergency stops
-            speed_mode="right_of_way",
-        ),
-        routing_controller=(GridRouter, {}),
-        num_vehicles=1)
+    # inflows of vehicles are place on all outer edges (listed here)
+    outer_edges = []
+    outer_edges += ["left{}_{}".format(n_rows, i) for i in range(n_columns)]
+    outer_edges += ["right0_{}".format(i) for i in range(n_rows)]
+    outer_edges += ["bot{}_0".format(i) for i in range(n_rows)]
+    outer_edges += ["top{}_{}".format(i, n_columns) for i in range(n_rows)]
 
-    #TODO(klin) make sure the autonomous vehicle being placed here is placed in the right position
-    vehicles.add(
-        veh_id='rl',
-        acceleration_controller=(RLController, {}),
-        car_following_params=SumoCarFollowingParams(
-            speed_mode='right_of_way',
-        ),
-        routing_controller=(GridRouter, {}),
-        num_vehicles=1)
-
-    n_rows = 1
-    n_columns = 1
+    # equal inflows for each edge (as dictate by the EDGE_INFLOW constant)
+    inflow = InFlows()
+    for edge in outer_edges:
+        inflow.add(
+            veh_type="human",
+            edge=edge,
+            vehs_per_hour=edge_inflow,
+            departLane="free",
+            departSpeed=V_ENTER)
 
     flow_params = dict(
         # name of the experiment
-        exp_tag="bayesian_1_env",
+        exp_tag="grid_0_{}x{}_i{}_multiagent".format(n_rows, n_columns,
+                                                     edge_inflow),
 
         # name of the flow environment the experiment is running on
-        env_name=Bayesian1Env,
+        env_name=MultiTrafficLightGridPOEnv,
 
-        # name of the network class the experiment is running on TODO(KLin) change this to the correct network
-        network=Bayesian1Network,
+        # name of the network class the experiment is running on
+        network=TrafficLightGridNetwork,
 
         # simulator that is used by the experiment
         simulator='traci',
@@ -106,30 +103,28 @@ def make_flow_params():
         # sumo-related parameters (see flow.core.params.SumoParams)
         sim=SumoParams(
             restart_instance=True,
-            sim_step=0.1,
-            render=True,
+            sim_step=1,
+            render=False,
         ),
 
         # environment related parameters (see flow.core.params.EnvParams)
         env=EnvParams(
             horizon=HORIZON,
             additional_params={
-                # maximum acceleration of autonomous vehicles
-                'max_accel': 1,
-                # maximum deceleration of autonomous vehicles
-                'max_decel': 1,
-                # desired velocity for all vehicles in the network, in m/s
-                "target_velocity": 25,
-                # how many objects in our local radius we want to return
-                "max_num_objects": 3,
-                # how large of a radius to search in for a given vehicle in meters
-                "search_radius": 20
+                "target_velocity": 50,
+                "switch_time": 3,
+                "num_observed": 2,
+                "discrete": False,
+                "tl_type": "actuated",
+                "num_local_edges": 4,
+                "num_local_lights": 4,
             },
         ),
 
         # network-related parameters (see flow.core.params.NetParams and the
         # network's documentation or ADDITIONAL_NET_PARAMS component)
         net=NetParams(
+            inflows=inflow,
             additional_params={
                 "speed_limit": V_ENTER + 5,  # inherited from grid0 benchmark
                 "grid_array": {
@@ -154,7 +149,7 @@ def make_flow_params():
         # or reset (see flow.core.params.InitialConfig)
         initial=InitialConfig(
             spacing='custom',
-            shuffle=False,
+            shuffle=True,
         ),
     )
     return flow_params
@@ -187,6 +182,7 @@ def setup_exps_PPO(flow_params):
     config['model'].update({'fcnet_hiddens': [32, 32]})
     config['lr'] = tune.grid_search([1e-5, 1e-4, 1e-3])
     config['horizon'] = HORIZON
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config['observation_filter'] = 'NoFilter'
 
     # save the flow params for replay
@@ -232,7 +228,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="[Flow] Issues multi-agent traffic light grid experiment",
+        description="[Flow] Trains an untrained agent to predict behaviour of other human drivers & pedestrians in "
+                    "bayesian 1 scenario",
         epilog=EXAMPLE_USAGE)
 
     # required input parameters
@@ -244,10 +241,19 @@ if __name__ == '__main__':
                         help="Experiment run mode (local | cluster)")
     parser.add_argument('--algo', type=str, default='PPO',
                         help="RL method to use (PPO)")
+    parser.add_argument('--num_rows', type=int, default=3,
+                        help="The number of rows in the traffic light grid network.")
+    parser.add_argument('--num_cols', type=int, default=3,
+                        help="The number of columns in the traffic light grid network.")
+    parser.add_argument('--inflow_rate', type=int, default=300,
+                        help="The inflow rate (veh/hr) per edge.")
     args = parser.parse_args()
 
+    EDGE_INFLOW = args.inflow_rate  # inflow rate of vehicles at every edge
+    N_ROWS = args.num_rows  # number of row of bidirectional lanes
+    N_COLUMNS = args.num_cols  # number of columns of bidirectional lanes
 
-    flow_params = make_flow_params()
+    flow_params = make_flow_params(N_ROWS, N_COLUMNS, EDGE_INFLOW)
 
     upload_dir = args.upload_dir
     RUN_MODE = args.run_mode
@@ -271,7 +277,7 @@ if __name__ == '__main__':
         'checkpoint_freq': 25,
         "max_failures": 10,
         'stop': {
-            'training_iteration': 100
+            'training_iteration': N_ITER
         },
         'config': config,
         "num_samples": 1,
