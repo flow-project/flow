@@ -15,7 +15,9 @@ from flow.networks import FigureEightNetwork
 vehicles = VehicleParams()
 vehicles.add(
     veh_id="idm",
-    acceleration_controller=(IDMController, {}),
+    acceleration_controller=(IDMController, {
+        "noise": 0.1,
+    }),
     lane_change_controller=(StaticLaneChanger, {}),
     routing_controller=(ContinuousRouter, {}),
     car_following_params=SumoCarFollowingParams(
