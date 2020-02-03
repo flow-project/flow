@@ -67,7 +67,7 @@ class TraCISimulation(KernelSimulation):
         """See parent class."""
         return self.kernel_api.simulation.getStartingTeleportNumber() != 0
 
-    def start_simulation(self, network, sim_params):
+    def start_simulation(self, network, sim_params, env_params):
         """Start a sumo simulation instance.
 
         This method uses the configuration files created by the network class
