@@ -33,6 +33,7 @@ model = gui.getActiveModel()
 port_string = sys.argv[1]
 model.setAuthor(port_string)
 
+
 def generate_net(nodes,
                  edges,
                  connections,
