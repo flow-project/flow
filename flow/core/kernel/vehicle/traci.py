@@ -428,6 +428,17 @@ class TraCIVehicle(KernelVehicle):
                 observed_pedestrians.append(ped_id)
         return observed_pedestrians
 
+    def get_observed_vehicles(self, veh_id, vehicles, radius=50):
+        position = self.get_orientation(veh_id)[:2]
+        orientation = self.get_orientation(veh_id)[2]
+        orientation += 90 # orientation is 0 when facing North in SUMO, but 0 when facing EAST in util.py
+        obs_vehs = []
+        for veh_id in vehicles.get_ids():
+            print(vehicles.get_position(veh_id))
+            if util.observed(position, orientation, vehicles.get_orientation(veh_id)[:2], looking_distance=radius):
+                obs_vehs.append(veh_id)
+        return obs_vehs
+
     def get_ids(self):
         """See parent class."""
         return self.__ids

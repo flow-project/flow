@@ -65,6 +65,16 @@ def make_flow_params():
         num_vehicles=1)
     # import ipdb; ipdb.set_trace()
 
+    #TODO(klin) make sure the autonomous vehicle being placed here is placed in the right position
+    vehicles.add(
+        veh_id='rl',
+        acceleration_controller=(RLController, {}),
+        car_following_params=SumoCarFollowingParams(
+            speed_mode='right_of_way',
+        ),
+        routing_controller=(GridRouter, {}),
+        num_vehicles=1)
+
     vehicles.add(
         veh_id="human_1",
         acceleration_controller=(SimCarFollowingController, {}),
@@ -77,15 +87,7 @@ def make_flow_params():
         routing_controller=(GridRouter, {}),
         num_vehicles=1)
 
-    #TODO(klin) make sure the autonomous vehicle being placed here is placed in the right position
-    vehicles.add(
-        veh_id='rl',
-        acceleration_controller=(RLController, {}),
-        car_following_params=SumoCarFollowingParams(
-            speed_mode='right_of_way',
-        ),
-        routing_controller=(GridRouter, {}),
-        num_vehicles=1)
+
 
     n_rows = 1
     n_columns = 1
@@ -123,7 +125,7 @@ def make_flow_params():
                 # how many objects in our local radius we want to return
                 "max_num_objects": 3,
                 # how large of a radius to search in for a given vehicle in meters
-                "search_radius": 20
+                "search_radius": 3000
             },
         ),
 
