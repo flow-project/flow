@@ -57,34 +57,42 @@ class KernelLaneAreaDetector(object):
     def get_ids(self):
         """Return the ids of all lane area detectors."""
         raise NotImplementedError
-
+    
     """All following methods are using the API of the lane area detectors from traci:
     https://sumo.dlr.de/docs/TraCI/Lane_Area_Detector_Value_Retrieval.html
     """
     def get_n_veh_seen(self, detector_id):
-        """Return number of seen vehicles in the last simulation step."""
+        """Return number of seen vehicles in the last simulation step"""
         raise NotImplementedError
 
     def get_m_jam_length(self, detector_id):
-        """Return length of jam in meters during the last simulation step."""
+        """Return length of jam in meters during the last simulation step"""
         raise NotImplementedError
 
     def get_v_jam_length(self, detector_id):
-        """Return length of jam by number of vehicles during the last simulation step."""
+        """Return length of jam by number of vehicles during the last simulation 
+        step
+        """
         raise NotImplementedError
 
     def get_n_halting(self, detector_id):
-        """Return number of vehicles that halted(zero speed) in the last simulation step."""
+        """Return number of vehicles that halted(zero speed) in the last simulation
+        step
+        """
         raise NotImplementedError
 
     def get_mean_speed(self, detector_id):
-        """Return the mean speed of the vehicles in the last simulation step."""
+        """Return the mean speed of the vehicles in the last simulation step"""
         raise NotImplementedError
 
     def get_occupancy(self, detector_id):
-        """Return the percentage of space the detector was occupied by vehicles in the last simulation step."""
+        """Return the percentage of space the detector was occupied by vehicles
+        in the last simulation step
+        """
         raise NotImplementedError
 
     def get_v_id_list(self, detector_id):
-        """Return the ids of all vehicles that were on the detector in the last simulation step."""
+        """Return the ids of all vehicles that were on the detector in the last
+        simulation step
+        """
         raise NotImplementedError
