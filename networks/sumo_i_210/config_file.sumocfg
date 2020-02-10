@@ -1,0 +1,13 @@
+<configuration>
+
+    <input>
+        <net-file value="test.net.xml"/>
+        <route-files value="od_route_file.odtrips.rou.xml"/>
+    </input>
+
+    <time>
+        <begin value="0"/>
+        <end value="200000"/>
+    </time>
+
+</configuration>

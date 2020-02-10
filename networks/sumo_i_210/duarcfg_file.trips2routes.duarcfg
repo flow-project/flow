@@ -1,0 +1,17 @@
+<configuration>
+  <input>
+
+  <net-file value="test.net.xml"/>
+  <route-files value="od_file.odtrips.xml"/>
+  </input>
+
+  <output>
+  <output-file value="od_route_file.odtrips.rou.xml"/>
+  </output>
+
+  <report>
+  <xml-validation value="never"/>
+  <no-step-log value="true"/>
+  </report>
+
+</configuration>
