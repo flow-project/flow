@@ -47,7 +47,7 @@ def observed(position, orientation, target_position, fov=90, looking_distance=50
     return True
 
 def orientation_unit_circle(angle):
-    return 360 - ((angle - 90) % 360)
+    return (360 - (angle - 90)) % 360
 
 def euclidian_distance(x, y):
     return math.sqrt(x**2 + y **2)

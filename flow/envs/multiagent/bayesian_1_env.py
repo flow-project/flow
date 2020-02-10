@@ -86,7 +86,7 @@ class Bayesian1Env(MultiEnv):
     def get_state(self):
         """For a radius around the car, return the 3 closest objects with their X, Y position relative to you,
         their speed, a flag indicating if they are a pedestrian or not, and their yaw."""
-
+        
         obs = {}
         for rl_id in self.k.vehicle.get_rl_ids():
             # TODO add get x y as something that we store from TraCI
@@ -157,8 +157,11 @@ class Bayesian1Env(MultiEnv):
 
         """
         # TODO(@nliu)
+        viewable_vehicles = self.k.vehicle.get_observed_vehicles(veh_id, radius)
+        print(veh_id, 'vehicles', viewable_vehicles)
         viewable_pedestrians = self.k.vehicle.get_observed_pedestrians(veh_id, \
                 self.k.pedestrian, radius)
+        
         viewable_vehicles = self.k.vehicle.get_observed_vehicles(veh_id, \
                 self.k.vehicle, radius)
         return viewable_pedestrians + viewable_vehicles

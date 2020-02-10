@@ -201,6 +201,8 @@ class TraCIVehicle(KernelVehicle):
                 _position = vehicle_obs.get(veh_id, {}).get(
                     tc.VAR_POSITION, -1001)
                 _angle = vehicle_obs.get(veh_id, {}).get(tc.VAR_ANGLE, -1001) # TODO(KL) Check the angle vs orientation?
+                _angle = util.orientation_unit_circle(_angle)
+
                 _time_step = sim_obs[tc.VAR_TIME_STEP]
                 _time_delta = sim_obs[tc.VAR_DELTA_T]
                 self.__vehicles[veh_id]["orientation"] = \

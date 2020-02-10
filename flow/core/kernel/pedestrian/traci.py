@@ -1,5 +1,6 @@
 """Script containing the TraCI pedestrian kernel class."""
 from flow.core.kernel.pedestrian import KernelPedestrian
+from flow.core.kernel.pedestrian import util
 import traci.constants as tc
 import numpy as np
 
@@ -67,7 +68,10 @@ class TraCIPedestrian(KernelPedestrian):
         for ped_id in self.__ids:
             ped_obs[ped_id] = \
                     self.kernel_api.person.getSubscriptionResults(ped_id)
+            ped_obs[ped_id][tc.VAR_ANGLE] = util.orientation_unit_circle( \
+                ped_obs[ped_id][tc.VAR_ANGLE])
         self.__sumo_obs = ped_obs
+
 
     def _add_departed(self, ped_id):
         """Add a pedestrian that entered the network.
@@ -87,7 +91,7 @@ class TraCIPedestrian(KernelPedestrian):
 
         # subscribe new pedestrian
         self.kernel_api.person.subscribe(ped_id, [
-            tc.VAR_POSITION, tc.VAR_SPEED, tc.VAR_ROAD_ID])
+            tc.VAR_POSITION, tc.VAR_SPEED, tc.VAR_ROAD_ID, tc.VAR_ANGLE])
 
         # get initial state info
         self.__sumo_obs[ped_id] = dict()
@@ -97,6 +101,8 @@ class TraCIPedestrian(KernelPedestrian):
             self.kernel_api.person.getSpeed(ped_id)
         self.__sumo_obs[ped_id][tc.VAR_ROAD_ID] = \
             self.kernel_api.person.getRoadID(ped_id)
+        self.__sumo_obs[ped_id][tc.VAR_ANGLE] = \
+            util.orientation_unit_circle(self.kernel_api.person.getAngle(ped_id))
 
         new_obs = self.kernel_api.person.getSubscriptionResults(ped_id)
         return new_obs
@@ -132,6 +138,11 @@ class TraCIPedestrian(KernelPedestrian):
         if isinstance(ped_id, (list, np.ndarray)):
             return [self.get_edge(pedID, error) for pedID in ped_id]
         return self.__sumo_obs.get(ped_id, {}).get(tc.VAR_ROAD_ID, error)
+
+    def get_yaw(self, ped_id, error=-1001):
+        if isinstance(ped_id, (list, np.ndarray)):
+            return [self.get_yaw(pedID, error) for pedID in ped_id]
+        return self.__sumo_obs.get(ped_id, {}).get(tc.VAR_ANGLE, error)
 
     def is_pedestrian(self, obj_id):
         """See parent class"""
