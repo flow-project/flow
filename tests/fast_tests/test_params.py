@@ -203,8 +203,7 @@ class TestSumoLaneChangeParams(unittest.TestCase):
         expected_attributes_2 = \
             ["laneChangeModel", "lcStrategic", "lcCooperative", "lcSpeedGain",
              "lcKeepRight", "lcLookaheadLeft", "lcSpeedGainRight", "lcSublane",
-             "lcPushy", "lcPushyGap", "lcAssertive", "lcImpatience",
-             "lcTimeToImpatience", "lcAccelLat"]
+             "lcPushy", "lcPushyGap", "lcAssertive", "lcAccelLat"]
         self.assertCountEqual(attributes_2, expected_attributes_2)
 
     def test_wrong_model(self):
@@ -240,9 +239,7 @@ class TestSumoLaneChangeParams(unittest.TestCase):
             lcSublane=1.0,
             lcPushy=0,
             lcPushyGap=0.6,
-            lcAssertive=1,
-            lcImpatience=0,
-            lcTimeToImpatience=float("inf"))
+            lcAssertive=1)
 
         # ensure that the attributes match their correct element in the
         # "controller_params" dict
@@ -262,8 +259,6 @@ class TestSumoLaneChangeParams(unittest.TestCase):
             float(lc_params.controller_params["lcPushyGap"]), 0.6)
         self.assertAlmostEqual(
             float(lc_params.controller_params["lcAssertive"]), 1)
-        self.assertAlmostEqual(
-            float(lc_params.controller_params["lcImpatience"]), 0)
 
 
 if __name__ == '__main__':
