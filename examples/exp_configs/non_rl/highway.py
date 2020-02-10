@@ -1,7 +1,7 @@
 """Example of an open multi-lane network with human-driven vehicles."""
 
 from flow.controllers import IDMController
-from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
+from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, SumoLaneChangeParams
 from flow.core.params import VehicleParams, InFlows
 from flow.envs.ring.lane_change_accel import ADDITIONAL_ENV_PARAMS
 from flow.networks.highway import HighwayNetwork, ADDITIONAL_NET_PARAMS
@@ -11,10 +11,20 @@ vehicles = VehicleParams()
 vehicles.add(
     veh_id="human",
     acceleration_controller=(IDMController, {}),
+    lane_change_params=SumoLaneChangeParams(
+        # lane_change_mode="SL2015",
+        model="SL2015",
+        lc_sublane=2.0,
+    ),
     num_vehicles=20)
 vehicles.add(
     veh_id="human2",
     acceleration_controller=(IDMController, {}),
+    lane_change_params=SumoLaneChangeParams(
+        # lane_change_mode="SL2015",
+        model="SL2015",
+        lc_sublane=2.0,
+    ),
     num_vehicles=20)
 
 env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
@@ -50,7 +60,15 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
         render=True,
+        lateral_resolution=1.0,
     ),
+
+    # # model of lane changing the experiment is running on
+    # lc=SumoLaneChangeParams(
+    #     # lane_change_mode="SL2015",
+    #     model="SL2015",
+    #     lc_sublane=2.0,
+    # ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
