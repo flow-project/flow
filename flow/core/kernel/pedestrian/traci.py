@@ -132,3 +132,8 @@ class TraCIPedestrian(KernelPedestrian):
         if isinstance(ped_id, (list, np.ndarray)):
             return [self.get_edge(pedID, error) for pedID in ped_id]
         return self.__sumo_obs.get(ped_id, {}).get(tc.VAR_ROAD_ID, error)
+
+    def is_pedestrian(self, obj_id):
+        """See parent class"""
+        # @Nick
+        return obj_id in self.__ids

@@ -4,6 +4,7 @@ from gym.spaces.box import Box
 from flow.core.rewards import desired_velocity
 from flow.envs.multiagent.base import MultiEnv
 
+# TODO(KL) means KL's reminder for KL
 
 ADDITIONAL_ENV_PARAMS = {
     # maximum acceleration of autonomous vehicles
@@ -55,7 +56,7 @@ class Bayesian1Env(MultiEnv):
                     'Environment parameter "{}" not supplied'.format(p))
 
         super().__init__(env_params, sim_params, network, simulator)
-        self.observation_names = ["rel_x, rel_y, speed, is_ped, yaw"]
+        self.observation_names = ["rel_x", "rel_y", "speed", "is_ped", "yaw"]
         self.search_radius = self.env_params.additional_params["search_radius"]
 
     @property
@@ -90,8 +91,14 @@ class Bayesian1Env(MultiEnv):
         for rl_id in self.k.vehicle.get_rl_ids():
             # TODO add get x y as something that we store from TraCI
             # TODO(@nliu)
-            observation = np.zeros(self.observation_space.shape[0])
+            num_obs = len(self.observation_names)
+            print(num_obs)
+            print(self.observation_space)
+            observation = np.zeros(self.observation_space.shape[0])   #TODO(KL) Check if this makes sense
+            import ipdb; ipdb.set_trace()
             visible_ids = self.find_visible_objects(rl_id, self.search_radius)
+            print(self.search_radius)
+            print(visible_ids)
 
             veh_x, veh_y, _ = self.k.vehicle.get_orientation(rl_id)
 
@@ -110,10 +117,11 @@ class Bayesian1Env(MultiEnv):
                 else:
                     speed = self.k.vehicle.get_speed(obj_id)
                     yaw = self.k.vehicle.get_yaw(obj_id)
-                num_obs = len(self.observation_names)
+                print(speed, yaw)
                 observation[index * num_obs: (index + 1) * num_obs] = [rel_x, rel_y, speed, is_ped, yaw]
-            obs.update({rl_id: observation})
 
+            obs.update({rl_id: observation})
+            print(obs)
         return obs
 
     def compute_reward(self, rl_actions, **kwargs):
@@ -151,4 +159,6 @@ class Bayesian1Env(MultiEnv):
         # TODO(@nliu)
         viewable_pedestrians = self.k.vehicle.get_observed_pedestrians(veh_id, \
                 self.k.pedestrian, radius)
-        return viewable_pedestrians
+        viewable_vehicles = self.k.vehicle.get_observed_vehicles(veh_id, \
+                self.k.vehicle, radius)
+        return viewable_pedestrians + viewable_vehicles

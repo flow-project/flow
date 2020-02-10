@@ -10,7 +10,7 @@ from flow.core.util import emission_to_csv
 
 
 class Experiment:
-    """
+    """w
     Class for systematically running simulations in any supported simulator.
 
     This class acts as a runner for a network and environment. In order to use
@@ -120,7 +120,7 @@ class Experiment:
 
                 state, reward, done, _ = self.env.step(rl_actions(state))
                 vel[j] = np.mean(
-                    self.env.k.vehicle.get_speed(self.env.k.vehicle.get_ids()))
+                    self.env.k.vehicle.get_speed(self.env.k.vehicle.get_ids()))     # TODO(KL) Check w Eugene what the point of that the mean is?
                 ret += reward
                 ret_list.append(reward)
 
