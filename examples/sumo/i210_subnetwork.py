@@ -11,10 +11,12 @@ from flow.core.experiment import Experiment
 from flow.envs.test import TestEnv
 
 from flow.networks.base import Network
-# from flow.networks.bay_bridge_toll import EDGES_DISTRIBUTION
+from flow.networks.bay_bridge_toll import EDGES_DISTRIBUTION
 from flow.controllers import SimCarFollowingController, BayBridgeRouter
 
-TEMPLATE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../networks/sumo_i_210")
+NET_TEMPLATE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../networks/sumo_i_210/test.net.xml")
+ROUTE_TEMPLATE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              "../../networks/sumo_i_210/od_route_file.odtrips.rou.xml")
 
 
 def i_210_example(render=None):
@@ -88,7 +90,13 @@ def i_210_example(render=None):
     #     departSpeed=10)
 
     # net_params = NetParams(inflows=inflow, template=TEMPLATE)
-    net_params = NetParams(template=TEMPLATE)
+    net_params = NetParams(template={
+                               # network geometry features
+                               "net": NET_TEMPLATE,
+                               # features associated with the routes vehicles take
+                               "rou": ROUTE_TEMPLATE
+                           }
+                           )
 
 
     initial_config = InitialConfig(
