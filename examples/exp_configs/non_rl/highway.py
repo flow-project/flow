@@ -12,7 +12,6 @@ vehicles.add(
     veh_id="human",
     acceleration_controller=(IDMController, {}),
     lane_change_params=SumoLaneChangeParams(
-        # lane_change_mode="SL2015",
         model="SL2015",
         lc_sublane=2.0,
     ),
@@ -21,7 +20,6 @@ vehicles.add(
     veh_id="human2",
     acceleration_controller=(IDMController, {}),
     lane_change_params=SumoLaneChangeParams(
-        # lane_change_mode="SL2015",
         model="SL2015",
         lc_sublane=2.0,
     ),
@@ -62,13 +60,6 @@ flow_params = dict(
         render=True,
         lateral_resolution=1.0,
     ),
-
-    # # model of lane changing the experiment is running on
-    # lc=SumoLaneChangeParams(
-    #     # lane_change_mode="SL2015",
-    #     model="SL2015",
-    #     lc_sublane=2.0,
-    # ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(

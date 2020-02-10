@@ -15,6 +15,7 @@ vehicles.add(
     veh_id="idm",
     acceleration_controller=(IDMController, {}),
     routing_controller=(ContinuousRouter, {}),
+    sumo
     num_vehicles=22)
 
 
@@ -35,14 +36,6 @@ flow_params = dict(
     sim=SumoParams(
         render=True,
         sim_step=0.1,
-        lateral_resolution=1.0,
-    ),
-
-    # model of lane changing the experiment is running on
-    lc=SumoLaneChangeParams(
-        # lane_change_mode="SL2015",
-        model="SL2015",
-        lc_sublane=2.0,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
