@@ -478,8 +478,7 @@ class Env(gym.Env):
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
-            type_id, edge, lane_index, pos, speed = \
-                self.initial_state[veh_id]
+            type_id, edge, lane_index, pos, speed = self.initial_state[veh_id]
 
             try:
                 self.k.vehicle.add(

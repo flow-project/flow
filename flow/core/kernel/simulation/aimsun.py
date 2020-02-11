@@ -22,8 +22,6 @@ class AimsunKernelSimulation(KernelSimulation):
         an API that may be used to interact with the simulator
     sim_step : float
         seconds per simulation step; 0.5 by default
-    sims_per_step : int
-        number of sumo simulation steps performed in any given rollout step
     emission_path : str
         Path to the folder in which to create the emissions output.
         Emissions output is not generated if this value is not specified
@@ -40,7 +38,6 @@ class AimsunKernelSimulation(KernelSimulation):
         self.master_kernel = master_kernel
         self.kernel_api = None
         self.sim_step = None
-        self.sims_per_step = None
         self.emission_path = None
         self.time = 0
         self.stored_data = {
@@ -60,7 +57,7 @@ class AimsunKernelSimulation(KernelSimulation):
         """See parent class."""
         self.kernel_api = kernel_api
 
-    def start_simulation(self, network, sim_params, env_params):
+    def start_simulation(self, network, sim_params):
         """See parent class.
 
         This method calls the aimsun generator to generate the network, starts
@@ -69,7 +66,6 @@ class AimsunKernelSimulation(KernelSimulation):
         """
         # save the simulation step size (for later use)
         self.sim_step = sim_params.sim_step
-        self.sims_per_step = env_params.sims_per_step
 
         self.emission_path = sim_params.emission_path
         if self.emission_path is not None:
@@ -89,7 +85,7 @@ class AimsunKernelSimulation(KernelSimulation):
         if reset:
             self.time = 0
         else:
-            self.time += self.sim_step * self.sims_per_step
+            self.time += self.sim_step
 
         if self.emission_path is not None:
             for veh_id in self.master_kernel.vehicle.get_ids():

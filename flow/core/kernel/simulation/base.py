@@ -37,7 +37,7 @@ class KernelSimulation(object):
         """
         self.kernel_api = kernel_api
 
-    def start_simulation(self, network, sim_params, env_params):
+    def start_simulation(self, network, sim_params):
         """Start a simulation instance.
 
         network : any
@@ -46,8 +46,6 @@ class KernelSimulation(object):
             simulations, this is (string) the path to the .sumo.cfg file.
         sim_params : flow.core.params.SimParams
             simulation-specific parameters
-        env_params : flow.core.params.EnvParams
-            environment-specific parameters
         """
         raise NotImplementedError
 
