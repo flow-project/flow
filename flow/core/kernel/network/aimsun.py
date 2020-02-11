@@ -258,11 +258,13 @@ class AimsunKernelNetwork(BaseKernelNetwork):
 
     def close(self):
         """See parent class."""
-        # delete the json file that was used to read the network data
-        cur_dir = os.path.join(config.PROJECT_PATH,
-                               'flow/core/kernel/network')
-        os.remove(os.path.join(cur_dir, 'data_%s.json' % self.sim_params.port))
-        os.remove('%s_%s' % (self.network.net_params.template, self.sim_params.port))
+        try:
+            # delete the json file that was used to read the network data
+            cur_dir = os.path.join(config.PROJECT_PATH, 'flow/core/kernel/network')
+            os.remove(os.path.join(cur_dir, 'data_%s.json' % self.sim_params.port))
+            os.remove('%s_%s' % (self.network.net_params.template, self.sim_params.port))
+        except FileNotFoundError:
+            pass
 
     ###########################################################################
     #                        State acquisition methods                        #

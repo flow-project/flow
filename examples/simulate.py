@@ -6,6 +6,7 @@ Usage
 import argparse
 import sys
 from flow.core.experiment import Experiment
+from flow.core.params import AimsunParams
 
 
 def parse_args(args):
@@ -59,6 +60,12 @@ if __name__ == "__main__":
     # Update some variables based on inputs.
     flow_params['sim'].render = not flags.no_render
     flow_params['simulator'] = 'aimsun' if flags.aimsun else 'traci'
+
+    # If Aimsun is being called, replace SumoParams with AimsunParams.
+    if flags.aimsun:
+        sim_params = AimsunParams()
+        sim_params.__dict__.update(flow_params['sim'].__dict__)
+        flow_params['sim'] = sim_params
 
     # specify an emission path if they are meant to be generated
     if flags.gen_emission:

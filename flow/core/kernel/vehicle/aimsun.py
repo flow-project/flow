@@ -47,11 +47,6 @@ class AimsunKernelVehicle(KernelVehicle):
         # Ordered dictionary used to keep neural net inputs in order
         self.__vehicles = collections.OrderedDict()
 
-        # total number of vehicles in the network
-        self.num_vehicles = 0
-        # number of rl vehicles in the network
-        self.num_rl_vehicles = 0
-
         # contains the parameters associated with each type of vehicle
         self.type_parameters = {}
 
@@ -110,8 +105,6 @@ class AimsunKernelVehicle(KernelVehicle):
             individual vehicles and their initial speeds
         """
         self.type_parameters = vehicles.type_parameters
-        self.num_vehicles = 0
-        self.num_rl_vehicles = 0
 
         self.__vehicles.clear()
         for typ in vehicles.initial:
@@ -121,9 +114,6 @@ class AimsunKernelVehicle(KernelVehicle):
                 self.__vehicles[veh_id]['type'] = typ['veh_id']
                 self.__vehicles[veh_id]['type_name'] = typ['veh_id']  # FIXME
                 self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
-                self.num_vehicles += 1
-                if typ['acceleration_controller'][0] == RLController:
-                    self.num_rl_vehicles += 1
 
         # for tracked_type in self.tracked_vehicle_types:
         #     self.num_type[tracked_type] = 0
@@ -173,6 +163,12 @@ class AimsunKernelVehicle(KernelVehicle):
         # collect the entered and exited vehicle_ids
         added_vehicles = self.kernel_api.get_entered_ids()
         exited_vehicles = self.kernel_api.get_exited_ids()
+
+        # updated the list of departed and arrived vehicles
+        self._num_departed.append(len(added_vehicles))
+        self._num_arrived.append(len(exited_vehicles))
+        self._departed_ids.append(added_vehicles)
+        self._arrived_ids.append(exited_vehicles)
 
         # add the new vehicles if they should be tracked
         for aimsun_id in added_vehicles:
@@ -351,7 +347,6 @@ class AimsunKernelVehicle(KernelVehicle):
             # add the vehicle's id to the list of vehicle ids
             if accel_controller[0] == RLController:
                 self.__rl_ids.append(veh_id)
-                self.num_rl_vehicles += 1
             else:
                 self.__human_ids.append(veh_id)
                 if accel_controller[0] != SimCarFollowingController:
@@ -369,7 +364,6 @@ class AimsunKernelVehicle(KernelVehicle):
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
-        self.num_vehicles += 1
         self.__ids.append(veh_id)
         self.__vehicles[veh_id] = {}
         self.__vehicles[veh_id]["type_name"] = type_id
@@ -414,7 +408,6 @@ class AimsunKernelVehicle(KernelVehicle):
         del self._id_aimsun2flow[aimsun_id]
         del self._id_flow2aimsun[veh_id]
         self.__ids.remove(veh_id)
-        self.num_vehicles -= 1
 
         # remove it from all other ids (if it is there)
         if veh_id in self.__human_ids:
@@ -426,7 +419,6 @@ class AimsunKernelVehicle(KernelVehicle):
         elif veh_id in self.__rl_ids:
             # FIXME should be else
             self.__rl_ids.remove(veh_id)
-            self.num_rl_vehicles -= 1
 
         # make sure that the rl ids remain sorted
         self.__rl_ids.sort()
@@ -802,3 +794,11 @@ class AimsunKernelVehicle(KernelVehicle):
     def get_lane_leaders_speed(self, veh_id, error=None):
         """See parent class."""
         raise NotImplementedError
+
+    @property
+    def num_vehicles(self):
+        return len(self.__ids)
+
+    @property
+    def num_rl_vehicles(self):
+        return len(self.__rl_ids)

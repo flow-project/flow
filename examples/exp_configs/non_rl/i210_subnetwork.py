@@ -1,4 +1,4 @@
-"""Load an already existing Aimsun template and run the simulation."""
+"""Runs a simulation of the I-210 subnetwork."""
 from flow.core.params import AimsunParams, EnvParams, NetParams
 from flow.core.params import VehicleParams
 from flow.core.params import InFlows
@@ -12,13 +12,13 @@ import os
 vehicles = VehicleParams()
 
 # path to the imported Aimsun template
-template_path = os.path.join(config.PROJECT_PATH,
-                             "flow/utils/aimsun/small_template.ang")
+template_path = os.path.join(
+    config.PROJECT_PATH, "examples/prebuilt/aimsun/i_210_sub_merge_020620.ang")
 
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='aimsun_small_template',
+    exp_tag='I-210_subnetwork',
 
     # name of the flow environment the experiment is running on
     env_name=TestEnv,
@@ -31,15 +31,15 @@ flow_params = dict(
 
     # Aimsun-related parameters
     sim=AimsunParams(
-        sim_step=0.1,
+        sim_step=0.1,  # FIXME: 0.8?
         render=True,
-        replication_name="Replication 930",
-        centroid_config_name="Centroid Configuration 910"
+        replication_name="Replication 930",  # FIXME
+        centroid_config_name="Centroid Configuration 910"  # FIXME
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=3000,
+        horizon=3000,  # FIXME
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

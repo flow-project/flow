@@ -57,7 +57,6 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
         render=True,
-        emission_path="./data/",
         sim_step=0.2,
         restart_instance=False,
     ),

@@ -1,8 +1,11 @@
 """Script containing the base simulation kernel class."""
-from flow.core.kernel.simulation.base import KernelSimulation
-from flow.utils.aimsun.api import FlowAimsunAPI
+import os
+import signal
 import os.path as osp
 import csv
+
+from flow.core.kernel.simulation.base import KernelSimulation
+from flow.utils.aimsun.api import FlowAimsunAPI
 from flow.core.util import ensure_dir
 
 
@@ -126,6 +129,10 @@ class AimsunKernelSimulation(KernelSimulation):
         try:
             self.kernel_api.stop_simulation()
             self.master_kernel.network.aimsun_proc.kill()
+
+            # Weird bug that I don't understand. This closes Aimsun's window.
+            pid = self.master_kernel.network.aimsun_proc.pid + 1
+            os.kill(pid, signal.SIGTERM)
         except OSError:
             # in case no simulation originally existed (used by the visualizer)
             pass
