@@ -16,6 +16,20 @@ vehicles.add(
     num_vehicles=10,
 )
 
+inflow = InFlows()
+inflow.add(
+    veh_type="human",
+    edge="27414345",
+    probability=0.2,
+    departLane="random",
+    departSpeed=10)
+inflow.add(
+    veh_type="human",
+    edge="27414345",
+    probability=0.8,
+    departLane="random",
+    departSpeed=10)
+
 
 NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,
@@ -49,7 +63,7 @@ flow_params = dict(
     # network-related parameters (see flow.core.params.NetParams and the
     # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        inflows=InFlows(),
+        inflows=inflow,
         template=NET_TEMPLATE
     ),
 
