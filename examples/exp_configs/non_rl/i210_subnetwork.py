@@ -1,7 +1,7 @@
 """I-210 subnetwork example."""
 import os
 
-from flow.core.params import SumoParams, EnvParams, NetParams
+from flow.core.params import SumoParams, EnvParams, NetParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams, InitialConfig
 from flow.core.params import InFlows
 import flow.config as config
@@ -13,27 +13,31 @@ from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 vehicles = VehicleParams()
 vehicles.add(
     "human",
-    num_vehicles=10,
+    num_vehicles=0,
+    lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic")
 )
 
 inflow = InFlows()
+# main highway
 inflow.add(
     veh_type="human",
-    edge="27414345",
-    probability=0.2,
+    edge="119257914",
+    vehs_per_hour=6869,
+    # probability=1.0,
     departLane="random",
     departSpeed=10)
+# on ramp
 inflow.add(
     veh_type="human",
     edge="27414345",
-    probability=0.8,
+    vehs_per_hour=575,
     departLane="random",
     departSpeed=10)
 
 
 NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,
-    "examples/exp_configs/templates/sumo/test.net.xml")
+    "examples/exp_configs/templates/sumo/test2.net.xml")
 
 
 flow_params = dict(
@@ -57,7 +61,7 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=3000,
+        horizon=10000,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
