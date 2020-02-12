@@ -914,10 +914,6 @@ class SumoLaneChangeParams:
         see lcPushyGap in Note
     lc_assertive : float, optional
         see lcAssertive in Note
-    lc_impatience : float, optional
-        see lcImpatience in Note
-    lc_time_to_impatience : float, optional
-        see lcTimeToImpatience in Note
     lc_accel_lat : float, optional
         see lcAccelLate in Note
     kwargs : dict
@@ -942,8 +938,6 @@ class SumoLaneChangeParams:
                  lc_pushy=0,
                  lc_pushy_gap=0.6,
                  lc_assertive=1,
-                 lc_impatience=0,
-                 lc_time_to_impatience=float("inf"),
                  lc_accel_lat=1.0,
                  **kwargs):
         """Instantiate SumoLaneChangeParams."""
@@ -998,17 +992,6 @@ class SumoLaneChangeParams:
             deprecated_attribute(self, "lcAssertive", "lc_assertive")
             lc_assertive = kwargs["lcAssertive"]
 
-        # check for deprecations (lcImpatience)
-        if "lcImpatience" in kwargs:
-            deprecated_attribute(self, "lcImpatience", "lc_impatience")
-            lc_impatience = kwargs["lcImpatience"]
-
-        # check for deprecations (lcTimeToImpatience)
-        if "lcTimeToImpatience" in kwargs:
-            deprecated_attribute(self, "lcTimeToImpatience",
-                                 "lc_time_to_impatience")
-            lc_time_to_impatience = kwargs["lcTimeToImpatience"]
-
         # check for deprecations (lcAccelLat)
         if "lcAccelLat" in kwargs:
             deprecated_attribute(self, "lcAccelLat", "lc_accel_lat")
@@ -1042,8 +1025,6 @@ class SumoLaneChangeParams:
                 "lcPushy": str(lc_pushy),
                 "lcPushyGap": str(lc_pushy_gap),
                 "lcAssertive": str(lc_assertive),
-                "lcImpatience": str(lc_impatience),
-                "lcTimeToImpatience": str(lc_time_to_impatience),
                 "lcAccelLat": str(lc_accel_lat)
             }
 

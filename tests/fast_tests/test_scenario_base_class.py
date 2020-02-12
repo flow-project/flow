@@ -42,7 +42,7 @@ class TestGetX(unittest.TestCase):
 
     def setUp(self):
         # create the environment and network classes for a figure eight
-        self.env, _ = figure_eight_exp_setup()
+        self.env, _, _ = figure_eight_exp_setup()
 
     def tearDown(self):
         # free data used by the class
@@ -74,7 +74,7 @@ class TestGetEdge(unittest.TestCase):
 
     def setUp(self):
         # create the environment and network classes for a figure eight
-        self.env, _ = figure_eight_exp_setup()
+        self.env, _, _ = figure_eight_exp_setup()
 
     def tearDown(self):
         # free data used by the class
@@ -128,7 +128,7 @@ class TestEvenStartPos(unittest.TestCase):
             num_vehicles=15)
 
         # create the environment and network classes for a ring road
-        self.env, _ = ring_road_exp_setup(
+        self.env, _, _ = ring_road_exp_setup(
             net_params=net_params,
             initial_config=initial_config,
             vehicles=vehicles)
@@ -453,7 +453,7 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
         initial_config = InitialConfig(x0=150)
 
         # create the environment and network classes for a ring road
-        self.env, _ = figure_eight_exp_setup(
+        self.env, _, _ = figure_eight_exp_setup(
             initial_config=initial_config, vehicles=vehicles)
 
     def tearDown(self):
@@ -527,7 +527,7 @@ class TestRandomStartPos(unittest.TestCase):
             num_vehicles=5)
 
         # create the environment and network classes for a ring road
-        self.env, _ = ring_road_exp_setup(
+        self.env, _, _ = ring_road_exp_setup(
             net_params=net_params,
             initial_config=initial_config,
             vehicles=vehicles)
@@ -609,7 +609,7 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
 
         # create the environment and network classes for a variable lanes per
         # edge ring road
-        self.env, _ = variable_lanes_exp_setup(
+        self.env, _, _ = variable_lanes_exp_setup(
             vehicles=vehicles, initial_config=initial_config)
 
     def tearDown(self):
@@ -644,7 +644,7 @@ class TestRandomStartPosVariableLanes(TestEvenStartPosVariableLanes):
 
         # create the environment and network classes for a variable lanes per
         # edge ring road
-        self.env, _ = variable_lanes_exp_setup(
+        self.env, _, _ = variable_lanes_exp_setup(
             vehicles=vehicles, initial_config=initial_config)
 
 
@@ -666,7 +666,7 @@ class TestEdgeLength(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a ring road
-        env, _ = ring_road_exp_setup(net_params=net_params)
+        env, _, _ = ring_road_exp_setup(net_params=net_params)
 
         self.assertEqual(env.k.network.edge_length("top"), 250)
 
@@ -685,7 +685,7 @@ class TestEdgeLength(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        env, _ = figure_eight_exp_setup(net_params=net_params)
+        env, _, _ = figure_eight_exp_setup(net_params=net_params)
 
         self.assertAlmostEqual(
             env.k.network.edge_length(":center_0"), 9.40)  # FIXME: 6.2?
@@ -711,7 +711,7 @@ class TestSpeedLimit(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a figure eight
-        env, _ = ring_road_exp_setup(net_params=net_params)
+        env, _, _ = ring_road_exp_setup(net_params=net_params)
 
         self.assertAlmostEqual(env.k.network.speed_limit("top"), 60)
 
@@ -730,7 +730,7 @@ class TestSpeedLimit(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        env, network = figure_eight_exp_setup(net_params=net_params)
+        env, network, _ = figure_eight_exp_setup(net_params=net_params)
 
         self.assertAlmostEqual(
             env.k.network.speed_limit("bottom"), 60)
@@ -756,7 +756,7 @@ class TestNumLanes(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a figure eight
-        env, network = ring_road_exp_setup(net_params=net_params)
+        env, network, _ = ring_road_exp_setup(net_params=net_params)
 
         self.assertEqual(env.k.network.num_lanes("top"), 2)
 
@@ -775,7 +775,7 @@ class TestNumLanes(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        env, network = figure_eight_exp_setup(net_params=net_params)
+        env, network, _ = figure_eight_exp_setup(net_params=net_params)
 
         self.assertEqual(env.k.network.num_lanes("bottom"), 3)
         self.assertEqual(env.k.network.num_lanes(":top_0"), 3)
@@ -789,7 +789,7 @@ class TestGetEdgeList(unittest.TestCase):
 
     def setUp(self):
         # create the environment and network classes for a figure eight
-        self.env, _ = figure_eight_exp_setup()
+        self.env, _, _ = figure_eight_exp_setup()
 
     def tearDown(self):
         # free data used by the class
@@ -812,7 +812,7 @@ class TestGetJunctionList(unittest.TestCase):
 
     def setUp(self):
         # create the environment and network classes for a figure eight
-        self.env, _ = figure_eight_exp_setup()
+        self.env, _, _ = figure_eight_exp_setup()
 
     def tearDown(self):
         # free data used by the class
@@ -840,7 +840,7 @@ class TestNextPrevEdge(unittest.TestCase):
         """
         Tests the next_edge() and prev_edge() methods for the figure eight.
         """
-        env, _ = figure_eight_exp_setup()
+        env, _, _ = figure_eight_exp_setup()
 
         next_edge = env.k.network.next_edge("bottom", 0)
         expected_next_edge = [(':center_1', 0)]
@@ -854,7 +854,7 @@ class TestNextPrevEdge(unittest.TestCase):
         """
         Tests the next_edge() and prev_edge() methods for the ring road.
         """
-        env, _ = ring_road_exp_setup()
+        env, _, _ = ring_road_exp_setup()
 
         next_edge = env.k.network.next_edge("top", 0)
         expected_next_edge = [(":left_0", 0)]
@@ -869,7 +869,7 @@ class TestNextPrevEdge(unittest.TestCase):
         Tests that, when there are no edges in front, next_edge() returns an
         empty list
         """
-        env, _ = highway_exp_setup()
+        env, _, _ = highway_exp_setup()
         next_edge = env.k.network.next_edge(
             env.k.network.get_edge_list()[0], 0)
         self.assertTrue(len(next_edge) == 0)
@@ -879,7 +879,7 @@ class TestNextPrevEdge(unittest.TestCase):
         Tests that, when there are no edges behind, prev_edge() returns an
         empty list
         """
-        env, _ = highway_exp_setup()
+        env, _, _ = highway_exp_setup()
         prev_edge = env.k.network.prev_edge(
             env.k.network.get_edge_list()[0], 0)
         self.assertTrue(len(prev_edge) == 0)

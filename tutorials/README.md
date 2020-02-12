@@ -20,10 +20,10 @@ cd <flow-path>/tutorials
 jupyter-notebook
 ```
 
-Instructions are written in each file. To do each exercise, first run all of
+Instructions are written in each file. To do each tutorial, first run all of
 the cells in the Jupyter notebook. Then modify the ones that need to be
 modified in order to prevent any exceptions from being raised. Throughout these
-exercises, you may find the
+tutorials, you may find the
 [Flow documentation](https://flow.readthedocs.io/en/latest/) helpful.
 
 > **Common error:** if, when running a notebook, you run into an error of the form
@@ -45,7 +45,7 @@ exercises, you may find the
 > ```
 > (`cd /` is to make sure that `flow` is not in the folder you run `python` from). Then, in the Python interface that opens, run `import flow`. If you get an `ImportError`, this means you haven't installed Flow in your environment. Go back to the [installation instructions](https://flow.readthedocs.io/en/latest/flow_setup.html), especially the part where you do `pip install -e .` after having done `source activate flow`.
 
-The content of each exercise is as follows:
+The content of each tutorial is as follows:
 
 **Tutorial 0:** High-level introduction to Flow.
 
@@ -56,7 +56,7 @@ The content of each exercise is as follows:
 **Tutorial 3:** Running RLlib experiments for mixed-autonomy traffic.
 
 **Tutorial 4:** Saving and visualizing resuls from non-RL simulations and
-testing simulations in the presence of an RLlib/rllab agent.
+testing simulations in the presence of an RLlib agent.
 
 **Tutorial 5:** Creating custom networks.
 
