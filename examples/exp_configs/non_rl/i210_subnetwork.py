@@ -25,14 +25,20 @@ inflow.add(
     vehs_per_hour=6869,
     # probability=1.0,
     departLane="random",
-    departSpeed=10)
+    departSpeed=20)
 # on ramp
 inflow.add(
     veh_type="human",
     edge="27414345",
-    vehs_per_hour=575,
+    vehs_per_hour=264,
     departLane="random",
-    departSpeed=10)
+    departSpeed=20)
+inflow.add(
+    veh_type="human",
+    edge="27414342#0",
+    vehs_per_hour=311,
+    departLane="random",
+    departSpeed=20)
 
 
 NET_TEMPLATE = os.path.join(
