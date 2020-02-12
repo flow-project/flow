@@ -18,7 +18,11 @@ from copy import deepcopy
 WHITE = (255, 255, 255)
 CYAN = (0, 255, 255)
 RED = (255, 0, 0)
-
+GREEN = (0, 255, 0)
+STEPS = 10
+rdelta = 255 / STEPS
+# smoothly go from red to green as the speed increases
+color_bins = [[int(255 - rdelta * i), int(rdelta * i), 0] for i in range(STEPS + 1)]
 
 class TraCIVehicle(KernelVehicle):
     """Flow kernel for the TraCI API.
@@ -73,6 +77,7 @@ class TraCIVehicle(KernelVehicle):
         # whether or not to automatically color vehicles
         try:
             self._color_vehicles = sim_params.color_vehicles
+            self._color_by_speed = sim_params.color_by_speed
         except AttributeError:
             self._color_vehicles = False
 
@@ -996,6 +1001,15 @@ class TraCIVehicle(KernelVehicle):
                 self.set_color(veh_id=veh_id, color=color)
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating human vehicle colors:', e)
+
+        # color vehicles by speed if desired
+        if self._color_by_speed:
+            max_speed = self.master_kernel.network.max_speed()
+            speed_ranges = np.linspace(0, max_speed, STEPS)
+            for veh_id in self.get_ids():
+                veh_speed = self.get_speed(veh_id)
+                bin_index = np.digitize(veh_speed, speed_ranges)
+                self.set_color(veh_id=veh_id, color=color_bins[bin_index])
 
         # clear the list of observed vehicles
         for veh_id in self.get_observed_ids():
