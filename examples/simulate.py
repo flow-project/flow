@@ -56,6 +56,11 @@ if __name__ == "__main__":
     module = __import__("exp_configs.non_rl", fromlist=[flags.exp_config])
     flow_params = getattr(module, flags.exp_config).flow_params
 
+    # Get the custom callables for the runner
+    custom_callables = None
+    if hasattr(getattr(module, flags.exp_config), "custom_callables"):
+        custom_callables = getattr(module, flags.exp_config).custom_callables
+
     # Update some variables based on inputs.
     flow_params['sim'].render = not flags.no_render
     flow_params['simulator'] = 'aimsun' if flags.aimsun else 'traci'
@@ -65,7 +70,7 @@ if __name__ == "__main__":
         flow_params['sim'].emission_path = "./data"
 
     # Create the experiment object.
-    exp = Experiment(flow_params)
+    exp = Experiment(flow_params, custom_callables)
 
     # Run for the specified number of rollouts.
     exp.run(flags.num_runs, convert_to_csv=flags.gen_emission)

@@ -1,6 +1,8 @@
 """I-210 subnetwork example."""
 import os
 
+import numpy as np
+
 from flow.core.params import SumoParams, EnvParams, NetParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams, InitialConfig
 from flow.core.params import InFlows
@@ -56,13 +58,13 @@ flow_params = dict(
     # simulation-related parameters
     sim=SumoParams(
         sim_step=0.1,
-        render=True,
+        render=False,
         color_by_speed=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=10000,
+        horizon=2000,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
@@ -82,3 +84,6 @@ flow_params = dict(
         edges_distribution=EDGES_DISTRIBUTION,
     ),
 )
+
+custom_callables = [["avg_merge_speed", lambda env: np.mean(
+                    env.k.vehicle.get_speed(env.k.vehicle.get_ids_by_edge("119257908#1-AddedOnRampEdge")))]]

@@ -1,10 +1,12 @@
 """Contains an experiment class for running simulations."""
-
-import logging
 import datetime
-import numpy as np
+import logging
 import time
 import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
@@ -54,12 +56,18 @@ class Experiment:
     ----------
     env : flow.envs.Env
         the environment object the simulator will run
+    custom_callables : [str, lambda]
+        List of strings and lambda functions corresponding to some information we want
+        to extract from the environment. The lambda will be called at each step to extract
+        information from the env and it will be stored in a dict keyed by the str.
     """
 
-    def __init__(self, flow_params):
+    def __init__(self, flow_params, custom_callables=None):
         """Instantiate Experiment."""
         # Get the env name and a creator for the environment.
         create_env, _ = make_create_env(flow_params)
+        # Take a list of
+        self.custom_callables = custom_callables
 
         # Create the environment.
         self.env = create_env()
@@ -115,6 +123,8 @@ class Experiment:
         mean_vels = []
         std_vels = []
         outflows = []
+        custom_vals = {key: [] for key in [custom_val[0] for custom_val in self.custom_callables]}
+        lambda_keys = [custom_val[0] for custom_val in self.custom_callables]
         for i in range(num_runs):
             vel = np.zeros(num_steps)
             logging.info("Iter #" + str(i))
@@ -127,6 +137,10 @@ class Experiment:
                     self.env.k.vehicle.get_speed(self.env.k.vehicle.get_ids()))
                 ret += reward
                 ret_list.append(reward)
+
+                for name, lambda_func in self.custom_callables:
+                    val = lambda_func(self.env)
+                    custom_vals[name].append(val if not np.isnan(val) else 0)
 
                 if done:
                     break
@@ -149,6 +163,13 @@ class Experiment:
             np.mean(rets), np.std(rets)))
         print("Average, std speed: {}, {}".format(
             np.mean(mean_vels), np.std(mean_vels)))
+        for key in lambda_keys:
+            print("Average {}, std {} for {}".format(np.mean(custom_vals[key]), np.std(custom_vals[key]), key))
+            plt.figure()
+            plt.plot(np.arange(len(custom_vals[key])) * self.env.sim_params.sim_step, custom_vals[key])
+            plt.xlabel('Time (seconds)')
+            plt.ylabel(key)
+            plt.savefig('plots/{}.png'.format(key))
         self.env.terminate()
 
         if convert_to_csv:
