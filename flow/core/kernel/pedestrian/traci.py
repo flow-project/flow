@@ -1,6 +1,6 @@
 """Script containing the TraCI pedestrian kernel class."""
 from flow.core.kernel.pedestrian import KernelPedestrian
-from flow.core.kernel.pedestrian import util
+from flow.core.kernel import util
 import traci.constants as tc
 import numpy as np
 

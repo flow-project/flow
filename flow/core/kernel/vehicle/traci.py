@@ -2,7 +2,7 @@
 import traceback
 
 from flow.core.kernel.vehicle import KernelVehicle
-from flow.core.kernel.vehicle import util
+from flow.core.kernel import util
 import traci.constants as tc
 from traci.exceptions import FatalTraCIError, TraCIException
 import numpy as np
@@ -454,12 +454,13 @@ class TraCIVehicle(KernelVehicle):
 
                 observed_vehicles.append(v_id)
                 blocked.append(util.get_blocked_segments(position,
+                    #TODO (nliu): get rid of magic numbers
                     self.get_orientation(v_id)[:2],
                     self.get_orientation(v_id)[2],
                     self.get_length(v_id),
                     self.get_width(v_id)))
 
-        #TODO: vehicle often blocks itself out of view
+        #TODO (nliu): vehicle often blocks itself out of view
         for v_id in observed_vehicles:
             if not util.check_blocked(position, self.get_orientation(v_id)[:2], blocked):
                 viewable_vehicles.append(v_id)

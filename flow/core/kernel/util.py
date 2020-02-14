@@ -47,6 +47,21 @@ def observed(position, orientation, target_position, fov=90, looking_distance=50
     return True
 
 def orientation_unit_circle(angle):
+    
+    """ Converts SUMO's angle to the standard unit circle
+    SUMO defines 0 degrees facing North with the angle increasing clockwise (90 is East,
+    180 is South, etc.). This method converts SUMO's defintion to the standard unit circle
+    where 0 is East, 90 is North, etc.
+
+    Parameters
+    ---------------------
+    angle : double
+        SUMO's angle value
+
+    Return: double
+        the angle represented in the standard unit circle
+    """
+
     return (360 - (angle - 90)) % 360
 
 def euclidian_distance(x, y):
