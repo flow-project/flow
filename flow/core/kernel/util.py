@@ -27,14 +27,10 @@ def observed(position, orientation, target_position, fov=90, looking_distance=50
     # edge case where both objects are at the same position
     if delta_x == 0 and delta_y == 0:
         return True
-    
+
     # object is too far
     if euclidian_distance(delta_x, delta_y) > looking_distance:
         return False
-
-    # change orientation from SUMO's (clockwise, zeroed to North)
-    # to the standard unit circle
-    orientation = orientation_unit_circle(orientation)
 
     angle = get_angle(delta_x, delta_y)
     right_angle = (orientation - angle) % 360
@@ -113,10 +109,12 @@ def get_blocked_segments(position, target_position, target_orientation, target_l
 
     return(max_angle, min_angle)
 
-def check_blocked(position, target_position, blocked):
-    for b in blocked:
+def check_blocked(position, target_position, blocked, vehicle_id):
+    for b in list(blocked):
+        if b == vehicle_id:
+            continue
         line_of_sight = (position, target_position)
-        if lines_intersect(line_of_sight, b):
+        if lines_intersect(line_of_sight, blocked[b]):
             return True
     return False
 

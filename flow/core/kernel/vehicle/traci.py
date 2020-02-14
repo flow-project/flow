@@ -444,25 +444,25 @@ class TraCIVehicle(KernelVehicle):
     def get_viewable_objects(self, veh_id, pedestrians=None, radius=50):
         viewable_pedestrians, viewable_vehicles = [], []
         observed_vehicles = []
-        blocked = []
+        blocked = {}
 
         position = self.get_orientation(veh_id)[:2]
         orientation = self.get_orientation(veh_id)[2]
 
         for v_id in self.get_ids():
+
             if util.observed(position, orientation, self.get_orientation(v_id)[:2], looking_distance=radius) and v_id != veh_id:
 
                 observed_vehicles.append(v_id)
-                blocked.append(util.get_blocked_segments(position,
+                blocked[v_id] = util.get_blocked_segments(position,
                     #TODO (nliu): get rid of magic numbers
                     self.get_orientation(v_id)[:2],
-                    self.get_orientation(v_id)[2],
+                    self.get_yaw(v_id),
                     self.get_length(v_id),
-                    self.get_width(v_id)))
+                    self.get_width(v_id))
 
-        #TODO (nliu): vehicle often blocks itself out of view
         for v_id in observed_vehicles:
-            if not util.check_blocked(position, self.get_orientation(v_id)[:2], blocked):
+            if not util.check_blocked(position, self.get_orientation(v_id)[:2], blocked, v_id):
                 viewable_vehicles.append(v_id)
 
         if pedestrians:
@@ -471,7 +471,6 @@ class TraCIVehicle(KernelVehicle):
                     viewable_pedestrians.append(ped_id)
 
         return viewable_vehicles, viewable_pedestrians
-        #return observed_vehicles, viewable_pedestrians
 
     def get_ids(self):
         """See parent class."""
@@ -564,7 +563,8 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed(vehID, error) for vehID in veh_id]
-        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_ANGLE, error)
+        return util.orientation_unit_circle( \
+                self.__sumo_obs.get(veh_id, {}).get(tc.VAR_ANGLE, error))
 
     def get_position(self, veh_id, error=-1001):
         """See parent class."""
