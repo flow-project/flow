@@ -2,7 +2,7 @@
 import traceback
 
 from flow.core.kernel.vehicle import KernelVehicle
-from flow.core.kernel.vehicle import util
+from flow.core.kernel import util
 import traci.constants as tc
 from traci.exceptions import FatalTraCIError, TraCIException
 import numpy as np
@@ -201,6 +201,8 @@ class TraCIVehicle(KernelVehicle):
                 _position = vehicle_obs.get(veh_id, {}).get(
                     tc.VAR_POSITION, -1001)
                 _angle = vehicle_obs.get(veh_id, {}).get(tc.VAR_ANGLE, -1001) # TODO(KL) Check the angle vs orientation?
+                _angle = util.orientation_unit_circle(_angle)
+
                 _time_step = sim_obs[tc.VAR_TIME_STEP]
                 _time_delta = sim_obs[tc.VAR_DELTA_T]
                 self.__vehicles[veh_id]["orientation"] = \
@@ -313,6 +315,9 @@ class TraCIVehicle(KernelVehicle):
         self.__vehicles[veh_id]["length"] = self.kernel_api.vehicle.getLength(
             veh_id)
 
+        self.__vehicles[veh_id]["width"] = self.kernel_api.vehicle.getWidth(
+            veh_id)
+
         # set the "last_lc" parameter of the vehicle
         self.__vehicles[veh_id]["last_lc"] = -float("inf")
 
@@ -421,23 +426,52 @@ class TraCIVehicle(KernelVehicle):
     def get_observed_pedestrians(self, veh_id, pedestrians, radius=50):
         position = self.get_orientation(veh_id)[:2]
         orientation = self.get_orientation(veh_id)[2]
-        orientation += 90 # orientation is 0 when facing North in SUMO, but 0 when facing EAST in util.py
         observed_pedestrians = []
         for ped_id in pedestrians.get_ids():
             if util.observed(position, orientation, pedestrians.get_position(ped_id), looking_distance=radius):
                 observed_pedestrians.append(ped_id)
         return observed_pedestrians
 
-    def get_observed_vehicles(self, veh_id, vehicles, radius=50):
+    def get_observed_vehicles(self, veh_id, radius=50):
         position = self.get_orientation(veh_id)[:2]
         orientation = self.get_orientation(veh_id)[2]
-        orientation += 90 # orientation is 0 when facing North in SUMO, but 0 when facing EAST in util.py
-        obs_vehs = []
-        for veh_id in vehicles.get_ids():
-            print(vehicles.get_position(veh_id))
-            if util.observed(position, orientation, vehicles.get_orientation(veh_id)[:2], looking_distance=radius):
-                obs_vehs.append(veh_id)
-        return obs_vehs
+        observed_vehicles = []
+        for v_id in self.get_ids():
+            if util.observed(position, orientation, self.get_orientation(v_id)[:2], looking_distance=radius):
+                observed_vehicles.append(v_id)
+        return observed_vehicles
+
+    def get_viewable_objects(self, veh_id, pedestrians=None, radius=50):
+        viewable_pedestrians, viewable_vehicles = [], []
+        observed_vehicles = []
+        blocked = []
+
+        position = self.get_orientation(veh_id)[:2]
+        orientation = self.get_orientation(veh_id)[2]
+
+        for v_id in self.get_ids():
+            if util.observed(position, orientation, self.get_orientation(v_id)[:2], looking_distance=radius) and v_id != veh_id:
+
+                observed_vehicles.append(v_id)
+                blocked.append(util.get_blocked_segments(position,
+                    #TODO (nliu): get rid of magic numbers
+                    self.get_orientation(v_id)[:2],
+                    self.get_orientation(v_id)[2],
+                    self.get_length(v_id),
+                    self.get_width(v_id)))
+
+        #TODO (nliu): vehicle often blocks itself out of view
+        for v_id in observed_vehicles:
+            if not util.check_blocked(position, self.get_orientation(v_id)[:2], blocked):
+                viewable_vehicles.append(v_id)
+
+        if pedestrians:
+            for ped_id in pedestrians.get_ids():
+                if util.observed(position, orientation, pedestrians.get_position(ped_id), looking_distance=radius) and not util.check_blocked(position, pedestrians.get_position(ped_id), blocked):
+                    viewable_pedestrians.append(ped_id)
+
+        return viewable_vehicles, viewable_pedestrians
+        #return observed_vehicles, viewable_pedestrians
 
     def get_ids(self):
         """See parent class."""
@@ -563,6 +597,12 @@ class TraCIVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_length(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("length", error)
+
+    def get_width(self, veh_id, error=-1001):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_width(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("width", error)
 
     def get_leader(self, veh_id, error=""):
         """See parent class."""
