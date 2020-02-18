@@ -22,5 +22,5 @@ setproctitle
 psutil
 opencv-python
 boto3==1.4.8
-redis~=2.10.6
+redis==2.10.6
 pandas==0.24.2

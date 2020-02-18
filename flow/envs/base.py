@@ -11,6 +11,9 @@ import shutil
 import subprocess
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
 from flow.utils.flow_warnings import deprecated_attribute
+import sys
+
+sys.path.append("/home/valentin/Schreibtisch/sumo_install/sumo/tools")
 
 import gym
 from gym.spaces import Box
