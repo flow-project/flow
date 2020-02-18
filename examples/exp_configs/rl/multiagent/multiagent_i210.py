@@ -129,7 +129,6 @@ flow_params = dict(
     ),
 )
 
-
 # SET UP RLLIB MULTI-AGENT FEATURES
 
 create_env, env_name = make_create_env(params=flow_params, version=0)
@@ -146,7 +145,6 @@ act_space = test_env.action_space
 POLICY_GRAPHS = {'av': (PPOTFPolicy, obs_space, act_space, {})}
 
 POLICIES_TO_TRAIN = ['av']
-
 
 def policy_mapping_fn(_):
     """Map a policy in RLlib."""

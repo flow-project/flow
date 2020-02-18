@@ -5,6 +5,9 @@ Usage
 """
 import argparse
 import sys
+
+import ray
+
 from flow.core.experiment import Experiment
 
 
@@ -48,13 +51,20 @@ def parse_args(args):
 
     return parser.parse_known_args(args)[0]
 
+@ray.remote
+def run_experiment(flow_params, custom_callables):
+    exp = Experiment(flow_params, custom_callables)
+    info_dict = exp.run(flags.num_runs, convert_to_csv=flags.gen_emission)
+    return info_dict
+
 
 if __name__ == "__main__":
+    ray.init(local_mode=True)
     flags = parse_args(sys.argv[1:])
 
     # Get the flow_params object.
     module = __import__("exp_configs.non_rl", fromlist=[flags.exp_config])
-    flow_params = getattr(module, flags.exp_config).flow_params
+    flow_params_list = getattr(module, flags.exp_config).flow_params
 
     # Get the custom callables for the runner
     custom_callables = []
@@ -62,15 +72,14 @@ if __name__ == "__main__":
         custom_callables = getattr(module, flags.exp_config).custom_callables
 
     # Update some variables based on inputs.
-    flow_params['sim'].render = not flags.no_render
-    flow_params['simulator'] = 'aimsun' if flags.aimsun else 'traci'
+    for flow_params in flow_params_list:
+        flow_params['sim'].render = not flags.no_render
+        flow_params['simulator'] = 'aimsun' if flags.aimsun else 'traci'
 
-    # specify an emission path if they are meant to be generated
-    if flags.gen_emission:
-        flow_params['sim'].emission_path = "./data"
+        # specify an emission path if they are meant to be generated
+        if flags.gen_emission:
+            flow_params['sim'].emission_path = "./data"
 
-    # Create the experiment object.
-    exp = Experiment(flow_params, custom_callables)
-
-    # Run for the specified number of rollouts.
-    exp.run(flags.num_runs, convert_to_csv=flags.gen_emission)
+    temp_output = [run_experiment.remote(flow_params=flow_params,
+                                         custom_callables=custom_callables) for flow_params in flow_params_list]
+    temp_output = ray.get(temp_output)

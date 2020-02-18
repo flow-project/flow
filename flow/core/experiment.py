@@ -3,7 +3,11 @@ import datetime
 import logging
 import time
 import os
+import sys
 
+if sys.platform == 'darwin':
+    import matplotlib
+    matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -169,6 +173,8 @@ class Experiment:
             plt.plot(np.arange(len(custom_vals[key])) * self.env.sim_params.sim_step, custom_vals[key])
             plt.xlabel('Time (seconds)')
             plt.ylabel(key)
+            if not os.path.exists('plots'):
+                os.makedirs('plots')
             plt.savefig('plots/{}.png'.format(key))
         self.env.terminate()
 

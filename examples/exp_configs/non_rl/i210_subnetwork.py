@@ -63,7 +63,7 @@ flow_params = dict(
 
     # simulation-related parameters
     sim=SumoParams(
-        sim_step=0.1,
+        sim_step=0.8,
         render=False,
         color_by_speed=True
     ),
