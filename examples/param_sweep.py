@@ -4,6 +4,11 @@ Usage
     python simulate.py EXP_CONFIG --no_render
 """
 import argparse
+from datetime import datetime
+import os
+import pickle as pkl
+import pytz
+import subprocess
 import sys
 
 import ray
@@ -54,6 +59,12 @@ def parse_args(args):
         default=2,
         help='How many CPUs to parallelize over'
     )
+    parser.add_argument(
+        '--use_s3',
+        action='store_true',
+        default=False,
+        help='If true, upload the results dictionary as JSON'
+    )
 
     return parser.parse_known_args(args)[0]
 
@@ -86,6 +97,21 @@ if __name__ == "__main__":
         if flags.gen_emission:
             flow_params['sim'].emission_path = "./data"
 
+    date = datetime.now(tz=pytz.utc)
+    date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
+
     temp_output = [run_experiment.remote(flow_params=flow_params,
                                          custom_callables=custom_callables) for flow_params in flow_params_list]
     temp_output = ray.get(temp_output)
+
+    if flags.use_s3:
+        curr_path = __file__
+        output_path = os.path.abspath('calibrated_values/info_dict.pkl')
+
+        # with open(output_path, 'wb') as output:
+        with open(output_path, 'wb') as file:
+            pkl.dump(temp_output, file)
+
+        p1 = subprocess.Popen("aws s3 sync {} {}".format(os.path.dirname(output_path), "s3://flow.calibration/{}"
+                                                         .format(date)).split(' '))
+        p1.wait(50)
