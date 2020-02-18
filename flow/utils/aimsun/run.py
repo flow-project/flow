@@ -489,6 +489,23 @@ def threaded_client(conn, **kwargs):
                 acycle = kwargs.get('acycle')
                 cp.change_offset(node_id, offset, time, timeSta, acycle)
 
+            elif data = ac.INT_GET_TOTAL_GREEN: ###
+                send_message(conn, in_format='i', values=(0,))
+                node_id, = retrieve_message(conn, 'i')
+
+                total_green = cp.get_total_green(node_id)
+
+                send_message(conn, in_format='i', values=(total_green,))
+
+            elif data == ac.INT_CHANGE_PHASE_DURATION:
+                send_message(conn, in_format='i', values=(0,))
+                node_id, duration = retrieve_message(conn, 'i f')
+
+                time = kwargs.get('time')
+                timeSta = kwargs.get('timeSta')
+                acycle = kwargs.get('acycle')
+                cp.change_phase_duration(node_id, duration, time, timeSta, acycle)
+
             elif data == ac.INT_GET_IN_EDGES:
                 send_message(conn, in_format='i', values=(0,))
                 node_id, = retrieve_message(conn, 'i')

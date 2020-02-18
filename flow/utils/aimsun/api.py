@@ -704,6 +704,48 @@ class FlowAimsunAPI(object):
                            values=(node_id, offset,),
                            out_format=None)
 
+    def get_total_green(self, node_id):
+        """
+        Gets the intersection's total green time per ring
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+
+        Returns
+        -------
+        int
+            the total green time of the intersection
+        """
+        total_green, = self._send_command(ac.INT_GET_TOTAL_GREEN,
+                                     in_format='i',
+                                     values=(node_id,),
+                                     out_format='i')
+
+        return total_green
+
+    def change_phase_duration(self, node_id, duration):
+        """
+        Changes the phase timing
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+        duration : float
+            the new duration of the phases
+
+        Returns
+        -------
+        list
+            list of current phases as ints
+        """
+        self._send_command(ac.INT_CHANGE_PHASE_DURATION,
+                           in_format='i f',
+                           values=(node_id, duration,),
+                           out_format=None)
+
     def get_incoming_edges(self, node_id):
         """
         Gets an intersection's incoming edges

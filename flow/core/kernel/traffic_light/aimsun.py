@@ -105,6 +105,40 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         """
         return self.kernel_api.change_intersection_offset(node_id, offset)
 
+    def get_total_green(self, node_id):
+        """
+        Gets the intersection's offset
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+
+        Returns
+        -------
+        int
+            the offset of the intersection
+        """
+        return self.kernel_api.get_total_green(node_id)
+
+    def change_phase_duration(self, node_id, duration):
+        """
+        Changes an intersection's phase to the next
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+        duration: float
+            the new phase duration of the control plan
+
+        Returns
+        -------
+        list
+            list of current phase timing as floats
+        """
+        return self.kernel_api.change_phase_duration(node_id, duration)
+
     def get_incoming_edges(self, node_id):
         """
         Gets an intersection's incoming edges
