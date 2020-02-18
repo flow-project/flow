@@ -424,6 +424,24 @@ class TraCIVehicle(KernelVehicle):
         return self.__vehicles[veh_id]["initial_speed"]
 
     def get_viewable_objects(self, veh_id, pedestrians=None, radius=50):
+        """Get vehicles and pedestrians that are viewable from the observation vehicle.
+
+        Return two lists of all vehicles and pedestrians that are within the viewing radius
+        and not blocked by another vehicle.
+
+        Parameters
+        ----------
+        veh_id : str
+            unique identifier for the observation vehicle
+        pedestrians : flow.core.kernel.pedestrian.KernelPedestrian
+            KernelPedestrian object used to access pedestrian state info
+        radius : double
+            the furthest distance the observation vehicle can see
+
+        Return: list of (list of (str,), list of (str,))
+            First list is comprised of the ids of the vehicles viewable by the observation vehicle
+            Second list is comprised of the ids of the pedestrians viewable by the observation vehicle
+        """
         viewable_pedestrians, viewable_vehicles = [], []
         observed_vehicles = []
         blocked = {}
