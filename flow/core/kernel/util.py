@@ -1,16 +1,16 @@
+"""Utility methods used for determining what is in a vehicle's field of view."""
 import math
 
 def observed(position, orientation, target_position, fov=90, looking_distance=50):
-
-    """ Checks if a single vehicle/pedestrian can see another vehicle/pedestrian
+    """Check if a single vehicle/pedestrian can see another vehicle/pedestrian.
 
     Parameters
-    ---------------------
-    position : 2D tuple
+    ----------
+    position : tuple of (double, double)
         (x, y) position of observer
     orientation : double
         angle of observer in degrees (0 deg is East, 90 deg is North)
-    target_position: 2D tuple
+    target_position: tuple of (double, double)
         (x, y) position of the target
     fov: double
         the field of view of the observer
@@ -20,7 +20,6 @@ def observed(position, orientation, target_position, fov=90, looking_distance=50
     Return: boolean
         whether or not the target can be observed
     """
-
     delta_x = target_position[0] - position[0]
     delta_y = target_position[1] - position[1]
 
@@ -43,27 +42,50 @@ def observed(position, orientation, target_position, fov=90, looking_distance=50
     return True
 
 def orientation_unit_circle(angle):
-    
-    """ Converts SUMO's angle to the standard unit circle
+    """Convert SUMO's angle to the standard unit circle.
+
     SUMO defines 0 degrees facing North with the angle increasing clockwise (90 is East,
     180 is South, etc.). This method converts SUMO's defintion to the standard unit circle
     where 0 is East, 90 is North, etc.
 
     Parameters
-    ---------------------
+    ----------
     angle : double
         SUMO's angle value
 
     Return: double
         the angle represented in the standard unit circle
     """
-
     return (360 - (angle - 90)) % 360
 
 def euclidian_distance(x, y):
-    return math.sqrt(x**2 + y **2)
+    """Get euclidian distance between two segments.
+
+    Parameters
+    ----------
+    x : double
+        length of the first edge
+    y : double
+        length of the second edge
+
+    Return: double
+        euclidian distance between the two edges
+    """
+    return math.sqrt(x**2 + y**2)
 
 def get_angle(x, y):
+    """Get angle based on the unit circle.
+
+    Parameters
+    ----------
+    x : double
+        x-value
+    y : double
+        y-value
+
+    Return: double
+        angle
+    """
     if x == 0:
         if y > 0:
             return 90
@@ -75,7 +97,28 @@ def get_angle(x, y):
     return math.degrees(math.atan(y / x))
 
 def get_blocked_segments(position, target_position, target_orientation, target_length, target_width):
+    """Define a line segment that blocks the observation vehicle's line of sight.
 
+    From the perspective of the observation vehicle, define the longest line segment between
+    the four corners of the observed vehicle that blocks the widest field of view. This is
+    done by selecting the two x, y points that create the largest angle with respect to the
+    position of the observation vehicle.
+
+    Parameters
+    ----------
+    position : tuple
+        x, y position of the observation vehicle
+    target_position : tuple of (double, double)
+        x, y position of the vehicle being observed
+    target_length : double
+        length of the observed vehicle
+    target_width : double
+        width of the observed vehicle
+
+    Return: tuple of (tuple, tuple)
+        Each element is another length 2 tuple of the x and y positions of the line segment
+        that blocks the observation vehicle's field of view
+    """
     target_orientation = orientation_unit_circle(target_orientation)
     corner_angle = math.degrees(math.atan(target_width / target_length))
     corner_dist = euclidian_distance(target_length, target_width)
@@ -110,6 +153,28 @@ def get_blocked_segments(position, target_position, target_orientation, target_l
     return(max_angle, min_angle)
 
 def check_blocked(position, target_position, blocked, vehicle_id):
+    """Check if a target vehicle is blocked by another vehicle or object.
+
+    Create a line-of-sight line segment between the observation and target
+    vehicles. Return True if this line intersects with a line segment in blocked
+    that corresponds to a different vehicle_id; otherwise return False.
+
+    Parameters
+    ----------
+    position : tuple
+        x, y position of the observation vehicle
+    target_position : tuple
+        x, y position of the target vehicle
+    blocked : dict of {str : tuple}
+        key : unqie identifier for vehicle that is blocking the view
+        tuple of (tuple, tuple) : two tuples define the x and y positions of the
+            endpoints of a line segment that blocks field of view
+    vehicle_id : str
+        unique identifier for the observation vehicle
+
+    Return: boolean
+        whether or not a vehicle is blocked from the observation vehicle's point of view
+    """
     for b in list(blocked):
         if b == vehicle_id:
             continue
@@ -119,12 +184,21 @@ def check_blocked(position, target_position, blocked, vehicle_id):
     return False
 
 def lines_intersect(line1, line2):
+    """Check if two lines intersect.
 
-    '''
-    line intersection algorithm
+    Algorithm defined here:
     https://bryceboe.com/2006/10/23/line-segment-intersection-algorithm/
-    '''
 
+    Parameters
+    ----------
+    line1 : tuple of (tuple, tuple)
+        each element is the x, y position defining an endpoint of line1
+    line2 : tuple of (tuple, tuple)
+        each element is the x, y position defining an endpoint of line2
+
+    Return: boolean
+        whether or not the two lines intersect
+    """
     def ccw(A, B, C):
             return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1])*(C[0]-A[0])
 
