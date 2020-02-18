@@ -34,6 +34,10 @@ def parse_args(args):
         'exp_config', type=str,
         help='Name of the experiment configuration file, as located in '
              'exp_configs/non_rl.')
+    parser.add_argument(
+        'sweep_name', type=str,
+        help='Identifying name for the sweep'
+    )
 
     # optional input parameters
     parser.add_argument(
@@ -114,6 +118,6 @@ if __name__ == "__main__":
         pkl.dump(temp_output, file)
 
     if flags.use_s3:
-        p1 = subprocess.Popen("aws s3 sync {} {}".format(os.path.dirname(output_path), "s3://flow.calibration/{}"
-                                                         .format(date)).split(' '))
+        p1 = subprocess.Popen("aws s3 sync {} {}".format(os.path.dirname(output_path), "s3://flow.calibration/{}/{}"
+                                                         .format(date, flags.sweep_name)).split(' '))
         p1.wait(50)
