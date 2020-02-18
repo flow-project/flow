@@ -25,6 +25,6 @@ if __name__ == '__main__':
         # sum up all the slices
         summed_slices = np.add.reduceat(merge_speed, step_sizes) / num_steps
         # throw away the last point and the first point before the network is formed
-        error = np.sum(summed_slices[:-1] - speeds[:summed_slices.shape[0] - 1])
+        error = np.abs(np.mean(summed_slices[:-1] - speeds[:summed_slices.shape[0] - 1]))
         errors.append(error)
     print(errors)

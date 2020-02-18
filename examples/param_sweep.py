@@ -100,6 +100,7 @@ if __name__ == "__main__":
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
 
+    # TODO(@evinitsky) add additional information that lets us figure out which experiment is which
     temp_output = [run_experiment.remote(flow_params=flow_params,
                                          custom_callables=custom_callables) for flow_params in flow_params_list]
     temp_output = ray.get(temp_output)
