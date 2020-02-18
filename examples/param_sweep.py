@@ -105,7 +105,7 @@ if __name__ == "__main__":
                                          custom_callables=custom_callables) for flow_params in flow_params_list]
     temp_output = ray.get(temp_output)
 
-    curr_path = __file__
+    curr_path = os.getcwd()
     output_path = os.path.abspath('calibrated_values/info_dict.pkl')
 
     # with open(output_path, 'wb') as output:
