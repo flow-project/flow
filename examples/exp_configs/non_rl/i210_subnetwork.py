@@ -70,7 +70,7 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=20,
+        horizon=4500,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

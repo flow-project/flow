@@ -13,7 +13,7 @@ import flow.config as config
 from flow.envs import TestEnv
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
-default_dict={"lane_change_mode": "no_lat_collide",
+default_dict={"lane_change_mode": "strategic",
               "model": "LC2013",
               "lc_strategic": 1.0,
                  "lc_cooperative": 1.0,
@@ -119,6 +119,7 @@ for lane_change_dict in res:
         initial=InitialConfig(
             edges_distribution=EDGES_DISTRIBUTION,
         ),
+        sweep=lane_change_dict
     )
     valid_combinations.append(flow_params)
 

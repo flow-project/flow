@@ -70,6 +70,7 @@ def parse_args(args):
 
 @ray.remote
 def run_experiment(flow_params, custom_callables):
+    print(flow_params['sweep'])
     exp = Experiment(flow_params, custom_callables)
     info_dict = exp.run(flags.num_runs, convert_to_csv=flags.gen_emission)
     return info_dict
