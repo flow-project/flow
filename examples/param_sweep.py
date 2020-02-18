@@ -104,14 +104,14 @@ if __name__ == "__main__":
                                          custom_callables=custom_callables) for flow_params in flow_params_list]
     temp_output = ray.get(temp_output)
 
+    curr_path = __file__
+    output_path = os.path.abspath('calibrated_values/info_dict.pkl')
+
+    # with open(output_path, 'wb') as output:
+    with open(output_path, 'wb') as file:
+        pkl.dump(temp_output, file)
+
     if flags.use_s3:
-        curr_path = __file__
-        output_path = os.path.abspath('calibrated_values/info_dict.pkl')
-
-        # with open(output_path, 'wb') as output:
-        with open(output_path, 'wb') as file:
-            pkl.dump(temp_output, file)
-
         p1 = subprocess.Popen("aws s3 sync {} {}".format(os.path.dirname(output_path), "s3://flow.calibration/{}"
                                                          .format(date)).split(' '))
         p1.wait(50)

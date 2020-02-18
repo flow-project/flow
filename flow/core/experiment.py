@@ -168,6 +168,7 @@ class Experiment:
         print("Average, std speed: {}, {}".format(
             np.mean(mean_vels), np.std(mean_vels)))
         for key in lambda_keys:
+            info_dict[key] = custom_vals[key]
             print("Average {}, std {} for {}".format(np.mean(custom_vals[key]), np.std(custom_vals[key]), key))
             plt.figure()
             plt.plot(np.arange(len(custom_vals[key])) * self.env.sim_params.sim_step, custom_vals[key])
