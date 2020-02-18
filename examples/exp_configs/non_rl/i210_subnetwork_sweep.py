@@ -28,6 +28,7 @@ default_dict={"lane_change_mode": "no_lat_collide",
                  "lc_accel_lat": 1.0}
 sweep_dict = OrderedDict({"lc_strategic": [0.5, 1.0, 2.0], "lc_cooperative": [0.5, 1.0, 2.0],
                          "lc_assertive": [1, 2.0], "lcLookaheadLeft": [2.0, 5.0]})
+
 allNames = sorted(sweep_dict)
 combinations = itertools.product(*(sweep_dict[Name] for Name in allNames))
 combination_list = list(combinations)
@@ -99,7 +100,7 @@ for lane_change_dict in res:
 
         # environment related parameters (see flow.core.params.EnvParams)
         env=EnvParams(
-            horizon=20,  # one hour of run time
+            horizon=4500,  # one hour of run time
         ),
 
         # network-related parameters (see flow.core.params.NetParams and the
