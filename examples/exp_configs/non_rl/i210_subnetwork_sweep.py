@@ -99,7 +99,7 @@ for lane_change_dict in res:
 
         # environment related parameters (see flow.core.params.EnvParams)
         env=EnvParams(
-            horizon=4500,  # one hour of run time
+            horizon=20,  # one hour of run time
         ),
 
         # network-related parameters (see flow.core.params.NetParams and the

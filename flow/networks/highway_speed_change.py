@@ -13,7 +13,7 @@ ADDITIONAL_NET_PARAMS = {
     # speed limit for all edges
     "speed_limit": 30,
     # end speed limit
-    "end_speed_limit": 25,
+    "end_speed_limit": 20,
     # number of edges to divide the highway into
     "num_edges": 1
 }
