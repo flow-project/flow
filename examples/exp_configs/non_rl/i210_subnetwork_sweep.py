@@ -97,7 +97,7 @@ for lane_chnage_dict in res:
 
         # environment related parameters (see flow.core.params.EnvParams)
         env=EnvParams(
-            horizon=20,
+            horizon=4500,  # one hour of run time
         ),
 
         # network-related parameters (see flow.core.params.NetParams and the

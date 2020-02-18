@@ -48,6 +48,12 @@ def parse_args(args):
         action='store_true',
         help='Specifies whether to generate an emission file from the '
              'simulation.')
+    parser.add_argument(
+        '--num_cpus',
+        type=int,
+        default=2,
+        help='How many CPUs to parallelize over'
+    )
 
     return parser.parse_known_args(args)[0]
 
@@ -59,8 +65,9 @@ def run_experiment(flow_params, custom_callables):
 
 
 if __name__ == "__main__":
-    ray.init(local_mode=True)
     flags = parse_args(sys.argv[1:])
+    ray.init(num_cpus=flags.num_cpus)
+
 
     # Get the flow_params object.
     module = __import__("exp_configs.non_rl", fromlist=[flags.exp_config])
@@ -73,7 +80,6 @@ if __name__ == "__main__":
 
     # Update some variables based on inputs.
     for flow_params in flow_params_list:
-        flow_params['sim'].render = not flags.no_render
         flow_params['simulator'] = 'aimsun' if flags.aimsun else 'traci'
 
         # specify an emission path if they are meant to be generated
