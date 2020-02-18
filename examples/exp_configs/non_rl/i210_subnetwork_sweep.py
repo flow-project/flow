@@ -39,13 +39,13 @@ for list in combination_list:
     res.append(curr_dict)
 
 valid_combinations = []
-for lane_chnage_dict in res:
+for lane_change_dict in res:
     # no vehicles in the network
     vehicles = VehicleParams()
     vehicles.add(
         "human",
         num_vehicles=0,
-        lane_change_params=SumoLaneChangeParams(default_dict.update(lane_chnage_dict))
+        lane_change_params=SumoLaneChangeParams(default_dict.update(lane_change_dict))
     )
 
     inflow = InFlows()
