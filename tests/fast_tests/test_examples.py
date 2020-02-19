@@ -14,9 +14,12 @@ from examples.exp_configs.rl.singleagent.singleagent_merge import flow_params as
 from examples.exp_configs.rl.singleagent.singleagent_ring import flow_params as singleagent_ring
 from examples.exp_configs.rl.singleagent.singleagent_bottleneck import flow_params as singleagent_bottleneck
 
+from examples.exp_configs.rl.multiagent.adversarial_figure_eight import flow_params as adversarial_figure_eight
 from examples.exp_configs.rl.multiagent.multiagent_figure_eight import flow_params as multiagent_figure_eight
-from examples.exp_configs.rl.multiagent.multiagent_ring import \
-    flow_params as multiagent_ring
+from examples.exp_configs.rl.multiagent.multiagent_merge import flow_params as multiagent_merge
+from examples.exp_configs.rl.multiagent.lord_of_the_rings import \
+    flow_params as lord_of_the_rings
+from examples.exp_configs.rl.multiagent.multiagent_ring import flow_params as multiagent_ring
 from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import \
     flow_params as multiagent_traffic_light_grid
 from examples.exp_configs.rl.multiagent.multiagent_highway import flow_params as multiagent_highway
@@ -168,7 +171,17 @@ class TestRllibExamples(unittest.TestCase):
     def test_singleagent_bottleneck(self):
         self.run_exp(singleagent_bottleneck)
 
-    def test_multi_figure_eight(self):
+    def test_adversarial_figure_eight(self):
+        from examples.exp_configs.rl.multiagent.adversarial_figure_eight import POLICY_GRAPHS as af8pg
+        from examples.exp_configs.rl.multiagent.adversarial_figure_eight import policy_mapping_fn as af8pmf
+
+        kwargs = {
+            "policy_graphs": af8pg,
+            "policy_mapping_fn": af8pmf
+        }
+        self.run_exp(adversarial_figure_eight, **kwargs)
+
+    def test_multiagent_figure_eight(self):
         from examples.exp_configs.rl.multiagent.multiagent_figure_eight import POLICY_GRAPHS as mf8pg
         from examples.exp_configs.rl.multiagent.multiagent_figure_eight import policy_mapping_fn as mf8pmf
 
@@ -178,17 +191,37 @@ class TestRllibExamples(unittest.TestCase):
         }
         self.run_exp(multiagent_figure_eight, **kwargs)
 
-    def test_multi_ring(self):
+    def test_lord_of_the_rings(self):
+        from examples.exp_configs.rl.multiagent.lord_of_the_rings import POLICY_GRAPHS as ltrpg
+        from examples.exp_configs.rl.multiagent.lord_of_the_rings import POLICIES_TO_TRAIN as ltrpt
+        from examples.exp_configs.rl.multiagent.lord_of_the_rings import policy_mapping_fn as ltrpmf
+
+        kwargs = {
+            "policy_graphs": ltrpg,
+            "policies_to_train": ltrpt,
+            "policy_mapping_fn": ltrpmf
+        }
+        self.run_exp(lord_of_the_rings, **kwargs)
+
+    def test_multiagent_ring(self):
         from examples.exp_configs.rl.multiagent.multiagent_ring import POLICY_GRAPHS as mrpg
-        from examples.exp_configs.rl.multiagent.multiagent_ring import POLICIES_TO_TRAIN as mrpt
         from examples.exp_configs.rl.multiagent.multiagent_ring import policy_mapping_fn as mrpmf
 
         kwargs = {
             "policy_graphs": mrpg,
-            "policies_to_train": mrpt,
             "policy_mapping_fn": mrpmf
         }
         self.run_exp(multiagent_ring, **kwargs)
+
+    def test_multiagent_merge(self):
+        from examples.exp_configs.rl.multiagent.multiagent_merge import POLICY_GRAPHS as mmpg
+        from examples.exp_configs.rl.multiagent.multiagent_merge import policy_mapping_fn as mmpmf
+
+        kwargs = {
+            "policy_graphs": mmpg,
+            "policy_mapping_fn": mmpmf
+        }
+        self.run_exp(multiagent_merge, **kwargs)
 
     def test_multi_traffic_light_grid(self):
         from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import POLICY_GRAPHS as mtlpg
