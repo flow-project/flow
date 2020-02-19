@@ -435,7 +435,7 @@ class TraCIVehicle(KernelVehicle):
             unique identifier for the observation vehicle
         pedestrians : flow.core.kernel.pedestrian.KernelPedestrian
             KernelPedestrian object used to access pedestrian state info
-        radius : double
+        radius : float
             the furthest distance the observation vehicle can see
 
         Return: list of (list of (str,), list of (str,))

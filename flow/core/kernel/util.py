@@ -6,15 +6,15 @@ def observed(position, orientation, target_position, fov=90, looking_distance=50
 
     Parameters
     ----------
-    position : tuple of (double, double)
+    position : tuple of (float, float)
         (x, y) position of observer
-    orientation : double
+    orientation : float
         angle of observer in degrees (0 deg is East, 90 deg is North)
-    target_position: tuple of (double, double)
+    target_position: tuple of (float, float)
         (x, y) position of the target
-    fov: double
+    fov: float
         the field of view of the observer
-    looking_distance: double
+    looking_distance: float
         how far the observer can see
 
     Return: boolean
@@ -50,10 +50,10 @@ def orientation_unit_circle(angle):
 
     Parameters
     ----------
-    angle : double
+    angle : float
         SUMO's angle value
 
-    Return: double
+    Return: float
         the angle represented in the standard unit circle
     """
     return (360 - (angle - 90)) % 360
@@ -63,12 +63,12 @@ def euclidian_distance(x, y):
 
     Parameters
     ----------
-    x : double
+    x : float
         length of the first edge
-    y : double
+    y : float
         length of the second edge
 
-    Return: double
+    Return: float
         euclidian distance between the two edges
     """
     return math.sqrt(x**2 + y**2)
@@ -78,12 +78,12 @@ def get_angle(x, y):
 
     Parameters
     ----------
-    x : double
+    x : float
         x-value
-    y : double
+    y : float
         y-value
 
-    Return: double
+    Return: float
         angle
     """
     if x == 0:
@@ -108,11 +108,11 @@ def get_blocked_segments(position, target_position, target_orientation, target_l
     ----------
     position : tuple
         x, y position of the observation vehicle
-    target_position : tuple of (double, double)
+    target_position : tuple of (float, float)
         x, y position of the vehicle being observed
-    target_length : double
+    target_length : float
         length of the observed vehicle
-    target_width : double
+    target_width : float
         width of the observed vehicle
 
     Return: tuple of (tuple, tuple)
