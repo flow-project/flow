@@ -21,11 +21,11 @@ from ray.tune.registry import register_env
 # number of training iterations
 N_TRAINING_ITERATIONS = 200
 # number of rollouts per training iteration
-N_ROLLOUTS = 20
+N_ROLLOUTS = 2
 # number of steps per rollout
-HORIZON = 1500
+HORIZON = 500
 # number of parallel workers
-N_CPUS = 11
+N_CPUS = 1
 
 # inflow rate on the highway in vehicles per hour
 HIGHWAY_INFLOW_RATE = 4000
@@ -107,7 +107,7 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=2000,
+        horizon=HORIZON, # TODO(@evinitsky) decrease it when testing
         additional_params=additional_env_params
     ),
 

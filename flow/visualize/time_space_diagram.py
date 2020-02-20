@@ -324,8 +324,11 @@ def _i210_subnetwork(data, params, all_time):
     """
     # import network data from flow params
 
-    edge_starts = {"119257908#0": 0,
-                   "119257908#1-AddedOnRampEdge": 686.98}
+    # edge_starts = {"119257908#0": 0,
+    #                "119257908#1-AddedOnRampEdge": 686.98}
+    # edge_starts = {"119257908#0": 0}
+    edge_starts = {"119257908#1-AddedOnRampEdge": 0}
+
 
     # compute the absolute position
     for veh_id in data.keys():
@@ -336,7 +339,7 @@ def _i210_subnetwork(data, params, all_time):
 
     # create the output variables
     # TODO(@evinitsky) remove the subsampling
-    all_time = all_time[100:400]
+    all_time = all_time[100:1600]
 
     # track only vehicles that were around during this time period
     observed_row_list = []
@@ -350,7 +353,7 @@ def _i210_subnetwork(data, params, all_time):
                                           data[veh_id]['lane']):
             # avoid vehicles not on the relevant edges. Also only check the second to
             # last lane
-            if edge not in edge_starts.keys() or ti not in all_time or lane != 4:
+            if edge not in edge_starts.keys() or ti not in all_time or lane != 5:
                 continue
             else:
                 if i not in observed_row_list:
@@ -575,7 +578,7 @@ if __name__ == '__main__':
         # TODO(@evinitsky) remove
 
         unique_car_pos = pos[:, indx_car]
-        max_ind = np.argmax(pos[:, indx_car])
+        indices = np.where(pos[:, indx_car] != 0)[0]
 
         # # discontinuity from wraparound
         # TODO(@evinitsky) deal with hardcoding
@@ -587,8 +590,8 @@ if __name__ == '__main__':
         # #
         # points = np.array(
         #     [unique_car_time, unique_car_pos]).T.reshape(-1, 1, 2)
-        points = np.array([time[:max_ind], pos[:max_ind, indx_car]]).T.reshape(-1, 1, 2)
-        unique_car_speed = speed[:max_ind, indx_car]
+        points = np.array([time[indices], pos[indices, indx_car]]).T.reshape(-1, 1, 2)
+        unique_car_speed = speed[indices, indx_car]
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
         lc = LineCollection(segments, cmap=my_cmap, norm=norm)
 

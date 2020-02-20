@@ -148,7 +148,7 @@ def setup_exps_rllib(flow_params,
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = horizon
-    config["observation_filter"] = "MeanStdFilter",
+    # config["observation_filter"] = "NoFilter",
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -182,12 +182,12 @@ if __name__ == "__main__":
         submodule = getattr(module, flags.exp_config)
     elif hasattr(module_ma, flags.exp_config):
         submodule = getattr(module_ma, flags.exp_config)
-        assert flags.rl_trainer == "RLlib", \
+        assert flags.rl_trainer.lower() == "RLlib".lower(), \
             "Currently, multiagent experiments are only supported through "\
             "RLlib. Try running this experiment using RLlib: 'python train.py EXP_CONFIG'"
     else:
         assert False, "Unable to find experiment config!"
-    if flags.rl_trainer == "rllib":
+    if flags.rl_trainer.lower() == "rllib":
         flow_params = submodule.flow_params
         n_cpus = submodule.N_CPUS
         n_rollouts = submodule.N_ROLLOUTS
@@ -196,8 +196,8 @@ if __name__ == "__main__":
         policies_to_train = getattr(submodule, "policies_to_train", None)
 
         # allow the config files to set up their own training hyperparameters
-        if hasattr(submodule, setup_exps_rllib):
-            setup_exps_rllib = getattr(submodule, setup_exps_rllib)
+        if hasattr(submodule, "setup_exps_rllib"):
+            setup_exps_rllib = getattr(submodule, "setup_exps_rllib")
 
         alg_run, gym_name, config = setup_exps_rllib(
             flow_params, n_cpus, n_rollouts,
