@@ -19,6 +19,12 @@ Usage
 from flow.utils.rllib import get_flow_params
 from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork
 import csv
+import importlib
+import os
+import sys
+if sys.platform == 'darwin':
+    import matplotlib
+    matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
 import matplotlib.colors as colors
@@ -53,7 +59,7 @@ def import_data_from_emission(fp):
         * "vel": speed at every sample
     """
     # initialize all output variables
-    veh_id, t, edge, rel_pos, vel = [], [], [], [], []
+    veh_id, t, edge, rel_pos, vel, lane = [], [], [], [], [], []
 
     # import relevant data from emission file
     for record in csv.DictReader(open(fp)):
@@ -62,15 +68,17 @@ def import_data_from_emission(fp):
         edge.append(record['edge_id'])
         rel_pos.append(record['relative_position'])
         vel.append(record['speed'])
+        lane.append(record['lane_number'])
 
     # we now want to separate data by vehicle ID
-    ret = {key: {'time': [], 'edge': [], 'pos': [], 'vel': []}
+    ret = {key: {'time': [], 'edge': [], 'pos': [], 'vel': [], 'lane': []}
            for key in np.unique(veh_id)}
     for i in range(len(veh_id)):
         ret[veh_id[i]]['time'].append(float(t[i]))
         ret[veh_id[i]]['edge'].append(edge[i])
         ret[veh_id[i]]['pos'].append(float(rel_pos[i]))
         ret[veh_id[i]]['vel'].append(float(vel[i]))
+        ret[veh_id[i]]['lane'].append(float(lane[i]))
 
     return ret
 
@@ -140,7 +148,7 @@ def get_time_space_data(data, params):
     # Execute the function
     pos, speed = func(data, params, all_time)
 
-    return pos, speed, all_time
+    return pos, speed, all_time[0:pos.shape[0]]
 
 
 def _merge(data, params, all_time):
@@ -315,29 +323,44 @@ def _i210_subnetwork(data, params, all_time):
         that time step.
     """
     # import network data from flow params
-    edge_id = "119257908#1-AddedOnRampEdge"
-    edge_len = 92.33
 
-    edgestarts = {
-        "119257908#1-AddedOnRampEdge": 0,
-    }
+    edge_starts = {"119257908#0": 0,
+                   "119257908#1-AddedOnRampEdge": 686.98}
 
     # compute the absolute position
     for veh_id in data.keys():
-        if data[veh_id]['edge'] == edge_id and data[veh_id]['lane'] == 5:
-            data[veh_id]['abs_pos'] = _get_abs_pos(data[veh_id]['edge'],
-                                                   data[veh_id]['pos'], edgestarts)
+        # TODO(@evinitsky) this messes up because we lose track of the time indices
+        data[veh_id]['abs_pos'] = _get_abs_pos_1_edge(data[veh_id]['edge'],
+                                                       data[veh_id]['pos'],
+                                                       edge_starts)
 
     # create the output variables
+    # TODO(@evinitsky) remove the subsampling
+    all_time = all_time[100:400]
+
+    # track only vehicles that were around during this time period
+    observed_row_list = []
     pos = np.zeros((all_time.shape[0], len(data.keys())))
     speed = np.zeros((all_time.shape[0], len(data.keys())))
     for i, veh_id in enumerate(sorted(data.keys())):
-        for spd, abs_pos, ti in zip(data[veh_id]['vel'],
-                                    data[veh_id]['abs_pos'],
-                                    data[veh_id]['time']):
+        for spd, abs_pos, ti, edge, lane in zip(data[veh_id]['vel'],
+                                          data[veh_id]['abs_pos'],
+                                          data[veh_id]['time'],
+                                          data[veh_id]['edge'],
+                                          data[veh_id]['lane']):
+            # avoid vehicles not on the relevant edges. Also only check the second to
+            # last lane
+            if edge not in edge_starts.keys() or ti not in all_time or lane != 4:
+                continue
+            else:
+                if i not in observed_row_list:
+                    observed_row_list.append(i)
             ind = np.where(ti == all_time)[0]
             pos[ind, i] = abs_pos
             speed[ind, i] = spd
+
+    pos = pos[:, observed_row_list]
+    speed = speed[:, observed_row_list]
 
     return pos, speed
 
@@ -455,6 +478,33 @@ def _get_abs_pos(edge, rel_pos, edgestarts):
         ret.append(pos_i + edgestarts[edge_i])
     return ret
 
+def _get_abs_pos_1_edge(edges, rel_pos, edge_starts):
+    """Compute the absolute positions from a subset of edges.
+
+    This is the variable we will ultimately use to plot individual vehicles.
+
+    Parameters
+    ----------
+    edge : list of str
+        list of edges at every time step
+    rel_pos : list of float
+        list of relative positions at every time step
+    edgestarts : dict
+        the absolute starting position of every edge
+
+    Returns
+    -------
+    list of float
+        the absolute positive for every sample
+    """
+    ret = []
+    for edge_i, pos_i in zip(edges, rel_pos):
+        if edge_i in edge_starts.keys():
+            ret.append(pos_i + edge_starts[edge_i])
+        else:
+            ret.append(-1)
+    return ret
+
 
 if __name__ == '__main__':
     # create the parser
@@ -485,7 +535,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # flow_params is imported as a dictionary
-    flow_params = get_flow_params(args.flow_params)
+    if '.json' in args.flow_params:
+        flow_params = get_flow_params(args.flow_params)
+    else:
+        module = __import__("examples.exp_configs.non_rl", fromlist=[args.flow_params])
+        flow_params = getattr(module, args.flow_params).flow_params
 
     # import data from the emission.csv file
     emission_data = import_data_from_emission(args.emission_path)
@@ -517,16 +571,24 @@ if __name__ == '__main__':
     ax.set_ylim(ymin - ybuffer, ymax + ybuffer)
 
     for indx_car in range(pos.shape[1]):
+        print(indx_car, ' out of ', pos.shape[1])
+        # TODO(@evinitsky) remove
+
         unique_car_pos = pos[:, indx_car]
+        max_ind = np.argmax(pos[:, indx_car])
 
-        # discontinuity from wraparound
-        disc = np.where(np.abs(np.diff(unique_car_pos)) >= 10)[0] + 1
-        unique_car_time = np.insert(time, disc, np.nan)
-        unique_car_pos = np.insert(unique_car_pos, disc, np.nan)
-        unique_car_speed = np.insert(speed[:, indx_car], disc, np.nan)
-
-        points = np.array(
-            [unique_car_time, unique_car_pos]).T.reshape(-1, 1, 2)
+        # # discontinuity from wraparound
+        # TODO(@evinitsky) deal with hardcoding
+        # disc = np.where(np.abs(np.diff(unique_car_pos)) >= 10)[0] + 1
+        # disc = np.where(np.abs(np.diff(unique_car_pos)) >= 100)[0] + 1
+        # unique_car_time = np.insert(time, disc, np.nan)
+        # unique_car_pos = np.insert(unique_car_pos, disc, np.nan)
+        # unique_car_speed = np.insert(speed[:, indx_car], disc, np.nan)
+        # #
+        # points = np.array(
+        #     [unique_car_time, unique_car_pos]).T.reshape(-1, 1, 2)
+        points = np.array([time[:max_ind], pos[:max_ind, indx_car]]).T.reshape(-1, 1, 2)
+        unique_car_speed = speed[:max_ind, indx_car]
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
         lc = LineCollection(segments, cmap=my_cmap, norm=norm)
 
