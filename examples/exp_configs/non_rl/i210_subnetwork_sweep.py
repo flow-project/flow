@@ -27,8 +27,8 @@ default_dict={"lane_change_mode": "strategic",
                  "lc_pushy_gap": 0.6,
                  "lc_assertive": 1,
                  "lc_accel_lat": 1.0}
-sweep_dict = OrderedDict({"lc_strategic": [1.0, 2.0], "lc_cooperative": [1.0, 2.0],
-                         "lc_assertive": [1, 2.0], "lc_look_ahead_left": [2.0, 5.0]})
+sweep_dict = OrderedDict({"lc_strategic": [1.0, 2.0, 4.0, 8.0], "lc_cooperative": [1.0, 2.0],
+                          "lc_look_ahead_left": [2.0, 4.0]})
 
 allNames = sorted(sweep_dict)
 combinations = itertools.product(*(sweep_dict[Name] for Name in allNames))
