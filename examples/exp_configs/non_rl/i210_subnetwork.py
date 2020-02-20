@@ -16,7 +16,8 @@ vehicles = VehicleParams()
 vehicles.add(
     "human",
     num_vehicles=0,
-    lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic")
+    lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic",
+                                            lc_strategic=1.0)
 )
 
 inflow = InFlows()
@@ -91,5 +92,11 @@ flow_params = dict(
     ),
 )
 
+edge_id = "119257908#1-AddedOnRampEdge"
 custom_callables = [["avg_merge_speed", lambda env: np.mean(
-                    env.k.vehicle.get_speed(env.k.vehicle.get_ids_by_edge("119257908#1-AddedOnRampEdge")))]]
+                    env.k.vehicle.get_speed(env.k.vehicle.get_ids_by_edge(edge_id)))],
+                    ["avg_outflow", lambda env:  env.k.vehicle.get_outflow_rate(120)],
+                    # we multiply by 5 to account for the vehicle length and by 1000 to convert into veh/km
+                    ["avg_density", lambda env:  5 * 1000* len(env.k.vehicle.get_ids_by_edge(edge_id))/
+                                                 (env.k.network.edge_length(edge_id) * env.k.network.num_lanes(edge_id))],
+                    ]

@@ -17,7 +17,7 @@ Usage
     python time_space_diagram.py </path/to/emission>.csv </path/to/params>.json
 """
 from flow.utils.rllib import get_flow_params
-from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork
+from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork
 import csv
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
@@ -30,6 +30,7 @@ ACCEPTABLE_NETWORKS = [
     RingNetwork,
     FigureEightNetwork,
     MergeNetwork,
+    I210SubNetwork
 ]
 
 
@@ -123,7 +124,8 @@ def get_time_space_data(data, params):
     switcher = {
         RingNetwork: _ring_road,
         MergeNetwork: _merge,
-        FigureEightNetwork: _figure_eight
+        FigureEightNetwork: _figure_eight,
+        I210SubNetwork: _i210_subnetwork
     }
 
     # Collect a list of all the unique times.
@@ -266,6 +268,65 @@ def _ring_road(data, params, all_time):
     for veh_id in data.keys():
         data[veh_id]['abs_pos'] = _get_abs_pos(data[veh_id]['edge'],
                                                data[veh_id]['pos'], edgestarts)
+
+    # create the output variables
+    pos = np.zeros((all_time.shape[0], len(data.keys())))
+    speed = np.zeros((all_time.shape[0], len(data.keys())))
+    for i, veh_id in enumerate(sorted(data.keys())):
+        for spd, abs_pos, ti in zip(data[veh_id]['vel'],
+                                    data[veh_id]['abs_pos'],
+                                    data[veh_id]['time']):
+            ind = np.where(ti == all_time)[0]
+            pos[ind, i] = abs_pos
+            speed[ind, i] = spd
+
+    return pos, speed
+
+
+def _i210_subnetwork(data, params, all_time):
+    r"""Generate position and speed data for the i210 subnetwork.
+
+    We only look at the second to last lane of edge 119257908#1-AddedOnRampEdge
+
+    Parameters
+    ----------
+    data : dict of dict
+        Key = "veh_id": name of the vehicle \n Elements:
+
+        * "time": time step at every sample
+        * "edge": edge ID at every sample
+        * "pos": relative position at every sample
+        * "vel": speed at every sample
+    params : dict
+        flow-specific parameters
+    all_time : array_like
+        a (n_steps,) vector representing the unique time steps in the
+        simulation
+
+    Returns
+    -------
+    as_array
+        n_steps x n_veh matrix specifying the absolute position of every
+        vehicle at every time step. Set to zero if the vehicle is not present
+        in the network at that time step.
+    as_array
+        n_steps x n_veh matrix specifying the speed of every vehicle at every
+        time step. Set to zero if the vehicle is not present in the network at
+        that time step.
+    """
+    # import network data from flow params
+    edge_id = "119257908#1-AddedOnRampEdge"
+    edge_len = 92.33
+
+    edgestarts = {
+        "119257908#1-AddedOnRampEdge": 0,
+    }
+
+    # compute the absolute position
+    for veh_id in data.keys():
+        if data[veh_id]['edge'] == edge_id and data[veh_id]['lane'] == 5:
+            data[veh_id]['abs_pos'] = _get_abs_pos(data[veh_id]['edge'],
+                                                   data[veh_id]['pos'], edgestarts)
 
     # create the output variables
     pos = np.zeros((all_time.shape[0], len(data.keys())))

@@ -97,7 +97,7 @@ for lane_change_dict in res:
         # simulation-related parameters
         sim=SumoParams(
             sim_step=0.8,
-            render=False,
+            render=True,
             color_by_speed=True
         ),
 

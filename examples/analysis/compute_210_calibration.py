@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
     calibrated_data = pd.read_csv('../calibrated_values/i210_sub_merge_area_reduced.csv')
     valid_section = calibrated_data[calibrated_data['oid'] == 8009307]
-    speeds = valid_section['speed'].to_numpy() / 2.237 # (mph to m/s)
+    speeds = valid_section['speed'].to_numpy() / 3.6 # (km/h to m/s)
     density = valid_section['density']
     dict_to_idx = {'oid': 0, 'ent': 1, 'flow' : 2, 'ttime': 3,
                    'speed': 4, 'density': 5, 'lane_changes': 6, 'total_lane_changes': 7}

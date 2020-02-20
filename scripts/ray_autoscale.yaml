@@ -67,7 +67,7 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands:
-    - cd flow && git fetch && git checkout origin/subnetwork_dev
+    - cd flow && git fetch && git checkout origin/subnetwork_dev_exps
 
 head_setup_commands:
     - pip install boto3==1.10.45  # 1.4.8 adds InstanceMarketOptions

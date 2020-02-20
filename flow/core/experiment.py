@@ -170,13 +170,16 @@ class Experiment:
         for key in lambda_keys:
             info_dict[key] = custom_vals[key]
             print("Average {}, std {} for {}".format(np.mean(custom_vals[key]), np.std(custom_vals[key]), key))
-            plt.figure()
+            fig = plt.figure()
             plt.plot(np.arange(len(custom_vals[key])) * self.env.sim_params.sim_step, custom_vals[key])
             plt.xlabel('Time (seconds)')
             plt.ylabel(key)
             if not os.path.exists('plots'):
                 os.makedirs('plots')
             plt.savefig('plots/{}.png'.format(key))
+            plt.close(fig)
+
+            # we also want to generate
         self.env.terminate()
 
         if convert_to_csv:

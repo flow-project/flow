@@ -53,8 +53,8 @@ def parse_args(args):
 
     # optional input parameters
     parser.add_argument(
-        '--rl_trainer', type=str, default="RLlib",
-        help='the RL trainer to use. either RLlib or Stable-Baselines')
+        '--rl_trainer', type=str, default="rllib",
+        help='the RL trainer to use. either rllib or Stable-Baselines')
 
     parser.add_argument(
         '--num_cpus', type=int, default=1,
@@ -147,8 +147,8 @@ def setup_exps_rllib(flow_params,
     config["lambda"] = 0.97
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
-    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config["horizon"] = horizon
+    config["observation_filter"] = "MeanStdFilter",
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -187,13 +187,17 @@ if __name__ == "__main__":
             "RLlib. Try running this experiment using RLlib: 'python train.py EXP_CONFIG'"
     else:
         assert False, "Unable to find experiment config!"
-    if flags.rl_trainer == "RLlib":
+    if flags.rl_trainer == "rllib":
         flow_params = submodule.flow_params
         n_cpus = submodule.N_CPUS
         n_rollouts = submodule.N_ROLLOUTS
         policy_graphs = getattr(submodule, "POLICY_GRAPHS", None)
         policy_mapping_fn = getattr(submodule, "policy_mapping_fn", None)
         policies_to_train = getattr(submodule, "policies_to_train", None)
+
+        # allow the config files to set up their own training hyperparameters
+        if hasattr(submodule, setup_exps_rllib):
+            setup_exps_rllib = getattr(submodule, setup_exps_rllib)
 
         alg_run, gym_name, config = setup_exps_rllib(
             flow_params, n_cpus, n_rollouts,

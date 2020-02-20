@@ -178,7 +178,7 @@ class I210MultiEnv(MultiEnv):
                                is_follow_rl))
 
     def veh_statistics(self, rl_id):
-        '''Returns speed and edge information about the vehicle itself'''
+        '''Returns speed, edge information, and x, y about the vehicle itself'''
         speed = self.k.vehicle.get_speed(rl_id)/100.0
         lane = (self.k.vehicle.get_lane(rl_id)+1)/10.0
         return np.array([speed, lane])
