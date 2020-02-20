@@ -166,8 +166,8 @@ def run_transfer_test(args, flow_params, transfer_fn, rllib_config=None):
     else:
         env = create_env()
 
-    # if args.render_mode == 'sumo_gui':
-    #     env.sim_params.render = True  # set to True after initializing agent and env
+    if args.render_mode == 'sumo_gui':
+        env.sim_params.render = True  # set to True after initializing agent and env
 
     # if restart_instance, don't restart here because env.reset will restart later
     if not sim_params.restart_instance:
@@ -364,6 +364,12 @@ def create_parser():
         '--horizon',
         type=int,
         help='Specifies the horizon.')
+    parser.add_argument(
+        '--local',
+        action='store_true',
+        help='Adjusts run settings to be compatible with limited '
+             'memory capacity'
+    )
     return parser
 
 
@@ -380,5 +386,9 @@ if __name__ == '__main__':
     
     flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
 
-    ray.init(num_cpus=1)
+    import ipdb; ipdb.set_trace()
+    if args.local:
+        ray.init(num_cpus=1, object_store_memory=10000000)
+    else:
+        ray.init(num_cpus=1)
     run_transfer_test(args, flow_params, None, rllib_config=rllib_config)
