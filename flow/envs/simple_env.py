@@ -1,6 +1,7 @@
 # import the base environment class
 from flow.envs import Env
 from gym.spaces.box import Box
+from gym.spaces.discrete import Discrete
 import numpy as np
 
 class SimpleEnv(Env):
@@ -25,8 +26,8 @@ class SimpleEnv(Env):
     @property
     def action_space(self):
         # return binary value. 0: no change, 1: change TL state
-        # 4 TLS shall be optimized
-        return Box(low=0, high=1, shape=(4,))
+        # len(self.tls_ids) TLS shall be optimized
+        return Box(low=0, high=1, shape=(len(self.tls_ids),))
     
     @property
     def observation_space(self):
