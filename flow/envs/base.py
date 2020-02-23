@@ -392,8 +392,9 @@ class Env(gym.Env):
 
         # test if the environment should terminate due to a collision or the
         # time horizon being met
-        done = (self.time_counter >= self.env_params.warmup_steps +
-                self.env_params.horizon)  # or crash
+        done = (self.time_counter >= self.env_params.sims_per_step *
+                (self.env_params.warmup_steps + self.env_params.horizon)
+                or crash)
 
         # compute the info for each agent
         infos = {}
