@@ -10,14 +10,12 @@ import flow.config as config
 from flow.envs import TestEnv
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
-
-# no vehicles in the network
+# create the base vehicle type that will be used for inflows
 vehicles = VehicleParams()
 vehicles.add(
     "human",
     num_vehicles=0,
-    lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic",
-                                            lc_strategic=1.0)
+    lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic")
 )
 
 inflow = InFlows()
@@ -26,7 +24,6 @@ inflow.add(
     veh_type="human",
     edge="119257914",
     vehs_per_hour=8378,
-    # probability=1.0,
     departLane="random",
     departSpeed=20)
 # on ramp
@@ -43,11 +40,9 @@ inflow.add(
     departLane="random",
     departSpeed=20)
 
-
 NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,
     "examples/exp_configs/templates/sumo/test2.net.xml")
-
 
 flow_params = dict(
     # name of the experiment
@@ -66,7 +61,7 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.8,
         render=False,
-        color_by_speed=True
+        color_by_speed=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -94,9 +89,10 @@ flow_params = dict(
 
 edge_id = "119257908#1-AddedOnRampEdge"
 custom_callables = [["avg_merge_speed", lambda env: np.mean(
-                    env.k.vehicle.get_speed(env.k.vehicle.get_ids_by_edge(edge_id)))],
-                    ["avg_outflow", lambda env:  env.k.vehicle.get_outflow_rate(120)],
+    env.k.vehicle.get_speed(env.k.vehicle.get_ids_by_edge(edge_id)))],
+                    ["avg_outflow", lambda env: env.k.vehicle.get_outflow_rate(120)],
                     # we multiply by 5 to account for the vehicle length and by 1000 to convert into veh/km
-                    ["avg_density", lambda env:  5 * 1000* len(env.k.vehicle.get_ids_by_edge(edge_id))/
-                                                 (env.k.network.edge_length(edge_id) * env.k.network.num_lanes(edge_id))],
+                    ["avg_density", lambda env: 5 * 1000 * len(env.k.vehicle.get_ids_by_edge(edge_id)) /
+                                                (env.k.network.edge_length(edge_id) * env.k.network.num_lanes(
+                                                    edge_id))],
                     ]

@@ -1,4 +1,4 @@
-"""I-210 subnetwork example."""
+"""I-210 subnetwork example. However in this case flow_params is a list of dicts."""
 from collections import OrderedDict
 from copy import deepcopy
 import itertools
@@ -14,19 +14,19 @@ import flow.config as config
 from flow.envs import TestEnv
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
-default_dict={"lane_change_mode": "strategic",
-              "model": "LC2013",
-              "lc_strategic": 1.0,
-                 "lc_cooperative": 1.0,
-                 "lc_speed_gain": 1.0,
-                 "lc_keep_right": 1.0,
-                 "lc_look_ahead_left": 2.0,
-                 "lc_speed_gain_right": 1.0,
-                 "lc_sublane": 1.0,
-                 "lc_pushy": 0,
-                 "lc_pushy_gap": 0.6,
-                 "lc_assertive": 1,
-                 "lc_accel_lat": 1.0}
+default_dict = {"lane_change_mode": "strategic",
+                "model": "LC2013",
+                "lc_strategic": 1.0,
+                "lc_cooperative": 1.0,
+                "lc_speed_gain": 1.0,
+                "lc_keep_right": 1.0,
+                "lc_look_ahead_left": 2.0,
+                "lc_speed_gain_right": 1.0,
+                "lc_sublane": 1.0,
+                "lc_pushy": 0,
+                "lc_pushy_gap": 0.6,
+                "lc_assertive": 1,
+                "lc_accel_lat": 1.0}
 sweep_dict = OrderedDict({"lc_strategic": [1.0, 2.0, 4.0, 8.0], "lc_cooperative": [1.0, 2.0],
                           "lc_look_ahead_left": [2.0, 4.0]})
 
@@ -75,11 +75,9 @@ for lane_change_dict in res:
         departLane="random",
         departSpeed=20)
 
-
     NET_TEMPLATE = os.path.join(
         config.PROJECT_PATH,
         "examples/exp_configs/templates/sumo/test2.net.xml")
-
 
     flow_params = dict(
         # name of the experiment
@@ -129,4 +127,4 @@ for lane_change_dict in res:
 flow_params = valid_combinations
 
 custom_callables = [["avg_merge_speed", lambda env: np.mean(
-                    env.k.vehicle.get_speed(env.k.vehicle.get_ids_by_edge("119257908#1-AddedOnRampEdge")))]]
+    env.k.vehicle.get_speed(env.k.vehicle.get_ids_by_edge("119257908#1-AddedOnRampEdge")))]]

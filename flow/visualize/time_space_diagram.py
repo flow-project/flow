@@ -19,11 +19,9 @@ Usage
 from flow.utils.rllib import get_flow_params
 from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork
 import csv
-import importlib
-import os
 import sys
+import matplotlib
 if sys.platform == 'darwin':
-    import matplotlib
     matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
@@ -553,15 +551,17 @@ if __name__ == '__main__':
     # some plotting parameters
     cdict = {
         'red': ((0, 0, 0), (0.2, 1, 1), (0.6, 1, 1), (1, 0, 0)),
+        # 'red': ((0, 1, 1), (0.2, 1, 1), (0.6, 1, 1), (1, 0, 0)),
         'green': ((0, 0, 0), (0.2, 0, 0), (0.6, 1, 1), (1, 1, 1)),
-        'blue': ((0, 0, 0), (0.2, 0, 0), (0.6, 0, 0), (1, 0, 0))
+        # 'blue': ((0, 0, 0), (0.2, 0, 0), (0.6, 0, 0), (1, 0, 0))
+        'blue': ((0, 0, 0), (1, 0, 0))
     }
     my_cmap = colors.LinearSegmentedColormap('my_colormap', cdict, 1024)
 
     # perform plotting operation
     fig = plt.figure(figsize=(16, 9))
     ax = plt.axes()
-    norm = plt.Normalize(0, args.max_speed)
+    norm = plt.Normalize(18, args.max_speed)
     cols = []
 
     xmin = max(time[0], args.start)
@@ -606,7 +606,8 @@ if __name__ == '__main__':
 
     for col in cols:
         line = ax.add_collection(col)
-    cbar = plt.colorbar(line, ax=ax)
+    # TODO(@evinitsky) this should only apply for the I210 subnetwork
+    cbar = plt.colorbar(line, ax=ax, norm=norm)
     cbar.set_label('Velocity (m/s)', fontsize=20)
     cbar.ax.tick_params(labelsize=18)
 

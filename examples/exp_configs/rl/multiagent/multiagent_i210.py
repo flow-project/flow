@@ -27,10 +27,6 @@ HORIZON = 500
 # number of parallel workers
 N_CPUS = 1
 
-# inflow rate on the highway in vehicles per hour
-HIGHWAY_INFLOW_RATE = 4000
-# inflow rate on each on-ramp in vehicles per hour
-ON_RAMPS_INFLOW_RATE = 450
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10
 
@@ -61,7 +57,7 @@ inflow = InFlows()
 inflow.add(
     veh_type="human",
     edge="119257914",
-    vehs_per_hour=int(8378 * 1 - PENETRATION_RATE),
+    vehs_per_hour=int(8378 * (1 - PENETRATION_RATE)),
     # probability=1.0,
     departLane="random",
     departSpeed=20)
@@ -69,13 +65,36 @@ inflow.add(
 inflow.add(
     veh_type="human",
     edge="27414345",
-    vehs_per_hour=int(321 * 1 - PENETRATION_RATE),
+    vehs_per_hour=int(321 * (1 - PENETRATION_RATE)),
     departLane="random",
     departSpeed=20)
 inflow.add(
     veh_type="human",
     edge="27414342#0",
-    vehs_per_hour=int(421 * 1 - PENETRATION_RATE),
+    vehs_per_hour=int(421 * (1 - PENETRATION_RATE)),
+    departLane="random",
+    departSpeed=20)
+
+# Now add the AVs
+# main highway
+inflow.add(
+    veh_type="av",
+    edge="119257914",
+    vehs_per_hour=int(8378 * PENETRATION_RATE),
+    # probability=1.0,
+    departLane="random",
+    departSpeed=20)
+# on ramp
+inflow.add(
+    veh_type="av",
+    edge="27414345",
+    vehs_per_hour=int(321 * PENETRATION_RATE),
+    departLane="random",
+    departSpeed=20)
+inflow.add(
+    veh_type="av",
+    edge="27414342#0",
+    vehs_per_hour=int(421 * PENETRATION_RATE),
     departLane="random",
     departSpeed=20)
 

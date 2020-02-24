@@ -1,8 +1,8 @@
 """
 Perform a simulation of vehicles on a highway with a congested downstream
 condition that can be specified by the user. This done by setting the downstream
-node's speed limit to be whatever is desired, and then having two vehicles start
-the flow that go
+node's speed limit to be whatever is desired. Vehicles that hit the downstream node
+suddenly need to break which sets off a shockwave.
 """
 
 from flow.controllers import IDMController, CFMController
@@ -60,24 +60,16 @@ lane_change_params_normal = SumoLaneChangeParams(
     lc_keep_right=lc_KeepRight,
     lc_pushy_gap=lc_pushy_gap
 )
-# vehicles.add(
-#     veh_id="human_normal",
-#     acceleration_controller=(BandoFTLController_Normal, {'v_max':30}),
-#     lane_change_params=lane_change_params_normal)
 
 v0 = 30.0
 s0 = 2.0
 T = 1.8
 noise = 0.3
 
-# inflow_speed = np.min([v0,v_downstream+10.0])
-
 vehicles.add(
     veh_id="human_normal",
     acceleration_controller=(IDMController, {'v0': v0, 's0': s0, 'T': T, 'noise': noise}),
     lane_change_params=lane_change_params_normal)
-
-
 
 inflow.add(
     veh_type="human_normal",
@@ -88,14 +80,12 @@ inflow.add(
 
 # Conservative Drivers
 
-if (INFLOW_VALS[1] > 0):
-
+if INFLOW_VALS[1] > 0:
     lc_assertive = .1
     lc_pushy = 0.01
     lc_speed_gain = 5
     lc_KeepRight = 5
     lc_pushy_gap = 10
-
 
     lane_change_params_conservative = SumoLaneChangeParams(
         lc_assertive=lc_assertive,
@@ -105,11 +95,7 @@ if (INFLOW_VALS[1] > 0):
         lane_change_mode="no_lat_collide",
         lc_keep_right=lc_KeepRight,
         lc_pushy_gap=lc_pushy_gap
-)
-# vehicles.add(
-#     veh_id="human_normal",
-#     acceleration_controller=(BandoFTLController_Normal, {'v_max':30}),
-#     lane_change_params=lane_change_params_normal)
+    )
 
     vehicles.add(
         veh_id="human_conservative",
@@ -125,14 +111,12 @@ if (INFLOW_VALS[1] > 0):
 
 # Aggressive Drivers:
 
-if (INFLOW_VALS[2] > 0):
-
+if INFLOW_VALS[2] > 0:
     lc_assertive = 5
     lc_pushy = 5
     lc_speed_gain = .5
     lc_KeepRight = .1
     lc_pushy_gap = .5
-
 
     lane_change_params_aggressive = SumoLaneChangeParams(
         lc_assertive=lc_assertive,
