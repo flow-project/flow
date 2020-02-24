@@ -129,6 +129,9 @@ class Experiment:
         outflows = []
         custom_vals = {key: [] for key in [custom_val[0] for custom_val in self.custom_callables]}
         lambda_keys = [custom_val[0] for custom_val in self.custom_callables]
+        t = time.time()
+        times = []
+        vehicle_times = []
         for i in range(num_runs):
             vel = np.zeros(num_steps)
             logging.info("Iter #" + str(i))
@@ -136,7 +139,11 @@ class Experiment:
             ret_list = []
             state = self.env.reset()
             for j in range(num_steps):
+                t0 = time.time()
                 state, reward, done, _ = self.env.step(rl_actions(state))
+                t1 = time.time()
+                times.append(1 / (t1 - t0))
+                vehicle_times.append(self.env.k.vehicle.num_vehicles / (t1 - t0))
                 vel[j] = np.mean(
                     self.env.k.vehicle.get_speed(self.env.k.vehicle.get_ids()))
                 ret += reward
@@ -163,9 +170,9 @@ class Experiment:
         info_dict["per_step_returns"] = ret_lists
         info_dict["mean_outflows"] = np.mean(outflows)
 
-        print("Average, std return: {}, {}".format(
+        print("Average, std return:    {}, {}".format(
             np.mean(rets), np.std(rets)))
-        print("Average, std speed: {}, {}".format(
+        print("Average, std speed:     {}, {}".format(
             np.mean(mean_vels), np.std(mean_vels)))
         for key in lambda_keys:
             info_dict[key] = custom_vals[key]
@@ -179,10 +186,12 @@ class Experiment:
             plt.savefig('plots/{}.png'.format(key))
             plt.close(fig)
 
-            # we also want to generate
+        print("Total time:            ", time.time() - t)
+        print("steps/second:          ", np.mean(times))
+        print("vehicles.steps/second: ", np.mean(vehicle_times))
         self.env.terminate()
 
-        if convert_to_csv:
+        if convert_to_csv and self.env.simulator == "traci":
             # wait a short period of time to ensure the xml file is readable
             time.sleep(0.1)
 
