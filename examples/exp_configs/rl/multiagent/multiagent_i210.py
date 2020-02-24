@@ -54,10 +54,13 @@ vehicles.add(
 
 inflow = InFlows()
 # main highway
+pen_rate = PENETRATION_RATE / 100
+assert pen_rate < 1.0, "your penetration rate is over 100\%"
+assert pen_rate > 0.0, "your penetration rate should be above zero"
 inflow.add(
     veh_type="human",
     edge="119257914",
-    vehs_per_hour=int(8378 * (1 - PENETRATION_RATE)),
+    vehs_per_hour=8378 * pen_rate,
     # probability=1.0,
     departLane="random",
     departSpeed=20)
@@ -65,13 +68,13 @@ inflow.add(
 inflow.add(
     veh_type="human",
     edge="27414345",
-    vehs_per_hour=int(321 * (1 - PENETRATION_RATE)),
+    vehs_per_hour=321 * pen_rate,
     departLane="random",
     departSpeed=20)
 inflow.add(
     veh_type="human",
     edge="27414342#0",
-    vehs_per_hour=int(421 * (1 - PENETRATION_RATE)),
+    vehs_per_hour=421 * pen_rate,
     departLane="random",
     departSpeed=20)
 
@@ -80,7 +83,7 @@ inflow.add(
 inflow.add(
     veh_type="av",
     edge="119257914",
-    vehs_per_hour=int(8378 * PENETRATION_RATE),
+    vehs_per_hour=int(8378 * pen_rate),
     # probability=1.0,
     departLane="random",
     departSpeed=20)
@@ -88,13 +91,13 @@ inflow.add(
 inflow.add(
     veh_type="av",
     edge="27414345",
-    vehs_per_hour=int(321 * PENETRATION_RATE),
+    vehs_per_hour=int(321 * pen_rate),
     departLane="random",
     departSpeed=20)
 inflow.add(
     veh_type="av",
     edge="27414342#0",
-    vehs_per_hour=int(421 * PENETRATION_RATE),
+    vehs_per_hour=int(421 * pen_rate),
     departLane="random",
     departSpeed=20)
 
