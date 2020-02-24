@@ -6,6 +6,7 @@ from flow.envs.multiagent.base import MultiEnv
 
 MAX_LANES = 5
 
+
 class I210MultiEnv(MultiEnv):
     """Partially observable multi-agent environment for the I-210 subnetworks.
 
@@ -42,6 +43,7 @@ class I210MultiEnv(MultiEnv):
         A rollout is terminated if the time horizon is reached or if two
         vehicles collide into one another.
     """
+
     def __init__(self, env_params, sim_params, network, simulator='traci'):
         super().__init__(env_params, sim_params, network, simulator)
 
@@ -163,22 +165,22 @@ class I210MultiEnv(MultiEnv):
         diff = self.scaling * MAX_LANES - len(is_leader_rl)
         if diff > 0:
             # the minus 1 disambiguates missing cars from missing lanes
-            lane_headways += diff*[-1]
-            lane_tailways += diff*[-1]
-            lane_leader_speed += diff*[-1]
-            lane_follower_speed += diff*[-1]
-            is_leader_rl += diff*[-1]
-            is_follow_rl += diff*[-1]
-        lane_headways = np.asarray(lane_headways)/1000
-        lane_tailways = np.asarray(lane_tailways)/1000
-        lane_leader_speed = np.asarray(lane_leader_speed)/100
-        lane_follower_speed = np.asarray(lane_follower_speed)/100
+            lane_headways += diff * [-1]
+            lane_tailways += diff * [-1]
+            lane_leader_speed += diff * [-1]
+            lane_follower_speed += diff * [-1]
+            is_leader_rl += diff * [-1]
+            is_follow_rl += diff * [-1]
+        lane_headways = np.asarray(lane_headways) / 1000
+        lane_tailways = np.asarray(lane_tailways) / 1000
+        lane_leader_speed = np.asarray(lane_leader_speed) / 100
+        lane_follower_speed = np.asarray(lane_follower_speed) / 100
         return np.concatenate((lane_headways, lane_tailways, lane_leader_speed,
                                lane_follower_speed, is_leader_rl,
                                is_follow_rl))
 
     def veh_statistics(self, rl_id):
         '''Returns speed, edge information, and x, y about the vehicle itself'''
-        speed = self.k.vehicle.get_speed(rl_id)/100.0
-        lane = (self.k.vehicle.get_lane(rl_id)+1)/10.0
+        speed = self.k.vehicle.get_speed(rl_id) / 100.0
+        lane = (self.k.vehicle.get_lane(rl_id) + 1) / 10.0
         return np.array([speed, lane])

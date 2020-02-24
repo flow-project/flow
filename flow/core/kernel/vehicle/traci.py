@@ -24,6 +24,7 @@ rdelta = 255 / STEPS
 # smoothly go from red to green as the speed increases
 color_bins = [[int(255 - rdelta * i), int(rdelta * i), 0] for i in range(STEPS + 1)]
 
+
 class TraCIVehicle(KernelVehicle):
     """Flow kernel for the TraCI API.
 
@@ -180,7 +181,7 @@ class TraCIVehicle(KernelVehicle):
             # add vehicles from a network template, if applicable
             if hasattr(self.master_kernel.network.network,
                        "template_vehicles"):
-                for veh_id in self.master_kernel.network.network.\
+                for veh_id in self.master_kernel.network.network. \
                         template_vehicles:
                     vals = deepcopy(self.master_kernel.network.network.
                                     template_vehicles[veh_id])

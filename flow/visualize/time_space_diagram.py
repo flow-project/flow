@@ -21,6 +21,7 @@ from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210Sub
 import csv
 import sys
 import matplotlib
+
 if sys.platform == 'darwin':
     matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
@@ -327,12 +328,11 @@ def _i210_subnetwork(data, params, all_time):
     # edge_starts = {"119257908#0": 0}
     edge_starts = {"119257908#1-AddedOnRampEdge": 0}
 
-
     # compute the absolute position
     for veh_id in data.keys():
         data[veh_id]['abs_pos'] = _get_abs_pos_1_edge(data[veh_id]['edge'],
-                                                       data[veh_id]['pos'],
-                                                       edge_starts)
+                                                      data[veh_id]['pos'],
+                                                      edge_starts)
 
     # create the output variables
     # TODO(@ev) handle subsampling better than this
@@ -344,10 +344,10 @@ def _i210_subnetwork(data, params, all_time):
     speed = np.zeros((all_time.shape[0], len(data.keys())))
     for i, veh_id in enumerate(sorted(data.keys())):
         for spd, abs_pos, ti, edge, lane in zip(data[veh_id]['vel'],
-                                          data[veh_id]['abs_pos'],
-                                          data[veh_id]['time'],
-                                          data[veh_id]['edge'],
-                                          data[veh_id]['lane']):
+                                                data[veh_id]['abs_pos'],
+                                                data[veh_id]['time'],
+                                                data[veh_id]['edge'],
+                                                data[veh_id]['lane']):
             # avoid vehicles not on the relevant edges. Also only check the second to
             # last lane
             if edge not in edge_starts.keys() or ti not in all_time or lane != 5:
@@ -412,14 +412,14 @@ def _figure_eight(data, params, all_time):
         'top': intersection / 2 + junction + inner,
         'upper_ring': intersection + junction + 2 * inner,
         'right': intersection + 3 * ring_edgelen + junction + 3 * inner,
-        'left': 1.5*intersection + 3*ring_edgelen + 2*junction + 3*inner,
-        'lower_ring': 2*intersection + 3*ring_edgelen + 2*junction + 4*inner,
+        'left': 1.5 * intersection + 3 * ring_edgelen + 2 * junction + 3 * inner,
+        'lower_ring': 2 * intersection + 3 * ring_edgelen + 2 * junction + 4 * inner,
         ':bottom_0': 0,
         ':center_1': intersection / 2 + inner,
         ':top_0': intersection + junction + inner,
         ':right_0': intersection + 3 * ring_edgelen + junction + 2 * inner,
-        ':center_0': 1.5*intersection + 3*ring_edgelen + junction + 3*inner,
-        ':left_0': 2 * intersection + 3*ring_edgelen + 2*junction + 3*inner,
+        ':center_0': 1.5 * intersection + 3 * ring_edgelen + junction + 3 * inner,
+        ':left_0': 2 * intersection + 3 * ring_edgelen + 2 * junction + 3 * inner,
         # for aimsun
         'bottom_to_top': intersection / 2 + inner,
         'right_to_left': junction + 3 * inner,
@@ -442,7 +442,7 @@ def _figure_eight(data, params, all_time):
             speed[ind, i] = spd
 
     # reorganize data for space-time plot
-    figure_eight_len = 6*ring_edgelen + 2*intersection + 2*junction + 10*inner
+    figure_eight_len = 6 * ring_edgelen + 2 * intersection + 2 * junction + 10 * inner
     intersection_loc = [edgestarts[':center_1'] + intersection / 2,
                         edgestarts[':center_0'] + intersection / 2]
     pos[pos < intersection_loc[0]] += figure_eight_len
@@ -477,6 +477,7 @@ def _get_abs_pos(edge, rel_pos, edgestarts):
     for edge_i, pos_i in zip(edge, rel_pos):
         ret.append(pos_i + edgestarts[edge_i])
     return ret
+
 
 def _get_abs_pos_1_edge(edges, rel_pos, edge_starts):
     """Compute the absolute positions from a subset of edges.
@@ -612,9 +613,9 @@ if __name__ == '__main__':
 
     ###########################################################################
     #                       Note: For MergeNetwork only                       #
-    if flow_params['network'] == 'MergeNetwork':                              #
-        plt.plot(time, [0] * pos.shape[0], linewidth=3, color="white")        #
-        plt.plot(time, [-0.1] * pos.shape[0], linewidth=3, color="white")     #
+    if flow_params['network'] == 'MergeNetwork':  #
+        plt.plot(time, [0] * pos.shape[0], linewidth=3, color="white")  #
+        plt.plot(time, [-0.1] * pos.shape[0], linewidth=3, color="white")  #
     ###########################################################################
 
     plt.show()

@@ -2,7 +2,6 @@
 from collections import OrderedDict
 from copy import deepcopy
 import itertools
-import subprocess
 import os
 
 import numpy as np

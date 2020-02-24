@@ -3,6 +3,7 @@ import sys
 
 import numpy as np
 import matplotlib
+
 if sys.platform == 'darwin':
     matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
@@ -16,11 +17,11 @@ if __name__ == '__main__':
 
     calibrated_data = pd.read_csv('../calibrated_values/i210_sub_merge_area_reduced.csv')
     valid_section = calibrated_data[calibrated_data['oid'] == 8009307]
-    speeds = valid_section['speed'].to_numpy() / 3.6 # (km/h to m/s)
+    speeds = valid_section['speed'].to_numpy() / 3.6  # (km/h to m/s)
     density = valid_section['density']
     outflow = valid_section['flow']
 
-    dict_to_idx = {'oid': 0, 'ent': 1, 'flow' : 2, 'ttime': 3,
+    dict_to_idx = {'oid': 0, 'ent': 1, 'flow': 2, 'ttime': 3,
                    'speed': 4, 'density': 5, 'lane_changes': 6, 'total_lane_changes': 7}
 
     errors = []
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     for experiment in data:
         merge_speed = experiment['avg_merge_speed']
         # now sum it up in segments noting that the sim step is 0.8
-        num_steps = int(120/0.8)
+        num_steps = int(120 / 0.8)
 
         step_sizes = np.arange(0, len(merge_speed), num_steps)
         # sum up all the slices

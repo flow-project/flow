@@ -51,10 +51,10 @@ class I210SubNetwork(Network):
                 (["119257914", "119257908#0", "119257908#1-AddedOnRampEdge",
                   "119257908#1", "119257908#1-AddedOffRampEdge", "119257908#2",
                   "119257908#3"],
-                 1-17/8378), # HOV: 1509 (on ramp: 57), Non HOV: 6869 (onramp: 16)
+                 1 - 17 / 8378),  # HOV: 1509 (on ramp: 57), Non HOV: 6869 (onramp: 16)
                 (["119257914", "119257908#0", "119257908#1-AddedOnRampEdge",
                   "119257908#1", "119257908#1-AddedOffRampEdge", "173381935"],
-                 17/8378)
+                 17 / 8378)
             ],
             "119257908#0": [
                 (["119257908#0", "119257908#1-AddedOnRampEdge", "119257908#1",
@@ -102,12 +102,12 @@ class I210SubNetwork(Network):
                   "119257908#1-AddedOnRampEdge", "119257908#1",
                   "119257908#1-AddedOffRampEdge", "119257908#2",
                   "119257908#3"],
-                 1 - 9/321),
+                 1 - 9 / 321),
                 (["27414345", "27414342#1-AddedOnRampEdge",
                   "27414342#1",
                   "119257908#1-AddedOnRampEdge", "119257908#1",
                   "119257908#1-AddedOffRampEdge", "173381935"],
-                 9/321),
+                 9 / 321),
             ],
             "27414342#0": [
                 (["27414342#0", "27414342#1-AddedOnRampEdge",
@@ -115,15 +115,15 @@ class I210SubNetwork(Network):
                   "119257908#1-AddedOnRampEdge", "119257908#1",
                   "119257908#1-AddedOffRampEdge", "119257908#2",
                   "119257908#3"],
-                 1 - 20/421),
+                 1 - 20 / 421),
                 (["27414342#0", "27414342#1-AddedOnRampEdge",
                   "27414342#1",
                   "119257908#1-AddedOnRampEdge", "119257908#1",
                   "119257908#1-AddedOffRampEdge", "173381935"],
-                 20/421),
+                 20 / 421),
             ],
             "27414342#1-AddedOnRampEdge": [
-                (["27414342#1-AddedOnRampEdge","27414342#1", "119257908#1-AddedOnRampEdge",
+                (["27414342#1-AddedOnRampEdge", "27414342#1", "119257908#1-AddedOnRampEdge",
                   "119257908#1", "119257908#1-AddedOffRampEdge", "119257908#2",
                   "119257908#3"],
                  0.5),

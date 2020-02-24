@@ -8,13 +8,12 @@ import os
 from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 import flow.config as config
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
-                             VehicleParams, SumoParams, SumoLaneChangeParams
+    VehicleParams, SumoParams, SumoLaneChangeParams
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 from flow.envs.multiagent import I210MultiEnv
 from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
-
 
 # SET UP PARAMETERS FOR THE SIMULATION
 
@@ -30,14 +29,12 @@ N_CPUS = 1
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10
 
-
 # SET UP PARAMETERS FOR THE ENVIRONMENT
 additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
 additional_env_params.update({
     'max_accel': 1,
     'max_decel': 1,
 })
-
 
 # CREATE VEHICLE TYPES AND INFLOWS
 # no vehicles in the network
@@ -55,7 +52,7 @@ vehicles.add(
 inflow = InFlows()
 # main highway
 pen_rate = PENETRATION_RATE / 100
-assert pen_rate < 1.0, "your penetration rate is over 100\%"
+assert pen_rate < 1.0, "your penetration rate is over 100%"
 assert pen_rate > 0.0, "your penetration rate should be above zero"
 inflow.add(
     veh_type="human",
@@ -101,11 +98,9 @@ inflow.add(
     departLane="random",
     departSpeed=20)
 
-
 NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,
     "examples/exp_configs/templates/sumo/test2.net.xml")
-
 
 flow_params = dict(
     # name of the experiment
@@ -129,7 +124,7 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=HORIZON, # TODO(@evinitsky) decrease it when testing
+        horizon=HORIZON,  # TODO(@evinitsky) decrease it when testing
         additional_params=additional_env_params
     ),
 
@@ -163,10 +158,10 @@ test_env = create_env()
 obs_space = test_env.observation_space
 act_space = test_env.action_space
 
-
 POLICY_GRAPHS = {'av': (PPOTFPolicy, obs_space, act_space, {})}
 
 POLICIES_TO_TRAIN = ['av']
+
 
 def policy_mapping_fn(_):
     """Map a policy in RLlib."""
