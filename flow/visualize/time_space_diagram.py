@@ -330,13 +330,12 @@ def _i210_subnetwork(data, params, all_time):
 
     # compute the absolute position
     for veh_id in data.keys():
-        # TODO(@evinitsky) this messes up because we lose track of the time indices
         data[veh_id]['abs_pos'] = _get_abs_pos_1_edge(data[veh_id]['edge'],
                                                        data[veh_id]['pos'],
                                                        edge_starts)
 
     # create the output variables
-    # TODO(@evinitsky) remove the subsampling
+    # TODO(@ev) handle subsampling better than this
     all_time = all_time[100:1600]
 
     # track only vehicles that were around during this time period
@@ -528,6 +527,8 @@ if __name__ == '__main__':
                         help='rate at which steps are plotted.')
     parser.add_argument('--max_speed', type=int, default=8,
                         help='The maximum speed in the color range.')
+    parser.add_argument('--min_speed', type=int, default=0,
+                        help='The minimum speed in the color range.')
     parser.add_argument('--start', type=float, default=0,
                         help='initial time (in sec) in the plot.')
     parser.add_argument('--stop', type=float, default=float('inf'),
@@ -551,17 +552,15 @@ if __name__ == '__main__':
     # some plotting parameters
     cdict = {
         'red': ((0, 0, 0), (0.2, 1, 1), (0.6, 1, 1), (1, 0, 0)),
-        # 'red': ((0, 1, 1), (0.2, 1, 1), (0.6, 1, 1), (1, 0, 0)),
         'green': ((0, 0, 0), (0.2, 0, 0), (0.6, 1, 1), (1, 1, 1)),
-        # 'blue': ((0, 0, 0), (0.2, 0, 0), (0.6, 0, 0), (1, 0, 0))
-        'blue': ((0, 0, 0), (1, 0, 0))
+        'blue': ((0, 0, 0), (0.2, 0, 0), (0.6, 0, 0), (1, 0, 0))
     }
     my_cmap = colors.LinearSegmentedColormap('my_colormap', cdict, 1024)
 
     # perform plotting operation
     fig = plt.figure(figsize=(16, 9))
     ax = plt.axes()
-    norm = plt.Normalize(18, args.max_speed)
+    norm = plt.Normalize(args.min_speed, args.max_speed)
     cols = []
 
     xmin = max(time[0], args.start)
@@ -574,24 +573,22 @@ if __name__ == '__main__':
     ax.set_ylim(ymin - ybuffer, ymax + ybuffer)
 
     for indx_car in range(pos.shape[1]):
-        print(indx_car, ' out of ', pos.shape[1])
-        # TODO(@evinitsky) remove
-
         unique_car_pos = pos[:, indx_car]
-        indices = np.where(pos[:, indx_car] != 0)[0]
 
-        # # discontinuity from wraparound
-        # TODO(@evinitsky) deal with hardcoding
-        # disc = np.where(np.abs(np.diff(unique_car_pos)) >= 10)[0] + 1
-        # disc = np.where(np.abs(np.diff(unique_car_pos)) >= 100)[0] + 1
-        # unique_car_time = np.insert(time, disc, np.nan)
-        # unique_car_pos = np.insert(unique_car_pos, disc, np.nan)
-        # unique_car_speed = np.insert(speed[:, indx_car], disc, np.nan)
-        # #
-        # points = np.array(
-        #     [unique_car_time, unique_car_pos]).T.reshape(-1, 1, 2)
-        points = np.array([time[indices], pos[indices, indx_car]]).T.reshape(-1, 1, 2)
-        unique_car_speed = speed[indices, indx_car]
+        if flow_params['network'] == I210SubNetwork:
+            indices = np.where(pos[:, indx_car] != 0)[0]
+            unique_car_speed = speed[indices, indx_car]
+            points = np.array([time[indices], pos[indices, indx_car]]).T.reshape(-1, 1, 2)
+        else:
+
+            # discontinuity from wraparound
+            disc = np.where(np.abs(np.diff(unique_car_pos)) >= 10)[0] + 1
+            unique_car_time = np.insert(time, disc, np.nan)
+            unique_car_pos = np.insert(unique_car_pos, disc, np.nan)
+            unique_car_speed = np.insert(speed[:, indx_car], disc, np.nan)
+            #
+            points = np.array(
+                [unique_car_time, unique_car_pos]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
         lc = LineCollection(segments, cmap=my_cmap, norm=norm)
 
@@ -606,7 +603,6 @@ if __name__ == '__main__':
 
     for col in cols:
         line = ax.add_collection(col)
-    # TODO(@evinitsky) this should only apply for the I210 subnetwork
     cbar = plt.colorbar(line, ax=ax, norm=norm)
     cbar.set_label('Velocity (m/s)', fontsize=20)
     cbar.ax.tick_params(labelsize=18)
