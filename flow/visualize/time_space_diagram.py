@@ -322,11 +322,13 @@ def _i210_subnetwork(data, params, all_time):
         that time step.
     """
     # import network data from flow params
-
+    #
     # edge_starts = {"119257908#0": 0,
     #                "119257908#1-AddedOnRampEdge": 686.98}
-    # edge_starts = {"119257908#0": 0}
-    edge_starts = {"119257908#1-AddedOnRampEdge": 0}
+    desired_lane = 4
+    edge_starts = {"119257908#0": 0}
+    # edge_starts = {"119257908#1-AddedOnRampEdge": 0}
+    # desired_lane = 5
 
     # compute the absolute position
     for veh_id in data.keys():
@@ -350,7 +352,7 @@ def _i210_subnetwork(data, params, all_time):
                                                 data[veh_id]['lane']):
             # avoid vehicles not on the relevant edges. Also only check the second to
             # last lane
-            if edge not in edge_starts.keys() or ti not in all_time or lane != 5:
+            if edge not in edge_starts.keys() or ti not in all_time or lane != desired_lane:
                 continue
             else:
                 if i not in observed_row_list:
