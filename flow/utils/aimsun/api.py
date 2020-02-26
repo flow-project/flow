@@ -704,7 +704,74 @@ class FlowAimsunAPI(object):
                            values=(node_id, offset,),
                            out_format=None)
 
-    def get_total_green(self, node_id):
+    def get_duration_phase(self, node_id, phase):  # cj
+        """
+        Get control id and num_rings
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+        phase: int
+            phase index
+
+        Returns
+        -------
+        int (3)
+            normalDuration, minDuration, maxDuration
+        """
+        normalDuration, maxDuration, minDuration, = self._send_command(ac.INT_GET_DURATION_PHASE,
+                                                                       in_format='i i',
+                                                                       values=(node_id, phase,),
+                                                                       out_format='f f f')
+
+        return normalDuration, maxDuration, minDuration
+
+    def get_control_ids(self, node_id):  # cj
+        """
+        Get control id and num_rings
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+
+        Returns
+        -------
+        int (2)
+            control_id, num_rings
+        """
+        control_id, num_rings, = self._send_command(ac.INT_GET_CONTROL_IDS,
+                                                    in_format='i',
+                                                    values=(node_id,),
+                                                    out_format='i i')
+
+        return control_id, num_rings
+
+    def get_green_phases(self, node_id, ring_id):
+        """
+        Gets the intersection's total green time per ring
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+        ring_id : int
+            the ring id of the control plan
+
+        Returns
+        -------
+        int / list
+            green phases
+        """
+        green_phases = self._send_command(ac.INT_GET_GREEN_PHASES,
+                                          in_format='i i',
+                                          values=(node_id, ring_id,),
+                                          out_format='str')
+
+        return [int(green_phase) for green_phase in green_phases.split(',')]
+
+    def get_total_green(self, node_id):  # cj
         """
         Gets the intersection's total green time per ring
 
@@ -719,13 +786,13 @@ class FlowAimsunAPI(object):
             the total green time of the intersection
         """
         total_green, = self._send_command(ac.INT_GET_TOTAL_GREEN,
-                                     in_format='i',
-                                     values=(node_id,),
-                                     out_format='i')
+                                          in_format='i',
+                                          values=(node_id,),
+                                          out_format='f')
 
         return total_green
 
-    def change_phase_duration(self, node_id, duration):
+    def change_phase_duration(self, node_id, phase, duration):
         """
         Changes the phase timing
 
@@ -738,12 +805,12 @@ class FlowAimsunAPI(object):
 
         Returns
         -------
-        list
-            list of current phases as ints
+        int
+            change of phase timing
         """
         self._send_command(ac.INT_CHANGE_PHASE_DURATION,
-                           in_format='i f',
-                           values=(node_id, duration,),
+                           in_format='i i f',
+                           values=(node_id, phase, duration,),
                            out_format=None)
 
     def get_incoming_edges(self, node_id):

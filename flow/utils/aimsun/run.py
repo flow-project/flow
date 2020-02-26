@@ -489,22 +489,47 @@ def threaded_client(conn, **kwargs):
                 acycle = kwargs.get('acycle')
                 cp.change_offset(node_id, offset, time, timeSta, acycle)
 
-            elif data = ac.INT_GET_TOTAL_GREEN: ###
+            elif data == ac.INT_GET_DURATION_PHASE:  # cj
+                send_message(conn, in_format='i', values=(0,))
+                node_id, phase = retrieve_message(conn, 'i i')
+
+                normalDuration, maxDuration, minDuration = cp.get_duration_phase(node_id, phase, timeSta)
+
+                send_message(conn, in_format='f f f', values=(normalDuration, maxDuration, minDuration,))
+
+            elif data == ac.INT_GET_TOTAL_GREEN:  # cj
                 send_message(conn, in_format='i', values=(0,))
                 node_id, = retrieve_message(conn, 'i')
 
-                total_green = cp.get_total_green(node_id)
+                total_green = cp.get_total_green(node_id, timeSta)
 
-                send_message(conn, in_format='i', values=(total_green,))
+                send_message(conn, in_format='f', values=(total_green,))
+
+            elif data == ac.INT_GET_CONTROL_IDS:
+                send_message(conn, in_format='i', values=(0,))
+                node_id, = retrieve_message(conn, 'i')
+
+                control_id, num_rings = cp.get_control_ids(node_id)
+
+                send_message(conn, in_format='i i', values=(control_id, num_rings,))
+
+            elif data == ac.INT_GET_GREEN_PHASES:
+                send_message(conn, in_format='i', values=(0,))
+                node_id, ring_id = retrieve_message(conn, 'i i')
+
+                green_phases = cp.get_green_phases(node_id, ring_id, timeSta)
+                output = ','.join(str(i) for i in green_phases)
+
+                send_message(conn, in_format='str', values=(output,))
 
             elif data == ac.INT_CHANGE_PHASE_DURATION:
                 send_message(conn, in_format='i', values=(0,))
-                node_id, duration = retrieve_message(conn, 'i f')
+                node_id, phase, duration = retrieve_message(conn, 'i i f')
 
                 time = kwargs.get('time')
                 timeSta = kwargs.get('timeSta')
                 acycle = kwargs.get('acycle')
-                cp.change_phase_duration(node_id, duration, time, timeSta, acycle)
+                cp.change_phase_duration(node_id, phase, duration, time, timeSta, acycle)
 
             elif data == ac.INT_GET_IN_EDGES:
                 send_message(conn, in_format='i', values=(0,))
@@ -581,7 +606,7 @@ def AAPIInit():
 def AAPIManage(time, timeSta, timeTrans, acycle):
     """Execute commands before an Aimsun simulation step."""
     # Create a thread when data needs to be sent back to FLOW
-    if not time % (300 * 0.8): # DETECTOR_STEP * SIM_STEP (copy from train_rllib.py)
+    if not time % (120 * 0.8):  # DETECTOR_STEP * SIM_STEP (copy from train_rllib.py)
         # tcp/ip connection from the aimsun process
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

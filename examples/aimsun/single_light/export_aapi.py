@@ -12,7 +12,6 @@ eastbound_section = [338, 400, 461, 24650, 450]
 def get_delay_time(section_id):
     pass
 
-
 def sum_queue(section_id):
     catalog = model.getCatalog()
     node = catalog.find(node_id)
@@ -46,6 +45,12 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
 
 def AAPIPostManage(time, timeSta, timeTrans, acycle):
     # print( "AAPIPostManage" )
+    if time % 900 == 0:
+        control_id, num_rings, phases = get_current_ids(3344)
+        print(control_id)
+        print(num_rings)
+        print(phases)
+
     return 0
 
 

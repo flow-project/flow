@@ -74,7 +74,10 @@ def get_duration_phase(node_id, phase, timeSta):
     aapi.ECIGetDurationsPhase(node_id, phase, timeSta,
                               normalDurationP, maxDurationP, minDurationP)
     normalDuration = normalDurationP.value()
-    return normalDuration
+    maxDuration = maxDurationP.value()
+    minDuration = minDurationP.value()
+
+    return normalDuration, maxDuration, minDuration
 
 
 def change_offset(node_id, offset, time, timeSta, acycle):
@@ -84,50 +87,63 @@ def change_offset(node_id, offset, time, timeSta, acycle):
     elapsed_time = time-aapi.ECIGetStartingTimePhaseInRing(node_id, 0)
     for i, phase in enumerate(curr_phase):
         target_phase = phase
-        phase_time = get_duration_phase(node_id, phase, timeSta)
+        phase_time, _, _ = get_duration_phase(node_id, phase, timeSta)
         remaining_time = (phase_time - elapsed_time) + offset
         while remaining_time < 0:
             target_phase += 1
             if target_phase > ring_phases[i]:
                 target_phase -= ring_phases[0]
 
-            phase_time = get_duration_phase(node_id, target_phase, timeSta)
+            phase_time, _, _ = get_duration_phase(node_id, target_phase, timeSta)
             remaining_time += phase_time
         aapi.ECIChangeDirectPhase(node_id, target_phase, timeSta, time, acycle, phase_time - remaining_time)
 
-def get_total_green(node_id, timeSta):
-    ## Format is set current control plan 
+
+def set_max_green(control_id, node_id, phase_id, new_duration):
+    aapi.ECISetActuatedParamsMaxGreen(control_id, node_id, phase_id, new_duration)
+
+
+def get_total_green(node_id, timeSta):  # cj
+    # Format is set current control plan
     ring_id = 0
     sum_interphase = 0
     control_id = aapi.ECIGetNumberCurrentControl(node_id)
     control_cycle = aapi.ECIGetControlCycleofJunction(control_id, node_id)
     num_phases = aapi.ECIGetNumberPhasesInRing(node_id, ring_id)
-    for phase in (range(1,num_phases + 1)):
+    for phase in (range(1, num_phases + 1)):
         if aapi.ECIIsAnInterPhase(node_id, phase, timeSta) == 0:
             continue
         else:
-            duration = get_duration_phase(node_id, phase, timeSta)
+            duration, _, _ = get_duration_phase(node_id, phase, timeSta)
             sum_interphase += duration
- 
+
     total_green = control_cycle - sum_interphase
     return total_green
 
-def change_phase_duration(node_id, duration, time, timeSta, acycle):
-    control_id = aapi.ECIGetNumberCurrentControl(node_id) #Get control index
-    num_rings = aapi.ECIGetNbRingsJunction(control_id,node_id) #Get Number of rings
-    for ring_id in range(num_rings):
-        curr_phase = aapi.ECIGetCurrentPhaseInRing(node_id,ring_id)
-        num_phases = aapi.ECIGetNumberPhasesInRing(node_id, ring_id)
-        if curr_phase == num_phases: ##can be changed in interval time? Should I disregard interval time? Should i just per 15mins? 
-            a = 1
-            if ring_id > 0:
-                a = num_phases + 1
-                num_phases = num_phases*2
-            for phase in range(a,num_phases+1):
-                if aapi.ECIIsAnInterPhase(node_id, phase, timeSta) == 1:
-                    continue
-                else:
-                    aapi.ECIChangeTimingPhase(node_id, phase, duration, timeSta)
+
+def get_control_ids(node_id):
+    control_id = aapi.ECIGetNumberCurrentControl(node_id)
+    num_rings = aapi.ECIGetNbRingsJunction(control_id, node_id)
+
+    return control_id, num_rings
+
+
+def get_green_phases(node_id, ring_id, timeSta):
+    a = 1
+    num_phases = aapi.ECIGetNumberPhasesInRing(node_id, ring_id)
+    if ring_id > 0:
+        a = num_phases + 1
+        num_phases = num_phases*2
+
+    return [phase for phase in range(a, num_phases+1) if aapi.ECIIsAnInterPhase(node_id, phase, timeSta) == 0]
+
+
+def change_phase_duration(node_id, phase, duration, time, timeSta, acycle):
+    control_id, _ = get_control_ids(node_id)
+    aapi.ECIChangeTimingPhase(node_id, phase, duration, timeSta)
+    phase_duration, maxd, mind = get_duration_phase(node_id, phase, timeSta)
+    if duration > maxd:
+        set_max_green(control_id, node_id, phase, duration)
 
 
 def phase_converter(phase_timings):

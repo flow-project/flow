@@ -72,8 +72,8 @@ def replay(env, env_params, agent, ignore_policy):
         action = agent.compute_action(state)
         state, reward, done, _ = env.step(action)
         total_reward += reward
-        if done:
-            break
+        #if done:
+            #break
 
     # terminate the environment
     input("Press Enter when you're finished...")
@@ -102,7 +102,7 @@ if __name__ == "__main__":
         print(f'Total reward: {total_reward}')
     else:
         print('No experiment directory passed in as an argument.')
-        experiment_dir = "/Users/umang/ray_results/coordinated_traffic_lights"
+        experiment_dir = "/Users/umang/ray_results/single_light"
 
         result_dirs = os.listdir(experiment_dir)
         for result_dir in result_dirs:

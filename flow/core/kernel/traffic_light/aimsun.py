@@ -105,7 +105,7 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         """
         return self.kernel_api.change_intersection_offset(node_id, offset)
 
-    def get_total_green(self, node_id):
+    def get_total_green(self, node_id):  # cj
         """
         Gets the intersection's offset
 
@@ -121,7 +121,57 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         """
         return self.kernel_api.get_total_green(node_id)
 
-    def change_phase_duration(self, node_id, duration):
+    def get_duration_phase(self, node_id, phase):
+        """
+        Gets the intersection's offset
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+        phase: int
+            phase index
+
+        Returns
+        -------
+        int
+            normal, max and min duration of phase
+        """
+        return self.kernel_api.get_duration_phase(node_id, phase)
+
+    def get_control_ids(self, node_id):
+        """
+        Gets the intersection's offset
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+
+        Returns
+        -------
+        int
+            the offset of the intersection
+        """
+        return self.kernel_api.get_control_ids(node_id)
+
+    def get_green_phases(self, node_id, ring_id):
+        """
+        Gets the intersection's offset
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+
+        Returns
+        -------
+        int
+            the offset of the intersection
+        """
+        return self.kernel_api.get_green_phases(node_id, ring_id)
+
+    def change_phase_duration(self, node_id, phase, duration):
         """
         Changes an intersection's phase to the next
 
@@ -134,10 +184,10 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
 
         Returns
         -------
-        list
-            list of current phase timing as floats
+        int
+            change phase duration
         """
-        return self.kernel_api.change_phase_duration(node_id, duration)
+        return self.kernel_api.change_phase_duration(node_id, phase, duration)
 
     def get_incoming_edges(self, node_id):
         """

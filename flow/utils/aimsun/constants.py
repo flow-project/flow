@@ -121,11 +121,20 @@ INT_GET_CUME_QUEUE_LENGTH = 0x20
 #: set replication seed
 REPL_SET_SEED = 0x21
 
+#: get ids
+INT_GET_CONTROL_IDS = 0x27
+
+#: get green phases
+INT_GET_GREEN_PHASES = 0x28
+
 #: get total green phase timing in a ring
-INT_GET_TOTAL_GREEN = 0x27
+INT_GET_TOTAL_GREEN = 0x29
 
 #: set intersection phase
-INT_CHANGE_PHASE_DURATION = 0x28
+INT_CHANGE_PHASE_DURATION = 0x2A
+
+#: get duration phase
+INT_GET_DURATION_PHASE = 0x2B
 
 ###############################################################################
 #                           Detector Commands                            #
