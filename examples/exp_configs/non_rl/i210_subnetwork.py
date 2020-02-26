@@ -3,6 +3,8 @@ import os
 
 import numpy as np
 
+from flow.controllers.routing_controllers import I210Router
+from flow.controllers.car_following_models import IDMController
 from flow.core.params import SumoParams, EnvParams, NetParams, SumoLaneChangeParams
 from flow.core.params import VehicleParams, InitialConfig
 from flow.core.params import InFlows
@@ -15,7 +17,9 @@ vehicles = VehicleParams()
 vehicles.add(
     "human",
     num_vehicles=0,
-    lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic")
+    routing_controller=(I210Router, {}),
+    lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"),
+    acceleration_controller=(IDMController, {"v0": 30}),
 )
 
 inflow = InFlows()
@@ -25,20 +29,20 @@ inflow.add(
     edge="119257914",
     vehs_per_hour=8378,
     departLane="random",
-    departSpeed=20)
+    departSpeed=10)
 # on ramp
-inflow.add(
-    veh_type="human",
-    edge="27414345",
-    vehs_per_hour=321,
-    departLane="random",
-    departSpeed=20)
-inflow.add(
-    veh_type="human",
-    edge="27414342#0",
-    vehs_per_hour=421,
-    departLane="random",
-    departSpeed=20)
+# inflow.add(
+#     veh_type="human",
+#     edge="27414345",
+#     vehs_per_hour=321,
+#     departLane="random",
+#     departSpeed=20)
+# inflow.add(
+#     veh_type="human",
+#     edge="27414342#0",
+#     vehs_per_hour=421,
+#     departLane="random",
+#     departSpeed=20)
 
 NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,
