@@ -67,10 +67,10 @@ class TraCISimulation(KernelSimulation):
         """See parent class."""
         return self.kernel_api.simulation.getStartingTeleportNumber() != 0
 
-    def start_simulation(self, scenario, sim_params):
+    def start_simulation(self, network, sim_params):
         """Start a sumo simulation instance.
 
-        This method uses the configuration files created by the scenario class
+        This method uses the configuration files created by the network class
         to initialize a sumo instance. Also initializes a traci connection to
         interface with sumo from Python.
         """
@@ -85,13 +85,13 @@ class TraCISimulation(KernelSimulation):
 
                 # command used to start sumo
                 sumo_call = [
-                    sumo_binary, "-c", scenario.cfg,
+                    sumo_binary, "-c", network.cfg,
                     "--remote-port", str(sim_params.port),
                     "--num-clients", str(sim_params.num_clients),
                 ]
 
                 logging.info(" Starting SUMO on port " + str(port))
-                logging.debug(" Cfg file: " + str(scenario.cfg))
+                logging.debug(" Cfg file: " + str(network.cfg))
                 if sim_params.num_clients > 1:
                     logging.info(" Num clients are" +
                                  str(sim_params.num_clients))

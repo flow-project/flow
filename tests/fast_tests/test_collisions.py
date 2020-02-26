@@ -7,7 +7,7 @@ from flow.core.params import VehicleParams
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.routing_controllers import GridRouter
 
-from tests.setup_scripts import grid_mxn_exp_setup
+from tests.setup_scripts import traffic_light_grid_mxn_exp_setup
 
 
 class TestCollisions(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestCollisions(unittest.TestCase):
 
     def test_collide(self):
         """Tests collisions in the absence of inflows."""
-        # create the environment and scenario classes for a ring road
+        # create the environment and network classes for a ring road
         sim_params = SumoParams(sim_step=1, render=False)
         total_vehicles = 20
         vehicles = VehicleParams()
@@ -50,27 +50,27 @@ class TestCollisions(unittest.TestCase):
 
         net_params = NetParams(additional_params=additional_net_params)
 
-        env, _ = grid_mxn_exp_setup(
+        env, _, flow_params = traffic_light_grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
             sim_params=sim_params,
             vehicles=vehicles,
             net_params=net_params)
 
+        # create an experiment object
+        exp = Experiment(flow_params)
+        env = exp.env
         # go through the env and set all the lights to green
         for i in range(env.rows * env.cols):
             env.k.traffic_light.set_state(
                 node_id='center' + str(i), state="gggggggggggg")
 
-        # instantiate an experiment class
-        exp = Experiment(env)
-
-        exp.run(50, 50)
+        exp.run(50)
 
     def test_collide_inflows(self):
         """Tests collisions in the presence of inflows."""
-        # create the environment and scenario classes for a ring road
-        sim_params = SumoParams(sim_step=1, render=False)
+        # create the environment and network classes for a ring road
+        sim_params = SumoParams(sim_step=1, render=False, seed=40)
         total_vehicles = 0
         vehicles = VehicleParams()
         vehicles.add(
@@ -111,22 +111,23 @@ class TestCollisions(unittest.TestCase):
             inflows=inflows,
             additional_params=additional_net_params)
 
-        env, _ = grid_mxn_exp_setup(
+        _, _, flow_params = traffic_light_grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
             sim_params=sim_params,
             vehicles=vehicles,
             net_params=net_params)
 
+        # instantiate an experiment class
+        exp = Experiment(flow_params)
+        env = exp.env
+
         # go through the env and set all the lights to green
         for i in range(env.rows * env.cols):
             env.k.traffic_light.set_state(
                 node_id='center' + str(i), state="gggggggggggg")
 
-        # instantiate an experiment class
-        exp = Experiment(env)
-
-        exp.run(50, 50)
+        exp.run(50)
 
 
 if __name__ == '__main__':

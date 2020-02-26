@@ -1,0 +1,152 @@
+{
+    "env": {
+        "additional_params": {
+            "max_accel": 1,
+            "max_decel": 1,
+            "ring_length": [
+                220,
+                270
+            ]
+        },
+        "clip_actions": false,
+        "evaluate": false,
+        "horizon": 3000,
+        "sims_per_step": 1,
+        "warmup_steps": 750
+    },
+    "env_name": "WaveAttenuationPOEnv",
+    "exp_tag": "singleagent_ring",
+    "initial": {
+        "additional_params": {},
+        "bunching": 0,
+        "edges_distribution": "all",
+        "lanes_distribution": Infinity,
+        "min_gap": 0,
+        "perturbation": 0.0,
+        "shuffle": false,
+        "spacing": "uniform",
+        "x0": 0
+    },
+    "net": {
+        "additional_params": {
+            "lanes": 1,
+            "length": 230,
+            "resolution": 40,
+            "speed_limit": 30
+        },
+        "inflows": {
+            "_InFlows__flows": [],
+            "num_flows": 0
+        },
+        "osm_path": null,
+        "template": null
+    },
+    "network": "RingNetwork",
+    "sim": {
+        "emission_path": null,
+        "lateral_resolution": null,
+        "no_step_log": true,
+        "num_clients": 1,
+        "overtake_right": false,
+        "port": null,
+        "print_warnings": true,
+        "pxpm": 2,
+        "render": false,
+        "restart_instance": false,
+        "save_render": false,
+        "seed": null,
+        "show_radius": false,
+        "sight_radius": 25,
+        "sim_step": 0.1,
+        "teleport_time": -1
+    },
+    "simulator": "traci",
+    "veh": [
+        {
+            "acceleration_controller": [
+                "IDMController",
+                {
+                    "noise": 0.2
+                }
+            ],
+            "car_following_params": {
+                "controller_params": {
+                    "accel": 1.0,
+                    "carFollowModel": "IDM",
+                    "decel": 1.5,
+                    "impatience": 0.5,
+                    "maxSpeed": 30,
+                    "minGap": 2.5,
+                    "sigma": 0.5,
+                    "speedDev": 0.1,
+                    "speedFactor": 1.0,
+                    "tau": 1.0
+                },
+                "speed_mode": 25
+            },
+            "initial_speed": 0,
+            "lane_change_controller": [
+                "SimLaneChangeController",
+                {}
+            ],
+            "lane_change_params": {
+                "controller_params": {
+                    "laneChangeModel": "LC2013",
+                    "lcCooperative": "1.0",
+                    "lcKeepRight": "1.0",
+                    "lcSpeedGain": "1.0",
+                    "lcStrategic": "1.0"
+                },
+                "lane_change_mode": 512
+            },
+            "num_vehicles": 21,
+            "routing_controller": [
+                "ContinuousRouter",
+                {}
+            ],
+            "veh_id": "human"
+        },
+        {
+            "acceleration_controller": [
+                "RLController",
+                {}
+            ],
+            "car_following_params": {
+                "controller_params": {
+                    "accel": 1.0,
+                    "carFollowModel": "IDM",
+                    "decel": 1.5,
+                    "impatience": 0.5,
+                    "maxSpeed": 30,
+                    "minGap": 2.5,
+                    "sigma": 0.5,
+                    "speedDev": 0.1,
+                    "speedFactor": 1.0,
+                    "tau": 1.0
+                },
+                "speed_mode": 25
+            },
+            "initial_speed": 0,
+            "lane_change_controller": [
+                "SimLaneChangeController",
+                {}
+            ],
+            "lane_change_params": {
+                "controller_params": {
+                    "laneChangeModel": "LC2013",
+                    "lcCooperative": "1.0",
+                    "lcKeepRight": "1.0",
+                    "lcSpeedGain": "1.0",
+                    "lcStrategic": "1.0"
+                },
+                "lane_change_mode": 512
+            },
+            "num_vehicles": 1,
+            "routing_controller": [
+                "ContinuousRouter",
+                {}
+            ],
+            "veh_id": "rl"
+        }
+    ]
+}

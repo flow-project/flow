@@ -1,5 +1,5 @@
-Built-in Traffic Scenarios
-==========================
+Built-in Traffic Networks
+=========================
 
 We provide a quick introduction to the traffic examples and tools that Flow comes pre-built with.
 For further details, please examine the documentation provided in the examples folder.
@@ -9,7 +9,7 @@ A few points of clarification:
 
 * Occasionally we describe environments as *fully observed*. By this we mean that all relevant pieces of information (speed, relative positions, traffic light states) of the system are available to the controller. *Partially observed* refers to only a subset being available. This is the default configuration of the environment and the set of observations can be customized.
 
-* Each environment has customizable environment/network parameters that can be used to configure it beyond what is described here. Particularly pertinent parameters are described. Additional parameters can be found by examining the documentation in the relevant scenario and environment files.
+* Each environment has customizable environment/network parameters that can be used to configure it beyond what is described here. Particularly pertinent parameters are described. Additional parameters can be found by examining the documentation in the relevant network and environment files.
 
 * In the figures below, the following key is used for vehicle colors, where AV stands for autonomous vehicle.
 
@@ -19,20 +19,20 @@ A few points of clarification:
 
 Figure Eight
 ------------
-The figure-eight is a closed-loop version of an intersection. The goal is to maximize
+The figure-eight is a closed-ring version of an intersection. The goal is to maximize
 the system-wide velocity for fourteen vehicles,
 which necessitates spacing the vehicles so that they don't
-run into conflicts at the merging points. The scenario is fully observed: all vehicles
+run into conflicts at the merging points. The network is fully observed: all vehicles
 speeds and positions are visible to the controller.
-This scenario is also a benchmark, and has been
+This network is also a benchmark, and has been
 extensively tested at three penetration rates: 1 AV 13 humans, 7 AVs 7 humans, 14 AVs.
 
-The scenario, pictured below,
+The network, pictured below,
 is relatively light-weight and can be trained the quickest. It can serve both as a test
 that the training process is working correctly and as a study of the difficulty of controlling
 many vehicles simultaneously.
 
-.. image:: ../img/figure8-corl2018.png
+.. image:: ../img/figure_eight-corl2018.png
    :width: 400
    :align: center
 
@@ -43,15 +43,14 @@ In this scenario, human drivers placed on a ring develop a travelling wave that 
 decelerations and lowers the average velocity of the system. The goal is to train a single
 autonomous vehicle to eliminate the shockwave.
 
-The pre-built run script for running this in human-only mode is `examples/sumo/sugiyama.py`.
-The run scripts in rllib and aimsun are `examples/rllib/stabilizing_the_ring.py` and
-`examples/aimsun/stabilizing_the_ring.py`. These control environments are partially observed:
-the autonomous vehicle only observes its own distance to the leading vehicle, its speed,
-and the speed of the leading vehicle.
+The experiment config for this in human-only mode (non-RL) is `examples/exp_configs/non_rl/ring.py`.
+The experiment config for RL-based is `examples/exp_configs/rl/singleagent/singleagent_ring.py`. 
+These control environments are partially observed: the autonomous vehicle only observes its own 
+distance to the leading vehicle, its speed, and the speed of the leading vehicle.
 
 To make this task more difficult, the environment has a configurable parameter, `ring_length`, which
 can be set to a list containing the minimum and maximum ring-size. The autonomous vehicle must
-learn to distinguish these scenarios from each other and pick the appropriate driving behavior.
+learn to distinguish these networks from each other and pick the appropriate driving behavior.
 
 .. image:: ../img/stabilizing_the_ring.png
    :width: 400
@@ -63,7 +62,7 @@ Flow comes with a New York City style, configurable grid of traffic lights where
 control both the traffic lights and the autonomous vehicles. The build-in reward is to minimize
 the total system delay. The number of rows and columns can be adjusted by changing the values in
 `N_ROWS` and `N_COLUMNS` and the inflows adjusted by changing `EDGE_INFLOW`. Relevant files are
-`green_wave.py` in the examples folder and `grid_0.py` and `grid_1.py` in the benchmark folder.
+`traffic_light_grid.py` in the examples folder and `grid_0.py` and `grid_1.py` in the benchmark folder.
 
 .. image:: ../img/grid-corl2018.png
    :width: 400

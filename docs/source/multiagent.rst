@@ -16,7 +16,7 @@ The keys of the dictionary are IDs of the agent policies.
 A brief example of a multiagent environment:
 ::
 
-    from flow.envs.multiagent_env import MultiEnv
+    from flow.envs.multiagent.base import MultiEnv
 
     class MultiAgentAccelEnv(AccelEnv, MultiEnv):
         """Example multiagent environment"""
@@ -50,4 +50,4 @@ A brief example of a multiagent environment:
 
 
 For further details look at our
-`multiagent examples <https://github.com/flow-project/flow/tree/master/examples/rllib/multiagent_exps>`_.
+`multiagent examples <https://github.com/flow-project/flow/tree/master/examples/exp_configs/rl/multiagent>`_.

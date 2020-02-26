@@ -2,7 +2,7 @@ import unittest
 from flow.core.params import EnvParams, SumoParams, SumoLaneChangeParams, \
     SumoCarFollowingParams, VehicleParams, NetParams
 from flow.envs import Env
-from flow.scenarios import LoopScenario
+from flow.networks import RingNetwork
 import os
 import numpy as np
 from gym.spaces import Box
@@ -46,7 +46,7 @@ class TestEnvParams(unittest.TestCase):
             "resolution": 40
         }
         net_params = NetParams(additional_params=additional_net_params)
-        scenario = LoopScenario(
+        network = RingNetwork(
             name="RingRoadTest",
             vehicles=vehicles,
             net_params=net_params)
@@ -54,7 +54,7 @@ class TestEnvParams(unittest.TestCase):
         # when set to False
         env_params = EnvParams(clip_actions=False)
         env = RLActionsEnv(
-            env_params=env_params, sim_params=sim_params, scenario=scenario)
+            env_params=env_params, sim_params=sim_params, network=network)
         env.reset()
         _, ret, _, _ = env.step(rl_actions=[5])
         self.assertEqual(np.mean(ret), 5)
@@ -62,7 +62,7 @@ class TestEnvParams(unittest.TestCase):
         # when set to True
         env_params = EnvParams(clip_actions=True)
         env = RLActionsEnv(
-            env_params=env_params, sim_params=sim_params, scenario=scenario)
+            env_params=env_params, sim_params=sim_params, network=network)
         env.reset()
 
         _, ret, _, _ = env.step(rl_actions=[0.5])
@@ -203,8 +203,7 @@ class TestSumoLaneChangeParams(unittest.TestCase):
         expected_attributes_2 = \
             ["laneChangeModel", "lcStrategic", "lcCooperative", "lcSpeedGain",
              "lcKeepRight", "lcLookaheadLeft", "lcSpeedGainRight", "lcSublane",
-             "lcPushy", "lcPushyGap", "lcAssertive", "lcImpatience",
-             "lcTimeToImpatience", "lcAccelLat"]
+             "lcPushy", "lcPushyGap", "lcAssertive", "lcAccelLat"]
         self.assertCountEqual(attributes_2, expected_attributes_2)
 
     def test_wrong_model(self):
@@ -240,9 +239,7 @@ class TestSumoLaneChangeParams(unittest.TestCase):
             lcSublane=1.0,
             lcPushy=0,
             lcPushyGap=0.6,
-            lcAssertive=1,
-            lcImpatience=0,
-            lcTimeToImpatience=float("inf"))
+            lcAssertive=1)
 
         # ensure that the attributes match their correct element in the
         # "controller_params" dict
@@ -262,8 +259,6 @@ class TestSumoLaneChangeParams(unittest.TestCase):
             float(lc_params.controller_params["lcPushyGap"]), 0.6)
         self.assertAlmostEqual(
             float(lc_params.controller_params["lcAssertive"]), 1)
-        self.assertAlmostEqual(
-            float(lc_params.controller_params["lcImpatience"]), 0)
 
 
 if __name__ == '__main__':

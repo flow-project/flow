@@ -7,7 +7,8 @@ from flow.core.params import SumoCarFollowingParams
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController, \
-    OVMController, BCMController, LinearOVM, CFMController, LACController
+    OVMController, BCMController, LinearOVM, CFMController, LACController, \
+    GippsController
 from flow.controllers import FollowerStopper, PISaturation
 from tests.setup_scripts import ring_road_exp_setup
 import os
@@ -43,8 +44,8 @@ class TestCFMController(unittest.TestCase):
                 accel=20, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -92,8 +93,8 @@ class TestBCMController(unittest.TestCase):
                 accel=15, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -147,8 +148,8 @@ class TestOVMController(unittest.TestCase):
                 accel=15, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -197,8 +198,8 @@ class TestLinearOVM(unittest.TestCase):
                 accel=15, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -244,8 +245,8 @@ class TestIDMController(unittest.TestCase):
                 tau=1, accel=1, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -310,15 +311,16 @@ class TestInstantaneousFailsafe(unittest.TestCase):
 
         initial_config = InitialConfig(bunching=10)
 
-        # create the environment and scenario classes for a ring road
-        env, scenario = ring_road_exp_setup(
+        # create the environment and network classes for a ring road
+        _, _, flow_params = ring_road_exp_setup(
             vehicles=vehicles,
             env_params=env_params,
             net_params=net_params,
             initial_config=initial_config)
 
+        flow_params['env'].horizon = 200
         # instantiate an experiment class
-        self.exp = Experiment(env)
+        self.exp = Experiment(flow_params)
 
     def tearDown_failsafe(self):
         # free data used by the class
@@ -338,7 +340,7 @@ class TestInstantaneousFailsafe(unittest.TestCase):
         self.setUp_failsafe(vehicles=vehicles)
 
         # run the experiment, see if it fails
-        self.exp.run(1, 200)
+        self.exp.run(1)
 
         self.tearDown_failsafe()
 
@@ -355,7 +357,7 @@ class TestInstantaneousFailsafe(unittest.TestCase):
         self.setUp_failsafe(vehicles=vehicles)
 
         # run the experiment, see if it fails
-        self.exp.run(1, 200)
+        self.exp.run(1)
 
         self.tearDown_failsafe()
 
@@ -380,7 +382,7 @@ class TestSafeVelocityFailsafe(TestInstantaneousFailsafe):
         self.setUp_failsafe(vehicles=vehicles)
 
         # run the experiment, see if it fails
-        self.exp.run(1, 200)
+        self.exp.run(1)
 
         self.tearDown_failsafe()
 
@@ -398,7 +400,7 @@ class TestSafeVelocityFailsafe(TestInstantaneousFailsafe):
         self.setUp_failsafe(vehicles=vehicles)
 
         # run the experiment, see if it fails
-        self.exp.run(1, 200)
+        self.exp.run(1)
 
         self.tearDown_failsafe()
 
@@ -419,8 +421,8 @@ class TestStaticLaneChanger(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(net_params=net_params)
+        # create the environment and network classes for a ring road
+        self.env, _, _ = ring_road_exp_setup(net_params=net_params)
 
     def tearDown(self):
         # terminate the traci instance
@@ -477,8 +479,8 @@ class TestFollowerStopper(unittest.TestCase):
                 accel=20, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -552,8 +554,8 @@ class TestPISaturation(unittest.TestCase):
                 accel=20, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -607,8 +609,8 @@ class TestLACController(unittest.TestCase):
                 accel=15, decel=5),
             num_vehicles=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        # create the environment and network classes for a ring road
+        self.env, _, _ = ring_road_exp_setup(vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -631,6 +633,62 @@ class TestLACController(unittest.TestCase):
         ]
 
         expected_accel = [0., 1.5, 3., 4.5, 6.]
+
+        np.testing.assert_array_almost_equal(requested_accel, expected_accel)
+
+
+class TestGippsontroller(unittest.TestCase):
+    """
+    Tests that the Gipps Controller returning mathematically accurate values.
+    """
+
+    def setUp(self):
+        # add a few vehicles to the network using the requested model
+        # also make sure that the input params are what is expected
+        contr_params = {
+            "v0": 30,
+            "acc": 1.5,
+            "b": -1,
+            "b_l": -1,
+            "s0": 2,
+            "tau": 1,
+            "delay": 0,
+            "noise": 0,
+        }
+
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(GippsController, contr_params),
+            routing_controller=(ContinuousRouter, {}),
+            car_following_params=SumoCarFollowingParams(
+                accel=15, decel=5),
+            num_vehicles=5)
+
+        # create the environment and network classes for a ring road
+        self.env, _, _ = ring_road_exp_setup(vehicles=vehicles)
+
+    def tearDown(self):
+        # terminate the traci instance
+        self.env.terminate()
+
+        # free data used by the class
+        self.env = None
+
+    def test_get_action(self):
+        self.env.reset()
+        ids = self.env.k.vehicle.get_ids()
+
+        test_headways = [2, 4, 6, 8, 10]
+        for i, veh_id in enumerate(ids):
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
+
+        requested_accel = [
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
+            for veh_id in ids
+        ]
+
+        expected_accel = [0., 5.929271, 5.929271, 5.929271, 5.929271]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 

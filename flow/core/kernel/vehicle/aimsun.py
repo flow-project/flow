@@ -76,7 +76,7 @@ class AimsunKernelVehicle(KernelVehicle):
         self.total_num_type = {}
 
         # type of vehicles that will be tracked
-        # note: vehicles added via the scenario (ie by calling the
+        # note: vehicles added via the network (i.e. by calling the
         # add_vehicle function) will also be tracked, even if their
         # type is not specified here
         self.tracked_vehicle_types = {"rl", "idm"}  # TODO maybe generic
@@ -378,7 +378,7 @@ class AimsunKernelVehicle(KernelVehicle):
         # negative one means the first feasible turn TODO get route
         next_section = -1
         aimsun_id = self.kernel_api.add_vehicle(
-            edge=self.master_kernel.scenario.aimsun_edge_name(edge),
+            edge=self.master_kernel.network.aimsun_edge_name(edge),
             lane=lane,
             type_id=type_id,
             pos=pos,
@@ -490,7 +490,7 @@ class AimsunKernelVehicle(KernelVehicle):
             this_edge = self.get_edge(veh_id)
             target_lane = min(
                 max(this_lane + direction[i], 0),
-                self.master_kernel.scenario.num_lanes(this_edge) - 1)
+                self.master_kernel.network.num_lanes(this_edge) - 1)
 
             # perform the requested lane action action in Aimsun
             if target_lane != this_lane:
@@ -662,13 +662,13 @@ class AimsunKernelVehicle(KernelVehicle):
         edge_aimsun_id = self.__vehicles[veh_id]['tracking_info'].idSection
         if edge_aimsun_id < 0:
             # TODO: add from and to lanes in junctions
-            from_edge = self.master_kernel.scenario.flow_edge_name(
+            from_edge = self.master_kernel.network.flow_edge_name(
                 self.__vehicles[veh_id]['tracking_info'].idSectionFrom)
-            to_edge = self.master_kernel.scenario.flow_edge_name(
+            to_edge = self.master_kernel.network.flow_edge_name(
                 self.__vehicles[veh_id]['tracking_info'].idSectionTo)
             return '{}_to_{}'.format(from_edge, to_edge)
         else:
-            return self.master_kernel.scenario.flow_edge_name(edge_aimsun_id)
+            return self.master_kernel.network.flow_edge_name(edge_aimsun_id)
 
     def get_angle(self, veh_id, error=-1001):
         """Return the angle of the vehicle.
@@ -760,8 +760,8 @@ class AimsunKernelVehicle(KernelVehicle):
 
     def get_x_by_id(self, veh_id):
         """See parent class."""
-        return self.master_kernel.scenario.get_x(self.get_edge(veh_id),
-                                                 self.get_position(veh_id))
+        return self.master_kernel.network.get_x(self.get_edge(veh_id),
+                                                self.get_position(veh_id))
 
     def set_lane_headways(self, veh_id, lane_headways):
         """See parent class."""

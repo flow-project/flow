@@ -7,26 +7,27 @@ import time
 import os
 
 from flow.core.util import emission_to_csv
+from flow.utils.registry import make_create_env
 
 
 class Experiment:
     """
     Class for systematically running simulations in any supported simulator.
 
-    This class acts as a runner for a scenario and environment. In order to use
-    it to run an scenario and environment in the absence of a method specifying
+    This class acts as a runner for a network and environment. In order to use
+    it to run an network and environment in the absence of a method specifying
     the actions of RL agents in the network, type the following:
 
         >>> from flow.envs import Env
-        >>> env = Env(...)
-        >>> exp = Experiment(env)  # for some env and scenario
-        >>> exp.run(num_runs=1, num_steps=1000)
+        >>> flow_params = dict(...)  # see the examples in exp_config
+        >>> exp = Experiment(flow_params)  # for some experiment configuration
+        >>> exp.run(num_runs=1)
 
     If you wish to specify the actions of RL agents in the network, this may be
     done as follows:
 
         >>> rl_actions = lambda state: 0  # replace with something appropriate
-        >>> exp.run(num_runs=1, num_steps=1000, rl_actions=rl_actions)
+        >>> exp.run(num_runs=1, rl_actions=rl_actions)
 
     Finally, if you would like to like to plot and visualize your results, this
     class can generate csv files from emission files produced by sumo. These
@@ -37,12 +38,12 @@ class Experiment:
     ``emission_path`` attribute in ``SimParams`` to some path.
 
         >>> from flow.core.params import SimParams
-        >>> sim_params = SimParams(emission_path="./data")
+        >>> flow_params['sim'] = SimParams(emission_path="./data")
 
     Once you have included this in your environment, run your Experiment object
     as follows:
 
-        >>> exp.run(num_runs=1, num_steps=1000, convert_to_csv=True)
+        >>> exp.run(num_runs=1, convert_to_csv=True)
 
     After the experiment is complete, look at the "./data" directory. There
     will be two files, one with the suffix .xml and another with the suffix
@@ -55,24 +56,26 @@ class Experiment:
         the environment object the simulator will run
     """
 
-    def __init__(self, env):
+    def __init__(self, flow_params):
         """Instantiate Experiment."""
-        self.env = env
+        # Get the env name and a creator for the environment.
+        create_env, _ = make_create_env(flow_params)
+
+        # Create the environment.
+        self.env = create_env()
 
         logging.info(" Starting experiment {} at {}".format(
-            env.scenario.name, str(datetime.datetime.utcnow())))
+            self.env.network.name, str(datetime.datetime.utcnow())))
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, num_steps, rl_actions=None, convert_to_csv=False):
-        """Run the given scenario for a set number of runs and steps per run.
+    def run(self, num_runs, rl_actions=None, convert_to_csv=False):
+        """Run the given network for a set number of runs.
 
         Parameters
         ----------
         num_runs : int
             number of runs the experiment should perform
-        num_steps : int
-            number of steps to be performs in each run of the experiment
         rl_actions : method, optional
             maps states to actions to be performed by the RL agents (if
             there are any)
@@ -85,6 +88,8 @@ class Experiment:
         info_dict : dict
             contains returns, average speed per step
         """
+        num_steps = self.env.env_params.horizon
+
         # raise an error if convert_to_csv is set to True but no emission
         # file will be generated, to avoid getting an error at the end of the
         # simulation
@@ -110,6 +115,9 @@ class Experiment:
         mean_vels = []
         std_vels = []
         outflows = []
+        t = time.time()
+        times = []
+        vehicle_times = []
         for i in range(num_runs):
             vel = np.zeros(num_steps)
             logging.info("Iter #" + str(i))
@@ -117,7 +125,11 @@ class Experiment:
             ret_list = []
             state = self.env.reset()
             for j in range(num_steps):
+                t0 = time.time()
                 state, reward, done, _ = self.env.step(rl_actions(state))
+                t1 = time.time()
+                times.append(1 / (t1 - t0))
+                vehicle_times.append(self.env.k.vehicle.num_vehicles / (t1 - t0))
                 vel[j] = np.mean(
                     self.env.k.vehicle.get_speed(self.env.k.vehicle.get_ids()))
                 ret += reward
@@ -140,20 +152,23 @@ class Experiment:
         info_dict["per_step_returns"] = ret_lists
         info_dict["mean_outflows"] = np.mean(outflows)
 
-        print("Average, std return: {}, {}".format(
+        print("Average, std return:    {}, {}".format(
             np.mean(rets), np.std(rets)))
-        print("Average, std speed: {}, {}".format(
+        print("Average, std speed:     {}, {}".format(
             np.mean(mean_vels), np.std(mean_vels)))
+        print("Total time:            ", time.time() - t)
+        print("steps/second:          ", np.mean(times))
+        print("vehicles.steps/second: ", np.mean(vehicle_times))
         self.env.terminate()
 
-        if convert_to_csv:
+        if convert_to_csv and self.env.simulator == "traci":
             # wait a short period of time to ensure the xml file is readable
             time.sleep(0.1)
 
             # collect the location of the emission file
             dir_path = self.env.sim_params.emission_path
             emission_filename = \
-                "{0}-emission.xml".format(self.env.scenario.name)
+                "{0}-emission.xml".format(self.env.network.name)
             emission_path = os.path.join(dir_path, emission_filename)
 
             # convert the emission file into a csv

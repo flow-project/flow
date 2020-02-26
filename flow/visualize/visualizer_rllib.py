@@ -13,7 +13,6 @@ parser : ArgumentParser
 """
 
 import argparse
-from datetime import datetime
 import gym
 import numpy as np
 import os
@@ -55,16 +54,12 @@ def visualizer_rllib(args):
         else args.result_dir[:-1]
 
     config = get_rllib_config(result_dir)
-    # TODO(ev) backwards compatibility hack
-    try:
-        pkl = get_rllib_pkl(result_dir)
-    except Exception:
-        pass
 
-    # check if we have a multiagent scenario but in a
+    # check if we have a multiagent environment but in a
     # backwards compatible way
-    if config.get('multiagent', {}).get('policy_graphs', {}):
+    if config.get('multiagent', {}).get('policies', None):
         multiagent = True
+        pkl = get_rllib_pkl(result_dir)
         config['multiagent'] = pkl['multiagent']
     else:
         multiagent = False
@@ -114,15 +109,13 @@ def visualizer_rllib(args):
         sim_params.render = 'drgb'
         sim_params.pxpm = 4
     elif args.render_mode == 'sumo_gui':
-        sim_params.render = True
-        print('NOTE: With render mode {}, an extra instance of the SUMO GUI '
-              'will display before the GUI for visualizing the result. Click '
-              'the green Play arrow to continue.'.format(args.render_mode))
+        sim_params.render = False  # will be set to True below
     elif args.render_mode == 'no_render':
         sim_params.render = False
     if args.save_render:
-        sim_params.render = 'drgb'
-        sim_params.pxpm = 4
+        if args.render_mode != 'sumo_gui':
+            sim_params.render = 'drgb'
+            sim_params.pxpm = 4
         sim_params.save_render = True
 
     # Create and register a gym+rllib env
@@ -137,7 +130,7 @@ def visualizer_rllib(args):
     # if flow_params['env_name'] in single_agent_envs:
     #     env_loc = 'flow.envs'
     # else:
-    #     env_loc = 'flow.multiagent_envs'
+    #     env_loc = 'flow.envs.multiagent'
 
     # Start the environment with the gui turned on and a path for the
     # emission file
@@ -163,11 +156,14 @@ def visualizer_rllib(args):
     else:
         env = gym.make(env_name)
 
+    if args.render_mode == 'sumo_gui':
+        env.sim_params.render = True  # set to True after initializing agent and env
+
     if multiagent:
         rets = {}
         # map the agent id to its policy
         policy_map_fn = config['multiagent']['policy_mapping_fn'].func
-        for key in config['multiagent']['policy_graphs'].keys():
+        for key in config['multiagent']['policies'].keys():
             rets[key] = []
     else:
         rets = []
@@ -179,10 +175,9 @@ def visualizer_rllib(args):
             # map the agent id to its policy
             policy_map_fn = config['multiagent']['policy_mapping_fn'].func
             size = config['model']['lstm_cell_size']
-            for key in config['multiagent']['policy_graphs'].keys():
+            for key in config['multiagent']['policies'].keys():
                 state_init[key] = [np.zeros(size, np.float32),
-                                   np.zeros(size, np.float32)
-                                   ]
+                                   np.zeros(size, np.float32)]
         else:
             state_init = [
                 np.zeros(config['model']['lstm_cell_size'], np.float32),
@@ -191,8 +186,9 @@ def visualizer_rllib(args):
     else:
         use_lstm = False
 
-    env.restart_simulation(
-        sim_params=sim_params, render=sim_params.render)
+    # if restart_instance, don't restart here because env.reset will restart later
+    if not sim_params.restart_instance:
+        env.restart_simulation(sim_params=sim_params, render=sim_params.render)
 
     # Simulate and collect metrics
     final_outflows = []
@@ -208,7 +204,12 @@ def visualizer_rllib(args):
             ret = 0
         for _ in range(env_params.horizon):
             vehicles = env.unwrapped.k.vehicle
-            vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
+            speeds = vehicles.get_speed(vehicles.get_ids())
+
+            # only include non-empty speeds
+            if speeds:
+                vel.append(np.mean(speeds))
+
             if multiagent:
                 action = {}
                 for agent_id in state.keys():
@@ -303,7 +304,7 @@ def visualizer_rllib(args):
         time.sleep(0.1)
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        emission_filename = '{0}-emission.xml'.format(env.scenario.name)
+        emission_filename = '{0}-emission.xml'.format(env.network.name)
 
         emission_path = \
             '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
@@ -311,25 +312,12 @@ def visualizer_rllib(args):
         # convert the emission file into a csv file
         emission_to_csv(emission_path)
 
+        # print the location of the emission csv file
+        emission_path_csv = emission_path[:-4] + ".csv"
+        print("\nGenerated emission file at " + emission_path_csv)
+
         # delete the .xml version of the emission file
         os.remove(emission_path)
-
-    # if we wanted to save the render, here we create the movie
-    if args.save_render:
-        dirs = os.listdir(os.path.expanduser('~')+'/flow_rendering')
-        # Ignore hidden files
-        dirs = [d for d in dirs if d[0] != '.']
-        dirs.sort(key=lambda date: datetime.strptime(date, "%Y-%m-%d-%H%M%S"))
-        recent_dir = dirs[-1]
-        # create the movie
-        movie_dir = os.path.expanduser('~') + '/flow_rendering/' + recent_dir
-        save_dir = os.path.expanduser('~') + '/flow_movies'
-        if not os.path.exists(save_dir):
-            os.mkdir(save_dir)
-        os_cmd = "cd " + movie_dir + " && ffmpeg -i frame_%06d.png"
-        os_cmd += " -pix_fmt yuv420p " + dirs[-1] + ".mp4"
-        os_cmd += "&& cp " + dirs[-1] + ".mp4 " + save_dir + "/"
-        os.system(os_cmd)
 
 
 def create_parser():

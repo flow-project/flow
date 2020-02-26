@@ -1,190 +1,149 @@
 import os
 import unittest
+import random
 
 import ray
 from ray.tune import run_experiments
 
-from examples.rllib.cooperative_merge import setup_exps as coop_setup
-from examples.rllib.figure_eight import setup_exps as figure_eight_setup
-from examples.rllib.green_wave import setup_exps as green_wave_setup
-from examples.rllib.stabilizing_highway import setup_exps as highway_setup
-from examples.rllib.stabilizing_the_ring import setup_exps as ring_setup
-from examples.rllib.velocity_bottleneck import setup_exps as bottleneck_setup
-from examples.rllib.multiagent_exps.multiagent_figure_eight \
-   import setup_exps as multi_figure_eight_setup
-from examples.rllib.multiagent_exps.multiagent_stabilizing_the_ring \
-    import setup_exps as multi_ring_setup
-from examples.rllib.multiagent_exps.multiagent_traffic_light_grid \
-    import setup_exps_PPO as multi_grid_setup
-from examples.rllib.multiagent_exps.multiagent_traffic_light_grid \
-    import make_flow_params as multi_grid_setup_flow_params
-from examples.rllib.multiagent_exps.multiagent_highway import flow_params \
-    as multi_highway_flow_params
-from examples.rllib.multiagent_exps.multiagent_highway import setup_exps \
-    as multi_highway_setup
+from flow.core.experiment import Experiment
 
-from examples.stable_baselines.figure_eight import run_model as run_figure_eight
-from examples.stable_baselines.green_wave import run_model as run_green_wave
-from examples.stable_baselines.stabilizing_highway import run_model as run_stabilizing_highway
-from examples.stable_baselines.stabilizing_the_ring import run_model as run_stabilizing_ring
-from examples.stable_baselines.velocity_bottleneck import run_model as run_velocity_bottleneck
+from examples.exp_configs.rl.singleagent.singleagent_figure_eight import flow_params as singleagent_figure_eight
+from examples.exp_configs.rl.singleagent.singleagent_traffic_light_grid import \
+    flow_params as singleagent_traffic_light_grid
+from examples.exp_configs.rl.singleagent.singleagent_merge import flow_params as singleagent_merge
+from examples.exp_configs.rl.singleagent.singleagent_ring import flow_params as singleagent_ring
+from examples.exp_configs.rl.singleagent.singleagent_bottleneck import flow_params as singleagent_bottleneck
 
-from examples.sumo.bay_bridge import bay_bridge_example
-from examples.sumo.bay_bridge_toll import bay_bridge_toll_example
-from examples.sumo.bottlenecks import bottleneck_example
-from examples.sumo.density_exp import run_bottleneck
-from examples.sumo.figure_eight import figure_eight_example
-from examples.sumo.grid import grid_example
-from examples.sumo.highway import highway_example
-from examples.sumo.highway_ramps import highway_ramps_example
-from examples.sumo.loop_merge import loop_merge_example
-from examples.sumo.merge import merge_example
-from examples.sumo.minicity import minicity_example
-from examples.sumo.sugiyama import sugiyama_example
+from examples.exp_configs.rl.multiagent.adversarial_figure_eight import flow_params as adversarial_figure_eight
+from examples.exp_configs.rl.multiagent.multiagent_figure_eight import flow_params as multiagent_figure_eight
+from examples.exp_configs.rl.multiagent.multiagent_merge import flow_params as multiagent_merge
+from examples.exp_configs.rl.multiagent.lord_of_the_rings import \
+    flow_params as lord_of_the_rings
+from examples.exp_configs.rl.multiagent.multiagent_ring import flow_params as multiagent_ring
+from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import \
+    flow_params as multiagent_traffic_light_grid
+from examples.exp_configs.rl.multiagent.multiagent_highway import flow_params as multiagent_highway
+
+from examples.train import run_model_stablebaseline as run_stable_baselines_model
+from examples.train import setup_exps_rllib as setup_rllib_exps
+
+from examples.exp_configs.non_rl.bay_bridge import flow_params as non_rl_bay_bridge
+from examples.exp_configs.non_rl.bay_bridge_toll import flow_params as non_rl_bay_bridge_toll
+from examples.exp_configs.non_rl.bottleneck import flow_params as non_rl_bottleneck
+from examples.exp_configs.non_rl.figure_eight import flow_params as non_rl_figure_eight
+from examples.exp_configs.non_rl.traffic_light_grid import flow_params as non_rl_traffic_light_grid
+from examples.exp_configs.non_rl.highway import flow_params as non_rl_highway
+from examples.exp_configs.non_rl.highway_ramps import flow_params as non_rl_highway_ramps
+from examples.exp_configs.non_rl.merge import flow_params as non_rl_merge
+from examples.exp_configs.non_rl.minicity import flow_params as non_rl_minicity
+from examples.exp_configs.non_rl.ring import flow_params as non_rl_ring
 
 os.environ['TEST_FLAG'] = 'True'
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
+# This removes the randomness in this test
+random.seed(a=10)
 
-class TestSumoExamples(unittest.TestCase):
-    """Tests the example scripts in examples/sumo.
 
-    This is done by running the experiment function within each script for a
+class TestNonRLExamples(unittest.TestCase):
+    """Tests the experiment configurations in examples/exp_configs/non_rl.
+
+    This is done by running an experiment form of each config for a
     few time steps. Note that, this does not test for any refactoring changes
     done to the functions within the experiment class.
     """
 
     def test_bottleneck(self):
-        """Verifies that examples/sumo/bottlenecks.py is working."""
-        # import the experiment variable from the example
-        exp = bottleneck_example(20, 5, render=False)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        """Verify that examples/exp_configs/non_rl/bottleneck.py is working."""
+        self.run_simulation(non_rl_bottleneck)
 
     def test_figure_eight(self):
-        """Verifies that examples/sumo/figure_eight.py is working."""
-        # import the experiment variable from the example
-        exp = figure_eight_example(render=False)
+        """Verify that examples/exp_configs/non_rl/figure_eight.py is working."""
+        self.run_simulation(non_rl_figure_eight)
 
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
-
-    def test_grid(self):
-        """Verifies that examples/sumo/grid.py is working."""
-        # test the example in the absence of inflows
-        exp = grid_example(render=False, use_inflows=False)
-        exp.run(1, 5)
-
-        # test the example in the presence of inflows
-        exp = grid_example(render=False, use_inflows=True)
-        exp.run(1, 5)
+    def test_traffic_light_grid(self):
+        """Verify that examples/exp_configs/non_rl/traffic_light_grid.py is working."""
+        self.run_simulation(non_rl_traffic_light_grid)
 
     def test_highway(self):
-        """Verifies that examples/sumo/highway.py is working."""
+        """Verify that examples/exp_configs/non_rl/highway.py is working."""
         # import the experiment variable from the example
-        exp = highway_example(render=False)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        self.run_simulation(non_rl_highway)
 
     def test_highway_ramps(self):
-        """Verifies that examples/sumo/highway_ramps.py is working."""
-        # import the experiment variable from the example
-        exp = highway_ramps_example(render=False)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        """Verify that examples/exp_configs/non_rl/highway_ramps.py is working."""
+        self.run_simulation(non_rl_highway_ramps)
 
     def test_merge(self):
-        """Verifies that examples/sumo/merge.py is working."""
-        # import the experiment variable from the example
-        exp = merge_example(render=False)
+        """Verify that examples/exp_configs/non_rl/merge.py is working."""
+        self.run_simulation(non_rl_merge)
 
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
-
-    def test_sugiyama(self):
-        """Verifies that examples/sumo/sugiyama.py is working."""
-        # import the experiment variable from the example
-        exp = sugiyama_example(render=False)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
-
-    def test_loop_merge(self):
-        """Verify that examples/sumo/two_loops_merge_straight.py is working."""
-        # import the experiment variable from the example
-        exp = loop_merge_example(render=False)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+    def test_ring(self):
+        """Verify that examples/exp_configs/non_rl/ring.py is working."""
+        self.run_simulation(non_rl_ring)
 
     def test_bay_bridge(self):
-        """Verifies that examples/sumo/bay_bridge.py is working."""
-        # import the experiment variable from the example
-        exp = bay_bridge_example(render=False)
+        """Verify that examples/exp_configs/non_rl/bay_bridge.py is working."""
+        # test without inflows and traffic lights
+        self.run_simulation(non_rl_bay_bridge)
 
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        # test with inflows
+        # FIXME
 
-        # import the experiment variable from the example with inflows
-        exp = bay_bridge_example(render=False, use_inflows=True)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
-
-        # import the experiment variable from the example with traffic lights
-        exp = bay_bridge_example(render=False, use_traffic_lights=True)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        # test with traffic lights
+        # FIXME
 
     def test_bay_bridge_toll(self):
-        """Verifies that examples/sumo/bay_bridge_toll.py is working."""
-        # import the experiment variable from the example
-        exp = bay_bridge_toll_example(render=False)
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+        """Verify that examples/exp_configs/non_rl/bay_bridge_toll.py is working."""
+        self.run_simulation(non_rl_bay_bridge_toll)
 
     def test_minicity(self):
-        """Verifies that examples/sumo/minicity.py is working."""
-        # import the experiment variable from the example
-        exp = minicity_example(render=False)
+        """Verify that examples/exp_configs/non_rl/minicity.py is working."""
+        self.run_simulation(non_rl_minicity)
 
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
+    @staticmethod
+    def run_simulation(flow_params):
+        # make the horizon small and set render to False
+        flow_params['sim'].render = False
+        flow_params['env'].horizon = 5
 
-    def test_density_exp(self):
-        """Verifies that examples/sumo/density_exp.py is working."""
-        run_bottleneck.remote(100, 1, 10, render=False)
+        # create an experiment object
+        exp = Experiment(flow_params)
+
+        # run the experiment for one run
+        exp.run(1)
 
 
 class TestStableBaselineExamples(unittest.TestCase):
-    """Tests the example scripts in examples/stable_baselines.
+    """Tests the example scripts in examples/exp_configs/rl/singleagent for stable_baselines.
 
-        This is done by running each experiment in that folder for five time-steps
-        and confirming that it completes one rollout with two workers.
+    This is done by running each experiment in that folder for five time-steps
+    and confirming that it completes one rollout with two workers.
     """
-    def test_run_green_wave(self):
-        run_green_wave(num_steps=5)
+    @staticmethod
+    def run_exp(flow_params):
+        train_model = run_stable_baselines_model(flow_params, 1, 4, 4)
+        train_model.env.close()
 
-    def test_run_figure_eight(self):
-        run_figure_eight(num_steps=5)
+    def test_singleagent_figure_eight(self):
+        self.run_exp(singleagent_figure_eight)
 
-    def test_run_stabilizing_highway(self):
-        run_stabilizing_highway(num_steps=5)
+    def test_singleagent_traffic_light_grid(self):
+        self.run_exp(singleagent_traffic_light_grid)
 
-    def test_run_stabilizing_ring(self):
-        run_stabilizing_ring(num_steps=5)
+    def test_singleagent_merge(self):
+        self.run_exp(singleagent_merge)
 
-    def test_run_velocity_bottleneck(self):
-        run_velocity_bottleneck(num_steps=5)
+    def test_singleagent_ring(self):
+        self.run_exp(singleagent_ring)
+
+    def test_singleagent_bottleneck(self):
+        self.run_exp(singleagent_bottleneck)
 
 
 class TestRllibExamples(unittest.TestCase):
-    """Tests the example scripts in examples/rllib.
+    """Tests the example scripts in examples/exp_configs/rl/singleagent and
+    examples/exp_configs/rl/multiagent for RLlib.
 
     This is done by running each experiment in that folder for five time-steps
     and confirming that it completes one rollout with two workers.
@@ -194,56 +153,104 @@ class TestRllibExamples(unittest.TestCase):
         if not ray.is_initialized():
             ray.init(num_cpus=1)
 
-    def test_coop_merge(self):
-        alg_run, env_name, config = coop_setup()
-        self.run_exp(alg_run, env_name, config)
+    def test_singleagent_figure_eight(self):
+        self.run_exp(singleagent_figure_eight)
 
-    def test_figure_eight(self):
-        alg_run, env_name, config = figure_eight_setup()
-        self.run_exp(alg_run, env_name, config)
+    def test_singleagent_traffic_light_grid(self):
+        self.run_exp(singleagent_traffic_light_grid)
 
-    def test_green_wave(self):
-        # test the example in the absence of inflows
-        alg_run, env_name, config = green_wave_setup(use_inflows=False)
-        self.run_exp(alg_run, env_name, config)
+    def test_singleagent_traffic_light_grid_inflows(self):
+        pass  # FIXME
 
-    def test_green_wave_inflows(self):
-        # test the example in the presence of inflows
-        alg_run, env_name, config = green_wave_setup(use_inflows=True)
-        self.run_exp(alg_run, env_name, config)
+    def test_singleagent_merge(self):
+        self.run_exp(singleagent_merge)
 
-    def test_stabilizing_highway(self):
-        alg_run, env_name, config = highway_setup()
-        self.run_exp(alg_run, env_name, config)
+    def test_singleagent_ring(self):
+        self.run_exp(singleagent_ring)
 
-    def test_ring(self):
-        alg_run, env_name, config = ring_setup()
-        self.run_exp(alg_run, env_name, config)
+    def test_singleagent_bottleneck(self):
+        self.run_exp(singleagent_bottleneck)
 
-    def test_bottleneck(self):
-        alg_run, env_name, config = bottleneck_setup()
-        self.run_exp(alg_run, env_name, config)
+    def test_adversarial_figure_eight(self):
+        from examples.exp_configs.rl.multiagent.adversarial_figure_eight import POLICY_GRAPHS as af8pg
+        from examples.exp_configs.rl.multiagent.adversarial_figure_eight import policy_mapping_fn as af8pmf
 
-    def test_multi_figure_eight(self):
-        alg_run, env_name, config = multi_figure_eight_setup()
-        self.run_exp(alg_run, env_name, config)
+        kwargs = {
+            "policy_graphs": af8pg,
+            "policy_mapping_fn": af8pmf
+        }
+        self.run_exp(adversarial_figure_eight, **kwargs)
 
-    def test_multi_ring(self):
-        alg_run, env_name, config = multi_ring_setup()
-        self.run_exp(alg_run, env_name, config)
+    def test_multiagent_figure_eight(self):
+        from examples.exp_configs.rl.multiagent.multiagent_figure_eight import POLICY_GRAPHS as mf8pg
+        from examples.exp_configs.rl.multiagent.multiagent_figure_eight import policy_mapping_fn as mf8pmf
 
-    def test_multi_grid(self):
-        flow_params = multi_grid_setup_flow_params(1, 1, 300)
-        alg_run, env_name, config = multi_grid_setup(flow_params)
-        self.run_exp(alg_run, env_name, config)
+        kwargs = {
+            "policy_graphs": mf8pg,
+            "policy_mapping_fn": mf8pmf
+        }
+        self.run_exp(multiagent_figure_eight, **kwargs)
+
+    def test_lord_of_the_rings(self):
+        from examples.exp_configs.rl.multiagent.lord_of_the_rings import POLICY_GRAPHS as ltrpg
+        from examples.exp_configs.rl.multiagent.lord_of_the_rings import POLICIES_TO_TRAIN as ltrpt
+        from examples.exp_configs.rl.multiagent.lord_of_the_rings import policy_mapping_fn as ltrpmf
+
+        kwargs = {
+            "policy_graphs": ltrpg,
+            "policies_to_train": ltrpt,
+            "policy_mapping_fn": ltrpmf
+        }
+        self.run_exp(lord_of_the_rings, **kwargs)
+
+    def test_multiagent_ring(self):
+        from examples.exp_configs.rl.multiagent.multiagent_ring import POLICY_GRAPHS as mrpg
+        from examples.exp_configs.rl.multiagent.multiagent_ring import policy_mapping_fn as mrpmf
+
+        kwargs = {
+            "policy_graphs": mrpg,
+            "policy_mapping_fn": mrpmf
+        }
+        self.run_exp(multiagent_ring, **kwargs)
+
+    def test_multiagent_merge(self):
+        from examples.exp_configs.rl.multiagent.multiagent_merge import POLICY_GRAPHS as mmpg
+        from examples.exp_configs.rl.multiagent.multiagent_merge import policy_mapping_fn as mmpmf
+
+        kwargs = {
+            "policy_graphs": mmpg,
+            "policy_mapping_fn": mmpmf
+        }
+        self.run_exp(multiagent_merge, **kwargs)
+
+    def test_multi_traffic_light_grid(self):
+        from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import POLICY_GRAPHS as mtlpg
+        from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import POLICIES_TO_TRAIN as mtlpt
+        from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import policy_mapping_fn as mtlpmf
+
+        kwargs = {
+            "policy_graphs": mtlpg,
+            "policies_to_train": mtlpt,
+            "policy_mapping_fn": mtlpmf
+        }
+        self.run_exp(multiagent_traffic_light_grid, **kwargs)
 
     def test_multi_highway(self):
-        flow_params = multi_highway_flow_params
-        alg_run, env_name, config = multi_highway_setup(flow_params)
-        self.run_exp(alg_run, env_name, config)
+        from examples.exp_configs.rl.multiagent.multiagent_highway import POLICY_GRAPHS as mhpg
+        from examples.exp_configs.rl.multiagent.multiagent_highway import POLICIES_TO_TRAIN as mhpt
+        from examples.exp_configs.rl.multiagent.multiagent_highway import policy_mapping_fn as mhpmf
+
+        kwargs = {
+            "policy_graphs": mhpg,
+            "policies_to_train": mhpt,
+            "policy_mapping_fn": mhpmf
+        }
+        self.run_exp(multiagent_highway, **kwargs)
 
     @staticmethod
-    def run_exp(alg_run, env_name, config):
+    def run_exp(flow_params, **kwargs):
+        alg_run, env_name, config = setup_rllib_exps(flow_params, 1, 1, **kwargs)
+
         try:
             ray.init(num_cpus=1)
         except Exception as e:

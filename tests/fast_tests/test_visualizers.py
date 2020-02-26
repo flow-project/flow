@@ -1,5 +1,3 @@
-# from flow.visualize import visualizer_rllab as vs_rllab
-# from flow.visualize.visualizer_rllab import visualizer_rllab
 from flow.visualize import visualizer_rllib as vs_rllib
 from flow.visualize.visualizer_rllib import visualizer_rllib
 import flow.visualize.capacity_diagram_generator as cdg
@@ -53,19 +51,6 @@ class TestVisualizerRLlib(unittest.TestCase):
         parser = vs_rllib.create_parser()
         pass_args = parser.parse_args(arg_str)
         visualizer_rllib(pass_args)
-
-
-# class TestVisualizerRLlab(unittest.TestCase):
-#     """Tests visualizer_rllab"""
-#
-#     def test_visualizer(self):
-#         # current path
-#         current_path = os.path.realpath(__file__).rsplit('/', 1)[0]
-#         arg_str = '{}/../data/rllab_data/itr_0.pkl --num_rollouts 1 ' \
-#                   '--no_render'.format(current_path).split()
-#         parser = vs_rllab.create_parser()
-#         pass_args = parser.parse_args(arg_str)
-#         visualizer_rllab(pass_args)
 
 
 class TestPlotters(unittest.TestCase):
@@ -239,10 +224,10 @@ class TestPlotters(unittest.TestCase):
     def test_time_space_diagram_ring_road(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         emission_data = tsd.import_data_from_emission(
-            os.path.join(dir_path, 'test_files/loop_230_emission.csv'))
+            os.path.join(dir_path, 'test_files/ring_230_emission.csv'))
 
         flow_params = tsd.get_flow_params(
-            os.path.join(dir_path, 'test_files/loop_230.json'))
+            os.path.join(dir_path, 'test_files/ring_230.json'))
         pos, speed, _ = tsd.get_time_space_data(emission_data, flow_params)
 
         expected_pos = np.array(
