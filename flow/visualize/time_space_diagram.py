@@ -493,11 +493,11 @@ def _get_abs_pos_1_edge(edges, rel_pos, edge_starts):
 
     Parameters
     ----------
-    edge : list of str
+    edges : list of str
         list of edges at every time step
     rel_pos : list of float
         list of relative positions at every time step
-    edgestarts : dict
+    edge_starts : dict
         the absolute starting position of every edge
 
     Returns
@@ -620,9 +620,9 @@ if __name__ == '__main__':
 
     ###########################################################################
     #                       Note: For MergeNetwork only                       #
-    if flow_params['network'] == 'MergeNetwork':  #
-        plt.plot(time, [0] * pos.shape[0], linewidth=3, color="white")  #
-        plt.plot(time, [-0.1] * pos.shape[0], linewidth=3, color="white")  #
+    if flow_params['network'] == 'MergeNetwork':                              #
+        plt.plot(time, [0] * pos.shape[0], linewidth=3, color="white")        #
+        plt.plot(time, [-0.1] * pos.shape[0], linewidth=3, color="white")     #
     ###########################################################################
 
     plt.show()
