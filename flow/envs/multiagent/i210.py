@@ -45,6 +45,10 @@ class I210MultiEnv(MultiEnv):
     """
 
     def __init__(self, env_params, sim_params, network, simulator='traci'):
+        ### TODO KJ NOT CORRECT
+        self.scaling = 1
+        ### TODO TODO TODO 
+        
         super().__init__(env_params, sim_params, network, simulator)
 
     @property
@@ -84,6 +88,7 @@ class I210MultiEnv(MultiEnv):
 
     def get_state(self):
         """See class definition."""
+        # import ipdb; ipdb.set_trace()
         veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
                                            self.veh_statistics(rl_id)))
                     for rl_id in self.k.vehicle.get_rl_ids()}

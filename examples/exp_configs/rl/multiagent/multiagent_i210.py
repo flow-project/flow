@@ -15,14 +15,16 @@ from flow.envs.multiagent import I210MultiEnv
 from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
 
+from flow.controllers import RLController
+
 # SET UP PARAMETERS FOR THE SIMULATION
 
 # number of training iterations
-N_TRAINING_ITERATIONS = 200
+N_TRAINING_ITERATIONS = 1
 # number of rollouts per training iteration
 N_ROLLOUTS = 2
 # number of steps per rollout
-HORIZON = 500
+HORIZON = 200
 # number of parallel workers
 N_CPUS = 1
 
@@ -46,6 +48,7 @@ vehicles.add(
 )
 vehicles.add(
     "av",
+    acceleration_controller=(RLController, {}),
     num_vehicles=0,
 )
 
@@ -84,19 +87,19 @@ inflow.add(
     # probability=1.0,
     departLane="random",
     departSpeed=20)
-# on ramp
-inflow.add(
-    veh_type="av",
-    edge="27414345",
-    vehs_per_hour=int(321 * pen_rate),
-    departLane="random",
-    departSpeed=20)
-inflow.add(
-    veh_type="av",
-    edge="27414342#0",
-    vehs_per_hour=int(421 * pen_rate),
-    departLane="random",
-    departSpeed=20)
+# # on ramp
+# inflow.add(
+#     veh_type="av",
+#     edge="27414345",
+#     vehs_per_hour=int(321 * pen_rate),
+#     departLane="random",
+#     departSpeed=20)
+# inflow.add(
+#     veh_type="av",
+#     edge="27414342#0",
+#     vehs_per_hour=int(421 * pen_rate),
+#     departLane="random",
+#     departSpeed=20)
 
 NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,
@@ -118,7 +121,7 @@ flow_params = dict(
     # simulation-related parameters
     sim=SumoParams(
         sim_step=0.1,
-        render=False,
+        render=True,
         color_by_speed=True
     ),
 

@@ -214,7 +214,7 @@ if __name__ == "__main__":
                 "checkpoint_at_end": True,
                 "max_failures": 999,
                 "stop": {
-                    "training_iteration": 200,
+                    "training_iteration": 1,
                 },
             }
         })
