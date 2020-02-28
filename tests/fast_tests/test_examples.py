@@ -15,6 +15,7 @@ from examples.exp_configs.rl.singleagent.singleagent_ring import flow_params as 
 from examples.exp_configs.rl.singleagent.singleagent_bottleneck import flow_params as singleagent_bottleneck
 
 from examples.exp_configs.rl.multiagent.adversarial_figure_eight import flow_params as adversarial_figure_eight
+from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as multiagent_i210
 from examples.exp_configs.rl.multiagent.multiagent_figure_eight import flow_params as multiagent_figure_eight
 from examples.exp_configs.rl.multiagent.multiagent_merge import flow_params as multiagent_merge
 from examples.exp_configs.rl.multiagent.lord_of_the_rings import \
@@ -37,6 +38,7 @@ from examples.exp_configs.non_rl.highway_ramps import flow_params as non_rl_high
 from examples.exp_configs.non_rl.merge import flow_params as non_rl_merge
 from examples.exp_configs.non_rl.minicity import flow_params as non_rl_minicity
 from examples.exp_configs.non_rl.ring import flow_params as non_rl_ring
+from examples.exp_configs.non_rl.i210_subnetwork import flow_params as non_rl_i210
 
 os.environ['TEST_FLAG'] = 'True'
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -100,6 +102,10 @@ class TestNonRLExamples(unittest.TestCase):
     def test_minicity(self):
         """Verify that examples/exp_configs/non_rl/minicity.py is working."""
         self.run_simulation(non_rl_minicity)
+
+    def test_i210(self):
+        """Verify that examples/exp_configs/non_rl/i210_subnetwork.py is working."""
+        self.run_simulation(non_rl_i210)
 
     @staticmethod
     def run_simulation(flow_params):
@@ -246,6 +252,16 @@ class TestRllibExamples(unittest.TestCase):
             "policy_mapping_fn": mhpmf
         }
         self.run_exp(multiagent_highway, **kwargs)
+
+    def test_multiagent_i210(self):
+        from examples.exp_configs.rl.multiagent.multiagent_i210 import POLICY_GRAPHS as mi210pg
+        from examples.exp_configs.rl.multiagent.multiagent_i210 import policy_mapping_fn as mi210mf
+
+        kwargs = {
+            "policy_graphs": mi210pg,
+            "policy_mapping_fn": mi210mf
+        }
+        self.run_exp(multiagent_i210, **kwargs)
 
     @staticmethod
     def run_exp(flow_params, **kwargs):
