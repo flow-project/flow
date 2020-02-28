@@ -1,19 +1,12 @@
 """Contains an experiment class for running simulations."""
+from flow.core.util import emission_to_csv
+from flow.utils.registry import make_create_env
 import datetime
 import logging
 import time
 import os
-import sys
-
-if sys.platform == 'darwin':
-    import matplotlib
-    matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-
-
-from flow.core.util import emission_to_csv
-from flow.utils.registry import make_create_env
 
 
 class Experiment:

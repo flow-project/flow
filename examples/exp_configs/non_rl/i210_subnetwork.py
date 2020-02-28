@@ -97,6 +97,6 @@ custom_callables = [["avg_merge_speed", lambda env: np.mean(
                     ["avg_outflow", lambda env: env.k.vehicle.get_outflow_rate(120)],
                     # we multiply by 5 to account for the vehicle length and by 1000 to convert into veh/km
                     ["avg_density", lambda env: 5 * 1000 * len(env.k.vehicle.get_ids_by_edge(edge_id)) /
-                                                   (env.k.network.edge_length(edge_id) * env.k.network.num_lanes(
+                        (env.k.network.edge_length(edge_id) * env.k.network.num_lanes(
                                                     edge_id))],
                     ]

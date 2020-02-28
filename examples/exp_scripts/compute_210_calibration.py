@@ -1,12 +1,5 @@
 """We load the calibrated data from calibrated_values and compute how accurate it is."""
-import sys
-
 import numpy as np
-import matplotlib
-
-if sys.platform == 'darwin':
-    matplotlib.use('TkAgg')
-from matplotlib import pyplot as plt
 import pandas as pd
 import pickle as pkl
 import os

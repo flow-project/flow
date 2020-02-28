@@ -194,10 +194,6 @@ if __name__ == "__main__":
         policy_mapping_fn = getattr(submodule, "policy_mapping_fn", None)
         policies_to_train = getattr(submodule, "policies_to_train", None)
 
-        # allow the config files to set up their own training hyperparameters
-        if hasattr(submodule, "setup_exps_rllib"):
-            setup_exps_rllib = getattr(submodule, "setup_exps_rllib")
-
         alg_run, gym_name, config = setup_exps_rllib(
             flow_params, n_cpus, n_rollouts,
             policy_graphs, policy_mapping_fn, policies_to_train)
