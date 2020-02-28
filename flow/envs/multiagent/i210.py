@@ -1,3 +1,5 @@
+"""Environment for training vehicles to reduce congestion in I210 subnetwork."""
+
 from gym.spaces import Box
 import numpy as np
 
@@ -146,12 +148,12 @@ class I210MultiEnv(MultiEnv):
                 self.k.vehicle.set_observed(follow_id)
 
     def state_util(self, rl_id):
-        ''' Returns an array of headway, tailway, leader speed, follower speed
-            a 1 if leader is rl 0 otherwise, a 1 if follower is rl 0
-            otherwise
-            If there are fewer than self.scaling*MAX_LANES the extra
-            entries are filled with -1 to disambiguate from zeros
-        '''
+        """Return an array of headway, tailway, leader speed, follower speed.
+
+        Also return a 1 if leader is rl 0 otherwise, a 1 if follower is rl 0 otherwise.
+        If there are fewer than self.scaling*MAX_LANES the extra
+        entries are filled with -1 to disambiguate from zeros.
+        """
         veh = self.k.vehicle
         lane_headways = veh.get_lane_headways(rl_id).copy()
         lane_tailways = veh.get_lane_tailways(rl_id).copy()
@@ -180,7 +182,7 @@ class I210MultiEnv(MultiEnv):
                                is_follow_rl))
 
     def veh_statistics(self, rl_id):
-        '''Returns speed, edge information, and x, y about the vehicle itself'''
+        """Return speed, edge information, and x, y about the vehicle itself."""
         speed = self.k.vehicle.get_speed(rl_id) / 100.0
         lane = (self.k.vehicle.get_lane(rl_id) + 1) / 10.0
         return np.array([speed, lane])

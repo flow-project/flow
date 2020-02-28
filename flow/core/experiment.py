@@ -127,6 +127,8 @@ class Experiment:
         mean_vels = []
         std_vels = []
         outflows = []
+        if self.custom_callables is None:
+            self.custom_callables = []
         custom_vals = {key: [] for key in [custom_val[0] for custom_val in self.custom_callables]}
         lambda_keys = [custom_val[0] for custom_val in self.custom_callables]
         t = time.time()

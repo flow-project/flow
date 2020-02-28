@@ -1,4 +1,4 @@
-"""We load the calibrated data from calibrated_values and compute how accurate it is"""
+"""We load the calibrated data from calibrated_values and compute how accurate it is."""
 import sys
 
 import numpy as np
