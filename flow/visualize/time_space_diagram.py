@@ -144,7 +144,7 @@ def get_time_space_data(data, params):
     # Execute the function
     pos, speed = func(data, params, all_time)
 
-    return pos, speed, all_time[0:pos.shape[0]]
+    return pos, speed, all_time
 
 
 def _merge(data, params, all_time):
