@@ -112,13 +112,13 @@ class InflowTransfer(BaseTransfer):
 
 def inflows_range(penetration_rates=0.1, flow_rate_coefs=1.0, departSpeeds=20.0):
     """Generate inflow objects given penetration_rates, flow_rates, and depart speeds.
-    
+
     Keyword Arguments:
     -----------------
         penetration_rates {float | list of floats} -- [single, or multiple penetration rates] (default: {0.1})
         flow_rate_coefs {float | list of floats} -- [single, or multiple flow rate coefficient] (default: {1.0})
         departSpeeds {float | list of floats} -- [single, or multiple depart speeds] (default: {20.0})
-    
+
     Yields
     ------
         [InflowTransfer] -- [Transfer object]
