@@ -88,7 +88,6 @@ class I210MultiEnv(MultiEnv):
 
     def get_state(self):
         """See class definition."""
-        # import ipdb; ipdb.set_trace()
         veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
                                            self.veh_statistics(rl_id)))
                     for rl_id in self.k.vehicle.get_rl_ids()}

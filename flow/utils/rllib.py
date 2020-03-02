@@ -208,7 +208,7 @@ def get_rllib_config(path):
 
 def get_rllib_pkl(path):
     """Return the data from the specified rllib configuration file."""
-    dirname = os.path.dirname(__file__)
+    dirname = os.getcwd()
     filename = os.path.join(dirname, '../../examples/')
     sys.path.append(filename)
     config_path = os.path.join(path, "params.pkl")

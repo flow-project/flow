@@ -91,19 +91,19 @@ inflow.add(
     # probability=1.0,
     departLane="random",
     departSpeed=20)
-# # on ramp
-# inflow.add(
-#     veh_type="av",
-#     edge="27414345",
-#     vehs_per_hour=int(321 * pen_rate),
-#     departLane="random",
-#     departSpeed=20)
-# inflow.add(
-#     veh_type="av",
-#     edge="27414342#0",
-#     vehs_per_hour=int(421 * pen_rate),
-#     departLane="random",
-#     departSpeed=20)
+# on ramp
+inflow.add(
+    veh_type="av",
+    edge="27414345",
+    vehs_per_hour=int(321 * pen_rate),
+    departLane="random",
+    departSpeed=20)
+inflow.add(
+    veh_type="av",
+    edge="27414342#0",
+    vehs_per_hour=int(421 * pen_rate),
+    departLane="random",
+    departSpeed=20)
 
 NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,

@@ -24,7 +24,9 @@ from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I2
 
 EXAMPLE_USAGE = """
 example usage:
-    python ./visualizer_rllib.py /ray_results/experiment_dir/result_dir 1
+    python ./i210_replay.py /ray_results/experiment_dir/result_dir 1
+    python ./i210_replay.py --controller idm
+    python ./i210_replay.py --controller idm --run_transfer
 
 Here the arguments are:
 1 - the path to the simulation results
@@ -112,20 +114,6 @@ def replay(args, flow_params, transfer_test=None, rllib_config=None, result_dir=
     # if restart_instance, don't restart here because env.reset will restart later
     if not sim_params.restart_instance:
         env.restart_simulation(sim_params=sim_params, render=sim_params.render)
-
-    # # if we've supplied an rllib config:
-    # if args.controller:
-    #     ##### <!-- GENERALIZE #####
-    #     if args.controller == 'idm':
-    #         from flow.controllers.car_following_models import IDMController
-    #         controller = IDMController
-
-    #     test_params = {'v0': 1, 'T': 1, 'a': 0.2, 'b': 0.2}  # An example of really obvious changes
-    #     flow_params['veh'].type_parameters['av']['acceleration_controller'] = (controller, test_params)
-
-    #     import ipdb; ipdb.set_trace()
-    #     flow_params['veh'].initial['av']['acceleration_controller'] = (controller, test_params)
-    # # -->
 
     if rllib_config:
         # check if we have a multiagent environment but in a
