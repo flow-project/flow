@@ -1,17 +1,8 @@
-EXAMPLE_USAGE = """
-example usage:
-    python ./visualizer_rllib.py /ray_results/experiment_dir/result_dir 1
-
-Here the arguments are:
-1 - the path to the simulation results
-2 - the number of the checkpoint
-"""
+"""Transfer and replay for i210 environment."""
 import argparse
 from copy import deepcopy
-import gym
 import numpy as np
 import os
-import sys
 import time
 
 import ray
@@ -31,20 +22,29 @@ from flow.visualize.transfer.util import inflows_range
 
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 
+EXAMPLE_USAGE = """
+example usage:
+    python ./visualizer_rllib.py /ray_results/experiment_dir/result_dir 1
+
+Here the arguments are:
+1 - the path to the simulation results
+2 - the number of the checkpoint
+"""
+
+
 def run_transfer_test(args, flow_params, transfer_test, rllib_config=None, result_dir=None):
-    """ Run transfer test (defined by transfer_fn) by modif
-    
+    """Run transfer test (defined by transfer_fn) by modifying flow_params.
+
     Arguments:
+    ---------
         args {[Namespace]} -- [args from argparser]
         flow_params {[flow_params object, pulled from ]} -- [description]
         transfer_fn {[type]} -- [description]
-    
+
     Keyword Arguments:
+    -----------------
         rllib_config {[type]} -- [description] (default: {None})
         result_dir {[type]} -- [description] (default: {None})
-    
-    Raises:
-        NotImplementedError: [description]
     """
     flow_params = transfer_test.flow_params_modifier_fn(flow_params)
 
@@ -116,7 +116,7 @@ def run_transfer_test(args, flow_params, transfer_test, rllib_config=None, resul
 
         assert 'run' in rllib_config['env_config'], "Was this trained with the latest version of Flow?"
         # Determine agent and checkpoint
-        config_run = rllib_config['env_config']['run'] 
+        config_run = rllib_config['env_config']['run']
 
         rllib_flow_params = get_flow_params(rllib_config)
         agent_create_env, agent_env_name = make_create_env(params=rllib_flow_params, version=0)
@@ -147,7 +147,7 @@ def run_transfer_test(args, flow_params, transfer_test, rllib_config=None, resul
                 size = rllib_config['model']['lstm_cell_size']
                 for key in rllib_config['multiagent']['policies'].keys():
                     state_init[key] = [np.zeros(size, np.float32),
-                                    np.zeros(size, np.float32)]
+                                       np.zeros(size, np.float32)]
             else:
                 state_init = [
                     np.zeros(rllib_config['model']['lstm_cell_size'], np.float32),
@@ -357,10 +357,10 @@ if __name__ == '__main__':
     rllib_result_dir = None
     if args.rllib_result_dir is not None:
         rllib_result_dir = args.rllib_result_dir if args.rllib_result_dir[-1] != '/' \
-        else args.rllib_result_dir[:-1]
+            else args.rllib_result_dir[:-1]
 
         rllib_config = get_rllib_config(rllib_result_dir)
-    
+
     flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
 
     if args.local:
@@ -368,6 +368,5 @@ if __name__ == '__main__':
     else:
         ray.init(num_cpus=1)
 
-
     for transfer_test in inflows_range(penetration_rates=[0.05, 0.1, 0.2], flow_rate_coefs=[0.8, 1.0, 1.2]):
-        run_transfer_test(args, flow_params, transfer_test, rllib_config=rllib_config, result_dir=rllib_result_dir)  
+        run_transfer_test(args, flow_params, transfer_test, rllib_config=rllib_config, result_dir=rllib_result_dir)
