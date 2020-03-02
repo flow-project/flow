@@ -72,15 +72,15 @@ def visualizer_rllib(args):
     ##### <!-- GENERALIZE #####
     if args.controller:
         if args.controller == 'idm':
-            from flow.controllers.car_following_models import IDMController        
+            from flow.controllers.car_following_models import IDMController
             controller = IDMController
 
-    test_params = {'v0':1, 'T':1, 'a':0.2, 'b':0.2} # An example of really obvious changes
+    test_params = {'v0': 1, 'T': 1, 'a': 0.2, 'b': 0.2}  # An example of really obvious changes
     flow_params['veh'].type_parameters['human']['acceleration_controller'] = (controller, test_params)
-    
+
     for veh_type in flow_params['veh'].initial:
         veh_type['acceleration_controller'] = (controller, test_params)
-    ##### --> 
+    # -->
 
     # hack for old pkl files
     # TODO(ev) remove eventually
@@ -392,6 +392,7 @@ def create_parser():
     )
 
     return parser
+
 
 def test_bullshit_controller():
     from flow.controllers.car_following_models import IDMController
