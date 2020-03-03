@@ -90,7 +90,7 @@ inflow.add(
     departLane="random",
     departSpeed=20)
 # # on ramp
-## NOTE: this seems to error out with some array mismatch
+# NOTE: this seems to error out with some array mismatch
 # (also not clear whether we want to control RL vehicles on an onramp)
 # inflow.add(
 #     veh_type="av",

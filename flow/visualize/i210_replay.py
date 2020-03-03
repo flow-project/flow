@@ -49,7 +49,7 @@ def replay(args, flow_params, transfer_test=None, rllib_config=None, result_dir=
         result_dir {[type]} -- [description] (default: {None})
     """
     assert bool(args.controller) ^ bool(rllib_config), \
-    "Need to specify either controller or rllib_config, but not both"
+        "Need to specify either controller or rllib_config, but not both"
 
     if args.run_transfer:
         flow_params = transfer_test.flow_params_modifier_fn(flow_params)
