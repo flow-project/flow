@@ -232,13 +232,13 @@ def centralized_critic_postprocessing(policy,
         sample_batch[SampleBatch.VF_PREDS] = np.zeros(1, dtype=np.float32)
 
     completed = sample_batch["dones"][-1]
-    if completed:
-        last_r = 0.0
-    else:
+    if not completed and policy.loss_initialized():
         next_state = []
         for i in range(policy.num_state_tensors()):
             next_state.append([sample_batch["state_out_{}".format(i)][-1]])
-        last_r = policy.compute_central_vf(sample_batch[CENTRAL_OBS][-1])
+        last_r = policy.compute_central_vf(sample_batch[CENTRAL_OBS][-1][np.newaxis, ...])[0]
+    else:
+        last_r = 0.0
     train_batch = compute_advantages(
         sample_batch,
         last_r,
