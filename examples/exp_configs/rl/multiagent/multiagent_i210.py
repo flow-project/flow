@@ -19,12 +19,10 @@ from flow.controllers import RLController
 
 # SET UP PARAMETERS FOR THE SIMULATION
 
-# number of training iterations
-N_TRAINING_ITERATIONS = 1
 # number of rollouts per training iteration
 N_ROLLOUTS = 2
 # number of steps per rollout
-HORIZON = 200
+HORIZON = 500
 # number of parallel workers
 N_CPUS = 1
 
@@ -91,19 +89,21 @@ inflow.add(
     # probability=1.0,
     departLane="random",
     departSpeed=20)
-# on ramp
-inflow.add(
-    veh_type="av",
-    edge="27414345",
-    vehs_per_hour=int(321 * pen_rate),
-    departLane="random",
-    departSpeed=20)
-inflow.add(
-    veh_type="av",
-    edge="27414342#0",
-    vehs_per_hour=int(421 * pen_rate),
-    departLane="random",
-    departSpeed=20)
+# # on ramp
+## NOTE: this seems to error out with some array mismatch
+# (also not clear whether we want to control RL vehicles on an onramp)
+# inflow.add(
+#     veh_type="av",
+#     edge="27414345",
+#     vehs_per_hour=int(VEH_PER_HOUR_BASE_27414345 * pen_rate),
+#     departLane="random",
+#     departSpeed=20)
+# inflow.add(
+#     veh_type="av",
+#     edge="27414342#0",
+#     vehs_per_hour=int(VEH_PER_HOUR_BASE_27414342 * pen_rate),
+#     departLane="random",
+#     departSpeed=20)
 
 NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,
