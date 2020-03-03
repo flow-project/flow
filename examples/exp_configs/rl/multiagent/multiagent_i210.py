@@ -126,13 +126,14 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.1,
         render=False,
-        color_by_speed=True
+        color_by_speed=True,
+        restart_instance=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,  # TODO(@evinitsky) decrease it when testing
-        additional_params=additional_env_params
+        additional_params=additional_env_params,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

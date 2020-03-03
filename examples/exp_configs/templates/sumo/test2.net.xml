@@ -1,41 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Wed Feb 12 14:14:04 2020 by Eclipse SUMO netedit Version 1.1.0
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
-
-    <input>
-        <sumo-net-file value="/Users/eugenevinitsky/Desktop/Research/Code/flow/examples/exp_configs/templates/sumo/test.net.xml"/>
-    </input>
-
-    <output>
-        <output-file value="/Users/eugenevinitsky/Desktop/Research/Code/flow/examples/exp_configs/templates/sumo/test2.net.xml"/>
-        <output.street-names value="true"/>
-    </output>
-
-    <processing>
-        <geometry.max-grade.fix value="false"/>
-        <offset.disable-normalization value="true"/>
-        <lefthand value="false"/>
-    </processing>
-
-    <junctions>
-        <no-turnarounds value="true"/>
-        <junctions.corner-detail value="5"/>
-        <junctions.limit-turn-speed value="5.5"/>
-        <rectangular-lane-cut value="false"/>
-    </junctions>
-
-    <pedestrian>
-        <walkingareas value="false"/>
-    </pedestrian>
-
-    <visualisation>
-        <registry-viewport value="true"/>
-    </visualisation>
-
-</configuration>
--->
-
 <net version="1.1" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
 
     <location netOffset="-390179.01,-3777562.33" convBoundary="0.00,0.00,2176.02,2286.69" origBoundary="-118.19,34.13,-118.17,34.15" projParameter="+proj=utm +zone=11 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>

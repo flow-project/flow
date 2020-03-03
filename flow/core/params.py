@@ -1011,7 +1011,7 @@ class SumoLaneChangeParams:
                 "lcCooperative": str(lc_cooperative),
                 "lcSpeedGain": str(lc_speed_gain),
                 "lcKeepRight": str(lc_keep_right),
-                "lcLookaheadLeft": str(lc_look_ahead_left),
+                # "lcLookaheadLeft": str(lc_look_ahead_left),
                 # "lcSpeedGainRight": str(lcSpeedGainRight)
             }
         elif model == "SL2015":

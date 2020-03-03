@@ -1003,6 +1003,14 @@ class TraCIVehicle(KernelVehicle):
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating human vehicle colors:', e)
 
+        for veh_id in self.get_ids():
+            try:
+                if 'av' in veh_id:
+                    color = RED
+                    self.set_color(veh_id=veh_id, color=color)
+            except (FatalTraCIError, TraCIException) as e:
+                print('Error when updating human vehicle colors:', e)
+
         # color vehicles by speed if desired
         if self._color_by_speed:
             max_speed = self.master_kernel.network.max_speed()

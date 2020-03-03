@@ -1,19 +1,12 @@
 """Contains an experiment class for running simulations."""
+from flow.core.util import emission_to_csv
+from flow.utils.registry import make_create_env
 import datetime
 import logging
 import time
 import os
-import sys
-
-if sys.platform == 'darwin':
-    import matplotlib
-    matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-
-
-from flow.core.util import emission_to_csv
-from flow.utils.registry import make_create_env
 
 
 class Experiment:
@@ -127,6 +120,8 @@ class Experiment:
         mean_vels = []
         std_vels = []
         outflows = []
+        if self.custom_callables is None:
+            self.custom_callables = []
         custom_vals = {key: [] for key in [custom_val[0] for custom_val in self.custom_callables]}
         lambda_keys = [custom_val[0] for custom_val in self.custom_callables]
         t = time.time()

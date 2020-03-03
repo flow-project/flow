@@ -18,17 +18,14 @@ Usage
 """
 from flow.utils.rllib import get_flow_params
 from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork
-import csv
-import sys
-import matplotlib
 
-if sys.platform == 'darwin':
-    matplotlib.use('TkAgg')
+import argparse
+import csv
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
 import matplotlib.colors as colors
 import numpy as np
-import argparse
+
 
 # networks that can be plotted by this method
 ACCEPTABLE_NETWORKS = [
@@ -147,7 +144,7 @@ def get_time_space_data(data, params):
     # Execute the function
     pos, speed = func(data, params, all_time)
 
-    return pos, speed, all_time[0:pos.shape[0]]
+    return pos, speed, all_time
 
 
 def _merge(data, params, all_time):
@@ -325,8 +322,11 @@ def _i210_subnetwork(data, params, all_time):
     #
     # edge_starts = {"119257908#0": 0,
     #                "119257908#1-AddedOnRampEdge": 686.98}
-    desired_lane = 4
-    edge_starts = {"119257908#0": 0}
+    desired_lane = 1
+    edge_starts = {"119257914": 0,
+                   "119257908#0": 61.58,
+                   "119257908#1-AddedOnRampEdge": 686.98 + 61.58}
+    # edge_starts = {"119257908#0": 0}
     # edge_starts = {"119257908#1-AddedOnRampEdge": 0}
     # desired_lane = 5
 
@@ -338,7 +338,9 @@ def _i210_subnetwork(data, params, all_time):
 
     # create the output variables
     # TODO(@ev) handle subsampling better than this
-    all_time = all_time[100:1600]
+    low_time = int(100 / params['sim'].sim_step)
+    high_time = int(1600 / params['sim'].sim_step)
+    all_time = all_time[low_time:high_time]
 
     # track only vehicles that were around during this time period
     observed_row_list = []
@@ -488,11 +490,11 @@ def _get_abs_pos_1_edge(edges, rel_pos, edge_starts):
 
     Parameters
     ----------
-    edge : list of str
+    edges : list of str
         list of edges at every time step
     rel_pos : list of float
         list of relative positions at every time step
-    edgestarts : dict
+    edge_starts : dict
         the absolute starting position of every edge
 
     Returns
@@ -615,9 +617,9 @@ if __name__ == '__main__':
 
     ###########################################################################
     #                       Note: For MergeNetwork only                       #
-    if flow_params['network'] == 'MergeNetwork':  #
-        plt.plot(time, [0] * pos.shape[0], linewidth=3, color="white")  #
-        plt.plot(time, [-0.1] * pos.shape[0], linewidth=3, color="white")  #
+    if flow_params['network'] == 'MergeNetwork':                              #
+        plt.plot(time, [0] * pos.shape[0], linewidth=3, color="white")        #
+        plt.plot(time, [-0.1] * pos.shape[0], linewidth=3, color="white")     #
     ###########################################################################
 
     plt.show()
