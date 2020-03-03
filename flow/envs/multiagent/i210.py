@@ -45,10 +45,6 @@ class I210MultiEnv(MultiEnv):
     """
 
     def __init__(self, env_params, sim_params, network, simulator='traci'):
-        ### TODO KJ NOT CORRECT
-        self.scaling = 1
-        ### TODO TODO TODO 
-        
         super().__init__(env_params, sim_params, network, simulator)
 
     @property
@@ -153,7 +149,7 @@ class I210MultiEnv(MultiEnv):
         ''' Returns an array of headway, tailway, leader speed, follower speed
             a 1 if leader is rl 0 otherwise, a 1 if follower is rl 0
             otherwise
-            If there are fewer than self.scaling*MAX_LANES the extra
+            If there are fewer than MAX_LANES the extra
             entries are filled with -1 to disambiguate from zeros
         '''
         veh = self.k.vehicle
@@ -166,7 +162,7 @@ class I210MultiEnv(MultiEnv):
         rl_ids = self.k.vehicle.get_rl_ids()
         is_leader_rl = [1 if l_id in rl_ids else 0 for l_id in leader_ids]
         is_follow_rl = [1 if f_id in rl_ids else 0 for f_id in follower_ids]
-        diff = self.scaling * MAX_LANES - len(is_leader_rl)
+        diff = MAX_LANES - len(is_leader_rl)
         if diff > 0:
             # the minus 1 disambiguates missing cars from missing lanes
             lane_headways += diff * [-1]
