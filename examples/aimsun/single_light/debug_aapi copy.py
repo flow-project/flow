@@ -7,6 +7,7 @@ model = gk.GKSystem.getSystem().getActiveModel()
 global edge_detector_dict
 edge_detector_dict = {}
 
+
 def get_detector_flow_and_occupancy(detector_id):
     flow = max(aapi.AKIDetGetCounterAggregatedbyId(detector_id, 0), 0)
     occupancy = max(aapi.AKIDetGetTimeOccupedAggregatedbyId(detector_id, 0), 0)/100
@@ -70,14 +71,14 @@ def change_offset(node_id, offset, time, timeSta, acycle):
     elapsed_time = time-aapi.ECIGetStartingTimePhaseInRing(node_id, 0)
     for i, phase in enumerate(curr_phase):
         target_phase = phase
-        phase_time = get_duration_phase(node_id, phase, timeSta)
+        phase_time, _, _ = get_duration_phase(node_id, phase, timeSta)
         remaining_time = (phase_time - elapsed_time) + offset
         while remaining_time < 0:
             target_phase += 1
             if target_phase > ring_phases[i]:
                 target_phase -= ring_phases[0]
 
-            phase_time = get_duration_phase(node_id, target_phase, timeSta)
+            phase_time, _, _ = get_duration_phase(node_id, target_phase, timeSta)
             remaining_time += phase_time
         aapi.ECIChangeDirectPhase(node_id, target_phase, timeSta, time,
                                   acycle, phase_time - remaining_time)
@@ -179,8 +180,10 @@ def AAPILoad():
     # print(model.getActiveReplicationId(), "replication id")
     return 0
 
+
 def AAPIInit():
     return 0
+
 
 global q
 q = 0
