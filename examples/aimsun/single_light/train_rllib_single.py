@@ -19,7 +19,7 @@ except ImportError:
 SIM_STEP = 0.8  # copy to run.py
 
 # hardcoded to AIMSUN's statistics update interval (5 minutes)
-DETECTOR_STEP = 120  # copy to run.py #Cj: every 2 minutes (typical cycle length)
+DETECTOR_STEP = 900  # copy to run.py #Cj: every 2 minutes (typical cycle length)
 
 TIME_HORIZON = 3600*4 - DETECTOR_STEP  # 14280
 HORIZON = int(TIME_HORIZON//SIM_STEP)  # 18000
@@ -28,7 +28,7 @@ RLLIB_N_CPUS = 2
 RLLIB_HORIZON = int(TIME_HORIZON//DETECTOR_STEP)  # 150 # 47 #K: down to 15
 
 RLLIB_N_ROLLOUTS = 3  # copy to coordinated_lights.py
-RLLIB_TRAINING_ITERATIONS = 100000
+RLLIB_TRAINING_ITERATIONS = 1000000
 
 net_params = NetParams(template=os.path.abspath("scenario_one_hour.ang"))
 initial_config = InitialConfig()
@@ -119,7 +119,7 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": RLLIB_TRAINING_ITERATIONS,
             },
-            "restore": '/home/cjrsantos/ray_results/single_light/PPO_SingleLightEnv-v0_7f2934c8_2020-02-25_23-42-106glhze86/checkpoint_148/checkpoint-148',
+            # "restore": '/home/cjrsantos/ray_results/single_light/PPO_SingleLightEnv-v0_59cf54b8_2020-03-03_18-03-33k7e5nlvt/checkpoint_719/checkpoint-719',
             # "local_dir": os.path.abspath("./ray_results"),
             "keep_checkpoints_num": 3
         }

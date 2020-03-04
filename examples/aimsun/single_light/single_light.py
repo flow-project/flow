@@ -1,5 +1,6 @@
 import numpy as np
 from gym.spaces import Box, Tuple, Discrete
+import math
 
 from flow.envs import Env
 from flow.networks import Network
@@ -10,8 +11,8 @@ ADDITIONAL_ENV_PARAMS = {'target_nodes': [3344],
                          'num_stopbars': 3,
                          'num_advanced': 1,
                          'num_measures': 2,
-                         'detection_interval': (0, 2, 0),
-                         'statistical_interval': (0, 2, 0),
+                         'detection_interval': (0, 15, 0),
+                         'statistical_interval': (0, 15, 0),
                          'replication_list': ['Replication 8050297',  # 5-11
                                               'Replication 8050315',  # 10-14
                                               'Replication 8050322']}  # 14-21
@@ -20,6 +21,21 @@ ADDITIONAL_ENV_PARAMS = {'target_nodes': [3344],
 RLLIB_N_ROLLOUTS = 3  # copy from train_rllib.py
 
 np.random.seed(1234567890)
+
+
+def rescale(actions_array, target_value, current_value):
+    rescaled_actions = []
+    target_value = round(target_value)
+    for duration in actions_array:
+        if current_value == 0:
+            new_action = 0
+        else:
+            new_action = math.ceil(target_value*duration/current_value)
+        rescaled_actions.append(new_action)
+    if sum(rescaled_actions) > target_value:
+        x = sum(rescaled_actions) - target_value
+        rescaled_actions[-1] = rescaled_actions[-1] - x
+    return rescaled_actions
 
 
 class SingleLightEnv(Env):
@@ -52,8 +68,7 @@ class SingleLightEnv(Env):
         self.past_cumul_queue = {}
         self.observed_phases = []
         self.phases = []
-        self.phase_array = []  # FOR CHECKING ONLY
-        self.maxd_list = []
+        self.sum_barrier = []
 
         # get cumulative queue lengths
         for node_id in self.target_nodes:
@@ -82,7 +97,7 @@ class SingleLightEnv(Env):
                     self.observed_phases.append(phase)  # compile all green phases in a list
             print(self.observed_phases)
 
-        self.current_phase_timings = np.zeros(int(len(self.observed_phases)/2))
+        self.current_phase_timings = np.zeros(int(len(self.observed_phases)))
         # reset phase duration
         for node_id in self.target_nodes:
             for phase in self.observed_phases:
@@ -97,7 +112,7 @@ class SingleLightEnv(Env):
     @property
     def action_space(self):
         """See class definition."""
-        return Tuple(4 * (Discrete(40, ),))  # fixed for now, tempo fix
+        return Tuple(9 * (Discrete(50, ),))  # fixed for now, tempo fix
 
     @property
     def observation_space(self):
@@ -112,18 +127,31 @@ class SingleLightEnv(Env):
             print('self.ignore_policy is True')
             return
         actions = np.array(rl_actions).flatten()
-        self.phase_array = []
-        self.maxd_list = []
-        for phase_list in self.phases:
-            for phase, action in zip(phase_list, actions):
-                if action:
-                    self.k.traffic_light.change_phase_duration(self.node_id, phase, action)
-                    # print(phase, action)
-                    phase_duration, maxd, _ = self.k.traffic_light.get_duration_phase(self.node_id, phase)
-                    self.phase_array.append(phase_duration)
-                    self.maxd_list.append(maxd)
+        action_rings = [[actions[:2], actions[2:4]], [actions[4:6], actions[6:8]]]
+        prob_barrier = [actions[-1]/51, 1 - (actions[-1]/51)]
+        self.sum_barrier = [round(prob_barrier[0]*self.total_green), round(prob_barrier[1]*self.total_green)]
+        #print('sum barrier: {}'.format(sum_barrier))
 
-        self.current_phase_timings = actions
+        # print('prob_barri {}'.format(prob_barrier))
+        for i in range(len(action_rings)):
+            ring = action_rings[i]
+            for j in range(len(ring)):
+                phase_pair = ring[j]
+                # print('phase_pair: {}'.format(phase_pair))
+                if sum(phase_pair) != prob_barrier[j]*self.total_green:
+                    action_rings[i][j] = rescale(phase_pair, prob_barrier[j]*self.total_green, sum(phase_pair))
+
+        rescaled_actions = np.array(action_rings).flatten()
+        phase_list = self.observed_phases
+        for phase, action in zip(phase_list, rescaled_actions):
+            if action:
+                self.k.traffic_light.change_phase_duration(self.node_id, phase, action)
+                phase_duration, maxd, _ = self.k.traffic_light.get_duration_phase(self.node_id, phase)
+                # print(phase, action, phase_duration)
+        # print('13, 57, 911, 1315: {} {} {} {}'.format(sum(rescaled_actions[0:2]), sum(
+        #    rescaled_actions[2:4]), sum(rescaled_actions[4:6]), sum(rescaled_actions[6:8])))
+
+        self.current_phase_timings = rescaled_actions
 
     def get_state(self, rl_id=None, **kwargs):
         """See class definition."""
@@ -173,7 +201,7 @@ class SingleLightEnv(Env):
             reward -= (queue**2) * 100
 
         print(f'{self.k.simulation.time:.0f}', '\t', f'{reward:.2f}', '\t',
-              self.current_phase_timings.flatten(), '\t', sum(self.current_phase_timings.flatten()))
+              self.current_phase_timings, '\t', sum(self.current_phase_timings[4:])+18, self.sum_barrier)
         # print(self.phase_array)
         # print(self.maxd_list)
 
@@ -186,6 +214,7 @@ class SingleLightEnv(Env):
         self.step_counter += self.env_params.sims_per_step
 
         self.apply_rl_actions(rl_actions)
+
 
         # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()
@@ -240,9 +269,11 @@ class SingleLightEnv(Env):
         self.episode_counter += 1
 
         # reset variables
-        self.current_phase_timings = np.zeros(int(len(self.observed_phases)/2))
+        self.current_phase_timings = np.zeros(int(len(self.observed_phases)))
         for section_id in self.past_cumul_queue:
             self.past_cumul_queue[section_id] = 0
+
+        # self.total_green = self.k.traffic_light.get_total_green(self.node_id)
 
         # perform the generic reset function
         observation = super().reset()
