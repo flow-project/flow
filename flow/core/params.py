@@ -241,7 +241,8 @@ class VehicleParams:
             initial_speed=0,
             num_vehicles=0,
             car_following_params=None,
-            lane_change_params=None):
+            lane_change_params=None,
+            color=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
@@ -280,6 +281,9 @@ class VehicleParams:
         type_params = {}
         type_params.update(car_following_params.controller_params)
         type_params.update(lane_change_params.controller_params)
+
+        if color:
+            type_params['color'] = color
 
         # This dict will be used when trying to introduce new vehicles into
         # the network via a Flow. It is passed to the vehicle kernel object
@@ -384,7 +388,7 @@ class SimParams(object):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
-    color_vehicles : bool, optional
+    auto_color_vehicles : bool, optional
         whether or not to automatically color vehicles according to their types
     """
 
@@ -397,7 +401,7 @@ class SimParams(object):
                  sight_radius=25,
                  show_radius=False,
                  pxpm=2,
-                 color_vehicles=True):
+                 auto_color_vehicles=True):
         """Instantiate SimParams."""
         self.sim_step = sim_step
         self.render = render
@@ -407,7 +411,7 @@ class SimParams(object):
         self.sight_radius = sight_radius
         self.pxpm = pxpm
         self.show_radius = show_radius
-        self.color_vehicles = color_vehicles
+        self.auto_color_vehicles = auto_color_vehicles
 
 
 class AimsunParams(SimParams):
@@ -539,6 +543,8 @@ class SumoParams(SimParams):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
+    auto_color_vehicles : bool, optional
+        whether or not to automatically color vehicles according to their types
     overtake_right : bool, optional
         whether vehicles are allowed to overtake on the right as well as
         the left
@@ -569,6 +575,7 @@ class SumoParams(SimParams):
                  sight_radius=25,
                  show_radius=False,
                  pxpm=2,
+                 auto_color_vehicles=True,
                  overtake_right=False,
                  seed=None,
                  restart_instance=False,
@@ -578,7 +585,7 @@ class SumoParams(SimParams):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
-            sight_radius, show_radius, pxpm)
+            sight_radius, show_radius, pxpm, auto_color_vehicles)
         self.port = port
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log

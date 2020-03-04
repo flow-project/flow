@@ -71,10 +71,7 @@ class TraCIVehicle(KernelVehicle):
         self._arrived_rl_ids = []
 
         # whether or not to automatically color vehicles
-        try:
-            self._color_vehicles = sim_params.color_vehicles
-        except AttributeError:
-            self._color_vehicles = False
+        self._auto_color_vehicles = sim_params.auto_color_vehicles
 
     def initialize(self, vehicles):
         """Initialize vehicle state information.
@@ -982,6 +979,9 @@ class TraCIVehicle(KernelVehicle):
         - white: unobserved human-driven vehicles
         - cyan: observed human-driven vehicles
         """
+        if not self._auto_color_vehicles:
+            return
+
         for veh_id in self.get_rl_ids():
             try:
                 # color rl vehicles red
@@ -1014,7 +1014,7 @@ class TraCIVehicle(KernelVehicle):
 
         The last term for sumo (transparency) is set to 255.
         """
-        if self._color_vehicles:
+        if self._auto_color_vehicles:
             r, g, b = color
             self.kernel_api.vehicle.setColor(
                 vehID=veh_id, color=(r, g, b, 255))
