@@ -6,9 +6,12 @@ highway with ramps network.
 import os
 
 from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
+
+from flow.controllers.routing_controllers import I210Router
+from flow.controllers.car_following_models import IDMController
 import flow.config as config
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
-    VehicleParams, SumoParams, SumoLaneChangeParams
+    VehicleParams, SumoParams, SumoLaneChangeParams, SumoCarFollowingParams
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 from flow.envs.multiagent import I210MultiEnv
@@ -17,14 +20,8 @@ from ray.tune.registry import register_env
 
 # SET UP PARAMETERS FOR THE SIMULATION
 
-# number of training iterations
-N_TRAINING_ITERATIONS = 200
-# number of rollouts per training iteration
-N_ROLLOUTS = 2
 # number of steps per rollout
 HORIZON = 500
-# number of parallel workers
-N_CPUS = 1
 
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10
@@ -42,7 +39,9 @@ vehicles = VehicleParams()
 vehicles.add(
     "human",
     num_vehicles=0,
-    lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic")
+    routing_controller=(I210Router, {}),
+    lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"),
+    acceleration_controller=(IDMController, {"a":.3, "b": 2.0, "noise": 0.5}),
 )
 vehicles.add(
     "av",
@@ -61,19 +60,19 @@ inflow.add(
     # probability=1.0,
     departLane="random",
     departSpeed=20)
-# on ramp
-inflow.add(
-    veh_type="human",
-    edge="27414345",
-    vehs_per_hour=321 * pen_rate,
-    departLane="random",
-    departSpeed=20)
-inflow.add(
-    veh_type="human",
-    edge="27414342#0",
-    vehs_per_hour=421 * pen_rate,
-    departLane="random",
-    departSpeed=20)
+# # on ramp
+# inflow.add(
+#     veh_type="human",
+#     edge="27414345",
+#     vehs_per_hour=321 * pen_rate,
+#     departLane="random",
+#     departSpeed=20)
+# inflow.add(
+#     veh_type="human",
+#     edge="27414342#0",
+#     vehs_per_hour=421 * pen_rate,
+#     departLane="random",
+#     departSpeed=20)
 
 # Now add the AVs
 # main highway
@@ -85,18 +84,18 @@ inflow.add(
     departLane="random",
     departSpeed=20)
 # on ramp
-inflow.add(
-    veh_type="av",
-    edge="27414345",
-    vehs_per_hour=int(321 * pen_rate),
-    departLane="random",
-    departSpeed=20)
-inflow.add(
-    veh_type="av",
-    edge="27414342#0",
-    vehs_per_hour=int(421 * pen_rate),
-    departLane="random",
-    departSpeed=20)
+# inflow.add(
+#     veh_type="av",
+#     edge="27414345",
+#     vehs_per_hour=int(321 * pen_rate),
+#     departLane="random",
+#     departSpeed=20)
+# inflow.add(
+#     veh_type="av",
+#     edge="27414342#0",
+#     vehs_per_hour=int(421 * pen_rate),
+#     departLane="random",
+#     departSpeed=20)
 
 NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,
@@ -117,16 +116,17 @@ flow_params = dict(
 
     # simulation-related parameters
     sim=SumoParams(
-        sim_step=0.1,
+        sim_step=0.8,
         render=False,
         color_by_speed=True,
-        restart_instance=True
+        restart_instance=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,  # TODO(@evinitsky) decrease it when testing
         additional_params=additional_env_params,
+        sims_per_step=10,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

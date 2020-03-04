@@ -18,7 +18,7 @@ from stable_baselines import PPO2
 
 import ray
 from ray import tune
-from ray.tune import run_experiments
+from ray.tune import run
 from ray.tune.registry import register_env
 from flow.utils.registry import make_create_env
 try:
@@ -61,10 +61,18 @@ def parse_args(args):
         help='How many CPUs to use')
     parser.add_argument(
         '--num_steps', type=int, default=5000,
-        help='How many total steps to perform learning over')
+        help='How many total steps to perform learning over. Relevant for stable-baselines')
+    parser.add_argument(
+        '--num_iterations', type=int, default=200,
+        help='How many iterations are in a training run.')
+    parser.add_argument(
+        '--num_rollouts', type=int, default=1,
+        help='How many rollouts are in a training batch')
     parser.add_argument(
         '--rollout_size', type=int, default=1000,
         help='How many steps are in a training batch.')
+    parser.add_argument('--local_mode', action='store_true', default=False,
+                        help='If true only 1 CPU will be used')
 
     return parser.parse_known_args(args)[0]
 
@@ -188,18 +196,21 @@ if __name__ == "__main__":
         assert False, "Unable to find experiment config!"
     if flags.rl_trainer.lower() == "rllib":
         flow_params = submodule.flow_params
-        n_cpus = submodule.N_CPUS
-        n_rollouts = submodule.N_ROLLOUTS
         policy_graphs = getattr(submodule, "POLICY_GRAPHS", None)
         policy_mapping_fn = getattr(submodule, "policy_mapping_fn", None)
         policies_to_train = getattr(submodule, "policies_to_train", None)
 
         alg_run, gym_name, config = setup_exps_rllib(
-            flow_params, n_cpus, n_rollouts,
+            flow_params, flags.num_cpus, flags.num_rollouts,
             policy_graphs, policy_mapping_fn, policies_to_train)
 
-        ray.init(num_cpus=n_cpus + 1)
-        trials = run_experiments({
+        config['num_workers'] = flags.num_cpus
+
+        if flags.local_mode:
+            ray.init(local_mode=True)
+        else:
+            ray.init(num_cpus=flags.num_cpus + 1)
+        exp_dict = {
             flow_params["exp_tag"]: {
                 "run": alg_run,
                 "env": gym_name,
@@ -208,12 +219,13 @@ if __name__ == "__main__":
                 },
                 "checkpoint_freq": 20,
                 "checkpoint_at_end": True,
-                "max_failures": 999,
+                "max_failures": 2,
                 "stop": {
-                    "training_iteration": 200,
+                    "training_iteration": flags.num_iterations,
                 },
             }
-        })
+        }
+        run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
 
     elif flags.rl_trainer == "Stable-Baselines":
         flow_params = submodule.flow_params
