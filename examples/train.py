@@ -27,6 +27,7 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from copy import deepcopy
 
+from flow.algorithms.centralized_value_function import CCTrainer
 from flow.core.util import ensure_dir
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
@@ -65,6 +66,10 @@ def parse_args(args):
     parser.add_argument(
         '--rollout_size', type=int, default=1000,
         help='How many steps are in a training batch.')
+    parser.add_argument(
+        '--centralized_vf', action='store_true', default='False',
+        help='If true, use a centralized value function. Only matters for multi-agent systems'
+    )
 
     return parser.parse_known_args(args)[0]
 
@@ -103,9 +108,11 @@ def run_model_stablebaseline(flow_params, num_cpus=1, rollout_size=50, num_steps
 def setup_exps_rllib(flow_params,
                      n_cpus,
                      n_rollouts,
+                     flags,
                      policy_graphs=None,
                      policy_mapping_fn=None,
-                     policies_to_train=None):
+                     policies_to_train=None,
+                     ):
     """Return the relevant components of an RLlib experiment.
 
     Parameters
@@ -116,6 +123,8 @@ def setup_exps_rllib(flow_params,
         number of CPUs to run the experiment over
     n_rollouts : int
         number of rollouts per training iteration
+    flags: argparse
+        additional arguments for configuration
     policy_graphs : dict, optional
         TODO
     policy_mapping_fn : function, optional
@@ -134,7 +143,10 @@ def setup_exps_rllib(flow_params,
     """
     horizon = flow_params['env'].horizon
 
-    alg_run = "PPO"
+    if flags.centralized_vf:
+        alg_run = CCTrainer
+    else:
+        alg_run = "PPO"
 
     agent_cls = get_agent_class(alg_run)
     config = deepcopy(agent_cls._default_config)
@@ -196,8 +208,8 @@ if __name__ == "__main__":
         policies_to_train = getattr(submodule, "policies_to_train", None)
 
         alg_run, gym_name, config = setup_exps_rllib(
-            flow_params, n_cpus, n_rollouts,
-            policy_graphs, policy_mapping_fn, policies_to_train)
+            flow_params, n_cpus, n_rollouts, flags,
+            policy_graphs, policy_mapping_fn, policies_to_train, flags)
 
         ray.init(num_cpus=n_cpus + 1)
         trials = run_experiments({
