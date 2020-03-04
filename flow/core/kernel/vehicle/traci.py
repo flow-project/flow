@@ -993,6 +993,8 @@ class TraCIVehicle(KernelVehicle):
         for veh_id in self.get_human_ids():
             try:
                 color = CYAN if veh_id in self.get_observed_ids() else WHITE
+                if 'av' in veh_id.lower():
+                    color = RED
                 self.set_color(veh_id=veh_id, color=color)
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating human vehicle colors:', e)
