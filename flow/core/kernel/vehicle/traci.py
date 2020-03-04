@@ -22,7 +22,6 @@ RED = (255, 0, 0)
 
 class TraCIVehicle(KernelVehicle):
     """Flow kernel for the TraCI API.
-
     Extends flow.core.kernel.vehicle.base.KernelVehicle
     """
 
@@ -68,6 +67,7 @@ class TraCIVehicle(KernelVehicle):
         # number of vehicles to exit the network for every time-step
         self._num_arrived = []
         self._arrived_ids = []
+        self._arrived_rl_ids = []
 
         # whether or not to automatically color vehicles
         try:
@@ -75,12 +75,13 @@ class TraCIVehicle(KernelVehicle):
         except AttributeError:
             self._color_vehicles = False
 
+        # store speed of all vehicles at last iteration
+        self.old_speed = {}
+
     def initialize(self, vehicles):
         """Initialize vehicle state information.
-
         This is responsible for collecting vehicle type information from the
         VehicleParams object and placing them within the Vehicles kernel.
-
         Parameters
         ----------
         vehicles : flow.core.params.VehicleParams
@@ -105,15 +106,12 @@ class TraCIVehicle(KernelVehicle):
 
     def update(self, reset):
         """See parent class.
-
         The following actions are performed:
-
         * The state of all vehicles is modified to match their state at the
           current time step. This includes states specified by sumo, and states
           explicitly defined by flow, e.g. "num_arrived".
         * If vehicles exit the network, they are removed from the vehicles
           class, and newly departed vehicles are introduced to the class.
-
         Parameters
         ----------
         reset : bool
@@ -126,8 +124,11 @@ class TraCIVehicle(KernelVehicle):
                 self.kernel_api.vehicle.getSubscriptionResults(veh_id)
         sim_obs = self.kernel_api.simulation.getSubscriptionResults()
 
+        arrived_rl_ids = []
         # remove exiting vehicles from the vehicles class
         for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
+            if veh_id in self.get_rl_ids():
+                arrived_rl_ids.append(veh_id)
             if veh_id in sim_obs[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
                 # this is meant to resolve the KeyError bug when there are
                 # collisions
@@ -137,6 +138,7 @@ class TraCIVehicle(KernelVehicle):
             # haven't been removed already
             if vehicle_obs[veh_id] is None:
                 vehicle_obs.pop(veh_id, None)
+        self._arrived_rl_ids.append(arrived_rl_ids)
 
         # add entering vehicles into the vehicles class
         for veh_id in sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]:
@@ -165,6 +167,7 @@ class TraCIVehicle(KernelVehicle):
             self._num_arrived.clear()
             self._departed_ids.clear()
             self._arrived_ids.clear()
+            self._arrived_rl_ids.clear()
 
             # add vehicles from a network template, if applicable
             if hasattr(self.master_kernel.network.network,
@@ -239,14 +242,12 @@ class TraCIVehicle(KernelVehicle):
 
     def _add_departed(self, veh_id, veh_type):
         """Add a vehicle that entered the network from an inflow or reset.
-
         Parameters
         ----------
         veh_id: str
             name of the vehicle
         veh_type: str
             type of vehicle, as specified to sumo
-
         Returns
         -------
         dict
@@ -487,6 +488,13 @@ class TraCIVehicle(KernelVehicle):
         else:
             return 0
 
+    def get_arrived_rl_ids(self):
+        """See parent class."""
+        if len(self._arrived_rl_ids) > 0:
+            return self._arrived_rl_ids[-1]
+        else:
+            return 0
+
     def get_departed_ids(self):
         """See parent class."""
         if len(self._departed_ids) > 0:
@@ -654,7 +662,6 @@ class TraCIVehicle(KernelVehicle):
 
     def _multi_lane_headways(self):
         """Compute multi-lane data for all vehicles.
-
         This includes the lane leaders/followers/headways/tailways/
         leader velocity/follower velocity for all
         vehicles in the network.
@@ -720,7 +727,6 @@ class TraCIVehicle(KernelVehicle):
 
     def _multi_lane_headways_util(self, veh_id, edge_dict, num_edges):
         """Compute multi-lane data for the specified vehicle.
-
         Parameters
         ----------
         veh_id : str
@@ -729,7 +735,6 @@ class TraCIVehicle(KernelVehicle):
             Key = Edge name
                 Index = lane index
                 Element = list sorted by position of (vehicle id, position)
-
         Returns
         -------
         headway : list<float>
@@ -806,11 +811,9 @@ class TraCIVehicle(KernelVehicle):
 
     def _next_edge_leaders(self, veh_id, edge_dict, lane, num_edges):
         """Search for leaders in the next edge.
-
         Looks to the edges/junctions in front of the vehicle's current edge
         for potential leaders. This is currently done by only looking one
         edge/junction forwards.
-
         Returns
         -------
         headway : float
@@ -851,11 +854,9 @@ class TraCIVehicle(KernelVehicle):
 
     def _prev_edge_followers(self, veh_id, edge_dict, lane, num_edges):
         """Search for followers in the previous edge.
-
         Looks to the edges/junctions behind the vehicle's current edge for
         potential followers. This is currently done by only looking one
         edge/junction backwards.
-
         Returns
         -------
         tailway : float
@@ -963,7 +964,6 @@ class TraCIVehicle(KernelVehicle):
 
     def update_vehicle_colors(self):
         """See parent class.
-
         The colors of all vehicles are updated as follows:
         - red: autonomous (rl) vehicles
         - white: unobserved human-driven vehicles
@@ -990,7 +990,6 @@ class TraCIVehicle(KernelVehicle):
 
     def get_color(self, veh_id):
         """See parent class.
-
         This does not pass the last term (i.e. transparency).
         """
         r, g, b, t = self.kernel_api.vehicle.getColor(veh_id)
@@ -998,7 +997,6 @@ class TraCIVehicle(KernelVehicle):
 
     def set_color(self, veh_id, color):
         """See parent class.
-
         The last term for sumo (transparency) is set to 255.
         """
         if self._color_vehicles:
@@ -1035,3 +1033,9 @@ class TraCIVehicle(KernelVehicle):
     def set_max_speed(self, veh_id, max_speed):
         """See parent class."""
         self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
+    
+    def old_speed(self, veh_id, error=-1000):
+        """See parent class."""
+        if isinstance(veh_id,(list, npndarray)):
+            return [self.get_default_speed(vehID, error) for vehID in veh_id]
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
