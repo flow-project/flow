@@ -123,7 +123,8 @@ class NonLocalFollowerStopper(FollowerStopper):
         """See parent class."""
         lead_id = env.k.vehicle.get_leader(self.veh_id)
         this_vel = env.k.vehicle.get_speed(self.veh_id)
-        lead_vel = np.mean(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
+        lead_vel = env.k.vehicle.get_speed(lead_id)
+        self.v_des = np.mean(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
 
         if self.v_des is None:
             return None
