@@ -18,6 +18,7 @@ from copy import deepcopy
 WHITE = (255, 255, 255)
 CYAN = (0, 255, 255)
 RED = (255, 0, 0)
+color_dict = {'white': WHITE, 'cyan': CYAN, 'red': RED}
 
 
 class TraCIVehicle(KernelVehicle):
@@ -983,18 +984,24 @@ class TraCIVehicle(KernelVehicle):
         - cyan: observed human-driven vehicles
         """
         for veh_id in self.get_rl_ids():
+            veh_type = self.master_kernel.vehicle.get_type(veh_id)
             try:
                 # color rl vehicles red
-                self.set_color(veh_id=veh_id, color=RED)
+                if veh_type['color'].lower() in color_dict.keys():
+                    color = color_dict[veh_type['color']]
+                else:
+                    color = RED
+                self.set_color(veh_id=veh_id, color=color)
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating rl vehicle colors:', e)
 
         # color vehicles white if not observed and cyan if observed
         for veh_id in self.get_human_ids():
+            veh_type = self.master_kernel.vehicle.get_type(veh_id)
             try:
                 color = CYAN if veh_id in self.get_observed_ids() else WHITE
-                if 'av' in veh_id.lower():
-                    color = RED
+                if veh_type['color'].lower() in color_dict.keys():
+                    color = color_dict[veh_type['color']]
                 self.set_color(veh_id=veh_id, color=color)
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating human vehicle colors:', e)

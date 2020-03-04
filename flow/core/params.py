@@ -241,7 +241,8 @@ class VehicleParams:
             initial_speed=0,
             num_vehicles=0,
             car_following_params=None,
-            lane_change_params=None):
+            lane_change_params=None,
+            color=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
@@ -268,6 +269,8 @@ class VehicleParams:
             Params object specifying attributes for Sumo car following model.
         lane_change_params : flow.core.params.SumoLaneChangeParams
             Params object specifying attributes for Sumo lane changing model.
+        color: str, optional
+            String describing vehicle color. Should be one of red, white, cyan.
         """
         if car_following_params is None:
             # FIXME: depends on simulator
@@ -290,7 +293,8 @@ class VehicleParams:
              "routing_controller": routing_controller,
              "initial_speed": initial_speed,
              "car_following_params": car_following_params,
-             "lane_change_params": lane_change_params}
+             "lane_change_params": lane_change_params,
+             "color": color}
 
         # TODO: delete?
         self.initial.append({
