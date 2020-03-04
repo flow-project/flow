@@ -73,6 +73,8 @@ def parse_args(args):
         help='How many steps are in a training batch.')
     parser.add_argument('--local_mode', action='store_true', default=False,
                         help='If true only 1 CPU will be used')
+    parser.add_argument('--render', action='store_true', default=False,
+                        help='If true, we render the display')
 
     return parser.parse_known_args(args)[0]
 
@@ -196,6 +198,7 @@ if __name__ == "__main__":
         assert False, "Unable to find experiment config!"
     if flags.rl_trainer.lower() == "rllib":
         flow_params = submodule.flow_params
+        flow_params['sim'].render = flags.render
         policy_graphs = getattr(submodule, "POLICY_GRAPHS", None)
         policy_mapping_fn = getattr(submodule, "policy_mapping_fn", None)
         policies_to_train = getattr(submodule, "policies_to_train", None)
@@ -205,26 +208,23 @@ if __name__ == "__main__":
             policy_graphs, policy_mapping_fn, policies_to_train)
 
         config['num_workers'] = flags.num_cpus
+        config['env'] = gym_name
 
         if flags.local_mode:
             ray.init(local_mode=True)
         else:
             ray.init(num_cpus=flags.num_cpus + 1)
         exp_dict = {
-            flow_params["exp_tag"]: {
-                "run": alg_run,
-                "env": gym_name,
-                "config": {
-                    **config
-                },
-                "checkpoint_freq": 20,
-                "checkpoint_at_end": True,
-                "max_failures": 2,
-                "stop": {
-                    "training_iteration": flags.num_iterations,
+            "run_or_experiment": alg_run,
+            "name": gym_name,
+            "config": config,
+            "checkpoint_freq": 20,
+            "checkpoint_at_end": True,
+            "max_failures": 2,
+            "stop": {
+                "training_iteration": flags.num_iterations,
                 },
             }
-        }
         run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
 
     elif flags.rl_trainer == "Stable-Baselines":

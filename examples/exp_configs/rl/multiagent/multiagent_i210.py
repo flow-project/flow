@@ -45,6 +45,7 @@ vehicles.add(
 )
 vehicles.add(
     "av",
+    routing_controller=(I210Router, {}),
     num_vehicles=0,
 )
 
