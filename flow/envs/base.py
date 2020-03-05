@@ -26,6 +26,9 @@ from flow.core.kernel import Kernel
 from flow.utils.exceptions import FatalFlowError
 
 
+from flow.core import rewards
+
+
 class Env(gym.Env):
     """Base environment class.
 
@@ -399,8 +402,18 @@ class Env(gym.Env):
                 (self.env_params.warmup_steps + self.env_params.horizon)
                 or crash)
 
+
+
+
+
         # compute the info for each agent
         infos = {}
+
+        infos = {'standstill_vehicles': - rewards.penalize_standstill(self),
+                'average_delay': rewards.min_delay_unscaled(self),
+                'number_RL_commands': rewards.boolean_action_penalty(rl_actions >= 0.5, gain=1.0),
+                'average_speed': rewards.average_velocity(self)}
+
 
         # compute the reward
         if self.env_params.clip_actions:
