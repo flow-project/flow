@@ -1,47 +1,67 @@
-"""I-210 subnetwork example. However in this case flow_params is a list of dicts."""
+"""I-210 subnetwork example.
+
+In this case flow_params is a list of dicts. This is to test the effects of
+multiple human-driver model parameters on the flow traffic.
+"""
 from collections import OrderedDict
 from copy import deepcopy
 import itertools
 import os
-
 import numpy as np
 
-from flow.core.params import SumoParams, EnvParams, NetParams, SumoLaneChangeParams
-from flow.core.params import VehicleParams, InitialConfig
+from flow.core.params import SumoParams
+from flow.core.params import EnvParams
+from flow.core.params import NetParams
+from flow.core.params import SumoLaneChangeParams
+from flow.core.params import VehicleParams
+from flow.core.params import InitialConfig
 from flow.core.params import InFlows
 import flow.config as config
 from flow.envs import TestEnv
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
-default_dict = {"lane_change_mode": "strategic",
-                "model": "LC2013",
-                "lc_strategic": 1.0,
-                "lc_cooperative": 1.0,
-                "lc_speed_gain": 1.0,
-                "lc_keep_right": 1.0,
-                "lc_look_ahead_left": 2.0,
-                "lc_speed_gain_right": 1.0,
-                "lc_sublane": 1.0,
-                "lc_pushy": 0,
-                "lc_pushy_gap": 0.6,
-                "lc_assertive": 1,
-                "lc_accel_lat": 1.0}
-sweep_dict = OrderedDict({"lc_strategic": [1.0, 2.0, 4.0, 8.0], "lc_cooperative": [1.0, 2.0],
-                          "lc_look_ahead_left": [2.0, 4.0]})
+# the default parameters for all lane change parameters
+default_dict = {
+    "lane_change_mode": "strategic",
+    "model": "LC2013",
+    "lc_strategic": 1.0,
+    "lc_cooperative": 1.0,
+    "lc_speed_gain": 1.0,
+    "lc_keep_right": 1.0,
+    "lc_look_ahead_left": 2.0,
+    "lc_speed_gain_right": 1.0,
+    "lc_sublane": 1.0,
+    "lc_pushy": 0,
+    "lc_pushy_gap": 0.6,
+    "lc_assertive": 1,
+    "lc_accel_lat": 1.0
+}
 
-allNames = sorted(sweep_dict)
-combinations = itertools.product(*(sweep_dict[Name] for Name in allNames))
+# values to sweep through for some lane change parameters
+sweep_dict = OrderedDict({
+    "lc_strategic": [1.0, 2.0, 4.0, 8.0],
+    "lc_cooperative": [1.0, 2.0],
+    "lc_look_ahead_left": [2.0, 4.0]
+})
+
+# Create a list of possible lane change parameter combinations.
+all_names = sorted(sweep_dict)
+combinations = itertools.product(*(sweep_dict[name] for name in all_names))
 combination_list = list(combinations)
 res = []
-for list in combination_list:
+for val in combination_list:
     curr_dict = {}
-    for elem, name in zip(list, allNames):
+    for elem, name in zip(val, all_names):
         curr_dict[name] = elem
     res.append(curr_dict)
 
-valid_combinations = []
+# Create a list of all possible flow_params dictionaries to sweep through the
+# different lane change parameters.
+flow_params = []
+
 for lane_change_dict in res:
-    # no vehicles in the network
+    # no vehicles in the network. The lane change parameters of inflowing
+    # vehicles are updated here.
     vehicles = VehicleParams()
     update_dict = deepcopy(default_dict)
     update_dict.update(lane_change_dict)
@@ -78,7 +98,7 @@ for lane_change_dict in res:
         config.PROJECT_PATH,
         "examples/exp_configs/templates/sumo/test2.net.xml")
 
-    flow_params = dict(
+    params = dict(
         # name of the experiment
         exp_tag='I-210_subnetwork',
 
@@ -114,16 +134,18 @@ for lane_change_dict in res:
         # flow.core.params.VehicleParams)
         veh=vehicles,
 
-        # parameters specifying the positioning of vehicles upon initialization/
-        # reset (see flow.core.params.InitialConfig)
+        # parameters specifying the positioning of vehicles upon
+        # initialization/reset (see flow.core.params.InitialConfig)
         initial=InitialConfig(
             edges_distribution=EDGES_DISTRIBUTION,
         ),
-        sweep=lane_change_dict
     )
-    valid_combinations.append(flow_params)
 
-flow_params = valid_combinations
+    # Store the next flow_params dict.
+    flow_params.append(params)
 
-custom_callables = [["avg_merge_speed", lambda env: np.mean(
-    env.k.vehicle.get_speed(env.k.vehicle.get_ids_by_edge("119257908#1-AddedOnRampEdge")))]]
+
+custom_callables = {
+    "avg_merge_speed": lambda env: np.mean(env.k.vehicle.get_speed(
+         env.k.vehicle.get_ids_by_edge("119257908#1-AddedOnRampEdge")))
+}

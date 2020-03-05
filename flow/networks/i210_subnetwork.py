@@ -30,7 +30,7 @@ class I210SubNetwork(Network):
     >>> from flow.core.params import NetParams
     >>> from flow.core.params import VehicleParams
     >>> from flow.core.params import InitialConfig
-    >>> from flow.networks import BayBridgeNetwork
+    >>> from flow.networks import I210SubNetwork
     >>>
     >>> network = I210SubNetwork(
     >>>     name='I-210_subnetwork',
