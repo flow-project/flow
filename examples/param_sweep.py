@@ -83,6 +83,7 @@ def run_experiment(flow_params, custom_callables, num_runs, gen_emission):
 
 
 def main(flags):
+    """Main function."""
     ray.init(num_cpus=flags.num_cpus)
 
     # Get the flow_params object.
