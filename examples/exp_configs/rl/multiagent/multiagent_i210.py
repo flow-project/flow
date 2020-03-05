@@ -62,7 +62,7 @@ assert pen_rate > 0.0, "your penetration rate should be above zero"
 inflow.add(
     veh_type="human",
     edge="119257914",
-    vehs_per_hour=VEH_PER_HOUR_BASE_119257914 * pen_rate,
+    vehs_per_hour=VEH_PER_HOUR_BASE_119257914 * (1 - pen_rate),
     # probability=1.0,
     departLane="random",
     departSpeed=20)
@@ -70,13 +70,13 @@ inflow.add(
 inflow.add(
     veh_type="human",
     edge="27414345",
-    vehs_per_hour=VEH_PER_HOUR_BASE_27414345 * pen_rate,
+    vehs_per_hour=VEH_PER_HOUR_BASE_27414345 * (1 - pen_rate),
     departLane="random",
     departSpeed=20)
 inflow.add(
     veh_type="human",
     edge="27414342#0",
-    vehs_per_hour=VEH_PER_HOUR_BASE_27414342 * pen_rate,
+    vehs_per_hour=VEH_PER_HOUR_BASE_27414342 * (1 - pen_rate),
     departLane="random",
     departSpeed=20)
 

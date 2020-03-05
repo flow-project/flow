@@ -988,31 +988,6 @@ class TraCIVehicle(KernelVehicle):
         - white: unobserved human-driven vehicles
         - cyan: observed human-driven vehicles
         """
-        for veh_id in self.get_rl_ids():
-            try:
-                if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
-                    # color rl vehicles red
-                    self.set_color(veh_id=veh_id, color=RED)
-            except (FatalTraCIError, TraCIException) as e:
-                print('Error when updating rl vehicle colors:', e)
-
-        # color vehicles white if not observed and cyan if observed
-        for veh_id in self.get_human_ids():
-            try:
-                color = CYAN if veh_id in self.get_observed_ids() else WHITE
-                if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
-                    self.set_color(veh_id=veh_id, color=color)
-            except (FatalTraCIError, TraCIException) as e:
-                print('Error when updating human vehicle colors:', e)
-
-        for veh_id in self.get_ids():
-            try:
-                if 'av' in veh_id:
-                    color = RED
-                    self.set_color(veh_id=veh_id, color=color)
-            except (FatalTraCIError, TraCIException) as e:
-                print('Error when updating human vehicle colors:', e)
-
         # color vehicles by speed if desired
         if self._color_by_speed:
             max_speed = self.master_kernel.network.max_speed()
@@ -1020,7 +995,34 @@ class TraCIVehicle(KernelVehicle):
             for veh_id in self.get_ids():
                 veh_speed = self.get_speed(veh_id)
                 bin_index = np.digitize(veh_speed, speed_ranges)
-                self.set_color(veh_id=veh_id, color=color_bins[bin_index])
+                if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                    self.set_color(veh_id=veh_id, color=color_bins[bin_index])
+        else:
+            for veh_id in self.get_rl_ids():
+                try:
+                    if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                        # color rl vehicles red
+                        self.set_color(veh_id=veh_id, color=RED)
+                except (FatalTraCIError, TraCIException) as e:
+                    print('Error when updating rl vehicle colors:', e)
+
+            # color vehicles white if not observed and cyan if observed
+            for veh_id in self.get_human_ids():
+                try:
+                    color = CYAN if veh_id in self.get_observed_ids() else WHITE
+                    if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                        self.set_color(veh_id=veh_id, color=color)
+                except (FatalTraCIError, TraCIException) as e:
+                    print('Error when updating human vehicle colors:', e)
+
+            for veh_id in self.get_ids():
+                try:
+                    if 'av' in veh_id:
+                        color = RED
+                        if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                            self.set_color(veh_id=veh_id, color=color)
+                except (FatalTraCIError, TraCIException) as e:
+                    print('Error when updating human vehicle colors:', e)
 
         # clear the list of observed vehicles
         for veh_id in self.get_observed_ids():

@@ -56,11 +56,15 @@ def replay(args, flow_params, transfer_test=None, rllib_config=None, result_dir=
 
     # if we've supplied an rllib config:
     if args.controller:
+        test_params = {}
         if args.controller == 'idm':
             from flow.controllers.car_following_models import IDMController
             controller = IDMController
-
-        test_params = {'v0': 1, 'T': 1, 'a': 0.2, 'b': 0.2}  # An example of really obvious changes
+            test_params.update({'v0': 1, 'T': 1, 'a': 0.2, 'b': 0.2})  # An example of really obvious changes
+        elif args.controller == 'sumo':
+            from flow.controllers.car_following_models import SimCarFollowingController
+            controller = SimCarFollowingController
+        
         flow_params['veh'].type_parameters['av']['acceleration_controller'] = (controller, test_params)
 
         for veh_param in flow_params['veh'].initial:
