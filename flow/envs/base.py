@@ -372,7 +372,7 @@ class Env(gym.Env):
 
             # update the colors of vehicles
             if self.sim_params.render:
-                self.k.vehicle.update_vehicle_colors()
+                self.k.vehicle.update_vehicle_colors(self.sim_params.force_color_update)
 
             # crash encodes whether the simulator experienced a collision
             crash = self.k.simulation.check_collision()
@@ -395,8 +395,9 @@ class Env(gym.Env):
 
         # test if the environment should terminate due to a collision or the
         # time horizon being met
-        done = (self.time_counter >= self.env_params.warmup_steps +
-                self.env_params.horizon)  # or crash
+        done = (self.time_counter >= self.env_params.sims_per_step *
+                (self.env_params.warmup_steps + self.env_params.horizon)
+                or crash)
 
         # compute the info for each agent
         infos = {}
@@ -521,7 +522,7 @@ class Env(gym.Env):
 
         # update the colors of vehicles
         if self.sim_params.render:
-            self.k.vehicle.update_vehicle_colors()
+            self.k.vehicle.update_vehicle_colors(self.sim_params.force_color_update)
 
         if self.simulator == 'traci':
             initial_ids = self.k.kernel_api.vehicle.getIDList()

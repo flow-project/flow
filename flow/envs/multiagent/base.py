@@ -96,7 +96,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
             # update the colors of vehicles
             if self.sim_params.render:
-                self.k.vehicle.update_vehicle_colors()
+                self.k.vehicle.update_vehicle_colors(self.sim_params.force_color_update)
 
             # crash encodes whether the simulator experienced a collision
             crash = self.k.simulation.check_collision()
@@ -108,8 +108,8 @@ class MultiEnv(MultiAgentEnv, Env):
         states = self.get_state()
         done = {key: key in self.k.vehicle.get_arrived_ids()
                 for key in states.keys()}
-        if crash or (self.time_counter >= self.env_params.warmup_steps +
-                     self.env_params.horizon):
+        if crash or (self.time_counter >= self.env_params.sims_per_step *
+                     (self.env_params.warmup_steps + self.env_params.horizon)):
             done['__all__'] = True
         else:
             done['__all__'] = False
@@ -233,7 +233,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
         # update the colors of vehicles
         if self.sim_params.render:
-            self.k.vehicle.update_vehicle_colors()
+            self.k.vehicle.update_vehicle_colors(self.sim_params.force_color_update)
 
         # check to make sure all vehicles have been spawned
         if len(self.initial_ids) > self.k.vehicle.num_vehicles:
