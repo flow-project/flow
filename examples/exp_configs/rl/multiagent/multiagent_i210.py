@@ -16,13 +16,14 @@ from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 from flow.envs.multiagent import I210MultiEnv
+from flow.envs.multiagent import MultiAgentMergePOEnv
 from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
 
 # SET UP PARAMETERS FOR THE SIMULATION
 
 # number of steps per rollout
-HORIZON = 500
+HORIZON = 450
 
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10
@@ -129,7 +130,7 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,  # TODO(@evinitsky) decrease it when testing
         additional_params=additional_env_params,
-        sims_per_step=1,
+        sims_per_step=10,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
