@@ -183,7 +183,7 @@ class KernelVehicle(object):
     # Methods to visually distinguish vehicles by {RL, observed, unobserved}  #
     ###########################################################################
 
-    def update_vehicle_colors(self, force_update):
+    def update_vehicle_colors(self):
         """Modify the color of vehicles if rendering is active."""
         raise NotImplementedError
 

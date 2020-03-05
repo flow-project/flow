@@ -72,9 +72,9 @@ class TraCIVehicle(KernelVehicle):
 
         # whether or not to automatically color vehicles
         try:
-            self._color_vehicles = sim_params.force_color_update
+            self._force_color_update = sim_params.force_color_update
         except AttributeError:
-            self._color_vehicles = False
+            self._force_color_update = False
 
     def initialize(self, vehicles):
         """Initialize vehicle state information.
@@ -974,7 +974,7 @@ class TraCIVehicle(KernelVehicle):
         return self.master_kernel.network.get_x(
             self.get_edge(veh_id), self.get_position(veh_id))
 
-    def update_vehicle_colors(self, force_update):
+    def update_vehicle_colors(self):
         """See parent class.
 
         The colors of all vehicles are updated as follows:
@@ -982,12 +982,9 @@ class TraCIVehicle(KernelVehicle):
         - white: unobserved human-driven vehicles
         - cyan: observed human-driven vehicles
         """
-        if not self._color_vehicles:
-            return
-
         for veh_id in self.get_rl_ids():
             try:
-                if force_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
                     # color rl vehicles red
                     self.set_color(veh_id=veh_id, color=RED)
             except (FatalTraCIError, TraCIException) as e:
@@ -997,7 +994,7 @@ class TraCIVehicle(KernelVehicle):
         for veh_id in self.get_human_ids():
             try:
                 color = CYAN if veh_id in self.get_observed_ids() else WHITE
-                if force_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
                     self.set_color(veh_id=veh_id, color=color)
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating human vehicle colors:', e)
@@ -1019,10 +1016,9 @@ class TraCIVehicle(KernelVehicle):
 
         The last term for sumo (transparency) is set to 255.
         """
-        if self._color_vehicles:
-            r, g, b = color
-            self.kernel_api.vehicle.setColor(
-                vehID=veh_id, color=(r, g, b, 255))
+        r, g, b = color
+        self.kernel_api.vehicle.setColor(
+            vehID=veh_id, color=(r, g, b, 255))
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
