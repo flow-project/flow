@@ -431,7 +431,6 @@ class Env(gym.Env):
 
         # Now that we've passed the possibly fake init steps some rl libraries
         # do, we can feel free to actually render things
-        import ipdb; ipdb.set_trace()
         if self.should_render:
             self.sim_params.render = True
             # got to restart the simulation to make it actually display anything

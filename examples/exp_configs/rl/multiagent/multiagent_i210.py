@@ -7,6 +7,7 @@ import os
 
 from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 
+from flow.controllers import RLController
 from flow.controllers.routing_controllers import I210Router
 from flow.controllers.car_following_models import IDMController
 import flow.config as config
@@ -46,6 +47,7 @@ vehicles.add(
 vehicles.add(
     "av",
     routing_controller=(I210Router, {}),
+    acceleration_controller=(RLController, {}),
     num_vehicles=0,
 )
 
@@ -57,7 +59,7 @@ assert pen_rate > 0.0, "your penetration rate should be above zero"
 inflow.add(
     veh_type="human",
     edge="119257914",
-    vehs_per_hour=8378 * pen_rate,
+    vehs_per_hour=int(8378 * (1 - pen_rate)),
     # probability=1.0,
     departLane="random",
     departSpeed=20)
@@ -127,7 +129,7 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,  # TODO(@evinitsky) decrease it when testing
         additional_params=additional_env_params,
-        sims_per_step=10,
+        sims_per_step=1,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
