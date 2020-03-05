@@ -282,9 +282,6 @@ class VehicleParams:
         type_params.update(car_following_params.controller_params)
         type_params.update(lane_change_params.controller_params)
 
-        if color:
-            type_params['color'] = color
-
         # This dict will be used when trying to introduce new vehicles into
         # the network via a Flow. It is passed to the vehicle kernel object
         # during environment instantiation.
@@ -295,6 +292,10 @@ class VehicleParams:
              "initial_speed": initial_speed,
              "car_following_params": car_following_params,
              "lane_change_params": lane_change_params}
+
+        if color:
+            type_params['color'] = color
+            self.type_parameters[veh_id]['color'] = color
 
         # TODO: delete?
         self.initial.append({

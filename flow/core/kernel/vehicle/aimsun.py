@@ -525,7 +525,7 @@ class AimsunKernelVehicle(KernelVehicle):
     # Methods to visually distinguish vehicles by {RL, observed, unobserved}  #
     ###########################################################################
 
-    def update_vehicle_colors(self, force_update):
+    def update_vehicle_colors(self):
         """Modify the color of vehicles if rendering is active."""
         # color rl vehicles red
         for veh_id in self.get_rl_ids():
