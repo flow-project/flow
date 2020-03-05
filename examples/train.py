@@ -220,7 +220,7 @@ if __name__ == "__main__":
             "config": config,
             "checkpoint_freq": 20,
             "checkpoint_at_end": True,
-            "max_failures": 2,
+            "max_failures": 0,
             "stop": {
                 "training_iteration": flags.num_iterations,
                 },
