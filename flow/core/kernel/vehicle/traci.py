@@ -987,7 +987,7 @@ class TraCIVehicle(KernelVehicle):
 
         for veh_id in self.get_rl_ids():
             try:
-                if force_update or not 'color' in self.type_parameters[self.get_type(veh_id)]:
+                if force_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
                     # color rl vehicles red
                     self.set_color(veh_id=veh_id, color=RED)
             except (FatalTraCIError, TraCIException) as e:
@@ -997,7 +997,7 @@ class TraCIVehicle(KernelVehicle):
         for veh_id in self.get_human_ids():
             try:
                 color = CYAN if veh_id in self.get_observed_ids() else WHITE
-                if force_update or not 'color' in self.type_parameters[self.get_type(veh_id)]:
+                if force_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
                     self.set_color(veh_id=veh_id, color=color)
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating human vehicle colors:', e)
