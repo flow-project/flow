@@ -72,7 +72,7 @@ class TraCIVehicle(KernelVehicle):
 
         # whether or not to automatically color vehicles
         try:
-            self._color_vehicles = sim_params.auto_color_vehicles
+            self._color_vehicles = sim_params.force_color_update
         except AttributeError:
             self._color_vehicles = False
 
@@ -974,7 +974,7 @@ class TraCIVehicle(KernelVehicle):
         return self.master_kernel.network.get_x(
             self.get_edge(veh_id), self.get_position(veh_id))
 
-    def update_vehicle_colors(self):
+    def update_vehicle_colors(self, force_update):
         """See parent class.
 
         The colors of all vehicles are updated as follows:
@@ -987,8 +987,9 @@ class TraCIVehicle(KernelVehicle):
 
         for veh_id in self.get_rl_ids():
             try:
-                # color rl vehicles red
-                self.set_color(veh_id=veh_id, color=RED)
+                if force_update or not 'color' in self.type_parameters[self.get_type(veh_id)]:
+                    # color rl vehicles red
+                    self.set_color(veh_id=veh_id, color=RED)
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating rl vehicle colors:', e)
 
@@ -996,7 +997,8 @@ class TraCIVehicle(KernelVehicle):
         for veh_id in self.get_human_ids():
             try:
                 color = CYAN if veh_id in self.get_observed_ids() else WHITE
-                self.set_color(veh_id=veh_id, color=color)
+                if force_update or not 'color' in self.type_parameters[self.get_type(veh_id)]:
+                    self.set_color(veh_id=veh_id, color=color)
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating human vehicle colors:', e)
 

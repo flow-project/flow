@@ -388,7 +388,7 @@ class SimParams(object):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
-    auto_color_vehicles : bool, optional
+    force_color_update : bool, optional
         whether or not to automatically color vehicles according to their types
     """
 
@@ -401,7 +401,7 @@ class SimParams(object):
                  sight_radius=25,
                  show_radius=False,
                  pxpm=2,
-                 auto_color_vehicles=True):
+                 force_color_update=False):
         """Instantiate SimParams."""
         self.sim_step = sim_step
         self.render = render
@@ -411,7 +411,7 @@ class SimParams(object):
         self.sight_radius = sight_radius
         self.pxpm = pxpm
         self.show_radius = show_radius
-        self.auto_color_vehicles = auto_color_vehicles
+        self.force_color_update = force_color_update
 
 
 class AimsunParams(SimParams):
@@ -543,7 +543,7 @@ class SumoParams(SimParams):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
-    auto_color_vehicles : bool, optional
+    force_color_update : bool, optional
         whether or not to automatically color vehicles according to their types
     overtake_right : bool, optional
         whether vehicles are allowed to overtake on the right as well as
@@ -575,7 +575,7 @@ class SumoParams(SimParams):
                  sight_radius=25,
                  show_radius=False,
                  pxpm=2,
-                 auto_color_vehicles=True,
+                 force_color_update=False,
                  overtake_right=False,
                  seed=None,
                  restart_instance=False,
@@ -585,7 +585,7 @@ class SumoParams(SimParams):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
-            sight_radius, show_radius, pxpm, auto_color_vehicles)
+            sight_radius, show_radius, pxpm, force_color_update)
         self.port = port
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
