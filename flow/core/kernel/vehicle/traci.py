@@ -72,9 +72,9 @@ class TraCIVehicle(KernelVehicle):
 
         # whether or not to automatically color vehicles
         try:
-            self._color_vehicles = sim_params.color_vehicles
+            self._force_color_update = sim_params.force_color_update
         except AttributeError:
-            self._color_vehicles = False
+            self._force_color_update = False
 
     def initialize(self, vehicles):
         """Initialize vehicle state information.
@@ -984,8 +984,10 @@ class TraCIVehicle(KernelVehicle):
         """
         for veh_id in self.get_rl_ids():
             try:
-                # color rl vehicles red
-                self.set_color(veh_id=veh_id, color=RED)
+                # If vehicle is already being colored via argument to vehicles.add(), don't re-color it.
+                if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                    # color rl vehicles red
+                    self.set_color(veh_id=veh_id, color=RED)
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating rl vehicle colors:', e)
 
@@ -993,7 +995,9 @@ class TraCIVehicle(KernelVehicle):
         for veh_id in self.get_human_ids():
             try:
                 color = CYAN if veh_id in self.get_observed_ids() else WHITE
-                self.set_color(veh_id=veh_id, color=color)
+                # If vehicle is already being colored via argument to vehicles.add(), don't re-color it.
+                if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                    self.set_color(veh_id=veh_id, color=color)
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating human vehicle colors:', e)
 
@@ -1014,10 +1018,9 @@ class TraCIVehicle(KernelVehicle):
 
         The last term for sumo (transparency) is set to 255.
         """
-        if self._color_vehicles:
-            r, g, b = color
-            self.kernel_api.vehicle.setColor(
-                vehID=veh_id, color=(r, g, b, 255))
+        r, g, b = color
+        self.kernel_api.vehicle.setColor(
+            vehID=veh_id, color=(r, g, b, 255))
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
