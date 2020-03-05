@@ -142,7 +142,7 @@ def get_time_space_data(data, params):
     func = switcher[params['network']]
 
     # Execute the function
-    pos, speed = func(data, params, all_time)
+    pos, speed, all_time = func(data, params, all_time)
 
     return pos, speed, all_time
 
@@ -218,7 +218,7 @@ def _merge(data, params, all_time):
             pos[ind, i] = abs_pos
             speed[ind, i] = spd
 
-    return pos, speed
+    return pos, speed, all_time
 
 
 def _ring_road(data, params, all_time):
@@ -284,7 +284,7 @@ def _ring_road(data, params, all_time):
             pos[ind, i] = abs_pos
             speed[ind, i] = spd
 
-    return pos, speed
+    return pos, speed, all_time
 
 
 def _i210_subnetwork(data, params, all_time):
@@ -366,7 +366,7 @@ def _i210_subnetwork(data, params, all_time):
     pos = pos[:, observed_row_list]
     speed = speed[:, observed_row_list]
 
-    return pos, speed
+    return pos, speed, all_time
 
 
 def _figure_eight(data, params, all_time):
@@ -455,7 +455,7 @@ def _figure_eight(data, params, all_time):
     pos[pos > intersection_loc[1]] = \
         - pos[pos > intersection_loc[1]] + figure_eight_len + intersection_loc[0]
 
-    return pos, speed
+    return pos, speed, all_time
 
 
 def _get_abs_pos(edge, rel_pos, edgestarts):

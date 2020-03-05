@@ -3,7 +3,6 @@ import os
 
 import numpy as np
 
-from flow.controllers.routing_controllers import I210Router
 from flow.controllers.car_following_models import IDMController
 from flow.core.params import SumoParams
 from flow.core.params import EnvParams
@@ -37,7 +36,7 @@ inflow.add(
     edge="119257914",
     vehs_per_hour=8378,
     departLane="random",
-    departSpeed=10)
+    departSpeed=23)
 # on ramp
 # inflow.add(
 #     veh_type="human",

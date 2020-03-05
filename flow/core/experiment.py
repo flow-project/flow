@@ -5,7 +5,6 @@ import datetime
 import logging
 import time
 import os
-import matplotlib.pyplot as plt
 import numpy as np
 
 
