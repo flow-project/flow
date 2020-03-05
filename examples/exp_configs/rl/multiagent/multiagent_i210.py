@@ -12,11 +12,10 @@ from flow.controllers.routing_controllers import I210Router
 from flow.controllers.car_following_models import IDMController
 import flow.config as config
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
-    VehicleParams, SumoParams, SumoLaneChangeParams, SumoCarFollowingParams
+    VehicleParams, SumoParams, SumoLaneChangeParams
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 from flow.envs.multiagent import I210MultiEnv
-from flow.envs.multiagent import MultiAgentMergePOEnv
 from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
 
@@ -43,7 +42,7 @@ vehicles.add(
     num_vehicles=0,
     routing_controller=(I210Router, {}),
     lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"),
-    acceleration_controller=(IDMController, {"a":.3, "b": 2.0, "noise": 0.5}),
+    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
 )
 vehicles.add(
     "av",
