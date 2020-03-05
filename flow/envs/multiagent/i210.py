@@ -1,4 +1,4 @@
-"""Environment for training vehicles to reduce congestion in I210 subnetwork."""
+"""Environment for training vehicles to reduce congestion in the I210."""
 
 from gym.spaces import Box
 import numpy as np
@@ -6,7 +6,15 @@ import numpy as np
 from flow.core.rewards import average_velocity
 from flow.envs.multiagent.base import MultiEnv
 
+# largest number of lanes on any given edge in the network
 MAX_LANES = 5
+
+ADDITIONAL_ENV_PARAMS = {
+    # maximum acceleration for autonomous vehicles, in m/s^2
+    "max_accel": 1,
+    # maximum deceleration for autonomous vehicles, in m/s^2
+    "max_decel": 1,
+}
 
 
 class I210MultiEnv(MultiEnv):
@@ -25,10 +33,10 @@ class I210MultiEnv(MultiEnv):
 
     States
         The observation consists of the speeds and bumper-to-bumper headways of
-        the vehicles immediately preceding and following autonomous vehicles in all of the
-        preceding lanes as well, a binary value indicating which of these vehicles is autonomous,
-        and the speed of the autonomous vehicle. Missing vehicles
-        are padded with zeros.
+        the vehicles immediately preceding and following autonomous vehicles in
+        all of the preceding lanes as well, a binary value indicating which of
+        these vehicles is autonomous, and the speed of the autonomous vehicle.
+        Missing vehicles are padded with zeros.
 
     Actions
         The action consists of an acceleration, bound according to the
@@ -52,13 +60,20 @@ class I210MultiEnv(MultiEnv):
     @property
     def observation_space(self):
         """See class definition."""
-        # speed, dist to ego vehicle, binary value which is 1 if the vehicle is an AV
+        # speed, dist to ego vehicle, binary value which is 1 if the vehicle is
+        # an AV
         leading_obs = 3 * MAX_LANES
         follow_obs = 3 * MAX_LANES
+
         # speed and lane
         self_obs = 2
-        num_obs = leading_obs + follow_obs + self_obs
-        return Box(-float('inf'), float('inf'), shape=(num_obs,), dtype=np.float32)
+
+        return Box(
+            low=-float('inf'),
+            high=float('inf'),
+            shape=(leading_obs + follow_obs + self_obs,),
+            dtype=np.float32
+        )
 
     @property
     def action_space(self):

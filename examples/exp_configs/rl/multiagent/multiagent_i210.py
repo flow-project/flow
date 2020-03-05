@@ -1,4 +1,4 @@
-"""Multi-agent highway with ramps example.
+"""Multi-agent I-210 example.
 
 Trains a non-constant number of agents, all sharing the same policy, on the
 highway with ramps network.
@@ -6,14 +6,19 @@ highway with ramps network.
 import os
 
 from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
-import flow.config as config
-from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
-    VehicleParams, SumoParams, SumoLaneChangeParams
-from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
-from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
-from flow.envs.multiagent import I210MultiEnv
-from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
+
+import flow.config as config
+from flow.core.params import EnvParams
+from flow.core.params import NetParams
+from flow.core.params import InitialConfig
+from flow.core.params import InFlows
+from flow.core.params import VehicleParams
+from flow.core.params import SumoParams
+from flow.core.params import SumoLaneChangeParams
+from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
+from flow.envs.multiagent.i210 import I210MultiEnv, ADDITIONAL_ENV_PARAMS
+from flow.utils.registry import make_create_env
 
 # SET UP PARAMETERS FOR THE SIMULATION
 
@@ -42,7 +47,9 @@ vehicles = VehicleParams()
 vehicles.add(
     "human",
     num_vehicles=0,
-    lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic")
+    lane_change_params=SumoLaneChangeParams(
+        lane_change_mode="strategic",
+    )
 )
 vehicles.add(
     "av",

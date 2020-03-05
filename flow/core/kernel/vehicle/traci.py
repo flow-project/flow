@@ -181,7 +181,7 @@ class TraCIVehicle(KernelVehicle):
             # add vehicles from a network template, if applicable
             if hasattr(self.master_kernel.network.network,
                        "template_vehicles"):
-                for veh_id in self.master_kernel.network.network. \
+                for veh_id in self.master_kernel.network.network.\
                         template_vehicles:
                     vals = deepcopy(self.master_kernel.network.network.
                                     template_vehicles[veh_id])

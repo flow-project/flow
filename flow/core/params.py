@@ -556,6 +556,9 @@ class SumoParams(SimParams):
         they teleport after teleport_time seconds
     num_clients : int, optional
         Number of clients that will connect to Traci
+    color_by_speed : bool
+        whether to color the vehicles by the speed they are moving at the
+        current time step
     """
 
     def __init__(self,
