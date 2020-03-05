@@ -984,6 +984,7 @@ class TraCIVehicle(KernelVehicle):
         """
         for veh_id in self.get_rl_ids():
             try:
+                # If vehicle is already being colored via argument to vehicles.add(), don't re-color it.
                 if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
                     # color rl vehicles red
                     self.set_color(veh_id=veh_id, color=RED)
@@ -994,6 +995,7 @@ class TraCIVehicle(KernelVehicle):
         for veh_id in self.get_human_ids():
             try:
                 color = CYAN if veh_id in self.get_observed_ids() else WHITE
+                # If vehicle is already being colored via argument to vehicles.add(), don't re-color it.
                 if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
                     self.set_color(veh_id=veh_id, color=color)
             except (FatalTraCIError, TraCIException) as e:
