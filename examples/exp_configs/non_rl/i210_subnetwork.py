@@ -19,7 +19,7 @@ vehicles.add(
     num_vehicles=0,
     routing_controller=(I210Router, {}),
     lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"),
-    acceleration_controller=(IDMController, {"v0": 30}),
+    acceleration_controller=(IDMController, {"a": 0.3, "b": 2.0, "noise": 0.5}),
 )
 
 inflow = InFlows()
