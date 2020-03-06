@@ -235,6 +235,35 @@ class TestPlotters(unittest.TestCase):
         np.testing.assert_array_almost_equal(pos, expected_pos)
         np.testing.assert_array_almost_equal(speed, expected_speed)
 
+    def test_time_space_diagram_I210(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        emission_data = tsd.import_data_from_emission(
+            os.path.join(dir_path, 'test_files/i210_emission.csv'))
+
+        module = __import__("examples.exp_configs.non_rl", fromlist=["i210_subnetwork"])
+        flow_params = getattr(module, "i210_subnetwork").flow_params
+        pos, speed, _ = tsd.get_time_space_data(emission_data, flow_params)
+
+        expected_pos = np.array(
+            [[5.1, 0., 0.],
+             [23.37, 0., 0.],
+             [42.02, 5.1, 0.],
+             [61.21, 22.97, 0.],
+             [80.45, 40.73, 5.1],
+             [101.51, 0., 0.]]
+        )
+        expected_speed = np.array(
+            [[23., 0., 0.],
+             [22.84, 0., 0.],
+             [23.31, 23., 0.],
+             [23.98, 22.33, 0.],
+             [24.25, 22.21, 23.],
+             [26.33, 0., 0.]]
+        )
+
+        np.testing.assert_array_almost_equal(pos, expected_pos)
+        np.testing.assert_array_almost_equal(speed, expected_speed)
+
     def test_time_space_diagram_ring_road(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         emission_data = tsd.import_data_from_emission(
