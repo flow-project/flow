@@ -101,6 +101,7 @@ class FlowAimsunAPI(object):
         Any
             the final message received from the Aimsun server
         """
+        print(command_type, in_format, values, out_format)
         # send the command type to the server
         self.s.send(str(command_type).encode())
 

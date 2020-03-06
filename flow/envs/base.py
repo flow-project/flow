@@ -248,7 +248,7 @@ class Env(gym.Env):
 
         # killed the sumo process if using sumo/TraCI
         if self.simulator == 'traci' and self.sim_params.render:
-            self.k.simulation.sumo_proc.kill()
+            self.k.simulation.close()
 
         if render is not None:
             self.sim_params.render = render

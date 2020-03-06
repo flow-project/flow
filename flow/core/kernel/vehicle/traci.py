@@ -212,23 +212,10 @@ class TraCIVehicle(KernelVehicle):
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
-            # try:
-            #     _position = vehicle_obs.get(veh_id, {}).get(
-            #         tc.VAR_POSITION, -1001)
-            #     _angle = vehicle_obs.get(veh_id, {}).get(tc.VAR_ANGLE, -1001)
-            #     _time_step = sim_obs[tc.VAR_TIME_STEP]
-            #     _time_delta = sim_obs[tc.VAR_DELTA_T]
-            #     self.__vehicles[veh_id]["orientation"] = \
-            #         list(_position) + [_angle]
-            #     self.__vehicles[veh_id]["timestep"] = _time_step
-            #     self.__vehicles[veh_id]["timedelta"] = _time_delta
-            # except TypeError:
-            #     print(traceback.format_exc())
-
             headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, ("",))
 
             # check for a collided vehicle or a vehicle with no leader
-            if headway[0] == "":
+            if headway is None or headway[0] == "":
                 self.__vehicles[veh_id]["leader"] = None
                 self.__vehicles[veh_id]["follower"] = None
                 self.__vehicles[veh_id]["headway"] = 1e+3

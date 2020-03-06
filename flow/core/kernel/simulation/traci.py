@@ -4,7 +4,6 @@ from flow.core.kernel.simulation import KernelSimulation
 import flow.config as config
 import traci.constants as tc
 import traci
-import libsumo
 import traceback
 import os
 import time
@@ -113,6 +112,8 @@ class TraCISimulation(KernelSimulation):
                     traci_connection.setOrder(0)
                     traci_connection.simulationStep()
                 else:
+                    import libsumo
+
                     # Use libsumo to create a simulation instance.
                     libsumo.start(sumo_call[1:3])
                     libsumo.simulationStep()
