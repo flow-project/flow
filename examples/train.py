@@ -65,6 +65,9 @@ def parse_args(args):
     parser.add_argument(
         '--rollout_size', type=int, default=1000,
         help='How many steps are in a training batch.')
+    parser.add_argument(
+        '--checkpoint_path', type=str, default=None,
+        help='Directory with checkpoint to restore training from.')
 
     return parser.parse_known_args(args)[0]
 
@@ -198,22 +201,24 @@ if __name__ == "__main__":
             flow_params, n_cpus, n_rollouts,
             policy_graphs, policy_mapping_fn, policies_to_train)
 
-        ray.init(num_cpus=n_cpus + 1)
-        trials = run_experiments({
-            flow_params["exp_tag"]: {
-                "run": alg_run,
-                "env": gym_name,
-                "config": {
-                    **config
-                },
-                "checkpoint_freq": 20,
-                "checkpoint_at_end": True,
-                "max_failures": 999,
-                "stop": {
-                    "training_iteration": 200,
-                },
-            }
-        })
+        ray.init(num_cpus=n_cpus + 1, object_store_memory=200 * 1024 * 1024)
+        exp_config = {
+            "run": alg_run,
+            "env": gym_name,
+            "config": {
+                **config
+            },
+            "checkpoint_freq": 20,
+            "checkpoint_at_end": True,
+            "max_failures": 999,
+            "stop": {
+                "training_iteration": flags.num_steps,
+            },
+        }
+
+        if flags.checkpoint_path is not None:
+            exp_config['restore'] = flags.checkpoint_path
+        trials = run_experiments({flow_params["exp_tag"]: exp_config})
 
     elif flags.rl_trainer == "Stable-Baselines":
         flow_params = submodule.flow_params
