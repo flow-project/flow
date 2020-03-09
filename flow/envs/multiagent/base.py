@@ -110,7 +110,7 @@ class MultiEnv(MultiAgentEnv, Env):
                 for key in states.keys()}
         if crash or (self.time_counter >= self.env_params.warmup_steps +
                      self.env_params.horizon):
-            done['__all__'] = True
+            done['__all__'] = False
         else:
             done['__all__'] = False
         infos = {key: {} for key in states.keys()}
@@ -123,7 +123,7 @@ class MultiEnv(MultiAgentEnv, Env):
             reward = self.compute_reward(rl_actions, fail=crash)
 
         for rl_id in self.k.vehicle.get_arrived_rl_ids():
-            done[rl_id] = True
+            done[rl_id] = False
             reward[rl_id] = 0
             states[rl_id] = np.zeros(self.observation_space.shape[0])
 

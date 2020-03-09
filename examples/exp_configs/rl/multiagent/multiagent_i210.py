@@ -106,7 +106,7 @@ NET_TEMPLATE = os.path.join(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='I_210_subnetwork',
+    exp_tag='kj_i210_0',
 
     # name of the flow environment the experiment is running on
     env_name=I210MultiEnv,

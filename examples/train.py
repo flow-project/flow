@@ -209,6 +209,8 @@ if __name__ == "__main__":
 
         config['num_workers'] = flags.num_cpus
         config['env'] = gym_name
+        config['lr'] = tune.grid_search([5e-4, 5e-5, 5e-3])
+        config['vf_loss_coeff'] = tune.grid_search([1e-4, 1e-3])
 
         if flags.local_mode:
             ray.init(local_mode=True)
