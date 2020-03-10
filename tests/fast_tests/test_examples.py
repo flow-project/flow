@@ -15,7 +15,7 @@ from examples.exp_configs.rl.singleagent.singleagent_ring import flow_params as 
 from examples.exp_configs.rl.singleagent.singleagent_bottleneck import flow_params as singleagent_bottleneck
 
 from examples.exp_configs.rl.multiagent.adversarial_figure_eight import flow_params as adversarial_figure_eight
-# from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as multiagent_i210
+from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as multiagent_i210
 from examples.exp_configs.rl.multiagent.multiagent_figure_eight import flow_params as multiagent_figure_eight
 from examples.exp_configs.rl.multiagent.multiagent_merge import flow_params as multiagent_merge
 from examples.exp_configs.rl.multiagent.lord_of_the_rings import \
@@ -253,16 +253,15 @@ class TestRllibExamples(unittest.TestCase):
         }
         self.run_exp(multiagent_highway, **kwargs)
 
-    # TODO(@evinitsky) enable
-    # def test_multiagent_i210(self):
-    #     from examples.exp_configs.rl.multiagent.multiagent_i210 import POLICY_GRAPHS as mi210pg
-    #     from examples.exp_configs.rl.multiagent.multiagent_i210 import policy_mapping_fn as mi210mf
-    #
-    #     kwargs = {
-    #         "policy_graphs": mi210pg,
-    #         "policy_mapping_fn": mi210mf
-    #     }
-    #     self.run_exp(multiagent_i210, **kwargs)
+    def test_multiagent_i210(self):
+        from examples.exp_configs.rl.multiagent.multiagent_i210 import POLICY_GRAPHS as mi210pg
+        from examples.exp_configs.rl.multiagent.multiagent_i210 import policy_mapping_fn as mi210mf
+
+        kwargs = {
+            "policy_graphs": mi210pg,
+            "policy_mapping_fn": mi210mf
+        }
+        self.run_exp(multiagent_i210, **kwargs)
 
     @staticmethod
     def run_exp(flow_params, **kwargs):

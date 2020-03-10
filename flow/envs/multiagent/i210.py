@@ -7,7 +7,7 @@ from flow.core.rewards import average_velocity
 from flow.envs.multiagent.base import MultiEnv
 
 # largest number of lanes on any given edge in the network
-MAX_LANES = 5
+MAX_LANES = 6
 
 ADDITIONAL_ENV_PARAMS = {
     # maximum acceleration for autonomous vehicles, in m/s^2
