@@ -14,6 +14,8 @@ ADDITIONAL_ENV_PARAMS = {
     "max_accel": 1,
     # maximum deceleration for autonomous vehicles, in m/s^2
     "max_decel": 1,
+    # whether we use an obs space that contains adjacent lane info or just the lead obs
+    "lead_obs": True,
 }
 
 
@@ -56,24 +58,34 @@ class I210MultiEnv(MultiEnv):
 
     def __init__(self, env_params, sim_params, network, simulator='traci'):
         super().__init__(env_params, sim_params, network, simulator)
+        self.lead_obs = env_params.additional_params.get("lead_obs")
 
     @property
     def observation_space(self):
         """See class definition."""
+        # speed, speed of leader, headway
+        if self.lead_obs:
+            return Box(
+                low=-float('inf'),
+                high=float('inf'),
+                shape=(3,),
+                dtype=np.float32
+            )
         # speed, dist to ego vehicle, binary value which is 1 if the vehicle is
         # an AV
-        leading_obs = 3 * MAX_LANES
-        follow_obs = 3 * MAX_LANES
+        else:
+            leading_obs = 3 * MAX_LANES
+            follow_obs = 3 * MAX_LANES
 
-        # speed and lane
-        self_obs = 2
+            # speed and lane
+            self_obs = 2
 
-        return Box(
-            low=-float('inf'),
-            high=float('inf'),
-            shape=(leading_obs + follow_obs + self_obs,),
-            dtype=np.float32
-        )
+            return Box(
+                low=-float('inf'),
+                high=float('inf'),
+                shape=(leading_obs + follow_obs + self_obs,),
+                dtype=np.float32
+            )
 
     @property
     def action_space(self):
@@ -101,9 +113,19 @@ class I210MultiEnv(MultiEnv):
 
     def get_state(self):
         """See class definition."""
-        veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
-                                           self.veh_statistics(rl_id)))
-                    for rl_id in self.k.vehicle.get_rl_ids()}
+        if self.lead_obs:
+            veh_info = {}
+            for rl_id in self.k.vehicle.get_rl_ids():
+                speed = self.k.vehicle.get_speed(rl_id)
+                headway = self.k.vehicle.get_headway(rl_id)
+                lead_speed = self.k.vehicle.get_speed(self.k.vehicle.get_leader(rl_id))
+                if lead_speed == -1001:
+                    lead_speed = 0
+                veh_info.update({rl_id: np.array([speed / 50.0, headway / 1000.0, lead_speed / 50.0])})
+        else:
+            veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
+                                               self.veh_statistics(rl_id)))
+                        for rl_id in self.k.vehicle.get_rl_ids()}
         return veh_info
 
     def compute_reward(self, rl_actions, **kwargs):
@@ -166,7 +188,7 @@ class I210MultiEnv(MultiEnv):
         """Return an array of headway, tailway, leader speed, follower speed.
 
         Also return a 1 if leader is rl 0 otherwise, a 1 if follower is rl 0 otherwise.
-        If there are fewer than self.scaling*MAX_LANES the extra
+        If there are fewer than MAX_LANES the extra
         entries are filled with -1 to disambiguate from zeros.
         """
         veh = self.k.vehicle
@@ -179,7 +201,7 @@ class I210MultiEnv(MultiEnv):
         rl_ids = self.k.vehicle.get_rl_ids()
         is_leader_rl = [1 if l_id in rl_ids else 0 for l_id in leader_ids]
         is_follow_rl = [1 if f_id in rl_ids else 0 for f_id in follower_ids]
-        diff = self.scaling * MAX_LANES - len(is_leader_rl)
+        diff = MAX_LANES - len(is_leader_rl)
         if diff > 0:
             # the minus 1 disambiguates missing cars from missing lanes
             lane_headways += diff * [-1]

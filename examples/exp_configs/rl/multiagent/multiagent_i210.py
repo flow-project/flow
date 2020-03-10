@@ -40,6 +40,8 @@ additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
 additional_env_params.update({
     'max_accel': 1,
     'max_decel': 1,
+    # configure the observation space. Look at the I210MultiEnv class for more info.
+    'lead_obs': True,
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
@@ -54,7 +56,7 @@ vehicles.add(
 )
 vehicles.add(
     "av",
-    acceleration_controller=RLController,
+    acceleration_controller=(RLController, {}),
     num_vehicles=0,
 )
 
