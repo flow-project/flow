@@ -43,7 +43,7 @@ additional_env_params.update({
     # configure the observation space. Look at the I210MultiEnv class for more info.
     'lead_obs': True,
     'v_des': 12.0,
-    'num_imitation_iters': 0
+    'num_imitation_iters': 2
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
@@ -131,14 +131,13 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.8,
         render=False,
-        color_by_speed=True,
         restart_instance=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        sims_per_step=1,
+        sims_per_step=10,
         additional_params=additional_env_params,
     ),
 

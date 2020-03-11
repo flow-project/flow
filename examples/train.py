@@ -8,7 +8,9 @@ Usage
 """
 
 import argparse
+from datetime import datetime
 import json
+import pytz
 import os
 import sys
 from time import strftime
@@ -52,11 +54,13 @@ def parse_args(args):
         help='Name of the experiment configuration file, as located in '
              'exp_configs/rl/singleagent or exp_configs/rl/multiagent.')
 
+
     # optional input parameters
     parser.add_argument(
         '--rl_trainer', type=str, default="rllib",
         help='the RL trainer to use. either rllib or Stable-Baselines')
-
+    parser.add_argument('--exp_title', type=str, default='test',
+                        help='Informative experiment title to help distinguish results')
     parser.add_argument(
         '--num_cpus', type=int, default=1,
         help='How many CPUs to use')
@@ -76,6 +80,7 @@ def parse_args(args):
         '--imitate', action='store_true', default=False,
         help='If true, the agent imitates some expert. Needs to use an imitation environment.'
     )
+    parser.add_argument('--use_s3', action='store_true', help='If true, upload results to s3')
     parser.add_argument('--local_mode', action='store_true', default=False,
                         help='If true only 1 CPU will be used')
     parser.add_argument('--render', action='store_true', default=False,
@@ -170,8 +175,8 @@ def setup_exps_rllib(flow_params,
 
     if flags.imitate:
         alg_run = ImitationTrainer
-        config['model']['custom_options'].update({"imitation_weight": 1e0})
-        config['model']['custom_options'].update({"num_imitation_iters": 0})
+        config['model']['custom_options'].update({"imitation_weight": 1.0})
+        config['model']['custom_options'].update({"num_imitation_iters": 2})
         config['model']['custom_options']['hard_negative_mining'] = True
         config['model']['custom_options']['mining_frac'] = 0.1
         config["model"]["custom_options"]["final_imitation_weight"] = 0.001
@@ -242,6 +247,11 @@ if __name__ == "__main__":
                 "training_iteration": flags.num_iterations,
                 },
             }
+        eastern = pytz.timezone('US/Eastern')
+        date = datetime.now(tz=pytz.utc)
+        date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
+        s3_string = "s3://eugene.experiments/i210/" \
+                    + date + '/' + flags.exp_title
         run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
 
     elif flags.rl_trainer == "Stable-Baselines":
