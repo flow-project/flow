@@ -15,8 +15,11 @@ import os
 import sys
 from time import strftime
 
-from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
-from stable_baselines import PPO2
+try:
+    from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
+    from stable_baselines import PPO2
+except Exception as e:
+    pass
 
 import ray
 from ray import tune
