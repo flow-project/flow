@@ -171,10 +171,10 @@ def setup_exps_rllib(flow_params,
     if flags.imitate:
         alg_run = ImitationTrainer
         config['model']['custom_options'].update({"imitation_weight": 1e0})
-        config['model']['custom_options'].update({"num_imitation_iters": 10})
+        config['model']['custom_options'].update({"num_imitation_iters": 0})
         config['model']['custom_options']['hard_negative_mining'] = True
         config['model']['custom_options']['mining_frac'] = 0.1
-        config["model"]["custom_options"]["final_imitation_weight"] = 0.01
+        config["model"]["custom_options"]["final_imitation_weight"] = 0.001
 
     # save the flow params for replay
     flow_json = json.dumps(
