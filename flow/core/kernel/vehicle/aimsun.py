@@ -401,6 +401,10 @@ class AimsunKernelVehicle(KernelVehicle):
             self.num_type[type_id] = 1
             self.total_num_type[type_id] = 1
 
+    def reset(self):
+        """See parent class."""
+        pass
+
     def remove(self, aimsun_id):
         """See parent class."""
         veh_id = self._id_aimsun2flow[aimsun_id]
