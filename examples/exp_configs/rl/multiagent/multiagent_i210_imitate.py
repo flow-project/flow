@@ -42,7 +42,7 @@ additional_env_params.update({
     'max_decel': 1,
     # configure the observation space. Look at the I210MultiEnv class for more info.
     'lead_obs': True,
-    'v_des': 15.0,
+    'v_des': 12.0,
     'num_imitation_iters': 0
 })
 
