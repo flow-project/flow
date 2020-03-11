@@ -5,11 +5,11 @@ highway with ramps network.
 """
 import os
 
-from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 from ray.tune.registry import register_env
 
 import flow.config as config
 from flow.controllers.rlcontroller import RLController
+from flow.controllers.car_following_models import IDMController
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import InitialConfig
@@ -28,7 +28,7 @@ N_TRAINING_ITERATIONS = 200
 # number of rollouts per training iteration
 N_ROLLOUTS = 2
 # number of steps per rollout
-HORIZON = 500
+HORIZON = 200
 # number of parallel workers
 N_CPUS = 1
 
@@ -52,9 +52,8 @@ vehicles = VehicleParams()
 vehicles.add(
     "human",
     num_vehicles=0,
-    lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="strategic",
-    )
+    lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"),
+    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
 )
 vehicles.add(
     "av",
@@ -70,7 +69,7 @@ assert pen_rate > 0.0, "your penetration rate should be above zero"
 inflow.add(
     veh_type="human",
     edge="119257914",
-    vehs_per_hour=8378 * pen_rate,
+    vehs_per_hour=int(8378 * (1 - pen_rate)),
     # probability=1.0,
     departLane="random",
     departSpeed=20)
@@ -139,7 +138,7 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        sims_per_step=10,
+        sims_per_step=1,
         additional_params=additional_env_params,
     ),
 
@@ -173,7 +172,7 @@ test_env = create_env()
 obs_space = test_env.observation_space
 act_space = test_env.action_space
 
-POLICY_GRAPHS = {'av': (PPOTFPolicy, obs_space, act_space, {})}
+POLICY_GRAPHS = {'av': (None, obs_space, act_space, {})}
 
 POLICIES_TO_TRAIN = ['av']
 

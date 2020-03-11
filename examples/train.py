@@ -72,6 +72,10 @@ def parse_args(args):
     parser.add_argument(
         '--rollout_size', type=int, default=1000,
         help='How many steps are in a training batch.')
+    parser.add_argument(
+        '--imitate', action='store_true', default=False,
+        help='If true, the agent imitates some expert. Needs to use an imitation environment.'
+    )
     parser.add_argument('--local_mode', action='store_true', default=False,
                         help='If true only 1 CPU will be used')
     parser.add_argument('--render', action='store_true', default=False,

@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from ray.rllib.agents.ppo.ppo import PPOTrainer
-from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
+from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy, postprocess_ppo_gae
 from ray.rllib.agents.ppo.ppo_policy import LearningRateSchedule, EntropyCoeffSchedule, KLCoeffMixin, ValueNetworkMixin
 from ray.rllib.utils.annotations import override, DeveloperAPI
 from ray.rllib.policy.sample_batch import SampleBatch
@@ -14,9 +14,8 @@ from ray.rllib.agents.ppo.ppo_policy import kl_and_loss_stats
 from ray.rllib.agents.ppo.ppo import DEFAULT_CONFIG
 import tensorflow as tf
 
-from flow.agents.custom_ppo import postprocess_ppo_gae
-
 BEHAVIOUR_LOGITS = "behaviour_logits"
+
 
 def imitation_loss(policy, model, dist_class, train_batch):
     original_space = restore_original_dimensions(train_batch['obs'], model.obs_space)
@@ -235,16 +234,9 @@ def loss_stats(policy, train_batch):
     return stats
 
 
-class AttributeMixin(object):
-    def __init__(self, config):
-        self.terminal_reward = config['model']['custom_options']['terminal_reward']
-        self.horizon = config['model']['custom_options']['horizon']
-
-
 def setup_mixins(policy, obs_space, action_space, config):
     ValueNetworkMixin.__init__(policy, obs_space, action_space, config)
     KLCoeffMixin.__init__(policy, config)
-    AttributeMixin.__init__(policy, config)
     EntropyCoeffSchedule.__init__(policy, config["entropy_coeff"],
                                   config["entropy_coeff_schedule"])
     LearningRateSchedule.__init__(policy, config["lr"], config["lr_schedule"])
@@ -270,7 +262,7 @@ ImitationPolicy = PPOTFPolicy.with_updates(
     loss_fn=new_ppo_surrogate_loss,
     mixins=[
         LearningRateSchedule, EntropyCoeffSchedule, KLCoeffMixin,
-        ValueNetworkMixin, ImitationLearningRateSchedule, AttributeMixin
+        ValueNetworkMixin, ImitationLearningRateSchedule
     ])
 
 ImitationTrainer = PPOTrainer.with_updates(name="ImitationPPOTrainer", default_policy=ImitationPolicy,

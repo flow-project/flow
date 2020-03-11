@@ -149,7 +149,7 @@ class I210MultiEnv(MultiEnv):
                 reward = self.k.vehicle.get_speed(rl_id)
             elif kwargs['fail']:
                 # reward is 0 if a collision occurred
-                reward = {key: 0 for key in self.k.vehicle.get_rl_ids()}
+                reward = 0
             else:
                 # reward high system-level velocities
                 cost1 = average_velocity(self, fail=kwargs['fail'])
@@ -171,6 +171,11 @@ class I210MultiEnv(MultiEnv):
 
                 reward = max(eta1 * cost1 + eta2 * cost2, 0)
 
+            controller = self.curr_rl_vehicles[rl_id]['controller']
+            accel = controller.get_accel(self)
+            # we are on an internal edge and don't take actions
+            if accel is None:
+                continue
             rewards[rl_id] = reward
         return rewards
 
@@ -270,6 +275,7 @@ class I210MultiImitationEnv(I210MultiEnv):
 
         state_dict = super().get_state()
 
+        return_dict = {}
         for key, value in state_dict.items():
             # this could be the fake final state for vehicles that have left the system
             if key in self.k.vehicle.get_ids():
@@ -279,13 +285,14 @@ class I210MultiImitationEnv(I210MultiEnv):
                 if accel is None:
                     continue
 
-                state_dict[key] = {"a_obs": value,
+                return_dict[key] = {"a_obs": value,
                                    "expert_action": np.array([np.clip(accel, a_min=self.action_space.low[0],
                                                                       a_max=self.action_space.high[0])])}
             else:
                 # this is just for resetting
-                state_dict[key] = {"a_obs": value[:-1], "expert_action": np.array([0.0])}
-        return state_dict
+                return_dict[key] = {"a_obs": value[:-1], "expert_action": np.array([0.0])}
+        # import ipdb; ipdb.set_trace()
+        return return_dict
 
     def _apply_rl_actions(self, rl_actions):
         # iterate through the RL vehicles and find what the other agent would have done
