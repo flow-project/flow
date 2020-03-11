@@ -306,7 +306,7 @@ def punish_rl_lane_changes(env, penalty=1):
     return total_lane_change_penalty
 
 
-def get_energy(env):
+def energy_consumption(env, gain=.001):
     """Calculate power consumption of a vehicle.
 
     Assumes vehicle is an average sized vehicle.
@@ -321,12 +321,12 @@ def get_energy(env):
     Ca = 0.3  # aerodynamic drag coefficient
     rho = 1.225  # air density (kg/m^3)
     A = 2.6  # vehicle cross sectional area (m^2)
-    for veh_id in env.k.get_ids():
-        speed = env.k.get_speed(veh_id)
+    for veh_id in env.k.vehicle.get_ids():
+        speed = env.k.vehicle.get_speed(veh_id)
         prev_speed = env.k.vehicle.get_previous_speed(veh_id)
 
         accel = abs(speed - prev_speed) / env.sim_step
 
         power += M * speed * accel + M * g * Cr * speed + 0.5 * rho * A * Ca * speed ** 3
 
-    return power
+    return -gain * power
