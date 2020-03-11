@@ -1,8 +1,10 @@
 """Environment for training vehicles to reduce congestion in the I210."""
 
-from gym.spaces import Box
+from gym.spaces import Box, Dict
 import numpy as np
 
+from flow.controllers.velocity_controllers import FollowerStopper
+from flow.core.params import SumoCarFollowingParams
 from flow.core.rewards import average_velocity
 from flow.envs.multiagent.base import MultiEnv
 
@@ -16,6 +18,10 @@ ADDITIONAL_ENV_PARAMS = {
     "max_decel": 1,
     # whether we use an obs space that contains adjacent lane info or just the lead obs
     "lead_obs": True,
+    # if imitating, this is how many rollouts to use the expert on without using the agent
+    "num_imitation_iters": 1,
+    # desired velocity of the follower stopper
+    "v_des": 15.0
 }
 
 
@@ -223,3 +229,83 @@ class I210MultiEnv(MultiEnv):
         speed = self.k.vehicle.get_speed(rl_id) / 100.0
         lane = (self.k.vehicle.get_lane(rl_id) + 1) / 10.0
         return np.array([speed, lane])
+
+
+class I210MultiImitationEnv(MultiEnv):
+    """Imitate a follower stopper controller"""
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
+        super().__init__(env_params, sim_params, network, simulator)
+        self.iter_num = 0
+        self.num_imitation_iters = env_params.additional_params.get("num_imitation_iters")
+
+    def init_decentral_controller(self, rl_id):
+        return FollowerStopper(rl_id, car_following_params=SumoCarFollowingParams(),
+                               v_des=self.env_params.additional_params.get("v_des"))
+
+
+    def update_curr_rl_vehicles(self):
+        self.curr_rl_vehicles.update({rl_id: {'controller': self.init_decentral_controller(rl_id)}
+                                      for rl_id in self.k.vehicle.get_rl_ids()
+                                      if rl_id not in self.curr_rl_vehicles.keys()})
+
+
+    def set_iteration_num(self, iter_num):
+        self.iter_num = iter_num
+
+    @property
+    def observation_space(self):
+        obs = super().observation_space
+        return Dict({"a_obs": obs, "expert_action": self.action_space})
+
+
+    def reset(self, new_inflow_rate=None):
+        self.curr_rl_vehicles = {}
+        self.update_curr_rl_vehicles()
+
+        state_dict = super().reset(new_inflow_rate)
+        return state_dict
+
+
+    def get_state(self, rl_actions=None):
+        # iterate through the RL vehicles and find what the other agent would have done
+        self.update_curr_rl_vehicles()
+
+        state_dict = super().get_state(rl_actions)
+
+        for key, value in state_dict.items():
+            # this could be the fake final state for vehicles that have left the system
+            if key in self.k.vehicle.get_ids():
+                controller = self.curr_rl_vehicles[key]['controller']
+                accel = controller.get_accel(self)
+                # we are on an internal edge and don't take actions
+                if accel is None:
+                    continue
+
+                state_dict[key] = {"a_obs": value,
+                                   "expert_action": np.array([np.clip(accel, a_min=self.action_space.low[0],
+                                                                      a_max=self.action_space.high[0])])}
+            else:
+                # this is just for resetting
+                state_dict[key] = {"a_obs": value[:-1], "expert_action": np.array([0.0])}
+        return state_dict
+
+    def _apply_rl_actions(self, rl_actions):
+        # iterate through the RL vehicles and find what the other agent would have done
+        self.update_curr_rl_vehicles()
+        if rl_actions:
+            if self.iter_num < self.num_imitation_iters:
+                id_list = []
+                action_list = []
+                for key, value in rl_actions.items():
+
+                    # a vehicle may have left since we got the state
+                    if key not in self.k.vehicle.get_arrived_ids() and key in self.k.vehicle.get_rl_ids():
+                        controller = self.curr_rl_vehicles[key]['controller']
+                        accel = controller.get_accel(self)
+                        id_list.append(key)
+                        if not accel:
+                            accel = -np.abs(self.action_space.low[0])
+                        action_list.append(accel)
+                self.k.vehicle.apply_acceleration(id_list, action_list)
+            else:
+                super()._apply_rl_actions(rl_actions)
