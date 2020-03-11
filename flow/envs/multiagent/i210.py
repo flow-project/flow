@@ -231,7 +231,7 @@ class I210MultiEnv(MultiEnv):
         return np.array([speed, lane])
 
 
-class I210MultiImitationEnv(MultiEnv):
+class I210MultiImitationEnv(I210MultiEnv):
     """Imitate a follower stopper controller"""
     def __init__(self, env_params, sim_params, network, simulator='traci'):
         super().__init__(env_params, sim_params, network, simulator)
@@ -257,7 +257,6 @@ class I210MultiImitationEnv(MultiEnv):
         obs = super().observation_space
         return Dict({"a_obs": obs, "expert_action": self.action_space})
 
-
     def reset(self, new_inflow_rate=None):
         self.curr_rl_vehicles = {}
         self.update_curr_rl_vehicles()
@@ -265,12 +264,11 @@ class I210MultiImitationEnv(MultiEnv):
         state_dict = super().reset(new_inflow_rate)
         return state_dict
 
-
     def get_state(self, rl_actions=None):
         # iterate through the RL vehicles and find what the other agent would have done
         self.update_curr_rl_vehicles()
 
-        state_dict = super().get_state(rl_actions)
+        state_dict = super().get_state()
 
         for key, value in state_dict.items():
             # this could be the fake final state for vehicles that have left the system

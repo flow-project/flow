@@ -27,6 +27,7 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from copy import deepcopy
 
+from flow.algorithms.imitation_ppo import ImitationTrainer
 from flow.core.util import ensure_dir
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
@@ -113,9 +114,11 @@ def run_model_stablebaseline(flow_params, num_cpus=1, rollout_size=50, num_steps
 def setup_exps_rllib(flow_params,
                      n_cpus,
                      n_rollouts,
+                     flags,
                      policy_graphs=None,
                      policy_mapping_fn=None,
-                     policies_to_train=None):
+                     policies_to_train=None,
+                     ):
     """Return the relevant components of an RLlib experiment.
 
     Parameters
@@ -126,6 +129,8 @@ def setup_exps_rllib(flow_params,
         number of CPUs to run the experiment over
     n_rollouts : int
         number of rollouts per training iteration
+    flags:
+        custom arguments
     policy_graphs : dict, optional
         TODO
     policy_mapping_fn : function, optional
@@ -158,6 +163,14 @@ def setup_exps_rllib(flow_params,
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = horizon
+
+    if flags.imitate:
+        alg_run = ImitationTrainer
+        config['model']['custom_options'].update({"imitation_weight": 1e0})
+        config['model']['custom_options'].update({"num_imitation_iters": 10})
+        config['model']['custom_options']['hard_negative_mining'] = True
+        config['model']['custom_options']['mining_frac'] = 0.1
+        config["model"]["custom_options"]["final_imitation_weight"] = 0.01
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -204,7 +217,7 @@ if __name__ == "__main__":
         policies_to_train = getattr(submodule, "policies_to_train", None)
 
         alg_run, gym_name, config = setup_exps_rllib(
-            flow_params, flags.num_cpus, flags.num_rollouts,
+            flow_params, flags.num_cpus, flags.num_rollouts, flags,
             policy_graphs, policy_mapping_fn, policies_to_train)
 
         config['num_workers'] = flags.num_cpus

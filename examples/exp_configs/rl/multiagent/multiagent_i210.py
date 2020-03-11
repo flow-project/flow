@@ -25,7 +25,7 @@ from flow.utils.registry import make_create_env
 # SET UP PARAMETERS FOR THE SIMULATION
 
 # number of steps per rollout
-HORIZON = 450
+HORIZON = 4500
 
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10
@@ -131,9 +131,8 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        sims_per_step=10,
+        sims_per_step=1,
         additional_params=additional_env_params,
-        sims_per_step=10,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
