@@ -148,6 +148,11 @@ class MultiEnv(MultiAgentEnv, Env):
         # reset the time counter
         self.time_counter = 0
 
+        if self.should_render:
+            self.sim_params.render = True
+            # got to restart the simulation to make it actually display anything
+            self.restart_simulation(self.sim_params)
+
         # warn about not using restart_instance when using inflows
         if len(self.net_params.inflows.get()) > 0 and \
                 not self.sim_params.restart_instance:

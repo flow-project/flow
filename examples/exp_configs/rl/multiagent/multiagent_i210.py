@@ -8,8 +8,9 @@ import os
 from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 from ray.tune.registry import register_env
 
+from flow.controllers import RLController
+from flow.controllers.car_following_models import IDMController
 import flow.config as config
-from flow.controllers.rlcontroller import RLController
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import InitialConfig
@@ -23,14 +24,8 @@ from flow.utils.registry import make_create_env
 
 # SET UP PARAMETERS FOR THE SIMULATION
 
-# number of training iterations
-N_TRAINING_ITERATIONS = 200
-# number of rollouts per training iteration
-N_ROLLOUTS = 2
 # number of steps per rollout
-HORIZON = 500
-# number of parallel workers
-N_CPUS = 1
+HORIZON = 450
 
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10
@@ -50,9 +45,8 @@ vehicles = VehicleParams()
 vehicles.add(
     "human",
     num_vehicles=0,
-    lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="strategic",
-    )
+    lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"),
+    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
 )
 vehicles.add(
     "av",
@@ -68,11 +62,11 @@ assert pen_rate > 0.0, "your penetration rate should be above zero"
 inflow.add(
     veh_type="human",
     edge="119257914",
-    vehs_per_hour=8378 * pen_rate,
+    vehs_per_hour=int(8378 * (1 - pen_rate)),
     # probability=1.0,
     departLane="random",
     departSpeed=20)
-# on ramp
+# # on ramp
 # inflow.add(
 #     veh_type="human",
 #     edge="27414345",
@@ -131,7 +125,7 @@ flow_params = dict(
         sim_step=0.8,
         render=False,
         color_by_speed=True,
-        restart_instance=True
+        restart_instance=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -139,6 +133,7 @@ flow_params = dict(
         horizon=HORIZON,
         sims_per_step=10,
         additional_params=additional_env_params,
+        sims_per_step=10,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

@@ -14,7 +14,8 @@ pyglet==1.3.2
 matplotlib==3.1.0
 imutils==0.5.1
 numpydoc
-ray==0.7.3
+ray==0.8.0
+tabulate
 opencv-python
 dill
 lz4

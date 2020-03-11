@@ -149,7 +149,7 @@ class I210MultiEnv(MultiEnv):
                 reward = self.k.vehicle.get_speed(rl_id)
             elif kwargs['fail']:
                 # reward is 0 if a collision occurred
-                reward = 0
+                reward = {key: 0 for key in self.k.vehicle.get_rl_ids()}
             else:
                 # reward high system-level velocities
                 cost1 = average_velocity(self, fail=kwargs['fail'])
