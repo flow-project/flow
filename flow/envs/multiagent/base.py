@@ -122,7 +122,7 @@ class MultiEnv(MultiAgentEnv, Env):
         else:
             reward = self.compute_reward(rl_actions, fail=crash)
 
-        for rl_id in self.k.vehicle.get_arrived_rl_ids():
+        for rl_id in self.k.vehicle.get_arrived_rl_ids(self.env_params.sims_per_step):
             done[rl_id] = True
             reward[rl_id] = 0
             if isinstance(self.observation_space, Dict):

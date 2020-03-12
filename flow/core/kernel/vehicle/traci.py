@@ -502,10 +502,13 @@ class TraCIVehicle(KernelVehicle):
         else:
             return 0
 
-    def get_arrived_rl_ids(self):
+    def get_arrived_rl_ids(self, k=1):
         """See parent class."""
         if len(self._arrived_rl_ids) > 0:
-            return self._arrived_rl_ids[-1]
+            arrived = []
+            for arr in self._arrived_rl_ids[-k:]:
+                arrived.extend(arr)
+            return arrived
         else:
             return 0
 
