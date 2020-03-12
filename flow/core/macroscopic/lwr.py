@@ -44,6 +44,8 @@ PARAMS = DictDescriptor(
 
     ("dt", 0.0001, float, "time discretization (in seconds/step)"),
 
+    ("lam", 1, float, "exponent of the Green-shield velocity function"),
+
     # ======================================================================= #
     #                      Initial / boundary conditions                      #
     # ======================================================================= #
@@ -201,7 +203,7 @@ class LWR(MacroModelEnv):
         self.boundary_right = None
 
         # lam is an exponent of the Green-shield velocity function
-        self.lam = 1
+        self.lam = params["lam"]
         self.speeds = None
 
         self.obs = None
