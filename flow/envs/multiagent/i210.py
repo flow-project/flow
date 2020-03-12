@@ -256,6 +256,7 @@ class I210MultiEnv(MultiEnv):
 
 class I210MultiImitationEnv(I210MultiEnv):
     """Imitate a follower stopper controller"""
+
     def __init__(self, env_params, sim_params, network, simulator='traci'):
         super().__init__(env_params, sim_params, network, simulator)
         self.iter_num = 0
@@ -265,12 +266,10 @@ class I210MultiImitationEnv(I210MultiEnv):
         return FollowerStopper(rl_id, car_following_params=SumoCarFollowingParams(),
                                v_des=self.env_params.additional_params.get("v_des"))
 
-
     def update_curr_rl_vehicles(self):
         self.curr_rl_vehicles.update({rl_id: {'controller': self.init_decentral_controller(rl_id)}
                                       for rl_id in self.k.vehicle.get_rl_ids()
                                       if rl_id not in self.curr_rl_vehicles.keys()})
-
 
     def set_iteration_num(self, iter_num):
         self.iter_num = iter_num
@@ -304,8 +303,8 @@ class I210MultiImitationEnv(I210MultiEnv):
                     continue
 
                 return_dict[key] = {"a_obs": value,
-                                   "expert_action": np.array([np.clip(accel, a_min=self.action_space.low[0],
-                                                                      a_max=self.action_space.high[0])])}
+                                    "expert_action": np.array([np.clip(accel, a_min=self.action_space.low[0],
+                                                                       a_max=self.action_space.high[0])])}
             else:
                 # this is just for resetting
                 return_dict[key] = {"a_obs": value[:-1], "expert_action": np.array([0.0])}

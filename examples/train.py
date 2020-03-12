@@ -26,6 +26,7 @@ from ray import tune
 from ray.tune import run
 from ray.tune.registry import register_env
 from flow.utils.registry import make_create_env
+
 try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
@@ -57,7 +58,6 @@ def parse_args(args):
         help='Name of the experiment configuration file, as located in '
              'exp_configs/rl/singleagent or exp_configs/rl/multiagent.')
 
-
     # optional input parameters
     parser.add_argument(
         '--rl_trainer', type=str, default="rllib",
@@ -80,7 +80,6 @@ def parse_args(args):
         '--rollout_size', type=int, default=1000,
         help='How many steps are in a training batch.')
     parser.add_argument(
-<<<<<<< HEAD
         '--imitate', action='store_true', default=False,
         help='If true, the agent imitates some expert. Needs to use an imitation environment.'
     )
@@ -89,10 +88,9 @@ def parse_args(args):
                         help='If true only 1 CPU will be used')
     parser.add_argument('--render', action='store_true', default=False,
                         help='If true, we render the display')
-=======
+    parser.add_argument(
         '--checkpoint_path', type=str, default=None,
         help='Directory with checkpoint to restore training from.')
->>>>>>> 2df2afd80ba6a72deae43f11d67cba18310bdf8f
 
     return parser.parse_known_args(args)[0]
 
@@ -189,6 +187,16 @@ def setup_exps_rllib(flow_params,
         config['model']['custom_options']['mining_frac'] = 0.1
         config["model"]["custom_options"]["final_imitation_weight"] = 0.001
 
+        def on_train_result(info):
+            """Store the mean score of the episode, and increment or decrement how many adversaries are on"""
+            result = info["result"]
+            trainer = info["trainer"]
+            trainer.workers.foreach_worker(
+                lambda ev: ev.foreach_env(
+                    lambda env: env.set_iteration_num(result['training_iteration'])))
+
+        config["callbacks"] = {"on_train_result": tune.function(on_train_result)}
+
     # save the flow params for replay
     flow_json = json.dumps(
         flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
@@ -222,7 +230,7 @@ if __name__ == "__main__":
     elif hasattr(module_ma, flags.exp_config):
         submodule = getattr(module_ma, flags.exp_config)
         assert flags.rl_trainer.lower() == "RLlib".lower(), \
-            "Currently, multiagent experiments are only supported through "\
+            "Currently, multiagent experiments are only supported through " \
             "RLlib. Try running this experiment using RLlib: 'python train.py EXP_CONFIG'"
     else:
         assert False, "Unable to find experiment config!"
@@ -253,8 +261,8 @@ if __name__ == "__main__":
             "max_failures": 0,
             "stop": {
                 "training_iteration": flags.num_iterations,
-                },
-            }
+            },
+        }
         eastern = pytz.timezone('US/Eastern')
         date = datetime.now(tz=pytz.utc)
         date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")

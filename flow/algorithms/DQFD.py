@@ -6,9 +6,8 @@ from copy import deepcopy
 import logging
 import collections
 
-import numpy as np
 import ray
-from flow.agents.buffers import PrioritizedReplayBufferWithExperts
+from flow.algorithms.buffers import PrioritizedReplayBufferWithExperts
 from ray.rllib.optimizers.policy_optimizer import PolicyOptimizer
 from ray.rllib.policy.sample_batch import SampleBatch, \
     MultiAgentBatch
@@ -17,10 +16,8 @@ from ray.rllib.utils.compression import pack_if_needed
 from ray.rllib.utils.timer import TimerStat
 from ray.rllib.utils.memory import ray_get_and_free
 
-
 from ray.rllib.agents.trainer_template import build_trainer
 from ray.rllib.agents.dqn.dqn_policy import DQNTFPolicy
-from ray.rllib.agents.dqn.simple_q_policy import SimpleQPolicy
 from ray.rllib.optimizers import SyncReplayOptimizer
 from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
 from ray.rllib.utils.schedules import LinearSchedule
@@ -141,8 +138,6 @@ class DQfDOptimizer(SyncReplayOptimizer):
                     DEFAULT_POLICY_ID: batch
                 }, batch.count)
 
-
-            # TODO(make sure to set the exploration rate correctly)
             for policy_id, s in batch.policy_batches.items():
                 for row in s.rows():
                     # replace the actions with the expert actions
@@ -169,7 +164,6 @@ class DQfDOptimizer(SyncReplayOptimizer):
         self.num_steps_sampled += batch.count
 
 
-# TODO(@evinitsky) use this to sync the iters of all of the envs
 def update_worker_iter(trainer):
     global_timestep = trainer.optimizer.num_steps_sampled
     exp_vals = [trainer.exploration0.value(global_timestep)]
@@ -181,40 +175,6 @@ def update_worker_iter(trainer):
         exp_vals.append(exp_val)
     trainer.train_start_timestep = global_timestep
     trainer.cur_exp_vals = exp_vals
-
-
-def add_terminal_reward(policy,
-                        sample_batch,
-                        other_agent_batches=None,
-                        episode=None):
-    """Postprocess the final reward to include the fnial outflow"""
-
-    net_outflow = 0.0
-    if episode is not None:
-        outflow = np.array(episode.user_data['outflow']) / 2000.0
-        final_time = sample_batch['t'][-1]
-        net_outflow = sum(outflow[final_time:])
-    # This is a hack because we are never returning done correctly so we just check if we have a time equal to the horizon
-    # if we do, we clearly never completed
-    if 't' in sample_batch.keys():
-        completed = (sample_batch['t'][-1] < policy.horizon - 1)
-    else:
-        completed = False
-    if completed:
-        if policy.terminal_reward:
-            last_r = net_outflow
-        else:
-            last_r = 0.0
-    else:
-        next_state = []
-        for i in range(policy.num_state_tensors()):
-            next_state.append([sample_batch["state_out_{}".format(i)][-1]])
-        last_r = policy._value(sample_batch[SampleBatch.NEXT_OBS][-1],
-                               sample_batch[SampleBatch.ACTIONS][-1],
-                               sample_batch[SampleBatch.REWARDS][-1],
-                               *next_state)
-    sample_batch['rewards'][-1] += last_r
-    return sample_batch
 
 
 def make_optimizer(workers, config):
@@ -234,6 +194,7 @@ def make_optimizer(workers, config):
         sample_batch_size=config["sample_batch_size"],
         reserved_frac=config["reserved_frac"],
         **config["optimizer"])
+
 
 GenericOffPolicyTrainer = build_trainer(
     name="GenericOffPolicyAlgorithm",

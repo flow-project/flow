@@ -108,8 +108,6 @@ class MultiEnv(MultiAgentEnv, Env):
         states = self.get_state()
         done = {key: key in self.k.vehicle.get_arrived_ids()
                 for key in states.keys()}
-        if np.sum([key in self.k.vehicle.get_arrived_ids() for key in states.keys()]) > 0:
-            import ipdb; ipdb.set_trace()
         if crash or (self.time_counter >= self.env_params.sims_per_step *
                      (self.env_params.warmup_steps + self.env_params.horizon)):
             done['__all__'] = False

@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 from ray.rllib.agents.ppo.ppo import PPOTrainer
 from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy, postprocess_ppo_gae
 from ray.rllib.agents.ppo.ppo_policy import LearningRateSchedule, EntropyCoeffSchedule, KLCoeffMixin, ValueNetworkMixin
@@ -11,7 +9,6 @@ from ray.rllib.evaluation.postprocessing import Postprocessing
 from ray.rllib.policy.policy import Policy
 from ray.rllib.models.model import restore_original_dimensions
 from ray.rllib.agents.ppo.ppo_policy import kl_and_loss_stats
-from ray.rllib.agents.ppo.ppo import DEFAULT_CONFIG
 import tensorflow as tf
 
 BEHAVIOUR_LOGITS = "behaviour_logits"
@@ -36,7 +33,7 @@ def imitation_loss(policy, model, dist_class, train_batch):
         masked_logp = -tf.boolean_mask(action_dist.logp(expert_tensor), mask)
         top_loss, _ = tf.math.top_k(masked_logp,
                                     int(policy.config['sgd_minibatch_size'] *
-                                        policy.config['model']['custom_options']["mining_frac"]))  # todo make this an actual 10%
+                                        policy.config['model']['custom_options']["mining_frac"]))
         imitation_loss = tf.reduce_mean(top_loss)
 
     else:
@@ -211,8 +208,8 @@ def update_kl(trainer, fetches):
     else:
 
         def update(pi, pi_id):
-            if pi_id in fetches and trainer._iteration > trainer.config['model']['custom_options'][
-                'num_imitation_iters']:
+            if pi_id in fetches and trainer._iteration > \
+                    trainer.config['model']['custom_options']['num_imitation_iters']:
                 print("Updating KL")
                 pi.update_kl(fetches[pi_id]["kl"])
             else:
