@@ -80,6 +80,7 @@ def parse_args(args):
         '--rollout_size', type=int, default=1000,
         help='How many steps are in a training batch.')
     parser.add_argument(
+<<<<<<< HEAD
         '--imitate', action='store_true', default=False,
         help='If true, the agent imitates some expert. Needs to use an imitation environment.'
     )
@@ -88,6 +89,10 @@ def parse_args(args):
                         help='If true only 1 CPU will be used')
     parser.add_argument('--render', action='store_true', default=False,
                         help='If true, we render the display')
+=======
+        '--checkpoint_path', type=str, default=None,
+        help='Directory with checkpoint to restore training from.')
+>>>>>>> 2df2afd80ba6a72deae43f11d67cba18310bdf8f
 
     return parser.parse_known_args(args)[0]
 
