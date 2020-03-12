@@ -126,7 +126,7 @@ if __name__ == "__main__":
             sys.exit("You can't have both local mode and multi node mode on.")
 
         if flags.multi_node:
-            ray.init(num_cpus=flags.num_cpus + 1, redis_address='localhost:6379')
+            ray.init(redis_address='localhost:6379')
         elif flags.local_mode:
             ray.init(local_mode=True, object_store_memory=200 * 1024 * 1024)
         else:
