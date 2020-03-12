@@ -147,11 +147,6 @@ class I210MultiEnv(MultiEnv):
         rewards = {}
         if self.env_params.additional_params["local_reward"]:
             for rl_id in self.k.vehicle.get_rl_ids():
-                controller = self.curr_rl_vehicles[rl_id]['controller']
-                accel = controller.get_accel(self)
-                # we are on an internal edge and don't take actions
-                if accel is None:
-                    continue
                 speeds = []
                 lead_speed = self.k.vehicle.get_speed(self.k.vehicle.get_lane_leaders(rl_id))
                 speeds.extend([speed for speed in lead_speed if speed != -1001])
