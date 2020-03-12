@@ -189,11 +189,6 @@ class I210MultiEnv(MultiEnv):
 
                     reward = max(eta1 * cost1 + eta2 * cost2, 0)
 
-                controller = self.curr_rl_vehicles[rl_id]['controller']
-                accel = controller.get_accel(self)
-                # we are on an internal edge and don't take actions
-                if accel is None:
-                    continue
                 rewards[rl_id] = reward
         return rewards
 
@@ -261,6 +256,7 @@ class I210MultiImitationEnv(I210MultiEnv):
         super().__init__(env_params, sim_params, network, simulator)
         self.iter_num = 0
         self.num_imitation_iters = env_params.additional_params.get("num_imitation_iters")
+        self.curr_rl_vehicles = {}
 
     def init_decentral_controller(self, rl_id):
         return FollowerStopper(rl_id, car_following_params=SumoCarFollowingParams(),
@@ -331,3 +327,15 @@ class I210MultiImitationEnv(I210MultiEnv):
                 self.k.vehicle.apply_acceleration(id_list, action_list)
             else:
                 super()._apply_rl_actions(rl_actions)
+
+    def compute_reward(self, rl_actions, **kwargs):
+        reward_dict = super().compute_reward(rl_actions)
+        new_reward_dict = {}
+        for key, value in reward_dict.items():
+            controller = self.curr_rl_vehicles[reward_dict]['controller']
+            accel = controller.get_accel(self)
+            # we are on an internal edge and don't take actions
+            if accel is None:
+                continue
+            else:
+                new_reward_dict[key] = value
