@@ -362,6 +362,9 @@ class TraCIVehicle(KernelVehicle):
 
         return new_obs
 
+    def reset(self):
+        pass
+
     def remove(self, veh_id):
         """See parent class."""
         # remove from sumo
