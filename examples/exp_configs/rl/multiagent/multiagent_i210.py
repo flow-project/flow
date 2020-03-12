@@ -9,6 +9,7 @@ from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 from ray.tune.registry import register_env
 
 import flow.config as config
+from flow.controllers.rlcontroller import RLController
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import InitialConfig
@@ -39,6 +40,8 @@ additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
 additional_env_params.update({
     'max_accel': 1,
     'max_decel': 1,
+    # configure the observation space. Look at the I210MultiEnv class for more info.
+    'lead_obs': True,
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
@@ -53,6 +56,7 @@ vehicles.add(
 )
 vehicles.add(
     "av",
+    acceleration_controller=(RLController, {}),
     num_vehicles=0,
 )
 
@@ -69,18 +73,18 @@ inflow.add(
     departLane="random",
     departSpeed=20)
 # on ramp
-inflow.add(
-    veh_type="human",
-    edge="27414345",
-    vehs_per_hour=321 * pen_rate,
-    departLane="random",
-    departSpeed=20)
-inflow.add(
-    veh_type="human",
-    edge="27414342#0",
-    vehs_per_hour=421 * pen_rate,
-    departLane="random",
-    departSpeed=20)
+# inflow.add(
+#     veh_type="human",
+#     edge="27414345",
+#     vehs_per_hour=321 * pen_rate,
+#     departLane="random",
+#     departSpeed=20)
+# inflow.add(
+#     veh_type="human",
+#     edge="27414342#0",
+#     vehs_per_hour=421 * pen_rate,
+#     departLane="random",
+#     departSpeed=20)
 
 # Now add the AVs
 # main highway
@@ -91,19 +95,19 @@ inflow.add(
     # probability=1.0,
     departLane="random",
     departSpeed=20)
-# on ramp
-inflow.add(
-    veh_type="av",
-    edge="27414345",
-    vehs_per_hour=int(321 * pen_rate),
-    departLane="random",
-    departSpeed=20)
-inflow.add(
-    veh_type="av",
-    edge="27414342#0",
-    vehs_per_hour=int(421 * pen_rate),
-    departLane="random",
-    departSpeed=20)
+# # on ramp
+# inflow.add(
+#     veh_type="av",
+#     edge="27414345",
+#     vehs_per_hour=int(321 * pen_rate),
+#     departLane="random",
+#     departSpeed=20)
+# inflow.add(
+#     veh_type="av",
+#     edge="27414342#0",
+#     vehs_per_hour=int(421 * pen_rate),
+#     departLane="random",
+#     departSpeed=20)
 
 NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,
@@ -124,7 +128,7 @@ flow_params = dict(
 
     # simulation-related parameters
     sim=SumoParams(
-        sim_step=0.1,
+        sim_step=0.8,
         render=False,
         color_by_speed=True,
         restart_instance=True
@@ -132,7 +136,8 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=HORIZON,  # TODO(@evinitsky) decrease it when testing
+        horizon=HORIZON,
+        sims_per_step=1,
         additional_params=additional_env_params,
     ),
 

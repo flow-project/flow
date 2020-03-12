@@ -124,29 +124,3 @@ class BayBridgeRouter(ContinuousRouter):
             new_route = super().choose_route(env)
 
         return new_route
-
-
-class I210Router(ContinuousRouter):
-    """Assists in choosing routes in select cases for the I210 network.
-
-    Extension to the Continuous Router.
-
-    Usage
-    -----
-    See base class for usage example.
-    """
-
-    def choose_route(self, env):
-        """See parent class."""
-        edge = env.k.vehicle.get_edge(self.veh_id)
-        lane = env.k.vehicle.get_lane(self.veh_id)
-
-        # vehicles on these edges in lanes 4 and 5 are not going to be able to
-        # make it out in time
-        if edge == "119257908#1-AddedOffRampEdge" and lane in [5, 4, 3]:
-            new_route = env.available_routes[
-                "119257908#1-AddedOffRampEdge"][0][0]
-        else:
-            new_route = super().choose_route(env)
-
-        return new_route

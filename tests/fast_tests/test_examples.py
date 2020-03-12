@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os
 import unittest
 import random
@@ -15,7 +16,7 @@ from examples.exp_configs.rl.singleagent.singleagent_ring import flow_params as 
 from examples.exp_configs.rl.singleagent.singleagent_bottleneck import flow_params as singleagent_bottleneck
 
 from examples.exp_configs.rl.multiagent.adversarial_figure_eight import flow_params as adversarial_figure_eight
-# from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as multiagent_i210
+from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as multiagent_i210
 from examples.exp_configs.rl.multiagent.multiagent_figure_eight import flow_params as multiagent_figure_eight
 from examples.exp_configs.rl.multiagent.multiagent_merge import flow_params as multiagent_merge
 from examples.exp_configs.rl.multiagent.lord_of_the_rings import \
@@ -253,16 +254,56 @@ class TestRllibExamples(unittest.TestCase):
         }
         self.run_exp(multiagent_highway, **kwargs)
 
-    # TODO(@evinitsky) enable
-    # def test_multiagent_i210(self):
-    #     from examples.exp_configs.rl.multiagent.multiagent_i210 import POLICY_GRAPHS as mi210pg
-    #     from examples.exp_configs.rl.multiagent.multiagent_i210 import policy_mapping_fn as mi210mf
-    #
-    #     kwargs = {
-    #         "policy_graphs": mi210pg,
-    #         "policy_mapping_fn": mi210mf
-    #     }
-    #     self.run_exp(multiagent_i210, **kwargs)
+    def test_multiagent_i210(self):
+        from examples.exp_configs.rl.multiagent.multiagent_i210 import POLICIES_TO_TRAIN as mi210pr
+        from examples.exp_configs.rl.multiagent.multiagent_i210 import policy_mapping_fn as mi210mf
+
+        from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
+        from ray.tune.registry import register_env
+        from flow.utils.registry import make_create_env
+        # test observation space 1
+        flow_params = deepcopy(multiagent_i210)
+        flow_params['env'].additional_params['lead_obs'] = True
+        create_env, env_name = make_create_env(params=flow_params, version=0)
+
+        # register as rllib env
+        register_env(env_name, create_env)
+
+        # multiagent configuration
+        test_env = create_env()
+        obs_space = test_env.observation_space
+        act_space = test_env.action_space
+
+        POLICY_GRAPHS = {'av': (PPOTFPolicy, obs_space, act_space, {})}
+
+        kwargs = {
+            "policy_graphs": POLICY_GRAPHS,
+            "policies_to_train": mi210pr,
+            "policy_mapping_fn": mi210mf
+        }
+        self.run_exp(flow_params, **kwargs)
+
+        # test observation space 2
+        flow_params = deepcopy(multiagent_i210)
+        flow_params['env'].additional_params['lead_obs'] = False
+        create_env, env_name = make_create_env(params=flow_params, version=0)
+
+        # register as rllib env
+        register_env(env_name, create_env)
+
+        # multiagent configuration
+        test_env = create_env()
+        obs_space = test_env.observation_space
+        act_space = test_env.action_space
+
+        POLICY_GRAPHS = {'av': (PPOTFPolicy, obs_space, act_space, {})}
+
+        kwargs = {
+            "policy_graphs": POLICY_GRAPHS,
+            "policies_to_train": mi210pr,
+            "policy_mapping_fn": mi210mf
+        }
+        self.run_exp(flow_params, **kwargs)
 
     @staticmethod
     def run_exp(flow_params, **kwargs):
