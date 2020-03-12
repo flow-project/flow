@@ -21,7 +21,9 @@ ADDITIONAL_ENV_PARAMS = {
     # if imitating, this is how many rollouts to use the expert on without using the agent
     "num_imitation_iters": 1,
     # desired velocity of the follower stopper
-    "v_des": 15.0
+    "v_des": 15.0,
+    # whether to add in a reward for the speed of nearby vehicles
+    "local_reward": True
 }
 
 
@@ -143,40 +145,56 @@ class I210MultiEnv(MultiEnv):
             return {}
 
         rewards = {}
-        for rl_id in self.k.vehicle.get_rl_ids():
-            if self.env_params.evaluate:
-                # reward is speed of vehicle if we are in evaluation mode
-                reward = self.k.vehicle.get_speed(rl_id)
-            elif kwargs['fail']:
-                # reward is 0 if a collision occurred
-                reward = 0
-            else:
-                # reward high system-level velocities
-                cost1 = average_velocity(self, fail=kwargs['fail'])
+        if self.env_params.additional_params["local_reward"]:
+            for rl_id in self.k.vehicle.get_rl_ids():
+                controller = self.curr_rl_vehicles[rl_id]['controller']
+                accel = controller.get_accel(self)
+                # we are on an internal edge and don't take actions
+                if accel is None:
+                    continue
+                speeds = []
+                lead_speed = self.k.vehicle.get_speed(self.k.vehicle.get_lane_leaders(rl_id))
+                speeds.extend([speed for speed in lead_speed if speed != -1001])
+                follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_lane_followers(rl_id))
+                speeds.extend([speed for speed in follow_speed if speed != -1001])
+                speeds.append(self.k.vehicle.get_speed(rl_id))
+                rewards[rl_id] = np.mean(speeds)
 
-                # penalize small time headways
-                cost2 = 0
-                t_min = 1  # smallest acceptable time headway
+        else:
+            for rl_id in self.k.vehicle.get_rl_ids():
+                if self.env_params.evaluate:
+                    # reward is speed of vehicle if we are in evaluation mode
+                    reward = self.k.vehicle.get_speed(rl_id)
+                elif kwargs['fail']:
+                    # reward is 0 if a collision occurred
+                    reward = 0
+                else:
+                    # reward high system-level velocities
+                    cost1 = average_velocity(self, fail=kwargs['fail'])
 
-                lead_id = self.k.vehicle.get_leader(rl_id)
-                if lead_id not in ["", None] \
-                        and self.k.vehicle.get_speed(rl_id) > 0:
-                    t_headway = max(
-                        self.k.vehicle.get_headway(rl_id) /
-                        self.k.vehicle.get_speed(rl_id), 0)
-                    cost2 += min((t_headway - t_min) / t_min, 0)
+                    # penalize small time headways
+                    cost2 = 0
+                    t_min = 1  # smallest acceptable time headway
 
-                # weights for cost1, cost2, and cost3, respectively
-                eta1, eta2 = 1.00, 0.10
+                    lead_id = self.k.vehicle.get_leader(rl_id)
+                    if lead_id not in ["", None] \
+                            and self.k.vehicle.get_speed(rl_id) > 0:
+                        t_headway = max(
+                            self.k.vehicle.get_headway(rl_id) /
+                            self.k.vehicle.get_speed(rl_id), 0)
+                        cost2 += min((t_headway - t_min) / t_min, 0)
 
-                reward = max(eta1 * cost1 + eta2 * cost2, 0)
+                    # weights for cost1, cost2, and cost3, respectively
+                    eta1, eta2 = 1.00, 0.10
 
-            controller = self.curr_rl_vehicles[rl_id]['controller']
-            accel = controller.get_accel(self)
-            # we are on an internal edge and don't take actions
-            if accel is None:
-                continue
-            rewards[rl_id] = reward
+                    reward = max(eta1 * cost1 + eta2 * cost2, 0)
+
+                controller = self.curr_rl_vehicles[rl_id]['controller']
+                accel = controller.get_accel(self)
+                # we are on an internal edge and don't take actions
+                if accel is None:
+                    continue
+                rewards[rl_id] = reward
         return rewards
 
     def additional_command(self):

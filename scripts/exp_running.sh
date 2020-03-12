@@ -2,6 +2,6 @@
 
 # 3/11 exps
 ray exec ray_autoscale.yaml \
-"python flow/examples/train.py --exp_title imitation_test --num_iterations 20 --num_rollouts 10 --num_cpus 10 \
+"python flow/examples/train.py multiagent_i210_imitate --exp_title imitation_test --num_iterations 20 --num_rollouts 10 --num_cpus 10 \
 --imitate" \
---start --stop --cluster-name ev_test_im
+--start --stop --cluster-name ev_test_im --tmux
