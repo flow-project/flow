@@ -27,6 +27,7 @@ except ImportError:
 from copy import deepcopy
 
 import multilane_ring_smoothing as exp_config
+from examples.train import setup_exps_rllib
 
 from flow.core.experiment import Experiment
 from flow.core.util import ensure_dir
