@@ -19,7 +19,7 @@ try:
     from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
     from stable_baselines import PPO2
 except Exception as e:
-    pass
+    print(e)
 
 import ray
 from ray import tune
@@ -188,7 +188,7 @@ def setup_exps_rllib(flow_params,
         config["model"]["custom_options"]["final_imitation_weight"] = 0.001
 
         def on_train_result(info):
-            """Store the mean score of the episode, and increment or decrement how many adversaries are on"""
+            """Store the mean score of the episode, and increment or decrement how many adversaries are on."""
             result = info["result"]
             trainer = info["trainer"]
             trainer.workers.foreach_worker(

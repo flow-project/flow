@@ -245,7 +245,7 @@ class I210MultiEnv(MultiEnv):
 
 
 class I210MultiImitationEnv(I210MultiEnv):
-    """Imitate a follower stopper controller"""
+    """Imitate a follower stopper controller."""
 
     def __init__(self, env_params, sim_params, network, simulator='traci'):
         super().__init__(env_params, sim_params, network, simulator)
@@ -254,23 +254,28 @@ class I210MultiImitationEnv(I210MultiEnv):
         self.curr_rl_vehicles = {}
 
     def init_decentral_controller(self, rl_id):
+        """Construct a FollowerStopper for each car that we can use as an expert."""
         return FollowerStopper(rl_id, car_following_params=SumoCarFollowingParams(),
                                v_des=self.env_params.additional_params.get("v_des"))
 
     def update_curr_rl_vehicles(self):
+        """Add an additional expert for newly arrived RL vehicles."""
         self.curr_rl_vehicles.update({rl_id: {'controller': self.init_decentral_controller(rl_id)}
                                       for rl_id in self.k.vehicle.get_rl_ids()
                                       if rl_id not in self.curr_rl_vehicles.keys()})
 
     def set_iteration_num(self, iter_num):
+        """Track which training iteration we are on so we know when to turn the expert off."""
         self.iter_num = iter_num
 
     @property
     def observation_space(self):
+        """See parent class."""
         obs = super().observation_space
         return Dict({"a_obs": obs, "expert_action": self.action_space})
 
     def reset(self, new_inflow_rate=None):
+        """See parent class."""
         self.curr_rl_vehicles = {}
         self.update_curr_rl_vehicles()
 
@@ -278,6 +283,7 @@ class I210MultiImitationEnv(I210MultiEnv):
         return state_dict
 
     def get_state(self, rl_actions=None):
+        """See parent class."""
         # iterate through the RL vehicles and find what the other agent would have done
         self.update_curr_rl_vehicles()
 
@@ -303,6 +309,7 @@ class I210MultiImitationEnv(I210MultiEnv):
         return return_dict
 
     def _apply_rl_actions(self, rl_actions):
+        """See parent class."""
         # iterate through the RL vehicles and find what the other agent would have done
         self.update_curr_rl_vehicles()
         if rl_actions:
@@ -324,6 +331,7 @@ class I210MultiImitationEnv(I210MultiEnv):
                 super()._apply_rl_actions(rl_actions)
 
     def compute_reward(self, rl_actions, **kwargs):
+        """See parent class."""
         reward_dict = super().compute_reward(rl_actions)
         new_reward_dict = {}
         for key, value in reward_dict.items():

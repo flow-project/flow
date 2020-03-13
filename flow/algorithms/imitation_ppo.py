@@ -1,3 +1,5 @@
+"""PPO plus an imitation loss that tries to maximize logprob between policy and expert."""
+
 from ray.rllib.agents.ppo.ppo import PPOTrainer
 from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy, postprocess_ppo_gae
 from ray.rllib.agents.ppo.ppo_policy import LearningRateSchedule, EntropyCoeffSchedule, KLCoeffMixin, ValueNetworkMixin
@@ -15,6 +17,7 @@ BEHAVIOUR_LOGITS = "behaviour_logits"
 
 
 def imitation_loss(policy, model, dist_class, train_batch):
+    """Combine the PPO loss with a loss computing the log prob between policy and expert."""
     original_space = restore_original_dimensions(train_batch['obs'], model.obs_space)
     expert_tensor = original_space['expert_action']
     logits, state = model.from_batch(train_batch)
@@ -45,12 +48,15 @@ def imitation_loss(policy, model, dist_class, train_batch):
 
 # def new_ppo_surrogate_loss(policy, batch_tensors):
 def new_ppo_surrogate_loss(policy, model, dist_class, train_batch):
+    """Combine the weighted PPO loss with the weighted imitation loss."""
     policy.imitation_loss = imitation_loss(policy, model, dist_class, train_batch)
     loss = ppo_surrogate_loss(policy, model, dist_class, train_batch)
     return policy.policy_weight * loss + policy.imitation_weight * policy.imitation_loss
 
 
 class PPOLoss(object):
+    """Standard PPO loss from RLlib."""
+
     def __init__(self,
                  action_space,
                  dist_class,
@@ -71,9 +77,10 @@ class PPOLoss(object):
                  vf_loss_coeff=1.0,
                  use_gae=True,
                  model_config=None):
-        """Constructs the loss for Proximal Policy Objective.
+        """Construct the loss for Proximal Policy Objective.
 
         Arguments:
+        ---------
             action_space: Environment observation space specification.
             dist_class: action distribution class for logits.
             value_targets (Placeholder): Placeholder for target values; used
@@ -102,7 +109,6 @@ class PPOLoss(object):
             model_config (dict): (Optional) model config for use in specifying
                 action distributions.
         """
-
         def reduce_mean_valid(t):
             return tf.reduce_mean(tf.boolean_mask(t, valid_mask))
 
@@ -140,6 +146,7 @@ class PPOLoss(object):
 
 
 def ppo_surrogate_loss(policy, model, dist_class, train_batch):
+    """Form standard PPO loss."""
     logits, state = model.from_batch(train_batch)
     action_dist = dist_class(logits, model)
 
@@ -177,7 +184,7 @@ def ppo_surrogate_loss(policy, model, dist_class, train_batch):
 
 @DeveloperAPI
 class ImitationLearningRateSchedule(object):
-    """Mixin for TFPolicy that adds a learning rate schedule."""
+    """Mixin for TFPolicy that adds an imitation schedule schedule."""
 
     @DeveloperAPI
     def __init__(self, num_imitation_iters, imitation_weight, config):
@@ -192,6 +199,7 @@ class ImitationLearningRateSchedule(object):
 
     @override(Policy)
     def on_global_var_update(self, global_vars):
+        """At every training update, check if we need to change the imitation loss weight."""
         super(ImitationLearningRateSchedule, self).on_global_var_update(global_vars)
 
         if self.curr_iter >= self.num_imitation_iters:
@@ -201,6 +209,7 @@ class ImitationLearningRateSchedule(object):
 
 
 def update_kl(trainer, fetches):
+    """Mixin for TFPolicy that updates the KL coefficient in the penalty."""
     if "kl" in fetches:
         # single-agent
         trainer.workers.local_worker().for_policy(
@@ -223,6 +232,7 @@ def update_kl(trainer, fetches):
 
 
 def loss_stats(policy, train_batch):
+    """Print standard PPO stats plus the imitation loss stats."""
     stats = kl_and_loss_stats(policy, train_batch)
     stats.update({'imitation_logprob': -policy.imitation_loss,
                   'policy_weight': policy.policy_weight,
@@ -232,6 +242,7 @@ def loss_stats(policy, train_batch):
 
 
 def setup_mixins(policy, obs_space, action_space, config):
+    """Initialize the mixins."""
     ValueNetworkMixin.__init__(policy, obs_space, action_space, config)
     KLCoeffMixin.__init__(policy, config)
     EntropyCoeffSchedule.__init__(policy, config["entropy_coeff"],
@@ -242,6 +253,7 @@ def setup_mixins(policy, obs_space, action_space, config):
 
 
 def grad_stats(policy, train_batch, grads):
+    """Print stats about the gradients."""
     return {
         "grad_gnorm": tf.global_norm(grads),
         "vf_explained_var": explained_variance(

@@ -236,9 +236,6 @@ class MultiEnv(MultiAgentEnv, Env):
         # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()
 
-        # update the information in each kernel to match the current state
-        self.k.update(reset=True)
-
         # update the colors of vehicles
         if self.sim_params.render:
             self.k.vehicle.update_vehicle_colors()
