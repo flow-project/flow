@@ -17,19 +17,22 @@ Usage
     python time_space_diagram.py </path/to/emission>.csv </path/to/params>.json
 """
 from flow.utils.rllib import get_flow_params
-from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork
+from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork
+
+import argparse
 import csv
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
 import matplotlib.colors as colors
 import numpy as np
-import argparse
+
 
 # networks that can be plotted by this method
 ACCEPTABLE_NETWORKS = [
     RingNetwork,
     FigureEightNetwork,
     MergeNetwork,
+    I210SubNetwork
 ]
 
 
@@ -52,7 +55,7 @@ def import_data_from_emission(fp):
         * "vel": speed at every sample
     """
     # initialize all output variables
-    veh_id, t, edge, rel_pos, vel = [], [], [], [], []
+    veh_id, t, edge, rel_pos, vel, lane = [], [], [], [], [], []
 
     # import relevant data from emission file
     for record in csv.DictReader(open(fp)):
@@ -61,15 +64,17 @@ def import_data_from_emission(fp):
         edge.append(record['edge_id'])
         rel_pos.append(record['relative_position'])
         vel.append(record['speed'])
+        lane.append(record['lane_number'])
 
     # we now want to separate data by vehicle ID
-    ret = {key: {'time': [], 'edge': [], 'pos': [], 'vel': []}
+    ret = {key: {'time': [], 'edge': [], 'pos': [], 'vel': [], 'lane': []}
            for key in np.unique(veh_id)}
     for i in range(len(veh_id)):
         ret[veh_id[i]]['time'].append(float(t[i]))
         ret[veh_id[i]]['edge'].append(edge[i])
         ret[veh_id[i]]['pos'].append(float(rel_pos[i]))
         ret[veh_id[i]]['vel'].append(float(vel[i]))
+        ret[veh_id[i]]['lane'].append(float(lane[i]))
 
     return ret
 
@@ -123,7 +128,8 @@ def get_time_space_data(data, params):
     switcher = {
         RingNetwork: _ring_road,
         MergeNetwork: _merge,
-        FigureEightNetwork: _figure_eight
+        FigureEightNetwork: _figure_eight,
+        I210SubNetwork: _i210_subnetwork
     }
 
     # Collect a list of all the unique times.
@@ -136,7 +142,7 @@ def get_time_space_data(data, params):
     func = switcher[params['network']]
 
     # Execute the function
-    pos, speed = func(data, params, all_time)
+    pos, speed, all_time = func(data, params, all_time)
 
     return pos, speed, all_time
 
@@ -212,7 +218,7 @@ def _merge(data, params, all_time):
             pos[ind, i] = abs_pos
             speed[ind, i] = spd
 
-    return pos, speed
+    return pos, speed, all_time
 
 
 def _ring_road(data, params, all_time):
@@ -278,7 +284,89 @@ def _ring_road(data, params, all_time):
             pos[ind, i] = abs_pos
             speed[ind, i] = spd
 
-    return pos, speed
+    return pos, speed, all_time
+
+
+def _i210_subnetwork(data, params, all_time):
+    r"""Generate position and speed data for the i210 subnetwork.
+
+    We only look at the second to last lane of edge 119257908#1-AddedOnRampEdge
+
+    Parameters
+    ----------
+    data : dict of dict
+        Key = "veh_id": name of the vehicle \n Elements:
+
+        * "time": time step at every sample
+        * "edge": edge ID at every sample
+        * "pos": relative position at every sample
+        * "vel": speed at every sample
+    params : dict
+        flow-specific parameters
+    all_time : array_like
+        a (n_steps,) vector representing the unique time steps in the
+        simulation
+
+    Returns
+    -------
+    as_array
+        n_steps x n_veh matrix specifying the absolute position of every
+        vehicle at every time step. Set to zero if the vehicle is not present
+        in the network at that time step.
+    as_array
+        n_steps x n_veh matrix specifying the speed of every vehicle at every
+        time step. Set to zero if the vehicle is not present in the network at
+        that time step.
+    """
+    # import network data from flow params
+    #
+    # edge_starts = {"119257908#0": 0,
+    #                "119257908#1-AddedOnRampEdge": 686.98}
+    desired_lane = 1
+    edge_starts = {"119257914": 0,
+                   "119257908#0": 61.58,
+                   "119257908#1-AddedOnRampEdge": 686.98 + 61.58}
+    # edge_starts = {"119257908#0": 0}
+    # edge_starts = {"119257908#1-AddedOnRampEdge": 0}
+    # desired_lane = 5
+
+    # compute the absolute position
+    for veh_id in data.keys():
+        data[veh_id]['abs_pos'] = _get_abs_pos_1_edge(data[veh_id]['edge'],
+                                                      data[veh_id]['pos'],
+                                                      edge_starts)
+
+    # create the output variables
+    # TODO(@ev) handle subsampling better than this
+    low_time = int(0 / params['sim'].sim_step)
+    high_time = int(1600 / params['sim'].sim_step)
+    all_time = all_time[low_time:high_time]
+
+    # track only vehicles that were around during this time period
+    observed_row_list = []
+    pos = np.zeros((all_time.shape[0], len(data.keys())))
+    speed = np.zeros((all_time.shape[0], len(data.keys())))
+    for i, veh_id in enumerate(sorted(data.keys())):
+        for spd, abs_pos, ti, edge, lane in zip(data[veh_id]['vel'],
+                                                data[veh_id]['abs_pos'],
+                                                data[veh_id]['time'],
+                                                data[veh_id]['edge'],
+                                                data[veh_id]['lane']):
+            # avoid vehicles not on the relevant edges. Also only check the second to
+            # last lane
+            if edge not in edge_starts.keys() or ti not in all_time or lane != desired_lane:
+                continue
+            else:
+                if i not in observed_row_list:
+                    observed_row_list.append(i)
+            ind = np.where(ti == all_time)[0]
+            pos[ind, i] = abs_pos
+            speed[ind, i] = spd
+
+    pos = pos[:, observed_row_list]
+    speed = speed[:, observed_row_list]
+
+    return pos, speed, all_time
 
 
 def _figure_eight(data, params, all_time):
@@ -328,14 +416,14 @@ def _figure_eight(data, params, all_time):
         'top': intersection / 2 + junction + inner,
         'upper_ring': intersection + junction + 2 * inner,
         'right': intersection + 3 * ring_edgelen + junction + 3 * inner,
-        'left': 1.5*intersection + 3*ring_edgelen + 2*junction + 3*inner,
-        'lower_ring': 2*intersection + 3*ring_edgelen + 2*junction + 4*inner,
+        'left': 1.5 * intersection + 3 * ring_edgelen + 2 * junction + 3 * inner,
+        'lower_ring': 2 * intersection + 3 * ring_edgelen + 2 * junction + 4 * inner,
         ':bottom_0': 0,
         ':center_1': intersection / 2 + inner,
         ':top_0': intersection + junction + inner,
         ':right_0': intersection + 3 * ring_edgelen + junction + 2 * inner,
-        ':center_0': 1.5*intersection + 3*ring_edgelen + junction + 3*inner,
-        ':left_0': 2 * intersection + 3*ring_edgelen + 2*junction + 3*inner,
+        ':center_0': 1.5 * intersection + 3 * ring_edgelen + junction + 3 * inner,
+        ':left_0': 2 * intersection + 3 * ring_edgelen + 2 * junction + 3 * inner,
         # for aimsun
         'bottom_to_top': intersection / 2 + inner,
         'right_to_left': junction + 3 * inner,
@@ -358,7 +446,7 @@ def _figure_eight(data, params, all_time):
             speed[ind, i] = spd
 
     # reorganize data for space-time plot
-    figure_eight_len = 6*ring_edgelen + 2*intersection + 2*junction + 10*inner
+    figure_eight_len = 6 * ring_edgelen + 2 * intersection + 2 * junction + 10 * inner
     intersection_loc = [edgestarts[':center_1'] + intersection / 2,
                         edgestarts[':center_0'] + intersection / 2]
     pos[pos < intersection_loc[0]] += figure_eight_len
@@ -367,7 +455,7 @@ def _figure_eight(data, params, all_time):
     pos[pos > intersection_loc[1]] = \
         - pos[pos > intersection_loc[1]] + figure_eight_len + intersection_loc[0]
 
-    return pos, speed
+    return pos, speed, all_time
 
 
 def _get_abs_pos(edge, rel_pos, edgestarts):
@@ -395,6 +483,34 @@ def _get_abs_pos(edge, rel_pos, edgestarts):
     return ret
 
 
+def _get_abs_pos_1_edge(edges, rel_pos, edge_starts):
+    """Compute the absolute positions from a subset of edges.
+
+    This is the variable we will ultimately use to plot individual vehicles.
+
+    Parameters
+    ----------
+    edges : list of str
+        list of edges at every time step
+    rel_pos : list of float
+        list of relative positions at every time step
+    edge_starts : dict
+        the absolute starting position of every edge
+
+    Returns
+    -------
+    list of float
+        the absolute positive for every sample
+    """
+    ret = []
+    for edge_i, pos_i in zip(edges, rel_pos):
+        if edge_i in edge_starts.keys():
+            ret.append(pos_i + edge_starts[edge_i])
+        else:
+            ret.append(-1)
+    return ret
+
+
 if __name__ == '__main__':
     # create the parser
     parser = argparse.ArgumentParser(
@@ -416,6 +532,8 @@ if __name__ == '__main__':
                         help='rate at which steps are plotted.')
     parser.add_argument('--max_speed', type=int, default=8,
                         help='The maximum speed in the color range.')
+    parser.add_argument('--min_speed', type=int, default=0,
+                        help='The minimum speed in the color range.')
     parser.add_argument('--start', type=float, default=0,
                         help='initial time (in sec) in the plot.')
     parser.add_argument('--stop', type=float, default=float('inf'),
@@ -424,7 +542,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # flow_params is imported as a dictionary
-    flow_params = get_flow_params(args.flow_params)
+    if '.json' in args.flow_params:
+        flow_params = get_flow_params(args.flow_params)
+    else:
+        module = __import__("examples.exp_configs.non_rl", fromlist=[args.flow_params])
+        flow_params = getattr(module, args.flow_params).flow_params
 
     # import data from the emission.csv file
     emission_data = import_data_from_emission(args.emission_path)
@@ -443,7 +565,7 @@ if __name__ == '__main__':
     # perform plotting operation
     fig = plt.figure(figsize=(16, 9))
     ax = plt.axes()
-    norm = plt.Normalize(0, args.max_speed)
+    norm = plt.Normalize(args.min_speed, args.max_speed)
     cols = []
 
     xmin = max(time[0], args.start)
@@ -458,14 +580,20 @@ if __name__ == '__main__':
     for indx_car in range(pos.shape[1]):
         unique_car_pos = pos[:, indx_car]
 
-        # discontinuity from wraparound
-        disc = np.where(np.abs(np.diff(unique_car_pos)) >= 10)[0] + 1
-        unique_car_time = np.insert(time, disc, np.nan)
-        unique_car_pos = np.insert(unique_car_pos, disc, np.nan)
-        unique_car_speed = np.insert(speed[:, indx_car], disc, np.nan)
+        if flow_params['network'] == I210SubNetwork:
+            indices = np.where(pos[:, indx_car] != 0)[0]
+            unique_car_speed = speed[indices, indx_car]
+            points = np.array([time[indices], pos[indices, indx_car]]).T.reshape(-1, 1, 2)
+        else:
 
-        points = np.array(
-            [unique_car_time, unique_car_pos]).T.reshape(-1, 1, 2)
+            # discontinuity from wraparound
+            disc = np.where(np.abs(np.diff(unique_car_pos)) >= 10)[0] + 1
+            unique_car_time = np.insert(time, disc, np.nan)
+            unique_car_pos = np.insert(unique_car_pos, disc, np.nan)
+            unique_car_speed = np.insert(speed[:, indx_car], disc, np.nan)
+            #
+            points = np.array(
+                [unique_car_time, unique_car_pos]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
         lc = LineCollection(segments, cmap=my_cmap, norm=norm)
 
@@ -480,7 +608,7 @@ if __name__ == '__main__':
 
     for col in cols:
         line = ax.add_collection(col)
-    cbar = plt.colorbar(line, ax=ax)
+    cbar = plt.colorbar(line, ax=ax, norm=norm)
     cbar.set_label('Velocity (m/s)', fontsize=20)
     cbar.ax.tick_params(labelsize=18)
 

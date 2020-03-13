@@ -51,7 +51,7 @@ def figure_eight_baseline(num_runs, render=True):
     exp = Experiment(flow_params)
 
     results = exp.run(num_runs)
-    avg_speed = np.mean(results['mean_returns'])
+    avg_speed = np.mean(results['returns'])
 
     return avg_speed
 

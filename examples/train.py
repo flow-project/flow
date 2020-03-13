@@ -53,8 +53,8 @@ def parse_args(args):
 
     # optional input parameters
     parser.add_argument(
-        '--rl_trainer', type=str, default="RLlib",
-        help='the RL trainer to use. either RLlib or Stable-Baselines')
+        '--rl_trainer', type=str, default="rllib",
+        help='the RL trainer to use. either rllib or Stable-Baselines')
 
     parser.add_argument(
         '--num_cpus', type=int, default=1,
@@ -150,7 +150,6 @@ def setup_exps_rllib(flow_params,
     config["lambda"] = 0.97
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
-    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config["horizon"] = horizon
 
     # save the flow params for replay
@@ -185,12 +184,12 @@ if __name__ == "__main__":
         submodule = getattr(module, flags.exp_config)
     elif hasattr(module_ma, flags.exp_config):
         submodule = getattr(module_ma, flags.exp_config)
-        assert flags.rl_trainer == "RLlib", \
+        assert flags.rl_trainer.lower() == "RLlib".lower(), \
             "Currently, multiagent experiments are only supported through "\
             "RLlib. Try running this experiment using RLlib: 'python train.py EXP_CONFIG'"
     else:
         assert False, "Unable to find experiment config!"
-    if flags.rl_trainer == "RLlib":
+    if flags.rl_trainer.lower() == "rllib":
         flow_params = submodule.flow_params
         n_cpus = submodule.N_CPUS
         n_rollouts = submodule.N_ROLLOUTS
