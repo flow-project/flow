@@ -157,6 +157,10 @@ class Experiment:
                 for (key, lambda_func) in self.custom_callables.items():
                     custom_vals[key].append(lambda_func(self.env))
 
+                # Compute the results for the custom callables.
+                for (key, lambda_func) in self.custom_callables.items():
+                    custom_vals[key].append(lambda_func(self.env))
+
                 if isinstance(done, dict) and done['__all__']:
                     break
                 elif isinstance(done, bool) and done:
