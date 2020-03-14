@@ -53,8 +53,8 @@ def parse_args(args):
 
     # optional input parameters
     parser.add_argument(
-        '--rl_trainer', type=str, default="RLlib",
-        help='the RL trainer to use. either RLlib or Stable-Baselines')
+        '--rl_trainer', type=str, default="rllib",
+        help='the RL trainer to use. either rllib or Stable-Baselines')
 
     parser.add_argument(
         '--num_cpus', type=int, default=1,
@@ -65,6 +65,9 @@ def parse_args(args):
     parser.add_argument(
         '--rollout_size', type=int, default=1000,
         help='How many steps are in a training batch.')
+    parser.add_argument(
+        '--checkpoint_path', type=str, default=None,
+        help='Directory with checkpoint to restore training from.')
 
     return parser.parse_known_args(args)[0]
 
@@ -147,7 +150,6 @@ def setup_exps_rllib(flow_params,
     config["lambda"] = 0.97
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
-    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config["horizon"] = horizon
 
     # save the flow params for replay
@@ -182,12 +184,12 @@ if __name__ == "__main__":
         submodule = getattr(module, flags.exp_config)
     elif hasattr(module_ma, flags.exp_config):
         submodule = getattr(module_ma, flags.exp_config)
-        assert flags.rl_trainer == "RLlib", \
+        assert flags.rl_trainer.lower() == "RLlib".lower(), \
             "Currently, multiagent experiments are only supported through "\
             "RLlib. Try running this experiment using RLlib: 'python train.py EXP_CONFIG'"
     else:
         assert False, "Unable to find experiment config!"
-    if flags.rl_trainer == "RLlib":
+    if flags.rl_trainer.lower() == "rllib":
         flow_params = submodule.flow_params
         n_cpus = submodule.N_CPUS
         n_rollouts = submodule.N_ROLLOUTS
@@ -199,22 +201,24 @@ if __name__ == "__main__":
             flow_params, n_cpus, n_rollouts,
             policy_graphs, policy_mapping_fn, policies_to_train)
 
-        ray.init(num_cpus=n_cpus + 1)
-        trials = run_experiments({
-            flow_params["exp_tag"]: {
-                "run": alg_run,
-                "env": gym_name,
-                "config": {
-                    **config
-                },
-                "checkpoint_freq": 20,
-                "checkpoint_at_end": True,
-                "max_failures": 999,
-                "stop": {
-                    "training_iteration": 200,
-                },
-            }
-        })
+        ray.init(num_cpus=n_cpus + 1, object_store_memory=200 * 1024 * 1024)
+        exp_config = {
+            "run": alg_run,
+            "env": gym_name,
+            "config": {
+                **config
+            },
+            "checkpoint_freq": 20,
+            "checkpoint_at_end": True,
+            "max_failures": 999,
+            "stop": {
+                "training_iteration": flags.num_steps,
+            },
+        }
+
+        if flags.checkpoint_path is not None:
+            exp_config['restore'] = flags.checkpoint_path
+        trials = run_experiments({flow_params["exp_tag"]: exp_config})
 
     elif flags.rl_trainer == "Stable-Baselines":
         flow_params = submodule.flow_params

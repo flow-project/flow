@@ -108,8 +108,8 @@ class MultiEnv(MultiAgentEnv, Env):
         states = self.get_state()
         done = {key: key in self.k.vehicle.get_arrived_ids()
                 for key in states.keys()}
-        if crash or (self.time_counter >= self.env_params.warmup_steps +
-                     self.env_params.horizon):
+        if crash or (self.time_counter >= self.env_params.sims_per_step *
+                     (self.env_params.warmup_steps + self.env_params.horizon)):
             done['__all__'] = True
         else:
             done['__all__'] = False
@@ -147,6 +147,13 @@ class MultiEnv(MultiAgentEnv, Env):
         """
         # reset the time counter
         self.time_counter = 0
+
+        # Now that we've passed the possibly fake init steps some rl libraries
+        # do, we can feel free to actually render things
+        if self.should_render:
+            self.sim_params.render = True
+            # got to restart the simulation to make it actually display anything
+            self.restart_simulation(self.sim_params)
 
         # warn about not using restart_instance when using inflows
         if len(self.net_params.inflows.get()) > 0 and \
