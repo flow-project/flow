@@ -17,7 +17,7 @@ from gym.spaces import Box
 from gym.spaces import Tuple
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
-
+import libsumo
 import sumolib
 
 
@@ -247,8 +247,8 @@ class Env(gym.Env):
         self.k.close()
 
         # killed the sumo process if using sumo/TraCI
-        if self.simulator == 'traci':
-            self.k.simulation.sumo_proc.kill()
+        if self.simulator == 'traci' and self.sim_params.render:
+            self.k.simulation.close()
 
         if render is not None:
             self.sim_params.render = render
@@ -481,10 +481,10 @@ class Env(gym.Env):
             # do not try to remove the vehicles from the network in the first
             # step after initializing the network, as there will be no vehicles
             if self.step_counter == 0:
-                continue
+                break
             try:
                 self.k.vehicle.remove(veh_id)
-            except (FatalTraCIError, TraCIException):
+            except (FatalTraCIError, TraCIException, libsumo.TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
 
         # reintroduce the initial vehicles to the network
@@ -500,7 +500,7 @@ class Env(gym.Env):
                     lane=lane_index,
                     pos=pos,
                     speed=speed)
-            except (FatalTraCIError, TraCIException):
+            except (FatalTraCIError, TraCIException, libsumo.TraCIException):
                 # if a vehicle was not removed in the first attempt, remove it
                 # now and then reintroduce it
                 self.k.vehicle.remove(veh_id)
