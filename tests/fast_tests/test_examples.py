@@ -120,6 +120,79 @@ class TestNonRLExamples(unittest.TestCase):
         # run the experiment for one run
         exp.run(1)
 
+class TestNonRLExamplesLibsumo(unittest.TestCase):
+    """Tests the experiment configurations in examples/exp_configs/non_rl.
+
+    This is done by running an experiment form of each config for a
+    few time steps. Note that, this does not test for any refactoring changes
+    done to the functions within the experiment class.
+    """
+
+    def test_bottleneck(self):
+        """Verify that examples/exp_configs/non_rl/bottleneck.py is working."""
+        self.run_simulation_libsumo(non_rl_bottleneck)
+
+    def test_figure_eight(self):
+        """Verify that examples/exp_configs/non_rl/figure_eight.py is working."""
+        self.run_simulation_libsumo(non_rl_figure_eight)
+
+    def test_traffic_light_grid(self):
+        """Verify that examples/exp_configs/non_rl/traffic_light_grid.py is working."""
+        self.run_simulation_libsumo(non_rl_traffic_light_grid)
+
+    def test_highway(self):
+        """Verify that examples/exp_configs/non_rl/highway.py is working."""
+        # import the experiment variable from the example
+        self.run_simulation_libsumo(non_rl_highway)
+
+    def test_highway_ramps(self):
+        """Verify that examples/exp_configs/non_rl/highway_ramps.py is working."""
+        self.run_simulation_libsumo(non_rl_highway_ramps)
+
+    def test_merge(self):
+        """Verify that examples/exp_configs/non_rl/merge.py is working."""
+        self.run_simulation_libsumo(non_rl_merge)
+
+    def test_ring(self):
+        """Verify that examples/exp_configs/non_rl/ring.py is working."""
+        self.run_simulation_libsumo(non_rl_ring)
+
+    def test_bay_bridge(self):
+        """Verify that examples/exp_configs/non_rl/bay_bridge.py is working."""
+        # test without inflows and traffic lights
+        self.run_simulation_libsumo(non_rl_bay_bridge)
+
+        # test with inflows
+        # FIXME
+
+        # test with traffic lights
+        # FIXME
+
+    def test_bay_bridge_toll(self):
+        """Verify that examples/exp_configs/non_rl/bay_bridge_toll.py is working."""
+        self.run_simulation_libsumo(non_rl_bay_bridge_toll)
+
+    def test_minicity(self):
+        """Verify that examples/exp_configs/non_rl/minicity.py is working."""
+        self.run_simulation_libsumo(non_rl_minicity)
+
+    def test_i210(self):
+        """Verify that examples/exp_configs/non_rl/i210_subnetwork.py is working."""
+        self.run_simulation_libsumo(non_rl_i210)
+
+    @staticmethod
+    def run_simulation_libsumo(flow_params):
+        # make the horizon small and set render to False
+        flow_params['sim'].render = False
+        flow_params['env'].horizon = 5
+        flow_params['sim'].use_libsumo = True
+
+        # create an experiment object
+        exp = Experiment(flow_params)
+
+        # run the experiment for one run
+        exp.run(1)
+
 
 class TestStableBaselineExamples(unittest.TestCase):
     """Tests the example scripts in examples/exp_configs/rl/singleagent for stable_baselines.
