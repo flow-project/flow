@@ -62,6 +62,10 @@ def parse_args(args):
     parser.add_argument(
         '--rl_trainer', type=str, default="rllib",
         help='the RL trainer to use. either rllib or Stable-Baselines')
+    parser.add_argument(
+        '--algorithm', type=str, default="PPO",
+        help='RL algorithm to use. Options are PPO and TD3 right now.'
+    )
     parser.add_argument('--exp_title', type=str, default='test',
                         help='Informative experiment title to help distinguish results')
     parser.add_argument(
@@ -164,20 +168,25 @@ def setup_exps_rllib(flow_params,
     """
     horizon = flow_params['env'].horizon
 
-    alg_run = "PPO"
+    alg_run = flags.algorithm.upper()
 
     agent_cls = get_agent_class(alg_run)
     config = deepcopy(agent_cls._default_config)
 
     config["num_workers"] = n_cpus
-    config["train_batch_size"] = horizon * n_rollouts
-    config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [32, 32, 32]})
-    config["use_gae"] = True
-    config["lambda"] = 0.97
-    config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 10
     config["horizon"] = horizon
+    if alg_run == "PPO":
+        config["model"].update({"fcnet_hiddens": [32, 32, 32]})
+        config["train_batch_size"] = horizon * n_rollouts
+        config["gamma"] = 0.999  # discount rate
+        config["use_gae"] = True
+        config["lambda"] = 0.97
+        config["kl_target"] = 0.02
+        config["num_sgd_iter"] = 10
+    elif alg_run == "TD3":
+        pass
+    else:
+        sys.exit("We only support PPO and TD3 right now.")
 
     if flags.imitate:
         alg_run = ImitationTrainer
