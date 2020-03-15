@@ -9,22 +9,18 @@ brew install swig sdl sdl_image sdl_mixer sdl_ttf portmidi
 # sumo dependencies
 brew install Caskroom/cask/xquartz autoconf automake pkg-config libtool gdal proj xerces-c fox
 
-echo "Installing sumo binaries and python tools"
-mkdir -p $HOME/sumo_binaries
-pushd $HOME/sumo_binaries
-git clone https://github.com/eclipse/sumo.git
-cd sumo
-git checkout 2147d155b1
-cmake .
-make -j$(nproc)
+echo "Installing sumo binaries"
+mkdir -p $HOME/sumo_binaries/bin
+pushd $HOME/sumo_binaries/bin
+wget https://akreidieh.s3.amazonaws.com/sumo/flow-0.4.0/binaries-mac.tar.xz
+tar -xf binaries-mac.tar.xz
+rm binaries-mac.tar.xz
+chmod +x *
 popd
-
-export PATH="$PATH:$HOME/sumo_binaries/sumo/bin" >> ~/.bashrc
-export SUMO_HOME="$HOME/sumo_binaries/sumo" >> ~/.bashrc
-export PYTHONPATH="$PYTHONPATH:$HOME/sumo_binaries/sumo/tools" >> ~/.bashrc
+export SUMO_HOME="$HOME/sumo_binaries/bin"
+export PATH="$SUMO_HOME:$PATH"
 
 echo 'Add the following to your ~/.bashrc:'
 echo ''
-echo 'export PATH="$PATH:$HOME/sumo_binaries/sumo/bin" >> ~/.bashrc'
-echo 'export SUMO_HOME="$HOME/sumo_binaries/sumo" >> ~/.bashrc'
-echo 'export PYTHONPATH="$PYTHONPATH:$HOME/sumo_binaries/sumo/tools" >> ~/.bashrc'
+echo 'export SUMO_HOME="$HOME/sumo_binaries/bin"'
+echo 'export PATH="$SUMO_HOME:$PATH"'

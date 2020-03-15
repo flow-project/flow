@@ -68,6 +68,9 @@ VEH_GET_NEXT_SECTION = 0x10
 #: get vehicle route
 VEH_GET_ROUTE = 0x11
 
+#: get vehicle speed if no API command was submitted
+VEH_GET_DEFAULT_SPEED = 0x12
+
 #: get vehicle angle
 VEH_GET_ORIENTATION = 0x13
 

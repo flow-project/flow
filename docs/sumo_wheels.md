@@ -55,19 +55,36 @@ repository is migrating to a new SUMO version.
         
         sumo
 
-4. Compress the SUMO binaries, data folder, and Python tools in a .tar.xz file.
-   These are the files users will need to run SUMO, with the next step allowing 
-   us to access TraCI as well.
-
-        cd /path/to/sumo
-        mkdir sumo_binaries 
-        cp -r bin sumo_binaries && cp -r data sumo_binaries && cp -r tools sumo_binaries
-        cd sumo_binaries
+4. Compress the SUMO binaries and data folder in a .tar.xz file. These are the 
+   files users will need to run SUMO, with the next step allowing us to access 
+   TraCI as well.
+   
+        cd /path/to/sumo/bin
+        mkdir data
+        cp -r ../data/* data
         tar -cJf binaries-<dist>.tar.xz !(Makefile*|start-command-line.bat)
 
-5. Finally, the .tar.xf file needs to be placed on AWS so that other 
+5. Create a `sumotools` wheel from the python-related packages. This only needs 
+   to be done once for all Ubuntu and Mac, as the python tools are distribution 
+   agnostic. 
+   
+   In order to create this wheel, you will need to you the "setup.py.sumotools" 
+   files in flow/docs. First, open this file and, if you are creating a new 
+   wheel that is not supposed to overwrite other wheels, increment the version 
+   number (e.g. "0.1.0" -> "0.2.0"). Then, run the following commands:
+   
+        cd /path/to/sumo/tools
+        cp /path/to/flow/docs/setup.py.sumotools setup.py
+        python[3] setup.py bdist_wheel
+
+    Note that in the final command the optional [3] is needed if your python 
+    command defaults to 2 instead of 3. Once the above commands are done 
+    running, you will have a new .whl file in /path/to/sumo/tools/dist. This 
+    will contain all you need to run sumo-related python commands.
+
+6. Finally, the wheels and binaries need to be placed on AWS so that other 
    individuals can have access to them. For now, send these files you created 
-   in step 4 to Aboudy and he will place them and update the setup 
+   in steps 4 and 5 to Aboudy and he will place them and update the setup 
    commands accordingly, but we will need a more systematic way of doing this 
    in the future.
 
@@ -75,5 +92,5 @@ repository is migrating to a new SUMO version.
 
 **Additional Remarks**
 
-- The binaries need to be created separately on Ubuntu 16.04 and 18.04 
+- The binaries need to be created separately on Ubuntu 14.04, 16.04, and 18.04 
   (they do not work on different distributions).
