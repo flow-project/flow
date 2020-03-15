@@ -157,10 +157,6 @@ class Env(gym.Env):
         self.k = Kernel(simulator=self.simulator,
                         sim_params=self.sim_params)
 
-        if self.simulator == 'traci' and self.sim_params.use_libsumo == True:
-            from libsumo import TraCIException as libsumo_traci_exception
-            self.libsumo_traci_exception = libsumo_traci_exception
-
         # use the network class's network parameters to generate the necessary
         # network components within the network kernel
         self.k.network.generate_network(self.network)
@@ -478,6 +474,9 @@ class Env(gym.Env):
                 except (FatalTraCIError, TraCIException):
                     print(traceback.format_exc())
 
+        if self.use_libsumo:
+            from libsumo import TraCIException as libsumo_traci_exception
+
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
         for veh_id in list(self.k.vehicle.get_ids()):
@@ -489,7 +488,7 @@ class Env(gym.Env):
                 self.k.vehicle.remove(veh_id)
             except Exception as ex:
                 if isinstance(ex, (FatalTraCIError, TraCIException)) or \
-                    (self.sim_params.use_libsumo and isinstance(ex, self.libsumo_traci_exception)):
+                    (self.sim_params.use_libsumo and isinstance(ex, libsumo_traci_exception)):
                     print("Error during start: {}".format(traceback.format_exc()))
                 else:
                     raise ex
@@ -509,7 +508,7 @@ class Env(gym.Env):
                     speed=speed)
             except Exception as ex:
                 if isinstance(ex, (FatalTraCIError, TraCIException)) or \
-                    (self.sim_params.use_libsumo and isinstance(ex, self.libsumo_traci_exception)):
+                    (self.sim_params.use_libsumo and isinstance(ex, libsumo_traci_exception)):
                     # if a vehicle was not removed in the first attempt, remove it
                     # now and then reintroduce it
                     self.k.vehicle.remove(veh_id)
