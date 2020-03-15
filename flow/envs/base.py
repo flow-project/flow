@@ -158,7 +158,8 @@ class Env(gym.Env):
                         sim_params=self.sim_params)
 
         if self.simulator == 'traci' and self.sim_params.use_libsumo == True:
-            import libsumo
+            from libsumo import TraCIException as self.libsumo_traci_exception
+            # self.libsumo_traci_exception = __import__("libsumo", TraCIException)
 
         # use the network class's network parameters to generate the necessary
         # network components within the network kernel
@@ -488,7 +489,7 @@ class Env(gym.Env):
                 self.k.vehicle.remove(veh_id)
             except Exception as ex:
                 if isinstance(ex, (FatalTraCIError, TraCIException)) or \
-                    (self.sim_params.use_libsumo and isinstance(ex, libsumo.TraCIException)):
+                    (self.sim_params.use_libsumo and isinstance(ex, self.libsumo_traci_exception)):
                     print("Error during start: {}".format(traceback.format_exc()))
                 else:
                     raise ex
@@ -508,7 +509,7 @@ class Env(gym.Env):
                     speed=speed)
             except Exception as ex:
                 if isinstance(ex, (FatalTraCIError, TraCIException)) or \
-                    (self.sim_params.use_libsumo and isinstance(ex, libsumo.TraCIException)):
+                    (self.sim_params.use_libsumo and isinstance(ex, self.libsumo_traci_exception)):
                     # if a vehicle was not removed in the first attempt, remove it
                     # now and then reintroduce it
                     self.k.vehicle.remove(veh_id)

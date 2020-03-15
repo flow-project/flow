@@ -82,7 +82,7 @@ class TraCIVehicle(KernelVehicle):
         # whether to use libsumo
         self.use_libsumo = sim_params.use_libsumo
         if self.use_libsumo:
-            import libsumo
+            self.libsumo_module = __import__("libsumo")
 
         # whether or not to automatically color vehicles
         try:
@@ -1092,7 +1092,7 @@ class TraCIVehicle(KernelVehicle):
                 tc.VAR_LEADER:
                     self.kernel_api.vehicle.getLeader(veh_id, dist=2000)
             }
-        except (TraCIException, FatalTraCIError, libsumo.TraCIException):
+        except (TraCIException, FatalTraCIError, self.libsumo_module.TraCIException):
             # This is in case a vehicle exited the network and has not been
             # unscubscribed yet.
             res = None
