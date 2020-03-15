@@ -96,7 +96,12 @@ class TraCISimulation(KernelSimulation):
                                  str(sim_params.num_clients))
                 logging.debug(" Step length: " + str(sim_params.sim_step))
 
-                if sim_params.render or not sim_params.use_libsumo:
+                try:
+                    use_libsumo = sim_params.use_libsumo
+                except AttributeError:
+                    use_libsumo = False
+
+                if sim_params.render or not use_libsumo:
                     # Opening the I/O thread to SUMO
                     self.sumo_proc = subprocess.Popen(
                         sumo_call + sumo_call_params, preexec_fn=os.setsid)

@@ -132,6 +132,11 @@ class Env(gym.Env):
         # check whether we should be rendering
         self.should_render = self.sim_params.render
         self.sim_params.render = False
+        try:
+            self.use_libsumo = sim_params.use_libsumo
+        except AttributeError:
+            self.use_libsumo = False
+
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
             # 1.0 works with stress_test_start 10k times
@@ -474,7 +479,7 @@ class Env(gym.Env):
                 except (FatalTraCIError, TraCIException):
                     print(traceback.format_exc())
 
-        if self.sim_params.use_libsumo:
+        if self.use_libsumo:
             from libsumo import TraCIException as libsumo_traci_exception
 
         # clear all vehicles from the network and the vehicles class
@@ -488,7 +493,7 @@ class Env(gym.Env):
                 self.k.vehicle.remove(veh_id)
             except Exception as ex:
                 if isinstance(ex, (FatalTraCIError, TraCIException)) or \
-                        (self.sim_params.use_libsumo and isinstance(ex, libsumo_traci_exception)):
+                        (self.use_libsumo and isinstance(ex, libsumo_traci_exception)):
                     print("Error during start: {}".format(traceback.format_exc()))
                 else:
                     raise ex
