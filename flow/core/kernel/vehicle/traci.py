@@ -1090,7 +1090,7 @@ class TraCIVehicle(KernelVehicle):
                 tc.VAR_LEADER:
                     self.kernel_api.vehicle.getLeader(veh_id, dist=2000)
             }
-        except (TraCIException, FatalTraCIError):
+        except (TraCIException, FatalTraCIError, libsumo.TraCIException):
             # This is in case a vehicle exited the network and has not been
             # unscubscribed yet.
             res = None
