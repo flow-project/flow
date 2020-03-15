@@ -1045,9 +1045,9 @@ class TraCIVehicle(KernelVehicle):
 
         The last term for sumo (transparency) is set to 255.
         """
--        r, g, b = color
--        self.kernel_api.vehicle.setColor(
--            vehID=veh_id, color=(r, g, b, 255))
+        r, g, b = color
+        self.kernel_api.vehicle.setColor(
+            vehID=veh_id, color=(r, g, b, 255))
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
