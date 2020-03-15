@@ -25,7 +25,7 @@ from flow.utils.registry import make_create_env
 # SET UP PARAMETERS FOR THE SIMULATION
 
 # number of steps per rollout
-HORIZON = 4500
+HORIZON = 2000
 
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10
@@ -124,14 +124,14 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.8,
         render=False,
-        color_by_speed=True,
+        color_by_speed=False,
         restart_instance=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        sims_per_step=1,
+        sims_per_step=2,
         additional_params=additional_env_params,
     ),
 
@@ -165,7 +165,7 @@ test_env = create_env()
 obs_space = test_env.observation_space
 act_space = test_env.action_space
 
-POLICY_GRAPHS = {'av': (PPOTFPolicy, obs_space, act_space, {})}
+POLICY_GRAPHS = {'av': (None, obs_space, act_space, {})}
 
 POLICIES_TO_TRAIN = ['av']
 
