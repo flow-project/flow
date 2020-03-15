@@ -122,11 +122,8 @@ class TestNonRLExamples(unittest.TestCase):
 
 
 class TestNonRLExamplesLibsumo(unittest.TestCase):
-    """Tests the experiment configurations in examples/exp_configs/non_rl.
-
-    This is done by running an experiment form of each config for a
-    few time steps. Note that, this does not test for any refactoring changes
-    done to the functions within the experiment class.
+    """Tests the experiment configurations in examples/exp_configs/non_rl
+    with libsumo enabled.
     """
 
     def test_bottleneck(self):
