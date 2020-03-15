@@ -147,7 +147,7 @@ class MultiAgentMergePOEnv(MultiEnv):
         else:
             # return a reward of 0 if a collision occurred
             if kwargs["fail"]:
-                return 0
+                return {key: 0 for key in self.k.vehicle.get_rl_ids()}
 
             # reward high system-level velocities
             cost1 = rewards.desired_velocity(self, fail=kwargs["fail"])

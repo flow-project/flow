@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 import random
 import traceback
-from gym.spaces import Box
+from gym.spaces import Box, Dict
 
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
@@ -110,7 +110,7 @@ class MultiEnv(MultiAgentEnv, Env):
                 for key in states.keys()}
         if crash or (self.time_counter >= self.env_params.sims_per_step *
                      (self.env_params.warmup_steps + self.env_params.horizon)):
-            done['__all__'] = True
+            done['__all__'] = False
         else:
             done['__all__'] = False
         infos = {key: {} for key in states.keys()}
@@ -125,7 +125,10 @@ class MultiEnv(MultiAgentEnv, Env):
         for rl_id in self.k.vehicle.get_arrived_rl_ids():
             done[rl_id] = True
             reward[rl_id] = 0
-            states[rl_id] = np.zeros(self.observation_space.shape[0])
+            if isinstance(self.observation_space, Dict):
+                states[rl_id] = self.observation_space.sample()
+            else:
+                states[rl_id] = np.zeros(self.observation_space.shape[0])
 
         return states, reward, done, infos
 
@@ -148,8 +151,6 @@ class MultiEnv(MultiAgentEnv, Env):
         # reset the time counter
         self.time_counter = 0
 
-        # Now that we've passed the possibly fake init steps some rl libraries
-        # do, we can feel free to actually render things
         if self.should_render:
             self.sim_params.render = True
             # got to restart the simulation to make it actually display anything
@@ -235,7 +236,7 @@ class MultiEnv(MultiAgentEnv, Env):
         # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()
 
-        # update the information in each kernel to match the current state
+        # store new observations in the vehicles and traffic lights class
         self.k.update(reset=True)
 
         # update the colors of vehicles

@@ -26,6 +26,7 @@ vehicles.add(
     acceleration_controller=(IDMController, {
         "a": 0.3, "b": 2.0, "noise": 0.45
     }),
+    color='white'
 )
 
 inflow = InFlows()
@@ -71,7 +72,7 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.8,
         render=False,
-        color_by_speed=True,
+        force_color_update=False
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
