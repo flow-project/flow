@@ -68,6 +68,9 @@ def parse_args(args):
     parser.add_argument(
         '--checkpoint_path', type=str, default=None,
         help='Directory with checkpoint to restore training from.')
+    parser.add_argument(
+        '--libsumo',
+        action='store_true', help='Whether to run with libsumo')
 
     return parser.parse_known_args(args)[0]
 
@@ -189,8 +192,14 @@ if __name__ == "__main__":
             "RLlib. Try running this experiment using RLlib: 'python train.py EXP_CONFIG'"
     else:
         assert False, "Unable to find experiment config!"
+
+    flow_params = submodule.flow_params
+    if flags.libsumo:
+        print("Running with libsumo! Make sure you have it installed!")
+        import libsumo
+        flow_params['sim'].use_libsumo = flags.libsumo
+    
     if flags.rl_trainer.lower() == "rllib":
-        flow_params = submodule.flow_params
         n_cpus = submodule.N_CPUS
         n_rollouts = submodule.N_ROLLOUTS
         policy_graphs = getattr(submodule, "POLICY_GRAPHS", None)
@@ -221,7 +230,6 @@ if __name__ == "__main__":
         trials = run_experiments({flow_params["exp_tag"]: exp_config})
 
     elif flags.rl_trainer == "Stable-Baselines":
-        flow_params = submodule.flow_params
         # Path to the saved files
         exp_tag = flow_params['exp_tag']
         result_name = '{}/{}'.format(exp_tag, strftime("%Y-%m-%d-%H:%M:%S"))

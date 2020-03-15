@@ -17,7 +17,6 @@ from gym.spaces import Box
 from gym.spaces import Tuple
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
-import libsumo
 import sumolib
 
 
@@ -157,6 +156,9 @@ class Env(gym.Env):
         # create the Flow kernel
         self.k = Kernel(simulator=self.simulator,
                         sim_params=self.sim_params)
+
+        if self.simulator == 'traci' and self.sim_params.use_libsumo == True:
+            import libsumo
 
         # use the network class's network parameters to generate the necessary
         # network components within the network kernel
@@ -484,8 +486,12 @@ class Env(gym.Env):
                 break
             try:
                 self.k.vehicle.remove(veh_id)
-            except (FatalTraCIError, TraCIException, libsumo.TraCIException):
-                print("Error during start: {}".format(traceback.format_exc()))
+            except Exception as ex:
+                if isinstance(ex, (FatalTraCIError, TraCIException)) or \
+                    (self.sim_params.use_libsumo and isinstance(ex, libsumo.TraCIException)):
+                    print("Error during start: {}".format(traceback.format_exc()))
+                else:
+                    raise ex
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
@@ -500,19 +506,24 @@ class Env(gym.Env):
                     lane=lane_index,
                     pos=pos,
                     speed=speed)
-            except (FatalTraCIError, TraCIException, libsumo.TraCIException):
-                # if a vehicle was not removed in the first attempt, remove it
-                # now and then reintroduce it
-                self.k.vehicle.remove(veh_id)
-                if self.simulator == 'traci':
-                    self.k.kernel_api.vehicle.remove(veh_id)  # FIXME: hack
-                self.k.vehicle.add(
-                    veh_id=veh_id,
-                    type_id=type_id,
-                    edge=edge,
-                    lane=lane_index,
-                    pos=pos,
-                    speed=speed)
+            except Exception as ex:
+                if isinstance(ex, (FatalTraCIError, TraCIException)) or \
+                    (self.sim_params.use_libsumo and isinstance(ex, libsumo.TraCIException)):
+                    # if a vehicle was not removed in the first attempt, remove it
+                    # now and then reintroduce it
+                    self.k.vehicle.remove(veh_id)
+                    if self.simulator == 'traci':
+                        self.k.kernel_api.vehicle.remove(veh_id)  # FIXME: hack
+                    self.k.vehicle.add(
+                        veh_id=veh_id,
+                        type_id=type_id,
+                        edge=edge,
+                        lane=lane_index,
+                        pos=pos,
+                        speed=speed)
+                else:
+                    raise ex
+
 
         # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()

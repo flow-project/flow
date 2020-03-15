@@ -78,6 +78,9 @@ class TraCIVehicle(KernelVehicle):
 
         # checks whether the instance is being rendered
         self.render = sim_params.render
+        
+        # whether to use libsumo
+        self.use_libsumo = sim_params.use_libsumo
 
         # whether or not to automatically color vehicles
         try:
@@ -132,7 +135,7 @@ class TraCIVehicle(KernelVehicle):
             step
         """
         vehicle_obs = {}
-        if self.render:
+        if self.render or not self.use_libsumo:
             for veh_id in self.__ids:
                 vehicle_obs[veh_id] = \
                     self.kernel_api.vehicle.getSubscriptionResults(veh_id)
@@ -315,7 +318,7 @@ class TraCIVehicle(KernelVehicle):
                     self.__controlled_lc_ids.append(veh_id)
 
         # subscribe the new vehicle and get its subscription results
-        if self.render:
+        if self.render or not self.use_libsumo:
             self.kernel_api.vehicle.subscribe(veh_id, [
                 tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
                 tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE
