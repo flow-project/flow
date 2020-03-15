@@ -81,6 +81,8 @@ class TraCIVehicle(KernelVehicle):
         
         # whether to use libsumo
         self.use_libsumo = sim_params.use_libsumo
+        if self.use_libsumo:
+            import libsumo
 
         # whether or not to automatically color vehicles
         try:
