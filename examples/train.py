@@ -197,8 +197,9 @@ if __name__ == "__main__":
     if flags.libsumo:
         print("Running with libsumo! Make sure you have it installed!")
         import libsumo
+        assert libsumo.isLibsumo(), "Failed to load libsumo"
         flow_params['sim'].use_libsumo = flags.libsumo
-    
+
     if flags.rl_trainer.lower() == "rllib":
         n_cpus = submodule.N_CPUS
         n_rollouts = submodule.N_ROLLOUTS

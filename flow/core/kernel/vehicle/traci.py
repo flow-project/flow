@@ -78,7 +78,7 @@ class TraCIVehicle(KernelVehicle):
 
         # checks whether the instance is being rendered
         self.render = sim_params.render
-        
+
         # whether to use libsumo
         self.use_libsumo = sim_params.use_libsumo
 
@@ -898,7 +898,7 @@ class TraCIVehicle(KernelVehicle):
             try:
                 if len(edge_dict[edge][lane]) > 0:
                     tailway = pos - edge_dict[edge][lane][-1][1] + add_length \
-                              - self.get_length(veh_id)
+                        - self.get_length(veh_id)
                     follower = edge_dict[edge][lane][-1][0]
             except KeyError:
                 # current edge has no vehicles, so move on

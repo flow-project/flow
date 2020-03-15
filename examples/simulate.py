@@ -73,6 +73,7 @@ if __name__ == "__main__":
     if flags.libsumo:
         print("Running with libsumo! Make sure you have it installed!")
         import libsumo
+        assert libsumo.isLibsumo(), "Failed to load libsumo"
         flow_params['sim'].use_libsumo = flags.libsumo
     flow_params['simulator'] = 'aimsun' if flags.aimsun else 'traci'
 

@@ -488,7 +488,7 @@ class Env(gym.Env):
                 self.k.vehicle.remove(veh_id)
             except Exception as ex:
                 if isinstance(ex, (FatalTraCIError, TraCIException)) or \
-                    (self.sim_params.use_libsumo and isinstance(ex, libsumo_traci_exception)):
+                        (self.sim_params.use_libsumo and isinstance(ex, libsumo_traci_exception)):
                     print("Error during start: {}".format(traceback.format_exc()))
                 else:
                     raise ex
@@ -508,7 +508,7 @@ class Env(gym.Env):
                     speed=speed)
             except Exception as ex:
                 if isinstance(ex, (FatalTraCIError, TraCIException)) or \
-                    (self.sim_params.use_libsumo and isinstance(ex, libsumo_traci_exception)):
+                        (self.sim_params.use_libsumo and isinstance(ex, libsumo_traci_exception)):
                     # if a vehicle was not removed in the first attempt, remove it
                     # now and then reintroduce it
                     self.k.vehicle.remove(veh_id)
@@ -523,7 +523,6 @@ class Env(gym.Env):
                         speed=speed)
                 else:
                     raise ex
-
 
         # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()
