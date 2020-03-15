@@ -120,6 +120,7 @@ class TestNonRLExamples(unittest.TestCase):
         # run the experiment for one run
         exp.run(1)
 
+
 class TestNonRLExamplesLibsumo(unittest.TestCase):
     """Tests the experiment configurations in examples/exp_configs/non_rl.
 
@@ -229,6 +230,7 @@ class TestRllibExamples(unittest.TestCase):
     and confirming that it completes one rollout with two workers.
     # FIXME(ev) this test adds several minutes to the testing scheme
     """
+
     def setUp(self):
         if not ray.is_initialized():
             ray.init(num_cpus=1)
