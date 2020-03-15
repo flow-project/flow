@@ -474,7 +474,7 @@ class Env(gym.Env):
                 except (FatalTraCIError, TraCIException):
                     print(traceback.format_exc())
 
-        if self.use_libsumo:
+        if self.sim_params.use_libsumo:
             from libsumo import TraCIException as libsumo_traci_exception
 
         # clear all vehicles from the network and the vehicles class
