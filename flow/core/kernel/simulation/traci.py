@@ -83,8 +83,8 @@ class TraCISimulation(KernelSimulation):
                     else "sumo"
 
                 # command used to start sumo
-                sumo_call = [
-                    sumo_binary, "-c", network.cfg,
+                sumo_call = [sumo_binary, "-c", network.cfg]
+                sumo_call_params = [
                     "--remote-port", str(sim_params.port),
                     "--num-clients", str(sim_params.num_clients),
                 ]
@@ -99,7 +99,7 @@ class TraCISimulation(KernelSimulation):
                 if sim_params.render or not sim_params.use_libsumo:
                     # Opening the I/O thread to SUMO
                     self.sumo_proc = subprocess.Popen(
-                        sumo_call, preexec_fn=os.setsid)
+                        sumo_call + sumo_call_params, preexec_fn=os.setsid)
 
                     # wait a small period of time for the subprocess to
                     # activate before trying to connect with traci
@@ -115,7 +115,7 @@ class TraCISimulation(KernelSimulation):
                     import libsumo
 
                     # Use libsumo to create a simulation instance.
-                    libsumo.start(sumo_call[1:3])
+                    libsumo.start(sumo_call)
                     libsumo.simulationStep()
 
                     # libsumo will act as the kernel API
