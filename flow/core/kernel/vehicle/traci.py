@@ -80,7 +80,10 @@ class TraCIVehicle(KernelVehicle):
         self.render = sim_params.render
 
         # whether to use libsumo
-        self.use_libsumo = sim_params.use_libsumo
+        try:
+            self.use_libsumo = sim_params.use_libsumo
+        except AttributeError:
+            self.use_libsumo = False
 
         # whether or not to automatically color vehicles
         try:
@@ -1042,9 +1045,9 @@ class TraCIVehicle(KernelVehicle):
 
         The last term for sumo (transparency) is set to 255.
         """
-        if self._color_vehicles:
-            r, g, b = color
-            self.kernel_api.vehicle.setColor(veh_id, (r, g, b, 255))
+-        r, g, b = color
+-        self.kernel_api.vehicle.setColor(
+-            vehID=veh_id, color=(r, g, b, 255))
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
