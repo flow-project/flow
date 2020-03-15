@@ -45,12 +45,18 @@ def parse_args(args):
         action='store_true',
         help='Specifies whether to generate an emission file from the '
              'simulation.')
+    parser.add_argument(
+        '--libsumo',
+        action='store_true',
+        help='Whether to run with libsumo')
 
     return parser.parse_known_args(args)[0]
 
 
 if __name__ == "__main__":
     flags = parse_args(sys.argv[1:])
+
+    assert not (flags.libsumo and flags.aimsun), "Cannot enable both libsumo and aimsun!"
 
     # Get the flow_params object.
     module = __import__("exp_configs.non_rl", fromlist=[flags.exp_config])
@@ -64,6 +70,11 @@ if __name__ == "__main__":
 
     # Update some variables based on inputs.
     flow_params['sim'].render = not flags.no_render
+    if flags.libsumo:
+        print("Running with libsumo! Make sure you have it installed!")
+        import libsumo
+        assert libsumo.isLibsumo(), "Failed to load libsumo"
+        flow_params['sim'].use_libsumo = flags.libsumo
     flow_params['simulator'] = 'aimsun' if flags.aimsun else 'traci'
 
     # Specify an emission path if they are meant to be generated.

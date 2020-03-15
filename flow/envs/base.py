@@ -17,7 +17,6 @@ from gym.spaces import Box
 from gym.spaces import Tuple
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
-
 import sumolib
 
 
@@ -133,6 +132,11 @@ class Env(gym.Env):
         # check whether we should be rendering
         self.should_render = self.sim_params.render
         self.sim_params.render = False
+        try:
+            self.use_libsumo = sim_params.use_libsumo
+        except AttributeError:
+            self.use_libsumo = False
+
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
             # 1.0 works with stress_test_start 10k times
@@ -247,8 +251,8 @@ class Env(gym.Env):
         self.k.close()
 
         # killed the sumo process if using sumo/TraCI
-        if self.simulator == 'traci':
-            self.k.simulation.sumo_proc.kill()
+        if self.simulator == 'traci' and self.sim_params.render:
+            self.k.simulation.close()
 
         if render is not None:
             self.sim_params.render = render
@@ -475,17 +479,24 @@ class Env(gym.Env):
                 except (FatalTraCIError, TraCIException):
                     print(traceback.format_exc())
 
+        if self.use_libsumo:
+            from libsumo import TraCIException as libsumo_traci_exception
+
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
         for veh_id in list(self.k.vehicle.get_ids()):
             # do not try to remove the vehicles from the network in the first
             # step after initializing the network, as there will be no vehicles
             if self.step_counter == 0:
-                continue
+                break
             try:
                 self.k.vehicle.remove(veh_id)
-            except (FatalTraCIError, TraCIException):
-                print("Error during start: {}".format(traceback.format_exc()))
+            except Exception as ex:
+                if isinstance(ex, (FatalTraCIError, TraCIException)) or \
+                        (self.use_libsumo and isinstance(ex, libsumo_traci_exception)):
+                    print("Error during start: {}".format(traceback.format_exc()))
+                else:
+                    raise ex
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
@@ -500,19 +511,23 @@ class Env(gym.Env):
                     lane=lane_index,
                     pos=pos,
                     speed=speed)
-            except (FatalTraCIError, TraCIException):
-                # if a vehicle was not removed in the first attempt, remove it
-                # now and then reintroduce it
-                self.k.vehicle.remove(veh_id)
-                if self.simulator == 'traci':
-                    self.k.kernel_api.vehicle.remove(veh_id)  # FIXME: hack
-                self.k.vehicle.add(
-                    veh_id=veh_id,
-                    type_id=type_id,
-                    edge=edge,
-                    lane=lane_index,
-                    pos=pos,
-                    speed=speed)
+            except Exception as ex:
+                if isinstance(ex, (FatalTraCIError, TraCIException)) or \
+                        (self.sim_params.use_libsumo and isinstance(ex, libsumo_traci_exception)):
+                    # if a vehicle was not removed in the first attempt, remove it
+                    # now and then reintroduce it
+                    self.k.vehicle.remove(veh_id)
+                    if self.simulator == 'traci':
+                        self.k.kernel_api.vehicle.remove(veh_id)  # FIXME: hack
+                    self.k.vehicle.add(
+                        veh_id=veh_id,
+                        type_id=type_id,
+                        edge=edge,
+                        lane=lane_index,
+                        pos=pos,
+                        speed=speed)
+                else:
+                    raise ex
 
         # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()
