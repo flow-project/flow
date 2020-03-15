@@ -158,8 +158,8 @@ class Env(gym.Env):
                         sim_params=self.sim_params)
 
         if self.simulator == 'traci' and self.sim_params.use_libsumo == True:
-            from libsumo import TraCIException as self.libsumo_traci_exception
-            # self.libsumo_traci_exception = __import__("libsumo", TraCIException)
+            from libsumo import TraCIException as libsumo_traci_exception
+            self.libsumo_traci_exception = libsumo_traci_exception
 
         # use the network class's network parameters to generate the necessary
         # network components within the network kernel
