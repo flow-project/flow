@@ -241,7 +241,8 @@ class VehicleParams:
             initial_speed=0,
             num_vehicles=0,
             car_following_params=None,
-            lane_change_params=None):
+            lane_change_params=None,
+            color=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
@@ -291,6 +292,10 @@ class VehicleParams:
              "initial_speed": initial_speed,
              "car_following_params": car_following_params,
              "lane_change_params": lane_change_params}
+
+        if color:
+            type_params['color'] = color
+            self.type_parameters[veh_id]['color'] = color
 
         # TODO: delete?
         self.initial.append({
@@ -384,7 +389,7 @@ class SimParams(object):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
-    color_vehicles : bool, optional
+    force_color_update : bool, optional
         whether or not to automatically color vehicles according to their types
     """
 
@@ -397,7 +402,7 @@ class SimParams(object):
                  sight_radius=25,
                  show_radius=False,
                  pxpm=2,
-                 color_vehicles=True):
+                 force_color_update=False):
         """Instantiate SimParams."""
         self.sim_step = sim_step
         self.render = render
@@ -407,7 +412,7 @@ class SimParams(object):
         self.sight_radius = sight_radius
         self.pxpm = pxpm
         self.show_radius = show_radius
-        self.color_vehicles = color_vehicles
+        self.force_color_update = force_color_update
 
 
 class AimsunParams(SimParams):
@@ -539,6 +544,8 @@ class SumoParams(SimParams):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
+    force_color_update : bool, optional
+        whether or not to automatically color vehicles according to their types
     overtake_right : bool, optional
         whether vehicles are allowed to overtake on the right as well as
         the left
@@ -556,6 +563,9 @@ class SumoParams(SimParams):
         they teleport after teleport_time seconds
     num_clients : int, optional
         Number of clients that will connect to Traci
+    color_by_speed : bool
+        whether to color the vehicles by the speed they are moving at the
+        current time step
     """
 
     def __init__(self,
@@ -569,6 +579,7 @@ class SumoParams(SimParams):
                  sight_radius=25,
                  show_radius=False,
                  pxpm=2,
+                 force_color_update=False,
                  overtake_right=False,
                  seed=None,
                  restart_instance=False,
@@ -579,7 +590,7 @@ class SumoParams(SimParams):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
-            sight_radius, show_radius, pxpm)
+            sight_radius, show_radius, pxpm, force_color_update)
         self.port = port
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log

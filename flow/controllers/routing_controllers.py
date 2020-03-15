@@ -1,5 +1,4 @@
 """Contains a list of custom routing controllers."""
-
 import random
 import numpy as np
 
@@ -121,30 +120,6 @@ class BayBridgeRouter(ContinuousRouter):
         if edge == "183343422" and lane in [2] \
                 or edge == "124952179" and lane in [1, 2]:
             new_route = env.available_routes[edge + "_1"][0][0]
-        else:
-            new_route = super().choose_route(env)
-
-        return new_route
-
-
-class I210Router(ContinuousRouter):
-    """Assists in choosing routes in select cases for the Bay Bridge network.
-
-    Extension to the Continuous Router.
-
-    Usage
-    -----
-    See base class for usage example.
-    """
-
-    def choose_route(self, env):
-        """See parent class."""
-        edge = env.k.vehicle.get_edge(self.veh_id)
-        lane = env.k.vehicle.get_lane(self.veh_id)
-
-        # vehicles on these edges in lanes 4 and 5 are not going to be able to make it out in time
-        if edge == "119257908#1-AddedOffRampEdge" and lane in [5, 4, 3]:
-            new_route = env.available_routes["119257908#1-AddedOffRampEdge"][0][0]
         else:
             new_route = super().choose_route(env)
 

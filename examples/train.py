@@ -8,25 +8,32 @@ Usage
 """
 
 import argparse
+from datetime import datetime
 import json
+import pytz
 import os
 import sys
 from time import strftime
 
-from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
-from stable_baselines import PPO2
+try:
+    from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
+    from stable_baselines import PPO2
+except Exception as e:
+    print(e)
 
 import ray
 from ray import tune
 from ray.tune import run
 from ray.tune.registry import register_env
 from flow.utils.registry import make_create_env
+
 try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from copy import deepcopy
 
+from flow.algorithms.imitation_ppo import ImitationTrainer
 from flow.core.util import ensure_dir
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
@@ -55,7 +62,8 @@ def parse_args(args):
     parser.add_argument(
         '--rl_trainer', type=str, default="rllib",
         help='the RL trainer to use. either rllib or Stable-Baselines')
-
+    parser.add_argument('--exp_title', type=str, default='test',
+                        help='Informative experiment title to help distinguish results')
     parser.add_argument(
         '--num_cpus', type=int, default=1,
         help='How many CPUs to use')
@@ -71,10 +79,18 @@ def parse_args(args):
     parser.add_argument(
         '--rollout_size', type=int, default=1000,
         help='How many steps are in a training batch.')
+    parser.add_argument(
+        '--imitate', action='store_true', default=False,
+        help='If true, the agent imitates some expert. Needs to use an imitation environment.'
+    )
+    parser.add_argument('--use_s3', action='store_true', help='If true, upload results to s3')
     parser.add_argument('--local_mode', action='store_true', default=False,
                         help='If true only 1 CPU will be used')
     parser.add_argument('--render', action='store_true', default=False,
                         help='If true, we render the display')
+    parser.add_argument(
+        '--checkpoint_path', type=str, default=None,
+        help='Directory with checkpoint to restore training from.')
 
     return parser.parse_known_args(args)[0]
 
@@ -113,9 +129,11 @@ def run_model_stablebaseline(flow_params, num_cpus=1, rollout_size=50, num_steps
 def setup_exps_rllib(flow_params,
                      n_cpus,
                      n_rollouts,
+                     flags,
                      policy_graphs=None,
                      policy_mapping_fn=None,
-                     policies_to_train=None):
+                     policies_to_train=None,
+                     ):
     """Return the relevant components of an RLlib experiment.
 
     Parameters
@@ -126,6 +144,8 @@ def setup_exps_rllib(flow_params,
         number of CPUs to run the experiment over
     n_rollouts : int
         number of rollouts per training iteration
+    flags:
+        custom arguments
     policy_graphs : dict, optional
         TODO
     policy_mapping_fn : function, optional
@@ -158,6 +178,24 @@ def setup_exps_rllib(flow_params,
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = horizon
+
+    if flags.imitate:
+        alg_run = ImitationTrainer
+        config['model']['custom_options'].update({"imitation_weight": 1.0})
+        config['model']['custom_options'].update({"num_imitation_iters": 2})
+        config['model']['custom_options']['hard_negative_mining'] = True
+        config['model']['custom_options']['mining_frac'] = 0.1
+        config["model"]["custom_options"]["final_imitation_weight"] = 0.001
+
+        def on_train_result(info):
+            """Store the mean score of the episode, and increment or decrement how many adversaries are on."""
+            result = info["result"]
+            trainer = info["trainer"]
+            trainer.workers.foreach_worker(
+                lambda ev: ev.foreach_env(
+                    lambda env: env.set_iteration_num(result['training_iteration'])))
+
+        config["callbacks"] = {"on_train_result": tune.function(on_train_result)}
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -192,7 +230,7 @@ if __name__ == "__main__":
     elif hasattr(module_ma, flags.exp_config):
         submodule = getattr(module_ma, flags.exp_config)
         assert flags.rl_trainer.lower() == "RLlib".lower(), \
-            "Currently, multiagent experiments are only supported through "\
+            "Currently, multiagent experiments are only supported through " \
             "RLlib. Try running this experiment using RLlib: 'python train.py EXP_CONFIG'"
     else:
         assert False, "Unable to find experiment config!"
@@ -204,7 +242,7 @@ if __name__ == "__main__":
         policies_to_train = getattr(submodule, "policies_to_train", None)
 
         alg_run, gym_name, config = setup_exps_rllib(
-            flow_params, flags.num_cpus, flags.num_rollouts,
+            flow_params, flags.num_cpus, flags.num_rollouts, flags,
             policy_graphs, policy_mapping_fn, policies_to_train)
 
         config['num_workers'] = flags.num_cpus
@@ -225,8 +263,13 @@ if __name__ == "__main__":
             "max_failures": 0,
             "stop": {
                 "training_iteration": flags.num_iterations,
-                },
-            }
+            },
+        }
+        eastern = pytz.timezone('US/Eastern')
+        date = datetime.now(tz=pytz.utc)
+        date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
+        s3_string = "s3://eugene.experiments/i210/" \
+                    + date + '/' + flags.exp_title
         run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
 
     elif flags.rl_trainer == "Stable-Baselines":

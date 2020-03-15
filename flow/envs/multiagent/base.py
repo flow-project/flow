@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 import random
 import traceback
-from gym.spaces import Box
+from gym.spaces import Box, Dict
 
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
@@ -108,8 +108,8 @@ class MultiEnv(MultiAgentEnv, Env):
         states = self.get_state()
         done = {key: key in self.k.vehicle.get_arrived_ids()
                 for key in states.keys()}
-        if crash or (self.time_counter >= self.env_params.warmup_steps +
-                     self.env_params.horizon):
+        if crash or (self.time_counter >= self.env_params.sims_per_step *
+                     (self.env_params.warmup_steps + self.env_params.horizon)):
             done['__all__'] = False
         else:
             done['__all__'] = False
@@ -125,7 +125,10 @@ class MultiEnv(MultiAgentEnv, Env):
         for rl_id in self.k.vehicle.get_arrived_rl_ids():
             done[rl_id] = False
             reward[rl_id] = 0
-            states[rl_id] = np.zeros(self.observation_space.shape[0])
+            if isinstance(self.observation_space, Dict):
+                states[rl_id] = self.observation_space.sample()
+            else:
+                states[rl_id] = np.zeros(self.observation_space.shape[0])
 
         return states, reward, done, infos
 
@@ -232,9 +235,6 @@ class MultiEnv(MultiAgentEnv, Env):
 
         # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()
-
-        # update the information in each kernel to match the current state
-        self.k.update(reset=True)
 
         # update the colors of vehicles
         if self.sim_params.render:

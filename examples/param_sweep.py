@@ -1,7 +1,7 @@
-"""Runner script for non-RL simulations in flow.
+"""Runner script for non-RL simulations in flow across a list of parameters.
 
 Usage
-    python simulate.py EXP_CONFIG --no_render
+    python param_sweep.py EXP_CONFIG --no_render
 """
 import argparse
 from datetime import datetime
@@ -26,8 +26,9 @@ def parse_args(args):
     """
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="Parse argument used when running a Flow simulation.",
-        epilog="python simulate.py EXP_CONFIG --num_runs INT --no_render")
+        description="Parse argument used when running a Flow simulation "
+                    "across multiple parameters.",
+        epilog="python param_sweep.py EXP_CONFIG --no_render")
 
     # required input parameters
     parser.add_argument(
@@ -74,26 +75,26 @@ def parse_args(args):
 
 
 @ray.remote
-def run_experiment(flow_params, custom_callables):
+def run_experiment(flow_params, custom_callables, num_runs, gen_emission):
     """Run a set of experiments in parallel."""
-    print(flow_params['sweep'])
     exp = Experiment(flow_params, custom_callables)
-    info_dict = exp.run(flags.num_runs, convert_to_csv=flags.gen_emission)
+    info_dict = exp.run(num_runs, convert_to_csv=gen_emission)
     return info_dict
 
 
-if __name__ == "__main__":
-    flags = parse_args(sys.argv[1:])
+def main(flags):
+    """Run the main function."""
     ray.init(num_cpus=flags.num_cpus)
 
     # Get the flow_params object.
     module = __import__("exp_configs.non_rl", fromlist=[flags.exp_config])
     flow_params_list = getattr(module, flags.exp_config).flow_params
 
-    # Get the custom callables for the runner
-    custom_callables = []
+    # Get the custom callables for the runner.
     if hasattr(getattr(module, flags.exp_config), "custom_callables"):
-        custom_callables = getattr(module, flags.exp_config).custom_callables
+        callables = getattr(module, flags.exp_config).custom_callables
+    else:
+        callables = None
 
     # Update some variables based on inputs.
     for flow_params in flow_params_list:
@@ -108,17 +109,25 @@ if __name__ == "__main__":
 
     # TODO(@evinitsky) add additional information that lets us figure out which experiment is which
     temp_output = [run_experiment.remote(flow_params=flow_params,
-                                         custom_callables=custom_callables) for flow_params in flow_params_list]
+                                         custom_callables=callables)
+                   for flow_params in flow_params_list]
     temp_output = ray.get(temp_output)
 
     curr_path = os.path.join(os.getcwd(), __file__)
-    output_path = os.path.abspath(os.path.join(curr_path, '../calibrated_values/info_dict.pkl'))
+    output_path = os.path.abspath(
+        os.path.join(curr_path, '../calibrated_values/info_dict.pkl'))
 
-    # with open(output_path, 'wb') as output:
     with open(output_path, 'wb') as file:
         pkl.dump(temp_output, file)
 
     if flags.use_s3:
-        p1 = subprocess.Popen("aws s3 sync {} {}".format(os.path.dirname(output_path), "s3://flow.calibration/{}/{}"
-                                                         .format(date, flags.sweep_name)).split(' '))
+        p1 = subprocess.Popen(
+            "aws s3 sync {} {}".format(
+                os.path.dirname(output_path),
+                "s3://flow.calibration/{}/{}".format(date, flags.sweep_name)).split(' ')
+        )
         p1.wait(50)
+
+
+if __name__ == "__main__":
+    main(parse_args(sys.argv[1:]))

@@ -5,12 +5,11 @@ highway with ramps network.
 """
 import os
 
-from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 from ray.tune.registry import register_env
 
-from flow.controllers import RLController
-from flow.controllers.car_following_models import IDMController
 import flow.config as config
+from flow.controllers.rlcontroller import RLController
+from flow.controllers.car_following_models import IDMController
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import InitialConfig
@@ -19,13 +18,19 @@ from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
-from flow.envs.multiagent.i210 import I210MultiEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.multiagent.i210 import I210MultiImitationEnv, ADDITIONAL_ENV_PARAMS
 from flow.utils.registry import make_create_env
 
 # SET UP PARAMETERS FOR THE SIMULATION
 
+# number of training iterations
+N_TRAINING_ITERATIONS = 200
+# number of rollouts per training iteration
+N_ROLLOUTS = 2
 # number of steps per rollout
-HORIZON = 4500
+HORIZON = 200
+# number of parallel workers
+N_CPUS = 1
 
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10
@@ -33,10 +38,14 @@ PENETRATION_RATE = 10
 # SET UP PARAMETERS FOR THE ENVIRONMENT
 additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
 additional_env_params.update({
-    'max_accel': 1,
-    'max_decel': 1,
+    'max_accel': 2.6,
+    'max_decel': 4.5,
     # configure the observation space. Look at the I210MultiEnv class for more info.
     'lead_obs': True,
+    'v_des': 12.0,
+    'num_imitation_iters': 2,
+    # whether to add in a reward for the speed of nearby vehicles
+    "local_reward": True
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
@@ -66,7 +75,7 @@ inflow.add(
     # probability=1.0,
     departLane="random",
     departSpeed=20)
-# # on ramp
+# on ramp
 # inflow.add(
 #     veh_type="human",
 #     edge="27414345",
@@ -109,10 +118,10 @@ NET_TEMPLATE = os.path.join(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='kj_i210_0',
+    exp_tag='I_210_subnetwork',
 
     # name of the flow environment the experiment is running on
-    env_name=I210MultiEnv,
+    env_name=I210MultiImitationEnv,
 
     # name of the network class the experiment is running on
     network=I210SubNetwork,
@@ -124,14 +133,13 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.8,
         render=False,
-        color_by_speed=True,
-        restart_instance=True,
+        restart_instance=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        sims_per_step=1,
+        sims_per_step=10,
         additional_params=additional_env_params,
     ),
 
@@ -165,7 +173,7 @@ test_env = create_env()
 obs_space = test_env.observation_space
 act_space = test_env.action_space
 
-POLICY_GRAPHS = {'av': (PPOTFPolicy, obs_space, act_space, {})}
+POLICY_GRAPHS = {'av': (None, obs_space, act_space, {})}
 
 POLICIES_TO_TRAIN = ['av']
 
