@@ -236,6 +236,9 @@ class MultiEnv(MultiAgentEnv, Env):
         # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()
 
+        # store new observations in the vehicles and traffic lights class
+        self.k.update(reset=True)
+
         # update the colors of vehicles
         if self.sim_params.render:
             self.k.vehicle.update_vehicle_colors()
