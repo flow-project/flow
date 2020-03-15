@@ -64,6 +64,7 @@ def parse_flags(args):
     # parser.add_argument('--seed_search', action='store_true', help='If true, sweep seed instead of hyperparameter')
 
     parser.add_argument('--simulate', action='store_true', help='If true, simulate instead of train')
+    parser.add_argument('--libsumo', action='store_true', help='If true, use libsumo')
     parser.add_argument('--no_render', action='store_true', help='If true, dont render simulation')
     parser.add_argument('--gen_emission', action='store_true', help='If true, generate emission files')
 
@@ -83,6 +84,9 @@ if __name__ == "__main__":
     horizon = exp_config.HORIZON
 
     exp_title = flags.exp_title if flags.exp_title else flow_params["exp_tag"]
+
+    if flags.libsumo:
+        flow_params['sim'].use_libsumo = True
 
     if flags.simulate:
         # Get the custom callables for the runner.
