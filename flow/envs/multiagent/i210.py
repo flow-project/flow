@@ -148,10 +148,8 @@ class I210MultiEnv(MultiEnv):
         if self.env_params.additional_params["local_reward"]:
             for rl_id in self.k.vehicle.get_rl_ids():
                 speeds = []
-                lead_speed = self.k.vehicle.get_speed(self.k.vehicle.get_lane_leaders(rl_id))
-                speeds.extend([speed for speed in lead_speed if speed != -1001])
                 follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_lane_followers(rl_id))
-                speeds.extend([speed for speed in follow_speed if speed != -1001])
+                speeds.extend([speed for speed in follow_speed if speed > 0])
                 speeds.append(self.k.vehicle.get_speed(rl_id))
                 rewards[rl_id] = np.mean(speeds)
 

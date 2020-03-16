@@ -25,7 +25,7 @@ from flow.utils.registry import make_create_env
 # SET UP PARAMETERS FOR THE SIMULATION
 
 # number of steps per rollout
-HORIZON = 2000
+HORIZON = 1000
 
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10
@@ -37,6 +37,8 @@ additional_env_params.update({
     'max_decel': 1,
     # configure the observation space. Look at the I210MultiEnv class for more info.
     'lead_obs': True,
+    # whether to add in a reward for the speed of nearby vehicles
+    "local_reward": True
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
