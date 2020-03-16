@@ -67,7 +67,7 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands:
-    - cd flow && git fetch && git checkout origin/i210_imitation
+    - cd flow && git fetch && git checkout origin/i210_TD3
 
 head_setup_commands:
     - pip install -r ~/flow/requirements.txt

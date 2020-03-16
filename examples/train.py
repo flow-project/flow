@@ -15,6 +15,8 @@ import os
 import sys
 from time import strftime
 
+import numpy as np
+
 try:
     from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
     from stable_baselines import PPO2
@@ -188,6 +190,26 @@ def setup_exps_rllib(flow_params,
     else:
         sys.exit("We only support PPO and TD3 right now.")
 
+    # define some standard and useful callbacks
+    def on_episode_start(info):
+        episode = info["episode"]
+        episode.user_data["avg_speed"] = []
+
+    def on_episode_step(info):
+        episode = info["episode"]
+        env = info["env"].get_unwrapped()[0]
+        speed = np.mean(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
+        episode.user_data["avg_speed"].append(speed)
+
+    def on_episode_end(info):
+        episode = info["episode"]
+        avg_speed = np.mean(episode.user_data["avg_speed"])
+        episode.custom_metrics["avg_speed"] = avg_speed
+
+    config["callbacks"] = {"on_episode_start": tune.function(on_episode_start),
+                           "on_episode_step": tune.function(on_episode_step),
+                           "on_episode_end": tune.function(on_episode_end)}
+
     if flags.imitate:
         alg_run = ImitationTrainer
         config['model']['custom_options'].update({"imitation_weight": 1.0})
@@ -196,7 +218,7 @@ def setup_exps_rllib(flow_params,
         config['model']['custom_options']['mining_frac'] = 0.1
         config["model"]["custom_options"]["final_imitation_weight"] = 0.001
 
-        def on_train_result(info):
+        def on_train_result_imitate(info):
             """Store the mean score of the episode, and increment or decrement how many adversaries are on."""
             result = info["result"]
             trainer = info["trainer"]
@@ -204,7 +226,7 @@ def setup_exps_rllib(flow_params,
                 lambda ev: ev.foreach_env(
                     lambda env: env.set_iteration_num(result['training_iteration'])))
 
-        config["callbacks"] = {"on_train_result": tune.function(on_train_result)}
+        config["callbacks"].update({"on_train_result": tune.function(on_train_result_imitate)})
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -277,6 +299,8 @@ if __name__ == "__main__":
         date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
         s3_string = "s3://eugene.experiments/i210/" \
                     + date + '/' + flags.exp_title
+        if flags.use_s3:
+            exp_dict['upload_dir'] = s3_string
         run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
 
     elif flags.rl_trainer == "Stable-Baselines":
