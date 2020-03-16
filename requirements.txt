@@ -27,3 +27,4 @@ redis~=2.10.6
 pandas==0.24.2
 plotly==2.4.0
 pytz
+tensorflow==1.15.0

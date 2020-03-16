@@ -2,5 +2,5 @@
 
 # 3/11 exps
 ray exec ray_autoscale.yaml \
-"python flow/train.py multiagent_i210 --rl_trainer RLlib --num_cpus 1 --algorithm TD3 --exp_title test_td3 --use_s3" \
---start --stop --cluster-name ev_test_im
+"python flow/examples/train.py multiagent_i210 --rl_trainer RLlib --num_cpus 1 --algorithm TD3 --exp_title test_td3 --use_s3" \
+--start --stop --cluster-name ev_test_im --tmux
