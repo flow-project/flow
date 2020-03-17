@@ -1,7 +1,7 @@
 # cluster.yaml ========================================= 
 
 # An unique identifier for the head node and workers of this cluster.
-cluster_name: test #<YOUR NAME>
+cluster_name: kj_td3_0 #<YOUR NAME>
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
@@ -67,7 +67,7 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands:
-    - cd flow && git fetch && git checkout origin/i210_TD3
+    - cd flow && git fetch && git checkout origin/kj_td3
 
 head_setup_commands:
     - pip install -r ~/flow/requirements.txt

@@ -287,7 +287,7 @@ if __name__ == "__main__":
             "run_or_experiment": alg_run,
             "name": gym_name,
             "config": config,
-            "checkpoint_freq": 20,
+            "checkpoint_freq": 5,
             "checkpoint_at_end": True,
             "max_failures": 0,
             "stop": {
@@ -297,7 +297,7 @@ if __name__ == "__main__":
         eastern = pytz.timezone('US/Eastern')
         date = datetime.now(tz=pytz.utc)
         date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
-        s3_string = "s3://eugene.experiments/i210/" \
+        s3_string = "s3://kathy.experiments/i210/" \
                     + date + '/' + flags.exp_title
         if flags.use_s3:
             exp_dict['upload_dir'] = s3_string
