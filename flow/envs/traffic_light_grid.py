@@ -639,7 +639,7 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         """
         tl_box = Box(
             low=0.,
-            high=1,
+            high=3,
             shape=(3 * 4 * self.num_observed * self.num_traffic_lights +
                    2 * len(self.k.network.get_edge_list()) +
                    3 * self.num_traffic_lights,),
