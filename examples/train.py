@@ -186,6 +186,7 @@ def setup_exps_rllib(flow_params,
         config["kl_target"] = 0.02
         config["num_sgd_iter"] = 10
     elif alg_run == "TD3":
+        config["buffer_size"] = 20000
         pass
     else:
         sys.exit("We only support PPO and TD3 right now.")
