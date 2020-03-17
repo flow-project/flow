@@ -72,11 +72,16 @@ def parse_args(args):
     return parser.parse_known_args(args)[0]
 
 
-def run_model_stablebaseline(flow_params, num_cpus=1, rollout_size=50, num_steps=50):
+def run_model_stablebaseline(flow_params,
+                             num_cpus=1,
+                             rollout_size=50,
+                             num_steps=50):
     """Run the model for num_steps if provided.
 
     Parameters
     ----------
+    flow_params : dict
+        flow-specific parameters
     num_cpus : int
         number of CPUs used during training
     rollout_size : int
@@ -163,7 +168,8 @@ def setup_exps_rllib(flow_params,
         print("policy_graphs", policy_graphs)
         config['multiagent'].update({'policies': policy_graphs})
     if policy_mapping_fn is not None:
-        config['multiagent'].update({'policy_mapping_fn': tune.function(policy_mapping_fn)})
+        config['multiagent'].update(
+            {'policy_mapping_fn': tune.function(policy_mapping_fn)})
     if policies_to_train is not None:
         config['multiagent'].update({'policies_to_train': policies_to_train})
 
@@ -174,89 +180,215 @@ def setup_exps_rllib(flow_params,
     return alg_run, gym_name, config
 
 
-if __name__ == "__main__":
-    flags = parse_args(sys.argv[1:])
+def train_rllib(submodule, flags):
+    """Train policies using the PPO algorithm in RLlib."""
+    flow_params = submodule.flow_params
+    n_cpus = submodule.N_CPUS
+    n_rollouts = submodule.N_ROLLOUTS
+    policy_graphs = getattr(submodule, "POLICY_GRAPHS", None)
+    policy_mapping_fn = getattr(submodule, "policy_mapping_fn", None)
+    policies_to_train = getattr(submodule, "policies_to_train", None)
 
-    # import relevant information from the exp_config script
-    module = __import__("exp_configs.rl.singleagent", fromlist=[flags.exp_config])
-    module_ma = __import__("exp_configs.rl.multiagent", fromlist=[flags.exp_config])
+    alg_run, gym_name, config = setup_exps_rllib(
+        flow_params, n_cpus, n_rollouts,
+        policy_graphs, policy_mapping_fn, policies_to_train)
+
+    ray.init(num_cpus=n_cpus + 1, object_store_memory=200 * 1024 * 1024)
+    exp_config = {
+        "run": alg_run,
+        "env": gym_name,
+        "config": {
+            **config
+        },
+        "checkpoint_freq": 20,
+        "checkpoint_at_end": True,
+        "max_failures": 999,
+        "stop": {
+            "training_iteration": flags.num_steps,
+        },
+    }
+
+    if flags.checkpoint_path is not None:
+        exp_config['restore'] = flags.checkpoint_path
+    run_experiments({flow_params["exp_tag"]: exp_config})
+
+
+def train_h_baselines(submodule, flags, args, multiagent):
+    """Train policies using SAC and TD3 with h-baselines."""
+    from hbaselines.algorithms import OffPolicyRLAlgorithm
+    from hbaselines.utils.train import parse_options, get_hyperparameters
+
+    # Get the command-line arguments that are relevant here
+    args = parse_options(description="", example_usage="", args=args)
+    print(args.env_name)
+
+    # the base directory that the logged data will be stored in
+    if multiagent:
+        base_dir = "training_data/multi-fcnet"
+    else:
+        base_dir = "training_data/fcnet"
+
+    # Collect relevant environment information.
+    flow_params = submodule.flow_params
+
+    if multiagent:
+        pass  # TODO
+
+    # Create the training environment.
+    create_env, _ = make_create_env(flow_params, version=0, render=args.render)
+    env = create_env()
+
+    # Create the evaluation environment.
+    if args.evaluate:
+        eval_flow_params = flow_params.copy()
+        eval_flow_params['env'].evaluate = True
+        create_env, _ = make_create_env(
+            eval_flow_params, version=1, render=args.render_eval)
+        eval_env = create_env()
+    else:
+        eval_env = None
+
+    for i in range(args.n_training):
+        # value of the next seed
+        seed = args.seed + i
+
+        # The time when the current experiment started.
+        now = strftime("%Y-%m-%d-%H:%M:%S")
+
+        # Create a save directory folder (if it doesn't exist).
+        dir_name = os.path.join(base_dir, '{}/{}'.format(args.env_name, now))
+        ensure_dir(dir_name)
+
+        # Get the policy class.
+        if args.alg == "TD3":
+            if multiagent:
+                from hbaselines.multi_fcnet.td3 import MultiFeedForwardPolicy
+                policy = MultiFeedForwardPolicy
+            else:
+                from hbaselines.fcnet.td3 import FeedForwardPolicy
+                policy = FeedForwardPolicy
+        elif args.alg == "SAC":
+            if multiagent:
+                from hbaselines.multi_fcnet.sac import MultiFeedForwardPolicy
+                policy = MultiFeedForwardPolicy
+            else:
+                from hbaselines.fcnet.sac import FeedForwardPolicy
+                policy = FeedForwardPolicy
+        else:
+            raise ValueError("Unknown algorithm: {}".format(args.alg))
+
+        # Get the hyperparameters.
+        hp = get_hyperparameters(args, policy)
+
+        # Add the seed for logging purposes.
+        params_with_extra = hp.copy()
+        params_with_extra['seed'] = seed
+        params_with_extra['env_name'] = args.env_name  # FIXME
+        params_with_extra['policy_name'] = "FeedForwardPolicy"  # FIXME
+        params_with_extra['algorithm'] = args.alg
+        params_with_extra['date/time'] = now
+
+        # Add the hyperparameters to the folder.
+        with open(os.path.join(dir_name, 'hyperparameters.json'), 'w') as f:
+            json.dump(params_with_extra, f, sort_keys=True, indent=4)
+
+        # Create the algorithm object.
+        alg = OffPolicyRLAlgorithm(
+            policy=policy,
+            env=env,
+            eval_env=eval_env,
+            **hp
+        )
+
+        # Perform training.
+        alg.learn(
+            total_timesteps=args.total_steps,
+            log_dir=dir_name,
+            log_interval=args.log_interval,
+            eval_interval=args.eval_interval,
+            save_interval=args.save_interval,
+            seed=seed,
+        )
+
+
+def train_stable_baselines(submodule, flags):
+    """Train policies using the PPO algorithm in stable-baselines."""
+    flow_params = submodule.flow_params
+    # Path to the saved files
+    exp_tag = flow_params['exp_tag']
+    result_name = '{}/{}'.format(exp_tag, strftime("%Y-%m-%d-%H:%M:%S"))
+
+    # Perform training.
+    print('Beginning training.')
+    model = run_model_stablebaseline(
+        flow_params, flags.num_cpus, flags.rollout_size, flags.num_steps)
+
+    # Save the model to a desired folder and then delete it to demonstrate
+    # loading.
+    print('Saving the trained model!')
+    path = os.path.realpath(os.path.expanduser('~/baseline_results'))
+    ensure_dir(path)
+    save_path = os.path.join(path, result_name)
+    model.save(save_path)
+
+    # dump the flow params
+    with open(os.path.join(path, result_name) + '.json', 'w') as outfile:
+        json.dump(flow_params, outfile,
+                  cls=FlowParamsEncoder, sort_keys=True, indent=4)
+
+    # Replay the result by loading the model
+    print('Loading the trained model and testing it out!')
+    model = PPO2.load(save_path)
+    flow_params = get_flow_params(os.path.join(path, result_name) + '.json')
+    flow_params['sim'].render = True
+    env = env_constructor(params=flow_params, version=0)()
+    # The algorithms require a vectorized environment to run
+    eval_env = DummyVecEnv([lambda: env])
+    obs = eval_env.reset()
+    reward = 0
+    for _ in range(flow_params['env'].horizon):
+        action, _states = model.predict(obs)
+        obs, rewards, dones, info = eval_env.step(action)
+        reward += rewards
+    print('the final reward is {}'.format(reward))
+
+
+def main(args):
+    # Parse script-level arguments (not including package arguments).
+    flags = parse_args(args)
+
+    # Import relevant information from the exp_config script.
+    module = __import__(
+        "exp_configs.rl.singleagent", fromlist=[flags.exp_config])
+    module_ma = __import__(
+        "exp_configs.rl.multiagent", fromlist=[flags.exp_config])
+
+    # Import the sub-module containing the specified exp_config and determine
+    # whether the environment is single agent or multi-agent.
     if hasattr(module, flags.exp_config):
         submodule = getattr(module, flags.exp_config)
+        multiagent = False
     elif hasattr(module_ma, flags.exp_config):
         submodule = getattr(module_ma, flags.exp_config)
         assert flags.rl_trainer.lower() == "RLlib".lower(), \
             "Currently, multiagent experiments are only supported through "\
-            "RLlib. Try running this experiment using RLlib: 'python train.py EXP_CONFIG'"
+            "RLlib. Try running this experiment using RLlib: " \
+            "'python train.py EXP_CONFIG'"
+        multiagent = True
     else:
-        assert False, "Unable to find experiment config!"
+        raise ValueError("Unable to find experiment config.")
+
+    # Perform the training operation.
     if flags.rl_trainer.lower() == "rllib":
-        flow_params = submodule.flow_params
-        n_cpus = submodule.N_CPUS
-        n_rollouts = submodule.N_ROLLOUTS
-        policy_graphs = getattr(submodule, "POLICY_GRAPHS", None)
-        policy_mapping_fn = getattr(submodule, "policy_mapping_fn", None)
-        policies_to_train = getattr(submodule, "policies_to_train", None)
-
-        alg_run, gym_name, config = setup_exps_rllib(
-            flow_params, n_cpus, n_rollouts,
-            policy_graphs, policy_mapping_fn, policies_to_train)
-
-        ray.init(num_cpus=n_cpus + 1, object_store_memory=200 * 1024 * 1024)
-        exp_config = {
-            "run": alg_run,
-            "env": gym_name,
-            "config": {
-                **config
-            },
-            "checkpoint_freq": 20,
-            "checkpoint_at_end": True,
-            "max_failures": 999,
-            "stop": {
-                "training_iteration": flags.num_steps,
-            },
-        }
-
-        if flags.checkpoint_path is not None:
-            exp_config['restore'] = flags.checkpoint_path
-        trials = run_experiments({flow_params["exp_tag"]: exp_config})
-
-    elif flags.rl_trainer == "Stable-Baselines":
-        flow_params = submodule.flow_params
-        # Path to the saved files
-        exp_tag = flow_params['exp_tag']
-        result_name = '{}/{}'.format(exp_tag, strftime("%Y-%m-%d-%H:%M:%S"))
-
-        # Perform training.
-        print('Beginning training.')
-        model = run_model_stablebaseline(flow_params, flags.num_cpus, flags.rollout_size, flags.num_steps)
-
-        # Save the model to a desired folder and then delete it to demonstrate
-        # loading.
-        print('Saving the trained model!')
-        path = os.path.realpath(os.path.expanduser('~/baseline_results'))
-        ensure_dir(path)
-        save_path = os.path.join(path, result_name)
-        model.save(save_path)
-
-        # dump the flow params
-        with open(os.path.join(path, result_name) + '.json', 'w') as outfile:
-            json.dump(flow_params, outfile,
-                      cls=FlowParamsEncoder, sort_keys=True, indent=4)
-
-        # Replay the result by loading the model
-        print('Loading the trained model and testing it out!')
-        model = PPO2.load(save_path)
-        flow_params = get_flow_params(os.path.join(path, result_name) + '.json')
-        flow_params['sim'].render = True
-        env_constructor = env_constructor(params=flow_params, version=0)()
-        # The algorithms require a vectorized environment to run
-        eval_env = DummyVecEnv([lambda: env_constructor])
-        obs = eval_env.reset()
-        reward = 0
-        for _ in range(flow_params['env'].horizon):
-            action, _states = model.predict(obs)
-            obs, rewards, dones, info = eval_env.step(action)
-            reward += rewards
-        print('the final reward is {}'.format(reward))
+        train_rllib(submodule, flags)
+    elif flags.rl_trainer.lower() == "stable-baselines":
+        train_stable_baselines(submodule, flags)
+    elif flags.rl_trainer.lower() == "h-baselines":
+        train_h_baselines(submodule, flags, args, multiagent)
     else:
-        assert False, "rl_trainer should be either 'RLlib' or 'Stable-Baselines'!"
+        raise ValueError("rl_trainer should be either 'rllib', 'h-baselines', "
+                         "or 'stable-baselines'.")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
