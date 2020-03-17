@@ -53,6 +53,4 @@ class TestTraciSimulation(unittest.TestCase):
         # needs to be simulated.
         self.k.simulation.start_simulation(network=self.k.network, sim_params=self.dummy_sim_params)
 
-        assert self.k.simulation.sumo_proc is not None, "Sumo proc was not created!"
-
         self.k.simulation.teardown_sumo()
