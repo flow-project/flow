@@ -89,7 +89,11 @@ class TraCISimulation(KernelSimulation):
                     "--remote-port", str(sim_params.port),
                     "--num-clients", str(sim_params.num_clients),
                     "--step-length", str(sim_params.sim_step)
+
                 ]
+
+                if sim_params.ballistic:
+                    sumo_call.append("--step-method.ballistic")
 
                 # add step logs (if requested)
                 if sim_params.no_step_log:

@@ -124,10 +124,11 @@ flow_params = dict(
 
     # simulation-related parameters
     sim=SumoParams(
-        sim_step=0.8,
+        sim_step=0.5,
         render=False,
         color_by_speed=False,
         restart_instance=True,
+        ballistic=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)

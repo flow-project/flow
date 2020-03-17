@@ -186,7 +186,8 @@ def setup_exps_rllib(flow_params,
         config["kl_target"] = 0.02
         config["num_sgd_iter"] = 10
     elif alg_run == "TD3":
-        config["buffer_size"] = 100000
+        config["buffer_size"] = 1000 # reduced to test if this is the source of memory problems
+        config["sample_batch_size"] = 50
     else:
         sys.exit("We only support PPO and TD3 right now.")
 
