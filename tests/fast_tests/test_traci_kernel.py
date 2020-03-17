@@ -42,7 +42,7 @@ class TestTraciSimulation(unittest.TestCase):
 
     def test_setup_teardown_traci_simulation_libsumo(self):
         """Tests The setup and teardown of the traci kernel."""
-        
+
         self.dummy_sim_params = SumoParams(use_libsumo=True)
         self.dummy_sim_params.port = sumolib.miscutils.getFreeSocketPort()
         self.k = Kernel('traci', self.dummy_sim_params)
