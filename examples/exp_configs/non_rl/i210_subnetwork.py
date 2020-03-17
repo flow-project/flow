@@ -26,7 +26,7 @@ vehicles.add(
         lane_change_mode="strategic",
     ),
     acceleration_controller=(IDMController, {
-        "a": 0.3, "b": 2.0, "noise": 0.5
+        "a": 0.3, "b": 2.0, "noise": 0.6
     }),
     color='white'
 )
@@ -90,6 +90,7 @@ flow_params = dict(
         sim_step=0.5,
         render=False,
         force_color_update=False,
+        color_by_speed=False,
         print_warnings=True,
         ballistic=True
     ),
