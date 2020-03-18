@@ -92,7 +92,7 @@ flow_params = dict(
         force_color_update=False,
         color_by_speed=False,
         print_warnings=True,
-        ballistic=True
+        use_ballistic=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)

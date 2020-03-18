@@ -566,8 +566,8 @@ class SumoParams(SimParams):
     color_by_speed : bool
         whether to color the vehicles by the speed they are moving at the
         current time step
-    ballistic: bool, optional
-        whether or not to use ballistic integration
+    use_ballistic: bool, optional
+        If true, use a ballistic integration step instead of an euler step
     """
 
     def __init__(self,
@@ -589,7 +589,7 @@ class SumoParams(SimParams):
                  teleport_time=-1,
                  num_clients=1,
                  color_by_speed=False,
-                 ballistic=False):
+                 use_ballistic=False):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
@@ -603,7 +603,7 @@ class SumoParams(SimParams):
         self.teleport_time = teleport_time
         self.num_clients = num_clients
         self.color_by_speed = color_by_speed
-        self.ballistic = ballistic
+        self.use_ballistic = use_ballistic
 
 
 class EnvParams:

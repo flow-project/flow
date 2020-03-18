@@ -92,7 +92,8 @@ class TraCISimulation(KernelSimulation):
 
                 ]
 
-                if sim_params.ballistic:
+                # use a ballistic integration step (if request)
+                if sim_params.use_ballistic:
                     sumo_call.append("--step-method.ballistic")
 
                 # add step logs (if requested)

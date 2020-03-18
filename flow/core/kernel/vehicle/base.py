@@ -100,6 +100,10 @@ class KernelVehicle(object):
         """
         raise NotImplementedError
 
+    def reset(self):
+        """Reset any additional state that needs to be reset."""
+        raise NotImplementedError
+
     def remove(self, veh_id):
         """Remove a vehicle.
 
