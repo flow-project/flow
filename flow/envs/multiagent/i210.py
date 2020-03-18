@@ -137,8 +137,6 @@ class I210MultiEnv(MultiEnv):
         return veh_info
 
     def compute_reward(self, rl_actions, **kwargs):
-        # TODO(@evinitsky) we need something way better than this. Something that adds
-        # in notions of local reward
         """See class definition."""
         # in the warmup steps
         if rl_actions is None:
@@ -147,11 +145,14 @@ class I210MultiEnv(MultiEnv):
         rewards = {}
         if self.env_params.additional_params["local_reward"]:
             for rl_id in self.k.vehicle.get_rl_ids():
+                rewards[rl_id] = 0
                 speeds = []
                 follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_lane_followers(rl_id))
                 speeds.extend([speed for speed in follow_speed if speed > 0])
-                speeds.append(self.k.vehicle.get_speed(rl_id))
-                rewards[rl_id] = np.mean(speeds)
+                if self.k.vehicle.get_speed(rl_id) > 0:
+                    speeds.append(self.k.vehicle.get_speed(rl_id))
+                if len(speeds) > 0:
+                    rewards[rl_id] = np.mean(speeds)
 
         else:
             for rl_id in self.k.vehicle.get_rl_ids():

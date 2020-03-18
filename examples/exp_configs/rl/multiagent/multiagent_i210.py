@@ -48,7 +48,7 @@ vehicles.add(
     "human",
     num_vehicles=0,
     lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"),
-    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
+    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.6}),
 )
 vehicles.add(
     "av",
@@ -111,7 +111,7 @@ NET_TEMPLATE = os.path.join(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='kj_td3_1',
+    exp_tag='kj_td3_2',
 
     # name of the flow environment the experiment is running on
     env_name=I210MultiEnv,
@@ -124,16 +124,18 @@ flow_params = dict(
 
     # simulation-related parameters
     sim=SumoParams(
-        sim_step=0.8,
+        sim_step=0.5,
         render=False,
         color_by_speed=False,
         restart_instance=True,
+        ballistic=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
         sims_per_step=2,
+        warmup_steps=500,
         additional_params=additional_env_params,
     ),
 

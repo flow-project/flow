@@ -187,7 +187,7 @@ def setup_exps_rllib(flow_params,
         config["num_sgd_iter"] = 10
     elif alg_run == "TD3":
         config["buffer_size"] = 20000
-        pass
+        config["sample_batch_size"] = 50
     else:
         sys.exit("We only support PPO and TD3 right now.")
 
@@ -199,8 +199,9 @@ def setup_exps_rllib(flow_params,
     def on_episode_step(info):
         episode = info["episode"]
         env = info["env"].get_unwrapped()[0]
-        speed = np.mean(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
-        episode.user_data["avg_speed"].append(speed)
+        speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed > 0])
+        if not np.isnan(speed):
+            episode.user_data["avg_speed"].append(speed)
 
     def on_episode_end(info):
         episode = info["episode"]
