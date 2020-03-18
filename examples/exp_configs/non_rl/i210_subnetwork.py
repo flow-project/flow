@@ -14,6 +14,7 @@ from flow.core.params import InitialConfig
 from flow.core.params import InFlows
 import flow.config as config
 from flow.envs import TestEnv
+from flow.core.rewards import energy_consumption
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
 PEN_RATE = 0.0
@@ -34,7 +35,7 @@ vehicles.add(
     "av",
     num_vehicles=0,
     acceleration_controller=(FollowerStopper, {
-        "v_des": 10
+        "v_des": 11.0
     }),
     color='red'
 )
@@ -120,8 +121,7 @@ flow_params = dict(
 
 edge_id = "119257908#1-AddedOnRampEdge"
 custom_callables = {
-    "avg_merge_speed": lambda env: np.nan_to_num(np.mean(
-        env.k.vehicle.get_speed(env.k.vehicle.get_ids_by_edge(edge_id)))),
+    "avg_speed": lambda env: np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed > 0]),
     "avg_outflow": lambda env: np.nan_to_num(
         env.k.vehicle.get_outflow_rate(120)),
     # we multiply by 5 to account for the vehicle length and by 1000 to convert
@@ -129,4 +129,5 @@ custom_callables = {
     "avg_density": lambda env: 5 * 1000 * len(env.k.vehicle.get_ids_by_edge(
         edge_id)) / (env.k.network.edge_length(edge_id)
                      * env.k.network.num_lanes(edge_id)),
+    "avg_energy": lambda env: energy_consumption(env, 0.1)
 }

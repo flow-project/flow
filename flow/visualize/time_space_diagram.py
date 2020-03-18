@@ -576,6 +576,7 @@ if __name__ == '__main__':
 
     ax.set_xlim(xmin - xbuffer, xmax + xbuffer)
     ax.set_ylim(ymin - ybuffer, ymax + ybuffer)
+    speed_list = []
 
     for indx_car in range(pos.shape[1]):
         unique_car_pos = pos[:, indx_car]
@@ -583,6 +584,7 @@ if __name__ == '__main__':
         if flow_params['network'] == I210SubNetwork:
             indices = np.where(pos[:, indx_car] != 0)[0]
             unique_car_speed = speed[indices, indx_car]
+            speed_list.extend(unique_car_speed)
             points = np.array([time[indices], pos[indices, indx_car]]).T.reshape(-1, 1, 2)
         else:
 
@@ -622,4 +624,5 @@ if __name__ == '__main__':
         plt.plot(time, [-0.1] * pos.shape[0], linewidth=3, color="white")     #
     ###########################################################################
 
+    print(np.mean(speed_list))
     plt.show()

@@ -215,7 +215,11 @@ class I210MultiEnv(MultiEnv):
         lane_leader_speed = veh.get_lane_leaders_speed(rl_id).copy()
         lane_follower_speed = veh.get_lane_followers_speed(rl_id).copy()
         leader_ids = veh.get_lane_leaders(rl_id).copy()
+        for leader_id in leader_ids:
+            self.k.vehicle.set_observed(leader_id)
         follower_ids = veh.get_lane_followers(rl_id).copy()
+        for follower_id in follower_ids:
+            self.k.vehicle.set_observed(follower_id)
         rl_ids = self.k.vehicle.get_rl_ids()
         is_leader_rl = [1 if l_id in rl_ids else 0 for l_id in leader_ids]
         is_follow_rl = [1 if f_id in rl_ids else 0 for f_id in follower_ids]

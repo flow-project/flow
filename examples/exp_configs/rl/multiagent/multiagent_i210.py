@@ -128,14 +128,14 @@ flow_params = dict(
         render=False,
         color_by_speed=False,
         restart_instance=True,
-        ballistic=True
+        use_ballistic=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
         sims_per_step=2,
-        warmup_steps=500,
+        warmup_steps=0,
         additional_params=additional_env_params,
     ),
 

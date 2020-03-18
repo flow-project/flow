@@ -208,7 +208,7 @@ def visualizer_rllib(args):
             ret = 0
         for _ in range(env_params.horizon):
             vehicles = env.unwrapped.k.vehicle
-            speeds = vehicles.get_speed(vehicles.get_ids())
+            speeds = [speed for speed in vehicles.get_speed(vehicles.get_ids()) if speed > 0]
 
             # only include non-empty speeds
             if speeds:
@@ -275,14 +275,10 @@ def visualizer_rllib(args):
         print('Average, std: {}, {}'.format(
             np.mean(rets), np.std(rets)))
 
-    print("\nSpeed, mean (m/s):")
+    print("\nSpeed (m/s):")
     print(mean_speed)
     print('Average, std: {}, {}'.format(np.mean(mean_speed), np.std(
         mean_speed)))
-    print("\nSpeed, std (m/s):")
-    print(std_speed)
-    print('Average, std: {}, {}'.format(np.mean(std_speed), np.std(
-        std_speed)))
 
     # Compute arrival rate of vehicles in the last 500 sec of the run
     print("\nOutflows (veh/hr):")
