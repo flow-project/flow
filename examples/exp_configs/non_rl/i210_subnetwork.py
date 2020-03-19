@@ -16,7 +16,7 @@ import flow.config as config
 from flow.envs import TestEnv
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
-ON_RAMP = True
+ON_RAMP = False
 
 if ON_RAMP:
     vehicles = VehicleParams()
@@ -51,7 +51,7 @@ inflow = InFlows()
 inflow.add(
     veh_type="human",
     edge="119257914",
-    vehs_per_hour=8378,
+    vehs_per_hour=10800,
     departLane="random",
     departSpeed=23)
 # on ramp
