@@ -289,7 +289,7 @@ if __name__ == "__main__":
             "run_or_experiment": alg_run,
             "name": gym_name,
             "config": config,
-            "checkpoint_freq": 5,
+            "checkpoint_freq": 20,
             "checkpoint_at_end": True,
             "max_failures": 0,
             "stop": {
