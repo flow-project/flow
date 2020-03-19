@@ -2,7 +2,7 @@
 .. contents:: Table of contents
 
 Local Installation of Flow
-==================
+==========================
 
 To get Flow running, you need three things: Flow,
 
@@ -391,16 +391,22 @@ If you have Ubuntu 14.04+, run the following command
 
 
 Virtual installation of Flow (using docker containers)
-================================
+======================================================
 
 To install a containerized Flow stack, run:
+
 ::
+
     docker run -d -p 5901:5901 -p 6901:6901 fywu85/flow-desktop:latest
 
 To access the docker container, go to the following URL and enter the default password `password`:
+
 ::
+
     http://localhost:6901/vnc.html
 
 To use the Jupyter Notebook inside the container, run:
+
 ::
+
     jupyter notebook --ip=127.0.0.1
