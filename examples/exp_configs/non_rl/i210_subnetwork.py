@@ -4,6 +4,7 @@ import os
 import numpy as np
 
 from flow.controllers.car_following_models import IDMController
+from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import SumoParams
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
@@ -15,6 +16,7 @@ import flow.config as config
 from flow.envs import TestEnv
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
+PEN_RATE = 0.0
 # create the base vehicle type that will be used for inflows
 vehicles = VehicleParams()
 vehicles.add(
@@ -24,9 +26,17 @@ vehicles.add(
         lane_change_mode="strategic",
     ),
     acceleration_controller=(IDMController, {
-        "a": 0.3, "b": 2.0, "noise": 0.45
+        "a": 0.3, "b": 2.0, "noise": 0.6
     }),
     color='white'
+)
+vehicles.add(
+    "av",
+    num_vehicles=0,
+    acceleration_controller=(FollowerStopper, {
+        "v_des": 10
+    }),
+    color='red'
 )
 
 inflow = InFlows()
@@ -34,9 +44,16 @@ inflow = InFlows()
 inflow.add(
     veh_type="human",
     edge="119257914",
-    vehs_per_hour=8378,
+    vehs_per_hour=int(8378 * (1- PEN_RATE)),
     departLane="random",
     departSpeed=23)
+if PEN_RATE > 0.0:
+    inflow.add(
+        veh_type="av",
+        edge="119257914",
+        vehs_per_hour=int(8378 * (PEN_RATE)),
+        departLane="random",
+        departSpeed=23)
 # on ramp
 # inflow.add(
 #     veh_type="human",
@@ -70,9 +87,12 @@ flow_params = dict(
 
     # simulation-related parameters
     sim=SumoParams(
-        sim_step=0.8,
+        sim_step=0.5,
         render=False,
-        force_color_update=False
+        force_color_update=False,
+        color_by_speed=False,
+        print_warnings=True,
+        ballistic=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)

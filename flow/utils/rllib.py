@@ -6,6 +6,7 @@ This includes: environment generation, serialization, and visualization.
 import json
 from copy import deepcopy
 import os
+import sys
 
 import flow.envs
 from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
@@ -144,6 +145,12 @@ def get_flow_params(config):
     net.inflows = InFlows()
     if flow_params["net"]["inflows"]:
         net.inflows.__dict__ = flow_params["net"]["inflows"].copy()
+    if len(net.template) > 0:
+        dirname = os.getcwd()
+        filename = os.path.join(dirname, '../../examples')
+        split = net.template.split('examples')[1][1:]
+        path = os.path.abspath(os.path.join(filename, split))
+        net.template = path
 
     env = EnvParams()
     env.__dict__ = flow_params["env"].copy()
@@ -207,6 +214,9 @@ def get_rllib_config(path):
 
 def get_rllib_pkl(path):
     """Return the data from the specified rllib configuration file."""
+    dirname = os.getcwd()
+    filename = os.path.join(dirname, '../../examples/')
+    sys.path.append(filename)
     config_path = os.path.join(path, "params.pkl")
     if not os.path.exists(config_path):
         config_path = os.path.join(path, "../params.pkl")
