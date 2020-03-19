@@ -151,7 +151,6 @@ def before_learn_on_batch(multi_agent_batch, policies, train_batch_size):
 
     # Share samples among agents.
     policy_batches = {pid: SampleBatch(samples) for pid in policies.keys()}
-
     return MultiAgentBatch(policy_batches, train_batch_size)
 
 

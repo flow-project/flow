@@ -98,7 +98,8 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=4500,
+        horizon=2000,
+        sims_per_step=2
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
