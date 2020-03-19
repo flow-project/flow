@@ -213,7 +213,7 @@ def train_rllib(submodule, flags):
     run_experiments({flow_params["exp_tag"]: exp_config})
 
 
-def train_h_baselines(submodule, args, multiagent):
+def train_h_baselines(flow_params, args, multiagent):
     """Train policies using SAC and TD3 with h-baselines."""
     from hbaselines.algorithms import OffPolicyRLAlgorithm
     from hbaselines.utils.train import parse_options, get_hyperparameters
@@ -224,9 +224,6 @@ def train_h_baselines(submodule, args, multiagent):
 
     # the base directory that the logged data will be stored in
     base_dir = "training_data"
-
-    # Collect relevant environment information.
-    flow_params = submodule.flow_params
 
     # Create the training environment.
     env = FlowEnv(
@@ -312,6 +309,7 @@ def train_h_baselines(submodule, args, multiagent):
             log_interval=args.log_interval,
             eval_interval=args.eval_interval,
             save_interval=args.save_interval,
+            initial_exploration_steps=args.initial_exploration_steps,
             seed=seed,
         )
 
@@ -390,7 +388,8 @@ def main(args):
     elif flags.rl_trainer.lower() == "stable-baselines":
         train_stable_baselines(submodule, flags)
     elif flags.rl_trainer.lower() == "h-baselines":
-        train_h_baselines(submodule, args, multiagent)
+        flow_params = submodule.flow_params
+        train_h_baselines(flow_params, args, multiagent)
     else:
         raise ValueError("rl_trainer should be either 'rllib', 'h-baselines', "
                          "or 'stable-baselines'.")

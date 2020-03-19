@@ -140,6 +140,9 @@ These new arguments are as follows:
   is called. Defaults to 50000.
 * `--save_interval` (int): number of simulation steps in the training 
   environment before the model is saved. Defaults to 50000.
+* `--initial_exploration_steps` (*int*): number of timesteps that the policy is
+  run before training to initialize the replay buffer with samples. Defaults to
+  10000.
 * `--nb_train_steps` (*int*): the number of training steps. Defaults to 1.
 * `--nb_rollout_steps` (*int*): the number of rollout steps. Defaults to 1.
 * `--nb_eval_episodes` (*int*): the number of evaluation episodes. Only 

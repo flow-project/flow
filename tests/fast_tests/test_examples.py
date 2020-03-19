@@ -29,6 +29,7 @@ from examples.exp_configs.rl.multiagent.multiagent_highway import flow_params as
 from examples.train import parse_args as parse_train_args
 from examples.train import run_model_stablebaseline as run_stable_baselines_model
 from examples.train import setup_exps_rllib as setup_rllib_exps
+from examples.train import train_h_baselines
 
 from examples.exp_configs.non_rl.bay_bridge import flow_params as non_rl_bay_bridge
 from examples.exp_configs.non_rl.bay_bridge_toll import flow_params as non_rl_bay_bridge_toll
@@ -122,33 +123,6 @@ class TestNonRLExamples(unittest.TestCase):
         exp.run(1)
 
 
-class TestStableBaselineExamples(unittest.TestCase):
-    """Tests the example scripts in examples/exp_configs/rl/singleagent for stable_baselines.
-
-    This is done by running each experiment in that folder for five time-steps
-    and confirming that it completes one rollout with two workers.
-    """
-    @staticmethod
-    def run_exp(flow_params):
-        train_model = run_stable_baselines_model(flow_params, 1, 4, 4)
-        train_model.env.close()
-
-    def test_singleagent_figure_eight(self):
-        self.run_exp(singleagent_figure_eight)
-
-    def test_singleagent_traffic_light_grid(self):
-        self.run_exp(singleagent_traffic_light_grid)
-
-    def test_singleagent_merge(self):
-        self.run_exp(singleagent_merge)
-
-    def test_singleagent_ring(self):
-        self.run_exp(singleagent_ring)
-
-    def test_singleagent_bottleneck(self):
-        self.run_exp(singleagent_bottleneck)
-
-
 class TestTrain(unittest.TestCase):
 
     def test_parse_args(self):
@@ -183,6 +157,58 @@ class TestTrain(unittest.TestCase):
             'rl_trainer': 'h-baselines',
             'rollout_size': 4
         })
+
+
+class TestStableBaselineExamples(unittest.TestCase):
+    """Tests the example scripts in examples/exp_configs/rl/singleagent for stable_baselines.
+
+    This is done by running each experiment in that folder for five time-steps
+    and confirming that it completes one rollout with two workers.
+    """
+    @staticmethod
+    def run_exp(flow_params):
+        train_model = run_stable_baselines_model(flow_params, 1, 4, 4)
+        train_model.env.close()
+
+    def test_singleagent_figure_eight(self):
+        self.run_exp(singleagent_figure_eight)
+
+    def test_singleagent_traffic_light_grid(self):
+        self.run_exp(singleagent_traffic_light_grid)
+
+    def test_singleagent_merge(self):
+        self.run_exp(singleagent_merge)
+
+    def test_singleagent_ring(self):
+        self.run_exp(singleagent_ring)
+
+    def test_singleagent_bottleneck(self):
+        self.run_exp(singleagent_bottleneck)
+
+
+class TestHBaselineExamples(unittest.TestCase):
+    """Tests the functionality of the h-baselines features in train.py.
+
+    This is done by running a set of experiments for 10 time-steps and
+    confirming that it runs.
+    """
+    @staticmethod
+    def run_exp(flow_params, multiagent):
+        train_h_baselines(
+            flow_params=flow_params,
+            args=[
+                flow_params["env_name"].__name__,
+                "--initial_exploration_steps", "1",
+                "--total_steps", "10"
+            ],
+            multiagent=multiagent,
+        )
+
+    def test_singleagent_ring(self):
+        self.run_exp(singleagent_ring, multiagent=False)
+
+    def test_multiagent_ring(self):
+        self.run_exp(multiagent_ring, multiagent=True)
 
 
 class TestRllibExamples(unittest.TestCase):
