@@ -816,6 +816,10 @@ class TraCIKernelNetwork(BaseKernelNetwork):
             cfg.append(E("lateral-resolution",
                          value=str(self.sim_params.lateral_resolution)))
 
+        # use a ballistic integration step (if request)
+        if self.sim_params.use_ballistic:
+            cfg.append(E("step-method.ballistic", value="true"))
+
         # add the emission path to the sumo command (if requested)
         if self.sim_params.emission_path is not None:
             ensure_dir(self.sim_params.emission_path)

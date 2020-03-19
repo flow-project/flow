@@ -24,7 +24,7 @@ vehicles.add(
         lane_change_mode="strategic",
     ),
     acceleration_controller=(IDMController, {
-        "a": 0.3, "b": 2.0, "noise": 0.45
+        "a": 0.3, "b": 2.0, "noise": 0.5
     }),
 )
 
@@ -69,9 +69,10 @@ flow_params = dict(
 
     # simulation-related parameters
     sim=SumoParams(
-        sim_step=0.8,
+        sim_step=0.5,
         render=False,
         color_by_speed=True,
+        use_ballistic=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
