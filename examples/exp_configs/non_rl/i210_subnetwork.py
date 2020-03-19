@@ -2,13 +2,8 @@
 import os
 import numpy as np
 
-<<<<<<< HEAD
 from flow.controllers import IDMController
 from flow.controllers import I210Router
-=======
-from flow.controllers.car_following_models import IDMController
-from flow.controllers.routing_controllers import I210Router
->>>>>>> Add an on ramp option
 from flow.core.params import SumoParams
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
@@ -20,7 +15,6 @@ import flow.config as config
 from flow.envs import TestEnv
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
-<<<<<<< HEAD
 # =========================================================================== #
 # Specify some configurable constants.                                        #
 # =========================================================================== #
@@ -78,37 +72,6 @@ vehicles.add(
     }),
     routing_controller=(I210Router, {}) if ON_RAMP else None,
 )
-=======
-ON_RAMP = True
-
-if ON_RAMP:
-    vehicles = VehicleParams()
-    vehicles.add(
-        "human",
-        num_vehicles=0,
-        lane_change_params=SumoLaneChangeParams(
-            lane_change_mode="strategic",
-        ),
-        acceleration_controller=(IDMController, {
-            "a": 0.3, "b": 2.0, "noise": 0.5
-        }),
-        routing_controller=(I210Router, {})
-    )
-
-else:
-    # create the base vehicle type that will be used for inflows
-    vehicles = VehicleParams()
-    vehicles.add(
-        "human",
-        num_vehicles=0,
-        lane_change_params=SumoLaneChangeParams(
-            lane_change_mode="strategic",
-        ),
-        acceleration_controller=(IDMController, {
-            "a": 0.3, "b": 2.0, "noise": 0.5
-        }),
-    )
->>>>>>> Add an on ramp option
 
 inflow = InFlows()
 # main highway
@@ -123,7 +86,6 @@ if ON_RAMP:
     inflow.add(
         veh_type="human",
         edge="27414345",
-<<<<<<< HEAD
         vehs_per_hour=500,
         departLane="random",
         departSpeed=10)
@@ -137,21 +99,6 @@ if ON_RAMP:
 # =========================================================================== #
 # Generate the flow_params dict with all relevant simulation information.     #
 # =========================================================================== #
-=======
-        vehs_per_hour=321,
-        departLane="random",
-        departSpeed=20)
-    inflow.add(
-        veh_type="human",
-        edge="27414342#0",
-        vehs_per_hour=421,
-        departLane="random",
-        departSpeed=20)
-
-NET_TEMPLATE = os.path.join(
-    config.PROJECT_PATH,
-    "examples/exp_configs/templates/sumo/test2.net.xml")
->>>>>>> Add an on ramp option
 
 flow_params = dict(
     # name of the experiment
@@ -170,33 +117,24 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.4,
         render=False,
-        color_by_speed=False,
+        color_by_speed=True,
         use_ballistic=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-<<<<<<< HEAD
         horizon=10000,
-=======
-        horizon=7200,
->>>>>>> Add an on ramp option
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
     # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-<<<<<<< HEAD
         template=net_template,
         additional_params={
             "on_ramp": ON_RAMP,
             "ghost_edge": WANT_GHOST_CELL,
         }
-=======
-        template=NET_TEMPLATE,
-        additional_params={"use_on_ramp": ON_RAMP}
->>>>>>> Add an on ramp option
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
