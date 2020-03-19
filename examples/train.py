@@ -6,12 +6,12 @@ hyperparameters can be seen and adjusted from the code below.
 Usage
     python train.py EXP_CONFIG
 """
-
 import argparse
 import json
 import os
 import sys
 from time import strftime
+from copy import deepcopy
 
 from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines import PPO2
@@ -20,16 +20,15 @@ import ray
 from ray import tune
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
-from flow.utils.registry import make_create_env
 try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
-from copy import deepcopy
 
 from flow.core.util import ensure_dir
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
+from flow.utils.registry import make_create_env
 
 
 def parse_args(args):
@@ -219,6 +218,8 @@ def train_h_baselines(flow_params, args, multiagent):
     from hbaselines.utils.train import parse_options, get_hyperparameters
     from hbaselines.envs.mixed_autonomy.envs import FlowEnv
 
+    flow_params = deepcopy(flow_params)
+
     # Get the command-line arguments that are relevant here
     args = parse_options(description="", example_usage="", args=args)
 
@@ -227,7 +228,7 @@ def train_h_baselines(flow_params, args, multiagent):
 
     # Create the training environment.
     env = FlowEnv(
-        flow_params.copy(),
+        flow_params,
         multiagent=multiagent,
         shared=args.shared,
         maddpg=args.maddpg,
@@ -237,7 +238,7 @@ def train_h_baselines(flow_params, args, multiagent):
 
     # Create the evaluation environment.
     if args.evaluate:
-        eval_flow_params = flow_params.copy()
+        eval_flow_params = deepcopy(flow_params)
         eval_flow_params['env'].evaluate = True
         eval_env = FlowEnv(
             eval_flow_params,
