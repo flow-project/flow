@@ -88,7 +88,12 @@ batch (default of `r` is 1000)
 
 ### h-baselines
 
-TODO
+A third RL algorithms package supported by the `train.py` script is 
+[h-baselines](https://github.com/AboudyKreidieh/h-baselines). In order to use 
+the algorithms supported by this package, begin by installing h-baselines by 
+following the setup instructions located 
+[here](https://flow.readthedocs.io/en/latest/flow_setup.html#optional-install-h-baselines). 
+A policy can be trained using one of the exp_configs as follows:
 
 ```shell script
 python examples/train.py singleagent_ring --rl_trainer h-baselines
@@ -97,19 +102,19 @@ python examples/train.py singleagent_ring --rl_trainer h-baselines
 **Logging:**
 
 The above script executes a training operation and begins logging training and 
-testing data under the path: TODO.
+testing data under the path: *training_data/singleagent_ring/<date_time>*.
 
 To visualize the statistics of various tensorflow operations in tensorboard, 
 type:
 
 ```shell script
-TODO
+tensorboard --logdir <path/to/flow>/examples/training_data/singleagent_ring/<date_time>
 ```
 
 Moreover, as training progressive, per-iteration and cumulative statistics are 
 printed as a table on your terminal. These statistics are stored under the csv 
-files *TODO/train.csv* and *TODO/eval.csv* (if also using an evaluation 
-environment).
+files *train.csv* and *eval.csv* (if also using an evaluation environment) 
+within the same directory.
 
 **Hyperparameters:**
 
@@ -142,14 +147,14 @@ These new arguments are as follows:
 * `--reward_scale` (*float*): the value the reward should be scaled by. 
   Defaults to 1.
 * `--buffer_size` (*int*): the max number of transitions to store. Defaults to 
-  TODO.
+  200000.
 * `--batch_size` (*int*): the size of the batch for learning the policy. 
-  Defaults to TODO.
-* `--actor_lr` (*float*): the actor learning rate. Defaults to TODO.
-* `--critic_lr` (*float*): the critic learning rate. Defaults to TODO.
+  Defaults to 128.
+* `--actor_lr` (*float*): the actor learning rate. Defaults to 3e-4.
+* `--critic_lr` (*float*): the critic learning rate. Defaults to 3e-4.
 * `--tau` (*float*): the soft update coefficient (keep old values, between 0 
-  and 1). Defatuls to TODO.
-* `--gamma` (*float*): the discount rate. Defaults to TODO.
+  and 1). Defatuls to 0.005.
+* `--gamma` (*float*): the discount rate. Defaults to 0.99.
 * `--layer_norm` (*store_true*): enable layer normalisation
 * `--use_huber` (*store_true*): specifies whether to use the huber distance 
   function as the loss for the critic. If set to False, the mean-squared error 
@@ -160,13 +165,13 @@ These new arguments are as follows:
 * `--noise` (*float*): scaling term to the range of the action space, that is 
   subsequently used as the standard deviation of Gaussian noise added to the 
   action if `apply_noise` is set to True in `get_action`". Only used when the 
-  algorithm is set to "TD3". Defaults to TODO.
+  algorithm is set to "TD3". Defaults to 0.1.
 * `--target_policy_noise` (*float*): standard deviation term to the noise from 
   the output of the target actor policy. See TD3 paper for more. Only used when
-  the algorithm is set to "TD3". Defaults to TODO.
+  the algorithm is set to "TD3". Defaults to 0.2.
 * `--target_noise_clip` (*float*): clipping term for the noise injected in the
   target actor policy. Only used when the algorithm is set to "TD3". Defaults 
-  to TODO.
+  to 0.5.
 * `--target_entropy` (*float*): target entropy used when learning the entropy 
   coefficient. If set to None, a heuristic value is used. Only used when the 
   algorithm is set to "SAC". Defaults to None.

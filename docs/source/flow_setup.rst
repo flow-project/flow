@@ -307,7 +307,7 @@ You can test your installation by running
 (Optional) Install h-baselines
 ------------------------------
 
-h-baselines is another variant of OpenAI's baselines that support the use of
+h-baselines is another variant of stable-baselines that support the use of
 single-agent, multiagent, and hierarchical policies. To install h-baselines,
 run the following commands:
 
@@ -320,7 +320,7 @@ run the following commands:
 
 
 Testing your h-baselines installation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can test your installation by running
 
