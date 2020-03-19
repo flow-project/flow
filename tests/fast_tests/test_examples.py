@@ -205,10 +205,10 @@ class TestHBaselineExamples(unittest.TestCase):
         )
 
     def test_singleagent_ring(self):
-        self.run_exp(singleagent_ring, multiagent=False)
+        self.run_exp(singleagent_ring.copy(), multiagent=False)
 
     def test_multiagent_ring(self):
-        self.run_exp(multiagent_ring, multiagent=True)
+        self.run_exp(multiagent_ring.copy(), multiagent=True)
 
 
 class TestRllibExamples(unittest.TestCase):
