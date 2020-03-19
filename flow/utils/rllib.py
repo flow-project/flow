@@ -7,6 +7,7 @@ from copy import deepcopy
 import json
 import sys
 import os
+import sys
 
 import flow.envs
 from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
