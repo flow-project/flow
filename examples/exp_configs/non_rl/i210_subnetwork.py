@@ -52,8 +52,8 @@ inflow.add(
     veh_type="human",
     edge="119257914",
     vehs_per_hour=10800,
-    departLane="random",
-    departSpeed=23)
+    departLane="best",
+    departSpeed=23.0)
 # on ramp
 if ON_RAMP:
     inflow.add(
