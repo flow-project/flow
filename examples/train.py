@@ -66,7 +66,7 @@ def parse_args(args):
         help='the RL trainer to use. either rllib or Stable-Baselines')
     parser.add_argument(
         '--algorithm', type=str, default="PPO",
-        help='RL algorithm to use. Options are PPO and TD3 right now.'
+        help='RL algorithm to use. Options are PPO, TD3, MATD3 (MADDPG w/ TD3) right now.'
     )
     parser.add_argument('--exp_title', type=str, default='test',
                         help='Informative experiment title to help distinguish results')
@@ -172,12 +172,12 @@ def setup_exps_rllib(flow_params,
 
     alg_run = flags.algorithm.upper()
 
-    agent_cls = get_agent_class(alg_run)
-    config = deepcopy(agent_cls._default_config)
-
-    config["num_workers"] = n_cpus
-    config["horizon"] = horizon
     if alg_run == "PPO":
+        agent_cls = get_agent_class(alg_run)
+        config = deepcopy(agent_cls._default_config)
+
+        config["num_workers"] = n_cpus
+        config["horizon"] = horizon
         config["model"].update({"fcnet_hiddens": [32, 32, 32]})
         config["train_batch_size"] = horizon * n_rollouts
         config["gamma"] = 0.999  # discount rate
@@ -186,8 +186,21 @@ def setup_exps_rllib(flow_params,
         config["kl_target"] = 0.02
         config["num_sgd_iter"] = 10
     elif alg_run == "TD3":
+        agent_cls = get_agent_class(alg_run)
+        config = deepcopy(agent_cls._default_config)
+
+        config["num_workers"] = n_cpus
+        config["horizon"] = horizon
         config["buffer_size"] = 20000 # reduced to test if this is the source of memory problems
         config["sample_batch_size"] = 50
+    elif alg_run == "MATD3":
+        from flow.algorithms.MATD3.maddpg import MADDPGTrainer
+        from flow.algorithms.MATD3.maddpg import DEFAULT_CONFIG
+        alg_run = MADDPGTrainer
+        config = deepcopy(DEFAULT_CONFIG)
+        config["num_workers"] = n_cpus
+        config["horizon"] = horizon
+        config["agent_id"]
     else:
         sys.exit("We only support PPO and TD3 right now.")
 

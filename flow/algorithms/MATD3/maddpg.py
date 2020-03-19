@@ -16,7 +16,7 @@ import logging
 
 from ray.rllib.agents.trainer import with_common_config
 from ray.rllib.agents.dqn.dqn import GenericOffPolicyTrainer
-from ray.rllib.contrib.maddpg.maddpg_policy import MADDPGTFPolicy
+from flow.algorithms.MATD3.maddpg_policy import MADDPGTFPolicy
 from ray.rllib.optimizers import SyncReplayOptimizer
 from ray.rllib.policy.sample_batch import SampleBatch, MultiAgentBatch
 
@@ -103,6 +103,10 @@ DEFAULT_CONFIG = with_common_config({
     "num_workers": 1,
     # Prevent iterations from going lower than this time span
     "min_iter_time_s": 0,
+
+    # === Extra Configs to make it work for flow ===
+    # the most agents we could ever feasibly see
+    "max_num_agents": 100
 })
 # __sphinx_doc_end__
 # yapf: enable
@@ -118,9 +122,11 @@ def before_learn_on_batch(multi_agent_batch, policies, train_batch_size):
 
     # Modify keys.
     for pid, p in policies.items():
+        import ipdb; ipdb.set_trace()
         i = p.config["agent_id"]
         keys = multi_agent_batch.policy_batches[pid].data.keys()
         keys = ["_".join([k, str(i)]) for k in keys]
+        # TODO(@evinitsky) here for each key you can just extend it to the appropriate length
         samples.update(
             dict(
                 zip(keys,
@@ -131,18 +137,21 @@ def before_learn_on_batch(multi_agent_batch, policies, train_batch_size):
     new_obs_n = list()
     for k, v in samples.items():
         if "new_obs" in k:
+            # TODO(@evinitsky) here for each key you can just extend it to the appropriate length
             new_obs_n.append(v)
 
     target_act_sampler_n = [p.target_act_sampler for p in policies.values()]
     feed_dict = dict(zip(new_obs_ph_n, new_obs_n))
 
     new_act_n = p.sess.run(target_act_sampler_n, feed_dict)
+    # TODO(@evinitsky) here for each key you can just extend it to the appropriate length
     samples.update(
         {"new_actions_%d" % i: new_act
          for i, new_act in enumerate(new_act_n)})
 
     # Share samples among agents.
     policy_batches = {pid: SampleBatch(samples) for pid in policies.keys()}
+
     return MultiAgentBatch(policy_batches, train_batch_size)
 
 

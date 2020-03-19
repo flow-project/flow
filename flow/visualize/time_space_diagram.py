@@ -339,8 +339,9 @@ def _i210_subnetwork(data, params, all_time):
     # create the output variables
     # TODO(@ev) handle subsampling better than this
     low_time = int(0 / params['sim'].sim_step)
-    high_time = int(1600 / params['sim'].sim_step)
-    all_time = all_time[low_time:high_time]
+    # high_time = int(1600 / params['sim'].sim_step)
+    # all_time = all_time[low_time:high_time]
+    all_time = all_time[low_time:]
 
     # track only vehicles that were around during this time period
     observed_row_list = []

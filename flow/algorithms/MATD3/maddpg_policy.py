@@ -63,8 +63,8 @@ class MADDPGTFPolicy(MADDPGPostprocessing, TFPolicy):
         agent_id = config["agent_id"]
         if agent_id is None:
             raise ValueError("Must set `agent_id` in the policy config.")
-        if type(agent_id) is not int:
-            raise ValueError("Agent ids must be integers for MADDPG.")
+        # if type(agent_id) is not int:
+        #     raise ValueError("Agent ids must be integers for MADDPG.")
 
         # _____ Environment Setting
         def _make_continuous_space(space):
@@ -80,23 +80,24 @@ class MADDPGTFPolicy(MADDPGPostprocessing, TFPolicy):
         obs_space = config["multiagent"]["policies"]['av'][1]
         obs_space_n = [
             _make_continuous_space(obs_space)
-            for _ in range(config["model"]["custom_options"]["max_num_agents"])
+            for _ in range(config["max_num_agents"])
         ]
         act_space = config["multiagent"]["policies"]['av'][2]
         act_space_n = [
             _make_continuous_space(act_space)
-            for _ in range(config["model"]["custom_options"]["max_num_agents"])
+            for _ in range(config["max_num_agents"])
         ]
 
         # _____ Placeholders
         # Placeholders for policy evaluation and updates
-        def _make_ph_n(space_n, name=""):
-            return [
-                tf.placeholder(
-                    tf.float32,
-                    shape=(None, ) + space.shape,
-                    name=name + "_%d" % i) for i, space in enumerate(space_n)
-            ]
+        with tf.variable_scope('obs', reuse=tf.AUTO_REUSE)
+            def _make_ph_n(space_n, name=""):
+                return [
+                    tf.placeholder(
+                        tf.float32,
+                        shape=(None, ) + space.shape,
+                        name=name + "_%d" % i) for i, space in enumerate(space_n)
+                ]
 
         obs_ph_n = _make_ph_n(obs_space_n, "obs")
         act_ph_n = _make_ph_n(act_space_n, "actions")
