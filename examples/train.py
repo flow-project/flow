@@ -283,8 +283,8 @@ def train_h_baselines(submodule, flags, args, multiagent):
         # Add the seed for logging purposes.
         params_with_extra = hp.copy()
         params_with_extra['seed'] = seed
-        params_with_extra['env_name'] = args.env_name  # FIXME
-        params_with_extra['policy_name'] = "FeedForwardPolicy"  # FIXME
+        params_with_extra['env_name'] = args.env_name
+        params_with_extra['policy_name'] = policy.__name__
         params_with_extra['algorithm'] = args.alg
         params_with_extra['date/time'] = now
 
@@ -354,6 +354,7 @@ def train_stable_baselines(submodule, flags):
 
 
 def main(args):
+    """Perform the training operations."""
     # Parse script-level arguments (not including package arguments).
     flags = parse_args(args)
 
