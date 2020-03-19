@@ -213,38 +213,43 @@ def train_rllib(submodule, flags):
     run_experiments({flow_params["exp_tag"]: exp_config})
 
 
-def train_h_baselines(submodule, flags, args, multiagent):
+def train_h_baselines(submodule, args, multiagent):
     """Train policies using SAC and TD3 with h-baselines."""
     from hbaselines.algorithms import OffPolicyRLAlgorithm
     from hbaselines.utils.train import parse_options, get_hyperparameters
+    from hbaselines.envs.mixed_autonomy.envs import FlowEnv
 
     # Get the command-line arguments that are relevant here
     args = parse_options(description="", example_usage="", args=args)
-    print(args.env_name)
 
     # the base directory that the logged data will be stored in
-    if multiagent:
-        base_dir = "training_data/multi-fcnet"
-    else:
-        base_dir = "training_data/fcnet"
+    base_dir = "training_data"
 
     # Collect relevant environment information.
     flow_params = submodule.flow_params
 
-    if multiagent:
-        pass  # TODO
-
     # Create the training environment.
-    create_env, _ = make_create_env(flow_params, version=0, render=args.render)
-    env = create_env()
+    env = FlowEnv(
+        flow_params,
+        multiagent=multiagent,
+        shared=args.shared,
+        maddpg=args.maddpg,
+        render=args.render,
+        version=0
+    )
 
     # Create the evaluation environment.
     if args.evaluate:
         eval_flow_params = flow_params.copy()
         eval_flow_params['env'].evaluate = True
-        create_env, _ = make_create_env(
-            eval_flow_params, version=1, render=args.render_eval)
-        eval_env = create_env()
+        eval_env = FlowEnv(
+            eval_flow_params,
+            multiagent=multiagent,
+            shared=args.shared,
+            maddpg=args.maddpg,
+            render=args.render_eval,
+            version=1
+        )
     else:
         eval_env = None
 
@@ -371,7 +376,7 @@ def main(args):
         multiagent = False
     elif hasattr(module_ma, flags.exp_config):
         submodule = getattr(module_ma, flags.exp_config)
-        assert flags.rl_trainer.lower() == "RLlib".lower(), \
+        assert flags.rl_trainer.lower() in ["rllib", "h-baselines"], \
             "Currently, multiagent experiments are only supported through "\
             "RLlib. Try running this experiment using RLlib: " \
             "'python train.py EXP_CONFIG'"
@@ -385,7 +390,7 @@ def main(args):
     elif flags.rl_trainer.lower() == "stable-baselines":
         train_stable_baselines(submodule, flags)
     elif flags.rl_trainer.lower() == "h-baselines":
-        train_h_baselines(submodule, flags, args, multiagent)
+        train_h_baselines(submodule, args, multiagent)
     else:
         raise ValueError("rl_trainer should be either 'rllib', 'h-baselines', "
                          "or 'stable-baselines'.")
