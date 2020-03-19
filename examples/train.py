@@ -227,7 +227,7 @@ def train_h_baselines(flow_params, args, multiagent):
 
     # Create the training environment.
     env = FlowEnv(
-        flow_params,
+        flow_params.copy(),
         multiagent=multiagent,
         shared=args.shared,
         maddpg=args.maddpg,
