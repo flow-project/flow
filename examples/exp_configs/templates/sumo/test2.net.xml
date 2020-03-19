@@ -1,5 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!-- generated on Thu Mar 19 12:09:35 2020 by Eclipse SUMO netedit Version 1.1.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <sumo-net-file value="/Users/eugenevinitsky/Desktop/Research/Code/flow/examples/exp_configs/templates/sumo/test2.net.xml"/>
+    </input>
+
+    <output>
+        <output-file value="/Users/eugenevinitsky/Desktop/Research/Code/flow/examples/exp_configs/templates/sumo/test2.net.xml"/>
+        <output.street-names value="true"/>
+    </output>
+
+    <processing>
+        <geometry.max-grade.fix value="false"/>
+        <offset.disable-normalization value="true"/>
+        <lefthand value="false"/>
+    </processing>
+
+    <junctions>
+        <no-turnarounds value="true"/>
+        <junctions.corner-detail value="5"/>
+        <junctions.limit-turn-speed value="5.5"/>
+        <rectangular-lane-cut value="false"/>
+    </junctions>
+
+    <pedestrian>
+        <walkingareas value="false"/>
+    </pedestrian>
+
+    <visualisation>
+        <registry-viewport value="true"/>
+    </visualisation>
+
+</configuration>
+-->
+
 <net version="1.1" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
 
     <location netOffset="-390179.01,-3777562.33" convBoundary="0.00,0.00,2176.02,2286.69" origBoundary="-118.19,34.13,-118.17,34.15" projParameter="+proj=utm +zone=11 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>
@@ -4680,24 +4716,24 @@
     <connection from="119257908#0" to="119257908#1-AddedOnRampEdge" fromLane="2" toLane="3" via=":300944436_0_2" dir="s" state="M"/>
     <connection from="119257908#0" to="119257908#1-AddedOnRampEdge" fromLane="3" toLane="4" via=":300944436_0_3" dir="s" state="M"/>
     <connection from="119257908#0" to="119257908#1-AddedOnRampEdge" fromLane="4" toLane="5" via=":300944436_0_4" dir="s" state="M"/>
-    <connection from="119257908#1" to="119257908#1-AddedOffRampEdge" fromLane="0" toLane="0" via=":119257908#1-AddedOffRampNode_0_0" dir="s" state="M"/>
-    <connection from="119257908#1" to="119257908#1-AddedOffRampEdge" fromLane="0" toLane="1" via=":119257908#1-AddedOffRampNode_0_1" dir="s" state="M"/>
-    <connection from="119257908#1" to="119257908#1-AddedOffRampEdge" fromLane="1" toLane="2" via=":119257908#1-AddedOffRampNode_0_2" dir="s" state="M"/>
-    <connection from="119257908#1" to="119257908#1-AddedOffRampEdge" fromLane="2" toLane="3" via=":119257908#1-AddedOffRampNode_0_3" dir="s" state="M"/>
-    <connection from="119257908#1" to="119257908#1-AddedOffRampEdge" fromLane="3" toLane="4" via=":119257908#1-AddedOffRampNode_0_4" dir="s" state="M"/>
-    <connection from="119257908#1" to="119257908#1-AddedOffRampEdge" fromLane="4" toLane="5" via=":119257908#1-AddedOffRampNode_0_5" dir="s" state="M"/>
-    <connection from="119257908#1-AddedOffRampEdge" to="173381935" fromLane="0" toLane="0" via=":1686591010_0_0" dir="s" state="M"/>
-    <connection from="119257908#1-AddedOffRampEdge" to="119257908#2" fromLane="1" toLane="0" via=":1686591010_1_0" dir="s" state="M"/>
-    <connection from="119257908#1-AddedOffRampEdge" to="119257908#2" fromLane="2" toLane="1" via=":1686591010_1_1" dir="s" state="M"/>
-    <connection from="119257908#1-AddedOffRampEdge" to="119257908#2" fromLane="3" toLane="2" via=":1686591010_1_2" dir="s" state="M"/>
-    <connection from="119257908#1-AddedOffRampEdge" to="119257908#2" fromLane="4" toLane="3" via=":1686591010_1_3" dir="s" state="M"/>
-    <connection from="119257908#1-AddedOffRampEdge" to="119257908#2" fromLane="5" toLane="4" via=":1686591010_1_4" dir="s" state="M"/>
-    <connection from="119257908#1-AddedOnRampEdge" to="119257908#1" fromLane="0" toLane="0" via=":119257908#1-AddedOnRampNode_0_0" dir="s" state="m"/>
-    <connection from="119257908#1-AddedOnRampEdge" to="119257908#1" fromLane="1" toLane="0" via=":119257908#1-AddedOnRampNode_0_1" dir="s" state="M"/>
-    <connection from="119257908#1-AddedOnRampEdge" to="119257908#1" fromLane="2" toLane="1" via=":119257908#1-AddedOnRampNode_0_2" dir="s" state="M"/>
-    <connection from="119257908#1-AddedOnRampEdge" to="119257908#1" fromLane="3" toLane="2" via=":119257908#1-AddedOnRampNode_0_3" dir="s" state="M"/>
-    <connection from="119257908#1-AddedOnRampEdge" to="119257908#1" fromLane="4" toLane="3" via=":119257908#1-AddedOnRampNode_0_4" dir="s" state="M"/>
-    <connection from="119257908#1-AddedOnRampEdge" to="119257908#1" fromLane="5" toLane="4" via=":119257908#1-AddedOnRampNode_0_5" dir="s" state="M"/>
+    <connection from="119257908#1" to="119257908#1-AddedOffRampEdge" fromLane="0" toLane="0" keepClear="0" via=":119257908#1-AddedOffRampNode_0_0" dir="s" state="M"/>
+    <connection from="119257908#1" to="119257908#1-AddedOffRampEdge" fromLane="0" toLane="1" keepClear="0" via=":119257908#1-AddedOffRampNode_0_1" dir="s" state="M"/>
+    <connection from="119257908#1" to="119257908#1-AddedOffRampEdge" fromLane="1" toLane="2" keepClear="0" via=":119257908#1-AddedOffRampNode_0_2" dir="s" state="M"/>
+    <connection from="119257908#1" to="119257908#1-AddedOffRampEdge" fromLane="2" toLane="3" keepClear="0" via=":119257908#1-AddedOffRampNode_0_3" dir="s" state="M"/>
+    <connection from="119257908#1" to="119257908#1-AddedOffRampEdge" fromLane="3" toLane="4" keepClear="0" via=":119257908#1-AddedOffRampNode_0_4" dir="s" state="M"/>
+    <connection from="119257908#1" to="119257908#1-AddedOffRampEdge" fromLane="4" toLane="5" keepClear="0" via=":119257908#1-AddedOffRampNode_0_5" dir="s" state="M"/>
+    <connection from="119257908#1-AddedOffRampEdge" to="173381935" fromLane="0" toLane="0" keepClear="0" via=":1686591010_0_0" dir="s" state="M"/>
+    <connection from="119257908#1-AddedOffRampEdge" to="119257908#2" fromLane="1" toLane="0" keepClear="0" via=":1686591010_1_0" dir="s" state="M"/>
+    <connection from="119257908#1-AddedOffRampEdge" to="119257908#2" fromLane="2" toLane="1" keepClear="0" via=":1686591010_1_1" dir="s" state="M"/>
+    <connection from="119257908#1-AddedOffRampEdge" to="119257908#2" fromLane="3" toLane="2" keepClear="0" via=":1686591010_1_2" dir="s" state="M"/>
+    <connection from="119257908#1-AddedOffRampEdge" to="119257908#2" fromLane="4" toLane="3" keepClear="0" via=":1686591010_1_3" dir="s" state="M"/>
+    <connection from="119257908#1-AddedOffRampEdge" to="119257908#2" fromLane="5" toLane="4" keepClear="0" via=":1686591010_1_4" dir="s" state="M"/>
+    <connection from="119257908#1-AddedOnRampEdge" to="119257908#1" fromLane="0" toLane="0" keepClear="0" via=":119257908#1-AddedOnRampNode_0_0" dir="s" state="m"/>
+    <connection from="119257908#1-AddedOnRampEdge" to="119257908#1" fromLane="1" toLane="0" keepClear="0" via=":119257908#1-AddedOnRampNode_0_1" dir="s" state="M"/>
+    <connection from="119257908#1-AddedOnRampEdge" to="119257908#1" fromLane="2" toLane="1" keepClear="0" via=":119257908#1-AddedOnRampNode_0_2" dir="s" state="M"/>
+    <connection from="119257908#1-AddedOnRampEdge" to="119257908#1" fromLane="3" toLane="2" keepClear="0" via=":119257908#1-AddedOnRampNode_0_3" dir="s" state="M"/>
+    <connection from="119257908#1-AddedOnRampEdge" to="119257908#1" fromLane="4" toLane="3" keepClear="0" via=":119257908#1-AddedOnRampNode_0_4" dir="s" state="M"/>
+    <connection from="119257908#1-AddedOnRampEdge" to="119257908#1" fromLane="5" toLane="4" keepClear="0" via=":119257908#1-AddedOnRampNode_0_5" dir="s" state="M"/>
     <connection from="119257908#2" to="119257908#3" fromLane="0" toLane="1" via=":1842086610_1_0" dir="s" state="M"/>
     <connection from="119257908#2" to="119257908#3" fromLane="1" toLane="2" via=":1842086610_1_1" dir="s" state="M"/>
     <connection from="119257908#2" to="119257908#3" fromLane="2" toLane="3" via=":1842086610_1_2" dir="s" state="M"/>
@@ -4801,10 +4837,10 @@
     <connection from="27414282" to="27414281#0" fromLane="3" toLane="3" via=":300944028_0_3" dir="s" state="M"/>
     <connection from="27414282" to="27414281#0" fromLane="4" toLane="4" via=":300944028_0_4" dir="s" state="M"/>
     <connection from="27414284" to="27414280" fromLane="0" toLane="0" via=":300944009_0_0" dir="s" state="M"/>
-    <connection from="27414342#0" to="27414342#1-AddedOnRampEdge" fromLane="0" toLane="0" via=":300944703_1_0" dir="s" state="M"/>
+    <connection from="27414342#0" to="27414342#1-AddedOnRampEdge" fromLane="0" toLane="0" keepClear="0" via=":300944703_1_0" dir="s" state="M"/>
     <connection from="27414342#1" to="119257908#1-AddedOnRampEdge" fromLane="0" toLane="0" via=":300944436_5_0" dir="s" state="M"/>
-    <connection from="27414342#1-AddedOnRampEdge" to="27414342#1" fromLane="1" toLane="0" via=":27414342#1-AddedOnRampNode_0_0" dir="s" state="M"/>
-    <connection from="27414345" to="27414342#1-AddedOnRampEdge" fromLane="0" toLane="1" via=":300944703_0_0" dir="s" state="M"/>
+    <connection from="27414342#1-AddedOnRampEdge" to="27414342#1" fromLane="1" toLane="0" keepClear="0" via=":27414342#1-AddedOnRampNode_0_0" dir="s" state="M"/>
+    <connection from="27414345" to="27414342#1-AddedOnRampEdge" fromLane="0" toLane="1" keepClear="0" via=":300944703_0_0" dir="s" state="M"/>
     <connection from="27414375" to="27414376" fromLane="0" toLane="0" via=":300944950_0_0" dir="s" state="M"/>
     <connection from="27414375" to="27414376" fromLane="1" toLane="1" via=":300944950_0_1" dir="s" state="M"/>
     <connection from="27414400" to="156415534" fromLane="0" toLane="0" via=":300945599_0_0" dir="s" state="M"/>
