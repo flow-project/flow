@@ -3,8 +3,9 @@ Utility functions for Flow compatibility with RLlib.
 
 This includes: environment generation, serialization, and visualization.
 """
-import json
 from copy import deepcopy
+import json
+import sys
 import os
 
 import flow.envs
@@ -207,6 +208,9 @@ def get_rllib_config(path):
 
 def get_rllib_pkl(path):
     """Return the data from the specified rllib configuration file."""
+    dirname = os.getcwd()
+    filename = os.path.join(dirname, '../../examples/')
+    sys.path.append(filename)
     config_path = os.path.join(path, "params.pkl")
     if not os.path.exists(config_path):
         config_path = os.path.join(path, "../params.pkl")

@@ -8,11 +8,13 @@ Usage
 """
 
 import argparse
+from copy import deepcopy
 import json
 import os
 import sys
 from time import strftime
 
+import numpy as np
 from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines import PPO2
 
@@ -25,8 +27,8 @@ try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
-from copy import deepcopy
 
+from flow.core.rewards import energy_consumption
 from flow.core.util import ensure_dir
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
@@ -151,6 +153,35 @@ def setup_exps_rllib(flow_params,
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = horizon
+
+    # define some standard and useful callbacks
+    def on_episode_start(info):
+        episode = info["episode"]
+        episode.user_data["avg_speed"] = []
+        episode.user_data["energy"] = []
+
+    def on_episode_step(info):
+        episode = info["episode"]
+        env = info["env"].get_unwrapped()[0]
+        speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed > 0])
+        if not np.isnan(speed):
+            episode.user_data["avg_speed"].append(speed)
+        energy = energy_consumption(env)
+        if not np.isnan(energy):
+            episode.user_data["energy"].append(energy)
+
+    def on_episode_end(info):
+        episode = info["episode"]
+        avg_speed = np.mean(episode.user_data["avg_speed"])
+        avg_energy = np.mean(episode.user_data["avg_energy"])
+
+        episode.custom_metrics["avg_speed"] = avg_speed
+        episode.custom_metrics["avg_energy"] = avg_energy
+
+    config["callbacks"] = {"on_episode_start": tune.function(on_episode_start),
+                           "on_episode_step": tune.function(on_episode_step),
+                           "on_episode_end": tune.function(on_episode_end)}
+
 
     # save the flow params for replay
     flow_json = json.dumps(
