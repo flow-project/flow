@@ -175,17 +175,15 @@ def setup_exps_rllib(flow_params,
         episode = info["episode"]
         env = info["env"].get_unwrapped()[0]
         avg_speed = np.mean(episode.user_data["avg_speed"])
-        avg_energy = np.mean(episode.user_data["avg_energy"])
+        avg_energy = np.mean(episode.user_data["energy"])
 
         episode.custom_metrics["avg_speed"] = avg_speed
         episode.custom_metrics["avg_energy"] = avg_energy
         episode.custom_metrics["outflow"] = env.k.vehicle.get_outflow_rate()
 
-
     config["callbacks"] = {"on_episode_start": tune.function(on_episode_start),
                            "on_episode_step": tune.function(on_episode_step),
                            "on_episode_end": tune.function(on_episode_end)}
-
 
     # save the flow params for replay
     flow_json = json.dumps(

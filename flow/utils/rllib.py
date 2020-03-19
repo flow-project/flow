@@ -5,7 +5,6 @@ This includes: environment generation, serialization, and visualization.
 """
 from copy import deepcopy
 import json
-import sys
 import os
 import sys
 
