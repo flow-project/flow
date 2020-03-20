@@ -60,25 +60,6 @@ class TestEmissionToCSV(unittest.TestCase):
         self.assertEqual(len(dict1), 104)
 
 
-class TestWarnings(unittest.TestCase):
-    """Tests warning functions located in flow.utils.warnings"""
-
-    def test_deprecated_attribute(self):
-        # dummy class
-        class Foo(object):
-            pass
-
-        # dummy attribute name
-        dep_from = "bar_deprecated"
-        dep_to = "bar_new"
-
-        # check the deprecation warning is printing what is expected
-        self.assertWarnsRegex(
-            PendingDeprecationWarning,
-            "The attribute bar_deprecated in Foo is deprecated, use bar_new "
-            "instead.", deprecated_attribute, Foo(), dep_from, dep_to)
-
-
 class TestRegistry(unittest.TestCase):
     """Tests the methods located in flow/utils/registry.py"""
 
