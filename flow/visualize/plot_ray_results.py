@@ -28,7 +28,7 @@ def plot_multi_progresses(files_columns):
     """Plot ray results from multiple csv files."""
     data = defaultdict(list)
     plt.ion()
-    
+
     filenames = [filename for filename in files_columns if '.csv' in filename]
     columnnames = [column for column in files_columns if '.csv' not in column]
     for filecsv in filenames:
@@ -41,7 +41,7 @@ def plot_multi_progresses(files_columns):
     plt.show()
     plt.savefig('testresult.png')
 
-    
+
 def plot_progress(filepath, columns):
     """Plot ray results from a csv file.
 
