@@ -382,7 +382,7 @@ class TestPlotters(unittest.TestCase):
         temp_stdout = StringIO()
         with contextlib.redirect_stdout(temp_stdout):
             args = parser.parse_args([file_path])
-            prr.plot_progress(args.file, args.columns)
+            prr.plot_multi_progresses(args.files_columns)
         output = temp_stdout.getvalue()
 
         for column in column_names:
