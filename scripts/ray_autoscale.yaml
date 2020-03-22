@@ -74,7 +74,6 @@ head_setup_commands:
     - pip install awscli==1.16.309
     - pip install pytz
     - pip install stable_baselines
-    - pip install ray==0.8.1
     - pip install tabulate
 
 # Custom commands that will be run on worker nodes after common setup.
