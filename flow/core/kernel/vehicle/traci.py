@@ -1,5 +1,5 @@
 """Script containing the TraCI vehicle kernel class."""
-import traceback
+# import traceback
 
 from flow.core.kernel.vehicle import KernelVehicle
 import traci.constants as tc
@@ -37,6 +37,7 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         KernelVehicle.__init__(self, master_kernel, sim_params)
 
+        self.check = False
         self.__ids = []  # ids of all vehicles
         self.__human_ids = []  # ids of human-driven vehicles
         self.__controlled_ids = []  # ids of flow-controlled vehicles
@@ -74,6 +75,15 @@ class TraCIVehicle(KernelVehicle):
         self._num_arrived = []
         self._arrived_ids = []
         self._arrived_rl_ids = []
+
+        # checks whether the instance is being rendered
+        self.render = sim_params.render
+
+        # whether to use libsumo
+        try:
+            self.use_libsumo = sim_params.use_libsumo
+        except AttributeError:
+            self.use_libsumo = False
 
         # whether or not to automatically color vehicles
         try:
@@ -133,10 +143,17 @@ class TraCIVehicle(KernelVehicle):
         # copy over the previous speeds
 
         vehicle_obs = {}
-        for veh_id in self.__ids:
-            self.previous_speeds[veh_id] = self.get_speed(veh_id)
-            vehicle_obs[veh_id] = \
-                self.kernel_api.vehicle.getSubscriptionResults(veh_id)
+        if self.render or not self.use_libsumo:
+            for veh_id in self.__ids:
+                self.previous_speeds[veh_id] = self.get_speed(veh_id)
+                vehicle_obs[veh_id] = \
+                    self.kernel_api.vehicle.getSubscriptionResults(veh_id)
+        else:
+            for veh_id in self.__ids:
+                self.previous_speeds[veh_id] = self.get_speed(veh_id)
+                vehicle_obs[veh_id] = self._get_libsumo_subscription_results(
+                    veh_id)
+
         sim_obs = self.kernel_api.simulation.getSubscriptionResults()
 
         arrived_rl_ids = []
@@ -214,26 +231,16 @@ class TraCIVehicle(KernelVehicle):
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
-            try:
-                _position = vehicle_obs.get(veh_id, {}).get(
-                    tc.VAR_POSITION, -1001)
-                _angle = vehicle_obs.get(veh_id, {}).get(tc.VAR_ANGLE, -1001)
-                _time_step = sim_obs[tc.VAR_TIME_STEP]
-                _time_delta = sim_obs[tc.VAR_DELTA_T]
-                self.__vehicles[veh_id]["orientation"] = \
-                    list(_position) + [_angle]
-                self.__vehicles[veh_id]["timestep"] = _time_step
-                self.__vehicles[veh_id]["timedelta"] = _time_delta
-            except TypeError:
-                print(traceback.format_exc())
-            headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
+            headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, ("",))
+
             # check for a collided vehicle or a vehicle with no leader
-            if headway is None:
+            if headway is None or headway[0] == "":
                 self.__vehicles[veh_id]["leader"] = None
                 self.__vehicles[veh_id]["follower"] = None
                 self.__vehicles[veh_id]["headway"] = 1e+3
                 self.__vehicles[veh_id]["follower_headway"] = 1e+3
             else:
+
                 min_gap = self.minGap[self.get_type(veh_id)]
                 self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                 self.__vehicles[veh_id]["leader"] = headway[0]
@@ -320,13 +327,16 @@ class TraCIVehicle(KernelVehicle):
                 if lc_controller[0] != SimLaneChangeController:
                     self.__controlled_lc_ids.append(veh_id)
 
-        # subscribe the new vehicle
-        self.kernel_api.vehicle.subscribe(veh_id, [
-            tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
-            tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
-            tc.VAR_SPEED_WITHOUT_TRACI
-        ])
-        self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
+        # subscribe the new vehicle and get its subscription results
+        if self.render or not self.use_libsumo:
+            self.kernel_api.vehicle.subscribe(veh_id, [
+                tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
+                tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE
+            ])
+            self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
+            new_obs = self.kernel_api.vehicle.getSubscriptionResults(veh_id)
+        else:
+            new_obs = self._get_libsumo_subscription_results(veh_id)
 
         # some constant vehicle parameters to the vehicles class
         self.__vehicles[veh_id]["length"] = self.kernel_api.vehicle.getLength(
@@ -363,9 +373,6 @@ class TraCIVehicle(KernelVehicle):
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
 
-        # get the subscription results from the new vehicle
-        new_obs = self.kernel_api.vehicle.getSubscriptionResults(veh_id)
-
         return new_obs
 
     def reset(self):
@@ -376,7 +383,9 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         # remove from sumo
         if veh_id in self.kernel_api.vehicle.getIDList():
-            self.kernel_api.vehicle.unsubscribe(veh_id)
+            # unsubscribe the vehicle
+            if self.render:
+                self.kernel_api.vehicle.unsubscribe(veh_id)
             self.kernel_api.vehicle.remove(veh_id)
 
         if veh_id in self.__ids:
@@ -534,13 +543,6 @@ class TraCIVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
-
-    def get_default_speed(self, veh_id, error=-1001):
-        """See parent class."""
-        if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_default_speed(vehID, error) for vehID in veh_id]
-        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED_WITHOUT_TRACI,
-                                                   error)
 
     def get_position(self, veh_id, error=-1001):
         """See parent class."""
@@ -916,7 +918,7 @@ class TraCIVehicle(KernelVehicle):
             try:
                 if len(edge_dict[edge][lane]) > 0:
                     tailway = pos - edge_dict[edge][lane][-1][1] + add_length \
-                              - self.get_length(veh_id)
+                        - self.get_length(veh_id)
                     follower = edge_dict[edge][lane][-1][0]
             except KeyError:
                 # current edge has no vehicles, so move on
@@ -939,7 +941,7 @@ class TraCIVehicle(KernelVehicle):
         for i, vid in enumerate(veh_ids):
             if acc[i] is not None and vid in self.get_ids():
                 this_vel = self.get_speed(vid)
-                next_vel = max([this_vel + acc[i] * self.sim_step, 0])
+                next_vel = max([this_vel + acc[i] * self.sim_step, 0.])
                 self.kernel_api.vehicle.slowDown(vid, next_vel, 1e-3)
 
     def apply_lane_change(self, veh_ids, direction):
@@ -985,8 +987,7 @@ class TraCIVehicle(KernelVehicle):
 
         for i, veh_id in enumerate(veh_ids):
             if route_choices[i] is not None:
-                self.kernel_api.vehicle.setRoute(
-                    vehID=veh_id, edgeList=route_choices[i])
+                self.kernel_api.vehicle.setRoute(veh_id, route_choices[i])
 
     def get_x_by_id(self, veh_id):
         """See parent class."""
@@ -1094,3 +1095,25 @@ class TraCIVehicle(KernelVehicle):
     def set_max_speed(self, veh_id, max_speed):
         """See parent class."""
         self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
+
+    def _get_libsumo_subscription_results(self, veh_id):
+        """Create a traci-style subscription result in the case of libsumo."""
+        import libsumo as libsumo
+        try:
+            res = {
+                tc.VAR_LANE_INDEX:
+                    self.kernel_api.vehicle.getLaneIndex(veh_id),
+                tc.VAR_LANEPOSITION:
+                    self.kernel_api.vehicle.getLanePosition(veh_id),
+                tc.VAR_ROAD_ID: self.kernel_api.vehicle.getRoadID(veh_id),
+                tc.VAR_SPEED: self.kernel_api.vehicle.getSpeed(veh_id),
+                tc.VAR_EDGES: self.kernel_api.vehicle.getRoute(veh_id),
+                tc.VAR_LEADER:
+                    self.kernel_api.vehicle.getLeader(veh_id, dist=2000)
+            }
+        except (TraCIException, FatalTraCIError, libsumo.TraCIException):
+            # This is in case a vehicle exited the network and has not been
+            # unscubscribed yet.
+            res = None
+
+        return res

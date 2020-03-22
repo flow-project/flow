@@ -804,9 +804,50 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 add=self.addfn,
                 rou=self.roufn,
                 gui=self.guifn))
-        t = E('time')
-        t.append(E('begin', value=repr(0)))
-        cfg.append(t)
+
+        # initial time of the simulation
+        cfg.append(E('begin', value=repr(0)))
+
+        # simulation step length
+        cfg.append(E('step-length', value=repr(self.sim_params.sim_step)))
+
+        # add the lateral resolution of the sublanes (if requested)
+        if self.sim_params.lateral_resolution is not None:
+            cfg.append(E("lateral-resolution",
+                         value=str(self.sim_params.lateral_resolution)))
+
+        # use a ballistic integration step (if request)
+        if self.sim_params.use_ballistic:
+            cfg.append(E("step-method.ballistic", value="true"))
+
+        # add the emission path to the sumo command (if requested)
+        if self.sim_params.emission_path is not None:
+            ensure_dir(self.sim_params.emission_path)
+            emission_out = os.path.join(
+                os.path.abspath(self.sim_params.emission_path),
+                "{}-emission.xml".format(self.network.name))
+            cfg.append(E("emission-output", value=emission_out))
+
+        # add step logs (if requested)
+        no_step_log = "true" if self.sim_params.no_step_log else "false"
+        cfg.append(E("no-step-log", value=no_step_log))
+
+        if self.sim_params.overtake_right:
+            cfg.append(E("lanechange.overtake-right", value="true"))
+
+        # specify a simulation seed (if requested)
+        if self.sim_params.seed is not None:
+            cfg.append(E("seed", value=str(self.sim_params.seed)))
+
+        if not self.sim_params.print_warnings:
+            cfg.append(E("no-warnings", value="true"))
+
+        # set the time it takes for a gridlock teleport to occur
+        cfg.append(E("time-to-teleport",
+                     value=str(int(self.sim_params.teleport_time))))
+
+        # check collisions at intersections
+        cfg.append(E("collision.check-junctions", value="true"))
 
         printxml(cfg, self.cfg_path + self.sumfn)
         return self.sumfn

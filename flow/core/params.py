@@ -512,6 +512,9 @@ class SumoParams(SimParams):
 
     Attributes
     ----------
+    libsumo : bool, optional
+        Whether to enable libsumo speedup. Note SUMO must be compiled with
+        libsumo for this to work. Is not currently supported on OSX machines.
     port : int, optional
         Port for Traci to connect to; finds an empty port by default
     sim_step : float optional
@@ -571,6 +574,7 @@ class SumoParams(SimParams):
     """
 
     def __init__(self,
+                 use_libsumo=False,
                  port=None,
                  sim_step=0.1,
                  emission_path=None,
@@ -594,6 +598,7 @@ class SumoParams(SimParams):
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
             sight_radius, show_radius, pxpm, force_color_update)
+        self.use_libsumo = use_libsumo
         self.port = port
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
