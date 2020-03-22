@@ -15,6 +15,7 @@ Example usage
 import csv
 import argparse
 import matplotlib.pyplot as plt
+import os
 from collections import defaultdict
 
 
@@ -35,8 +36,9 @@ def plot_multi_progresses(files_columns):
         data = plot_progress(filecsv, columnnames)
         if not data:
             return
+        dirname = os.path.dirname(filecsv)
         for col_name, values in data.items():
-            plt.plot(values, label=col_name+'/'+filecsv)
+            plt.plot(values, label=dirname)
         plt.legend()
     plt.show()
     plt.savefig('testresult.png')
