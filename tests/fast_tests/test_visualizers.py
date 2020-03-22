@@ -330,22 +330,22 @@ class TestPlotters(unittest.TestCase):
 
         # test with one column
         args = parser.parse_args([file_path, 'episode_reward_mean'])
-        prr.plot_progress(args.file, args.columns)
+        prr.plot_multi_progresses(args.files_columns)
 
         # test with several columns
         args = parser.parse_args([file_path, 'episode_reward_mean',
                                   'episode_reward_min', 'episode_reward_max'])
-        prr.plot_progress(args.file, args.columns)
+        prr.plot_multi_progresses(args.files_columns)
 
         # test with non-existing column name
         with self.assertRaises(KeyError):
             args = parser.parse_args([file_path, 'episode_reward'])
-            prr.plot_progress(args.file, args.columns)
+            prr.plot_multi_progresses(args.files_columns)
 
         # test with column containing non-float values
         with self.assertRaises(ValueError):
             args = parser.parse_args([file_path, 'info'])
-            prr.plot_progress(args.file, args.columns)
+            prr.plot_multi_progresses(args.files_columns)
 
         # test that script outputs available column names if none is given
         column_names = [
