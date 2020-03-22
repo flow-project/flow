@@ -23,15 +23,16 @@ EXAMPLE_USAGE = 'plot_ray_results.py ' + \
     '~/ray_results/experiment-tag/experiment-name/seed-id-2/progress.csv ' + \
     'evaluation/return-average training/return-average'
 
+
 def plot_multi_progresses(files_columns):
     """Plot ray results from multiple csv files."""
     data = defaultdict(list)
     plt.ion()
-     
+    
     filenames = [filename for filename in files_columns if '.csv' in filename]
     columnnames = [column for column in files_columns if '.csv' not in column]
     for filecsv in filenames:
-        data = plot_progress(filecsv, columnnames) 
+        data = plot_progress(filecsv, columnnames)
         if not data:
             return
         for col_name, values in data.items():
@@ -40,6 +41,7 @@ def plot_multi_progresses(files_columns):
     plt.show()
     plt.savefig('testresult.png')
 
+    
 def plot_progress(filepath, columns):
     """Plot ray results from a csv file.
 
@@ -71,6 +73,7 @@ def plot_progress(filepath, columns):
                   'floats.'.format(__file__, col))
             raise
     return data
+
 
 def create_parser():
     """Parse visualization options user can specify in command line.
