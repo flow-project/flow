@@ -396,8 +396,18 @@ class Env(gym.Env):
         # test if the environment should terminate due to a collision or the
         # time horizon being met
         done = (self.time_counter >= self.env_params.sims_per_step *
-                (self.env_params.warmup_steps + self.env_params.horizon)
-                or crash)
+                (self.env_params.warmup_steps + self.env_params.horizon))
+        if crash:
+            print(
+                "**********************************************************\n"
+                "**********************************************************\n"
+                "**********************************************************\n"
+                "WARNING: There was a crash. \n"
+                "**********************************************************\n"
+                "**********************************************************\n"
+                "**********************************************************"
+            )
+
 
         # compute the info for each agent
         infos = {}
@@ -486,6 +496,9 @@ class Env(gym.Env):
                 self.k.vehicle.remove(veh_id)
             except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
+
+        # do any additional resetting of the vehicle class needed
+        self.k.vehicle.reset()
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
