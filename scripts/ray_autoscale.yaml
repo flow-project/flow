@@ -39,7 +39,7 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: c4.4xlarge
+    InstanceType: m4.4xlarge
     ImageId: ami-09544298704576518 # Flow AMI (Ubuntu)
     KeyName: MyKeyPair
     InstanceMarketOptions:

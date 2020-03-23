@@ -36,6 +36,7 @@ except ImportError:
 from copy import deepcopy
 
 from flow.algorithms.imitation_ppo import ImitationTrainer
+from flow.core.rewards import energy_consumption
 from flow.core.util import ensure_dir
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
@@ -77,7 +78,7 @@ def parse_args(args):
         '--num_steps', type=int, default=5000,
         help='How many total steps to perform learning over. Relevant for stable-baselines')
     parser.add_argument(
-        '--grid_search', action='store_train', default=False,
+        '--grid_search', action='store_true', default=False,
         help='Whether to grid search over hyperparams')
     parser.add_argument(
         '--num_iterations', type=int, default=200,
@@ -195,7 +196,7 @@ def setup_exps_rllib(flow_params,
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
         config["buffer_size"] = 20000 # reduced to test if this is the source of memory problems
-        config["sample_batch_size"] = 5
+        config["sample_batch_size"] = 50
         if flags.grid_search:
             config["prioritized_replay"] = tune.grid_search(['True', 'False'])
             config["actor_lr"] = tune.grid_search([1e-3, 1e-4])
@@ -217,6 +218,7 @@ def setup_exps_rllib(flow_params,
     def on_episode_start(info):
         episode = info["episode"]
         episode.user_data["avg_speed"] = []
+        episode.user_data["avg_energy"] = []
 
     def on_episode_step(info):
         episode = info["episode"]
@@ -224,11 +226,13 @@ def setup_exps_rllib(flow_params,
         speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0])
         if not np.isnan(speed):
             episode.user_data["avg_speed"].append(speed)
+        episode.user_data["avg_energy"].append(energy_consumption(env))
 
     def on_episode_end(info):
         episode = info["episode"]
         avg_speed = np.mean(episode.user_data["avg_speed"])
         episode.custom_metrics["avg_speed"] = avg_speed
+        episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
 
     config["callbacks"] = {"on_episode_start": tune.function(on_episode_start),
                            "on_episode_step": tune.function(on_episode_step),
@@ -306,7 +310,7 @@ if __name__ == "__main__":
         if flags.local_mode:
             ray.init(local_mode=True)
         else:
-            ray.init(num_cpus=flags.num_cpus + 1)
+            ray.init()
         exp_dict = {
             "run_or_experiment": alg_run,
             "name": gym_name,
