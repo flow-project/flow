@@ -17,12 +17,12 @@ from flow.utils.registry import make_create_env
 # time horizon of a single rollout
 HORIZON = 2000
 # number of automated vehicles. Must be less than or equal to 22.
-NUM_AUTOMATED = 1
+NUM_AUTOMATED = 4
 
 
 # We evenly distribute the automated vehicles in the network.
 # veh per hour inflow / (avg meters per second in i210 * 3600) * len of ring (1500)
-num_human = 22 - NUM_AUTOMATED 
+num_human = 44 - NUM_AUTOMATED 
 
 vehicles = VehicleParams()
 # Add one automated vehicle.
@@ -34,8 +34,11 @@ vehicles.add(
 
 vehicles.add(
     veh_id="human",
+    lane_change_params=SumoLaneChangeParams(
+        lane_change_mode="strategic",
+    ),
     acceleration_controller=(IDMController, {
-        "a": 0.3, "b": 2.0, "noise": 0.45
+        "a": 0.3, "b": 2.0, "noise": 0.5
     }),
     car_following_params=SumoCarFollowingParams(
         min_gap=0,
@@ -86,7 +89,7 @@ flow_params = dict(
     net=NetParams(
         additional_params={
             "length": 220,
-            "lanes": 1,
+            "lanes": 2,
             "speed_limit": 30,
             "resolution": 230,
         }, ),
