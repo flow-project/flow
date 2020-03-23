@@ -10,6 +10,7 @@ from ray.tune.registry import register_env
 
 import flow.config as config
 from flow.controllers.rlcontroller import RLController
+from flow.controllers.car_following_models import IDMController
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import InitialConfig
@@ -28,11 +29,11 @@ from flow.controllers import RLController
 # number of rollouts per training iteration
 N_ROLLOUTS = 2
 # number of steps per rollout
-HORIZON = 500
+HORIZON = 2000
 # number of parallel workers
 N_CPUS = 1
 
-VEH_PER_HOUR_BASE_119257914 = 8378
+VEH_PER_HOUR_BASE_119257914 = 10800
 VEH_PER_HOUR_BASE_27414345 = 321
 VEH_PER_HOUR_BASE_27414342 = 421
 
@@ -56,7 +57,10 @@ vehicles.add(
     num_vehicles=0,
     lane_change_params=SumoLaneChangeParams(
         lane_change_mode="strategic",
-    )
+    ),
+    acceleration_controller=(IDMController, {
+        "a": 0.3, "b": 2.0, "noise": 0.5
+    })
 )
 vehicles.add(
     "av",
@@ -132,7 +136,7 @@ flow_params = dict(
 
     # simulation-related parameters
     sim=SumoParams(
-        sim_step=0.8,
+        sim_step=0.5,
         render=False,
         color_by_speed=False,
         restart_instance=True

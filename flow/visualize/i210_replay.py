@@ -60,6 +60,9 @@ def replay(args, flow_params, transfer_test=None, rllib_config=None, result_dir=
             from flow.controllers.car_following_models import IDMController
             controller = IDMController
             test_params.update({'v0': 1, 'T': 1, 'a': 0.2, 'b': 0.2})  # An example of really obvious changes
+        elif args.controller == 'default_human':
+            controller = flow_params['veh'].type_parameters['human']['acceleration_controller'][0]
+            test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
         elif args.controller == 'sumo':
             from flow.controllers.car_following_models import SimCarFollowingController
             controller = SimCarFollowingController
