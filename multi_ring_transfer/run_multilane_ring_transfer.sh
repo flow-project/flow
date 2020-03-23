@@ -14,7 +14,7 @@ while true; do
                                      --use_s3 --multi_node \
                                      --exp_name $1_$date\
                                      --num_cpus 4 --num_rollouts 8 \
-                                     --num_iter 10 --checkpoint_freq 5" --start --stop --cluster-name kp_$date\_$1; break;;
+                                     --num_iter 100 --checkpoint_freq 50" --start --stop --tmux --cluster-name kp_$date\_$1; break;;
         [Nn]* ) exit;;
         * ) echo "Please answer yes or no.";;
     esac

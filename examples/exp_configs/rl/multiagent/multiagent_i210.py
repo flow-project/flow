@@ -74,21 +74,21 @@ inflow.add(
     edge="119257914",
     vehs_per_hour=VEH_PER_HOUR_BASE_119257914 * (1 - pen_rate),
     # probability=1.0,
-    departLane="random",
-    departSpeed=20)
+    depart_lane="random",
+    depart_speed=20)
 # on ramp
-inflow.add(
-    veh_type="human",
-    edge="27414345",
-    vehs_per_hour=VEH_PER_HOUR_BASE_27414345 * (1 - pen_rate),
-    departLane="random",
-    departSpeed=20)
-inflow.add(
-    veh_type="human",
-    edge="27414342#0",
-    vehs_per_hour=VEH_PER_HOUR_BASE_27414342 * (1 - pen_rate),
-    departLane="random",
-    departSpeed=20)
+# inflow.add(
+#     veh_type="human",
+#     edge="27414345",
+#     vehs_per_hour=VEH_PER_HOUR_BASE_27414345 * (1 - pen_rate),
+#     depart_lane="random",
+#     depart_speed=20)
+# inflow.add(
+#     veh_type="human",
+#     edge="27414342#0",
+#     vehs_per_hour=VEH_PER_HOUR_BASE_27414342 * (1 - pen_rate),
+#     depart_lane="random",
+#     depart_speed=20)
 
 # Now add the AVs
 # main highway
@@ -97,21 +97,21 @@ inflow.add(
     edge="119257914",
     vehs_per_hour=int(VEH_PER_HOUR_BASE_119257914 * pen_rate),
     # probability=1.0,
-    departLane="random",
-    departSpeed=20)
+    depart_lane="random",
+    depart_speed=20)
 # # on ramp
 # inflow.add(
 #     veh_type="av",
 #     edge="27414345",
 #     vehs_per_hour=int(321 * pen_rate),
-#     departLane="random",
-#     departSpeed=20)
+#     depart_lane="random",
+#     depart_speed=20)
 # inflow.add(
 #     veh_type="av",
 #     edge="27414342#0",
 #     vehs_per_hour=int(421 * pen_rate),
-#     departLane="random",
-#     departSpeed=20)
+#     depart_lane="random",
+#     depart_speed=20)
 
 NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,
@@ -134,7 +134,7 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.8,
         render=False,
-        color_by_speed=True,
+        color_by_speed=False,
         restart_instance=True
     ),
 
@@ -149,7 +149,8 @@ flow_params = dict(
     # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-        template=NET_TEMPLATE
+        template=NET_TEMPLATE,
+        additional_params={'use_on_ramp': False}
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see

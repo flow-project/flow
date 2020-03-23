@@ -54,7 +54,6 @@ def replay(args, flow_params, transfer_test=None, rllib_config=None, result_dir=
     if args.run_transfer:
         flow_params = transfer_test.flow_params_modifier_fn(flow_params)
 
-    # if we've supplied an rllib config:
     if args.controller:
         test_params = {}
         if args.controller == 'idm':
@@ -70,7 +69,6 @@ def replay(args, flow_params, transfer_test=None, rllib_config=None, result_dir=
         for veh_param in flow_params['veh'].initial:
             if veh_param['veh_id'] == 'av':
                 veh_param['acceleration_controller'] = (controller, test_params)
-    # -->
 
     sim_params = flow_params['sim']
     sim_params.num_clients = 1
@@ -155,7 +153,7 @@ def replay(args, flow_params, transfer_test=None, rllib_config=None, result_dir=
         if multiagent:
             rets = {}
             # map the agent id to its policy
-            policy_map_fn = rllib_config['multiagent']['policy_mapping_fn'].func
+            policy_map_fn = rllib_config['multiagent']['policy_mapping_fn']
             for key in rllib_config['multiagent']['policies'].keys():
                 rets[key] = []
         else:
@@ -166,7 +164,7 @@ def replay(args, flow_params, transfer_test=None, rllib_config=None, result_dir=
             if multiagent:
                 state_init = {}
                 # map the agent id to its policy
-                policy_map_fn = rllib_config['multiagent']['policy_mapping_fn'].func
+                policy_map_fn = rllib_config['multiagent']['policy_mapping_fn']
                 size = rllib_config['model']['lstm_cell_size']
                 for key in rllib_config['multiagent']['policies'].keys():
                     state_init[key] = [np.zeros(size, np.float32),
