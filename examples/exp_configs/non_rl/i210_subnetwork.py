@@ -122,7 +122,7 @@ flow_params = dict(
 
 edge_id = "119257908#1-AddedOnRampEdge"
 custom_callables = {
-    "avg_speed": lambda env: np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed > 0]),
+    "avg_speed": lambda env: np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
     "avg_outflow": lambda env: np.nan_to_num(
         env.k.vehicle.get_outflow_rate(120)),
     # we multiply by 5 to account for the vehicle length and by 1000 to convert

@@ -329,4 +329,4 @@ def energy_consumption(env, gain=.001):
 
         power += M * speed * accel + M * g * Cr * speed + 0.5 * rho * A * Ca * speed ** 3
 
-    return -gain * power
+    return -gain * power / len(env.k.vehicle.get_ids())

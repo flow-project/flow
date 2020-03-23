@@ -77,6 +77,9 @@ def parse_args(args):
         '--num_steps', type=int, default=5000,
         help='How many total steps to perform learning over. Relevant for stable-baselines')
     parser.add_argument(
+        '--grid_search', action='store_train', default=False,
+        help='Whether to grid search over hyperparams')
+    parser.add_argument(
         '--num_iterations', type=int, default=200,
         help='How many iterations are in a training run.')
     parser.add_argument(
@@ -192,7 +195,13 @@ def setup_exps_rllib(flow_params,
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
         config["buffer_size"] = 20000 # reduced to test if this is the source of memory problems
-        config["sample_batch_size"] = 50
+        config["sample_batch_size"] = 5
+        if flags.grid_search:
+            config["prioritized_replay"] = tune.grid_search(['True', 'False'])
+            config["actor_lr"] = tune.grid_search([1e-3, 1e-4])
+            config["critic_lr"] = tune.grid_search([1e-3, 1e-4])
+            config["n_step"] = tune.grid_search([1, 10])
+
     elif alg_run == "MATD3":
         from flow.algorithms.MATD3.maddpg import MADDPGTrainer
         from flow.algorithms.MATD3.maddpg import DEFAULT_CONFIG
