@@ -21,16 +21,20 @@ from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 from flow.envs.multiagent.i210 import I210MultiEnv, ADDITIONAL_ENV_PARAMS
 from flow.utils.registry import make_create_env
 
+from flow.controllers import RLController
+
 # SET UP PARAMETERS FOR THE SIMULATION
 
-# number of training iterations
-N_TRAINING_ITERATIONS = 200
 # number of rollouts per training iteration
 N_ROLLOUTS = 2
 # number of steps per rollout
 HORIZON = 500
 # number of parallel workers
 N_CPUS = 1
+
+VEH_PER_HOUR_BASE_119257914 = 8378
+VEH_PER_HOUR_BASE_27414345 = 321
+VEH_PER_HOUR_BASE_27414342 = 421
 
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10
@@ -68,30 +72,30 @@ assert pen_rate > 0.0, "your penetration rate should be above zero"
 inflow.add(
     veh_type="human",
     edge="119257914",
-    vehs_per_hour=8378 * pen_rate,
+    vehs_per_hour=VEH_PER_HOUR_BASE_119257914 * (1 - pen_rate),
     # probability=1.0,
     departLane="random",
     departSpeed=20)
 # on ramp
-# inflow.add(
-#     veh_type="human",
-#     edge="27414345",
-#     vehs_per_hour=321 * pen_rate,
-#     departLane="random",
-#     departSpeed=20)
-# inflow.add(
-#     veh_type="human",
-#     edge="27414342#0",
-#     vehs_per_hour=421 * pen_rate,
-#     departLane="random",
-#     departSpeed=20)
+inflow.add(
+    veh_type="human",
+    edge="27414345",
+    vehs_per_hour=VEH_PER_HOUR_BASE_27414345 * (1 - pen_rate),
+    departLane="random",
+    departSpeed=20)
+inflow.add(
+    veh_type="human",
+    edge="27414342#0",
+    vehs_per_hour=VEH_PER_HOUR_BASE_27414342 * (1 - pen_rate),
+    departLane="random",
+    departSpeed=20)
 
 # Now add the AVs
 # main highway
 inflow.add(
     veh_type="av",
     edge="119257914",
-    vehs_per_hour=int(8378 * pen_rate),
+    vehs_per_hour=int(VEH_PER_HOUR_BASE_119257914 * pen_rate),
     # probability=1.0,
     departLane="random",
     departSpeed=20)
