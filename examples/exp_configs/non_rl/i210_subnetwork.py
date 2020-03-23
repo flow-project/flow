@@ -45,14 +45,14 @@ inflow = InFlows()
 inflow.add(
     veh_type="human",
     edge="119257914",
-    vehs_per_hour=int(8378 * (1- PEN_RATE)),
+    vehs_per_hour=int(10800 * (1- PEN_RATE)),
     departLane="random",
     departSpeed=23)
 if PEN_RATE > 0.0:
     inflow.add(
         veh_type="av",
         edge="119257914",
-        vehs_per_hour=int(8378 * (PEN_RATE)),
+        vehs_per_hour=int(10800 * (PEN_RATE)),
         departLane="random",
         departSpeed=23)
 # on ramp
@@ -98,8 +98,8 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=2000,
-        sims_per_step=2
+        horizon=4000,
+        sims_per_step=1
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

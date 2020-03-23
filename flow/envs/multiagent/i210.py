@@ -152,7 +152,8 @@ class I210MultiEnv(MultiEnv):
                 if self.k.vehicle.get_speed(rl_id) > 0:
                     speeds.append(self.k.vehicle.get_speed(rl_id))
                 if len(speeds) > 0:
-                    rewards[rl_id] = np.mean(speeds)
+                    # rescale so the q function can estimate it quickly
+                    rewards[rl_id] = np.mean(speeds) / 100.0
 
         else:
             for rl_id in self.k.vehicle.get_rl_ids():

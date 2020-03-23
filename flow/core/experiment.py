@@ -140,8 +140,8 @@ class Experiment:
         for i in range(num_runs):
             ret = 0
             vel = []
-            custom_vals = {key: [] for key in self.custom_callables.keys()}
             state = self.env.reset()
+            custom_vals = {key: [] for key in self.custom_callables.keys()}
             for j in range(num_steps):
                 t0 = time.time()
                 state, reward, done, _ = self.env.step(rl_actions(state))
