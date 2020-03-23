@@ -13,8 +13,8 @@ while true; do
         [Yy]* ) ray exec scripts/ray_autoscale.yaml "python ~/flow/multi_ring_transfer/ring_transfer_exp.py \
                                      --use_s3 --multi_node \
                                      --exp_name $1_$date\
-                                     --num_cpus 4 --num_rollouts 8 \
-                                     --num_iter 100 --checkpoint_freq 50" --start --stop --tmux --cluster-name kp_$date\_$1; break;;
+                                     --num_rollouts 20 \
+                                     --num_iter 401 --checkpoint_freq 50" --start --stop --tmux --cluster-name kp_$date\_$1; break;;
         [Nn]* ) exit;;
         * ) echo "Please answer yes or no.";;
     esac
