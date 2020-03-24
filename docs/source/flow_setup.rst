@@ -2,7 +2,7 @@
 .. contents:: Table of contents
 
 Local Installation of Flow
-==================
+==========================
 
 To get Flow running, you need three things: Flow,
 
@@ -108,7 +108,9 @@ Note that, if the above commands did not work, you may need to run
 ``source ~/.bashrc``  or open a new terminal to update your $PATH variable.
 
 *Troubleshooting*:
-If you are a Mac user and the above command gives you the error ``FXApp:openDisplay: unable to open display :0.0``, make sure to open the application XQuartz.
+If you are a Mac user and the above command gives you the error
+``FXApp:openDisplay: unable to open display :0.0``, make sure to open the
+application XQuartz.
 
 Testing your SUMO and Flow installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -151,7 +153,10 @@ during the execution of various tasks. The path should look something like:
     export AIMSUN_NEXT_PATH="/home/user/Aimsun_Next_X_Y_Z/"                   # Linux
     export AIMSUN_NEXT_PATH="/Applications/Aimsun Next.app/Contents/MacOS/"   # OS X
 
-`Note for Mac users:` when you download Aimsun, you will get a folder named "Programming". You need to rename it to "programming" (all lowercase) and to move it inside the "Aimsun Next.app/Contents/MacOS/" directory so that the python API can work.
+`Note for Mac users:` when you download Aimsun, you will get a folder named
+"Programming". You need to rename it to "programming" (all lowercase) and to
+move it inside the "Aimsun Next.app/Contents/MacOS/" directory so that the
+python API can work.
 
 In addition, being that Aimsun's python API is written to support Python 2.7.4,
 we will need to create a Python 2.7.4 conda environment that Aimsun can refer
@@ -198,8 +203,11 @@ to activate the `flow` env. Type:
     source activate flow
     python examples/simulate.py ring --aimsun
 
-*Troubleshootig for Ubuntu users with Aimsun 8.4*: when you run the above example, you may get a subprocess.Popen error ``OSError: [Errno 8] Exec format error:``.  
-To fix this, go to the `Aimsun Next` main directory, open the `Aimsun_Next` binary with a text editor and add the shebang to the first line of the script ``#!/bin/sh``.
+*Troubleshootig for Ubuntu users with Aimsun 8.4*: when you run the above
+example, you may get a subprocess.Popen error ``OSError: [Errno 8] Exec format error:``.
+To fix this, go to the `Aimsun Next` main directory, open the `Aimsun_Next`
+binary with a text editor and add the shebang to the first line of the script
+``#!/bin/sh``.
 
 (Optional) Install Ray RLlib
 ----------------------------
@@ -211,10 +219,11 @@ RLlib is one such library.
 First visit <https://github.com/flow-project/ray/blob/master/doc/source/installation.rst> and
 install the required packages.
 
-If you are not intending to develop RL algorithms or customize rllib you don't need to do anything,
-Ray was installed when you created the conda environment.
+If you are not intending to develop RL algorithms or customize rllib you don't
+need to do anything, Ray was installed when you created the conda environment.
 
-If you are intending to modify Ray, the installation process for this library is as follows:
+If you are intending to modify Ray, the installation process for this library
+is as follows:
 
 ::
 
@@ -249,6 +258,34 @@ In order to test run an Flow experiment in RLlib, try the following command:
 If it does not fail, this means that you have Flow properly configured with
 RLlib.
 
+
+Visualizing with Tensorboard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To visualize the training progress:
+
+::
+
+    tensorboard --logdir=~/ray_results
+
+If tensorboard is not installed, you can install with pip:
+
+::
+
+    pip install tensorboard
+
+For information on how to deploy a cluster, refer to the
+`Ray instructions <http://ray.readthedocs.io/en/latest/autoscaling.html>`_.
+The basic workflow is running the following locally, ssh-ing into the host
+machine, and starting jobs from there.
+
+::
+
+    pip install boto3
+    ray create-or-update scripts/ray_autoscale.yaml
+    ray teardown scripts/ray_autoscale.yaml
+
+
 (Optional) Install Stable Baselines
 -----------------------------------
 
@@ -267,33 +304,29 @@ You can test your installation by running
     python examples/train.py singleagent_ring --rl_trainer Stable-Baselines
 
 
+(Optional) Install h-baselines
+------------------------------
 
-(Optional) Visualizing with Tensorboard
----------------------------------------
-
-To visualize the training progress:
-
-::
-
-    tensorboard --logdir=~/ray_results
-
-If tensorboard is not installed, you can install with pip:
+h-baselines is another variant of stable-baselines that support the use of
+single-agent, multiagent, and hierarchical policies. To install h-baselines,
+run the following commands:
 
 ::
 
-    pip install tensorboard
+    git clone https://github.com/AboudyKreidieh/h-baselines.git
+    cd h-baselines
+    source activate flow  # if using a Flow environment
+    pip install -e .
 
-For information on how to deploy a cluster, refer to the `Ray instructions <http://ray.readthedocs.io/en/latest/autoscaling.html>`_.
-The basic workflow is running the following locally, ssh-ing into the host machine, and starting
-jobs from there.
+
+Testing your h-baselines installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can test your installation by running
 
 ::
 
-    pip install boto3
-    ray create-or-update scripts/ray_autoscale.yaml
-    ray teardown scripts/ray_autoscale.yaml
-
-
+    python examples/train.py singleagent_ring --rl_trainer h-baselines
 
 
 (Optional) Direct install of SUMO from GitHub
@@ -358,16 +391,22 @@ If you have Ubuntu 14.04+, run the following command
 
 
 Virtual installation of Flow (using docker containers)
-================================
+======================================================
 
 To install a containerized Flow stack, run:
+
 ::
+
     docker run -d -p 5901:5901 -p 6901:6901 fywu85/flow-desktop:latest
 
 To access the docker container, go to the following URL and enter the default password `password`:
+
 ::
+
     http://localhost:6901/vnc.html
 
 To use the Jupyter Notebook inside the container, run:
+
 ::
+
     jupyter notebook --ip=127.0.0.1
