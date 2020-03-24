@@ -14,95 +14,92 @@ from flow.envs.multiagent import MultiAgentWaveAttenuationPOEnv
 from flow.networks import RingNetwork
 from flow.utils.registry import make_create_env
 
-# time horizon of a single rollout
-HORIZON = 2000
-# number of automated vehicles. Must be less than or equal to 22.
-NUM_AUTOMATED = 4
+def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length):
+    
+    vehicles = VehicleParams()
+    # Add one automated vehicle.
+    vehicles.add(
+        veh_id="rl",
+        acceleration_controller=(RLController, {}),
+        routing_controller=(ContinuousRouter, {}),
+        num_vehicles=num_av)
+
+    num_human = num_total_veh - num_av
+
+    vehicles.add(
+        veh_id="human",
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode="strategic",
+        ),
+        acceleration_controller=(IDMController, {
+            "a": 0.3, "b": 2.0, "noise": 0.5
+        }),
+        car_following_params=SumoCarFollowingParams(
+            min_gap=0,
+            speed_dev=0.0
+        ),
+        # lane_change_controller=(SafeAggressiveLaneChanger, {"target_velocity": 100.0, "threshold": 1.0}),
+        # lane_change_params=SumoLaneChangeParams(lane_change_mode="no_lat_collide", lcKeepRight=0, lcAssertive=0.5,
+                                        # lcSpeedGain=1.5, lcSpeedGainRight=1.0),
+        routing_controller=(ContinuousRouter, {}),
+        num_vehicles=num_human,
+        initial_speed=0) 
 
 
-# We evenly distribute the automated vehicles in the network.
-# veh per hour inflow / (avg meters per second in i210 * 3600) * len of ring (1500)
-num_human = 44 - NUM_AUTOMATED 
+    flow_params = dict(
+        # name of the experiment
+        exp_tag="multilane_ring_smoothing",
 
-vehicles = VehicleParams()
-# Add one automated vehicle.
-vehicles.add(
-    veh_id="rl",
-    acceleration_controller=(RLController, {}),
-    routing_controller=(ContinuousRouter, {}),
-    num_vehicles=NUM_AUTOMATED)
+        # name of the flow environment the experiment is running on
+        env_name=MultiAgentWaveAttenuationPOEnv,
 
-vehicles.add(
-    veh_id="human",
-    lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="strategic",
-    ),
-    acceleration_controller=(IDMController, {
-        "a": 0.3, "b": 2.0, "noise": 0.5
-    }),
-    car_following_params=SumoCarFollowingParams(
-        min_gap=0,
-        speed_dev=0.0
-    ),
-    # lane_change_controller=(SafeAggressiveLaneChanger, {"target_velocity": 100.0, "threshold": 1.0}),
-    # lane_change_params=SumoLaneChangeParams(lane_change_mode="no_lat_collide", lcKeepRight=0, lcAssertive=0.5,
-                                    # lcSpeedGain=1.5, lcSpeedGainRight=1.0),
-    routing_controller=(ContinuousRouter, {}),
-    num_vehicles=num_human,
-    initial_speed=0) 
+        # name of the network class the experiment is running on
+        network=RingNetwork,
 
+        # simulator that is used by the experiment
+        simulator='traci',
 
-flow_params = dict(
-    # name of the experiment
-    exp_tag="multilane_ring_smoothing",
+        # sumo-related parameters (see flow.core.params.SumoParams)
+        sim=SumoParams(
+            sim_step=0.1,
+            render=False,
+            restart_instance=False
+        ),
 
-    # name of the flow environment the experiment is running on
-    env_name=MultiAgentWaveAttenuationPOEnv,
+        # environment related parameters (see flow.core.params.EnvParams)
+        env=EnvParams(
+            horizon=horizon,
+            warmup_steps=500,
+            clip_actions=False,
+            additional_params={
+                "max_accel": 1,
+                "max_decel": 1,
+                "ring_length": [ring_length, ring_length],
+            },
+        ),
 
-    # name of the network class the experiment is running on
-    network=RingNetwork,
+        # network-related parameters (see flow.core.params.NetParams and the
+        # network's documentation or ADDITIONAL_NET_PARAMS component)
+        net=NetParams(
+            additional_params={
+                "length": ring_length,
+                "lanes": num_lanes,
+                "speed_limit": 30,
+                "resolution": 230,
+            }, ),
 
-    # simulator that is used by the experiment
-    simulator='traci',
+        # vehicles to be placed in the network at the start of a rollout (see
+        # flow.core.params.VehicleParams)
+        veh=vehicles,
 
-    # sumo-related parameters (see flow.core.params.SumoParams)
-    sim=SumoParams(
-        sim_step=0.1,
-        render=False,
-        restart_instance=False
-    ),
+        # parameters specifying the positioning of vehicles upon initialization/
+        # reset (see flow.core.params.InitialConfig)
+        initial=InitialConfig(spacing="uniform", shuffle=True),
+    )
 
-    # environment related parameters (see flow.core.params.EnvParams)
-    env=EnvParams(
-        horizon=HORIZON,
-        warmup_steps=500,
-        clip_actions=False,
-        additional_params={
-            "max_accel": 1,
-            "max_decel": 1,
-            "ring_length": [220, 220],
-        },
-    ),
+    return flow_params
 
-    # network-related parameters (see flow.core.params.NetParams and the
-    # network's documentation or ADDITIONAL_NET_PARAMS component)
-    net=NetParams(
-        additional_params={
-            "length": 220,
-            "lanes": 2,
-            "speed_limit": 30,
-            "resolution": 230,
-        }, ),
-
-    # vehicles to be placed in the network at the start of a rollout (see
-    # flow.core.params.VehicleParams)
-    veh=vehicles,
-
-    # parameters specifying the positioning of vehicles upon initialization/
-    # reset (see flow.core.params.InitialConfig)
-    initial=InitialConfig(spacing="uniform", shuffle=True),
-)
-
+flow_params = make_flow_params(500, 22, 1, 1, 220)
 
 create_env, env_name = make_create_env(params=flow_params, version=0)
 
