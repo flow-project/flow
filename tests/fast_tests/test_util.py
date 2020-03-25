@@ -14,7 +14,6 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
 from flow.core.util import emission_to_csv
 from flow.envs import MergePOEnv
 from flow.networks import MergeNetwork
-from flow.utils.flow_warnings import deprecated_attribute
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 
@@ -58,25 +57,6 @@ class TestEmissionToCSV(unittest.TestCase):
         # Note that, rl vehicles are missing their final (reset) values, which
         # I don't think is a problem
         self.assertEqual(len(dict1), 104)
-
-
-class TestWarnings(unittest.TestCase):
-    """Tests warning functions located in flow.utils.warnings"""
-
-    def test_deprecated_attribute(self):
-        # dummy class
-        class Foo(object):
-            pass
-
-        # dummy attribute name
-        dep_from = "bar_deprecated"
-        dep_to = "bar_new"
-
-        # check the deprecation warning is printing what is expected
-        self.assertWarnsRegex(
-            PendingDeprecationWarning,
-            "The attribute bar_deprecated in Foo is deprecated, use bar_new "
-            "instead.", deprecated_attribute, Foo(), dep_from, dep_to)
 
 
 class TestRegistry(unittest.TestCase):

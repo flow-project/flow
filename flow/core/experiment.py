@@ -1,13 +1,11 @@
 """Contains an experiment class for running simulations."""
-
-import logging
-import datetime
-import numpy as np
-import time
-import os
-
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
+import datetime
+import logging
+import time
+import os
+import numpy as np
 
 
 class Experiment:
@@ -52,12 +50,30 @@ class Experiment:
 
     Attributes
     ----------
+    custom_callables : dict < str, lambda >
+        strings and lambda functions corresponding to some information we want
+        to extract from the environment. The lambda will be called at each step
+        to extract information from the env and it will be stored in a dict
+        keyed by the str.
     env : flow.envs.Env
         the environment object the simulator will run
     """
 
-    def __init__(self, flow_params):
-        """Instantiate Experiment."""
+    def __init__(self, flow_params, custom_callables=None):
+        """Instantiate the Experiment class.
+
+        Parameters
+        ----------
+        flow_params : dict
+            flow-specific parameters
+        custom_callables : dict < str, lambda >
+            strings and lambda functions corresponding to some information we
+            want to extract from the environment. The lambda will be called at
+            each step to extract information from the env and it will be stored
+            in a dict keyed by the str.
+        """
+        self.custom_callables = custom_callables or {}
+
         # Get the env name and a creator for the environment.
         create_env, _ = make_create_env(flow_params)
 
@@ -85,7 +101,7 @@ class Experiment:
 
         Returns
         -------
-        info_dict : dict
+        info_dict : dict < str, Any >
             contains returns, average speed per step
         """
         num_steps = self.env.env_params.horizon
@@ -103,55 +119,67 @@ class Experiment:
                 'output should be generated. If you do not wish to generate '
                 'emissions, set the convert_to_csv parameter to False.')
 
-        info_dict = {}
+        # used to store
+        info_dict = {
+            "returns": [],
+            "velocities": [],
+            "outflows": [],
+        }
+        info_dict.update({
+            key: [] for key in self.custom_callables.keys()
+        })
+
         if rl_actions is None:
             def rl_actions(*_):
                 return None
 
-        rets = []
-        mean_rets = []
-        ret_lists = []
-        vels = []
-        mean_vels = []
-        std_vels = []
-        outflows = []
+        # time profiling information
+        t = time.time()
+        times = []
+
         for i in range(num_runs):
-            vel = np.zeros(num_steps)
-            logging.info("Iter #" + str(i))
             ret = 0
-            ret_list = []
+            vel = []
+            custom_vals = {key: [] for key in self.custom_callables.keys()}
             state = self.env.reset()
             for j in range(num_steps):
+                t0 = time.time()
                 state, reward, done, _ = self.env.step(rl_actions(state))
-                vel[j] = np.mean(
-                    self.env.k.vehicle.get_speed(self.env.k.vehicle.get_ids()))
+                t1 = time.time()
+                times.append(1 / (t1 - t0))
+
+                # Compute the velocity speeds and cumulative returns.
+                veh_ids = self.env.k.vehicle.get_ids()
+                vel.append(np.mean(self.env.k.vehicle.get_speed(veh_ids)))
                 ret += reward
-                ret_list.append(reward)
+
+                # Compute the results for the custom callables.
+                for (key, lambda_func) in self.custom_callables.items():
+                    custom_vals[key].append(lambda_func(self.env))
 
                 if done:
                     break
-            rets.append(ret)
-            vels.append(vel)
-            mean_rets.append(np.mean(ret_list))
-            ret_lists.append(ret_list)
-            mean_vels.append(np.mean(vel))
-            std_vels.append(np.std(vel))
-            outflows.append(self.env.k.vehicle.get_outflow_rate(int(500)))
+
+            # Store the information from the run in info_dict.
+            outflow = self.env.k.vehicle.get_outflow_rate(int(500))
+            info_dict["returns"].append(ret)
+            info_dict["velocities"].append(np.mean(vel))
+            info_dict["outflows"].append(outflow)
+            for key in custom_vals.keys():
+                info_dict[key].append(np.mean(custom_vals[key]))
+
             print("Round {0}, return: {1}".format(i, ret))
 
-        info_dict["returns"] = rets
-        info_dict["velocities"] = vels
-        info_dict["mean_returns"] = mean_rets
-        info_dict["per_step_returns"] = ret_lists
-        info_dict["mean_outflows"] = np.mean(outflows)
+        # Print the averages/std for all variables in the info_dict.
+        for key in info_dict.keys():
+            print("Average, std {}: {}, {}".format(
+                key, np.mean(info_dict[key]), np.std(info_dict[key])))
 
-        print("Average, std return: {}, {}".format(
-            np.mean(rets), np.std(rets)))
-        print("Average, std speed: {}, {}".format(
-            np.mean(mean_vels), np.std(mean_vels)))
+        print("Total time:", time.time() - t)
+        print("steps/second:", np.mean(times))
         self.env.terminate()
 
-        if convert_to_csv:
+        if convert_to_csv and self.env.simulator == "traci":
             # wait a short period of time to ensure the xml file is readable
             time.sleep(0.1)
 

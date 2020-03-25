@@ -20,3 +20,4 @@ exclude_lines =
     raise NotImplementedError
     @ray.remote
     def policy_mapping_fn*
+    def main(args)*

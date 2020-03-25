@@ -16,7 +16,7 @@ from flow.controllers.car_following_models import CFMController, \
     BCMController, OVMController, LinearOVM, IDMController, \
     SimCarFollowingController, LACController, GippsController
 from flow.controllers.velocity_controllers import FollowerStopper, \
-    PISaturation
+    PISaturation, NonLocalFollowerStopper
 
 # lane change controllers
 from flow.controllers.base_lane_changing_controller import \
@@ -35,5 +35,5 @@ __all__ = [
     "IDMController", "SimCarFollowingController", "FollowerStopper",
     "PISaturation", "StaticLaneChanger", "SimLaneChangeController",
     "ContinuousRouter", "GridRouter", "BayBridgeRouter", "LACController",
-    "GippsController"
+    "GippsController", "NonLocalFollowerStopper"
 ]

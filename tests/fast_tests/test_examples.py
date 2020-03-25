@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os
 import unittest
 import random
@@ -14,15 +15,21 @@ from examples.exp_configs.rl.singleagent.singleagent_merge import flow_params as
 from examples.exp_configs.rl.singleagent.singleagent_ring import flow_params as singleagent_ring
 from examples.exp_configs.rl.singleagent.singleagent_bottleneck import flow_params as singleagent_bottleneck
 
+from examples.exp_configs.rl.multiagent.adversarial_figure_eight import flow_params as adversarial_figure_eight
+from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as multiagent_i210
 from examples.exp_configs.rl.multiagent.multiagent_figure_eight import flow_params as multiagent_figure_eight
-from examples.exp_configs.rl.multiagent.multiagent_ring import \
-    flow_params as multiagent_ring
+from examples.exp_configs.rl.multiagent.multiagent_merge import flow_params as multiagent_merge
+from examples.exp_configs.rl.multiagent.lord_of_the_rings import \
+    flow_params as lord_of_the_rings
+from examples.exp_configs.rl.multiagent.multiagent_ring import flow_params as multiagent_ring
 from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import \
     flow_params as multiagent_traffic_light_grid
 from examples.exp_configs.rl.multiagent.multiagent_highway import flow_params as multiagent_highway
 
+from examples.train import parse_args as parse_train_args
 from examples.train import run_model_stablebaseline as run_stable_baselines_model
 from examples.train import setup_exps_rllib as setup_rllib_exps
+from examples.train import train_h_baselines
 
 from examples.exp_configs.non_rl.bay_bridge import flow_params as non_rl_bay_bridge
 from examples.exp_configs.non_rl.bay_bridge_toll import flow_params as non_rl_bay_bridge_toll
@@ -34,6 +41,7 @@ from examples.exp_configs.non_rl.highway_ramps import flow_params as non_rl_high
 from examples.exp_configs.non_rl.merge import flow_params as non_rl_merge
 from examples.exp_configs.non_rl.minicity import flow_params as non_rl_minicity
 from examples.exp_configs.non_rl.ring import flow_params as non_rl_ring
+from examples.exp_configs.non_rl.i210_subnetwork import flow_params as non_rl_i210
 
 os.environ['TEST_FLAG'] = 'True'
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -98,6 +106,10 @@ class TestNonRLExamples(unittest.TestCase):
         """Verify that examples/exp_configs/non_rl/minicity.py is working."""
         self.run_simulation(non_rl_minicity)
 
+    def test_i210(self):
+        """Verify that examples/exp_configs/non_rl/i210_subnetwork.py is working."""
+        self.run_simulation(non_rl_i210)
+
     @staticmethod
     def run_simulation(flow_params):
         # make the horizon small and set render to False
@@ -109,6 +121,42 @@ class TestNonRLExamples(unittest.TestCase):
 
         # run the experiment for one run
         exp.run(1)
+
+
+class TestTrain(unittest.TestCase):
+
+    def test_parse_args(self):
+        """Tests the parse_args method in train.py."""
+        # test the default case
+        args = parse_train_args(["exp_config"])
+
+        self.assertDictEqual(vars(args), {
+            'exp_config': 'exp_config',
+            'rl_trainer': 'rllib',
+            'num_cpus': 1,
+            'num_steps': 5000,
+            'rollout_size': 1000,
+            'checkpoint_path': None
+        })
+
+        # test the case when optional args are specified
+        args = parse_train_args([
+            "exp_config",
+            "--rl_trainer", "h-baselines",
+            "--num_cpus" "2",
+            "--num_steps", "3",
+            "--rollout_size", "4",
+            "--checkpoint_path", "5",
+        ])
+
+        self.assertDictEqual(vars(args), {
+            'checkpoint_path': '5',
+            'exp_config': 'exp_config',
+            'num_cpus': 1,
+            'num_steps': 3,
+            'rl_trainer': 'h-baselines',
+            'rollout_size': 4
+        })
 
 
 class TestStableBaselineExamples(unittest.TestCase):
@@ -136,6 +184,31 @@ class TestStableBaselineExamples(unittest.TestCase):
 
     def test_singleagent_bottleneck(self):
         self.run_exp(singleagent_bottleneck)
+
+
+class TestHBaselineExamples(unittest.TestCase):
+    """Tests the functionality of the h-baselines features in train.py.
+
+    This is done by running a set of experiments for 10 time-steps and
+    confirming that it runs.
+    """
+    @staticmethod
+    def run_exp(flow_params, multiagent):
+        train_h_baselines(
+            flow_params=flow_params,
+            args=[
+                flow_params["env_name"].__name__,
+                "--initial_exploration_steps", "1",
+                "--total_steps", "10"
+            ],
+            multiagent=multiagent,
+        )
+
+    def test_singleagent_ring(self):
+        self.run_exp(singleagent_ring.copy(), multiagent=False)
+
+    def test_multiagent_ring(self):
+        self.run_exp(multiagent_ring.copy(), multiagent=True)
 
 
 class TestRllibExamples(unittest.TestCase):
@@ -168,7 +241,17 @@ class TestRllibExamples(unittest.TestCase):
     def test_singleagent_bottleneck(self):
         self.run_exp(singleagent_bottleneck)
 
-    def test_multi_figure_eight(self):
+    def test_adversarial_figure_eight(self):
+        from examples.exp_configs.rl.multiagent.adversarial_figure_eight import POLICY_GRAPHS as af8pg
+        from examples.exp_configs.rl.multiagent.adversarial_figure_eight import policy_mapping_fn as af8pmf
+
+        kwargs = {
+            "policy_graphs": af8pg,
+            "policy_mapping_fn": af8pmf
+        }
+        self.run_exp(adversarial_figure_eight, **kwargs)
+
+    def test_multiagent_figure_eight(self):
         from examples.exp_configs.rl.multiagent.multiagent_figure_eight import POLICY_GRAPHS as mf8pg
         from examples.exp_configs.rl.multiagent.multiagent_figure_eight import policy_mapping_fn as mf8pmf
 
@@ -178,17 +261,37 @@ class TestRllibExamples(unittest.TestCase):
         }
         self.run_exp(multiagent_figure_eight, **kwargs)
 
-    def test_multi_ring(self):
+    def test_lord_of_the_rings(self):
+        from examples.exp_configs.rl.multiagent.lord_of_the_rings import POLICY_GRAPHS as ltrpg
+        from examples.exp_configs.rl.multiagent.lord_of_the_rings import POLICIES_TO_TRAIN as ltrpt
+        from examples.exp_configs.rl.multiagent.lord_of_the_rings import policy_mapping_fn as ltrpmf
+
+        kwargs = {
+            "policy_graphs": ltrpg,
+            "policies_to_train": ltrpt,
+            "policy_mapping_fn": ltrpmf
+        }
+        self.run_exp(lord_of_the_rings, **kwargs)
+
+    def test_multiagent_ring(self):
         from examples.exp_configs.rl.multiagent.multiagent_ring import POLICY_GRAPHS as mrpg
-        from examples.exp_configs.rl.multiagent.multiagent_ring import POLICIES_TO_TRAIN as mrpt
         from examples.exp_configs.rl.multiagent.multiagent_ring import policy_mapping_fn as mrpmf
 
         kwargs = {
             "policy_graphs": mrpg,
-            "policies_to_train": mrpt,
             "policy_mapping_fn": mrpmf
         }
         self.run_exp(multiagent_ring, **kwargs)
+
+    def test_multiagent_merge(self):
+        from examples.exp_configs.rl.multiagent.multiagent_merge import POLICY_GRAPHS as mmpg
+        from examples.exp_configs.rl.multiagent.multiagent_merge import policy_mapping_fn as mmpmf
+
+        kwargs = {
+            "policy_graphs": mmpg,
+            "policy_mapping_fn": mmpmf
+        }
+        self.run_exp(multiagent_merge, **kwargs)
 
     def test_multi_traffic_light_grid(self):
         from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import POLICY_GRAPHS as mtlpg
@@ -213,6 +316,57 @@ class TestRllibExamples(unittest.TestCase):
             "policy_mapping_fn": mhpmf
         }
         self.run_exp(multiagent_highway, **kwargs)
+
+    def test_multiagent_i210(self):
+        from examples.exp_configs.rl.multiagent.multiagent_i210 import POLICIES_TO_TRAIN as mi210pr
+        from examples.exp_configs.rl.multiagent.multiagent_i210 import policy_mapping_fn as mi210mf
+
+        from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
+        from ray.tune.registry import register_env
+        from flow.utils.registry import make_create_env
+        # test observation space 1
+        flow_params = deepcopy(multiagent_i210)
+        flow_params['env'].additional_params['lead_obs'] = True
+        create_env, env_name = make_create_env(params=flow_params, version=0)
+
+        # register as rllib env
+        register_env(env_name, create_env)
+
+        # multiagent configuration
+        test_env = create_env()
+        obs_space = test_env.observation_space
+        act_space = test_env.action_space
+
+        POLICY_GRAPHS = {'av': (PPOTFPolicy, obs_space, act_space, {})}
+
+        kwargs = {
+            "policy_graphs": POLICY_GRAPHS,
+            "policies_to_train": mi210pr,
+            "policy_mapping_fn": mi210mf
+        }
+        self.run_exp(flow_params, **kwargs)
+
+        # test observation space 2
+        flow_params = deepcopy(multiagent_i210)
+        flow_params['env'].additional_params['lead_obs'] = False
+        create_env, env_name = make_create_env(params=flow_params, version=0)
+
+        # register as rllib env
+        register_env(env_name, create_env)
+
+        # multiagent configuration
+        test_env = create_env()
+        obs_space = test_env.observation_space
+        act_space = test_env.action_space
+
+        POLICY_GRAPHS = {'av': (PPOTFPolicy, obs_space, act_space, {})}
+
+        kwargs = {
+            "policy_graphs": POLICY_GRAPHS,
+            "policies_to_train": mi210pr,
+            "policy_mapping_fn": mi210mf
+        }
+        self.run_exp(flow_params, **kwargs)
 
     @staticmethod
     def run_exp(flow_params, **kwargs):

@@ -1,57 +1,65 @@
 """Ring road example.
 
-Creates a set of stabilizing the ring experiments to test if
- more agents -> fewer needed batches
+Trains a number of autonomous vehicles to stabilize the flow of 22 vehicles in
+a variable length ring road.
 """
 from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
-from flow.controllers import ContinuousRouter
-from flow.controllers import IDMController
-from flow.controllers import RLController
-from flow.core.params import EnvParams
-from flow.core.params import InitialConfig
-from flow.core.params import NetParams
-from flow.core.params import SumoParams
-from flow.core.params import VehicleParams
-from flow.envs.multiagent import MultiWaveAttenuationPOEnv
-from flow.networks import MultiRingNetwork
-from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
 
-# make sure (sample_batch_size * num_workers ~= train_batch_size)
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import VehicleParams, SumoCarFollowingParams
+from flow.controllers import RLController, IDMController, ContinuousRouter
+from flow.envs.multiagent import MultiAgentWaveAttenuationPOEnv
+from flow.networks import RingNetwork
+from flow.utils.registry import make_create_env
+
 # time horizon of a single rollout
 HORIZON = 3000
-# Number of rings
-NUM_RINGS = 1
 # number of rollouts per training iteration
-N_ROLLOUTS = 20  # int(20/NUM_RINGS)
+N_ROLLOUTS = 20
 # number of parallel workers
-N_CPUS = 2  # int(20/NUM_RINGS)
+N_CPUS = 2
+# number of automated vehicles. Must be less than or equal to 22.
+NUM_AUTOMATED = 2
 
-# We place one autonomous vehicle and 21 human-driven vehicles in the network
+
+# We evenly distribute the automated vehicles in the network.
+num_human = 22 - NUM_AUTOMATED
+humans_remaining = num_human
+
 vehicles = VehicleParams()
-for i in range(NUM_RINGS):
+for i in range(NUM_AUTOMATED):
+    # Add one automated vehicle.
     vehicles.add(
-        veh_id='human_{}'.format(i),
-        acceleration_controller=(IDMController, {
-            'noise': 0.2
-        }),
-        routing_controller=(ContinuousRouter, {}),
-        num_vehicles=21)
-    vehicles.add(
-        veh_id='rl_{}'.format(i),
+        veh_id="rl_{}".format(i),
         acceleration_controller=(RLController, {}),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=1)
 
+    # Add a fraction of the remaining human vehicles.
+    vehicles_to_add = round(humans_remaining / (NUM_AUTOMATED - i))
+    humans_remaining -= vehicles_to_add
+    vehicles.add(
+        veh_id="human_{}".format(i),
+        acceleration_controller=(IDMController, {
+            "noise": 0.2
+        }),
+        car_following_params=SumoCarFollowingParams(
+            min_gap=0
+        ),
+        routing_controller=(ContinuousRouter, {}),
+        num_vehicles=vehicles_to_add)
+
+
 flow_params = dict(
     # name of the experiment
-    exp_tag='lord_of_numrings{}'.format(NUM_RINGS),
+    exp_tag="multiagent_ring",
 
     # name of the flow environment the experiment is running on
-    env_name=MultiWaveAttenuationPOEnv,
+    env_name=MultiAgentWaveAttenuationPOEnv,
 
     # name of the network class the experiment is running on
-    network=MultiRingNetwork,
+    network=RingNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -60,17 +68,18 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.1,
         render=False,
+        restart_instance=False
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
         warmup_steps=750,
+        clip_actions=False,
         additional_params={
-            'max_accel': 1,
-            'max_decel': 1,
-            'ring_length': [230, 230],
-            'target_velocity': 4
+            "max_accel": 1,
+            "max_decel": 1,
+            "ring_length": [220, 270],
         },
     ),
 
@@ -78,11 +87,10 @@ flow_params = dict(
     # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         additional_params={
-            'length': 230,
-            'lanes': 1,
-            'speed_limit': 30,
-            'resolution': 40,
-            'num_rings': NUM_RINGS
+            "length": 260,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40,
         }, ),
 
     # vehicles to be placed in the network at the start of a rollout (see
@@ -91,7 +99,7 @@ flow_params = dict(
 
     # parameters specifying the positioning of vehicles upon initialization/
     # reset (see flow.core.params.InitialConfig)
-    initial=InitialConfig(bunching=20.0, spacing='custom'),
+    initial=InitialConfig(),
 )
 
 
