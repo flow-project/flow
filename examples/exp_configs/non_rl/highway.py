@@ -5,25 +5,19 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, Su
 from flow.core.params import VehicleParams, InFlows
 from flow.envs.ring.lane_change_accel import ADDITIONAL_ENV_PARAMS
 from flow.networks.highway import HighwayNetwork, ADDITIONAL_NET_PARAMS
-from flow.envs import LaneChangeAccelEnv
+from flow.envs import TestEnv
 
 vehicles = VehicleParams()
 vehicles.add(
-    veh_id="human",
-    acceleration_controller=(IDMController, {}),
-    lane_change_params=SumoLaneChangeParams(
-        model="SL2015",
-        lc_sublane=2.0,
-    ),
-    num_vehicles=20)
-vehicles.add(
-    veh_id="human2",
-    acceleration_controller=(IDMController, {}),
-    lane_change_params=SumoLaneChangeParams(
-        model="SL2015",
-        lc_sublane=2.0,
-    ),
-    num_vehicles=20)
+        "human",
+        num_vehicles=0,
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode="strategic",
+        ),
+        acceleration_controller=(IDMController, {
+            "a": 0.3, "b": 2.0, "noise": 0.5
+        }),
+    )
 
 env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
@@ -31,13 +25,7 @@ inflow = InFlows()
 inflow.add(
     veh_type="human",
     edge="highway_0",
-    probability=0.25,
-    departLane="free",
-    departSpeed=20)
-inflow.add(
-    veh_type="human2",
-    edge="highway_0",
-    probability=0.25,
+    vehs_per_hour=10800 / 5.0,
     departLane="free",
     departSpeed=20)
 
@@ -47,7 +35,7 @@ flow_params = dict(
     exp_tag='highway',
 
     # name of the flow environment the experiment is running on
-    env_name=LaneChangeAccelEnv,
+    env_name=TestEnv,
 
     # name of the network class the experiment is running on
     network=HighwayNetwork,
@@ -58,12 +46,12 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
         render=True,
-        lateral_resolution=1.0,
+        sim_step=0.5
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=1500,
+        horizon=4000,
         additional_params=ADDITIONAL_ENV_PARAMS.copy(),
     ),
 
