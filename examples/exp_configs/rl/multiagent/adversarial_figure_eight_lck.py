@@ -65,7 +65,7 @@ vehicles.add(
     routing_controller=(ContinuousRouter, {}),
     car_following_params=SumoCarFollowingParams(speed_mode='obey_safe_speed',),
     num_vehicles=1,
-    color='white')
+    color='red')
 
 #RL agent2
 vehicles.add(
@@ -76,7 +76,7 @@ vehicles.add(
     routing_controller=(ContinuousRouter, {}),
     car_following_params=SumoCarFollowingParams(speed_mode='obey_safe_speed',),
     num_vehicles=1,
-    color='white')
+    color='green')
 
 flow_params = dict(
     # name of the experiment
