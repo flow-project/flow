@@ -216,20 +216,26 @@ def setup_exps_rllib(flow_params,
     def on_episode_start(info):
         episode = info["episode"]
         episode.user_data["avg_speed"] = []
+        episode.user_data["avg_av_speed"] = []
         episode.user_data["avg_energy"] = []
 
     def on_episode_step(info):
         episode = info["episode"]
         env = info["env"].get_unwrapped()[0]
         speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0])
+        av_speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_rl_ids()) if speed >= 0])
         if not np.isnan(speed):
             episode.user_data["avg_speed"].append(speed)
+        if not np.isnan(av_speed):
+            episode.user_data["avg_av_speed"].append(av_speed)
         episode.user_data["avg_energy"].append(energy_consumption(env))
 
     def on_episode_end(info):
         episode = info["episode"]
         avg_speed = np.mean(episode.user_data["avg_speed"])
         episode.custom_metrics["avg_speed"] = avg_speed
+        avg_av_speed = np.mean(episode.user_data["avg_av_speed"])
+        episode.custom_metrics["avg_av_speed"] = avg_av_speed
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
 
     config["callbacks"] = {"on_episode_start": tune.function(on_episode_start),
