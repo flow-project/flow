@@ -311,7 +311,6 @@ class TraCIVehicle(KernelVehicle):
         if accel_controller[0] == RLController:
             if veh_id not in self.__rl_ids:
                 self.__rl_ids.append(veh_id)
-                self.num_rl_vehicles += 1
         else:
             if veh_id not in self.__human_ids:
                 self.__human_ids.append(veh_id)
@@ -362,6 +361,7 @@ class TraCIVehicle(KernelVehicle):
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
+        self.num_rl_vehicles = len(self.__rl_ids)
 
         # get the subscription results from the new vehicle
         new_obs = self.kernel_api.vehicle.getSubscriptionResults(veh_id)
