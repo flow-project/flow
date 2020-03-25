@@ -5,7 +5,7 @@ import numpy as np
 
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import I210Router
-from flow.core.params import SumoParams
+from flow.core.params import SumoParams, SumoCarFollowingParams
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import SumoLaneChangeParams
