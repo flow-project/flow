@@ -6,7 +6,9 @@ import math
 # class agnostic helper functions
 
 def sample_trajectory(env, vehicle_id, controller, expert_controller, max_trajectory_length):
-    print("CONTROLLER: ", controller)
+
+    print("COLLECTING CONTROLLER: ", controller)
+    print("EXPERT CONTROLLER: ", expert_controller)
     observation = env.reset()
 
     print("VEHICLE ID: ", vehicle_id)
@@ -22,6 +24,7 @@ def sample_trajectory(env, vehicle_id, controller, expert_controller, max_trajec
         #assert action is not None, "action is None"
         #assert (not math.isnan(action)), "action is a nan"
         assert not (len(env.k.vehicle.get_edge(vehicle_id)) == 0), "Case One"
+        # point of error:
         assert not (env.k.vehicle.get_edge(vehicle_id)[0] == ":"), "Case Two"
 
         actions.append(action)
@@ -40,6 +43,7 @@ def sample_trajectory(env, vehicle_id, controller, expert_controller, max_trajec
         #         rl_actions[veh_id] = env.k.vehicle.get_acc_controller(veh_id).get_action(env)
 
         # observation, reward, done, _ = env.step(rl_actions)
+
         observation, reward, done, _ = env.step(action)
 
         traj_length += 1
@@ -93,9 +97,10 @@ def unpack_rollouts(rollouts_list):
 
 
 # Below are tensorflow related functions
+
 def build_mlp(input_placeholder, output_size, scope, n_layers, size, activation=tf.tanh, output_activation=None):
     """
-        Builds a MLP
+        Builds a feedfoward neural net
 
         arguments:
             input_placeholder: placeholder variable for the state (batch_size, input_size)

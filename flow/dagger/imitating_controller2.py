@@ -8,6 +8,7 @@ from replay_buffer import ReplayBuffer
 
 
 class ImitatingController(BaseController):
+    # Implementation in Tensorflow 
 
     def __init__(self, veh_id, sess, action_dim, obs_dim, num_layers, size, learning_rate, replay_buffer_size, training = True, policy_scope='policy_vars', car_following_params=None, time_delay=0.0, noise=0, fail_safe=None):
 
@@ -43,7 +44,6 @@ class ImitatingController(BaseController):
 
     def define_placeholders(self):
         self.obs_placeholder = tf.placeholder(shape=[None, self.obs_dim], name="obs", dtype=tf.float32)
-        # print('DEBUG ', self.obs_dim)
         self.action_placeholder = tf.placeholder(shape=[None, self.action_dim], name="action", dtype=tf.float32)
 
         if self.training:
@@ -67,22 +67,17 @@ class ImitatingController(BaseController):
         print("OBS NAN CHECK: ", np.any(np.isnan(observation_batch)))
         print("ACT NAN CHECK: ", np.any(np.isnan(action_batch)))
         action_batch = action_batch.reshape(action_batch.shape[0], self.action_dim)
-        # print("TEST BATCH: ", observation_batch)
         ret = self.sess.run([self.train_op, self.loss], feed_dict={self.obs_placeholder: observation_batch, self.action_labels_placeholder: action_batch})
-        # print("LOSS: ", ret)
 
     def get_accel_from_observation(self, observation):
         # network expects an array of arrays (matrix); if single observation (no batch), convert to array of arrays
         if len(observation.shape)<=1:
             observation = observation[None]
-        # print("OBS: ", observation)
         ret_val = self.sess.run([self.action_predictions], feed_dict={self.obs_placeholder: observation})[0]
-        # print("ACCEL: ", ret_val)
-        # print("RET_VAL SHAPE", ret_val.shape)
+
         return ret_val
 
     def get_accel(self, env):
-        # TODO make this get_accel(self, env)
         # network expects an array of arrays (matrix); if single observation (no batch), convert to array of arrays
         observation = env.get_state()
         return self.get_accel_from_observation(observation)

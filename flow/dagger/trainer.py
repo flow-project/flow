@@ -18,12 +18,11 @@ class Trainer(object):
         self.params = params
         self.sess = create_tf_session()
 
-        # TODO: replace this with appropriate Flow env
-        # print('ERROR CHECK ', flow_params_test['exp_tag'])
         create_env, _ = make_create_env(flow_params)
         self.env = create_env()
         self.env.reset()
 
+        # might need to replace this hardcode
         assert 'rl_0' in self.env.k.vehicle.get_ids()
         self.vehicle_id = 'rl_0'
 

@@ -10,23 +10,9 @@ class Runner(object):
 
     def __init__(self, params):
 
-
-        # agent_params = {
-        #     'n_layers': params['n_layers'],
-        #     'size': params['size'],
-        #     'learning_rate': params['learning_rate'],
-        #     'max_replay_buffer_size': params['max_replay_buffer_size'],
-        #     }
-        #
-        # self.params = params
-        # self.params['agent_class'] = BCAgent
-        # self.params['agent_params'] = agent_params
-
         # initialize trainer
         self.params = params
         self.trainer = Trainer(params)
-
-
 
     def run_training_loop(self):
 
@@ -36,11 +22,6 @@ class Runner(object):
 def main():
     import argparse
     parser = argparse.ArgumentParser()
-    # parser.add_argument('--expert_policy_file', '-epf', type=str, required=True)  # relative to where you're running this script from
-    # parser.add_argument('--expert_data', '-ed', type=str, required=True) #relative to where you're running this script from
-    # parser.add_argument('--env_name', '-env', type=str, help='choices: Ant-v2, Humanoid-v2, Walker-v2, HalfCheetah-v2, Hopper-v2', required=True)
-    # parser.add_argument('--exp_name', '-exp', type=str, default='pick an experiment name', required=True)
-    # parser.add_argument('--do_dagger', action='store_true')
     parser.add_argument('--ep_len', type=int)
 
     parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1000)  # number of gradient steps for training policy (per iter in n_iter)

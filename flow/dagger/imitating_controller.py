@@ -12,6 +12,7 @@ from tensorflow.keras.activations import *
 
 
 class ImitatingController(BaseController):
+    # Implementation in Keras just for testing
 
     def __init__(self, veh_id, sess, action_dim, obs_dim, num_layers, size, learning_rate, replay_buffer_size, training = True, policy_scope='policy_vars', car_following_params=None, time_delay=0.0, noise=0, fail_safe=None):
 
@@ -44,29 +45,22 @@ class ImitatingController(BaseController):
 
     def train(self, observation_batch, action_batch):
         assert(self.training, "Policy must be trainable")
-        #print("Training: observation_batch is ", observation_batch)
-        #print("action_batch is ", action_batch)
+
         print("OBS NAN CHECK: ", np.any(np.isnan(observation_batch)))
         print("ACT NAN CHECK: ", np.any(np.isnan(action_batch)))
 
-        # print("ACTION BATCH: ", action_batch.shape)
         action_batch = action_batch.reshape(action_batch.shape[0], self.action_dim)
-        # print("TEST BATCH: ", observation_batch)
         history = self.model.fit(observation_batch, action_batch)
-        # print("LOSS: ", ret)
 
     def get_accel_from_observation(self, observation):
         # network expects an array of arrays (matrix); if single observation (no batch), convert to array of arrays
         if len(observation.shape)<=1:
             observation = observation[None]
-        # print("OBS: ", observation)
         ret_val = self.model.predict(observation)
-        # print("ACCEL: ", ret_val)
-        # print("RET_VAL SHAPE", ret_val.shape)
+
         return ret_val
 
     def get_accel(self, env):
-        # TODO make this get_accel(self, env)
         # network expects an array of arrays (matrix); if single observation (no batch), convert to array of arrays
         observation = env.get_state()
         return self.get_accel_from_observation(observation)

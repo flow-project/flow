@@ -41,7 +41,6 @@ class ReplayBuffer(object):
             self.terminals = terminals[-self.max_size:]
         else:
             self.observations = np.concatenate([self.observations, observations])[-self.max_size:]
-            print("SHAPES: ", self.actions.shape, actions.shape)
             self.actions = np.concatenate([self.actions, actions])[-self.max_size:]
             self.expert_actions = np.concatenate([self.expert_actions, expert_actions])[-self.max_size:]
             self.rewards = np.concatenate([self.rewards, rewards])[-self.max_size:]
