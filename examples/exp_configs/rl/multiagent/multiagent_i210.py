@@ -111,7 +111,7 @@ NET_TEMPLATE = os.path.join(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='kj_td3_2',
+    exp_tag='kj_td3_4',
 
     # name of the flow environment the experiment is running on
     env_name=I210MultiEnv,
@@ -135,7 +135,7 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         sims_per_step=2,
-        warmup_steps=500,
+        warmup_steps=0,
         additional_params=additional_env_params,
     ),
 
