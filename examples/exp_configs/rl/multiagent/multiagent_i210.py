@@ -4,18 +4,25 @@ Trains a non-constant number of agents, all sharing the same policy, on the
 highway with ramps network.
 """
 import os
+import numpy as np
 
 from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 import flow.config as config
-from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
-    VehicleParams, SumoParams, SumoLaneChangeParams
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
+from flow.controllers.rlcontroller import RLController
+from flow.controllers.car_following_models import IDMController
+from flow.core.params import EnvParams
+from flow.core.params import NetParams
+from flow.core.params import InitialConfig
+from flow.core.params import InFlows
+from flow.core.params import VehicleParams
+from flow.core.params import SumoParams
+from flow.core.params import SumoLaneChangeParams
+from flow.core.rewards import energy_consumption
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 from flow.envs.multiagent import I210MultiEnv
 from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
-
-from flow.controllers import RLController
 
 # SET UP PARAMETERS FOR THE SIMULATION
 
@@ -174,3 +181,15 @@ POLICIES_TO_TRAIN = ['av']
 def policy_mapping_fn(_):
     """Map a policy in RLlib."""
     return 'av'
+
+custom_callables = {
+    "avg_speed": lambda env: np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
+    "avg_outflow": lambda env: np.nan_to_num(
+        env.k.vehicle.get_outflow_rate(120)),
+    # we multiply by 5 to account for the vehicle length and by 1000 to convert
+    # into veh/km
+    # "avg_density": lambda env: 5 * 1000 * len(env.k.vehicle.get_ids_by_edge(
+    #     edge_id)) / (env.k.network.edge_length(edge_id)
+    #                  * env.k.network.num_lanes(edge_id)),
+    "avg_energy": lambda env: energy_consumption(env, 0.1)
+}

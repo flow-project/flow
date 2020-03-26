@@ -21,6 +21,7 @@ from flow.utils.rllib import get_rllib_pkl
 from flow.visualize.transfer.util import inflows_range
 
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
+from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 
 EXAMPLE_USAGE = """
 example usage:
@@ -34,7 +35,7 @@ Here the arguments are:
 """
 
 
-def replay(args, flow_params, transfer_test=None, rllib_config=None, result_dir=None):
+def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=None, result_dir=None):
     """Replay or run transfer test (defined by transfer_fn) by modif.
 
     Arguments:
@@ -153,13 +154,8 @@ def replay(args, flow_params, transfer_test=None, rllib_config=None, result_dir=
         agent.restore(checkpoint)
 
         if multiagent:
-            rets = {}
             # map the agent id to its policy
-            policy_map_fn = rllib_config['multiagent']['policy_mapping_fn'].func
-            for key in rllib_config['multiagent']['policies'].keys():
-                rets[key] = []
-        else:
-            rets = []
+            policy_map_fn = rllib_config['multiagent']['policy_mapping_fn']
 
         if rllib_config['model']['use_lstm']:
             use_lstm = True
@@ -179,29 +175,20 @@ def replay(args, flow_params, transfer_test=None, rllib_config=None, result_dir=
         else:
             use_lstm = False
 
-    # Simulate and collect metrics
-    final_outflows = []
-    final_inflows = []
-    mean_speed = []
-    std_speed = []
+    # used to store
+    info_dict = {
+        "velocities": [],
+        "outflows": [],
+    }
+    info_dict.update({
+        key: [] for key in custom_callables.keys()
+    })
+
     for i in range(args.num_rollouts):
         vel = []
+        custom_vals = {key: [] for key in custom_callables.keys()}
         state = env.reset()
-        # don't think we're interested in per-agent rewards in this case, just system level rewards
-        # but i could be wrong. either way, would have to do this a bit differently for per-agent rewards
-        # for non-RL vehicles
-        # if rllib_config:
-        #     if multiagent:
-        #         ret = {key: [0] for key in rets.keys()}
-        #     else:
-        #         ret = 0
         for _ in range(env_params.horizon):
-            vehicles = env.unwrapped.k.vehicle
-            speeds = vehicles.get_speed(vehicles.get_ids())
-
-            # only include non-empty speeds
-            if speeds:
-                vel.append(np.mean(speeds))
 
             if rllib_config:
                 if multiagent:
@@ -221,104 +208,59 @@ def replay(args, flow_params, transfer_test=None, rllib_config=None, result_dir=
                 action = None
 
             state, reward, done, _ = env.step(action)
-            # see above comment
-            # if multiagent:
-            #     for actor, rew in reward.items():
-            #         ret[policy_map_fn(actor)][0] += rew
-            # else:
-            #     ret += reward
+
+            # Compute the velocity speeds and cumulative returns.
+            veh_ids = env.k.vehicle.get_ids()
+            vel.append(np.mean(env.k.vehicle.get_speed(veh_ids)))
+
+            # Compute the results for the custom callables.
+            for (key, lambda_func) in custom_callables.items():
+                custom_vals[key].append(lambda_func(env))
+
             if type(done) is dict and done['__all__']:
                 break
             elif type(done) is not dict and done:
                 break
 
-        # if multiagent:
-        #     for key in rets.keys():
-        #         rets[key].append(ret[key])
-        # else:
-        #     rets.append(ret)
-        outflow = vehicles.get_outflow_rate(500)
-        final_outflows.append(outflow)
-        inflow = vehicles.get_inflow_rate(500)
-        final_inflows.append(inflow)
-        if np.all(np.array(final_inflows) > 1e-5):
-            throughput_efficiency = [x / y for x, y in
-                                     zip(final_outflows, final_inflows)]
-        else:
-            throughput_efficiency = [0] * len(final_inflows)
-        mean_speed.append(np.mean(vel))
-        std_speed.append(np.std(vel))
-        # if multiagent:
-        #     for agent_id, rew in rets.items():
-        #         print('Round {}, Return: {} for agent {}'.format(
-        #             i, ret, agent_id))
-        # else:
-        #     print('Round {}, Return: {}'.format(i, ret))
+        # Store the information from the run in info_dict.
+        outflow = env.k.vehicle.get_outflow_rate(int(500))
+        info_dict["velocities"].append(np.mean(vel))
+        info_dict["outflows"].append(outflow)
+        for key in custom_vals.keys():
+            info_dict[key].append(np.mean(custom_vals[key]))
 
     print('======== Summary of results ========')
     if args.run_transfer:
         print("Transfer test: {}".format(transfer_test.transfer_str))
     print("====================================")
-    print("Return:")
-    print(mean_speed)
-    # if multiagent:
-    #     for agent_id, rew in rets.items():
-    #         print('For agent', agent_id)
-    #         print(rew)
-    #         print('Average, std return: {}, {} for agent {}'.format(
-    #             np.mean(rew), np.std(rew), agent_id))
-    # else:
-    #     print(rets)
-    #     print('Average, std: {}, {}'.format(
-    #         np.mean(rets), np.std(rets)))
 
-    print("\nSpeed, mean (m/s):")
-    print(mean_speed)
-    print('Average, std: {}, {}'.format(np.mean(mean_speed), np.std(
-        mean_speed)))
-    print("\nSpeed, std (m/s):")
-    print(std_speed)
-    print('Average, std: {}, {}'.format(np.mean(std_speed), np.std(
-        std_speed)))
-
-    # Compute arrival rate of vehicles in the last 500 sec of the run
-    print("\nOutflows (veh/hr):")
-    print(final_outflows)
-    print('Average, std: {}, {}'.format(np.mean(final_outflows),
-                                        np.std(final_outflows)))
-    # Compute departure rate of vehicles in the last 500 sec of the run
-    print("Inflows (veh/hr):")
-    print(final_inflows)
-    print('Average, std: {}, {}'.format(np.mean(final_inflows),
-                                        np.std(final_inflows)))
-    # Compute throughput efficiency in the last 500 sec of the
-    print("Throughput efficiency (veh/hr):")
-    print(throughput_efficiency)
-    print('Average, std: {}, {}'.format(np.mean(throughput_efficiency),
-                                        np.std(throughput_efficiency)))
+    # Print the averages/std for all variables in the info_dict.
+    for key in info_dict.keys():
+        print("Average, std {}: {}, {}".format(
+            key, np.mean(info_dict[key]), np.std(info_dict[key])))
 
     # terminate the environment
     env.unwrapped.terminate()
 
-    # if prompted, convert the emission file into a csv file
-    if args.gen_emission:
-        time.sleep(0.1)
+    if output_dir:
+        replay_out = os.path.join(output_dir, 'replay-info.npy')
+        np.save(replay_out, info_dict)
+        # if prompted, convert the emission file into a csv file
+        if args.gen_emission:
 
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        emission_filename = '{0}-emission.xml'.format(env.network.name)
+            time.sleep(0.1)
+            emission_path = os.path.join(output_dir, 'replay-emission.xml')
+            # convert the emission file into a csv file
+            emission_to_csv(emission_path)
 
-        emission_path = \
-            '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
+            # print the location of the emission csv file
+            emission_path_csv = emission_path[:-4] + ".csv"
+            print("\nGenerated emission file at " + emission_path_csv)
 
-        # convert the emission file into a csv file
-        emission_to_csv(emission_path)
+            # delete the .xml version of the emission file
+            os.remove(emission_path)
 
-        # print the location of the emission csv file
-        emission_path_csv = emission_path[:-4] + ".csv"
-        print("\nGenerated emission file at " + emission_path_csv)
-
-        # delete the .xml version of the emission file
-        os.remove(emission_path)
+    return info_dict
 
 
 def create_parser():
@@ -379,6 +321,12 @@ def create_parser():
         action='store_true',
         help='Runs transfer tests if true'
     )
+    parser.add_argument(
+        '--output_dir',
+        type=str,
+        help='Directory to save results.',
+        default=None
+    )
     return parser
 
 
@@ -403,7 +351,7 @@ if __name__ == '__main__':
 
     if args.run_transfer:
         for transfer_test in inflows_range(penetration_rates=[0.05, 0.1, 0.2], flow_rate_coefs=[0.8, 1.0, 1.2]):
-            replay(args, flow_params, transfer_test, rllib_config=rllib_config, result_dir=rllib_result_dir)
+            replay(args, flow_params, transfer_test, rllib_config=rllib_config,
+                   result_dir=rllib_result_dir, output_dir=args.output_dir)
     else:
-        # def replay(args, flow_params, transfer_test, rllib_config=None, result_dir=None):
-        replay(args, flow_params, rllib_config=rllib_config, result_dir=rllib_result_dir)
+        replay(args, flow_params, rllib_config=rllib_config, result_dir=rllib_result_dir, output_dir=args.output_dir)
