@@ -26,8 +26,10 @@ from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import \
     flow_params as multiagent_traffic_light_grid
 from examples.exp_configs.rl.multiagent.multiagent_highway import flow_params as multiagent_highway
 
+from examples.train import parse_args as parse_train_args
 from examples.train import run_model_stablebaseline as run_stable_baselines_model
 from examples.train import setup_exps_rllib as setup_rllib_exps
+from examples.train import train_h_baselines
 
 from examples.exp_configs.non_rl.bay_bridge import flow_params as non_rl_bay_bridge
 from examples.exp_configs.non_rl.bay_bridge_toll import flow_params as non_rl_bay_bridge_toll
@@ -121,6 +123,42 @@ class TestNonRLExamples(unittest.TestCase):
         exp.run(1)
 
 
+class TestTrain(unittest.TestCase):
+
+    def test_parse_args(self):
+        """Tests the parse_args method in train.py."""
+        # test the default case
+        args = parse_train_args(["exp_config"])
+
+        self.assertDictEqual(vars(args), {
+            'exp_config': 'exp_config',
+            'rl_trainer': 'rllib',
+            'num_cpus': 1,
+            'num_steps': 5000,
+            'rollout_size': 1000,
+            'checkpoint_path': None
+        })
+
+        # test the case when optional args are specified
+        args = parse_train_args([
+            "exp_config",
+            "--rl_trainer", "h-baselines",
+            "--num_cpus" "2",
+            "--num_steps", "3",
+            "--rollout_size", "4",
+            "--checkpoint_path", "5",
+        ])
+
+        self.assertDictEqual(vars(args), {
+            'checkpoint_path': '5',
+            'exp_config': 'exp_config',
+            'num_cpus': 1,
+            'num_steps': 3,
+            'rl_trainer': 'h-baselines',
+            'rollout_size': 4
+        })
+
+
 class TestStableBaselineExamples(unittest.TestCase):
     """Tests the example scripts in examples/exp_configs/rl/singleagent for stable_baselines.
 
@@ -146,6 +184,31 @@ class TestStableBaselineExamples(unittest.TestCase):
 
     def test_singleagent_bottleneck(self):
         self.run_exp(singleagent_bottleneck)
+
+
+class TestHBaselineExamples(unittest.TestCase):
+    """Tests the functionality of the h-baselines features in train.py.
+
+    This is done by running a set of experiments for 10 time-steps and
+    confirming that it runs.
+    """
+    @staticmethod
+    def run_exp(flow_params, multiagent):
+        train_h_baselines(
+            flow_params=flow_params,
+            args=[
+                flow_params["env_name"].__name__,
+                "--initial_exploration_steps", "1",
+                "--total_steps", "10"
+            ],
+            multiagent=multiagent,
+        )
+
+    def test_singleagent_ring(self):
+        self.run_exp(singleagent_ring.copy(), multiagent=False)
+
+    def test_multiagent_ring(self):
+        self.run_exp(multiagent_ring.copy(), multiagent=True)
 
 
 class TestRllibExamples(unittest.TestCase):
