@@ -26,6 +26,7 @@ import numpy as np
 import ray
 from ray import tune
 from ray.tune import run
+from ray.tune import run_experiments
 from ray.tune.registry import register_env
 from flow.utils.registry import make_create_env
 
@@ -261,14 +262,14 @@ def setup_exps_rllib(flow_params,
 def train_rllib(submodule, flags):
     """Train policies using the PPO algorithm in RLlib."""
     flow_params = submodule.flow_params
-    n_cpus = submodule.N_CPUS
-    n_rollouts = submodule.N_ROLLOUTS
+    n_cpus = flags.num_cpus
+    n_rollouts = flags.num_rollouts
     policy_graphs = getattr(submodule, "POLICY_GRAPHS", None)
     policy_mapping_fn = getattr(submodule, "policy_mapping_fn", None)
     policies_to_train = getattr(submodule, "policies_to_train", None)
 
     alg_run, gym_name, config = setup_exps_rllib(
-        flow_params, n_cpus, n_rollouts,
+        flow_params, n_cpus, n_rollouts, flags,
         policy_graphs, policy_mapping_fn, policies_to_train)
 
     ray.init(num_cpus=n_cpus + 1, object_store_memory=200 * 1024 * 1024)
@@ -285,6 +286,12 @@ def train_rllib(submodule, flags):
             "training_iteration": flags.num_steps,
         },
     }
+    date = datetime.now(tz=pytz.utc)
+    date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
+    s3_string = "s3://kathy.experiments/i210/" \
+                + date + '/' + flags.exp_title
+    if flags.use_s3:
+        exp_config['upload_dir'] = s3_string
 
     if flags.checkpoint_path is not None:
         exp_config['restore'] = flags.checkpoint_path

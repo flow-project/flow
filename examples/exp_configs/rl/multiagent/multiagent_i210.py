@@ -111,7 +111,7 @@ NET_TEMPLATE = os.path.join(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='kj_td3_4',
+    exp_tag='kj_td3_5',
 
     # name of the flow environment the experiment is running on
     env_name=I210MultiEnv,
@@ -128,7 +128,7 @@ flow_params = dict(
         render=False,
         color_by_speed=False,
         restart_instance=True,
-        ballistic=True
+        use_ballistic=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
