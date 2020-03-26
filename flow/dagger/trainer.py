@@ -6,7 +6,7 @@ import tensorflow as tf
 import gym
 import os
 from flow.utils.registry import make_create_env
-from env_params_test import flow_params_test
+from env_params_test import flow_params
 from imitating_controller2 import ImitatingController
 from flow.controllers.car_following_models import IDMController
 from flow.core.params import SumoCarFollowingParams
@@ -20,11 +20,12 @@ class Trainer(object):
 
         # TODO: replace this with appropriate Flow env
         # print('ERROR CHECK ', flow_params_test['exp_tag'])
-        create_env, _ = make_create_env(flow_params_test)
+        create_env, _ = make_create_env(flow_params)
         self.env = create_env()
         self.env.reset()
 
-        self.vehicle_id = self.env.k.vehicle.get_ids()[0]
+        assert 'rl_0' in self.env.k.vehicle.get_ids()
+        self.vehicle_id = 'rl_0'
 
         obs_dim = self.env.observation_space.shape[0]
 

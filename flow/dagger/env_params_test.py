@@ -1,47 +1,85 @@
-from flow.networks.ring import RingNetwork
-name = "ring_example"
+"""Ring road example.
+Trains a single autonomous vehicle to stabilize the flow of 21 human-driven
+vehicles in a variable length ring road.
+"""
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import VehicleParams, SumoCarFollowingParams
+from flow.controllers import RLController, IDMController, ContinuousRouter
+from flow.envs import WaveAttenuationPOEnv
+from flow.networks import RingNetwork
 
-from flow.core.params import VehicleParams
+# time horizon of a single rollout
+HORIZON = 3000
+# number of rollouts per training iteration
+N_ROLLOUTS = 20
+# number of parallel workers
+N_CPUS = 2
+
+# We place one autonomous vehicle and 22 human-driven vehicles in the network
 vehicles = VehicleParams()
+vehicles.add(
+    veh_id="human",
+    acceleration_controller=(IDMController, {
+        "noise": 0.2
+    }),
+    car_following_params=SumoCarFollowingParams(
+        min_gap=0
+    ),
+    routing_controller=(ContinuousRouter, {}),
+    num_vehicles=21)
+vehicles.add(
+    veh_id="rl",
+    acceleration_controller=(RLController, {}),
+    routing_controller=(ContinuousRouter, {}),
+    num_vehicles=1)
 
-from flow.controllers.car_following_models import IDMController
-from flow.controllers.routing_controllers import ContinuousRouter
-from imitating_controller import ImitatingController
-vehicles.add("human",
-             acceleration_controller=(IDMController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             num_vehicles=22)
+flow_params = dict(
+    # name of the experiment
+    exp_tag="stabilizing_the_ring",
 
-from flow.networks.ring import ADDITIONAL_NET_PARAMS
-from flow.core.params import NetParams
-net_params = NetParams(additional_params=ADDITIONAL_NET_PARAMS)
+    # name of the flow environment the experiment is running on
+    env_name=WaveAttenuationPOEnv,
 
-from flow.core.params import InitialConfig
-initial_config = InitialConfig(spacing="uniform", perturbation=1)
-
-from flow.core.params import TrafficLightParams
-traffic_lights = TrafficLightParams()
-
-from flow.envs.ring.accel import AccelEnv
-from flow.core.params import SumoParams
-sim_params = SumoParams(sim_step=0.1, render=False, emission_path='data')
-
-from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
-from flow.core.params import EnvParams
-env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
-
-flow_params_test = dict(
-    exp_tag='ring_example',
-    env_name=AccelEnv,
+    # name of the network class the experiment is running on
     network=RingNetwork,
-    simulator='traci',
-    sim=sim_params,
-    env=env_params,
-    net=net_params,
-    veh=vehicles,
-    initial=initial_config,
-    tls=traffic_lights,
-)
 
-# number of time steps
-flow_params_test['env'].horizon = 3000
+    # simulator that is used by the experiment
+    simulator='traci',
+
+    # sumo-related parameters (see flow.core.params.SumoParams)
+    sim=SumoParams(
+        sim_step=0.1,
+        render=False,
+        restart_instance=False
+    ),
+
+    # environment related parameters (see flow.core.params.EnvParams)
+    env=EnvParams(
+        horizon=HORIZON,
+        warmup_steps=750,
+        clip_actions=False,
+        additional_params={
+            "max_accel": 1,
+            "max_decel": 1,
+            "ring_length": [220, 270],
+        },
+    ),
+
+    # network-related parameters (see flow.core.params.NetParams and the
+    # network's documentation or ADDITIONAL_NET_PARAMS component)
+    net=NetParams(
+        additional_params={
+            "length": 260,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40,
+        }, ),
+
+    # vehicles to be placed in the network at the start of a rollout (see
+    # flow.core.params.VehicleParams)
+    veh=vehicles,
+
+    # parameters specifying the positioning of vehicles upon initialization/
+    # reset (see flow.core.params.InitialConfig)
+    initial=InitialConfig(),
+)

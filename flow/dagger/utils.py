@@ -6,7 +6,12 @@ import math
 # class agnostic helper functions
 
 def sample_trajectory(env, vehicle_id, controller, expert_controller, max_trajectory_length):
+    print("CONTROLLER: ", controller)
     observation = env.reset()
+
+    print("VEHICLE ID: ", vehicle_id)
+    print("VEHICLE IDS: ", env.k.vehicle.get_ids())
+    assert vehicle_id in env.k.vehicle.get_ids(), "Vehicle ID not in env!"
 
     observations, actions, expert_actions, rewards, next_observations, terminals = [], [], [], [], [], []
     traj_length = 0
@@ -14,24 +19,29 @@ def sample_trajectory(env, vehicle_id, controller, expert_controller, max_trajec
     while True:
         observations.append(observation)
         action = controller.get_action(env)
-        assert action is not None, "action is None"
-        assert (not math.isnan(action)), "action is a nan"
+        #assert action is not None, "action is None"
+        #assert (not math.isnan(action)), "action is a nan"
+        assert not (len(env.k.vehicle.get_edge(vehicle_id)) == 0), "Case One"
+        assert not (env.k.vehicle.get_edge(vehicle_id)[0] == ":"), "Case Two"
 
         actions.append(action)
 
         expert_action = expert_controller.get_action(env)
-        assert expert_action is not None, "expert actio is None"
+        assert env is not None, "environment is None"
+        assert expert_action is not None, "expert action is None"
         assert (not math.isnan(expert_action)), "expert action is a nan"
         expert_actions.append(expert_action)
 
-        rl_actions = {}
-        for veh_id in env.k.vehicle.get_ids():
-            if veh_id == vehicle_id:
-                rl_actions[veh_id] = action
-            else:
-                rl_actions[veh_id] = env.k.vehicle.get_acc_controller(veh_id).get_action(env)
+        # rl_actions = {}
+        # for veh_id in env.k.vehicle.get_ids():
+        #     if veh_id == vehicle_id:
+        #         rl_actions[veh_id] = action
+        #     else:
+        #         rl_actions[veh_id] = env.k.vehicle.get_acc_controller(veh_id).get_action(env)
 
-        observation, reward, done, _ = env.step(rl_actions)
+        # observation, reward, done, _ = env.step(rl_actions)
+        observation, reward, done, _ = env.step(action)
+
         traj_length += 1
         next_observations.append(observation)
         rewards.append(reward)
