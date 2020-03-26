@@ -1,4 +1,4 @@
-"""Environment for training vehicles to reduce congestion in I210 subnetwork."""
+"""Environment for training vehicles to reduce congestion in the I210."""
 
 from gym.spaces import Box
 import numpy as np
@@ -6,7 +6,17 @@ import numpy as np
 from flow.core.rewards import average_velocity
 from flow.envs.multiagent.base import MultiEnv
 
-MAX_LANES = 5
+# largest number of lanes on any given edge in the network
+MAX_LANES = 6
+
+ADDITIONAL_ENV_PARAMS = {
+    # maximum acceleration for autonomous vehicles, in m/s^2
+    "max_accel": 1,
+    # maximum deceleration for autonomous vehicles, in m/s^2
+    "max_decel": 1,
+    # whether we use an obs space that contains adjacent lane info or just the lead obs
+    "lead_obs": True,
+}
 
 
 class I210MultiEnv(MultiEnv):
@@ -25,10 +35,10 @@ class I210MultiEnv(MultiEnv):
 
     States
         The observation consists of the speeds and bumper-to-bumper headways of
-        the vehicles immediately preceding and following autonomous vehicles in all of the
-        preceding lanes as well, a binary value indicating which of these vehicles is autonomous,
-        and the speed of the autonomous vehicle. Missing vehicles
-        are padded with zeros.
+        the vehicles immediately preceding and following autonomous vehicles in
+        all of the preceding lanes as well, a binary value indicating which of
+        these vehicles is autonomous, and the speed of the autonomous vehicle.
+        Missing vehicles are padded with zeros.
 
     Actions
         The action consists of an acceleration, bound according to the
@@ -48,17 +58,34 @@ class I210MultiEnv(MultiEnv):
 
     def __init__(self, env_params, sim_params, network, simulator='traci'):
         super().__init__(env_params, sim_params, network, simulator)
+        self.lead_obs = env_params.additional_params.get("lead_obs")
 
     @property
     def observation_space(self):
         """See class definition."""
-        # speed, dist to ego vehicle, binary value which is 1 if the vehicle is an AV
-        leading_obs = 3 * MAX_LANES
-        follow_obs = 3 * MAX_LANES
-        # speed and lane
-        self_obs = 2
-        num_obs = leading_obs + follow_obs + self_obs
-        return Box(-float('inf'), float('inf'), shape=(num_obs,), dtype=np.float32)
+        # speed, speed of leader, headway
+        if self.lead_obs:
+            return Box(
+                low=-float('inf'),
+                high=float('inf'),
+                shape=(3,),
+                dtype=np.float32
+            )
+        # speed, dist to ego vehicle, binary value which is 1 if the vehicle is
+        # an AV
+        else:
+            leading_obs = 3 * MAX_LANES
+            follow_obs = 3 * MAX_LANES
+
+            # speed and lane
+            self_obs = 2
+
+            return Box(
+                low=-float('inf'),
+                high=float('inf'),
+                shape=(leading_obs + follow_obs + self_obs,),
+                dtype=np.float32
+            )
 
     @property
     def action_space(self):
@@ -86,9 +113,19 @@ class I210MultiEnv(MultiEnv):
 
     def get_state(self):
         """See class definition."""
-        veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
-                                           self.veh_statistics(rl_id)))
-                    for rl_id in self.k.vehicle.get_rl_ids()}
+        if self.lead_obs:
+            veh_info = {}
+            for rl_id in self.k.vehicle.get_rl_ids():
+                speed = self.k.vehicle.get_speed(rl_id)
+                headway = self.k.vehicle.get_headway(rl_id)
+                lead_speed = self.k.vehicle.get_speed(self.k.vehicle.get_leader(rl_id))
+                if lead_speed == -1001:
+                    lead_speed = 0
+                veh_info.update({rl_id: np.array([speed / 50.0, headway / 1000.0, lead_speed / 50.0])})
+        else:
+            veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
+                                               self.veh_statistics(rl_id)))
+                        for rl_id in self.k.vehicle.get_rl_ids()}
         return veh_info
 
     def compute_reward(self, rl_actions, **kwargs):

@@ -82,6 +82,9 @@ class TraCIVehicle(KernelVehicle):
         except AttributeError:
             self._force_color_update = False
 
+        # old speeds used to compute accelerations
+        self.previous_speeds = {}
+
     def initialize(self, vehicles):
         """Initialize vehicle state information.
 
@@ -127,8 +130,11 @@ class TraCIVehicle(KernelVehicle):
             specifies whether the simulator was reset in the last simulation
             step
         """
+        # copy over the previous speeds
+
         vehicle_obs = {}
         for veh_id in self.__ids:
+            self.previous_speeds[veh_id] = self.get_speed(veh_id)
             vehicle_obs[veh_id] = \
                 self.kernel_api.vehicle.getSubscriptionResults(veh_id)
         sim_obs = self.kernel_api.simulation.getSubscriptionResults()
@@ -181,7 +187,7 @@ class TraCIVehicle(KernelVehicle):
             # add vehicles from a network template, if applicable
             if hasattr(self.master_kernel.network.network,
                        "template_vehicles"):
-                for veh_id in self.master_kernel.network.network. \
+                for veh_id in self.master_kernel.network.network.\
                         template_vehicles:
                     vals = deepcopy(self.master_kernel.network.network.
                                     template_vehicles[veh_id])
@@ -362,6 +368,10 @@ class TraCIVehicle(KernelVehicle):
 
         return new_obs
 
+    def reset(self):
+        """See parent class."""
+        self.previous_speeds = {}
+
     def remove(self, veh_id):
         """See parent class."""
         # remove from sumo
@@ -512,6 +522,12 @@ class TraCIVehicle(KernelVehicle):
             return self._departed_ids[-1]
         else:
             return 0
+
+    def get_previous_speed(self, veh_id, error=-1001):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_previous_speed(vehID, error) for vehID in veh_id]
+        return self.previous_speeds.get(veh_id, 0)
 
     def get_speed(self, veh_id, error=-1001):
         """See parent class."""
@@ -711,7 +727,7 @@ class TraCIVehicle(KernelVehicle):
                 for lane in range(max_lanes):
                     edge_dict[edge][lane].sort(key=lambda x: x[1])
 
-        for veh_id in self.get_rl_ids():
+        for veh_id in self.get_ids():
             # collect the lane leaders, followers, headways, and tailways for
             # each vehicle
             edge = self.get_edge(veh_id)

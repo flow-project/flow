@@ -18,7 +18,7 @@ from flow.utils.exceptions import FatalFlowError
 class MultiEnv(MultiAgentEnv, Env):
     """Multi-agent version of base env. See parent class for info."""
 
-    def step(self, rl_actions):
+    def step(self, rl_actions, warmup=False):
         """Advance the environment by one step.
 
         Assigns actions to autonomous and human-driven agents (i.e. vehicles,
@@ -59,8 +59,9 @@ class MultiEnv(MultiAgentEnv, Env):
                     accel_contr = self.k.vehicle.get_acc_controller(veh_id)
                     action = accel_contr.get_action(self)
                     accel.append(action)
-                self.k.vehicle.apply_acceleration(
-                    self.k.vehicle.get_controlled_ids(), accel)
+                if not warmup:
+                    self.k.vehicle.apply_acceleration(
+                        self.k.vehicle.get_controlled_ids(), accel)
 
             # perform lane change actions for controlled human-driven vehicles
             if len(self.k.vehicle.get_controlled_lc_ids()) > 0:
@@ -148,6 +149,13 @@ class MultiEnv(MultiAgentEnv, Env):
         # reset the time counter
         self.time_counter = 0
 
+        # Now that we've passed the possibly fake init steps some rl libraries
+        # do, we can feel free to actually render things
+        if self.should_render:
+            self.sim_params.render = True
+            # got to restart the simulation to make it actually display anything
+            self.restart_simulation(self.sim_params)
+
         # warn about not using restart_instance when using inflows
         if len(self.net_params.inflows.get()) > 0 and \
                 not self.sim_params.restart_instance:
@@ -198,6 +206,9 @@ class MultiEnv(MultiAgentEnv, Env):
             except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
 
+        # do any additional resetting of the vehicle class needed
+        self.k.vehicle.reset()
+
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
             type_id, edge, lane_index, pos, speed = \
@@ -247,7 +258,8 @@ class MultiEnv(MultiAgentEnv, Env):
 
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
-            observation, _, _, _ = self.step(rl_actions=None)
+            observation, _, _, _ = self.step(rl_actions=None, warmup=False)
+        print("Done with warmup steps!")
 
         # render a frame
         self.render(reset=True)

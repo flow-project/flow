@@ -74,6 +74,10 @@ def visualizer_rllib(args):
     sim_params = flow_params['sim']
     setattr(sim_params, 'num_clients', 1)
 
+    # for hacks for old pkl files TODO: remove eventually
+    if not hasattr(sim_params, 'use_ballistic'):
+        sim_params.use_ballistic = False
+
     # Determine agent and checkpoint
     config_run = config['env_config']['run'] if 'run' in config['env_config'] \
         else None
@@ -162,7 +166,7 @@ def visualizer_rllib(args):
     if multiagent:
         rets = {}
         # map the agent id to its policy
-        policy_map_fn = config['multiagent']['policy_mapping_fn'].func
+        policy_map_fn = config['multiagent']['policy_mapping_fn']
         for key in config['multiagent']['policies'].keys():
             rets[key] = []
     else:
@@ -173,7 +177,7 @@ def visualizer_rllib(args):
         if multiagent:
             state_init = {}
             # map the agent id to its policy
-            policy_map_fn = config['multiagent']['policy_mapping_fn'].func
+            policy_map_fn = config['multiagent']['policy_mapping_fn']
             size = config['model']['lstm_cell_size']
             for key in config['multiagent']['policies'].keys():
                 state_init[key] = [np.zeros(size, np.float32),

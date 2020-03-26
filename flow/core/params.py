@@ -563,6 +563,11 @@ class SumoParams(SimParams):
         they teleport after teleport_time seconds
     num_clients : int, optional
         Number of clients that will connect to Traci
+    color_by_speed : bool
+        whether to color the vehicles by the speed they are moving at the
+        current time step
+    use_ballistic: bool, optional
+        If true, use a ballistic integration step instead of an euler step
     """
 
     def __init__(self,
@@ -583,7 +588,8 @@ class SumoParams(SimParams):
                  print_warnings=True,
                  teleport_time=-1,
                  num_clients=1,
-                 color_by_speed=False):
+                 color_by_speed=False,
+                 use_ballistic=False):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
@@ -597,6 +603,7 @@ class SumoParams(SimParams):
         self.teleport_time = teleport_time
         self.num_clients = num_clients
         self.color_by_speed = color_by_speed
+        self.use_ballistic = use_ballistic
 
 
 class EnvParams:

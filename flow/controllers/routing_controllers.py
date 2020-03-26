@@ -1,5 +1,4 @@
 """Contains a list of custom routing controllers."""
-
 import random
 import numpy as np
 
@@ -126,12 +125,9 @@ class BayBridgeRouter(ContinuousRouter):
 
         return new_route
 
-
 class I210Router(ContinuousRouter):
     """Assists in choosing routes in select cases for the Bay Bridge network.
-
     Extension to the Continuous Router.
-
     Usage
     -----
     See base class for usage example.

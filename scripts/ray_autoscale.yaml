@@ -40,7 +40,7 @@ auth:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
     InstanceType: c4.4xlarge
-    ImageId: ami-09544298704576518 # Flow AMI (Ubuntu)
+    ImageId: ami-0c31c8201bbe051a7 # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -55,7 +55,7 @@ head_node:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
     InstanceType: c4.4xlarge
-    ImageId: ami-09544298704576518 # Flow AMI (Ubuntu)
+    ImageId: ami-0c31c8201bbe051a7 # Flow AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
@@ -67,12 +67,9 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands:
-    - cd flow && git fetch && git checkout origin/master
+    - cd flow && git fetch && git checkout origin/kp_replay_from_ring
 
-head_setup_commands:
-    - pip install boto3==1.10.45  # 1.4.8 adds InstanceMarketOptions
-    - pip install awscli==1.16.309
-    - pip install pytz
+head_setup_commands: []
 
 # Custom commands that will be run on worker nodes after common setup.
 worker_setup_commands: []
