@@ -3,8 +3,8 @@ Utility functions for Flow compatibility with RLlib.
 
 This includes: environment generation, serialization, and visualization.
 """
-import json
 from copy import deepcopy
+import json
 import os
 import sys
 
