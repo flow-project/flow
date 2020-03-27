@@ -66,8 +66,8 @@ inflow.add(
     edge="119257914",
     vehs_per_hour=int(8378 * (1 - pen_rate)),
     # probability=1.0,
-    departLane="random",
-    departSpeed=20)
+    depart_lane="random",
+    depart_speed=20)
 # # on ramp
 # inflow.add(
 #     veh_type="human",
@@ -89,8 +89,8 @@ inflow.add(
     edge="119257914",
     vehs_per_hour=int(8378 * pen_rate),
     # probability=1.0,
-    departLane="random",
-    departSpeed=20)
+    depart_lane="random",
+    depart_speed=20)
 # # on ramp
 # inflow.add(
 #     veh_type="av",
