@@ -188,8 +188,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         vel = []
         custom_vals = {key: [] for key in custom_callables.keys()}
         state = env.reset()
-        for _ in range(env_params.horizon):
-
+        for step_num in range(env_params.horizon):
+            print(step_num)
             if rllib_config:
                 if multiagent:
                     action = {}
