@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 import random
 import traceback
-from gym.spaces import Box
+from gym.spaces import Box, Dict
 
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
@@ -122,11 +122,14 @@ class MultiEnv(MultiAgentEnv, Env):
         else:
             reward = self.compute_reward(rl_actions, fail=crash)
 
-        for rl_id in self.k.vehicle.get_arrived_rl_ids():
-            done[rl_id] = True
-            reward[rl_id] = 0
-            states[rl_id] = np.zeros(self.observation_space.shape[0])
-
+        # TODO(@evinitsky) put back and handle the case where qmix is on
+        # for rl_id in self.k.vehicle.get_arrived_rl_ids():
+        #     done[rl_id] = True
+        #     reward[rl_id] = 0
+        #     if isinstance(self.observation_space, Dict):
+        #         states[rl_id] = self.observation_space.sample()
+        #     else:
+        #         states[rl_id] = np.zeros(self.observation_space.shape[0])
         return states, reward, done, infos
 
     def reset(self, new_inflow_rate=None):

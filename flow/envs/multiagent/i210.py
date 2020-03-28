@@ -1,6 +1,6 @@
 """Environment for training vehicles to reduce congestion in the I210."""
 
-from gym.spaces import Box
+from gym.spaces import Box, Discrete, Dict
 import numpy as np
 
 from flow.core.rewards import average_velocity
@@ -223,3 +223,69 @@ class I210MultiEnv(MultiEnv):
         speed = self.k.vehicle.get_speed(rl_id) / 100.0
         lane = (self.k.vehicle.get_lane(rl_id) + 1) / 10.0
         return np.array([speed, lane])
+
+
+class I210QMIXMultiEnv(I210MultiEnv):
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
+        super().__init__(env_params, sim_params, network, simulator)
+        self.max_num_agents = env_params.additional_params.get("max_num_agents_qmix")
+        self.num_actions = env_params.additional_params.get("num_actions")
+        self.action_values = np.linspace(start=-np.abs(self.env_params.additional_params['max_decel']),
+            stop=self.env_params.additional_params['max_accel'], num=self.num_actions)
+
+    @property
+    def action_space(self):
+        """See class definition."""
+        return Discrete(self.num_actions + 1)
+
+    @property
+    def observation_space(self):
+        obs_space = super().observation_space
+        return Dict({"obs": obs_space,  "action_mask": Box(0, 1, shape=(self.action_space.n,))})
+
+    def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
+        # in the warmup steps, rl_actions is None
+        if rl_actions:
+            accel_list = []
+            rl_ids = []
+            for rl_id, action in rl_actions.items():
+                # 0 is the no-op
+                if action > 0:
+                    accel = self.action_values[action - 1]
+                    accel_list.append(accel)
+                    rl_ids.append(rl_id)
+            self.k.vehicle.apply_acceleration(rl_ids, accel_list)
+
+    def get_state(self):
+        rl_ids = self.k.vehicle.get_rl_ids()
+        veh_info = super().get_state()
+        veh_info_copy = {idx: {"obs": np.zeros(self.observation_space.spaces['obs'].shape[0]),
+                               "action_mask": self.get_action_mask(valid_agent=False)}
+                         for idx in range(self.max_num_agents)}
+        veh_info_copy.update({rl_id_idx: {"obs": veh_info[rl_id],
+                                          "action_mask": self.get_action_mask(valid_agent=True)}
+                              for rl_id_idx, rl_id in enumerate(rl_ids)})
+        veh_info = veh_info_copy
+        self.rl_id_to_idx_map = {rl_id: i for i, rl_id in enumerate(rl_ids)}
+        self.idx_to_rl_id_map = {i: rl_id for i, rl_id in enumerate(rl_ids)}
+        return veh_info
+
+    def compute_reward(self, rl_actions, **kwargs):
+        reward_dict = super().compute_reward(rl_actions, **kwargs)
+        temp_reward_dict = {idx: 0 for idx in
+                       range(self.max_num_agents)}
+        temp_reward_dict.update({self.rl_id_to_idx_map[rl_id]: reward_dict[rl_id]
+                                 for rl_id in self.k.vehicle.get_rl_ids()})
+        return temp_reward_dict
+
+    def get_action_mask(self, valid_agent):
+        """If a valid agent, return a 0 in the position of the no-op action. If not, return a 1 in that position
+        and a zero everywhere else."""
+        if valid_agent:
+            temp_list = [1 for _ in range(self.action_space.n)]
+            temp_list[0] = 0
+        else:
+            temp_list = [0 for _ in range(self.action_space.n)]
+            temp_list[0] = 1
+        return temp_list
