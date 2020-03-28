@@ -13,6 +13,7 @@ parser : ArgumentParser
 """
 
 import argparse
+from collections import defaultdict
 import gym
 import numpy as np
 import os
@@ -166,7 +167,7 @@ def visualizer_rllib(args):
     if multiagent:
         rets = {}
         # map the agent id to its policy
-        policy_map_fn = config['multiagent']['policy_mapping_fn'].func
+        policy_map_fn = config['multiagent']['policy_mapping_fn']
         for key in config['multiagent']['policies'].keys():
             rets[key] = []
     else:
@@ -175,15 +176,14 @@ def visualizer_rllib(args):
     if config['model']['use_lstm']:
         use_lstm = True
         if multiagent:
-            state_init = {}
             # map the agent id to its policy
-            policy_map_fn = config['multiagent']['policy_mapping_fn'].func
+            policy_map_fn = config['multiagent']['policy_mapping_fn']
+            
             size = config['model']['lstm_cell_size']
-            for key in config['multiagent']['policies'].keys():
-                state_init[key] = [np.zeros(size, np.float32),
-                                   np.zeros(size, np.float32)]
+            lstm_state = defaultdict(lambda: [np.zeros(size, np.float32),
+                                              np.zeros(size, np.float32)])
         else:
-            state_init = [
+            lstm_state = [
                 np.zeros(config['model']['lstm_cell_size'], np.float32),
                 np.zeros(config['model']['lstm_cell_size'], np.float32)
             ]
@@ -218,9 +218,9 @@ def visualizer_rllib(args):
                 action = {}
                 for agent_id in state.keys():
                     if use_lstm:
-                        action[agent_id], state_init[agent_id], logits = \
+                        action[agent_id], lstm_state[agent_id], _ = \
                             agent.compute_action(
-                            state[agent_id], state=state_init[agent_id],
+                            state[agent_id], state=lstm_state[agent_id],
                             policy_id=policy_map_fn(agent_id))
                     else:
                         action[agent_id] = agent.compute_action(

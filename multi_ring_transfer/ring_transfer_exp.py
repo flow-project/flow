@@ -94,7 +94,7 @@ if __name__ == "__main__":
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
 
-    flow_params = multilane_ring_config.make_flow_params(500, flags.num_total_veh,
+    flow_params = multilane_ring_config.make_flow_params(1500, flags.num_total_veh,
                                                          flags.num_av, flags.num_lanes, flags.ring_length)
 
     exp_title = flags.exp_title if flags.exp_title else flow_params["exp_tag"]
