@@ -52,7 +52,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     """
     assert bool(args.controller) ^ bool(rllib_config), \
         "Need to specify either controller or rllib_config, but not both"
-
+    print('======== Starting Replay! ========')
     if args.run_transfer:
         flow_params = transfer_test.flow_params_modifier_fn(flow_params)
 
@@ -184,6 +184,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     })
 
     for i in range(args.num_rollouts):
+        print("Starting rollout:", i)
         vel = []
         custom_vals = {key: [] for key in custom_callables.keys()}
         state = env.reset()
@@ -234,7 +235,6 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     print('======== Summary of results ========')
     if args.run_transfer:
         print("Transfer test: {}".format(transfer_test.transfer_str))
-    print("====================================")
 
     # Print the averages/std for all variables in the info_dict.
     for key in info_dict.keys():

@@ -195,7 +195,7 @@ if __name__ == "__main__":
                     i210_flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
 
                     args = Namespace(controller=None, run_transfer=None, render_mode=None, gen_emission=None,
-                                     evaluate=None, horizon=None, num_rollouts=10, save_render=False, checkpoint_num=checkpoint_num)
+                                     evaluate=None, horizon=None, num_rollouts=2, save_render=False, checkpoint_num=checkpoint_num)
 
                     ray.shutdown()
                     ray.init()
