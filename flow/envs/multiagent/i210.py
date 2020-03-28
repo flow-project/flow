@@ -263,22 +263,22 @@ class I210QMIXMultiEnv(I210MultiEnv):
                     accel_list.append(accel)
                     rl_ids.append(rl_id)
             self.k.vehicle.apply_acceleration(rl_ids, accel_list)
-        print('time to apply actions is ', time() - t)
+        # print('time to apply actions is ', time() - t)
 
     def get_state(self):
         t = time()
         rl_ids = self.k.vehicle.get_rl_ids()
         veh_info = super().get_state()
-        print('time to get state is ', time() - t)
+        # print('time to get state is ', time() - t)
         t = time()
         # TODO(@evinitsky) think this doesn't have to be a deepcopy
         veh_info_copy = deepcopy(self.default_state)
-        print('time to make copy is ', time() - t)
+        # print('time to make copy is ', time() - t)
         t = time()
         veh_info_copy.update({rl_id_idx: {"obs": veh_info[rl_id],
                                           "action_mask": self.get_action_mask(valid_agent=True)}
                               for rl_id_idx, rl_id in enumerate(rl_ids)})
-        print('time to update copy is ', time() - t)
+        # print('time to update copy is ', time() - t)
         veh_info = veh_info_copy
         self.rl_id_to_idx_map = {rl_id: i for i, rl_id in enumerate(rl_ids)}
         self.idx_to_rl_id_map = {i: rl_id for i, rl_id in enumerate(rl_ids)}
@@ -286,12 +286,11 @@ class I210QMIXMultiEnv(I210MultiEnv):
 
     def compute_reward(self, rl_actions, **kwargs):
         t = time()
-        reward_dict = super().compute_reward(rl_actions, **kwargs)
-        temp_reward_dict = {idx: 0 for idx in
+        # There has to be one global reward for qmix
+        reward = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))) / (20 * self.env_params.horizon)
+        temp_reward_dict = {idx: reward for idx in
                        range(self.max_num_agents)}
-        temp_reward_dict.update({self.rl_id_to_idx_map[rl_id]: reward_dict[rl_id]
-                                 for rl_id in self.k.vehicle.get_rl_ids()})
-        print('time to compute reward is ', time() - t)
+        # print('time to compute reward is ', time() - t)
         return temp_reward_dict
 
     def get_action_mask(self, valid_agent):

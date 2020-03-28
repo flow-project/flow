@@ -59,6 +59,10 @@ def parse_args(args):
         help='Name of the experiment configuration file, as located in '
              'exp_configs/rl/singleagent or exp_configs/rl/multiagent.')
 
+    parser.add_argument(
+        'exp_title', type=str,
+        help='Name of experiment taht results will be stored in')
+
     # optional input parameters
     parser.add_argument(
         '--rl_trainer', type=str, default="rllib",
@@ -209,6 +213,7 @@ def setup_exps_rllib(flow_params,
     def on_episode_start(info):
         episode = info["episode"]
         episode.user_data["avg_speed"] = []
+        episode.user_data["avg_speed_avs"] = []
         episode.user_data["avg_energy"] = []
 
     def on_episode_step(info):
@@ -219,12 +224,17 @@ def setup_exps_rllib(flow_params,
         speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0])
         if not np.isnan(speed):
             episode.user_data["avg_speed"].append(speed)
+        av_speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_rl_ids()) if speed >= 0])
+        if not np.isnan(av_speed):
+            episode.user_data["avg_speed_avs"].append(av_speed)
         episode.user_data["avg_energy"].append(energy_consumption(env))
 
     def on_episode_end(info):
         episode = info["episode"]
         avg_speed = np.mean(episode.user_data["avg_speed"])
         episode.custom_metrics["avg_speed"] = avg_speed
+        avg_speed_avs = np.mean(episode.user_data["avg_speed_avs"])
+        episode.custom_metrics["avg_speed_avs"] = avg_speed_avs
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
 
     config["callbacks"] = {"on_episode_start": tune.function(on_episode_start),
@@ -286,7 +296,7 @@ def train_rllib(submodule, flags):
         ray.init()
     exp_dict = {
         "run_or_experiment": alg_run,
-        "name": gym_name,
+        "name": flags.exp_title,
         "config": config,
         "checkpoint_freq": 20,
         "checkpoint_at_end": True,
