@@ -85,7 +85,7 @@ def parse_flags(args):
     parser.add_argument('--checkpoint_path', type=str, default=None,
                         help='Directory with checkpoint to restore training from.')
 
-    return parser.parse_known_args(args)[0]
+    return parser.parse_args(args)
 
 
 if __name__ == "__main__":
