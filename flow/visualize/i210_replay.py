@@ -36,18 +36,18 @@ Here the arguments are:
 
 
 def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=None, result_dir=None):
-    """Replay or run transfer test (defined by transfer_fn) by modif.
+    """Replay i210 or run transfer test (defined by transfer_test).
 
     Arguments:
     ---------
         args {[Namespace]} -- [args from argparser]
         flow_params {[flow_params object, pulled from ]} -- [description]
-        transfer_fn {[type]} -- [description]
 
     Keyword Arguments:
     -----------------
-        rllib_config {[type]} -- [description] (default: {None})
-        result_dir {[type]} -- [description] (default: {None})
+        transfer_test {[function]} -- function to modify flow params
+        rllib_config -- rllib config from trained controller (should match observation space)
+        result_dir -- location to save emissions and summary file.
     """
     assert bool(args.controller) ^ bool(rllib_config), \
         "Need to specify either controller or rllib_config, but not both"
@@ -65,7 +65,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         elif args.controller == 'sumo':
             from flow.controllers.car_following_models import SimCarFollowingController
             controller = SimCarFollowingController
-        
+
         flow_params['veh'].type_parameters['av']['acceleration_controller'] = (controller, test_params)
 
         for veh_param in flow_params['veh'].initial:
@@ -243,13 +243,21 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     env.unwrapped.terminate()
 
     if output_dir:
-        replay_out = os.path.join(output_dir, 'replay-info.npy')
+        if args.run_transfer:
+            file_name = '{}-replay-info.npy'.format(transfer_test.transfer_str)
+        else:
+            file_name = 'replay-info.npy'
+        replay_out = os.path.join(output_dir, file_name)
         np.save(replay_out, info_dict)
         # if prompted, convert the emission file into a csv file
         if args.gen_emission:
+            if args.run_transfer:
+                file_name = '{}-replay-emission.xml'.format(transfer_test.transfer_str)
+            else:
+                file_name = 'replay-emission.xml'
 
             time.sleep(0.1)
-            emission_path = os.path.join(output_dir, 'replay-emission.xml')
+            emission_path = os.path.join(output_dir, file_name)
             # convert the emission file into a csv file
             emission_to_csv(emission_path)
 

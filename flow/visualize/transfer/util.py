@@ -32,23 +32,23 @@ def make_inflows(penetration_rate=0.1, flow_rate_coef=1.0, departSpeed=20, on_ra
                             departLane="random",
                             departSpeed=departSpeed)
     inflow_119257914_av = dict(veh_type="av",
-                            edge="119257914",
-                            vehs_per_hour=int(VEH_PER_HOUR_BASE_119257914 * penetration_rate * flow_rate_coef),
-                            # probability=1.0,
-                            departLane="random",
-                            departSpeed=departSpeed)
+                               edge="119257914",
+                               vehs_per_hour=int(VEH_PER_HOUR_BASE_119257914 * penetration_rate * flow_rate_coef),
+                               # probability=1.0,
+                               departLane="random",
+                               departSpeed=departSpeed)
     if on_ramp:
         inflow_27414345 = dict(veh_type="human",
-                            edge="27414345",
-                            vehs_per_hour=VEH_PER_HOUR_BASE_27414345 * penetration_rate * flow_rate_coef,
-                            departLane="random",
-                            departSpeed=departSpeed)
+                               edge="27414345",
+                               vehs_per_hour=VEH_PER_HOUR_BASE_27414345 * penetration_rate * flow_rate_coef,
+                               departLane="random",
+                               departSpeed=departSpeed)
 
         inflow_27414342 = dict(veh_type="human",
-                            edge="27414342#0",
-                            vehs_per_hour=VEH_PER_HOUR_BASE_27414342 * penetration_rate * flow_rate_coef,
-                            departLane="random",
-                            departSpeed=departSpeed)
+                               edge="27414342#0",
+                               vehs_per_hour=VEH_PER_HOUR_BASE_27414342 * penetration_rate * flow_rate_coef,
+                               departLane="random",
+                               departSpeed=departSpeed)
 
         all_inflow_defs = (inflow_119257914, inflow_27414345, inflow_27414342, inflow_119257914_av)
     else:

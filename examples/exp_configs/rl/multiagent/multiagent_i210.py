@@ -6,7 +6,6 @@ highway with ramps network.
 import os
 import numpy as np
 
-from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
 from ray.tune.registry import register_env
 
 from flow.controllers import RLController
@@ -184,8 +183,10 @@ def policy_mapping_fn(_):
     """Map a policy in RLlib."""
     return 'av'
 
+
 custom_callables = {
-    "avg_speed": lambda env: np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
+    "avg_speed": lambda env: np.mean([speed for speed in
+                                      env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
     "avg_outflow": lambda env: np.nan_to_num(
         env.k.vehicle.get_outflow_rate(120)),
     "avg_energy": lambda env: energy_consumption(env, 0.1)
