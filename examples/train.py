@@ -194,8 +194,8 @@ def setup_exps_rllib(flow_params,
     elif alg_run == "TD3":
         config["buffer_size"] = 20000
         config["sample_batch_size"] = 50
-        config["critic_lr"] = 1e-5
-        config["actor_lr"] = 1e-5
+        config["critic_lr"] = 1e-4
+        config["actor_lr"] = 1e-4
     else:
         sys.exit("We only support PPO and TD3 right now.")
 
