@@ -297,9 +297,9 @@ class I210QMIXMultiEnv(I210MultiEnv):
         """If a valid agent, return a 0 in the position of the no-op action. If not, return a 1 in that position
         and a zero everywhere else."""
         if valid_agent:
-            temp_list = [1 for _ in range(self.action_space.n)]
+            temp_list = np.array([1 for _ in range(self.action_space.n)])
             temp_list[0] = 0
         else:
-            temp_list = [0 for _ in range(self.action_space.n)]
+            temp_list = np.array([0 for _ in range(self.action_space.n)])
             temp_list[0] = 1
         return temp_list
