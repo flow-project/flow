@@ -68,6 +68,8 @@ def parse_flags(args):
     parser.add_argument('--run_transfer', action='store_true', help="run transfer on i210 to ")
 
     parser.add_argument('--use_lstm', action='store_true', help='If true, use lstm')
+    parser.add_argument('--algorithm', type=str, default="PPO", choices=["PPO", "TD3"],
+                        help='Algorithm to run.')
     # parser.add_argument('--grid_search', action='store_true', help='If true, grid search hyperparams')
     # parser.add_argument('--seed_search', action='store_true', help='If true, sweep seed instead of hyperparameter')
 
@@ -117,95 +119,97 @@ if __name__ == "__main__":
         exp.run(flags.num_rollouts, convert_to_csv=flags.gen_emission)
     else:
 
-            policy_graphs = getattr(multilane_ring_config, "POLICY_GRAPHS", None)
-            policy_mapping_fn = getattr(multilane_ring_config, "policy_mapping_fn", None)
-            policies_to_train = getattr(multilane_ring_config, "policies_to_train", None)
+        policy_graphs = getattr(multilane_ring_config, "POLICY_GRAPHS", None)
+        policy_mapping_fn = getattr(multilane_ring_config, "policy_mapping_fn", None)
+        policies_to_train = getattr(multilane_ring_config, "policies_to_train", None)
 
-            alg_run, gym_name, config = setup_exps_rllib(
-                flow_params, flags.num_cpus, flags.num_rollouts,
-                policy_graphs, policy_mapping_fn, policies_to_train)
+        alg_run, gym_name, config = setup_exps_rllib(
+            flow_params, flags.num_cpus, flags.num_rollouts, flags,
+            policy_graphs, policy_mapping_fn, policies_to_train)
 
-            # NOTE: Overriding parameters defined in default setup_exps here:
+        # NOTE: Overriding parameters defined in default setup_exps here:
 
-            config["gamma"] = 0.999  # discount rate
-            config["model"].update({"fcnet_hiddens": [32, 32, 32]})
-            config["use_gae"] = True
-            config["lambda"] = 0.97
-            config["kl_target"] = 0.02
-            config["num_sgd_iter"] = 10
-            config["vf_loss_coeff"] = 1e-6
-            if flags.use_lstm:
-                config['model']['use_lstm'] = True
-                config['model']['vf_share_layers'] = True
+        config["gamma"] = 0.999  # discount rate
+        config["model"].update({"fcnet_hiddens": [32, 32, 32]})
+        config["use_gae"] = True
+        config["lambda"] = 0.97
+        config["kl_target"] = 0.02
+        config["num_sgd_iter"] = 10
+        config["vf_loss_coeff"] = 1e-6
+        if flags.use_lstm:
+            config['model']['use_lstm'] = True
+            config['model']['vf_share_layers'] = True
 
-            if flags.multi_node and flags.local_mode:
-                sys.exit("You can't have both local mode and multi node mode on.")
+        if flags.multi_node and flags.local_mode:
+            sys.exit("You can't have both local mode and multi node mode on.")
 
-            if flags.multi_node:
-                ray.init(redis_address='localhost:6379')
-            elif flags.local_mode:
-                ray.init(local_mode=True, object_store_memory=200 * 1024 * 1024)
-            else:
-                ray.init(num_cpus=flags.num_cpus + 1, object_store_memory=200 * 1024 * 1024)
+        if flags.multi_node:
+            ray.init(redis_address='localhost:6379')
+        elif flags.local_mode:
+            ray.init(local_mode=True, object_store_memory=200 * 1024 * 1024)
+        else:
+            ray.init(num_cpus=flags.num_cpus + 1, object_store_memory=200 * 1024 * 1024)
 
-            exp_config = {
-                "run": alg_run,
-                "env": gym_name,
-                "config": {
-                    **config
-                },
-                "checkpoint_freq": flags.checkpoint_freq,
-                "checkpoint_at_end": True,
-                "max_failures": 999,
-                "stop": {
-                    "training_iteration": flags.num_iters,
-                },
-                "num_samples": flags.num_samples
-            }
+        exp_config = {
+            "run": alg_run,
+            "env": gym_name,
+            "config": {
+                **config
+            },
+            "checkpoint_freq": flags.checkpoint_freq,
+            "checkpoint_at_end": True,
+            "max_failures": 999,
+            "stop": {
+                "training_iteration": flags.num_iters,
+            },
+            "num_samples": flags.num_samples
+        }
 
-            if flags.use_s3:
-                s3_string = 's3://kanaad.experiments/mutli_lane_transfer/' \
-                    + date + '/' + exp_title
-                exp_config['upload_dir'] = s3_string
+        if flags.use_s3:
+            s3_string = 's3://kanaad.experiments/mutli_lane_transfer/' \
+                + date + '/' + exp_title
+            exp_config['upload_dir'] = s3_string
 
-            if flags.checkpoint_path is not None:
-                exp_config['restore'] = flags.checkpoint_path
-            trials = run_experiments({exp_title: exp_config})
+        if flags.checkpoint_path is not None:
+            exp_config['restore'] = flags.checkpoint_path
+        trials = run_experiments({exp_title: exp_config})
 
-            # Now we add code to loop through the results and create scores of the results
-            if flags.run_transfer:
-                output_path = os.path.join(os.path.join(os.path.expanduser('~/transfer_results/'), date), exp_title)
-                if not os.path.exists(output_path):
-                    try:
-                        os.makedirs(output_path)
-                    except OSError as exc:
-                        if exc.errno != errno.EEXIST:
-                            raise
-                for (dirpath, dirnames, filenames) in os.walk(os.path.expanduser("~/ray_results")):
-                    if "checkpoint" in dirpath and dirpath.split('/')[-3] == exp_title:
+        # Now we add code to loop through the results and create scores of the results
+        if flags.run_transfer:
+            output_path = os.path.join(os.path.join(os.path.expanduser('~/transfer_results/'), date), exp_title)
+            if not os.path.exists(output_path):
+                try:
+                    os.makedirs(output_path)
+                except OSError as exc:
+                    if exc.errno != errno.EEXIST:
+                        raise
+            for (dirpath, dirnames, filenames) in os.walk(os.path.expanduser("~/ray_results")):
+                if "checkpoint" in dirpath and dirpath.split('/')[-3] == exp_title:
 
-                        folder = os.path.dirname(dirpath)
-                        tune_name = folder.split("/")[-1]
-                        checkpoint_num = dirpath.split('_')[-1]
-                        rllib_config = get_rllib_pkl(folder)
-                        i210_flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
+                    folder = os.path.dirname(dirpath)
+                    tune_name = folder.split("/")[-1]
+                    checkpoint_num = dirpath.split('_')[-1]
+                    if int(checkpoint_num) < flags.num_iters:
+                        continue
+                    rllib_config = get_rllib_pkl(folder)
+                    i210_flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
 
-                        args = Namespace(controller=None, run_transfer=None, render_mode=None, gen_emission=None,
-                                        evaluate=None, horizon=None, num_rollouts=1, save_render=False, checkpoint_num=checkpoint_num)
+                    args = Namespace(controller=None, run_transfer=None, render_mode=None, gen_emission=None,
+                                     evaluate=None, horizon=None, num_rollouts=1, save_render=False, checkpoint_num=checkpoint_num)
 
-                        ray.shutdown()
-                        ray.init()
+                    ray.shutdown()
+                    ray.init()
 
-                        replay(args, flow_params, rllib_config=rllib_config, result_dir=folder)
+                    replay(args, flow_params, rllib_config=rllib_config, result_dir=folder, output_dir=output_path)
 
-                        if flags.use_s3:
-                            for i in range(4):
-                                try:
-                                    p1 = subprocess.Popen("aws s3 sync {} {}".format(output_path,
-                                                                                    "s3://sim2real/transfer_results/adv_robust/{}/{}/{}".format(date,
-                                                                                                                                                args.exp_title,
-                                                                                                                                                tune_name)).split(
-                                        ' '))
-                                    p1.wait(50)
-                                except Exception as e:
-                                    print('This is the error ', e)
+                    if flags.use_s3:
+                        for i in range(4):
+                            try:
+                                p1 = subprocess.Popen("aws s3 sync {} {}".format(output_path,
+                                                                                 "s3://kanaad.experiments/transfer_results/{}/{}/{}".format(date,
+                                                                                                                                            exp_title,
+                                                                                                                                            tune_name)).split(
+                                    ' '))
+                                p1.wait(50)
+                            except Exception as e:
+                                print('This is the error ', e)
