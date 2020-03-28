@@ -1,5 +1,6 @@
 """Transfer and replay for i210 environment."""
 import argparse
+from collections import defaultdict
 from copy import deepcopy
 import numpy as np
 import os
@@ -36,18 +37,18 @@ Here the arguments are:
 
 
 def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=None, result_dir=None):
-    """Replay i210 or run transfer test (defined by transfer_test).
+    """Replay or run transfer test (defined by transfer_fn) by modif.
 
     Arguments:
     ---------
         args {[Namespace]} -- [args from argparser]
         flow_params {[flow_params object, pulled from ]} -- [description]
+        transfer_fn {[type]} -- [description]
 
     Keyword Arguments:
     -----------------
-        transfer_test {[function]} -- function to modify flow params
-        rllib_config -- rllib config from trained controller (should match observation space)
-        result_dir -- location to save emissions and summary file.
+        rllib_config {[type]} -- [description] (default: {None})
+        result_dir {[type]} -- [description] (default: {None})
     """
     assert bool(args.controller) ^ bool(rllib_config), \
         "Need to specify either controller or rllib_config, but not both"
@@ -55,13 +56,15 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     if args.run_transfer:
         flow_params = transfer_test.flow_params_modifier_fn(flow_params)
 
-    # if we've supplied an rllib config:
     if args.controller:
         test_params = {}
         if args.controller == 'idm':
             from flow.controllers.car_following_models import IDMController
             controller = IDMController
             test_params.update({'v0': 1, 'T': 1, 'a': 0.2, 'b': 0.2})  # An example of really obvious changes
+        elif args.controller == 'default_human':
+            controller = flow_params['veh'].type_parameters['human']['acceleration_controller'][0]
+            test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
         elif args.controller == 'sumo':
             from flow.controllers.car_following_models import SimCarFollowingController
             controller = SimCarFollowingController
@@ -71,7 +74,6 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         for veh_param in flow_params['veh'].initial:
             if veh_param['veh_id'] == 'av':
                 veh_param['acceleration_controller'] = (controller, test_params)
-    # -->
 
     sim_params = flow_params['sim']
     sim_params.num_clients = 1
@@ -160,15 +162,12 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         if rllib_config['model']['use_lstm']:
             use_lstm = True
             if multiagent:
-                state_init = {}
                 # map the agent id to its policy
-                policy_map_fn = rllib_config['multiagent']['policy_mapping_fn'].func
                 size = rllib_config['model']['lstm_cell_size']
-                for key in rllib_config['multiagent']['policies'].keys():
-                    state_init[key] = [np.zeros(size, np.float32),
-                                       np.zeros(size, np.float32)]
+                lstm_state = defaultdict(lambda: [np.zeros(size, np.float32),
+                                                  np.zeros(size, np.float32)])
             else:
-                state_init = [
+                lstm_state = [
                     np.zeros(rllib_config['model']['lstm_cell_size'], np.float32),
                     np.zeros(rllib_config['model']['lstm_cell_size'], np.float32)
                 ]
@@ -195,15 +194,18 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
                     action = {}
                     for agent_id in state.keys():
                         if use_lstm:
-                            action[agent_id], state_init[agent_id], logits = \
+                            action[agent_id], lstm_state[agent_id], _ = \
                                 agent.compute_action(
-                                state[agent_id], state=state_init[agent_id],
+                                state[agent_id], state=lstm_state[agent_id],
                                 policy_id=policy_map_fn(agent_id))
                         else:
                             action[agent_id] = agent.compute_action(
                                 state[agent_id], policy_id=policy_map_fn(agent_id))
                 else:
-                    action = agent.compute_action(state)
+                    if use_lstm:
+                        raise NotImplementedError
+                    else:
+                        action = agent.compute_action(state)
             else:
                 action = None
 
@@ -243,21 +245,13 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     env.unwrapped.terminate()
 
     if output_dir:
-        if args.run_transfer:
-            file_name = '{}-replay-info.npy'.format(transfer_test.transfer_str)
-        else:
-            file_name = 'replay-info.npy'
-        replay_out = os.path.join(output_dir, file_name)
+        replay_out = os.path.join(output_dir, 'replay-info.npy')
         np.save(replay_out, info_dict)
         # if prompted, convert the emission file into a csv file
         if args.gen_emission:
-            if args.run_transfer:
-                file_name = '{}-replay-emission.xml'.format(transfer_test.transfer_str)
-            else:
-                file_name = 'replay-emission.xml'
 
             time.sleep(0.1)
-            emission_path = os.path.join(output_dir, file_name)
+            emission_path = os.path.join(output_dir, 'replay-emission.xml')
             # convert the emission file into a csv file
             emission_to_csv(emission_path)
 
@@ -359,7 +353,7 @@ if __name__ == '__main__':
 
     if args.run_transfer:
         for transfer_test in inflows_range(penetration_rates=[0.05, 0.1, 0.2], flow_rate_coefs=[0.8, 1.0, 1.2]):
-            replay(args, flow_params, transfer_test=transfer_test, rllib_config=rllib_config,
+            replay(args, flow_params, transfer_test, rllib_config=rllib_config,
                    result_dir=rllib_result_dir, output_dir=args.output_dir)
     else:
         replay(args, flow_params, rllib_config=rllib_config, result_dir=rllib_result_dir, output_dir=args.output_dir)
