@@ -195,20 +195,20 @@ if __name__ == "__main__":
                     i210_flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
 
                     args = Namespace(controller=None, run_transfer=None, render_mode=None, gen_emission=None,
-                                     evaluate=None, horizon=None, num_rollouts=1, save_render=False, checkpoint_num=checkpoint_num)
+                                     evaluate=None, horizon=None, num_rollouts=10, save_render=False, checkpoint_num=checkpoint_num)
 
                     ray.shutdown()
                     ray.init()
 
-                    replay(args, flow_params, rllib_config=rllib_config, result_dir=folder, output_dir=output_path)
+                    replay(args, i210_flow_params, rllib_config=rllib_config, result_dir=folder, output_dir=output_path)
 
                     if flags.use_s3:
                         for i in range(4):
                             try:
                                 p1 = subprocess.Popen("aws s3 sync {} {}".format(output_path,
-                                                                                 "s3://kanaad.experiments/transfer_results/{}/{}/{}".format(date,
-                                                                                                                                            exp_title,
-                                                                                                                                            tune_name)).split(
+                                                                                 "s3://kanaad.experiments/mutli_lane_transfer/{}/{}/{}".format(date,
+                                                                                                                                               exp_title,
+                                                                                                                                               tune_name)).split(
                                     ' '))
                                 p1.wait(50)
                             except Exception as e:
