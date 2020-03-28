@@ -1,5 +1,8 @@
 """Environment for training vehicles to reduce congestion in the I210."""
 
+from copy import deepcopy
+from time import time
+
 from gym.spaces import Box, Discrete, Dict
 import numpy as np
 
@@ -232,6 +235,9 @@ class I210QMIXMultiEnv(I210MultiEnv):
         self.num_actions = env_params.additional_params.get("num_actions")
         self.action_values = np.linspace(start=-np.abs(self.env_params.additional_params['max_decel']),
             stop=self.env_params.additional_params['max_accel'], num=self.num_actions)
+        self.default_state = {idx: {"obs": np.zeros(self.observation_space.spaces['obs'].shape[0]),
+                               "action_mask": self.get_action_mask(valid_agent=False)}
+                         for idx in range(self.max_num_agents)}
 
     @property
     def action_space(self):
@@ -246,6 +252,7 @@ class I210QMIXMultiEnv(I210MultiEnv):
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         # in the warmup steps, rl_actions is None
+        t = time()
         if rl_actions:
             accel_list = []
             rl_ids = []
@@ -256,27 +263,35 @@ class I210QMIXMultiEnv(I210MultiEnv):
                     accel_list.append(accel)
                     rl_ids.append(rl_id)
             self.k.vehicle.apply_acceleration(rl_ids, accel_list)
+        print('time to apply actions is ', time() - t)
 
     def get_state(self):
+        t = time()
         rl_ids = self.k.vehicle.get_rl_ids()
         veh_info = super().get_state()
-        veh_info_copy = {idx: {"obs": np.zeros(self.observation_space.spaces['obs'].shape[0]),
-                               "action_mask": self.get_action_mask(valid_agent=False)}
-                         for idx in range(self.max_num_agents)}
+        print('time to get state is ', time() - t)
+        t = time()
+        # TODO(@evinitsky) think this doesn't have to be a deepcopy
+        veh_info_copy = deepcopy(self.default_state)
+        print('time to make copy is ', time() - t)
+        t = time()
         veh_info_copy.update({rl_id_idx: {"obs": veh_info[rl_id],
                                           "action_mask": self.get_action_mask(valid_agent=True)}
                               for rl_id_idx, rl_id in enumerate(rl_ids)})
+        print('time to update copy is ', time() - t)
         veh_info = veh_info_copy
         self.rl_id_to_idx_map = {rl_id: i for i, rl_id in enumerate(rl_ids)}
         self.idx_to_rl_id_map = {i: rl_id for i, rl_id in enumerate(rl_ids)}
         return veh_info
 
     def compute_reward(self, rl_actions, **kwargs):
+        t = time()
         reward_dict = super().compute_reward(rl_actions, **kwargs)
         temp_reward_dict = {idx: 0 for idx in
                        range(self.max_num_agents)}
         temp_reward_dict.update({self.rl_id_to_idx_map[rl_id]: reward_dict[rl_id]
                                  for rl_id in self.k.vehicle.get_rl_ids()})
+        print('time to compute reward is ', time() - t)
         return temp_reward_dict
 
     def get_action_mask(self, valid_agent):
