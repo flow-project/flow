@@ -6,7 +6,7 @@ vehicles = VehicleParams()
 
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
-from imitating_controller import ImitatingController
+from imitating_controller2 import ImitatingController
 vehicles.add("human",
              acceleration_controller=(IDMController, {}),
              routing_controller=(ContinuousRouter, {}),

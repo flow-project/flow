@@ -40,14 +40,12 @@ class ImitatingController(BaseController):
             self.model.add(Dense(self.size, activation='relu'))
         # No activation
         self.model.add(Dense(self.action_dim))
-        self.model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
+        self.model.compile(loss='mean_squared_error', optimizer='adam')
 
 
     def train(self, observation_batch, action_batch):
         assert(self.training, "Policy must be trainable")
-
-        print("OBS NAN CHECK: ", np.any(np.isnan(observation_batch)))
-        assert (not np.any(np.isnan(action_batch))), "TRAIN ERROR ACTION NAN"
+        assert (not np.any(np.isnan(action_batch))), "NANs in training labels"
 
         action_batch = action_batch.reshape(action_batch.shape[0], self.action_dim)
         history = self.model.fit(observation_batch, action_batch)

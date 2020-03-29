@@ -52,7 +52,6 @@ class ImitatingController(BaseController):
     def define_forward_pass(self):
         pred_action = build_mlp(self.obs_placeholder, output_size=self.action_dim, scope='network_scope', n_layers=self.num_layers, size=self.size)
         self.action_predictions = pred_action
-        print("ACTION PREDICTIONS TYPE ", type(self.action_predictions))
 
     def define_train_op(self):
         true_actions = self.action_labels_placeholder
@@ -63,9 +62,6 @@ class ImitatingController(BaseController):
 
     def train(self, observation_batch, action_batch):
         assert(self.training, "Policy must be trainable")
-        # print("ACTION BATCH: ", action_batch.shape)
-        # print("OBS NAN CHECK: ", np.any(np.isnan(observation_batch)))
-        # print("ACT NAN CHECK: ", np.any(np.isnan(action_batch)))
         action_batch = action_batch.reshape(action_batch.shape[0], self.action_dim)
         ret = self.sess.run([self.train_op, self.loss], feed_dict={self.obs_placeholder: observation_batch, self.action_labels_placeholder: action_batch})
 

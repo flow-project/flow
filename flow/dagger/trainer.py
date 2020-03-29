@@ -7,7 +7,7 @@ import gym
 import os
 from flow.utils.registry import make_create_env
 from env_params_test import flow_params
-from imitating_controller import ImitatingController
+from imitating_controller2 import ImitatingController
 from flow.controllers.car_following_models import IDMController
 from flow.core.params import SumoCarFollowingParams
 from utils import *
@@ -100,7 +100,6 @@ class Trainer(object):
         for train_step in range(self.params['num_agent_train_steps_per_iter']):
             # TODO: fix this
             ob_batch, ac_batch, expert_ac_batch, re_batch, next_ob_batch, terminal_batch = self.controller.sample_data(self.params['train_batch_size'])
-            print(expert_ac_batch)
             self.controller.train(ob_batch, expert_ac_batch)
 
 

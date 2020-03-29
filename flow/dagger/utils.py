@@ -11,8 +11,6 @@ def sample_trajectory(env, vehicle_id, controller, expert_controller, max_trajec
     print("EXPERT CONTROLLER: ", expert_controller)
     observation = env.reset()
 
-    print("VEHICLE ID: ", vehicle_id)
-    print("VEHICLE IDS: ", env.k.vehicle.get_ids())
     assert vehicle_id in env.k.vehicle.get_ids(), "Vehicle ID not in env!"
 
     observations, actions, expert_actions, rewards, next_observations, terminals = [], [], [], [], [], []
@@ -20,9 +18,12 @@ def sample_trajectory(env, vehicle_id, controller, expert_controller, max_trajec
 
     while True:
         action = controller.get_action(env)
+
+        if type(action) == np.ndarray:
+            action = action.flatten()[0]
+
         expert_action = expert_controller.get_action(env)
         if (expert_action is None or math.isnan(expert_action)):
-            print("HIT CASE")
             observation, reward, done, _ = env.step(action)
             traj_length += 1
             terminate_rollout = traj_length == max_trajectory_length or done

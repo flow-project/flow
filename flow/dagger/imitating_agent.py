@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import time
-from imitating_controller import *
+from imitating_controller2 import *
 from replay_buffer
 
 class Imitating_Agent(object):
