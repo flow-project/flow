@@ -22,7 +22,6 @@ import pytz
 
 import ray
 from ray import tune
-from ray.tune import run_experiments
 from ray.tune.registry import register_env
 try:
     from ray.rllib.agents.agent import get_agent_class
@@ -36,9 +35,9 @@ from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 from flow.utils.registry import make_create_env
 
 
-
 def parse_args(args):
     """Parse training options user can specify in command line.
+
     Returns
     -------
     argparse.Namespace
@@ -140,6 +139,7 @@ def setup_exps_rllib(flow_params,
                      policies_to_train=None,
                      ):
     """Return the relevant components of an RLlib experiment.
+
     Parameters
     ----------
     flow_params : dict
@@ -188,7 +188,7 @@ def setup_exps_rllib(flow_params,
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
-        config["buffer_size"] = 20000 # reduced to test if this is the source of memory problems
+        config["buffer_size"] = 20000  # reduced to test if this is the source of memory problems
         if flags.grid_search:
             config["prioritized_replay"] = tune.grid_search(['True', 'False'])
             config["actor_lr"] = tune.grid_search([1e-3, 1e-4])
