@@ -22,7 +22,6 @@ from stable_baselines import PPO2
 
 import ray
 from ray import tune
-from ray.tune import run_experiments
 from ray.tune.registry import register_env
 try:
     from ray.rllib.agents.agent import get_agent_class
@@ -36,9 +35,9 @@ from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 from flow.utils.registry import make_create_env
 
 
-
 def parse_args(args):
     """Parse training options user can specify in command line.
+
     Returns
     -------
     argparse.Namespace
@@ -140,6 +139,7 @@ def setup_exps_rllib(flow_params,
                      policies_to_train=None,
                      ):
     """Return the relevant components of an RLlib experiment.
+
     Parameters
     ----------
     flow_params : dict
