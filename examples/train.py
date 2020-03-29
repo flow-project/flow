@@ -40,9 +40,9 @@ from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 from flow.utils.registry import make_create_env
 
 
-
 def parse_args(args):
     """Parse training options user can specify in command line.
+
     Returns
     -------
     argparse.Namespace
@@ -148,6 +148,7 @@ def setup_exps_rllib(flow_params,
                      policies_to_train=None,
                      ):
     """Return the relevant components of an RLlib experiment.
+
     Parameters
     ----------
     flow_params : dict
