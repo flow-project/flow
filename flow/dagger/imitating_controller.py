@@ -47,7 +47,7 @@ class ImitatingController(BaseController):
         assert(self.training, "Policy must be trainable")
 
         print("OBS NAN CHECK: ", np.any(np.isnan(observation_batch)))
-        print("ACT NAN CHECK: ", np.any(np.isnan(action_batch)))
+        assert (not np.any(np.isnan(action_batch))), "TRAIN ERROR ACTION NAN"
 
         action_batch = action_batch.reshape(action_batch.shape[0], self.action_dim)
         history = self.model.fit(observation_batch, action_batch)

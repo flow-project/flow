@@ -22,7 +22,7 @@ class Runner(object):
 def main():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ep_len', type=int)
+    parser.add_argument('--ep_len', type=int, default=3000)
 
     parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1000)  # number of gradient steps for training policy (per iter in n_iter)
     parser.add_argument('--n_iter', '-n', type=int, default=5)

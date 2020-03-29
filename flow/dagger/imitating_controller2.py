@@ -8,7 +8,7 @@ from replay_buffer import ReplayBuffer
 
 
 class ImitatingController(BaseController):
-    # Implementation in Tensorflow 
+    # Implementation in Tensorflow
 
     def __init__(self, veh_id, sess, action_dim, obs_dim, num_layers, size, learning_rate, replay_buffer_size, training = True, policy_scope='policy_vars', car_following_params=None, time_delay=0.0, noise=0, fail_safe=None):
 
@@ -64,8 +64,8 @@ class ImitatingController(BaseController):
     def train(self, observation_batch, action_batch):
         assert(self.training, "Policy must be trainable")
         # print("ACTION BATCH: ", action_batch.shape)
-        print("OBS NAN CHECK: ", np.any(np.isnan(observation_batch)))
-        print("ACT NAN CHECK: ", np.any(np.isnan(action_batch)))
+        # print("OBS NAN CHECK: ", np.any(np.isnan(observation_batch)))
+        # print("ACT NAN CHECK: ", np.any(np.isnan(action_batch)))
         action_batch = action_batch.reshape(action_batch.shape[0], self.action_dim)
         ret = self.sess.run([self.train_op, self.loss], feed_dict={self.obs_placeholder: observation_batch, self.action_labels_placeholder: action_batch})
 

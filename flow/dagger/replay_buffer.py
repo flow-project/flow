@@ -32,6 +32,8 @@ class ReplayBuffer(object):
             self.rollouts.append(rollout)
 
         observations, actions, expert_actions, rewards, next_observations, terminals = unpack_rollouts(rollouts_list)
+        assert (not np.any(np.isnan(expert_actions))), "REPLAY BUFFER ERROR"
+
         if self.observations is None:
             self.observations = observations[-self.max_size:]
             self.actions = actions[-self.max_size:]

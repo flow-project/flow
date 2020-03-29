@@ -19,31 +19,20 @@ def sample_trajectory(env, vehicle_id, controller, expert_controller, max_trajec
     traj_length = 0
 
     while True:
-        observations.append(observation)
         action = controller.get_action(env)
-        #assert action is not None, "action is None"
-        #assert (not math.isnan(action)), "action is a nan"
-        assert not (len(env.k.vehicle.get_edge(vehicle_id)) == 0), "Case One"
-        # point of error:
-        assert not (env.k.vehicle.get_edge(vehicle_id)[0] == ":"), "Case Two"
-
-        actions.append(action)
-
         expert_action = expert_controller.get_action(env)
-        assert env is not None, "environment is None"
-        assert expert_action is not None, "expert action is None"
-        assert (not math.isnan(expert_action)), "expert action is a nan"
+        if (expert_action is None or math.isnan(expert_action)):
+            print("HIT CASE")
+            observation, reward, done, _ = env.step(action)
+            traj_length += 1
+            terminate_rollout = traj_length == max_trajectory_length or done
+            if terminate_rollout:
+                break
+            continue
+
+        observations.append(observation)
+        actions.append(action)
         expert_actions.append(expert_action)
-
-        # rl_actions = {}
-        # for veh_id in env.k.vehicle.get_ids():
-        #     if veh_id == vehicle_id:
-        #         rl_actions[veh_id] = action
-        #     else:
-        #         rl_actions[veh_id] = env.k.vehicle.get_acc_controller(veh_id).get_action(env)
-
-        # observation, reward, done, _ = env.step(rl_actions)
-
         observation, reward, done, _ = env.step(action)
 
         traj_length += 1
