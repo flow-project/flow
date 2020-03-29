@@ -26,9 +26,9 @@ from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 
 EXAMPLE_USAGE = """
 example usage:
-    python ./i210_replay.py /ray_results/experiment_dir/result_dir 1
-    python ./i210_replay.py --controller idm
-    python ./i210_replay.py --controller idm --run_transfer
+    python i210_replay.py -r /ray_results/experiment_dir/result_dir -c 1
+    python i210_replay.py --controller idm
+    python i210_replay.py --controller idm --run_transfer
 
 Here the arguments are:
 1 - the path to the simulation results
