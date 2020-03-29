@@ -1,16 +1,13 @@
-"""Point this file at the the parent folder containing subfolders (by experimentname)
- with .npy files generated through replay."""
+"""Generate charts from with .npy files containing custom callables through replay."""
+
 import argparse
 from datetime import datetime
+import errno
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 import pytz
 import sys
-
-
-def collect_data(folder):
-    pass
 
 
 def parse_flags(args):
@@ -56,11 +53,11 @@ if __name__ == "__main__":
             if file_name[-4:] == ".npy":
                 exp_name = os.path.basename(dirpath)
                 info_dict = np.load(os.path.join(dirpath, file_name), allow_pickle=True).item()
-                
+
                 info_dicts.append(info_dict)
                 exp_names.append(exp_name)
                 custom_callable_names.update(info_dict.keys())
-                
+
     for name in custom_callable_names:
         y_vals = [np.mean(info_dict[name]) for info_dict in info_dicts]
         y_stds = [np.std(info_dict[name]) for info_dict in info_dicts]
@@ -75,4 +72,3 @@ if __name__ == "__main__":
             plt.savefig(os.path.join(flags.output_folder, '{}-plot.png'.format(name)))
 
         plt.show()
-        
