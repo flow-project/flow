@@ -61,7 +61,7 @@ def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length):
 
         # sumo-related parameters (see flow.core.params.SumoParams)
         sim=SumoParams(
-            sim_step=0.1,
+            sim_step=0.5,
             render=False,
             restart_instance=False
         ),
@@ -99,7 +99,7 @@ def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length):
 
     return flow_params
 
-flow_params = make_flow_params(1000, 22, 1, 1, 220)
+flow_params = make_flow_params(4000, 22, 1, 1, 220)
 
 create_env, env_name = make_create_env(params=flow_params, version=0)
 
