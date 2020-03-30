@@ -4,8 +4,8 @@ import os
 import numpy as np
 
 from flow.controllers.car_following_models import IDMController
-from flow.controllers.velocity_controllers import FollowerStopper
-from flow.core.params import SumoParams
+from flow.controllers.routing_controllers import I210Router
+from flow.core.params import SumoParams, SumoCarFollowingParams
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import SumoLaneChangeParams
@@ -17,57 +17,58 @@ from flow.envs import TestEnv
 from flow.core.rewards import energy_consumption
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
-PEN_RATE = 0.0
-# create the base vehicle type that will be used for inflows
-vehicles = VehicleParams()
-vehicles.add(
-    "human",
-    num_vehicles=0,
-    lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="strategic",
-    ),
-    acceleration_controller=(IDMController, {
-        "a": 0.3, "b": 2.0, "noise": 0.6
-    }),
-    color='white'
-)
-vehicles.add(
-    "av",
-    num_vehicles=0,
-    acceleration_controller=(FollowerStopper, {
-        "v_des": 11.0
-    }),
-    color='red'
-)
+ON_RAMP = False
+
+if ON_RAMP:
+    vehicles = VehicleParams()
+    vehicles.add(
+        "human",
+        num_vehicles=0,
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode="strategic",
+        ),
+        acceleration_controller=(IDMController, {
+            "a": 0.3, "b": 2.0, "noise": 0.5
+        }),
+        routing_controller=(I210Router, {})
+    )
+
+else:
+    # create the base vehicle type that will be used for inflows
+    vehicles = VehicleParams()
+    vehicles.add(
+        "human",
+        num_vehicles=0,
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode="strategic",
+        ),
+        acceleration_controller=(IDMController, {
+            "a": 0.3, "b": 2.0, "noise": 0.5
+        }),
+    )
 
 inflow = InFlows()
 # main highway
 inflow.add(
     veh_type="human",
     edge="119257914",
-    vehs_per_hour=int(10800 * (1- PEN_RATE)),
-    departLane="random",
-    departSpeed=23)
-if PEN_RATE > 0.0:
-    inflow.add(
-        veh_type="av",
-        edge="119257914",
-        vehs_per_hour=int(10800 * (PEN_RATE)),
-        departLane="random",
-        departSpeed=23)
+    vehs_per_hour=10800,
+    departLane="best",
+    departSpeed=23.0)
 # on ramp
-# inflow.add(
-#     veh_type="human",
-#     edge="27414345",
-#     vehs_per_hour=321,
-#     departLane="random",
-#     departSpeed=20)
-# inflow.add(
-#     veh_type="human",
-#     edge="27414342#0",
-#     vehs_per_hour=421,
-#     departLane="random",
-#     departSpeed=20)
+if ON_RAMP:
+    inflow.add(
+        veh_type="human",
+        edge="27414345",
+        vehs_per_hour=321,
+        departLane="random",
+        departSpeed=20)
+    inflow.add(
+        veh_type="human",
+        edge="27414342#0",
+        vehs_per_hour=421,
+        departLane="random",
+        departSpeed=20)
 
 NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,
@@ -106,7 +107,8 @@ flow_params = dict(
     # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-        template=NET_TEMPLATE
+        template=NET_TEMPLATE,
+        additional_params={"use_on_ramp": ON_RAMP}
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
