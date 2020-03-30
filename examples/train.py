@@ -188,8 +188,8 @@ def setup_exps_rllib(flow_params,
     elif alg_run == "TD3":
         config["buffer_size"] = 20000
         config["sample_batch_size"] = 50
-        config["critic_lr"] = 1e-4
-        config["actor_lr"] = 1e-4
+        # config["critic_lr"] = 1e-4
+        # config["actor_lr"] = 1e-4
     else:
         sys.exit("We only support PPO and TD3 right now.")
 
@@ -297,6 +297,7 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": flags.num_iterations,
             },
+            "num_samples": 2,
         }
         eastern = pytz.timezone('US/Eastern')
         date = datetime.now(tz=pytz.utc)
