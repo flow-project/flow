@@ -7,6 +7,8 @@ from flow.envs.ring.lane_change_accel import ADDITIONAL_ENV_PARAMS
 from flow.networks.highway import HighwayNetwork, ADDITIONAL_NET_PARAMS
 from flow.envs import TestEnv
 
+import numpy as np
+
 vehicles = VehicleParams()
 vehicles.add(
         "human",
@@ -73,3 +75,7 @@ flow_params = dict(
         shuffle=True,
     ),
 )
+
+custom_callables = {
+    "avg_speed": lambda env: np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
+}
