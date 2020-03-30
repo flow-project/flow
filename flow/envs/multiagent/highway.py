@@ -1,6 +1,6 @@
 """Environment used to train vehicles to improve traffic on a highway."""
 import numpy as np
-from gym.spaces.box import Box
+from gym.spaces import Box, Discrete
 from flow.core.rewards import desired_velocity
 from flow.envs.multiagent.base import MultiEnv
 
@@ -63,6 +63,9 @@ class MultiAgentHighwayPOEnv(MultiEnv):
                 raise KeyError(
                     'Environment parameter "{}" not supplied'.format(p))
 
+        if env_params.additional_params["discrete"]:
+            self.discrete = True
+            self.action_vals = [-4.5, 0, 2.6]
         super().__init__(env_params, sim_params, network, simulator)
 
     @property
@@ -73,18 +76,24 @@ class MultiAgentHighwayPOEnv(MultiEnv):
     @property
     def action_space(self):
         """See class definition."""
-        return Box(
-            low=-np.abs(self.env_params.additional_params['max_decel']),
-            high=self.env_params.additional_params['max_accel'],
-            shape=(1,),  # (4,),
-            dtype=np.float32)
+        if self.discrete:
+            return Discrete(3)
+        else:
+            return Box(
+                low=-np.abs(self.env_params.additional_params['max_decel']),
+                high=self.env_params.additional_params['max_accel'],
+                shape=(1,),  # (4,),
+                dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         # in the warmup steps, rl_actions is None
         if rl_actions:
             for rl_id, actions in rl_actions.items():
-                accel = actions[0]
+                if self.discrete:
+                    accel = self.action_vals[actions]
+                else:
+                    accel = actions[0]
 
                 # lane_change_softmax = np.exp(actions[1:4])
                 # lane_change_softmax /= np.sum(lane_change_softmax)

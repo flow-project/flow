@@ -59,7 +59,8 @@ additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
 additional_env_params.update({
     'max_accel': 1,
     'max_decel': 1,
-    'target_velocity': 30
+    'target_velocity': 30,
+    'discrete': True
 })
 
 
