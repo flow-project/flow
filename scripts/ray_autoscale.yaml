@@ -67,7 +67,7 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands:
-    - cd flow && git fetch && git checkout origin/kp_replay_from_ring
+    - cd flow && git stash -u && git fetch && git checkout origin/kp_replay_from_ring
 
 head_setup_commands: []
 
