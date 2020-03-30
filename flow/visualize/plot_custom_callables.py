@@ -51,7 +51,7 @@ if __name__ == "__main__":
     for (dirpath, dir_names, file_names) in os.walk(flags.target_folder):
         for file_name in file_names:
             if file_name[-4:] == ".npy":
-                exp_name = os.path.basename(dirpath)
+                exp_name = os.path.basename(os.path.dirname(dirpath))
                 info_dict = np.load(os.path.join(dirpath, file_name), allow_pickle=True).item()
 
                 info_dicts.append(info_dict)
@@ -64,10 +64,10 @@ if __name__ == "__main__":
         x_pos = np.arange(len(exp_names))
 
         plt.bar(x_pos, y_vals, align='center', alpha=0.5)
-        plt.xticks(x_pos, [exp_name[-5:] for exp_name in exp_names])
+        plt.xticks(x_pos, [exp_name for exp_name in exp_names], rotation=60)
         plt.ylabel('Experiment')
         plt.title('I210 Replay Result: {}'.format(name))
-
+        plt.tight_layout()
         if flags.output_folder:
             plt.savefig(os.path.join(flags.output_folder, '{}-plot.png'.format(name)))
 
