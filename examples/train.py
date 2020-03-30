@@ -203,6 +203,17 @@ def setup_exps_rllib(flow_params,
             config["critic_lr"] = tune.grid_search([1e-3, 1e-4])
             config["n_step"] = tune.grid_search([1, 10])
 
+    elif alg_run == "DQN":
+        agent_cls = get_agent_class(alg_run)
+        config = deepcopy(agent_cls._default_config)
+
+        config["num_workers"] = n_cpus
+        config["horizon"] = horizon
+        if flags.grid_search:
+            config["prioritized_replay"] = tune.grid_search(['True', 'False'])
+            config["exploration_fraction"] = tune.grid_search([0.1, 0.3])
+            config["n_step"] = tune.grid_search([1, 10])
+
     elif alg_run == "MATD3":
         from flow.algorithms.MATD3.maddpg import MADDPGTrainer
         from flow.algorithms.MATD3.maddpg import DEFAULT_CONFIG
