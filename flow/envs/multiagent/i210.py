@@ -148,8 +148,8 @@ class I210MultiEnv(MultiEnv):
                 rewards[rl_id] = 0
                 speeds = []
                 follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_lane_followers(rl_id))
-                speeds.extend([speed for speed in follow_speed if speed > 0])
-                if self.k.vehicle.get_speed(rl_id) > 0:
+                speeds.extend([speed for speed in follow_speed if speed >= 0])
+                if self.k.vehicle.get_speed(rl_id) >= 0:
                     speeds.append(self.k.vehicle.get_speed(rl_id))
                 if len(speeds) > 0:
                     # rescale so the q function can estimate it quickly

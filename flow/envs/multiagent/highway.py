@@ -151,8 +151,16 @@ class MultiAgentHighwayPOEnv(MultiEnv):
                 reward = 0
             else:
                 # reward high system-level velocities
-                cost1 = desired_velocity(self, fail=kwargs['fail'])
-
+                cost1 = 0
+                speeds = []
+                follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
+                if follow_speed >= 0:
+                    speeds.append(follow_speed)
+                if self.k.vehicle.get_speed(rl_id) >= 0:
+                    speeds.append(self.k.vehicle.get_speed(rl_id))
+                if len(speeds) > 0:
+                    # rescale so the q function can estimate it quickly
+                    cost1 = np.mean(speeds) / 500.0
                 # penalize small time headways
                 cost2 = 0
                 t_min = 1  # smallest acceptable time headway

@@ -61,6 +61,9 @@ def parse_args(args):
         help='Name of the experiment configuration file, as located in '
              'exp_configs/rl/singleagent or exp_configs/rl/multiagent.')
 
+    parser.add_argument('exp_title', type=str, default='test',
+                        help='Informative experiment title to help distinguish results')
+
     # optional input parameters
     parser.add_argument(
         '--rl_trainer', type=str, default="rllib",
@@ -69,8 +72,6 @@ def parse_args(args):
         '--algorithm', type=str, default="PPO",
         help='RL algorithm to use. Options are PPO, TD3, MATD3 (MADDPG w/ TD3) right now.'
     )
-    parser.add_argument('--exp_title', type=str, default='test',
-                        help='Informative experiment title to help distinguish results')
     parser.add_argument(
         '--num_cpus', type=int, default=1,
         help='How many CPUs to use')
