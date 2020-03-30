@@ -1,4 +1,8 @@
 """Contains all callable environments in Flow."""
+import sys
+
+sys.path.append("/home/valentin/flow")
+
 from flow.envs.base import Env
 from flow.envs.bay_bridge import BayBridgeEnv
 from flow.envs.bottleneck import BottleneckAccelEnv, BottleneckEnv, \

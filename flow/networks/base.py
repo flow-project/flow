@@ -334,6 +334,7 @@ class Network(object):
         self.net_params = net_params
         self.initial_config = initial_config
         self.traffic_lights = traffic_lights
+        self.template_detectors = None  # gets filled if detectors were specified in a template
 
         # specify routes vehicles can take
         self.routes = self.specify_routes(net_params)
@@ -370,6 +371,10 @@ class Network(object):
 
                 # vehicles to be added with different departure times
                 self.template_vehicles = veh
+
+            if 'det' in net_params.template:
+                det = self._detector_infos(net_params.template['det'])
+                self.template_detectors = det
 
             self.types = None
             self.nodes = None
@@ -726,6 +731,47 @@ class Network(object):
                 routes_data[route.attrib['id']] = route_edges
 
         return vehicle_data, routes_data
+
+    @staticmethod
+    def _detector_infos(file_names):
+        """Import of detector from a configuration file.
+
+        This is a utility function for computing detector information. It
+        imports a network configuration file, and returns the information on
+        the detector and add it into the Detector object.
+
+        Parameters
+        ----------
+        file_names : list of str
+            path to the xml file to load
+
+        Returns
+        -------
+        dict <dict>
+
+            * Key = id of the detector
+            * Element = dict of attributes (like "pos", "length", "file", ...)
+        """
+        # this is meant to deal with the case that there is only one det file
+        if isinstance(file_names, str):
+            file_names = [file_names]
+
+        detector_data = dict()
+
+        for filename in file_names:
+            # import the .add.xml file containing all detector data
+            parser = etree.XMLParser(recover=True)
+            tree = ElementTree.parse(filename, parser=parser)
+            root = tree.getroot()
+
+            # find all e2Detectors in the file and return them with the
+            # detector_data dict.
+            for area_detector in root.findall('e2Detector'):
+                detector_data[area_detector.attrib['id']] = {
+                    key: area_detector.attrib[key] for key in area_detector.attrib
+                }
+
+        return detector_data
 
     @staticmethod
     def _vehicle_type(filename):

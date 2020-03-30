@@ -655,6 +655,15 @@ class TraCIKernelNetwork(BaseKernelNetwork):
             }
             add.append(E('vType', id=params['veh_id'], **type_params_str))
 
+        if self.network.template_detectors:
+            for key in self.network.template_detectors:
+                det_params = dict()
+                det_params = {
+                    det_key: self.network.template_detectors[key][det_key]
+                    for det_key in self.network.template_detectors[key]
+                }
+                add.append(E('e2Detector', **det_params))
+
         # add (optionally) the traffic light properties to the .add.xml file
         num_traffic_lights = len(list(traffic_lights.get_properties().keys()))
         if num_traffic_lights > 0:
