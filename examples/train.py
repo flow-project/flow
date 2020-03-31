@@ -82,6 +82,9 @@ def parse_args(args):
         '--num_iterations', type=int, default=200,
         help='How many iterations are in a training run.')
     parser.add_argument(
+        '--checkpoint_freq', type=int, default=20,
+        help='How often to checkpoint.')
+    parser.add_argument(
         '--num_rollouts', type=int, default=1,
         help='How many rollouts are in a training batch')
     parser.add_argument(
@@ -271,7 +274,7 @@ def train_rllib(submodule, flags):
         "run_or_experiment": alg_run,
         "name": gym_name,
         "config": config,
-        "checkpoint_freq": 20,
+        "checkpoint_freq": flags.checkpoint_freq,
         "checkpoint_at_end": True,
         "max_failures": 0,
         "stop": {
