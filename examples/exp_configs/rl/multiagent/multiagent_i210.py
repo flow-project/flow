@@ -47,7 +47,7 @@ vehicles.add(
     "human",
     num_vehicles=0,
     lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"),
-    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.6}),
+    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
 )
 vehicles.add(
     "av",

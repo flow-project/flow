@@ -107,7 +107,7 @@ class BaseController:
 
         # add noise to the accelerations, if requested
         if self.accel_noise > 0:
-            accel += np.random.normal(0, self.accel_noise)
+            accel += np.sqrt(env.sim_step) * np.random.normal(0, self.accel_noise)
 
         # run the failsafes, if requested
         if self.fail_safe == 'instantaneous':
