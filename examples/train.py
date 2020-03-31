@@ -17,8 +17,11 @@ from copy import deepcopy
 import numpy as np
 import pytz
 
-from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
-from stable_baselines import PPO2
+try:
+    from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
+    from stable_baselines import PPO2
+except ImportError:
+    print("Stable-baselines not installed")
 
 import ray
 from ray import tune
