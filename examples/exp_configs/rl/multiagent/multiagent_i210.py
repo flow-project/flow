@@ -189,5 +189,5 @@ custom_callables = {
                                       env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
     "avg_outflow": lambda env: np.nan_to_num(
         env.k.vehicle.get_outflow_rate(120)),
-    "avg_energy": lambda env: energy_consumption(env, 0.1)
+    "avg_energy": lambda env: -1*energy_consumption(env, 0.1)
 }
