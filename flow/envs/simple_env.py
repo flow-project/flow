@@ -2,6 +2,7 @@
 from flow.envs import Env
 from gym.spaces.box import Box
 from gym.spaces.discrete import Discrete
+from math import floor
 import numpy as np
 
 class SimpleEnv(Env):
@@ -27,7 +28,7 @@ class SimpleEnv(Env):
     def action_space(self):
         # return binary value. 0: no change, 1: change TL state
         # len(self.tls_ids) TLS shall be optimized
-        return Box(low=0, high=1, shape=(len(self.tls_ids),))
+        return Discrete(2**len(self.tls_ids))
     
     @property
     def observation_space(self):
@@ -45,9 +46,20 @@ class SimpleEnv(Env):
     
     def _apply_rl_actions(self, rl_actions):
         
+        bit_actions = ""
+        while rl_actions > 0:
+            if rl_actions % 2 == 1:
+                bit_actions = "1" + bit_actions
+            else:
+                bit_actions = "0" + bit_actions
+            rl_actions = floor(rl_actions / 2)
+        
+        while len(bit_actions) < len(self.tls_ids):
+            bit_actions = "0" + bit_actions
+
         for i, tl_id in enumerate(self.tls_ids):
             
-            if rl_actions[i] > 0.5:
+            if bit_actions[i] == 1:
                 if (self.active_phase[tl_id] < len(self.phase_dict[tl_id]) - 1):
                     self.active_phase[tl_id] += 1
                 else:

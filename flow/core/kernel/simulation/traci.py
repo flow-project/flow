@@ -87,7 +87,7 @@ class TraCISimulation(KernelSimulation):
                 # command used to start sumo
                 sumo_call = [
                     sumo_binary, "-c", network.cfg,
-                    "--remote-port", str(sim_params.port),
+                    "--remote-port", str(port),
                     "--num-clients", str(sim_params.num_clients),
                     "--step-length", str(sim_params.sim_step)
                 ]
@@ -141,43 +141,32 @@ class TraCISimulation(KernelSimulation):
                 logging.debug(" Emission file: " + str(emission_out))
                 logging.debug(" Step length: " + str(sim_params.sim_step))
 
+#                print(sumo_call[0:3])
+
                 # Opening the I/O thread to SUMO
                 self.sumo_proc = subprocess.Popen(
-                    sumo_call,
-                    stdout=subprocess.DEVNULL,
-                    preexec_fn=os.setsid
-                )
+                    sumo_call, preexec_fn=os.setsid)
 
-                # wait a small period of time for the subprocess to activate
-                # before trying to connect with traci
+#                if sim_params.render:
+
+                    # wait a small period of time for the subprocess to
+                    # activate before trying to connect with traci
                 if os.environ.get("TEST_FLAG", 0):
                     time.sleep(0.1)
                 else:
                     time.sleep(config.SUMO_SLEEP)
 
-                if sim_params.render:
-                    # Opening the I/O thread to SUMO
-                    self.sumo_proc = subprocess.Popen(
-                        sumo_call, preexec_fn=os.setsid)
-
-                    # wait a small period of time for the subprocess to
-                    # activate before trying to connect with traci
-                    if os.environ.get("TEST_FLAG", 0):
-                        time.sleep(0.1)
-                    else:
-                        time.sleep(config.SUMO_SLEEP)
-
-                    traci_connection = traci.connect(port, numRetries=100)
-                    traci_connection.setOrder(0)
-                    traci_connection.simulationStep()
-                else:
-                    # Use libsumo to create a simulation instance.
-                    libsumo.start(sumo_call[1:3])
-                    libsumo.simulationStep()
-
-                    # libsumo will act as the kernel API
-                    traci_connection = libsumo
-
+                traci_connection = traci.connect(port, numRetries=100)
+                traci_connection.setOrder(0)
+                traci_connection.simulationStep()
+#                else:
+#                    # Use libsumo to create a simulation instance.
+#                    libsumo.start(sumo_call[1:3])
+#                    libsumo.simulationStep()
+#
+#                    # libsumo will act as the kernel API
+#                    traci_connection = libsumo
+#
                 return traci_connection
                 
             except Exception as e:

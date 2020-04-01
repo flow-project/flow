@@ -139,7 +139,7 @@ class TraCIVehicle(KernelVehicle):
             self.remove(veh_id)
             # remove exiting vehicles from the vehicle subscription if they
             # haven't been removed already
-            if vehicle_obs[veh_id] is None:
+            if vehicle_obs.get(veh_id, None) is None:
                 vehicle_obs.pop(veh_id, None)
         self._arrived_rl_ids.append(arrived_rl_ids)
 
@@ -208,10 +208,11 @@ class TraCIVehicle(KernelVehicle):
                 _angle = vehicle_obs.get(veh_id, {}).get(tc.VAR_ANGLE, -1001)
                 _time_step = sim_obs[tc.VAR_TIME_STEP]
                 _time_delta = sim_obs[tc.VAR_DELTA_T]
-                self.__vehicles[veh_id]["orientation"] = \
-                    list(_position) + [_angle]
-                self.__vehicles[veh_id]["timestep"] = _time_step
-                self.__vehicles[veh_id]["timedelta"] = _time_delta
+                if _angle != -1001 and _position != -1001:
+                    self.__vehicles[veh_id]["orientation"] = \
+                        list(_position) + [_angle]
+                    self.__vehicles[veh_id]["timestep"] = _time_step
+                    self.__vehicles[veh_id]["timedelta"] = _time_delta
             except TypeError:
                 print(traceback.format_exc())
             headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
