@@ -19,6 +19,7 @@ from flow.core.params import InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
+from flow.core.params import SumoCarFollowingParams
 from flow.core.rewards import energy_consumption
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 from flow.envs.multiagent.i210 import I210MultiEnv, ADDITIONAL_ENV_PARAMS
@@ -33,7 +34,7 @@ HORIZON = 2000
 # number of parallel workers
 N_CPUS = 1
 
-VEH_PER_HOUR_BASE_119257914 = 10800
+VEH_PER_HOUR_BASE_119257914 = 8000
 VEH_PER_HOUR_BASE_27414345 = 321
 VEH_PER_HOUR_BASE_27414342 = 421
 
@@ -60,12 +61,14 @@ vehicles.add(
     ),
     acceleration_controller=(IDMController, {
         "a": 0.3, "b": 2.0, "noise": 0.5
-    })
+    }),
+    car_following_params=SumoCarFollowingParams(max_speed=20.0)
 )
 vehicles.add(
     "av",
     acceleration_controller=(RLController, {}),
     num_vehicles=0,
+    car_following_params=SumoCarFollowingParams(max_speed=20.0)
 )
 
 inflow = InFlows()
@@ -79,7 +82,7 @@ inflow.add(
     vehs_per_hour=VEH_PER_HOUR_BASE_119257914 * (1 - pen_rate),
     # probability=1.0,
     depart_lane="random",
-    depart_speed=20)
+    depart_speed="desired")
 # on ramp
 # inflow.add(
 #     veh_type="human",
@@ -102,7 +105,7 @@ inflow.add(
     vehs_per_hour=int(VEH_PER_HOUR_BASE_119257914 * pen_rate),
     # probability=1.0,
     depart_lane="random",
-    depart_speed=20)
+    depart_speed="desired")
 # # on ramp
 # inflow.add(
 #     veh_type="av",
