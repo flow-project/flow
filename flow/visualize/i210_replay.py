@@ -65,6 +65,10 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         elif args.controller == 'default_human':
             controller = flow_params['veh'].type_parameters['human']['acceleration_controller'][0]
             test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
+        elif args.controller == 'follower_stopper':
+            from flow.controllers.velocity_controllers import FollowerStopper
+            controller = FollowerStopper
+            test_params.update({'v_des': 15})
         elif args.controller == 'sumo':
             from flow.controllers.car_following_models import SimCarFollowingController
             controller = SimCarFollowingController
