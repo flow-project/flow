@@ -152,7 +152,7 @@ class I210MultiEnv(MultiEnv):
                 if self.k.vehicle.get_speed(rl_id) > 0:
                     speeds.append(self.k.vehicle.get_speed(rl_id))
                 if len(speeds) > 0:
-                    rewards[rl_id] = np.mean(speeds)
+                    rewards[rl_id] = np.mean(speeds) / 15
 
         else:
             for rl_id in self.k.vehicle.get_rl_ids():
@@ -183,7 +183,7 @@ class I210MultiEnv(MultiEnv):
 
                     reward = max(eta1 * cost1 + eta2 * cost2, 0)
 
-                rewards[rl_id] = reward
+                rewards[rl_id] = reward / 15
         return rewards
 
     def additional_command(self):
