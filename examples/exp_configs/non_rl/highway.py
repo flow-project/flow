@@ -5,7 +5,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, Su
 from flow.core.params import VehicleParams, InFlows
 from flow.envs.ring.lane_change_accel import ADDITIONAL_ENV_PARAMS
 from flow.networks.highway import HighwayNetwork, ADDITIONAL_NET_PARAMS
-from flow.envs import TestEnv
+from flow.envs import TestEnv, RemoveVehEnv2
 
 vehicles = VehicleParams()
 vehicles.add(
@@ -29,13 +29,15 @@ inflow.add(
     departLane="free",
     departSpeed=20)
 
+additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+additional_net_params["num_edges"] = 5
 
 flow_params = dict(
     # name of the experiment
     exp_tag='highway',
 
     # name of the flow environment the experiment is running on
-    env_name=TestEnv,
+    env_name=RemoveVehEnv2,
 
     # name of the network class the experiment is running on
     network=HighwayNetwork,
@@ -51,7 +53,7 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=4000,
+        horizon=10000,
         additional_params=ADDITIONAL_ENV_PARAMS.copy(),
     ),
 
@@ -59,7 +61,7 @@ flow_params = dict(
     # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-        additional_params=ADDITIONAL_NET_PARAMS.copy(),
+        additional_params=additional_net_params,
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
