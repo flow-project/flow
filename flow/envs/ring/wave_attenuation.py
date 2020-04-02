@@ -271,6 +271,9 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
-        rl_id = self.k.vehicle.get_rl_ids()[0]
-        lead_id = self.k.vehicle.get_leader(rl_id) or rl_id
-        self.k.vehicle.set_observed(lead_id)
+          for i in range(len(self.k.vehicle.get_rl_ids())):
+            rl_id = self.k.vehicle.get_rl_ids()[i]
+            lead_id = self.k.vehicle.get_leader(rl_id) or rl_id
+            follwer_id = self.k.vehicle.get_follower(rl_id) or rl_id
+            self.k.vehicle.set_observed(lead_id)
+            self.k.vehicle.set_observed(follwer_id)
