@@ -253,11 +253,15 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         np.save(replay_out, info_dict)
         # if prompted, convert the emission file into a csv file
         if args.gen_emission:
-
+            emission_filename = '{0}-emission.xml'.format(env.network.name)
             time.sleep(0.1)
-            emission_path = os.path.join(output_dir, 'replay-emission.xml')
+
+            emission_path = \
+                '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
+
+            output_path = os.path.join(output_dir, 'replay-emission.xml')
             # convert the emission file into a csv file
-            emission_to_csv(emission_path)
+            emission_to_csv(emission_path, output_path=output_path)
 
             # print the location of the emission csv file
             emission_path_csv = emission_path[:-4] + ".csv"
