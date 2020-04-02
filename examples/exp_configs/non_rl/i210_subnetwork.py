@@ -13,7 +13,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import InitialConfig
 from flow.core.params import InFlows
 import flow.config as config
-from flow.envs import TestEnv
+from flow.envs import RemoveVehEnv
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
 ON_RAMP = False
@@ -53,7 +53,7 @@ inflow.add(
     edge="119257914",
     vehs_per_hour=10800,
     departLane="best",
-    departSpeed=23.0)
+    departSpeed="max")
 # on ramp
 if ON_RAMP:
     inflow.add(
@@ -61,7 +61,7 @@ if ON_RAMP:
         edge="27414345",
         vehs_per_hour=321,
         departLane="random",
-        departSpeed=20)
+        departSpeed="a")
     inflow.add(
         veh_type="human",
         edge="27414342#0",
@@ -78,7 +78,7 @@ flow_params = dict(
     exp_tag='I-210_subnetwork',
 
     # name of the flow environment the experiment is running on
-    env_name=TestEnv,
+    env_name=RemoveVehEnv,
 
     # name of the network class the experiment is running on
     network=I210SubNetwork,
@@ -104,7 +104,7 @@ flow_params = dict(
     net=NetParams(
         inflows=inflow,
         template=NET_TEMPLATE,
-        additional_params={"use_on_ramp": ON_RAMP}
+        additional_params={"use_on_ramp": ON_RAMP, "max_speed": 23.0}
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
