@@ -363,6 +363,9 @@ class SimParams(object):
     ----------
     sim_step : float optional
         seconds per simulation step; 0.1 by default
+    scale : float optional
+        scale demand by the given factor (by discarding or
+        duplicating vehicles); 1.0 by default
     render : str or bool, optional
         specifies whether to visualize the rollout(s)
 
@@ -518,6 +521,9 @@ class SumoParams(SimParams):
         Port for Traci to connect to; finds an empty port by default
     sim_step : float optional
         seconds per simulation step; 0.1 by default
+    scale : float optional
+        scale demand by the given factor (by discarding or
+        duplicating vehicles); 1.0 by default
     emission_path : str, optional
         Path to the folder in which to create the emissions output.
         Emissions output is not generated if this value is not specified
