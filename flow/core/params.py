@@ -395,7 +395,7 @@ class SimParams(object):
 
     def __init__(self,
                  sim_step=0.1,
-                 scale=1,
+                 scale=1.0,
                  render=False,
                  restart_instance=False,
                  emission_path=None,
@@ -575,7 +575,7 @@ class SumoParams(SimParams):
     def __init__(self,
                  port=None,
                  sim_step=0.1,
-                 scale=1
+                 scale=1.0,
                  emission_path=None,
                  lateral_resolution=None,
                  no_step_log=True,
