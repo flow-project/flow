@@ -24,7 +24,7 @@ from flow.utils.registry import make_create_env
 # SET UP PARAMETERS FOR THE SIMULATION
 
 # number of steps per rollout
-HORIZON = 4000
+HORIZON = 2000
 
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10

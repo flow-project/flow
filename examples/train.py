@@ -270,6 +270,18 @@ def setup_exps_rllib(flow_params,
         act_space = Tuple([act_space] * max_num_agents_qmix)
         register_env(gym_name, lambda config: create_env(config).with_agent_groups(
             grouping, obs_space=obs_space, act_space=act_space))
+        policy_graphs = {'av': (None, obs_space, act_space, {})}
+
+        def policy_mapping_fn(_):
+            return 'av'
+
+        config.update({
+            'multiagent': {
+                'policies': policy_graphs,
+                'policy_mapping_fn': tune.function(policy_mapping_fn),
+                "policies_to_train": ["av"]
+            }
+        })
     else:
         # Register as rllib env
         register_env(gym_name, create_env)
@@ -308,7 +320,7 @@ def train_rllib(submodule, flags):
     }
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
-    s3_string = "s3://i210.experiments/i210/" \
+    s3_string = "s3://eugene.experiments/i210/" \
                 + date + '/' + flags.exp_title
     if flags.use_s3:
         exp_dict['upload_dir'] = s3_string
