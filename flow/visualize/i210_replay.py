@@ -3,6 +3,7 @@ import argparse
 from collections import defaultdict
 from copy import deepcopy
 import numpy as np
+import json
 import os
 import time
 
@@ -18,6 +19,8 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
 from flow.utils.rllib import get_rllib_pkl
+from flow.utils.rllib import FlowParamsEncoder
+
 
 from flow.visualize.transfer.util import inflows_range
 
@@ -249,7 +252,11 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     env.unwrapped.terminate()
 
     if output_dir:
-        replay_out = os.path.join(output_dir, 'replay-info.npy')
+        if args.run_transfer:
+            exp_name = "{}-replay".format(transfer_test.transfer_str)
+        else:
+            exp_name = "i210_replay"
+        replay_out = os.path.join(output_dir, '{}-info.npy'.format(exp_name))
         np.save(replay_out, info_dict)
         # if prompted, convert the emission file into a csv file
         if args.gen_emission:
@@ -259,16 +266,20 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             emission_path = \
                 '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
 
-            output_path = os.path.join(output_dir, 'replay-emission.xml')
+            output_path = os.path.join(output_dir, '{}-emission.csv'.format(exp_name))
             # convert the emission file into a csv file
             emission_to_csv(emission_path, output_path=output_path)
 
             # print the location of the emission csv file
-            emission_path_csv = emission_path[:-4] + ".csv"
-            print("\nGenerated emission file at " + emission_path_csv)
+            print("\nGenerated emission file at " + output_path)
 
             # delete the .xml version of the emission file
             os.remove(emission_path)
+
+        # Create the flow_params object
+        with open(os.path.join(output_dir, exp_name) + '.json', 'w') as outfile:
+                json.dump(flow_params, outfile,
+                        cls=FlowParamsEncoder, sort_keys=True, indent=4)
 
     return info_dict
 
