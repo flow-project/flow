@@ -88,6 +88,9 @@ class BaseController:
         float
             the modified form of the acceleration
         """
+        # clear the current stored accel_without_noise of this vehicle None
+        env.k.vehicle.update_accel_without_noise(self.veh_id, None)
+
         # this is to avoid abrupt decelerations when a vehicle has just entered
         # a network and it's data is still not subscribed
         if len(env.k.vehicle.get_edge(self.veh_id)) == 0:
@@ -104,6 +107,15 @@ class BaseController:
         # time step
         if accel is None:
             return None
+
+        # store the acceleration without noise to each vehicle
+        # run fail safe if requested
+        accel_without_noice = accel
+        if self.fail_safe == 'instantaneous':
+            accel_without_noice = self.get_safe_action_instantaneous(env, accel_without_noice)
+        elif self.fail_safe == 'safe_velocity':
+            accel_without_noice = self.get_safe_velocity_action(env, accel_without_noice)
+        env.k.vehicle.update_accel_without_noise(self.veh_id, accel_without_noice)
 
         # add noise to the accelerations, if requested
         if self.accel_noise > 0:
