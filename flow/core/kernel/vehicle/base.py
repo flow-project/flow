@@ -670,3 +670,19 @@ class KernelVehicle(object):
         float
         """
         raise NotImplementedError
+
+    ###########################################################################
+    #                        Methods for Datapipeline                         #
+    ###########################################################################
+
+    def get_accel(self, veh_id):
+        """ see traci class """
+        raise NotImplementedError
+
+    def update_accel_without_noise(self, veh_id, accel_without_noise):
+        """ see traci class """
+        raise NotImplementedError
+
+    def get_accel_without_noise(self, veh_id):
+        """ see traci class """
+        raise NotImplementedError

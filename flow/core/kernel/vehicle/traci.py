@@ -113,6 +113,7 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id] = dict()
                 self.__vehicles[veh_id]['type'] = typ['veh_id']
                 self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
+                self.__vehicles[veh_id]["accel_without_noise"] = None
                 self.num_vehicles += 1
                 if typ['acceleration_controller'][0] == RLController:
                     self.num_rl_vehicles += 1
@@ -1110,3 +1111,17 @@ class TraCIVehicle(KernelVehicle):
     def set_max_speed(self, veh_id, max_speed):
         """See parent class."""
         self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
+
+    # add for data pipeline
+    def get_accel(self, veh_id):
+        return (self.get_speed(veh_id) - self.get_previous_speed(veh_id)) / self.sim_step
+
+    def update_accel_without_noise(self, veh_id, accel_without_noise):
+        self.__vehicles[veh_id]["accel_without_noise"] = accel_without_noise
+
+    def get_accel_without_noise(self, veh_id):
+        return self.__vehicles[veh_id]["accel_without_noise"]
+
+    def get_road_grade(self, veh_id):
+        # TODO
+        return 0
