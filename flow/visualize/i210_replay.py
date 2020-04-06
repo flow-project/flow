@@ -15,12 +15,12 @@ except ImportError:
 from ray.tune.registry import register_env
 
 from flow.core.util import emission_to_csv
+from flow.core.rewards import vehicle_energy_consumption
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
 from flow.utils.rllib import get_rllib_pkl
 from flow.utils.rllib import FlowParamsEncoder
-
 
 from flow.visualize.transfer.util import inflows_range
 
@@ -71,7 +71,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         elif args.controller == 'follower_stopper':
             from flow.controllers.velocity_controllers import FollowerStopper
             controller = FollowerStopper
-            test_params.update({'v_des': 15})
+            test_params.update({'v_des': 12})
+            # flow_params['veh'].type_parameters['av']['car_following_params']
         elif args.controller == 'sumo':
             from flow.controllers.car_following_models import SimCarFollowingController
             controller = SimCarFollowingController
@@ -185,13 +186,19 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     info_dict = {
         "velocities": [],
         "outflows": [],
+        "avg_vehicle_energy_consumption": [],
+        "total_completed_vehicles": []
     }
     info_dict.update({
         key: [] for key in custom_callables.keys()
     })
 
-    for i in range(args.num_rollouts):
+    i = 0
+    while i < args.num_rollouts:
+        print("Rollout iter", i)
         vel = []
+        per_vehicle_energy_trace = defaultdict(lambda: [])
+        completed_vehicle_avg_energy = {}
         custom_vals = {key: [] for key in custom_callables.keys()}
         state = env.reset()
         for _ in range(env_params.horizon):
@@ -226,17 +233,28 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             for (key, lambda_func) in custom_callables.items():
                 custom_vals[key].append(lambda_func(env))
 
+            for past_veh_id in per_vehicle_energy_trace.keys():
+                if past_veh_id not in veh_ids:
+                    completed_vehicle_avg_energy[past_veh_id] = np.sum(per_vehicle_energy_trace[veh_id])
+            for veh_id in veh_ids:
+                per_vehicle_energy_trace[veh_id].append(-1*vehicle_energy_consumption(env, veh_id))
+
             if type(done) is dict and done['__all__']:
                 break
             elif type(done) is not dict and done:
                 break
-
-        # Store the information from the run in info_dict.
-        outflow = env.k.vehicle.get_outflow_rate(int(500))
-        info_dict["velocities"].append(np.mean(vel))
-        info_dict["outflows"].append(outflow)
-        for key in custom_vals.keys():
-            info_dict[key].append(np.mean(custom_vals[key]))
+        if env.crash:
+            print("Crash on iter", i)
+        else:
+            # Store the information from the run in info_dict.
+            outflow = env.k.vehicle.get_outflow_rate(int(500))
+            info_dict["velocities"].append(np.mean(vel))
+            info_dict["outflows"].append(outflow)
+            info_dict["avg_vehicle_energy_consumption"].append(np.mean(list(completed_vehicle_avg_energy.values())))
+            info_dict["total_completed_vehicles"].append(len(list(completed_vehicle_avg_energy.values())))
+            for key in custom_vals.keys():
+                info_dict[key].append(np.mean(custom_vals[key]))
+            i += 1
 
     print('======== Summary of results ========')
     if args.run_transfer:
