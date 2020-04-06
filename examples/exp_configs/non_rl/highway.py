@@ -53,7 +53,7 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=10000,
+        horizon=4000,
         additional_params=ADDITIONAL_ENV_PARAMS.copy(),
     ),
 
