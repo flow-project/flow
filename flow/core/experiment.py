@@ -1,6 +1,7 @@
 """Contains an experiment class for running simulations."""
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
+from examples.data_pipeline import generate_trajectory_table, upload_to_s3
 import datetime
 import logging
 import time
@@ -85,7 +86,7 @@ class Experiment:
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, rl_actions=None, convert_to_csv=False):
+    def run(self, num_runs, rl_actions=None, convert_to_csv=False, partition_name=None):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -98,6 +99,10 @@ class Experiment:
         convert_to_csv : bool
             Specifies whether to convert the emission file created by sumo
             into a csv file
+        partition_name: str
+            Specifies the S3 partition you want to store the output file,
+            will be used to later for query. If NONE, won't upload output
+            to S3.
 
         Returns
         -------
@@ -136,6 +141,8 @@ class Experiment:
         # time profiling information
         t = time.time()
         times = []
+        extra_info = {"time": [], "id": [], "headway": [], "acceleration": [], "leader_id": [], "follower_id": [],
+                   "leader_rel_speed": [], "accel_without_noise": [], "road_grade": []}
 
         for i in range(num_runs):
             ret = 0
@@ -152,6 +159,18 @@ class Experiment:
                 veh_ids = self.env.k.vehicle.get_ids()
                 vel.append(np.mean(self.env.k.vehicle.get_speed(veh_ids)))
                 ret += reward
+
+                # collect additional information for the data pipeline
+                for vid in veh_ids:
+                    extra_info["time"].append(self.env.k.vehicle.get_timestep(veh_ids[0]) / 1000)
+                    extra_info["id"].append(vid)
+                    extra_info["headway"].append(self.env.k.vehicle.get_headway(vid))
+                    extra_info["acceleration"].append(self.env.k.vehicle.get_accel(vid))
+                    extra_info["leader_id"].append(self.env.k.vehicle.get_leader(vid))
+                    extra_info["follower_id"].append(self.env.k.vehicle.get_follower(vid))
+                    extra_info["leader_rel_speed"].append(self.env.k.vehicle.get_speed(self.env.k.vehicle.get_leader(vid)) - self.env.k.vehicle.get_speed(vid))
+                    extra_info["accel_without_noise"].append(self.env.k.vehicle.get_accel_without_noise(vid))
+                    extra_info["road_grade"].append(self.env.k.vehicle.get_road_grade(vid))
 
                 # Compute the results for the custom callables.
                 for (key, lambda_func) in self.custom_callables.items():
@@ -194,5 +213,11 @@ class Experiment:
 
             # Delete the .xml version of the emission file.
             os.remove(emission_path)
+
+            output_file = generate_trajectory_table(emission_path[:-4] + ".csv", extra_info, partition_name)
+
+            if partition_name:
+                upload_to_s3('brent.experiments', 'trajectory-output/' + 'partition_name=' + partition_name + '/'
+                             + output_file.split('/')[-1], output_file)
 
         return info_dict
