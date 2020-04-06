@@ -278,8 +278,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
 
         # Create the flow_params object
         with open(os.path.join(output_dir, exp_name) + '.json', 'w') as outfile:
-                json.dump(flow_params, outfile,
-                        cls=FlowParamsEncoder, sort_keys=True, indent=4)
+            json.dump(flow_params, outfile,
+                      cls=FlowParamsEncoder, sort_keys=True, indent=4)
 
     return info_dict
 
@@ -372,7 +372,7 @@ if __name__ == '__main__':
 
     if args.run_transfer:
         for transfer_test in inflows_range(penetration_rates=[0.05, 0.1, 0.2], flow_rate_coefs=[0.8, 1.0, 1.2]):
-            replay(args, flow_params, output_dir=args.output_dir, transfer_test=transfer_test, rllib_config=rllib_config,
-                   result_dir=rllib_result_dir)
+            replay(args, flow_params, output_dir=args.output_dir, transfer_test=transfer_test,
+                   rllib_config=rllib_config, result_dir=rllib_result_dir)
     else:
         replay(args, flow_params, output_dir=args.output_dir, rllib_config=rllib_config, result_dir=rllib_result_dir)
