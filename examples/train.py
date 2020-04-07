@@ -98,6 +98,11 @@ def parse_args(args):
         '--checkpoint_path', type=str, default=None,
         help='Directory with checkpoint to restore training from.')
 
+    parser.add_argument(
+        '--kathy', action='store_true', default=False,
+        help='Kathy\'s custom stuff'
+    )
+
     return parser.parse_known_args(args)[0]
 
 
@@ -231,6 +236,12 @@ def setup_exps_rllib(flow_params,
                     lambda env: env.set_iteration_num(result['training_iteration'])))
 
         config["callbacks"].update({"on_train_result": tune.function(on_train_result_imitate)})
+    
+    if flags.kathy:
+        from agents.td3 import CustomTD3Trainer
+        alg_run = CustomTD3Trainer
+        # config['learning_starts'] = 1000
+        # config['']
 
     # save the flow params for replay
     flow_json = json.dumps(
