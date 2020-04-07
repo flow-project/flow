@@ -39,7 +39,7 @@ additional_env_params.update({
     # whether to add in a reward for the speed of nearby vehicles
     "local_reward": True,
     "num_actions": 5,
-    "max_num_agents_qmix": 250
+    "max_num_agents_qmix": 200
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
