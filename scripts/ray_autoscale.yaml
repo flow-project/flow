@@ -57,8 +57,9 @@ head_node:
 worker_nodes:
     InstanceType: c4.4xlarge
     ImageId: ami-09544298704576518 # Flow AMI (Ubuntu)
+    KeyName: MyKeyPair
 
-    #Run workers on spot by default. Comment this out to use on-demand.
+  #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
         MarketType: spot
          # Additional options can be found in the boto docs, e.g.

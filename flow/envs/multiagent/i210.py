@@ -1,5 +1,6 @@
 """Environment for training vehicles to reduce congestion in the I210."""
 
+from collections import OrderedDict
 from copy import deepcopy
 from time import time
 
@@ -178,7 +179,7 @@ class I210MultiEnv(MultiEnv):
                         cost2 += min((t_headway - t_min) / t_min, 0)
 
                     # weights for cost1, cost2, and cost3, respectively
-                    eta1, eta2 = 1.00, 0.10
+                    eta1, eta2 = 1.00, 0.0
 
                     reward = max(eta1 * cost1 + eta2 * cost2, 0)
 
@@ -252,6 +253,9 @@ class I210QMIXMultiEnv(I210MultiEnv):
         self.default_state = {idx: {"obs": np.zeros(self.observation_space.spaces['obs'].shape[0]),
                                "action_mask": self.get_action_mask(valid_agent=False)}
                          for idx in range(self.max_num_agents)}
+        self.rl_id_to_idx_map = OrderedDict()
+        self.idx_to_rl_id_map = OrderedDict()
+        self.index_counter = 0
 
     @property
     def action_space(self):
@@ -270,8 +274,9 @@ class I210QMIXMultiEnv(I210MultiEnv):
         if rl_actions:
             accel_list = []
             rl_ids = []
-            for rl_id, action in rl_actions.items():
+            for rl_id in self.k.vehicle.get_rl_ids():
                 # 0 is the no-op
+                action = rl_actions[self.rl_id_to_idx_map[rl_id]]
                 if action > 0:
                     accel = self.action_values[action - 1]
                     accel_list.append(accel)
@@ -280,18 +285,25 @@ class I210QMIXMultiEnv(I210MultiEnv):
         # print('time to apply actions is ', time() - t)
 
     def get_state(self):
-        t = time()
         rl_ids = self.k.vehicle.get_rl_ids()
         veh_info = super().get_state()
+
+        for key in self.k.vehicle.get_departed_ids():
+            if key not in self.rl_id_to_idx_map and key in self.k.vehicle.get_rl_ids():
+                self.rl_id_to_idx_map[key] = self.index_counter
+                self.idx_to_rl_id_map[self.index_counter] = key
+                self.index_counter += 1
+                print(self.index_counter)
+
         # print('time to get state is ', time() - t)
         t = time()
         # TODO(@evinitsky) think this doesn't have to be a deepcopy
         veh_info_copy = deepcopy(self.default_state)
         # print('time to make copy is ', time() - t)
         t = time()
-        veh_info_copy.update({rl_id_idx: {"obs": veh_info[rl_id],
+        veh_info_copy.update({self.rl_id_to_idx_map[rl_id]: {"obs": veh_info[rl_id],
                                           "action_mask": self.get_action_mask(valid_agent=True)}
-                              for rl_id_idx, rl_id in enumerate(rl_ids)})
+                              for rl_id in rl_ids})
         # print('time to update copy is ', time() - t)
         veh_info = veh_info_copy
         self.rl_id_to_idx_map = {rl_id: i for i, rl_id in enumerate(rl_ids)}
@@ -299,9 +311,8 @@ class I210QMIXMultiEnv(I210MultiEnv):
         return veh_info
 
     def compute_reward(self, rl_actions, **kwargs):
-        t = time()
         # There has to be one global reward for qmix
-        reward = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))) / (20 * self.env_params.horizon)
+        reward = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_rl_ids()))) / (20 * self.env_params.horizon)
         temp_reward_dict = {idx: reward for idx in
                        range(self.max_num_agents)}
         # print('time to compute reward is ', time() - t)
@@ -317,3 +328,97 @@ class I210QMIXMultiEnv(I210MultiEnv):
             temp_list = np.array([0 for _ in range(self.action_space.n)])
             temp_list[0] = 1
         return temp_list
+
+    def reset(self):
+        veh_info = super().reset()
+        self.rl_id_to_idx_map = OrderedDict()
+        self.idx_to_rl_id_map = OrderedDict()
+        self.index_counter = 0
+        for key in self.k.vehicle.get_departed_ids() + self.k.vehicle.get_rl_ids():
+            if key not in self.rl_id_to_idx_map and key in self.k.vehicle.get_rl_ids():
+                self.rl_id_to_idx_map[key] = self.index_counter
+                self.idx_to_rl_id_map[self.index_counter] = key
+                self.index_counter += 1
+        rl_ids = self.k.vehicle.get_rl_ids()
+        # TODO(@evinitsky) think this doesn't have to be a deepcopy
+        veh_info_copy = deepcopy(self.default_state)
+        try:
+            veh_info_copy.update({self.rl_id_to_idx_map[rl_id]: veh_info[rl_id] for rl_id in rl_ids})
+        except:
+            import ipdb;
+            ipdb.set_trace()
+        return veh_info
+
+
+class I210MADDPGMultiEnv(I210MultiEnv):
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
+        super().__init__(env_params, sim_params, network, simulator)
+        self.max_num_agents = env_params.additional_params.get("max_num_agents")
+        self.rl_id_to_idx_map = OrderedDict()
+        self.idx_to_rl_id_map = OrderedDict()
+        self.index_counter = 0
+        self.default_state = {idx: np.zeros(self.observation_space.shape[0])
+                         for idx in range(self.max_num_agents)}
+
+    def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
+        # in the warmup steps, rl_actions is None
+        t = time()
+        if rl_actions:
+            accel_list = []
+            rl_ids = []
+            for rl_id in self.k.vehicle.get_rl_ids():
+                if rl_id in self.rl_id_to_idx_map:
+                    accel_list.append(rl_actions[self.rl_id_to_idx_map[rl_id]])
+                    rl_ids.append(rl_id)
+            self.k.vehicle.apply_acceleration(rl_ids, accel_list)
+        print('time to apply actions is ', time() - t)
+
+    def get_state(self):
+        t = time()
+
+        for key in self.k.vehicle.get_departed_ids():
+            if key not in self.rl_id_to_idx_map and key in self.k.vehicle.get_rl_ids():
+                self.rl_id_to_idx_map[key] = self.index_counter
+                self.idx_to_rl_id_map[self.index_counter] = key
+                self.index_counter += 1
+                print(self.index_counter)
+
+        rl_ids = self.k.vehicle.get_rl_ids()
+        veh_info = super().get_state()
+        # TODO(@evinitsky) think this doesn't have to be a deepcopy
+        veh_info_copy = deepcopy(self.default_state)
+        veh_info_copy.update({self.rl_id_to_idx_map[rl_id]: veh_info[rl_id]
+                              for rl_id in rl_ids})
+        # print('time to update copy is ', time() - t)
+        veh_info = veh_info_copy
+        print('state time is ', time() - t)
+
+        return veh_info
+
+    def compute_reward(self, rl_actions, **kwargs):
+        # There has to be one global reward for qmix
+        t = time()
+        reward = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))) / (20 * self.env_params.horizon)
+        temp_reward_dict = {idx: reward for idx in
+                       range(self.max_num_agents)}
+        print('reward time is ', time() - t)
+        return temp_reward_dict
+
+    def reset(self):
+        veh_info = super().reset()
+        self.rl_id_to_idx_map = OrderedDict()
+        self.idx_to_rl_id_map = OrderedDict()
+        self.index_counter = 0
+        rl_ids = self.k.vehicle.get_rl_ids()
+        for key in self.k.vehicle.get_departed_ids() + self.k.vehicle.get_rl_ids():
+            if key not in self.rl_id_to_idx_map and key in self.k.vehicle.get_rl_ids():
+                self.rl_id_to_idx_map[key] = self.index_counter
+                self.idx_to_rl_id_map[self.index_counter] = key
+                self.index_counter += 1
+        # TODO(@evinitsky) think this doesn't have to be a deepcopy
+        veh_info_copy = deepcopy(self.default_state)
+        veh_info_copy.update({self.rl_id_to_idx_map[rl_id]: veh_info[rl_id]
+                              for rl_id in enumerate(rl_ids)})
+
+        return veh_info_copy

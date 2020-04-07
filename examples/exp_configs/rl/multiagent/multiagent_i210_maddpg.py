@@ -18,7 +18,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
-from flow.envs.multiagent.i210 import I210QMIXMultiEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.multiagent.i210 import I210MADDPGMultiEnv, ADDITIONAL_ENV_PARAMS
 from flow.utils.registry import make_create_env
 
 # SET UP PARAMETERS FOR THE SIMULATION
@@ -39,7 +39,7 @@ additional_env_params.update({
     # whether to add in a reward for the speed of nearby vehicles
     "local_reward": True,
     "num_actions": 5,
-    "max_num_agents_qmix": 250
+    "max_num_agents": 200
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
@@ -115,7 +115,7 @@ flow_params = dict(
     exp_tag='I_210_subnetwork',
 
     # name of the flow environment the experiment is running on
-    env_name=I210QMIXMultiEnv,
+    env_name=I210MADDPGMultiEnv,
 
     # name of the network class the experiment is running on
     network=I210SubNetwork,
@@ -170,11 +170,30 @@ test_env = create_env()
 obs_space = test_env.observation_space
 act_space = test_env.action_space
 
-# POLICY_GRAPHS = {'av': (None, obs_space, act_space, {})}
+POLICIES_TO_TRAIN = ['av']
 
-# POLICIES_TO_TRAIN = ['av']
+observation_space_dict = {i: test_env.observation_space for i in range(additional_env_params["max_num_agents"])}
+action_space_dict = {i: test_env.action_space for i in range(additional_env_params["max_num_agents"])}
 
 
-# def policy_mapping_fn(_):
-#     """Map a policy in RLlib."""
-#     return 'av'
+def gen_policy(i):
+    return (
+        None,
+        test_env.observation_space,
+        test_env.action_space,
+        {
+            "agent_id": i,
+            "use_local_critic": False,
+            "obs_space_dict": observation_space_dict,
+            "act_space_dict": action_space_dict,
+        }
+    )
+
+
+POLICY_GRAPHS = {"av": gen_policy(0)}
+
+
+def policy_mapping_fn(_):
+    """Map a policy in RLlib."""
+    return 'av'
+

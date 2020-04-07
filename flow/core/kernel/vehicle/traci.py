@@ -521,7 +521,7 @@ class TraCIVehicle(KernelVehicle):
         if len(self._departed_ids) > 0:
             return self._departed_ids[-1]
         else:
-            return 0
+            return []
 
     def get_previous_speed(self, veh_id, error=-1001):
         """See parent class."""

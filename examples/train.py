@@ -203,6 +203,11 @@ def setup_exps_rllib(flow_params,
             config["actor_lr"] = tune.grid_search([1e-3, 1e-4])
             config["critic_lr"] = tune.grid_search([1e-3, 1e-4])
             config["n_step"] = tune.grid_search([1, 10])
+    elif alg_run == "MADDPG":
+        from flow.algorithms.maddpg.maddpg import MADDPGTrainer, DEFAULT_CONFIG
+        config = deepcopy(DEFAULT_CONFIG)
+        alg_run = MADDPGTrainer
+
     elif alg_run == "QMIX":
         from flow.algorithms.qmix.qmix import QMixTrainer2, DEFAULT_CONFIG
         config = deepcopy(DEFAULT_CONFIG)
@@ -250,7 +255,6 @@ def setup_exps_rllib(flow_params,
 
     # multiagent configuration
     if policy_graphs is not None:
-        print("policy_graphs", policy_graphs)
         config['multiagent'].update({'policies': policy_graphs})
     if policy_mapping_fn is not None:
         config['multiagent'].update({'policy_mapping_fn': tune.function(policy_mapping_fn)})
@@ -282,6 +286,9 @@ def setup_exps_rllib(flow_params,
                 "policies_to_train": ["av"]
             }
         })
+    elif flags.algorithm.upper() == "MADDPG":
+        config['max_num_agents'] = flow_params['env'].additional_params['max_num_agents']
+        register_env(gym_name, create_env)
     else:
         # Register as rllib env
         register_env(gym_name, create_env)
