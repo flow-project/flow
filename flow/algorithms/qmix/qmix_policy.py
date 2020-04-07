@@ -206,8 +206,8 @@ class QMixTorchPolicy(Policy):
             config["model"],
             framework="torch",
             name="model",
-            default_model=FeedForward).to(self.device)
-            # default_model=RNNModel).to(self.device)
+            # default_model=FeedForward).to(self.device)
+            default_model=RNNModel).to(self.device)
 
         self.target_model = ModelCatalog.get_model_v2(
             agent_obs_space,
@@ -216,8 +216,8 @@ class QMixTorchPolicy(Policy):
             config["model"],
             framework="torch",
             name="target_model",
-            default_model=FeedForward).to(self.device)
-            # default_model=RNNModel).to(self.device)
+            # default_model=FeedForward).to(self.device)
+            default_model=RNNModel).to(self.device)
 
         # Setup the mixer network.
         if config["mixer"] is None:
@@ -313,8 +313,8 @@ class QMixTorchPolicy(Policy):
                 input_list,
                 [],  # RNN states not used here
                 # TODO(@evinitsky) make this an option if we are using an RNN
-                max_seq_len=1,
-                # max_seq_len=self.config["model"]["max_seq_len"],
+                # max_seq_len=1,
+                max_seq_len=self.config["model"]["max_seq_len"],
                 dynamic_max=True)
         # These will be padded to shape [B * T, ...]
         if self.has_env_global_state:

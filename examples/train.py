@@ -211,6 +211,9 @@ def setup_exps_rllib(flow_params,
     elif alg_run == "QMIX":
         from flow.algorithms.qmix.qmix import QMixTrainer2, DEFAULT_CONFIG
         config = deepcopy(DEFAULT_CONFIG)
+        if flags.grid_search:
+            config["exploration_fraction"] = tune.grid_search([0.1, 0.3])
+            config["buffer_size"] = tune.grid_search([10000, 100000])
         alg_run = QMixTrainer2
     else:
         sys.exit("We only support PPO and TD3 right now.")
