@@ -34,10 +34,7 @@ def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length):
         acceleration_controller=(IDMController, {
             "a": 0.3, "b": 2.0, "noise": 0.5
         }),
-        car_following_params=SumoCarFollowingParams(
-            min_gap=0,
-            speed_dev=0.0
-        ),
+        car_following_params=SumoCarFollowingParams(),
         # lane_change_controller=(SafeAggressiveLaneChanger, {"target_velocity": 100.0, "threshold": 1.0}),
         # lane_change_params=SumoLaneChangeParams(lane_change_mode="no_lat_collide", lcKeepRight=0, lcAssertive=0.5,
                                         # lcSpeedGain=1.5, lcSpeedGainRight=1.0),
@@ -72,8 +69,8 @@ def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length):
             warmup_steps=500,
             clip_actions=False,
             additional_params={
-                "max_accel": 1,
-                "max_decel": 1,
+                "max_accel": 2.6,
+                "max_decel": 4.5,
                 "ring_length": [ring_length, ring_length],
             },
         ),
