@@ -3,6 +3,7 @@ import argparse
 from collections import defaultdict
 from copy import deepcopy
 import numpy as np
+import json
 import os
 import time
 
@@ -18,6 +19,8 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
 from flow.utils.rllib import get_rllib_pkl
+from flow.utils.rllib import FlowParamsEncoder
+
 
 from flow.visualize.transfer.util import inflows_range
 
@@ -26,9 +29,9 @@ from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 
 EXAMPLE_USAGE = """
 example usage:
-    python ./i210_replay.py /ray_results/experiment_dir/result_dir 1
-    python ./i210_replay.py --controller idm
-    python ./i210_replay.py --controller idm --run_transfer
+    python i210_replay.py -r /ray_results/experiment_dir/result_dir -c 1
+    python i210_replay.py --controller idm
+    python i210_replay.py --controller idm --run_transfer
 
 Here the arguments are:
 1 - the path to the simulation results
@@ -52,7 +55,6 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     """
     assert bool(args.controller) ^ bool(rllib_config), \
         "Need to specify either controller or rllib_config, but not both"
-    print('======== Starting Replay! ========')
     if args.run_transfer:
         flow_params = transfer_test.flow_params_modifier_fn(flow_params)
 
@@ -65,6 +67,10 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         elif args.controller == 'default_human':
             controller = flow_params['veh'].type_parameters['human']['acceleration_controller'][0]
             test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
+        elif args.controller == 'follower_stopper':
+            from flow.controllers.velocity_controllers import FollowerStopper
+            controller = FollowerStopper
+            test_params.update({'v_des': 15})
         elif args.controller == 'sumo':
             from flow.controllers.car_following_models import SimCarFollowingController
             controller = SimCarFollowingController
@@ -184,7 +190,6 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     })
 
     for i in range(args.num_rollouts):
-        print("Starting rollout:", i)
         vel = []
         custom_vals = {key: [] for key in custom_callables.keys()}
         state = env.reset()
@@ -234,6 +239,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     print('======== Summary of results ========')
     if args.run_transfer:
         print("Transfer test: {}".format(transfer_test.transfer_str))
+    print("====================================")
 
     # Print the averages/std for all variables in the info_dict.
     for key in info_dict.keys():
@@ -244,22 +250,34 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     env.unwrapped.terminate()
 
     if output_dir:
-        replay_out = os.path.join(output_dir, 'replay-info.npy')
+        if args.run_transfer:
+            exp_name = "{}-replay".format(transfer_test.transfer_str)
+        else:
+            exp_name = "i210_replay"
+        replay_out = os.path.join(output_dir, '{}-info.npy'.format(exp_name))
         np.save(replay_out, info_dict)
         # if prompted, convert the emission file into a csv file
         if args.gen_emission:
-
+            emission_filename = '{0}-emission.xml'.format(env.network.name)
             time.sleep(0.1)
-            emission_path = os.path.join(output_dir, 'replay-emission.xml')
+
+            emission_path = \
+                '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
+
+            output_path = os.path.join(output_dir, '{}-emission.csv'.format(exp_name))
             # convert the emission file into a csv file
-            emission_to_csv(emission_path)
+            emission_to_csv(emission_path, output_path=output_path)
 
             # print the location of the emission csv file
-            emission_path_csv = emission_path[:-4] + ".csv"
-            print("\nGenerated emission file at " + emission_path_csv)
+            print("\nGenerated emission file at " + output_path)
 
             # delete the .xml version of the emission file
             os.remove(emission_path)
+
+        # Create the flow_params object
+        with open(os.path.join(output_dir, exp_name) + '.json', 'w') as outfile:
+            json.dump(flow_params, outfile,
+                      cls=FlowParamsEncoder, sort_keys=True, indent=4)
 
     return info_dict
 
@@ -352,7 +370,7 @@ if __name__ == '__main__':
 
     if args.run_transfer:
         for transfer_test in inflows_range(penetration_rates=[0.05, 0.1, 0.2], flow_rate_coefs=[0.8, 1.0, 1.2]):
-            replay(args, flow_params, transfer_test, rllib_config=rllib_config,
-                   result_dir=rllib_result_dir, output_dir=args.output_dir)
+            replay(args, flow_params, output_dir=args.output_dir, transfer_test=transfer_test,
+                   rllib_config=rllib_config, result_dir=rllib_result_dir)
     else:
-        replay(args, flow_params, rllib_config=rllib_config, result_dir=rllib_result_dir, output_dir=args.output_dir)
+        replay(args, flow_params, output_dir=args.output_dir, rllib_config=rllib_config, result_dir=rllib_result_dir)

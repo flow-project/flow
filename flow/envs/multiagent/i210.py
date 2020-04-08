@@ -16,6 +16,8 @@ ADDITIONAL_ENV_PARAMS = {
     "max_decel": 1,
     # whether we use an obs space that contains adjacent lane info or just the lead obs
     "lead_obs": True,
+    # whether the reward should come from local vehicles instead of global rewards
+    "local_reward": True
 }
 
 
@@ -137,35 +139,48 @@ class I210MultiEnv(MultiEnv):
             return {}
 
         rewards = {}
-        for rl_id in self.k.vehicle.get_rl_ids():
-            if self.env_params.evaluate:
-                # reward is speed of vehicle if we are in evaluation mode
-                reward = self.k.vehicle.get_speed(rl_id)
-            elif kwargs['fail']:
-                # reward is 0 if a collision occurred
-                reward = 0
-            else:
-                # reward high system-level velocities
-                cost1 = average_velocity(self, fail=kwargs['fail'])
+        if self.env_params.additional_params["local_reward"]:
+            for rl_id in self.k.vehicle.get_rl_ids():
+                rewards[rl_id] = 0
+                speeds = []
+                follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
+                if follow_speed >= 0:
+                    speeds.append(follow_speed)
+                if self.k.vehicle.get_speed(rl_id) >= 0:
+                    speeds.append(self.k.vehicle.get_speed(rl_id))
+                if len(speeds) > 0:
+                    # rescale so the q function can estimate it quickly
+                    rewards[rl_id] = np.mean(speeds) / 500.0
+        else:
+            for rl_id in self.k.vehicle.get_rl_ids():
+                if self.env_params.evaluate:
+                    # reward is speed of vehicle if we are in evaluation mode
+                    reward = self.k.vehicle.get_speed(rl_id)
+                elif kwargs['fail']:
+                    # reward is 0 if a collision occurred
+                    reward = 0
+                else:
+                    # reward high system-level velocities
+                    cost1 = average_velocity(self, fail=kwargs['fail'])
 
-                # penalize small time headways
-                cost2 = 0
-                t_min = 1  # smallest acceptable time headway
+                    # penalize small time headways
+                    cost2 = 0
+                    t_min = 1  # smallest acceptable time headway
 
-                lead_id = self.k.vehicle.get_leader(rl_id)
-                if lead_id not in ["", None] \
-                        and self.k.vehicle.get_speed(rl_id) > 0:
-                    t_headway = max(
-                        self.k.vehicle.get_headway(rl_id) /
-                        self.k.vehicle.get_speed(rl_id), 0)
-                    cost2 += min((t_headway - t_min) / t_min, 0)
+                    lead_id = self.k.vehicle.get_leader(rl_id)
+                    if lead_id not in ["", None] \
+                            and self.k.vehicle.get_speed(rl_id) > 0:
+                        t_headway = max(
+                            self.k.vehicle.get_headway(rl_id) /
+                            self.k.vehicle.get_speed(rl_id), 0)
+                        cost2 += min((t_headway - t_min) / t_min, 0)
 
-                # weights for cost1, cost2, and cost3, respectively
-                eta1, eta2 = 1.00, 0.10
+                    # weights for cost1, cost2, and cost3, respectively
+                    eta1, eta2 = 1.00, 0.10
 
-                reward = max(eta1 * cost1 + eta2 * cost2, 0)
+                    reward = max(eta1 * cost1 + eta2 * cost2, 0)
 
-            rewards[rl_id] = reward
+                rewards[rl_id] = reward
         return rewards
 
     def additional_command(self):

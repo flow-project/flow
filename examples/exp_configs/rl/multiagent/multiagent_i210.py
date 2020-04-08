@@ -53,7 +53,7 @@ vehicles.add(
     "human",
     num_vehicles=0,
     lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"),
-    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.6}),
+    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
 )
 vehicles.add(
     "av",
@@ -189,5 +189,5 @@ custom_callables = {
                                       env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
     "avg_outflow": lambda env: np.nan_to_num(
         env.k.vehicle.get_outflow_rate(120)),
-    "avg_energy": lambda env: energy_consumption(env, 0.1)
+    "avg_energy": lambda env: -1*energy_consumption(env, 0.1)
 }
