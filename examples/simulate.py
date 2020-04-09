@@ -76,8 +76,8 @@ if __name__ == "__main__":
         # Create the flow_params object
         json_filename = flow_params['exp_tag']
         with open(os.path.join(flow_params['sim'].emission_path, json_filename) + '.json', 'w') as outfile:
-                json.dump(flow_params, outfile,
-                        cls=FlowParamsEncoder, sort_keys=True, indent=4)
+            json.dump(flow_params, outfile,
+                      cls=FlowParamsEncoder, sort_keys=True, indent=4)
 
     # Create the experiment object.
     exp = Experiment(flow_params, callables)
