@@ -250,10 +250,11 @@ def _highway(data, params, all_time):
         time step. Set to zero if the vehicle is not present in the network at
         that time step.
     """
-    edge_starts = {"highway_1": 0,
-                  ":edge_1_0": 0,
-                  "highway_2": 2000,
-                  ":edge_2_0": 2000}
+    edge_starts = {"highway_0": 0,
+                  ":edge_0_0": 0,
+                  "highway_1": 1000,
+                  ":edge_1_0": 1000,
+                   }
 
     # compute the absolute position
     for veh_id in data.keys():

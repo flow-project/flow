@@ -482,6 +482,30 @@ class IDMController(BaseController):
         return self.a * (1 - (v / self.v0)**self.delta - (s_star / h)**2)
 
 
+class GhostEdgeController(IDMController):
+    def __init__(self,
+                 veh_id,
+                 v0=30,
+                 T=1,
+                 a=1,
+                 b=1.5,
+                 delta=4,
+                 s0=2,
+                 time_delay=0.0,
+                 noise=0,
+                 fail_safe=None,
+                 car_following_params=None,
+                 ghost_edges=None):
+        super().__init__(veh_id, v0, T, a, b, delta, s0, time_delay, noise, fail_safe, car_following_params)
+        self.ghost_edges = ghost_edges
+
+    def get_accel(self, env):
+        if env.k.vehicle.get_edge(self.veh_id) in self.ghost_edges:
+            return None
+        else:
+            return super().get_accel(env)
+
+
 class SimCarFollowingController(BaseController):
     """Controller whose actions are purely defined by the simulator.
 

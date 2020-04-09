@@ -5,7 +5,8 @@ highway with ramps network.
 """
 import numpy as np
 
-from flow.controllers import IDMController
+from flow.controllers import GhostEdgeController
+from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
                              VehicleParams, SumoParams
 from flow.networks import HighwayNetwork
@@ -16,12 +17,12 @@ from flow.networks.highway import ADDITIONAL_NET_PARAMS
 # SET UP PARAMETERS FOR THE SIMULATION
 
 # number of steps per rollout
-HORIZON = 1500
+HORIZON = 2000
 
 # inflow rate on the highway in vehicles per hour
 HIGHWAY_INFLOW_RATE = 10800 / 5
 # percentage of autonomous vehicles compared to human vehicles on highway
-PENETRATION_RATE = 0
+PENETRATION_RATE = 0.0
 
 
 # SET UP PARAMETERS FOR THE NETWORK
@@ -29,13 +30,13 @@ PENETRATION_RATE = 0
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
     # length of the highway
-    "length": 6000,
+    "length": 2000,
     # number of lanes
     "lanes": 1,
     # speed limit for all edges
     "speed_limit": 30,
     # number of edges to divide the highway into
-    "num_edges": 3
+    "num_edges": 2
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
@@ -47,8 +48,15 @@ inflows = InFlows()
 vehicles.add(
     "human",
     num_vehicles=0,
-    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
+    acceleration_controller=(GhostEdgeController, {"a": .3, "b": 2.0, "noise": 0.5, "ghost_edges": []}),
 )
+
+if PENETRATION_RATE > 0.0:
+    vehicles.add(
+        "av",
+        num_vehicles=0,
+        acceleration_controller=(FollowerStopper, {"v_des": 19.0}),
+    )
 
 # add human vehicles on the highway
 # add human vehicles on the highway
@@ -57,8 +65,17 @@ inflows.add(
     edge="highway_0",
     vehs_per_hour=int(HIGHWAY_INFLOW_RATE * (1 - PENETRATION_RATE / 100)),
     depart_lane="free",
-    depart_speed="max",
+    depart_speed="23",
     name="idm_highway_inflow")
+
+if PENETRATION_RATE > 0.0:
+    inflows.add(
+        veh_type="av",
+        edge="highway_0",
+        vehs_per_hour=int(HIGHWAY_INFLOW_RATE * (PENETRATION_RATE / 100)),
+        depart_lane="free",
+        depart_speed="23",
+        name="av_highway_inflow")
 
 # SET UP FLOW PARAMETERS
 
@@ -86,7 +103,7 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.5,
         render=False,
-        restart_instance=True
+        restart_instance=False
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
@@ -106,7 +123,7 @@ flow_params = dict(
 )
 
 custom_callables = {
-    "avg_merge_speed": lambda env: np.nan_to_num(np.mean(
-        env.k.vehicle.get_speed(env.k.vehicle.get_ids_by_edge(['highway_1', 'highway_2'])))),
+    "avg_speed": lambda env: np.nan_to_num(np.mean(
+        env.k.vehicle.get_speed(env.k.vehicle.get_ids_by_edge(['highway_0', 'highway_1'])))),
 }
 

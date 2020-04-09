@@ -3,7 +3,7 @@
 Trains a non-constant number of agents, all sharing the same policy, on the
 highway with ramps network.
 """
-from flow.controllers import RLController, IDMController
+from flow.controllers import RLController, GhostEdgeController
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
                              VehicleParams, SumoParams, SumoLaneChangeParams
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
@@ -17,7 +17,7 @@ from ray.tune.registry import register_env
 # SET UP PARAMETERS FOR THE SIMULATION
 
 # number of steps per rollout
-HORIZON = 1500
+HORIZON = 2000
 
 # inflow rate on the highway in vehicles per hour
 HIGHWAY_INFLOW_RATE = 10800 / 5
@@ -30,13 +30,13 @@ PENETRATION_RATE = 10
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
     # length of the highway
-    "length": 3000,
+    "length": 2000,
     # number of lanes
     "lanes": 1,
     # speed limit for all edges
     "speed_limit": 30,
     # number of edges to divide the highway into
-    "num_edges": 3
+    "num_edges": 2
 })
 
 
@@ -61,7 +61,7 @@ inflows = InFlows()
 vehicles.add(
     "human",
     num_vehicles=0,
-    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
+    acceleration_controller=(GhostEdgeController, {"a": .3, "b": 2.0, "noise": 0.5, "ghost_edges": []}),
 )
 
 # autonomous vehicles
