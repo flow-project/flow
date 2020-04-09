@@ -1,6 +1,9 @@
 """Environment for training vehicles to reduce congestion in the I210."""
 
-from gym.spaces import Box
+from copy import deepcopy
+from time import time
+
+from gym.spaces import Box, Dict, Discrete
 import numpy as np
 
 from flow.core.rewards import average_velocity
@@ -195,10 +198,6 @@ class I210MultiEnv(MultiEnv):
             lead_id = self.k.vehicle.get_leader(rl_id)
             if lead_id:
                 self.k.vehicle.set_observed(lead_id)
-            # follower
-            follow_id = self.k.vehicle.get_follower(rl_id)
-            if follow_id:
-                self.k.vehicle.set_observed(follow_id)
 
     def state_util(self, rl_id):
         """Return an array of headway, tailway, leader speed, follower speed.
@@ -241,6 +240,88 @@ class I210MultiEnv(MultiEnv):
         return np.array([speed, lane])
 
 
+
+class I210QMIXMultiEnv(I210MultiEnv):
+    def __init__(self, env_params, sim_params, network, simulator='traci'):
+        super().__init__(env_params, sim_params, network, simulator)
+        self.max_num_agents = env_params.additional_params.get("max_num_agents_qmix")
+        self.num_actions = env_params.additional_params.get("num_actions")
+        self.action_values = np.linspace(start=-np.abs(self.env_params.additional_params['max_decel']),
+            stop=self.env_params.additional_params['max_accel'], num=self.num_actions)
+        self.default_state = {idx: {"obs": np.zeros(self.observation_space.spaces['obs'].shape[0]),
+                               "action_mask": self.get_action_mask(valid_agent=False)}
+                         for idx in range(self.max_num_agents)}
+        self.rl_id_to_idx_map = {}
+        self.idx_to_rl_id_map = {}
+
+    @property
+    def action_space(self):
+        """See class definition."""
+        return Discrete(self.num_actions + 1)
+
+    @property
+    def observation_space(self):
+        obs_space = super().observation_space
+        return Dict({"obs": obs_space,  "action_mask": Box(0, 1, shape=(self.action_space.n,))})
+
+    def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
+        # in the warmup steps, rl_actions is None
+        t = time()
+        if rl_actions:
+            accel_list = []
+            rl_ids = []
+            for i, rl_id in enumerate(self.k.vehicle.get_rl_ids()):
+                if i >= self.max_num_agents:
+                    break
+                # 0 is the no-op
+                action = rl_actions[self.rl_id_to_idx_map[rl_id]]
+                if action > 0:
+                    accel = self.action_values[action - 1]
+                    accel_list.append(accel)
+                    rl_ids.append(rl_id)
+            self.k.vehicle.apply_acceleration(rl_ids, accel_list)
+        # print('time to apply actions is ', time() - t)
+
+    def get_state(self, order_agents=False):
+        veh_info = super().get_state()
+        t = time()
+        veh_info_copy = deepcopy(self.default_state)
+        # print('time to make copy is ', time() - t)
+        t = time()
+        rl_ids = self.k.vehicle.get_rl_ids()
+        if order_agents:
+            abs_pos = self.k.vehicle.get_x_by_id(rl_ids)
+            rl_ids = [rl_id for _, rl_id in sorted(zip(abs_pos, rl_ids))]
+        self.rl_id_to_idx_map = {rl_id: i for i, rl_id in enumerate(rl_ids)}
+        self.idx_to_rl_id_map = {i: rl_id for i, rl_id in enumerate(rl_ids)}
+        veh_info_copy.update({self.rl_id_to_idx_map[rl_id]: {"obs": veh_info[rl_id],
+                                          "action_mask": self.get_action_mask(valid_agent=True)}
+                              for i, rl_id in enumerate(rl_ids) if i < self.max_num_agents})
+        # print('time to update copy is ', time() - t)
+        veh_info = veh_info_copy
+        return veh_info
+
+    def compute_reward(self, rl_actions, **kwargs):
+        # There has to be one global reward for qmix
+        reward = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_rl_ids()))) / 200
+        temp_reward_dict = {idx: reward / self.max_num_agents for idx in
+                       range(self.max_num_agents)}
+        # print('time to compute reward is ', time() - t)
+        return temp_reward_dict
+
+    def get_action_mask(self, valid_agent):
+        """If a valid agent, return a 0 in the position of the no-op action. If not, return a 1 in that position
+        and a zero everywhere else."""
+        if valid_agent:
+            temp_list = np.array([1 for _ in range(self.action_space.n)])
+            temp_list[0] = 0
+        else:
+            temp_list = np.array([0 for _ in range(self.action_space.n)])
+            temp_list[0] = 1
+        return temp_list
+
+
 class MultiStraightRoad(I210MultiEnv):
     """Partially observable multi-agent environment for a straight road. Look at superclass for more information."""
 
@@ -258,3 +339,9 @@ class MultiStraightRoad(I210MultiEnv):
                 # we don't apply control on edge 0 which is a ghost edge
                 if self.k.vehicle.get_edge(rl_id) != 'highway_0':
                     self.k.vehicle.apply_acceleration(rl_id, accel)
+
+
+class MultiStraightRoadQMIX(I210QMIXMultiEnv):
+    def get_state(self, order_agents=True):
+        veh_info = super().get_state(order_agents=True)
+        return veh_info

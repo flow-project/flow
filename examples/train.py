@@ -14,6 +14,7 @@ import sys
 from time import strftime
 from copy import deepcopy
 
+from gym.spaces import Tuple
 import numpy as np
 import pytz
 
@@ -25,6 +26,7 @@ except ImportError:
 
 import ray
 from ray import tune
+from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
 from ray.tune.registry import register_env
 try:
     from ray.rllib.agents.agent import get_agent_class
@@ -202,8 +204,18 @@ def setup_exps_rllib(flow_params,
             config["actor_lr"] = tune.grid_search([1e-3, 1e-4])
             config["critic_lr"] = tune.grid_search([1e-3, 1e-4])
             config["n_step"] = tune.grid_search([1, 10])
+    elif alg_run == "QMIX":
+        from flow.algorithms.qmix.qmix import QMixTrainer, DEFAULT_CONFIG as QMIX_CONFIG
+        alg_run = QMixTrainer
+        config = deepcopy(QMIX_CONFIG)
+        config["exploration_fraction"] = tune.grid_search([0.2])
+
+        if flags.grid_search:
+            config["exploration_fraction"] = tune.grid_search([0.2, 0.5])
+            config["buffer_size"] = tune.grid_search([10000, 100000])
+            config["mixer"] = tune.grid_search(["vdn", "qmix"])
     else:
-        sys.exit("We only support PPO and TD3 right now.")
+        sys.exit("We only support PPO, TD3, and QMIX right now.")
 
     # define some standard and useful callbacks
     def on_episode_start(info):
@@ -214,6 +226,8 @@ def setup_exps_rllib(flow_params,
     def on_episode_step(info):
         episode = info["episode"]
         env = info["env"].get_unwrapped()[0]
+        if isinstance(env, _GroupAgentsWrapper):
+            env = env.env
         speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0])
         if not np.isnan(speed):
             episode.user_data["avg_speed"].append(speed)
@@ -246,8 +260,32 @@ def setup_exps_rllib(flow_params,
 
     create_env, gym_name = make_create_env(params=flow_params)
 
-    # Register as rllib env
-    register_env(gym_name, create_env)
+    if flags.algorithm.upper() == "QMIX":
+        test_env = create_env()
+        obs_space = test_env.observation_space
+        act_space = test_env.action_space
+        max_num_agents_qmix = flow_params['env'].additional_params['max_num_agents_qmix']
+        config['env_config']['max_num_agents'] = max_num_agents_qmix
+        grouping = {"AVs": list(np.arange(max_num_agents_qmix))}
+        obs_space = Tuple([obs_space] * max_num_agents_qmix)
+        act_space = Tuple([act_space] * max_num_agents_qmix)
+        register_env(gym_name, lambda config: create_env(config).with_agent_groups(
+            grouping, obs_space=obs_space, act_space=act_space))
+        policy_graphs = {'av': (None, obs_space, act_space, {})}
+
+        def policy_mapping_fn(_):
+            return 'av'
+
+        config.update({
+            'multiagent': {
+                'policies': policy_graphs,
+                'policy_mapping_fn': tune.function(policy_mapping_fn),
+                "policies_to_train": ["av"]
+            }
+        })
+    else:
+        # Register as rllib env
+        register_env(gym_name, create_env)
     return alg_run, gym_name, config
 
 

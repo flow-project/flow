@@ -122,10 +122,11 @@ class MultiEnv(MultiAgentEnv, Env):
         else:
             reward = self.compute_reward(rl_actions, fail=crash)
 
-        for rl_id in self.k.vehicle.get_arrived_rl_ids():
-            done[rl_id] = True
-            reward[rl_id] = 0
-            states[rl_id] = np.zeros(self.observation_space.shape[0])
+        if self.env_params.done_at_exit:
+            for rl_id in self.k.vehicle.get_arrived_rl_ids():
+                done[rl_id] = True
+                reward[rl_id] = 0
+                states[rl_id] = np.zeros(self.observation_space.shape[0])
 
         return states, reward, done, infos
 
@@ -154,6 +155,7 @@ class MultiEnv(MultiAgentEnv, Env):
             self.sim_params.render = True
             # got to restart the simulation to make it actually display anything
             self.restart_simulation(self.sim_params)
+            self.should_render = False
 
         # warn about not using restart_instance when using inflows
         if len(self.net_params.inflows.get()) > 0 and \
