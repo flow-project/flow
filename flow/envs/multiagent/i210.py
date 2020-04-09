@@ -61,6 +61,7 @@ class I210MultiEnv(MultiEnv):
     def __init__(self, env_params, sim_params, network, simulator='traci'):
         super().__init__(env_params, sim_params, network, simulator)
         self.lead_obs = env_params.additional_params.get("lead_obs")
+        self.max_lanes = MAX_LANES
 
     @property
     def observation_space(self):
@@ -76,8 +77,8 @@ class I210MultiEnv(MultiEnv):
         # speed, dist to ego vehicle, binary value which is 1 if the vehicle is
         # an AV
         else:
-            leading_obs = 3 * MAX_LANES
-            follow_obs = 3 * MAX_LANES
+            leading_obs = 3 * self.max_lanes
+            follow_obs = 3 * self.max_lanes
 
             # speed and lane
             self_obs = 2
@@ -144,12 +145,12 @@ class I210MultiEnv(MultiEnv):
                 rewards[rl_id] = 0
                 speeds = []
                 follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
-                speeds.extend([speed for speed in follow_speed if speed >= 0])
+                speeds.extend([speed for speed in [follow_speed] if speed >= 0])
                 if self.k.vehicle.get_speed(rl_id) >= 0:
                     speeds.append(self.k.vehicle.get_speed(rl_id))
                 if len(speeds) > 0:
                     # rescale so the q function can estimate it quickly
-                    rewards[rl_id] = np.mean(speeds) / 500.0
+                    rewards[rl_id] = np.mean([speed**2 for speed in speeds]) / 500.0
         else:
             for rl_id in self.k.vehicle.get_rl_ids():
                 if self.env_params.evaluate:
@@ -237,3 +238,21 @@ class I210MultiEnv(MultiEnv):
         speed = self.k.vehicle.get_speed(rl_id) / 100.0
         lane = (self.k.vehicle.get_lane(rl_id) + 1) / 10.0
         return np.array([speed, lane])
+
+
+class MultiStraightRoad(I210MultiEnv):
+    def __init__(self, env_params, sim_params, network, simulator):
+        super().__init__(env_params, sim_params, network, simulator)
+        self.max_lanes = 1
+
+
+    def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
+        # in the warmup steps, rl_actions is None
+        if rl_actions:
+            for rl_id, actions in rl_actions.items():
+                accel = actions[0]
+
+                # we don't apply control on edge 0 which is a ghost edge
+                if self.k.vehicle.get_edge(rl_id) != 'highway_0':
+                    self.k.vehicle.apply_acceleration(rl_id, accel)
