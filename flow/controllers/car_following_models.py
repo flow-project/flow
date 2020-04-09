@@ -483,6 +483,8 @@ class IDMController(BaseController):
 
 
 class GhostEdgeController(IDMController):
+    """IDM controller with SUMO control on all the edges contained in ghost_edges."""
+
     def __init__(self,
                  veh_id,
                  v0=30,
@@ -500,6 +502,7 @@ class GhostEdgeController(IDMController):
         self.ghost_edges = ghost_edges
 
     def get_accel(self, env):
+        """Return IDM accel unless we are on an edge in ghost_edges in which case control is given to SUMO."""
         if env.k.vehicle.get_edge(self.veh_id) in self.ghost_edges:
             return None
         else:

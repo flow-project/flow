@@ -226,6 +226,7 @@ def _merge(data, params, all_time):
 
 def _highway(data, params, all_time):
     r"""Generate position and speed data for the highway subnetwork.
+
     Parameters
     ----------
     data : dict of dict
@@ -251,9 +252,9 @@ def _highway(data, params, all_time):
         that time step.
     """
     edge_starts = {"highway_0": 0,
-                  ":edge_0_0": 0,
-                  "highway_1": 1000,
-                  ":edge_1_0": 1000,
+                   ":edge_0_0": 0,
+                   "highway_1": 1000,
+                   ":edge_1_0": 1000,
                    }
 
     # compute the absolute position

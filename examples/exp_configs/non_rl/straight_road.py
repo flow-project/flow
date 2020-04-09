@@ -8,7 +8,7 @@ import numpy as np
 from flow.controllers import GhostEdgeController
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
-                             VehicleParams, SumoParams
+                             VehicleParams, SumoParams, SumoLaneChangeParams
 from flow.networks import HighwayNetwork
 from flow.envs import TestEnv
 from flow.networks.highway import ADDITIONAL_NET_PARAMS
@@ -48,6 +48,9 @@ inflows = InFlows()
 vehicles.add(
     "human",
     num_vehicles=0,
+    lane_change_params=SumoLaneChangeParams(
+        lane_change_mode="strategic",
+    ),
     acceleration_controller=(GhostEdgeController, {"a": .3, "b": 2.0, "noise": 0.5, "ghost_edges": []}),
 )
 
@@ -126,4 +129,3 @@ custom_callables = {
     "avg_speed": lambda env: np.nan_to_num(np.mean(
         env.k.vehicle.get_speed(env.k.vehicle.get_ids_by_edge(['highway_0', 'highway_1'])))),
 }
-

@@ -145,7 +145,8 @@ class I210MultiEnv(MultiEnv):
                 rewards[rl_id] = 0
                 speeds = []
                 follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
-                speeds.extend([speed for speed in [follow_speed] if speed >= 0])
+                if follow_speed >= 0:
+                    speeds.append(follow_speed)
                 if self.k.vehicle.get_speed(rl_id) >= 0:
                     speeds.append(self.k.vehicle.get_speed(rl_id))
                 if len(speeds) > 0:
@@ -241,10 +242,11 @@ class I210MultiEnv(MultiEnv):
 
 
 class MultiStraightRoad(I210MultiEnv):
+    """Partially observable multi-agent environment for a straight road. Look at superclass for more information."""
+
     def __init__(self, env_params, sim_params, network, simulator):
         super().__init__(env_params, sim_params, network, simulator)
         self.max_lanes = 1
-
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
