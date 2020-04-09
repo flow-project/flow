@@ -38,6 +38,7 @@ from flow.core.util import ensure_dir
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params, get_rllib_config, get_rllib_pkl
 from flow.visualize.i210_replay import replay
+from flow.visualize.time_space_diagram import make_ts_diagram
 
 
 def parse_flags(args):
@@ -79,8 +80,11 @@ def parse_flags(args):
     parser.add_argument('--ring_length', type=int, default=220)
 
     parser.add_argument('--simulate', action='store_true', help='If true, simulate instead of train')
+    parser.add_argument('--v_des', type=int,
+                        help='follower_stopper vdes for simulate, use 0 for default human', default=12)
     parser.add_argument('--no_render', action='store_true', help='If true, dont render simulation')
     parser.add_argument('--gen_emission', action='store_true', help='If true, generate emission files')
+    parser.add_argument('--show_ts_diagram', '-ts', action='store_true', help='If true, show timespace')
 
     parser.add_argument('--checkpoint_path', type=str, default=None,
                         help='Directory with checkpoint to restore training from.')
@@ -109,14 +113,43 @@ if __name__ == "__main__":
         # Update some variables based on inputs.
         flow_params['sim'].render = not flags.no_render
 
+        if flags.v_des == 0:
+            controller = flow_params['veh'].type_parameters['human']['acceleration_controller'][0]
+            test_params = flow_params['veh'].type_parameters['human']['acceleration_controller'][1]
+        else:
+            from flow.controllers.velocity_controllers import FollowerStopper
+            controller = FollowerStopper
+            test_params = {'v_des': flags.v_des}
+
+        flow_params['veh'].type_parameters['rl']['acceleration_controller'] = (controller, test_params)
+
+        for veh_param in flow_params['veh'].initial:
+            if veh_param['veh_id'] == 'rl':
+                veh_param['acceleration_controller'] = (controller, test_params)
+
+        if flags.show_ts_diagram:
+            assert flags.gen_emission, "need emission file to generate ts diagram"
+
         # Specify an emission path if they are meant to be generated.
         if flags.gen_emission:
+            ensure_dir("./data")
             flow_params['sim'].emission_path = "./data"
+
+            # Create the flow_params object
+            flow_params_filename = os.path.join(flow_params['sim'].emission_path, flow_params['exp_tag']) + '.json'
+            with open(flow_params_filename, 'w') as outfile:
+                    json.dump(flow_params, outfile,
+                            cls=FlowParamsEncoder, sort_keys=True, indent=4)
 
         # Create the experiment object.
         exp = Experiment(flow_params, callables)
         # Run for the specified number of rollouts.
         exp.run(flags.num_rollouts, convert_to_csv=flags.gen_emission)
+
+        if flags.show_ts_diagram:
+            emission_path = "./data/{0}-emission.csv".format(exp.env.network.name)
+            make_ts_diagram(flow_params_filename, emission_path, 0,
+                    30, 0, float('inf'), "Ring Replay {}".format(exp_title))
     else:
 
         policy_graphs = getattr(multilane_ring_config, "POLICY_GRAPHS", None)

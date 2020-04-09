@@ -22,7 +22,8 @@ def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length):
         veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(ContinuousRouter, {}),
-        num_vehicles=num_av)
+        num_vehicles=num_av,
+        color='red')
 
     num_human = num_total_veh - num_av
 

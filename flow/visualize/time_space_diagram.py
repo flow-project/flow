@@ -516,45 +516,16 @@ def _get_abs_pos_1_edge(edges, rel_pos, edge_starts):
     return ret
 
 
-if __name__ == '__main__':
-    # create the parser
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        description='[Flow] Generates time space diagrams for flow networks.',
-        epilog='python time_space_diagram.py </path/to/emission>.csv '
-               '</path/to/flow_params>.json')
-
-    # required arguments
-    parser.add_argument('emission_path', type=str,
-                        help='path to the csv file.')
-    parser.add_argument('flow_params', type=str,
-                        help='path to the flow_params json file.')
-
-    # optional arguments
-    parser.add_argument('--steps', type=int, default=1,
-                        help='rate at which steps are plotted.')
-    parser.add_argument('--title', type=str, default='Time Space Diagram',
-                        help='rate at which steps are plotted.')
-    parser.add_argument('--max_speed', type=int, default=8,
-                        help='The maximum speed in the color range.')
-    parser.add_argument('--min_speed', type=int, default=0,
-                        help='The minimum speed in the color range.')
-    parser.add_argument('--start', type=float, default=0,
-                        help='initial time (in sec) in the plot.')
-    parser.add_argument('--stop', type=float, default=float('inf'),
-                        help='final time (in sec) in the plot.')
-
-    args = parser.parse_args()
-
+def make_ts_diagram(flow_params, emission_path, min_speed, max_speed, start, stop, title):
     # flow_params is imported as a dictionary
-    if '.json' in args.flow_params:
-        flow_params = get_flow_params(args.flow_params)
+    if '.json' in flow_params:
+        flow_params = get_flow_params(flow_params)
     else:
-        module = __import__("examples.exp_configs.non_rl", fromlist=[args.flow_params])
-        flow_params = getattr(module, args.flow_params).flow_params
+        module = __import__("examples.exp_configs.non_rl", fromlist=[flow_params])
+        flow_params = getattr(module, flow_params).flow_params
 
     # import data from the emission.csv file
-    emission_data = import_data_from_emission(args.emission_path)
+    emission_data = import_data_from_emission(emission_path)
 
     # compute the position and speed for all vehicles at all times
     pos, speed, time = get_time_space_data(emission_data, flow_params)
@@ -570,11 +541,11 @@ if __name__ == '__main__':
     # perform plotting operation
     fig = plt.figure(figsize=(16, 9))
     ax = plt.axes()
-    norm = plt.Normalize(args.min_speed, args.max_speed)
+    norm = plt.Normalize(min_speed, max_speed)
     cols = []
 
-    xmin = max(time[0], args.start)
-    xmax = min(time[-1], args.stop)
+    xmin = max(time[0], start)
+    xmax = min(time[-1], stop)
     xbuffer = (xmax - xmin) * 0.025  # 2.5% of range
     ymin, ymax = np.amin(pos), np.amax(pos)
     ybuffer = (ymax - ymin) * 0.025  # 2.5% of range
@@ -607,7 +578,7 @@ if __name__ == '__main__':
         lc.set_linewidth(1.75)
         cols.append(lc)
 
-    plt.title(args.title, fontsize=25)
+    plt.title(title, fontsize=25)
     plt.ylabel('Position (m)', fontsize=20)
     plt.xlabel('Time (s)', fontsize=20)
 
@@ -628,3 +599,37 @@ if __name__ == '__main__':
     ###########################################################################
 
     plt.show()
+
+
+if __name__ == '__main__':
+    # create the parser
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='[Flow] Generates time space diagrams for flow networks.',
+        epilog='python time_space_diagram.py </path/to/emission>.csv '
+               '</path/to/flow_params>.json')
+
+    # required arguments
+    parser.add_argument('emission_path', type=str,
+                        help='path to the csv file.')
+    parser.add_argument('flow_params', type=str,
+                        help='path to the flow_params json file.')
+
+    # optional arguments
+    parser.add_argument('--steps', type=int, default=1,
+                        help='rate at which steps are plotted.')
+    parser.add_argument('--title', type=str, default='Time Space Diagram',
+                        help='rate at which steps are plotted.')
+    parser.add_argument('--max_speed', type=int, default=8,
+                        help='The maximum speed in the color range.')
+    parser.add_argument('--min_speed', type=int, default=0,
+                        help='The minimum speed in the color range.')
+    parser.add_argument('--start', type=float, default=0,
+                        help='initial time (in sec) in the plot.')
+    parser.add_argument('--stop', type=float, default=float('inf'),
+                        help='final time (in sec) in the plot.')
+
+    args = parser.parse_args()
+
+    make_ts_diagram(args.flow_params, args.emission_path, args.min_speed,
+                    args.max_speed, args.start, args.stop, args.title)

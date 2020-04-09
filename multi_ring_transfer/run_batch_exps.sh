@@ -6,10 +6,10 @@ function run_exp () {
 }
     
 
-run_exp sugiyama ""
-run_exp 1_av_500 "--ring_length 500 --num_total_veh 44"
-run_exp 2_av_500 "--ring_length 500 --num_total_veh 44 --num_av 2" 
-run_exp 2_lanes_1_av "--num_lanes 2 --num_total_veh 44"
-run_exp 2_lanes_2_av "--num_lanes 2 --num_total_veh 44 --num_av 2"
-run_exp 2_lanes_2_av_500 "--num_lanes 2 --num_total_veh 88 --num_av 2"
-run_exp 4_lanes_4_av "--num_lanes 4 --num_total_veh 88 --num_av 4"
+run_exp sugiyama "--num_av 1"
+# run_exp 1_av_500 "--ring_length 500 --num_total_veh 44"
+# run_exp 2_av_500 "--ring_length 500 --num_total_veh 44 --num_av 2" 
+# run_exp 2_lanes_1_av "--num_lanes 2 --num_total_veh 44"
+# run_exp 2_lanes_2_av "--num_lanes 2 --num_total_veh 44 --num_av 2"
+# run_exp 2_lanes_2_av_500 "--num_lanes 2 --num_total_veh 88 --num_av 2"
+# run_exp 4_lanes_4_av "--num_lanes 4 --num_total_veh 88 --num_av 4"
