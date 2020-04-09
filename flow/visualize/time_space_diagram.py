@@ -17,7 +17,7 @@ Usage
     python time_space_diagram.py </path/to/emission>.csv </path/to/params>.json
 """
 from flow.utils.rllib import get_flow_params
-from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork
+from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork, HighwayNetwork
 
 import argparse
 import csv
@@ -32,7 +32,8 @@ ACCEPTABLE_NETWORKS = [
     RingNetwork,
     FigureEightNetwork,
     MergeNetwork,
-    I210SubNetwork
+    I210SubNetwork,
+    HighwayNetwork
 ]
 
 
@@ -125,11 +126,13 @@ def get_time_space_data(data, params):
         'Network must be one of: ' + ', '.join(ACCEPTABLE_NETWORKS)
 
     # switcher used to compute the positions based on the type of network
+    # switcher used to compute the positions based on the type of network
     switcher = {
         RingNetwork: _ring_road,
         MergeNetwork: _merge,
         FigureEightNetwork: _figure_eight,
-        I210SubNetwork: _i210_subnetwork
+        I210SubNetwork: _i210_subnetwork,
+        HighwayNetwork: _highway,
     }
 
     # Collect a list of all the unique times.
@@ -217,6 +220,71 @@ def _merge(data, params, all_time):
             ind = np.where(ti == all_time)[0]
             pos[ind, i] = abs_pos
             speed[ind, i] = spd
+
+    return pos, speed, all_time
+
+
+def _highway(data, params, all_time):
+    r"""Generate position and speed data for the highway subnetwork.
+    Parameters
+    ----------
+    data : dict of dict
+        Key = "veh_id": name of the vehicle \n Elements:
+        * "time": time step at every sample
+        * "edge": edge ID at every sample
+        * "pos": relative position at every sample
+        * "vel": speed at every sample
+    params : dict
+        flow-specific parameters
+    all_time : array_like
+        a (n_steps,) vector representing the unique time steps in the
+        simulation
+    Returns
+    -------
+    as_array
+        n_steps x n_veh matrix specifying the absolute position of every
+        vehicle at every time step. Set to zero if the vehicle is not present
+        in the network at that time step.
+    as_array
+        n_steps x n_veh matrix specifying the speed of every vehicle at every
+        time step. Set to zero if the vehicle is not present in the network at
+        that time step.
+    """
+    edge_starts = {"highway_1": 0,
+                  ":edge_1_0": 0,
+                  "highway_2": 2000,
+                  ":edge_2_0": 2000}
+
+    # compute the absolute position
+    for veh_id in data.keys():
+        data[veh_id]['abs_pos'] = _get_abs_pos_1_edge(data[veh_id]['edge'],
+                                                      data[veh_id]['pos'],
+                                                      edge_starts)
+
+    # track only vehicles that were around during this time period
+    # create the output variables
+    pos = np.zeros((all_time.shape[0], len(data.keys())))
+    speed = np.zeros((all_time.shape[0], len(data.keys())))
+    observed_row_list = []
+    for i, veh_id in enumerate(sorted(data.keys())):
+        for spd, abs_pos, ti, edge, lane in zip(data[veh_id]['vel'],
+                                                data[veh_id]['abs_pos'],
+                                                data[veh_id]['time'],
+                                                data[veh_id]['edge'],
+                                                data[veh_id]['lane']):
+            # avoid vehicles not on the relevant edges. Also only check the second to
+            # last lane
+            if edge not in edge_starts.keys() or ti not in all_time:
+                continue
+            else:
+                if i not in observed_row_list:
+                    observed_row_list.append(i)
+            ind = np.where(ti == all_time)[0]
+            pos[ind, i] = abs_pos
+            speed[ind, i] = spd
+
+    pos = pos[:, observed_row_list]
+    speed = speed[:, observed_row_list]
 
     return pos, speed, all_time
 
@@ -580,7 +648,7 @@ if __name__ == '__main__':
     for indx_car in range(pos.shape[1]):
         unique_car_pos = pos[:, indx_car]
 
-        if flow_params['network'] == I210SubNetwork:
+        if flow_params['network'] == I210SubNetwork or flow_params['network'] == HighwayNetwork:
             indices = np.where(pos[:, indx_car] != 0)[0]
             unique_car_speed = speed[indices, indx_car]
             points = np.array([time[indices], pos[indices, indx_car]]).T.reshape(-1, 1, 2)
