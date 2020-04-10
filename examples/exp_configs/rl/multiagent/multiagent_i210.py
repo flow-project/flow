@@ -10,6 +10,7 @@ from ray.tune.registry import register_env
 
 from flow.controllers import RLController
 from flow.controllers.car_following_models import IDMController
+from flow.controllers.lane_change_controllers import SafeAggressiveLaneChanger
 import flow.config as config
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
@@ -18,6 +19,7 @@ from flow.core.params import InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
+from flow.core.params import SumoCarFollowingParams
 from flow.core.rewards import energy_consumption
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 from flow.envs.multiagent.i210 import I210MultiEnv, ADDITIONAL_ENV_PARAMS
@@ -58,6 +60,19 @@ vehicles.add(
 vehicles.add(
     "av",
     acceleration_controller=(RLController, {}),
+    num_vehicles=0,
+)
+
+vehicles.add(
+    "aggressive",
+    lane_change_params=SumoLaneChangeParams(
+        lane_change_mode="no_lat_collide",
+    ),
+    acceleration_controller=(IDMController, {
+        "a": 0.3, "b": 2.0, "noise": 0.5
+    }),
+    car_following_params=SumoCarFollowingParams(),
+    lane_change_controller=(SafeAggressiveLaneChanger, {"target_velocity": 100.0, "threshold": 1.0}),
     num_vehicles=0,
 )
 

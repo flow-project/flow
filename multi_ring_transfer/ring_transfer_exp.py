@@ -77,6 +77,7 @@ def parse_flags(args):
     parser.add_argument('--num_lanes', type=int, default=1)
     parser.add_argument('--num_total_veh', type=int, default=22)
     parser.add_argument('--num_av', type=int, default=2)
+    parser.add_argument('--num_aggressive', type=int, default=0)
     parser.add_argument('--ring_length', type=int, default=220)
 
     parser.add_argument('--simulate', action='store_true', help='If true, simulate instead of train')
@@ -98,8 +99,9 @@ if __name__ == "__main__":
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
 
-    flow_params = multilane_ring_config.make_flow_params(2000, flags.num_total_veh,
-                                                         flags.num_av, flags.num_lanes, flags.ring_length)
+    flow_params = multilane_ring_config.make_flow_params(4000, flags.num_total_veh,
+                                                         flags.num_av, flags.num_lanes, flags.ring_length,
+                                                         num_aggressive=flags.num_aggressive)
 
     exp_title = flags.exp_title if flags.exp_title else flow_params["exp_tag"]
 

@@ -14,7 +14,7 @@ from flow.envs.multiagent import MultiAgentWaveAttenuationPOEnv
 from flow.networks import RingNetwork
 from flow.utils.registry import make_create_env
 
-def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length):
+def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length, num_aggressive=0, bunching=0):
     
     vehicles = VehicleParams()
     # Add one automated vehicle.
@@ -25,7 +25,7 @@ def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length):
         num_vehicles=num_av,
         color='red')
 
-    num_human = num_total_veh - num_av
+    num_human = num_total_veh - num_av - num_aggressive
 
     vehicles.add(
         veh_id="human",
@@ -36,12 +36,27 @@ def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length):
             "a": 0.3, "b": 2.0, "noise": 0.5
         }),
         car_following_params=SumoCarFollowingParams(),
-        # lane_change_controller=(SafeAggressiveLaneChanger, {"target_velocity": 100.0, "threshold": 1.0}),
+        lane_change_controller=(SafeAggressiveLaneChanger, {"target_velocity": 8.0, "threshold": 1.0}),
         # lane_change_params=SumoLaneChangeParams(lane_change_mode="no_lat_collide", lcKeepRight=0, lcAssertive=0.5,
                                         # lcSpeedGain=1.5, lcSpeedGainRight=1.0),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=num_human,
         initial_speed=0) 
+
+    vehicles.add(
+        "aggressive",
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode="no_lat_collide",
+        ),
+        acceleration_controller=(IDMController, {
+            "a":1.5, "b": 0.5, "noise": 0.1, "T":0.0, "s0":2.0
+        }),
+        car_following_params=SumoCarFollowingParams(),
+        lane_change_controller=(SafeAggressiveLaneChanger, {"target_velocity": 100.0, "threshold": 1.0}),
+        routing_controller=(ContinuousRouter, {}),
+        num_vehicles=num_aggressive,
+        color='green'
+    )
 
 
     flow_params = dict(
@@ -92,7 +107,7 @@ def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length):
 
         # parameters specifying the positioning of vehicles upon initialization/
         # reset (see flow.core.params.InitialConfig)
-        initial=InitialConfig(spacing="uniform", shuffle=True),
+        initial=InitialConfig(spacing="uniform", shuffle=True, bunching=bunching),
     )
 
     return flow_params

@@ -37,7 +37,7 @@ class SafeAggressiveLaneChanger(BaseLaneChangeController):
         """
         super().__init__(veh_id)
         self.veh_id = veh_id
-        self.threshold_velocity = min(max(np.random.normal(threshold/2.0), 0), threshold) * target_velocity
+        self.threshold_velocity = target_velocity * threshold #min(max(np.random.normal(loc=0, scale=threshold/2.0)), threshold) * target_velocity
 
     def get_action(self, env):
         if env.k.vehicle.get_speed(self.veh_id) < self.threshold_velocity:
@@ -51,7 +51,7 @@ class SafeAggressiveLaneChanger(BaseLaneChangeController):
             available_headways = lane_headways[max(curr_lane-1,0): min(curr_lane + 1, env.network.net_params.additional_params['lanes']) +1]
             desired_available_lane = np.argmax(available_headways)
             # desired_lane = available_lanes[desired_available_lane]
-            if lane_tailways[desired_available_lane] < 8:
+            if lane_tailways[desired_available_lane] < 5:
                 return 0
             else:
                 return desired_available_lane - 1
