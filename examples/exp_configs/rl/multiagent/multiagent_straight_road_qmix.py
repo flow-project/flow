@@ -49,7 +49,7 @@ additional_env_params.update({
     'target_velocity': 30,
     'local_reward': True,
     'lead_obs': True,
-    "num_actions": 5,
+    "num_actions": 10,
     "max_num_agents_qmix": int(20 * PENETRATION_RATE / 10)
 })
 

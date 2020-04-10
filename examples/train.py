@@ -303,6 +303,9 @@ def train_rllib(submodule, flags):
 
     config['num_workers'] = flags.num_cpus
     config['env'] = gym_name
+    # create a custom string that makes looking at the experiment names easier
+    def trial_str_creator(trial):
+        return "{}_{}".format(trial.trainable_name, trial.experiment_tag)
 
     if flags.local_mode:
         ray.init(local_mode=True)
@@ -314,6 +317,7 @@ def train_rllib(submodule, flags):
         "config": config,
         "checkpoint_freq": flags.checkpoint_freq,
         "checkpoint_at_end": True,
+        'trial_name_creator': trial_str_creator,
         "max_failures": 0,
         "stop": {
             "training_iteration": flags.num_iterations,

@@ -5,7 +5,7 @@ highway with ramps network.
 """
 import numpy as np
 
-from flow.controllers import GhostEdgeController
+from flow.controllers import GhostEdgeController, IDMController
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
                              VehicleParams, SumoParams, SumoLaneChangeParams
@@ -51,14 +51,14 @@ vehicles.add(
     lane_change_params=SumoLaneChangeParams(
         lane_change_mode="strategic",
     ),
-    acceleration_controller=(GhostEdgeController, {"a": .3, "b": 2.0, "noise": 0.5, "ghost_edges": []}),
+    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
 )
 
 if PENETRATION_RATE > 0.0:
     vehicles.add(
         "av",
         num_vehicles=0,
-        acceleration_controller=(FollowerStopper, {"v_des": 19.0}),
+        acceleration_controller=(FollowerStopper, {"v_des": 13.0}),
     )
 
 # add human vehicles on the highway
