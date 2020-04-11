@@ -701,6 +701,10 @@ class KernelVehicle(object):
         """Return (x, y) position of vehicle with veh_id."""
         raise NotImplementedError
 
+    def get_2D_position(self, veh_id, error=-1001):
+        """ see traci class """
+        raise NotImplementedError
+
     def get_accel_without_noise(self, veh_id):
         """Return the acceleration without noise of vehicle with veh_id."""
         raise NotImplementedError
