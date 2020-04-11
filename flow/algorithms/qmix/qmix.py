@@ -46,7 +46,7 @@ DEFAULT_CONFIG = with_common_config({
 
     # === Replay buffer ===
     # Size of the replay buffer in steps.
-    "buffer_size": 10000,
+    "buffer_size": 100000,
 
     # === Optimization ===
     # Learning rate for RMSProp optimizer

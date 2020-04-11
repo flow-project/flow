@@ -46,7 +46,7 @@ additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
 additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
-    'target_velocity': 30,
+    'target_velocity': 18,
     'local_reward': True,
     'lead_obs': True
 })
@@ -78,7 +78,7 @@ inflows.add(
     edge="highway_0",
     vehs_per_hour=int(HIGHWAY_INFLOW_RATE * (1 - PENETRATION_RATE / 100)),
     depart_lane="free",
-    depart_speed="max",
+    depart_speed="23.0",
     name="idm_highway_inflow")
 
 # add autonomous vehicles on the highway
@@ -88,7 +88,7 @@ inflows.add(
     edge="highway_0",
     vehs_per_hour=int(HIGHWAY_INFLOW_RATE * (PENETRATION_RATE / 100)),
     depart_lane="free",
-    depart_speed="max",
+    depart_speed="23.0",
     name="rl_highway_inflow")
 
 # SET UP FLOW PARAMETERS

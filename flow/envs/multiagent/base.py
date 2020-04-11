@@ -126,7 +126,7 @@ class MultiEnv(MultiAgentEnv, Env):
             for rl_id in self.k.vehicle.get_arrived_rl_ids():
                 done[rl_id] = True
                 reward[rl_id] = 0
-                states[rl_id] = np.zeros(self.observation_space.shape[0])
+                states[rl_id] = -1 * np.ones(self.observation_space.shape[0])
 
         return states, reward, done, infos
 
