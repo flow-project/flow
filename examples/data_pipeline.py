@@ -1,7 +1,8 @@
 import pandas as pd
+import numpy as np
 import boto3
 from botocore.exceptions import ClientError
-from examples.query import QueryStrings
+from examples.query import QueryStrings, testing_functions
 from time import time
 
 
@@ -30,11 +31,20 @@ def generate_trajectory_table(data_path, extra_info, partition_name):
     raw_output = raw_output.merge(extra_info, how="left", left_on=["time", "id"], right_on=["time", "id"])
 
     # add the partition column
-    raw_output['partition'] = partition_name
-
+    # raw_output['partition'] = partition_name
+    raw_output = raw_output.sort_values(by=["time", "id"])
     output_file_path = data_path[:-4]+"_trajectory.csv"
     raw_output.to_csv(output_file_path, index=False)
     return output_file_path
+
+
+def generate_trajectory_from_flow(data_path, extra_info, partition_name):
+    extra_info = pd.DataFrame.from_dict(extra_info)
+    # extra_info["partition"] = partition_name
+    extra_info.to_csv(data_path, index=False)
+    upload_only_file_path = data_path[:-4] + "_upload" + ".csv"
+    extra_info.to_csv(upload_only_file_path, index=False, header=False)
+    return upload_only_file_path
 
 
 def upload_to_s3(bucket_name, bucket_key, file_path):
@@ -177,3 +187,40 @@ class AthenaQuery:
             WorkGroup='primary'
         )
         return response['QueryExecutionId']
+
+###########################################################################
+#                  Helpers for testing the SQL Queries                    #
+###########################################################################
+
+
+def test_sql_query(query_name):
+    if query_name not in testing_functions:
+        raise ValueError("no tests supported for this query")
+
+    # Run the respective sql query
+    queryEngine = AthenaQuery()
+    execution_id = queryEngine.run_query(query_name, result_location="s3://brent.experiments/query-result/query-test",
+                                         partition="test")
+    if queryEngine.wait_for_execution(execution_id):
+        raise RuntimeError("execution timed out")
+
+    # get the Athena query result from S3
+    s3 = boto3.resource("s3")
+    s3.Bucket("brent.experiments").download_file("query-result/query-test/"+execution_id+".csv",
+                                                 "data/athena_result.csv")
+    athena_result = pd.read_csv("data/athena_result.csv")
+    athena_result = athena_result.sort_values(by=["time", "id"])
+
+    # get the python expected result
+    expected_result = pd.read_csv("data/test_data.csv")
+    expected_result = expected_result.apply(testing_functions[query_name], axis=1, result_type="expand")
+    expected_result.columns = ["time", "id", "power"]
+    expected_result = expected_result.sort_values(by=["time", "id"])
+
+    difference = athena_result["power"] - expected_result["power"]
+    print("average difference is: " + str(np.mean(difference)))
+    print("std of difference is: " + str(np.std(difference)))
+    print("average ratio of difference to expected is: " +
+          str(np.mean(np.divide(difference, expected_result["power"]))))
+    difference = pd.DataFrame(difference)
+    difference.to_csv("./difference.csv")

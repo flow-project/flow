@@ -1122,6 +1122,9 @@ class TraCIVehicle(KernelVehicle):
     def get_accel_without_noise(self, veh_id):
         return self.__vehicles[veh_id]["accel_without_noise"]
 
+    def get_2D_position(self, veh_id, error=-1001):
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_POSITION, error)
+
     def get_road_grade(self, veh_id):
         # TODO
         return 0

@@ -683,6 +683,10 @@ class KernelVehicle(object):
         """ see traci class """
         raise NotImplementedError
 
+    def get_2D_position(self, veh_id, error=-1001):
+        """ see traci class """
+        raise NotImplementedError
+
     def get_accel_without_noise(self, veh_id):
         """ see traci class """
         raise NotImplementedError
