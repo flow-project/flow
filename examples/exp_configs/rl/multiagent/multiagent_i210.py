@@ -35,7 +35,7 @@ VEH_PER_HOUR_BASE_27414345 = 321
 VEH_PER_HOUR_BASE_27414342 = 421
 
 # percentage of autonomous vehicles compared to human vehicles on highway
-PENETRATION_RATE = 20
+PENETRATION_RATE = 10
 
 # SET UP PARAMETERS FOR THE ENVIRONMENT
 additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
@@ -148,7 +148,8 @@ flow_params = dict(
         render=False,
         color_by_speed=False,
         restart_instance=True,
-        use_ballistic=True
+        use_ballistic=True,
+        disable_collisions=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)

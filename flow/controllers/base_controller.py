@@ -103,7 +103,6 @@ class BaseController:
         # if no acceleration is specified, let sumo take over for the current
         # time step
         if accel is None:
-            print("No action provided by", self.veh_id)
             return None
 
         # add noise to the accelerations, if requested

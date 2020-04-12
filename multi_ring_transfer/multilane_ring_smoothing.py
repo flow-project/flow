@@ -72,7 +72,8 @@ def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length, num
             sim_step=0.5,
             render=False,
             restart_instance=False,
-            use_ballistic=True
+            use_ballistic=True,
+            disable_collisions=True
         ),
 
         # environment related parameters (see flow.core.params.EnvParams)
