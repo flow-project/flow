@@ -365,7 +365,7 @@ class MultiStraightRoadQMIX(I210QMIXMultiEnv):
                 if idx in self.idx_to_rl_id_map.keys() and self.idx_to_rl_id_map[idx] in self.k.vehicle.get_rl_ids():
                     # 0 is the no-op
                     # prevent the AV from blocking the entrance
-                    if action > 0 and self.k.vehicle.get_x_by_id(self.idx_to_rl_id_map[idx]) > 100:
+                    if action > 0 and self.k.vehicle.get_x_by_id(self.idx_to_rl_id_map[idx]) > 200:
                         accel = self.action_values[action - 1]
                         accel_list.append(accel)
                         rl_ids.append(self.idx_to_rl_id_map[idx])
