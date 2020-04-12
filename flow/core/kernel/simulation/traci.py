@@ -88,7 +88,9 @@ class TraCISimulation(KernelSimulation):
                     sumo_binary, "-c", network.cfg,
                     "--remote-port", str(sim_params.port),
                     "--num-clients", str(sim_params.num_clients),
-                    "--step-length", str(sim_params.sim_step)
+                    "--step-length", str(sim_params.sim_step),
+                    "--collision.mingap-factor", str(0),
+                    "--collision.action", str("none")
                 ]
 
                 # use a ballistic integration step (if request)

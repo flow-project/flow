@@ -140,8 +140,8 @@ if __name__ == "__main__":
             # Create the flow_params object
             flow_params_filename = os.path.join(flow_params['sim'].emission_path, flow_params['exp_tag']) + '.json'
             with open(flow_params_filename, 'w') as outfile:
-                    json.dump(flow_params, outfile,
-                            cls=FlowParamsEncoder, sort_keys=True, indent=4)
+                json.dump(flow_params, outfile,
+                          cls=FlowParamsEncoder, sort_keys=True, indent=4)
 
         # Create the experiment object.
         exp = Experiment(flow_params, callables)
@@ -151,7 +151,7 @@ if __name__ == "__main__":
         if flags.show_ts_diagram:
             emission_path = "./data/{0}-emission.csv".format(exp.env.network.name)
             make_ts_diagram(flow_params_filename, emission_path, 0,
-                    30, 0, float('inf'), "Ring Replay {}".format(exp_title))
+                            30, 0, float('inf'), "Ring Replay {}".format(exp_title))
     else:
 
         policy_graphs = getattr(multilane_ring_config, "POLICY_GRAPHS", None)
@@ -235,7 +235,8 @@ if __name__ == "__main__":
                     ray.shutdown()
                     ray.init()
 
-                    replay(args, i210_flow_params, rllib_config=rllib_config, result_dir=folder, output_dir=output_path)
+                    replay(args, i210_flow_params, rllib_config=rllib_config,
+                           result_dir=folder, output_dir=output_path)
 
                     if flags.use_s3:
                         for i in range(4):

@@ -14,8 +14,9 @@ from flow.envs.multiagent import MultiAgentWaveAttenuationPOEnv
 from flow.networks import RingNetwork
 from flow.utils.registry import make_create_env
 
+
 def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length, num_aggressive=0, bunching=0):
-    
+
     vehicles = VehicleParams()
     # Add one automated vehicle.
     vehicles.add(
@@ -32,32 +33,26 @@ def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length, num
         lane_change_params=SumoLaneChangeParams(
             lane_change_mode="strategic",
         ),
-        acceleration_controller=(IDMController, {
-            "a": 0.3, "b": 2.0, "noise": 0.5
-        }),
-        car_following_params=SumoCarFollowingParams(),
-        lane_change_controller=(SafeAggressiveLaneChanger, {"target_velocity": 8.0, "threshold": 1.0}),
-        # lane_change_params=SumoLaneChangeParams(lane_change_mode="no_lat_collide", lcKeepRight=0, lcAssertive=0.5,
-                                        # lcSpeedGain=1.5, lcSpeedGainRight=1.0),
+        acceleration_controller=(IDMController, {"a": 0.3, "b": 2.0, "noise": 0.5}),
+        car_following_params=SumoCarFollowingParams(speed_mode='no_collide'),
+        # lane_change_controller=(SafeAggressiveLaneChanger, {"target_velocity": 8.0, "threshold": 1.0}),
+        # lane_change_params=SumoLaneChangeParams(lcAssertive=0.5,lcSpeedGain=100, lcSpeedGainRight=1.0),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=num_human,
-        initial_speed=0) 
+        initial_speed=5)
 
     vehicles.add(
         "aggressive",
-        lane_change_params=SumoLaneChangeParams(
-            lane_change_mode="no_lat_collide",
-        ),
-        acceleration_controller=(IDMController, {
-            "a":1.5, "b": 0.5, "noise": 0.1, "T":0.0, "s0":2.0
-        }),
-        car_following_params=SumoCarFollowingParams(),
-        lane_change_controller=(SafeAggressiveLaneChanger, {"target_velocity": 100.0, "threshold": 1.0}),
+        acceleration_controller=(IDMController, {"a": 3.0, "b": 8.0, "noise": 0.1, "T": 0.0, "s0": 0.0}),
+        car_following_params=SumoCarFollowingParams(speed_mode='no_collide'),
+        lane_change_controller=(SafeAggressiveLaneChanger, {
+                                "target_velocity": 100.0, "threshold": 1.0, "desired_lc_time_headway": 0.1}),
+        lane_change_params=SumoLaneChangeParams(lane_change_mode="no_lat_collide"),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=num_aggressive,
-        color='green'
+        color='green',
+        initial_speed=5
     )
-
 
     flow_params = dict(
         # name of the experiment
@@ -76,7 +71,8 @@ def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length, num
         sim=SumoParams(
             sim_step=0.5,
             render=False,
-            restart_instance=False
+            restart_instance=False,
+            use_ballistic=True
         ),
 
         # environment related parameters (see flow.core.params.EnvParams)
@@ -111,6 +107,7 @@ def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length, num
     )
 
     return flow_params
+
 
 flow_params = make_flow_params(4000, 22, 1, 1, 220)
 

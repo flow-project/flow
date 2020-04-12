@@ -970,7 +970,7 @@ class TraCIVehicle(KernelVehicle):
             # perform the requested lane action action in TraCI
             if target_lane != this_lane:
                 self.kernel_api.vehicle.changeLane(
-                    veh_id, int(target_lane), 100000)
+                    veh_id, int(target_lane), self.sim_step)
 
                 if veh_id in self.get_rl_ids():
                     self.prev_last_lc[veh_id] = \

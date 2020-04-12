@@ -55,7 +55,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     """
     assert bool(args.controller) ^ bool(rllib_config), \
         "Need to specify either controller or rllib_config, but not both"
-    if args.run_transfer:
+    if transfer_test is not None:
         flow_params = transfer_test.flow_params_modifier_fn(flow_params)
 
     if args.controller:
@@ -341,6 +341,18 @@ def create_parser():
         help='Runs transfer tests if true'
     )
     parser.add_argument(
+        '-pr',
+        '--penetration_rate',
+        type=float,
+        help='Specifies percentage of AVs.',
+        required=False)
+    parser.add_argument(
+        '-apr',
+        '--aggressive_driver_penetration_rate',
+        type=float,
+        help='Specifies aggressive driver percentage.',
+        required=False)
+    parser.add_argument(
         '--output_dir',
         type=str,
         help='Directory to save results.',
@@ -373,4 +385,10 @@ if __name__ == '__main__':
             replay(args, flow_params, output_dir=args.output_dir, transfer_test=transfer_test,
                    rllib_config=rllib_config, result_dir=rllib_result_dir)
     else:
-        replay(args, flow_params, output_dir=args.output_dir, rllib_config=rllib_config, result_dir=rllib_result_dir)
+        if args.penetration_rate is not None or args.aggressive_driver_penetration_rate is not None:
+            single_transfer = next(inflows_range(penetration_rates=args.penetration_rate, aggressive_driver_penetrations=args.aggressive_driver_penetration_rate))
+            replay(args, flow_params, output_dir=args.output_dir, transfer_test=single_transfer,
+                   rllib_config=rllib_config, result_dir=rllib_result_dir)
+        else:
+            replay(args, flow_params, output_dir=args.output_dir,
+                   rllib_config=rllib_config, result_dir=rllib_result_dir)

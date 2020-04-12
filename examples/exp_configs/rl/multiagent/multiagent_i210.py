@@ -9,7 +9,7 @@ import numpy as np
 from ray.tune.registry import register_env
 
 from flow.controllers import RLController
-from flow.controllers.car_following_models import IDMController
+from flow.controllers.car_following_models import IDMController, SimCarFollowingController
 from flow.controllers.lane_change_controllers import SafeAggressiveLaneChanger
 import flow.config as config
 from flow.core.params import EnvParams
@@ -56,24 +56,24 @@ vehicles.add(
     num_vehicles=0,
     lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"),
     acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
+    car_following_params=SumoCarFollowingParams(speed_mode="no_collide")
 )
 vehicles.add(
     "av",
     acceleration_controller=(RLController, {}),
     num_vehicles=0,
+    color='red'
 )
 
 vehicles.add(
     "aggressive",
-    lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="no_lat_collide",
-    ),
-    acceleration_controller=(IDMController, {
-        "a": 0.3, "b": 2.0, "noise": 0.5
-    }),
-    car_following_params=SumoCarFollowingParams(),
-    lane_change_controller=(SafeAggressiveLaneChanger, {"target_velocity": 100.0, "threshold": 1.0}),
+    acceleration_controller=(IDMController, {"a": 3.0, "b": 8.0, "noise": 0.5, "T": 0.0, "s0": 0.0}),
+    car_following_params=SumoCarFollowingParams(speed_mode='no_collide'),
+    lane_change_params=SumoLaneChangeParams(lane_change_mode="no_lat_collide"),
+    lane_change_controller=(SafeAggressiveLaneChanger, {
+                            "target_velocity": 100.0, "threshold": 1.0, "desired_lc_time_headway": 0.1}),
     num_vehicles=0,
+    color='green',
 )
 
 inflow = InFlows()
