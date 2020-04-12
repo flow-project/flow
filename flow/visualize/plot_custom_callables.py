@@ -58,6 +58,10 @@ if __name__ == "__main__":
                 exp_names.append(exp_name)
                 custom_callable_names.update(info_dict.keys())
 
+    idxs = np.argsort(exp_names)
+    exp_names = [exp_names[i] for i in idxs]
+    info_dicts = [info_dicts[i] for i in idxs]
+
     for name in custom_callable_names:
         y_vals = [np.mean(info_dict[name]) for info_dict in info_dicts]
         y_stds = [np.std(info_dict[name]) for info_dict in info_dicts]
