@@ -41,8 +41,7 @@ Here the arguments are:
 2 - the number of the checkpoint
 """
 
-
-@ray.remote()
+@ray.remote
 def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=None, result_dir=None, max_completed_trips=None, v_des=12):
     """Replay or run transfer test (defined by transfer_fn) by modif.
 
@@ -60,6 +59,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     assert bool(args.controller) ^ bool(rllib_config), \
         "Need to specify either controller or rllib_config, but not both"
     if transfer_test is not None:
+        if type(transfer_test) == bytes:
+            transfer_test = ray.cloudpickle.loads(transfer_test)
         flow_params = transfer_test.flow_params_modifier_fn(flow_params)
 
     if args.controller:
@@ -444,9 +445,11 @@ if __name__ == '__main__':
         output_dir = args.output_dir
 
     if args.run_transfer:
+        s = [ray.cloudpickle.dumps(transfer_test) for transfer_test in inflows_range(penetration_rates=[0.0, 0.1, 0.2, 0.3],
+                                                                                     aggressive_driver_penetrations=[0.0, 0.1, 0.2])]
         ray_output = [replay.remote(args, flow_params, output_dir=output_dir, transfer_test=transfer_test,
                                     rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips)
-                      for transfer_test in inflows_range(penetration_rates=[0.0, 0.1, 0.2, 0.3], aggressive_driver_penetrations=[0.0, 0.1, 0.2])]
+                      for transfer_test in s]
         ray.get(ray_output)
 
     elif args.v_des_sweep:
