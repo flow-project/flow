@@ -67,13 +67,15 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands:
-    - cd flow && git fetch && git checkout origin/i210_dev
+    - cd flow && git fetch && git checkout evinitsky/straight_road
 
 head_setup_commands:
     - pip install ray==0.8.0
     - pip install tabulate
     - pip install boto3==1.10.45  # 1.4.8 adds InstanceMarketOptions
     - pip install awscli==1.16.309
+    - pip install stable-baselines
+    - pip install torch==1.4.0
     - pip install pytz
 
 # Custom commands that will be run on worker nodes after common setup.

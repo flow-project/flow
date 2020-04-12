@@ -345,8 +345,7 @@ class MultiStraightRoad(I210MultiEnv):
                 accel = actions[0]
 
                 # prevent the AV from blocking the entrance
-                if self.k.vehicle.get_x_by_id(rl_id) > 100.0:
-                    self.k.vehicle.apply_acceleration(rl_id, accel)
+                self.k.vehicle.apply_acceleration(rl_id, accel)
 
 
 class MultiStraightRoadQMIX(I210QMIXMultiEnv):
@@ -365,7 +364,7 @@ class MultiStraightRoadQMIX(I210QMIXMultiEnv):
                 if idx in self.idx_to_rl_id_map.keys() and self.idx_to_rl_id_map[idx] in self.k.vehicle.get_rl_ids():
                     # 0 is the no-op
                     # prevent the AV from blocking the entrance
-                    if action > 0 and self.k.vehicle.get_x_by_id(self.idx_to_rl_id_map[idx]) > 200:
+                    if action > 0:
                         accel = self.action_values[action - 1]
                         accel_list.append(accel)
                         rl_ids.append(self.idx_to_rl_id_map[idx])
