@@ -568,6 +568,8 @@ class SumoParams(SimParams):
         current time step
     use_ballistic: bool, optional
         If true, use a ballistic integration step instead of an euler step
+    disable_collisions: bool, optional
+        If true, disables explicit collision checking and teleporting in SUMO
     """
 
     def __init__(self,
@@ -589,7 +591,8 @@ class SumoParams(SimParams):
                  teleport_time=-1,
                  num_clients=1,
                  color_by_speed=False,
-                 use_ballistic=False):
+                 use_ballistic=False,
+                 disable_collisions=False):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
@@ -604,6 +607,7 @@ class SumoParams(SimParams):
         self.num_clients = num_clients
         self.color_by_speed = color_by_speed
         self.use_ballistic = use_ballistic
+        self.disable_collisions = disable_collisions
 
 
 class EnvParams:
