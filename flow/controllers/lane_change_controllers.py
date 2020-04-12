@@ -2,6 +2,7 @@
 
 from flow.controllers.base_lane_changing_controller import \
     BaseLaneChangeController
+import numpy as np
 
 
 
