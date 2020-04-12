@@ -42,7 +42,7 @@ Here the arguments are:
 """
 
 
-@ray.remote(memory=1500 * 1024 * 1024)
+@ray.remote()
 def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=None, result_dir=None, max_completed_trips=None, v_des=12):
     """Replay or run transfer test (defined by transfer_fn) by modif.
 
@@ -450,6 +450,8 @@ if __name__ == '__main__':
         ray.get(ray_output)
 
     elif args.v_des_sweep:
+        assert args.controller == 'follower_stopper'
+
         ray_output = [replay.remote(args, flow_params, output_dir="{}/{}".format(output_dir, v_des), rllib_config=rllib_config,
                                     result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips, v_des=v_des)
                       for v_des in range(8, 17, 2)]
@@ -460,11 +462,11 @@ if __name__ == '__main__':
             pr = args.penetration_rate if args.penetration_rate is not None else 0
             apr = args.aggressive_driver_penetration_rate if args.aggressive_driver_penetration_rate is not None else 0
             single_transfer = next(inflows_range(penetration_rates=pr, aggressive_driver_penetrations=apr))
-            replay(args, flow_params, output_dir=output_dir, transfer_test=single_transfer,
-                   rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips)
+            ray.get(replay.remote(args, flow_params, output_dir=output_dir, transfer_test=single_transfer,
+                                  rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips))
         else:
-            replay(args, flow_params, output_dir=output_dir,
-                   rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips)
+            ray.get(replay.remote(args, flow_params, output_dir=output_dir,
+                                  rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips))
 
     if args.use_s3:
         s3_string = 's3://kanaad.experiments/i210_replay/' + date
