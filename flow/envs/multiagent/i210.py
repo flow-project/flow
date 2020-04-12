@@ -123,10 +123,14 @@ class I210MultiEnv(MultiEnv):
             veh_info = {}
             for rl_id in self.k.vehicle.get_rl_ids():
                 speed = self.k.vehicle.get_speed(rl_id)
+                # TODO(@evinitsky) when the vehicle is at the front of the network this might be bad.
+                # Empirically I see the vehicles flip out near the end of the network
                 headway = self.k.vehicle.get_headway(rl_id)
                 lead_speed = self.k.vehicle.get_speed(self.k.vehicle.get_leader(rl_id))
+                # If there's no lead the lead_speed is -1001.
+                # I can't set this to zero, otherwise it looks like the leader is stopped!
                 if lead_speed == -1001:
-                    lead_speed = 0
+                    lead_speed = -100
                 veh_info.update({rl_id: np.array([speed / 50.0, headway / 1000.0, lead_speed / 50.0])})
         else:
             veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
@@ -292,6 +296,7 @@ class I210QMIXMultiEnv(I210MultiEnv):
         if order_agents:
             abs_pos = self.k.vehicle.get_x_by_id(rl_ids)
             rl_ids = [rl_id for _, rl_id in sorted(zip(abs_pos, rl_ids))]
+            rl_ids = rl_ids[::-1]
         self.rl_id_to_idx_map = {rl_id: i for i, rl_id in enumerate(rl_ids)}
         self.idx_to_rl_id_map = {i: rl_id for i, rl_id in enumerate(rl_ids)}
         veh_info_copy.update({self.rl_id_to_idx_map[rl_id]: {"obs": veh_info[rl_id],
@@ -339,8 +344,8 @@ class MultiStraightRoad(I210MultiEnv):
             for rl_id, actions in rl_actions.items():
                 accel = actions[0]
 
-                # we don't apply control on edge 0 which is a ghost edge
-                if self.k.vehicle.get_edge(rl_id) != 'highway_0':
+                # prevent the AV from blocking the entrance
+                if self.k.vehicle.get_x_by_id(rl_id) > 100.0:
                     self.k.vehicle.apply_acceleration(rl_id, accel)
 
 
@@ -348,3 +353,21 @@ class MultiStraightRoadQMIX(I210QMIXMultiEnv):
     def get_state(self, order_agents=True):
         veh_info = super().get_state(order_agents=True)
         return veh_info
+
+    def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
+        # in the warmup steps, rl_actions is None
+        t = time()
+        if rl_actions:
+            accel_list = []
+            rl_ids = []
+            for idx, action in rl_actions.items():
+                if idx in self.idx_to_rl_id_map.keys() and self.idx_to_rl_id_map[idx] in self.k.vehicle.get_rl_ids():
+                    # 0 is the no-op
+                    # prevent the AV from blocking the entrance
+                    if action > 0 and self.k.vehicle.get_x_by_id(self.idx_to_rl_id_map[idx]) > 100:
+                        accel = self.action_values[action - 1]
+                        accel_list.append(accel)
+                        rl_ids.append(self.idx_to_rl_id_map[idx])
+            self.k.vehicle.apply_acceleration(rl_ids, accel_list)
+        # print('time to apply actions is ', time() - t)

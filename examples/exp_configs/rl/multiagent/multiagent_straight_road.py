@@ -118,7 +118,8 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.5,
         render=False,
-        restart_instance=True
+        use_ballistic=True,
+        restart_instance=False
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

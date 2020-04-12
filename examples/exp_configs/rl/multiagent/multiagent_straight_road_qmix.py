@@ -22,7 +22,7 @@ HORIZON = 2000
 # inflow rate on the highway in vehicles per hour
 HIGHWAY_INFLOW_RATE = 10800 / 5
 # percentage of autonomous vehicles compared to human vehicles on highway
-PENETRATION_RATE = 10
+PENETRATION_RATE = 10.0
 
 
 # SET UP PARAMETERS FOR THE NETWORK
@@ -46,11 +46,11 @@ additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
 additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
-    'target_velocity': 20,
+    'target_velocity': 18,
     'local_reward': True,
     'lead_obs': True,
     "num_actions": 10,
-    "max_num_agents_qmix": int(20 * PENETRATION_RATE / 10)
+    "max_num_agents_qmix": int(10 * PENETRATION_RATE / 10)
 })
 
 
