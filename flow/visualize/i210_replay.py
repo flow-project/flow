@@ -1,10 +1,13 @@
 """Transfer and replay for i210 environment."""
 import argparse
+from datetime import datetime
 from collections import defaultdict
 from copy import deepcopy
 import numpy as np
 import json
 import os
+import pytz
+import subprocess
 import time
 
 import ray
@@ -14,13 +17,13 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
 
-from flow.core.util import emission_to_csv
+from flow.core.util import emission_to_csv, ensure_dir
+from flow.core.rewards import vehicle_energy_consumption
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
 from flow.utils.rllib import get_rllib_pkl
 from flow.utils.rllib import FlowParamsEncoder
-
 
 from flow.visualize.transfer.util import inflows_range
 
@@ -39,7 +42,8 @@ Here the arguments are:
 """
 
 
-def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=None, result_dir=None):
+@ray.remote(memory=1500 * 1024 * 1024)
+def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=None, result_dir=None, max_completed_trips=None, v_des=12):
     """Replay or run transfer test (defined by transfer_fn) by modif.
 
     Arguments:
@@ -70,7 +74,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         elif args.controller == 'follower_stopper':
             from flow.controllers.velocity_controllers import FollowerStopper
             controller = FollowerStopper
-            test_params.update({'v_des': 15})
+            test_params.update({'v_des': v_des})
+            # flow_params['veh'].type_parameters['av']['car_following_params']
         elif args.controller == 'sumo':
             from flow.controllers.car_following_models import SimCarFollowingController
             controller = SimCarFollowingController
@@ -184,15 +189,24 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     info_dict = {
         "velocities": [],
         "outflows": [],
+        "avg_trip_energy": [],
+        "avg_trip_time": [],
+        "total_completed_trips": []
     }
     info_dict.update({
         key: [] for key in custom_callables.keys()
     })
 
-    for i in range(args.num_rollouts):
+    i = 0
+    while i < args.num_rollouts:
+        print("Rollout iter", i)
         vel = []
+        per_vehicle_energy_trace = defaultdict(lambda: [])
+        completed_vehicle_avg_energy = {}
+        completed_vehicle_travel_time = {}
         custom_vals = {key: [] for key in custom_callables.keys()}
         state = env.reset()
+        initial_vehicles = set(env.k.vehicle.get_ids())
         for _ in range(env_params.horizon):
             if rllib_config:
                 if multiagent:
@@ -224,17 +238,38 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             for (key, lambda_func) in custom_callables.items():
                 custom_vals[key].append(lambda_func(env))
 
+            for past_veh_id in per_vehicle_energy_trace.keys():
+                if past_veh_id not in veh_ids:
+                    completed_vehicle_avg_energy[past_veh_id] = np.sum(per_vehicle_energy_trace[past_veh_id])
+                    completed_vehicle_travel_time[past_veh_id] = len(per_vehicle_energy_trace[past_veh_id])
+
+            for veh_id in veh_ids:
+                if veh_id not in initial_vehicles:
+                    if veh_id not in per_vehicle_energy_trace:
+                        # we have to skip the first step's energy calculation
+                        per_vehicle_energy_trace[veh_id].append(0)
+                    else:
+                        per_vehicle_energy_trace[veh_id].append(-1*vehicle_energy_consumption(env, veh_id))
+
             if type(done) is dict and done['__all__']:
                 break
             elif type(done) is not dict and done:
                 break
-
-        # Store the information from the run in info_dict.
-        outflow = env.k.vehicle.get_outflow_rate(int(500))
-        info_dict["velocities"].append(np.mean(vel))
-        info_dict["outflows"].append(outflow)
-        for key in custom_vals.keys():
-            info_dict[key].append(np.mean(custom_vals[key]))
+            elif max_completed_trips is not None and len(completed_vehicle_avg_energy) > max_completed_trips:
+                break
+        if env.crash:
+            print("Crash on iter", i)
+        else:
+            # Store the information from the run in info_dict.
+            outflow = env.k.vehicle.get_outflow_rate(int(500))
+            info_dict["velocities"].append(np.mean(vel))
+            info_dict["outflows"].append(outflow)
+            info_dict["avg_trip_energy"].append(np.mean(list(completed_vehicle_avg_energy.values())))
+            info_dict["avg_trip_time"].append(np.mean(list(completed_vehicle_travel_time.values())))
+            info_dict["total_completed_trips"].append(len(list(completed_vehicle_avg_energy.values())))
+            for key in custom_vals.keys():
+                info_dict[key].append(np.mean(custom_vals[key]))
+            i += 1
 
     print('======== Summary of results ========')
     if args.run_transfer:
@@ -250,6 +285,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     env.unwrapped.terminate()
 
     if output_dir:
+        ensure_dir(output_dir)
         if args.run_transfer:
             exp_name = "{}-replay".format(transfer_test.transfer_str)
         else:
@@ -353,15 +389,35 @@ def create_parser():
         help='Specifies aggressive driver percentage.',
         required=False)
     parser.add_argument(
+        '-mct',
+        '--max_completed_trips',
+        type=int,
+        help='Terminate rollout after max_completed_trips vehicles have started and ended.',
+        default=None)
+    parser.add_argument(
+        '--v_des_sweep',
+        action='store_true',
+        help='Runs a sweep over v_des params.',
+        default=None)
+    parser.add_argument(
         '--output_dir',
         type=str,
         help='Directory to save results.',
         default=None
     )
+    parser.add_argument('--use_s3', action='store_true', help='If true, upload results to s3')
+    parser.add_argument('--num_cpus', type=int, default=1, help='Number of cpus to run experiment with')
+    parser.add_argument('--multi_node', action='store_true', help='Set to true if this will '
+                                                                  'be run in cluster mode')
+    parser.add_argument('--exp_title', type=str, required=False, default=None,
+                        help='Informative experiment title to help distinguish results')
     return parser
 
 
 if __name__ == '__main__':
+    date = datetime.now(tz=pytz.utc)
+    date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
+
     parser = create_parser()
     args = parser.parse_args()
 
@@ -375,20 +431,49 @@ if __name__ == '__main__':
 
     flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
 
-    if args.local:
-        ray.init(num_cpus=1, object_store_memory=200 * 1024 * 1024)
+    if args.multi_node:
+        ray.init(redis_address='localhost:6379')
+    elif args.local:
+        ray.init(local_mode=True, object_store_memory=200 * 1024 * 1024)
     else:
-        ray.init(num_cpus=1)
+        ray.init(num_cpus=args.num_cpus + 1, object_store_memory=200 * 1024 * 1024)
+
+    if args.exp_title:
+        output_dir = os.path.join(args.output_dir, args.exp_title)
+    else:
+        output_dir = args.output_dir
 
     if args.run_transfer:
-        for transfer_test in inflows_range(penetration_rates=[0.05, 0.1, 0.2], flow_rate_coefs=[0.8, 1.0, 1.2]):
-            replay(args, flow_params, output_dir=args.output_dir, transfer_test=transfer_test,
-                   rllib_config=rllib_config, result_dir=rllib_result_dir)
+        ray_output = [replay.remote(args, flow_params, output_dir=output_dir, transfer_test=transfer_test,
+                                    rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips)
+                      for transfer_test in inflows_range(penetration_rates=[0.0, 0.1, 0.2, 0.3], aggressive_driver_penetrations=[0.0, 0.1, 0.2])]
+        ray.get(ray_output)
+
+    elif args.v_des_sweep:
+        ray_output = [replay.remote(args, flow_params, output_dir="{}/{}".format(output_dir, v_des), rllib_config=rllib_config,
+                                    result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips, v_des=v_des)
+                      for v_des in range(8, 17, 2)]
+        ray.get(ray_output)
+
     else:
         if args.penetration_rate is not None or args.aggressive_driver_penetration_rate is not None:
-            single_transfer = next(inflows_range(penetration_rates=args.penetration_rate, aggressive_driver_penetrations=args.aggressive_driver_penetration_rate))
-            replay(args, flow_params, output_dir=args.output_dir, transfer_test=single_transfer,
-                   rllib_config=rllib_config, result_dir=rllib_result_dir)
+            pr = args.penetration_rate if args.penetration_rate is not None else 0
+            apr = args.aggressive_driver_penetration_rate if args.aggressive_driver_penetration_rate is not None else 0
+            single_transfer = next(inflows_range(penetration_rates=pr, aggressive_driver_penetrations=apr))
+            replay(args, flow_params, output_dir=output_dir, transfer_test=single_transfer,
+                   rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips)
         else:
-            replay(args, flow_params, output_dir=args.output_dir,
-                   rllib_config=rllib_config, result_dir=rllib_result_dir)
+            replay(args, flow_params, output_dir=output_dir,
+                   rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips)
+
+    if args.use_s3:
+        s3_string = 's3://kanaad.experiments/i210_replay/' + date
+        if args.exp_title:
+            s3_string += '/' + args.exp_title
+
+        for i in range(4):
+            try:
+                p1 = subprocess.Popen("aws s3 sync {} {}".format(output_dir, s3_string).split(' '))
+                p1.wait(50)
+            except Exception as e:
+                print('This is the error ', e)

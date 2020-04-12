@@ -23,7 +23,6 @@ def make_inflows(pr=0.1, fr_coef=1.0, departSpeed=20, on_ramp=False, apr=0.0):
     inflow = InFlows()
     # main highway
     assert pr < 1.0, "your penetration rate is over 100%"
-    assert pr > 0.0, "your penetration rate should be above zero"
 
     assert apr < 1.0, "Aggressive driver rate should be below 100%"
     assert apr + pr < 1.0, "Combined rate should be less than 100%"
@@ -37,14 +36,16 @@ def make_inflows(pr=0.1, fr_coef=1.0, departSpeed=20, on_ramp=False, apr=0.0):
                             # probability=1.0,
                             departLane="random",
                             departSpeed=departSpeed)
-    inflow_119257914_av = dict(veh_type="av",
-                               edge="119257914",
-                               vehs_per_hour=int(VEH_PER_HOUR_BASE_119257914 * pr * fr_coef),
-                               # probability=1.0,
-                               departLane="random",
-                               departSpeed=departSpeed)
+    all_inflows.append(inflow_119257914)
 
-    all_inflows.extend([inflow_119257914, inflow_119257914_av])
+    if pr > 0.0:
+        inflow_119257914_av = dict(veh_type="av",
+                                   edge="119257914",
+                                   vehs_per_hour=int(VEH_PER_HOUR_BASE_119257914 * pr * fr_coef),
+                                   # probability=1.0,
+                                   departLane="random",
+                                   departSpeed=departSpeed)
+        all_inflows.append(inflow_119257914_av)
 
     if apr > 0.0:
         inflow_119257914_aggro = dict(veh_type="aggressive",
@@ -54,7 +55,7 @@ def make_inflows(pr=0.1, fr_coef=1.0, departSpeed=20, on_ramp=False, apr=0.0):
                                       # probability=1.0,
                                       departLane="random",
                                       departSpeed=departSpeed)
-        all_inflows.extend([inflow_119257914_aggro])
+        all_inflows.append(inflow_119257914_aggro)
 
     if on_ramp:
         inflow_27414345 = dict(veh_type="human",
@@ -63,13 +64,14 @@ def make_inflows(pr=0.1, fr_coef=1.0, departSpeed=20, on_ramp=False, apr=0.0):
                                (1 - (pr + apr)) * fr_coef,
                                departLane="random",
                                departSpeed=departSpeed)
-
-        inflow_27414342 = dict(veh_type="human",
-                               edge="27414342#0",
-                               vehs_per_hour=VEH_PER_HOUR_BASE_27414342 * pr * fr_coef,
-                               departLane="random",
-                               departSpeed=departSpeed)
-        all_inflows.extend([inflow_27414345, inflow_27414342])
+        all_inflows.append(inflow_27414345)
+        if pr > 0.0:
+            inflow_27414342 = dict(veh_type="human",
+                                edge="27414342#0",
+                                vehs_per_hour=VEH_PER_HOUR_BASE_27414342 * pr * fr_coef,
+                                departLane="random",
+                                departSpeed=departSpeed)
+            all_inflows.append(inflow_27414342)
 
     for inflow_def in all_inflows:
         inflow.add(**inflow_def)
@@ -116,8 +118,8 @@ class InflowTransfer(BaseTransfer):
         self.departSpeed = departSpeed
         self.aggressive_driver_penetration = aggressive_driver_penetration
 
-        self.transfer_str = "{:0.2f}_pen_{:0.2f}_flow_rate_coef_{:0.2f}_depspeed".format(
-            penetration_rate, flow_rate_coef, departSpeed)
+        self.transfer_str = "{:0.2f}_pen_{:0.2f}_flow_rate_coef_{:0.2f}_depspeed_{:0.2f}_apr".format(
+            penetration_rate, flow_rate_coef, departSpeed, aggressive_driver_penetration)
 
     def flow_params_modifier_fn(self, flow_params, clone_params=True):
         """See Parent."""
