@@ -13,18 +13,6 @@ import sys
 from time import strftime
 from copy import deepcopy
 
-from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
-from stable_baselines import PPO2
-
-import ray
-from ray import tune
-from ray.tune import run_experiments
-from ray.tune.registry import register_env
-try:
-    from ray.rllib.agents.agent import get_agent_class
-except ImportError:
-    from ray.rllib.agents.registry import get_agent_class
-
 from flow.core.util import ensure_dir
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
@@ -181,6 +169,15 @@ def setup_exps_rllib(flow_params,
 
 def train_rllib(submodule, flags):
     """Train policies using the PPO algorithm in RLlib."""
+    import ray
+    from ray import tune
+    from ray.tune import run_experiments
+    from ray.tune.registry import register_env
+    try:
+        from ray.rllib.agents.agent import get_agent_class
+    except ImportError:
+        from ray.rllib.agents.registry import get_agent_class
+
     flow_params = submodule.flow_params
     n_cpus = submodule.N_CPUS
     n_rollouts = submodule.N_ROLLOUTS
@@ -317,6 +314,9 @@ def train_h_baselines(flow_params, args, multiagent):
 
 def train_stable_baselines(submodule, flags):
     """Train policies using the PPO algorithm in stable-baselines."""
+    from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
+    from stable_baselines import PPO2
+
     flow_params = submodule.flow_params
     # Path to the saved files
     exp_tag = flow_params['exp_tag']
