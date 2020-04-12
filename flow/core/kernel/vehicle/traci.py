@@ -18,6 +18,11 @@ from copy import deepcopy
 WHITE = (255, 255, 255)
 CYAN = (0, 255, 255)
 RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+STEPS = 10
+rdelta = 255 / STEPS
+# smoothly go from red to green as the speed increases
+color_bins = [[int(255 - rdelta * i), int(rdelta * i), 0] for i in range(STEPS + 1)]
 
 
 class TraCIVehicle(KernelVehicle):
@@ -72,9 +77,13 @@ class TraCIVehicle(KernelVehicle):
 
         # whether or not to automatically color vehicles
         try:
-            self._color_vehicles = sim_params.color_vehicles
+            self._color_by_speed = sim_params.color_by_speed
+            self._force_color_update = sim_params.force_color_update
         except AttributeError:
-            self._color_vehicles = False
+            self._force_color_update = False
+
+        # old speeds used to compute accelerations
+        self.previous_speeds = {}
 
     def initialize(self, vehicles):
         """Initialize vehicle state information.
@@ -121,8 +130,11 @@ class TraCIVehicle(KernelVehicle):
             specifies whether the simulator was reset in the last simulation
             step
         """
+        # copy over the previous speeds
+
         vehicle_obs = {}
         for veh_id in self.__ids:
+            self.previous_speeds[veh_id] = self.get_speed(veh_id)
             vehicle_obs[veh_id] = \
                 self.kernel_api.vehicle.getSubscriptionResults(veh_id)
         sim_obs = self.kernel_api.simulation.getSubscriptionResults()
@@ -299,7 +311,6 @@ class TraCIVehicle(KernelVehicle):
         if accel_controller[0] == RLController:
             if veh_id not in self.__rl_ids:
                 self.__rl_ids.append(veh_id)
-                self.num_rl_vehicles += 1
         else:
             if veh_id not in self.__human_ids:
                 self.__human_ids.append(veh_id)
@@ -350,11 +361,16 @@ class TraCIVehicle(KernelVehicle):
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
+        self.num_rl_vehicles = len(self.__rl_ids)
 
         # get the subscription results from the new vehicle
         new_obs = self.kernel_api.vehicle.getSubscriptionResults(veh_id)
 
         return new_obs
+
+    def reset(self):
+        """See parent class."""
+        self.previous_speeds = {}
 
     def remove(self, veh_id):
         """See parent class."""
@@ -506,6 +522,12 @@ class TraCIVehicle(KernelVehicle):
             return self._departed_ids[-1]
         else:
             return 0
+
+    def get_previous_speed(self, veh_id, error=-1001):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_previous_speed(vehID, error) for vehID in veh_id]
+        return self.previous_speeds.get(veh_id, 0)
 
     def get_speed(self, veh_id, error=-1001):
         """See parent class."""
@@ -984,8 +1006,10 @@ class TraCIVehicle(KernelVehicle):
         """
         for veh_id in self.get_rl_ids():
             try:
-                # color rl vehicles red
-                self.set_color(veh_id=veh_id, color=RED)
+                # If vehicle is already being colored via argument to vehicles.add(), don't re-color it.
+                if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                    # color rl vehicles red
+                    self.set_color(veh_id=veh_id, color=RED)
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating rl vehicle colors:', e)
 
@@ -993,9 +1017,32 @@ class TraCIVehicle(KernelVehicle):
         for veh_id in self.get_human_ids():
             try:
                 color = CYAN if veh_id in self.get_observed_ids() else WHITE
-                self.set_color(veh_id=veh_id, color=color)
+                # If vehicle is already being colored via argument to vehicles.add(), don't re-color it.
+                if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                    self.set_color(veh_id=veh_id, color=color)
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating human vehicle colors:', e)
+
+        for veh_id in self.get_ids():
+            try:
+                if 'av' in veh_id:
+                    color = RED
+                    # If vehicle is already being colored via argument to vehicles.add(), don't re-color it.
+                    if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                        self.set_color(veh_id=veh_id, color=color)
+            except (FatalTraCIError, TraCIException) as e:
+                print('Error when updating human vehicle colors:', e)
+
+        # color vehicles by speed if desired
+        if self._color_by_speed:
+            max_speed = self.master_kernel.network.max_speed()
+            speed_ranges = np.linspace(0, max_speed, STEPS)
+            for veh_id in self.get_ids():
+                veh_speed = self.get_speed(veh_id)
+                bin_index = np.digitize(veh_speed, speed_ranges)
+                # If vehicle is already being colored via argument to vehicles.add(), don't re-color it.
+                if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                    self.set_color(veh_id=veh_id, color=color_bins[bin_index])
 
         # clear the list of observed vehicles
         for veh_id in self.get_observed_ids():
@@ -1014,10 +1061,9 @@ class TraCIVehicle(KernelVehicle):
 
         The last term for sumo (transparency) is set to 255.
         """
-        if self._color_vehicles:
-            r, g, b = color
-            self.kernel_api.vehicle.setColor(
-                vehID=veh_id, color=(r, g, b, 255))
+        r, g, b = color
+        self.kernel_api.vehicle.setColor(
+            vehID=veh_id, color=(r, g, b, 255))
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""

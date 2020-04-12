@@ -129,7 +129,10 @@ class Env(gym.Env):
         self.network = scenario if scenario is not None else network
         self.net_params = self.network.net_params
         self.initial_config = self.network.initial_config
-        self.sim_params = sim_params
+        self.sim_params = deepcopy(sim_params)
+        # check whether we should be rendering
+        self.should_render = self.sim_params.render
+        self.sim_params.render = False
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
             # 1.0 works with stress_test_start 10k times
@@ -153,7 +156,7 @@ class Env(gym.Env):
 
         # create the Flow kernel
         self.k = Kernel(simulator=self.simulator,
-                        sim_params=sim_params)
+                        sim_params=self.sim_params)
 
         # use the network class's network parameters to generate the necessary
         # network components within the network kernel
@@ -166,7 +169,7 @@ class Env(gym.Env):
         # the network kernel as an input in order to determine what network
         # needs to be simulated.
         kernel_api = self.k.simulation.start_simulation(
-            network=self.k.network, sim_params=sim_params)
+            network=self.k.network, sim_params=self.sim_params)
 
         # pass the kernel api to the kernel and it's subclasses
         self.k.pass_api(kernel_api)
@@ -392,8 +395,9 @@ class Env(gym.Env):
 
         # test if the environment should terminate due to a collision or the
         # time horizon being met
-        done = (self.time_counter >= self.env_params.warmup_steps +
-                self.env_params.horizon)  # or crash
+        done = (self.time_counter >= self.env_params.sims_per_step *
+                (self.env_params.warmup_steps + self.env_params.horizon)
+                or crash)
 
         # compute the info for each agent
         infos = {}
@@ -425,6 +429,13 @@ class Env(gym.Env):
         """
         # reset the time counter
         self.time_counter = 0
+
+        # Now that we've passed the possibly fake init steps some rl libraries
+        # do, we can feel free to actually render things
+        if self.should_render:
+            self.sim_params.render = True
+            # got to restart the simulation to make it actually display anything
+            self.restart_simulation(self.sim_params)
 
         # warn about not using restart_instance when using inflows
         if len(self.net_params.inflows.get()) > 0 and \
@@ -475,6 +486,9 @@ class Env(gym.Env):
                 self.k.vehicle.remove(veh_id)
             except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
+
+        # do any additional resetting of the vehicle class needed
+        self.k.vehicle.reset()
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
