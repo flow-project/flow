@@ -156,7 +156,7 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         sims_per_step=1,
-        warmup_steps=800,
+        warmup_steps=700,
         additional_params=additional_env_params,
     ),
 
