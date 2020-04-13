@@ -236,8 +236,9 @@ if __name__ == "__main__":
                     ray.shutdown()
                     ray.init()
 
-                    replay(args, i210_flow_params, rllib_config=rllib_config,
-                           result_dir=folder, output_dir=output_path)
+                    ray_replay = replay.remote(args, i210_flow_params, rllib_config=rllib_config,
+                                               result_dir=folder, output_dir=output_path)
+                    ray.get(ray_replay)
 
                     if flags.use_s3:
                         for i in range(4):
