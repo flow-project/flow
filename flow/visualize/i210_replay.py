@@ -390,6 +390,11 @@ def create_parser():
         help='Specifies aggressive driver percentage.',
         required=False)
     parser.add_argument(
+        '--v_des',
+        type=float,
+        help='Specifies v des for follower stopper.',
+        default=12.0)
+    parser.add_argument(
         '-mct',
         '--max_completed_trips',
         type=int,
@@ -448,7 +453,8 @@ if __name__ == '__main__':
         s = [ray.cloudpickle.dumps(transfer_test) for transfer_test in inflows_range(penetration_rates=[0.0, 0.1, 0.2, 0.3],
                                                                                      aggressive_driver_penetrations=[0.0, 0.1, 0.2])]
         ray_output = [replay.remote(args, flow_params, output_dir=output_dir, transfer_test=transfer_test,
-                                    rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips)
+                                    rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips,
+                                    v_des=args.v_des)
                       for transfer_test in s]
         ray.get(ray_output)
 
