@@ -79,6 +79,7 @@ def parse_flags(args):
     parser.add_argument('--num_av', type=int, default=2)
     parser.add_argument('--num_aggressive', type=int, default=0)
     parser.add_argument('--ring_length', type=int, default=220)
+    parser.add_argument('--horizon', type=int, default=1000)
 
     parser.add_argument('--simulate', action='store_true', help='If true, simulate instead of train')
     parser.add_argument('--v_des', type=int,
@@ -99,7 +100,7 @@ if __name__ == "__main__":
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
 
-    flow_params = multilane_ring_config.make_flow_params(1000, flags.num_total_veh,
+    flow_params = multilane_ring_config.make_flow_params(flags.horizon, flags.num_total_veh,
                                                          flags.num_av, flags.num_lanes, flags.ring_length,
                                                          num_aggressive=flags.num_aggressive)
 
@@ -230,7 +231,7 @@ if __name__ == "__main__":
                     i210_flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
 
                     args = Namespace(controller=None, run_transfer=None, render_mode=None, gen_emission=None,
-                                     evaluate=None, horizon=None, num_rollouts=2, save_render=False, checkpoint_num=checkpoint_num)
+                                     evaluate=None, horizon=flags.horizon, num_rollouts=2, save_render=False, checkpoint_num=checkpoint_num)
 
                     ray.shutdown()
                     ray.init()
