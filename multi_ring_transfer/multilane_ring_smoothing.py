@@ -79,7 +79,7 @@ def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length, num
         # environment related parameters (see flow.core.params.EnvParams)
         env=EnvParams(
             horizon=horizon,
-            warmup_steps=500,
+            warmup_steps=0,
             clip_actions=False,
             additional_params={
                 "max_accel": 2.6,
