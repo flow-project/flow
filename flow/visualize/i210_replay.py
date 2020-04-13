@@ -209,7 +209,6 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         state = env.reset()
         initial_vehicles = set(env.k.vehicle.get_ids())
         for _ in range(env_params.horizon):
-
             if rllib_config:
                 if multiagent:
                     action = {}

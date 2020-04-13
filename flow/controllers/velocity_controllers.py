@@ -28,7 +28,7 @@ class FollowerStopper(BaseController):
                  v_des=15):
         """Instantiate FollowerStopper."""
         BaseController.__init__(
-            self, veh_id, car_following_params, delay=1.0,
+            self, veh_id, car_following_params, delay=0.0,
             fail_safe='safe_velocity')
 
         # desired speed of the vehicle

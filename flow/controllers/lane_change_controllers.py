@@ -5,7 +5,6 @@ from flow.controllers.base_lane_changing_controller import \
 import numpy as np
 
 
-
 class SimLaneChangeController(BaseLaneChangeController):
     """A controller used to enforce sumo lane-change dynamics on a vehicle.
 
