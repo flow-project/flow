@@ -130,7 +130,7 @@ class I210MultiEnv(MultiEnv):
                 # If there's no lead the lead_speed is -1001.
                 # I can't set this to zero, otherwise it looks like the leader is stopped!
                 if lead_speed == -1001:
-                    lead_speed = -100
+                    lead_speed = -200
                 veh_info.update({rl_id: np.array([speed / 50.0, headway / 1000.0, lead_speed / 50.0])})
         else:
             veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
