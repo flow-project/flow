@@ -15,9 +15,24 @@ from flow.core.params import InitialConfig
 from flow.core.params import InFlows
 import flow.config as config
 from flow.envs import TestEnv
-from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
-ON_RAMP = True
+WANT_GHOST_CELL = False
+
+highway_start_edge = ''
+
+if(WANT_GHOST_CELL):
+    from flow.networks.i210_subnetwork_ghost_cell import I210SubNetwork, EDGES_DISTRIBUTION
+    highway_start_edge = 'ghost0'
+else:
+    from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
+    highway_start_edge = "119257914"
+
+
+
+ON_RAMP = False
+
+param_dict = {"a": 0.3, "b": 2.0, "noise": 0.5}
+
 
 if ON_RAMP:
     vehicles = VehicleParams()
@@ -27,9 +42,7 @@ if ON_RAMP:
         lane_change_params=SumoLaneChangeParams(
             lane_change_mode="strategic",
         ),
-        acceleration_controller=(IDMController, {
-            "a": 0.6, "b": 6.0, "noise": 0.5
-        }),
+        acceleration_controller=(IDMController, param_dict),
         routing_controller=(I210Router, {})
     )
 
@@ -42,37 +55,43 @@ else:
         lane_change_params=SumoLaneChangeParams(
             lane_change_mode="strategic",
         ),
-        acceleration_controller=(IDMController, {
-            "a": 0.6, "b": 6.0, "noise": 0.5
-        }),
+        acceleration_controller=(IDMController, param_dict),
     )
 
 inflow = InFlows()
 # main highway
 inflow.add(
     veh_type="human",
-    edge="119257914",
+    edge=highway_start_edge,
     vehs_per_hour=10800,
     departLane="best",
-    departSpeed=23.0)
+    departSpeed=20.0)
 # on ramp
 if ON_RAMP:
     inflow.add(
         veh_type="human",
         edge="27414345",
-        vehs_per_hour=321,
+        vehs_per_hour=500,
         departLane="random",
-        departSpeed=20)
+        departSpeed=10)
     inflow.add(
         veh_type="human",
         edge="27414342#0",
-        vehs_per_hour=421,
+        vehs_per_hour=500,
         departLane="random",
-        departSpeed=20)
+        departSpeed=10)
 
-NET_TEMPLATE = os.path.join(
-    config.PROJECT_PATH,
-    "examples/exp_configs/templates/sumo/test2.net.xml")
+
+NET_TEMPLATE = ''
+
+if(WANT_GHOST_CELL):
+    NET_TEMPLATE = os.path.join(
+        config.PROJECT_PATH,
+        "examples/exp_configs/templates/sumo/i210_with_ghost_cell.xml")
+else:
+    NET_TEMPLATE = os.path.join(
+        config.PROJECT_PATH,
+        "examples/exp_configs/templates/sumo/test2.net.xml")
 
 flow_params = dict(
     # name of the experiment
@@ -89,7 +108,7 @@ flow_params = dict(
 
     # simulation-related parameters
     sim=SumoParams(
-        sim_step=0.2,
+        sim_step=0.5,
         render=False,
         color_by_speed=True,
         use_ballistic=True
