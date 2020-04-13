@@ -7,6 +7,7 @@ from flow.controllers.car_following_models import IDMController
 
 
 class Runner(object):
+    """ Class to run imitation learning (training and evaluation) """
 
     def __init__(self, params):
 
@@ -18,6 +19,12 @@ class Runner(object):
 
         self.trainer.run_training_loop(n_iter=self.params['n_iter'])
 
+    def evaluate(self):
+        self.trainer.evaluate_controller(num_trajs=self.params['num_eval_episodes'])
+
+    def save_controller_network(self):
+        self.trainer.save_controller_network()
+
 
 def main():
     import argparse
@@ -28,27 +35,44 @@ def main():
     parser.add_argument('--n_iter', '-n', type=int, default=5)
 
     parser.add_argument('--batch_size', type=int, default=1000)  # training data collected (in the env) during each iteration
-    parser.add_argument('--init_batch_size', type=int, default=5000)
+    parser.add_argument('--init_batch_size', type=int, default=3000)
 
     parser.add_argument('--train_batch_size', type=int,
                         default=100)  # number of sampled data points to be used per gradient/train step
 
-    parser.add_argument('--num_layers', type=int, default=2)  # depth, of policy to be learned
+    parser.add_argument('--num_layers', type=int, default=3)  # depth, of policy to be learned
     parser.add_argument('--size', type=int, default=64)  # width of each layer, of policy to be learned
     parser.add_argument('--learning_rate', '-lr', type=float, default=5e-3)  # learning rate for supervised learning
     parser.add_argument('--replay_buffer_size', type=int, default=1000000)
+    parser.add_argument('--save_path', type=str, default='')
+    parser.add_argument('--save_model', type=int, default=0)
+    parser.add_argument('--num_eval_episodes', type=int, default=10)
+    parser.add_argument('--inject_noise', type=int, default=0)
+    parser.add_argument('--noise_variance',type=float, default=0.5)
+    parser.add_argument('--vehicle_id',type=str, default='rl_0')
 
     args = parser.parse_args()
 
     # convert args to dictionary
     params = vars(args)
-
-    assert args.n_iter>1, ('DAGGER needs more than 1 iteration (n_iter>1) of training, to iteratively query the expert and train (after 1st warmstarting from behavior cloning).')
+    print("INJECT: ", params['inject_noise'])
+    assert args.n_iter>1, ('DAgger needs >1 iteration')
 
 
     # run training
     train = Runner(params)
     train.run_training_loop()
+
+    # evaluate
+    train.evaluate()
+    print("DONE")
+
+    if params['save_model'] == 1:
+        train.save_controller_network()
+
+    # tensorboard
+    writer = tf.summary.FileWriter('./graphs2', tf.get_default_graph())
+
 
 if __name__ == "__main__":
     main()

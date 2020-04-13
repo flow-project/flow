@@ -6,13 +6,17 @@ import tensorflow as tf
 import gym
 import os
 from flow.utils.registry import make_create_env
-from env_params_test import flow_params
-from imitating_controller2 import ImitatingController
+from bottleneck_env import flow_params
+from imitating_controller import ImitatingController
 from flow.controllers.car_following_models import IDMController
+from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import SumoCarFollowingParams
 from utils import *
 
 class Trainer(object):
+    """
+    Class to initialize and run training for imitation learning (with DAgger)
+    """
 
     def __init__(self, params):
         self.params = params
@@ -22,33 +26,31 @@ class Trainer(object):
         self.env = create_env()
         self.env.reset()
 
-        # might need to replace this hardcode
-        assert 'rl_0' in self.env.k.vehicle.get_ids()
-        self.vehicle_id = 'rl_0'
+        assert self.params['vehicle_id'] in self.env.k.vehicle.get_ids()
+        self.vehicle_id = self.params['vehicle_id']
 
         obs_dim = self.env.observation_space.shape[0]
 
-        # TODO: make sure this is correct
         action_dim = (1,)[0]
         self.params['action_dim'] = action_dim
         self.params['obs_dim'] = obs_dim
 
         car_following_params = SumoCarFollowingParams()
-        self.controller = ImitatingController(self.vehicle_id, self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['num_layers'], self.params['size'], self.params['learning_rate'], self.params['replay_buffer_size'], car_following_params = car_following_params)
-        self.expert_controller = IDMController(self.vehicle_id, car_following_params = car_following_params)
+        self.controller = ImitatingController(self.vehicle_id, self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['num_layers'], self.params['size'], self.params['learning_rate'], self.params['replay_buffer_size'], car_following_params = car_following_params, inject_noise=self.params['inject_noise'], noise_variance=self.params['noise_variance'])
+
+        # initialize expert controller
+        # self.expert_controller = IDMController(self.vehicle_id, car_following_params = car_following_params)
+        self.expert_controller = FollowerStopper(self.vehicle_id, car_following_params = car_following_params)
 
         tf.global_variables_initializer().run(session=self.sess)
 
 
     def run_training_loop(self, n_iter):
         """
-        :param n_iter:  number of (dagger) iterations
-        :param collect_policy:
-        :param eval_policy:
-        :param initial_expertdata:
-        :param relabel_with_expert:  whether to perform dagger
-        :param start_relabel_with_expert: iteration at which to start relabel with expert
-        :param expert_policy:
+        Trains controller for n_iter iterations
+
+        Args:
+            param n_iter:  number of iterations to execute training
         """
 
         # init vars at beginning of training
@@ -60,6 +62,7 @@ class Trainer(object):
 
             # collect trajectories, to be used for training
             if itr == 0:
+                # first iteration is standard behavioral cloning
                 training_returns = self.collect_training_trajectories(itr, self.params['init_batch_size'])
             else:
                 training_returns = self.collect_training_trajectories(itr, self.params['batch_size'])
@@ -70,19 +73,19 @@ class Trainer(object):
             # add collected data to replay buffer
             self.controller.add_to_replay_buffer(paths)
 
-            # train agent (using sampled data from replay buffer)
+            # train controller (using sampled data from replay buffer)
             loss = self.train_controller()
 
     def collect_training_trajectories(self, itr, batch_size):
         """
-        :param itr:
-        :param load_initial_expertdata:  path to expert data pkl file
-        :param collect_policy:  the current policy using which we collect data
-        :param batch_size:  the number of transitions we collect
-        :return:
-            paths: a list trajectories
+        Collect (state, action, reward, next_state, terminal) tuples for training
+
+        Args:
+            itr: iteration of training during which functino is called
+            batch_size: number of tuples to collect
+        Returns:
+            paths: list of trajectories
             envsteps_this_batch: the sum over the numbers of environment steps in paths
-            train_video_paths: paths which also contain videos for visualization purposes
         """
 
         if itr == 0:
@@ -90,24 +93,88 @@ class Trainer(object):
         else:
             collect_controller = self.controller
 
-        print("\nCollecting data to be used for training...")
+        print("\nCollecting data for training")
         paths, envsteps_this_batch = sample_trajectories(self.env, self.vehicle_id, collect_controller, self.expert_controller, batch_size, self.params['ep_len'])
 
         return paths, envsteps_this_batch
 
     def train_controller(self):
+        """
+            Trains controller using data sampled from replay buffer
+        """
+
         print('Training controller using sampled data from replay buffer')
+
         for train_step in range(self.params['num_agent_train_steps_per_iter']):
-            # TODO: fix this
             ob_batch, ac_batch, expert_ac_batch, re_batch, next_ob_batch, terminal_batch = self.controller.sample_data(self.params['train_batch_size'])
             self.controller.train(ob_batch, expert_ac_batch)
 
+    def evaluate_controller(self, num_trajs = 10):
+        """
+        Evaluates a trained controller on similarity with expert with respect to action taken and total reward per rollout
 
-    # def do_relabel_with_expert(self, paths):
-    #     print("Relabelling collected observations with labels from an expert policy...")
-    #
-    #     for i in range(len(paths)):
-    #         acs = self.expert_policy.get_action(paths[i]["observation"])
-    #         paths[i]["action"] = acs
-    #
-    #     return paths
+        Args:
+            num_trajs: number of trajectories to evaluate performance on
+        """
+
+        print("\n\n********** Evaluation ************\n\n")
+
+        trajectories = sample_n_trajectories(self.env, self.vehicle_id, self.controller, self.expert_controller, num_trajs, self.params['ep_len'])
+
+        average_imitator_reward = 0
+        total_imitator_steps = 0
+        average_imitator_reward_per_rollout = 0
+
+        action_errors = np.array([])
+        average_action_expert = 0
+        average_action_imitator = 0
+
+        for traj in trajectories:
+            imitator_actions = traj['actions']
+            expert_actions = traj['expert_actions']
+
+            average_action_expert += np.sum(expert_actions)
+            average_action_imitator += np.sum(imitator_actions)
+
+            action_error = np.linalg.norm(imitator_actions - expert_actions) / len(imitator_actions)
+            action_errors = np.append(action_errors, action_error)
+
+            average_imitator_reward += np.sum(traj['rewards'])
+            total_imitator_steps += len(traj['rewards'])
+            average_imitator_reward_per_rollout += np.sum(traj['rewards'])
+
+        average_imitator_reward = average_imitator_reward / total_imitator_steps
+        average_imitator_reward_per_rollout = average_imitator_reward_per_rollout / len(trajectories)
+
+        average_action_expert = average_action_expert / total_imitator_steps
+        average_action_imitator = average_action_imitator / total_imitator_steps
+
+
+        print('Evaluating controller on reward')
+        expert_trajectories = sample_n_trajectories(self.env, self.vehicle_id, self.expert_controller, self.expert_controller, num_trajs, self.params['ep_len'])
+
+        average_expert_reward = 0
+        total_expert_steps = 0
+        average_expert_reward_per_rollout = 0
+
+        for traj in expert_trajectories:
+            average_expert_reward += np.sum(traj['rewards'])
+            total_expert_steps += len(traj['rewards'])
+            average_expert_reward_per_rollout += np.sum(traj['rewards'])
+
+        average_expert_reward_per_rollout = average_expert_reward_per_rollout / len(expert_trajectories)
+        average_expert_reward = average_expert_reward / total_expert_steps
+
+        print("\nAVERAGE REWARD PER STEP EXPERT: ", average_expert_reward)
+        print("AVERAGE REWARD PER STEP IMITATOR: ", average_imitator_reward)
+        print("AVERAGE REWARD PER STEP DIFFERENCE: \n", np.abs(average_expert_reward - average_imitator_reward))
+        print("AVERAGE REWARD PER ROLLOUT EXPERT: ", average_expert_reward_per_rollout)
+        print("AVERAGE REWARD PER ROLLOUT IMITATOR: ", average_imitator_reward_per_rollout)
+        print("AVERAGE REWARD PER ROLLOUT DIFFERENCE: \n", np.abs(average_expert_reward_per_rollout - average_imitator_reward_per_rollout))
+        print("MEAN ACTION, IMITATOR: ", average_action_imitator)
+        print("MEAN ACTION, EXPERT: ", average_action_expert)
+        print("MEAN ACTION ERROR: \n", np.mean(action_errors))
+
+    def save_controller_network(self):
+        print("Saving tensorflow model to: ", self.params['save_path'])
+        self.controller.save_network(self.params['save_path'])
