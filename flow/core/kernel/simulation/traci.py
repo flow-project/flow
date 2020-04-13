@@ -5,6 +5,7 @@ from flow.core.util import ensure_dir
 import flow.config as config
 import traci.constants as tc
 import traci
+import sumolib
 import traceback
 import os
 import time
@@ -163,7 +164,7 @@ class TraCISimulation(KernelSimulation):
                 else:
                     time.sleep(config.SUMO_SLEEP)
 
-                traci_connection = traci.connect(port, numRetries=100)
+                traci_connection = traci.connect(port, numRetries=10)
                 traci_connection.setOrder(0)
                 traci_connection.simulationStep()
 
@@ -172,6 +173,7 @@ class TraCISimulation(KernelSimulation):
                 print("Error during start: {}".format(traceback.format_exc()))
                 error = e
                 self.teardown_sumo()
+                sim_params.port = sumolib.miscutils.getFreeSocketPort()
         raise error
 
     def teardown_sumo(self):
