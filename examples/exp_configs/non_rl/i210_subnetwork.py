@@ -13,7 +13,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import InitialConfig
 from flow.core.params import InFlows
 import flow.config as config
-from flow.envs import RemoveVehEnv
+from flow.envs import RemoveVehEnv3
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
 ON_RAMP = False
@@ -78,7 +78,7 @@ flow_params = dict(
     exp_tag='I-210_subnetwork',
 
     # name of the flow environment the experiment is running on
-    env_name=RemoveVehEnv,
+    env_name=RemoveVehEnv3,
 
     # name of the network class the experiment is running on
     network=I210SubNetwork,
@@ -90,7 +90,7 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.5,
         render=False,
-        color_by_speed=False,
+        color_by_speed=True,
         use_ballistic=True
     ),
 
