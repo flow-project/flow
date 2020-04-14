@@ -6,7 +6,7 @@ Usage
 import argparse
 import sys
 from flow.core.experiment import Experiment
-from flow.core.params import SumoParams, AimsunParams
+from flow.core.params import AimsunParams
 
 
 
