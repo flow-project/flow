@@ -29,10 +29,10 @@ flow_params = dict(
     network=RingNetwork,
 
     # simulator that is used by the experiment
-    simulator='aimsun',
+    simulator='traci',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sim=AimsunParams(
+    sim=SumoParams(
         render=True,
         sim_step=0.1,
     ),
