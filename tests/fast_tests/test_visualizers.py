@@ -97,67 +97,81 @@ class TestPlotters(unittest.TestCase):
                       'time': [1.0, 2.0, 3.0, 4.0],
                       'vel': [0.0, 0.99, 1.98, 2.95],
                       'edge': ['upper_ring', 'upper_ring', 'upper_ring',
-                               'upper_ring']},
+                               'upper_ring'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
             'idm_4': {'pos': [56.02, 57.01, 58.99, 61.93],
                       'time': [1.0, 2.0, 3.0, 4.0],
                       'vel': [0.0, 0.99, 1.98, 2.95],
                       'edge': ['upper_ring', 'upper_ring', 'upper_ring',
-                               'upper_ring']},
+                               'upper_ring'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
             'idm_5': {'pos': [84.79, 85.78, 87.76, 90.7],
                       'time': [1.0, 2.0, 3.0, 4.0],
                       'vel': [0.0, 0.99, 1.98, 2.95],
                       'edge': ['upper_ring', 'upper_ring', 'upper_ring',
-                               'upper_ring']},
+                               'upper_ring'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
             'idm_2': {'pos': [28.77, 29.76, 1.63, 4.58],
                       'time': [1.0, 2.0, 3.0, 4.0],
                       'vel': [0.0, 0.99, 1.97, 2.95],
-                      'edge': ['top', 'top', 'upper_ring', 'upper_ring']},
+                      'edge': ['top', 'top', 'upper_ring', 'upper_ring'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
             'idm_13': {'pos': [106.79, 107.79, 109.77, 112.74],
                        'time': [1.0, 2.0, 3.0, 4.0],
                        'vel': [0.0, 0.99, 1.98, 2.96],
                        'edge': ['lower_ring', 'lower_ring', 'lower_ring',
-                                'lower_ring']},
+                                'lower_ring'],
+                       'lane': [0.0, 0.0, 0.0, 0.0]},
             'idm_9': {'pos': [22.01, 23.0, 24.97, 27.92],
                       'time': [1.0, 2.0, 3.0, 4.0],
                       'vel': [0.0, 0.99, 1.97, 2.95],
-                      'edge': ['left', 'left', 'left', 'left']},
+                      'edge': ['left', 'left', 'left', 'left'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
             'idm_6': {'pos': [113.56, 114.55, 116.52, 119.47],
                       'time': [1.0, 2.0, 3.0, 4.0],
                       'vel': [0.0, 0.99, 1.97, 2.95],
                       'edge': ['upper_ring', 'upper_ring', 'upper_ring',
-                               'upper_ring']},
+                               'upper_ring'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
             'idm_8': {'pos': [29.44, 0.28, 2.03, 4.78],
                       'time': [1.0, 2.0, 3.0, 4.0],
                       'vel': [0.0, 0.84, 1.76, 2.75],
                       'edge': ['right', ':center_0', ':center_0',
-                               ':center_0']},
+                               ':center_0'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
             'idm_12': {'pos': [78.03, 79.02, 80.99, 83.94],
                        'time': [1.0, 2.0, 3.0, 4.0],
                        'vel': [0.0, 0.99, 1.98, 2.95],
                        'edge': ['lower_ring', 'lower_ring', 'lower_ring',
-                                'lower_ring']},
+                                'lower_ring'],
+                       'lane': [0.0, 0.0, 0.0, 0.0]},
             'idm_10': {'pos': [20.49, 21.48, 23.46, 26.41],
                        'time': [1.0, 2.0, 3.0, 4.0],
                        'vel': [0.0, 0.99, 1.98, 2.95],
                        'edge': ['lower_ring', 'lower_ring', 'lower_ring',
-                                'lower_ring']},
+                                'lower_ring'],
+                       'lane': [0.0, 0.0, 0.0, 0.0]},
             'idm_11': {'pos': [49.26, 50.25, 52.23, 55.17],
                        'time': [1.0, 2.0, 3.0, 4.0],
                        'vel': [0.0, 0.99, 1.98, 2.95],
                        'edge': ['lower_ring', 'lower_ring', 'lower_ring',
-                                'lower_ring']},
+                                'lower_ring'],
+                       'lane': [0.0, 0.0, 0.0, 0.0]},
             'idm_1': {'pos': [0.0, 0.99, 2.97, 5.91],
                       'time': [1.0, 2.0, 3.0, 4.0],
                       'vel': [0.0, 0.99, 1.98, 2.95],
-                      'edge': ['top', 'top', 'top', 'top']},
+                      'edge': ['top', 'top', 'top', 'top'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
             'idm_7': {'pos': [0.67, 1.66, 3.64, 6.58],
                       'time': [1.0, 2.0, 3.0, 4.0],
                       'vel': [0.0, 0.99, 1.97, 2.94],
-                      'edge': ['right', 'right', 'right', 'right']},
+                      'edge': ['right', 'right', 'right', 'right'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
             'idm_0': {'pos': [0.0, 1.0, 2.98, 5.95],
                       'time': [1.0, 2.0, 3.0, 4.0],
                       'vel': [0.0, 1.0, 1.99, 2.97],
-                      'edge': ['bottom', 'bottom', 'bottom', 'bottom']}
+                      'edge': ['bottom', 'bottom', 'bottom', 'bottom'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]}
         }
         dir_path = os.path.dirname(os.path.realpath(__file__))
         actual_emission_data = tsd.import_data_from_emission(
@@ -216,6 +230,35 @@ class TestPlotters(unittest.TestCase):
              [0.54, 0.57, 0.59, 0.54, 0],
              [0.74, 0.7, 0.79, 0.71, 0],
              [0.94, 0.9, 0, 0, 0]]
+        )
+
+        np.testing.assert_array_almost_equal(pos, expected_pos)
+        np.testing.assert_array_almost_equal(speed, expected_speed)
+
+    def test_time_space_diagram_I210(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        emission_data = tsd.import_data_from_emission(
+            os.path.join(dir_path, 'test_files/i210_emission.csv'))
+
+        module = __import__("examples.exp_configs.non_rl", fromlist=["i210_subnetwork"])
+        flow_params = getattr(module, "i210_subnetwork").flow_params
+        pos, speed, _ = tsd.get_time_space_data(emission_data, flow_params)
+
+        expected_pos = np.array(
+            [[5.1, 0., 0.],
+             [23.37, 0., 0.],
+             [42.02, 5.1, 0.],
+             [61.21, 22.97, 0.],
+             [80.45, 40.73, 5.1],
+             [101.51, 0., 0.]]
+        )
+        expected_speed = np.array(
+            [[23., 0., 0.],
+             [22.84, 0., 0.],
+             [23.31, 23., 0.],
+             [23.98, 22.33, 0.],
+             [24.25, 22.21, 23.],
+             [26.33, 0., 0.]]
         )
 
         np.testing.assert_array_almost_equal(pos, expected_pos)

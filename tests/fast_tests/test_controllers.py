@@ -9,7 +9,7 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController, \
     OVMController, BCMController, LinearOVM, CFMController, LACController, \
     GippsController
-from flow.controllers import FollowerStopper, PISaturation
+from flow.controllers import FollowerStopper, PISaturation, NonLocalFollowerStopper
 from tests.setup_scripts import ring_road_exp_setup
 import os
 import numpy as np
@@ -505,6 +505,78 @@ class TestFollowerStopper(unittest.TestCase):
         ]
 
         expected_accel = [0, 0, 0, -5, 5]
+
+        np.testing.assert_array_almost_equal(requested_accel, expected_accel)
+
+    def test_find_intersection_dist(self):
+        self.env.reset()
+        ids = self.env.k.vehicle.get_ids()
+
+        test_edges = ["", "center"]
+        for i, veh_id in enumerate(ids):
+            if i < 2:
+                self.env.k.vehicle.test_set_edge(veh_id, test_edges[i])
+
+        requested = [
+            self.env.k.vehicle.get_acc_controller(
+                veh_id).find_intersection_dist(self.env)
+            for veh_id in ids
+        ]
+
+        expected = [-10, 0, 23.1, 34.7, 46.3]
+
+        np.testing.assert_array_almost_equal(requested, expected)
+
+        # we also check that the accel value is None when this value is
+        # negative
+        self.assertIsNone(self.env.k.vehicle.get_acc_controller(
+            ids[0]).get_action(self.env))
+
+
+class TestNonLocalFollowerStopper(unittest.TestCase):
+
+    """Makes sure that the nonlocal follower stopper runs."""
+
+    def setUp(self):
+        # add a few vehicles to the network using the requested model
+        # also make sure that the input params are what is expected
+        contr_params = {"v_des": 7.5}
+
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test_0",
+            acceleration_controller=(NonLocalFollowerStopper, contr_params),
+            routing_controller=(ContinuousRouter, {}),
+            car_following_params=SumoCarFollowingParams(
+                accel=20, decel=5),
+            num_vehicles=5)
+
+        # create the environment and network classes for a ring road
+        self.env, _, _ = ring_road_exp_setup(vehicles=vehicles)
+
+    def tearDown(self):
+        # terminate the traci instance
+        self.env.terminate()
+
+        # free data used by the class
+        self.env = None
+
+    def test_get_action(self):
+        self.env.reset()
+        ids = self.env.k.vehicle.get_ids()
+
+        test_headways = [5, 10, 15, 20, 25]
+        test_speeds = [5, 7.5, 7.5, 8, 7]
+        for i, veh_id in enumerate(ids):
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.test_set_speed(veh_id, test_speeds[i])
+
+        requested_accel = [
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
+            for veh_id in ids
+        ]
+
+        expected_accel = [-3.33333333333333, -5.0, -5.0, -10.0, 0.0]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
