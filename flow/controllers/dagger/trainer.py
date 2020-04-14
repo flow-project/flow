@@ -2,16 +2,15 @@ import time
 from collections import OrderedDict
 import pickle
 import numpy as np
+import tensorflow as tf
 import gym
 import os
 from flow.utils.registry import make_create_env
-from multiagent_ring_env import flow_params
+from bottleneck_env import flow_params
 from imitating_controller import ImitatingController
-from imitating_network import ImitatingNetwork
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import SumoCarFollowingParams
-import tensorflow as tf
 from utils import *
 
 class Trainer(object):
@@ -20,51 +19,34 @@ class Trainer(object):
     """
 
     def __init__(self, params):
-
-        # param setup
         self.params = params
         self.sess = create_tf_session()
 
-        # environment setup
         create_env, _ = make_create_env(flow_params)
         self.env = create_env()
-        init_state = self.env.reset()
+        self.env.reset()
 
-        # vehicle setup
-        self.multiagent = params['multiagent']
+        print(self.env.k.vehicle.get_ids())
+        assert self.params['vehicle_id'] in self.env.k.vehicle.get_ids()
+        self.vehicle_id = self.params['vehicle_id']
 
-        # TODO: remove print
-        print("MULTI: ", self.multiagent)
-
-        if self.multiagent:
-            self.vehicle_ids = list(init_state.keys())
-        else:
-            print("IDS: ", self.env.k.vehicle.get_ids())
-            assert self.params['vehicle_id'] in self.env.k.vehicle.get_ids()
-            self.vehicle_ids = [self.params['vehicle_id']]
-
-        # neural net setup
         obs_dim = self.env.observation_space.shape[0]
+
         action_dim = (1,)[0]
         self.params['action_dim'] = action_dim
         self.params['obs_dim'] = obs_dim
 
-        self.action_network = ImitatingNetwork(self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['num_layers'], self.params['size'], self.params['learning_rate'], self.params['replay_buffer_size'], inject_noise=self.params['inject_noise'], noise_variance=self.params['noise_variance'])
+        car_following_params = SumoCarFollowingParams()
+        self.controller = ImitatingController(self.vehicle_id, self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['num_layers'], self.params['size'], self.params['learning_rate'], self.params['replay_buffer_size'], car_following_params = car_following_params, inject_noise=self.params['inject_noise'], noise_variance=self.params['noise_variance'])
+        # self.expert_controller = IDMController(self.vehicle_id, car_following_params = car_following_params)
+        self.expert_controller = FollowerStopper(self.vehicle_id, car_following_params = car_following_params)
 
         tf.global_variables_initializer().run(session=self.sess)
-
-        # controllers setup
-        car_following_params = SumoCarFollowingParams()
-        self.expert_controllers = []
-        self.controllers = []
-        for vehicle_id in self.vehicle_ids:
-            self.expert_controllers.append(FollowerStopper(vehicle_id, car_following_params=car_following_params))
-            self.controllers.append(ImitatingController(vehicle_id, self.action_network, self.multiagent, car_following_params=car_following_params))
 
 
     def run_training_loop(self, n_iter):
         """
-        Trains imitator for n_iter iterations
+        Trains controller for n_iter iterations
 
         Args:
             param n_iter:  number of iterations to execute training
@@ -88,7 +70,7 @@ class Trainer(object):
             self.total_envsteps += envsteps_this_batch
 
             # add collected data to replay buffer
-            self.action_network.add_to_replay_buffer(paths)
+            self.controller.add_to_replay_buffer(paths)
 
             # train controller (using sampled data from replay buffer)
             loss = self.train_controller()
@@ -106,14 +88,14 @@ class Trainer(object):
         """
 
         if itr == 0:
-            collect_controllers = self.expert_controllers
+            collect_controller = self.expert_controller
         else:
-            collect_controllers = self.controllers
+            collect_controller = self.controller
 
         print("\nCollecting data to be used for training...")
-        trajectories, envsteps_this_batch = sample_trajectories(self.env, self.vehicle_ids, collect_controllers, self.expert_controllers, batch_size, self.params['ep_len'], self.multiagent)
+        paths, envsteps_this_batch = sample_trajectories(self.env, self.vehicle_id, collect_controller, self.expert_controller, batch_size, self.params['ep_len'])
 
-        return trajectories, envsteps_this_batch
+        return paths, envsteps_this_batch
 
     def train_controller(self):
         """
@@ -122,8 +104,8 @@ class Trainer(object):
 
         print('Training controller using sampled data from replay buffer')
         for train_step in range(self.params['num_agent_train_steps_per_iter']):
-            ob_batch, ac_batch, expert_ac_batch, re_batch, next_ob_batch, terminal_batch = self.action_network.sample_data(self.params['train_batch_size'])
-            self.action_network.train(ob_batch, expert_ac_batch)
+            ob_batch, ac_batch, expert_ac_batch, re_batch, next_ob_batch, terminal_batch = self.controller.sample_data(self.params['train_batch_size'])
+            self.controller.train(ob_batch, expert_ac_batch)
 
     def evaluate_controller(self, num_trajs = 10):
         """
@@ -135,7 +117,7 @@ class Trainer(object):
 
         print("\n\n********** Evaluation ************ \n")
 
-        trajectories = sample_n_trajectories(self.env, self.vehicle_ids, self.controllers, self.expert_controllers, num_trajs, self.params['ep_len'], self.multiagent)
+        trajectories = sample_n_trajectories(self.env, self.vehicle_id, self.controller, self.expert_controller, num_trajs, self.params['ep_len'])
 
         average_imitator_reward = 0
         total_imitator_steps = 0
@@ -167,7 +149,7 @@ class Trainer(object):
         average_action_imitator = average_action_imitator / total_imitator_steps
 
 
-        expert_trajectories = sample_n_trajectories(self.env, self.vehicle_ids, self.expert_controllers, self.expert_controllers, num_trajs, self.params['ep_len'], self.multiagent)
+        expert_trajectories = sample_n_trajectories(self.env, self.vehicle_id, self.expert_controller, self.expert_controller, num_trajs, self.params['ep_len'])
 
         average_expert_reward = 0
         total_expert_steps = 0
@@ -194,4 +176,4 @@ class Trainer(object):
 
     def save_controller_network(self):
         print("Saving tensorflow model to: ", self.params['save_path'])
-        self.action_network.save_network(self.params['save_path'])
+        self.controller.save_network(self.params['save_path'])
