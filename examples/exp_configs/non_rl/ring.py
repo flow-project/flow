@@ -4,7 +4,7 @@ This example consists of 22 IDM cars on a ring creating shockwaves.
 """
 
 from flow.controllers import IDMController, ContinuousRouter
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, AimsunParams
 from flow.core.params import VehicleParams
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.networks.ring import RingNetwork, ADDITIONAL_NET_PARAMS
@@ -29,10 +29,10 @@ flow_params = dict(
     network=RingNetwork,
 
     # simulator that is used by the experiment
-    simulator='traci',
+    simulator='aimsun',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sim=SumoParams(
+    sim=AimsunParams(
         render=True,
         sim_step=0.1,
     ),
