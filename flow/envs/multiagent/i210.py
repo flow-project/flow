@@ -245,91 +245,6 @@ class I210MultiEnv(MultiEnv):
         return np.array([speed, lane])
 
 
-
-class I210QMIXMultiEnv(I210MultiEnv):
-    def __init__(self, env_params, sim_params, network, simulator='traci'):
-        super().__init__(env_params, sim_params, network, simulator)
-        self.max_num_agents = env_params.additional_params.get("max_num_agents_qmix")
-        self.num_actions = env_params.additional_params.get("num_actions")
-        self.action_values = np.linspace(start=-np.abs(self.env_params.additional_params['max_decel']),
-            stop=self.env_params.additional_params['max_accel'], num=self.num_actions)
-        self.default_state = {idx: {"obs": -1 * np.ones(self.observation_space.spaces['obs'].shape[0]),
-                               "action_mask": self.get_action_mask(valid_agent=False)}
-                         for idx in range(self.max_num_agents)}
-        self.rl_id_to_idx_map = {}
-        self.idx_to_rl_id_map = {}
-
-    @property
-    def action_space(self):
-        """See class definition."""
-        return Discrete(self.num_actions + 1)
-
-    @property
-    def observation_space(self):
-        obs_space = super().observation_space
-        return Dict({"obs": obs_space,  "action_mask": Box(0, 1, shape=(self.action_space.n,))})
-
-    def _apply_rl_actions(self, rl_actions):
-        """See class definition."""
-        # in the warmup steps, rl_actions is None
-        t = time()
-        if rl_actions:
-            accel_list = []
-            rl_ids = []
-            for idx, action in rl_actions.items():
-                if idx in self.idx_to_rl_id_map.keys() and self.idx_to_rl_id_map[idx] in self.k.vehicle.get_rl_ids():
-                    # 0 is the no-op
-                    if action > 0:
-                        accel = self.action_values[action - 1]
-                        accel_list.append(accel)
-                        rl_ids.append(self.idx_to_rl_id_map[idx])
-            self.k.vehicle.apply_acceleration(rl_ids, accel_list)
-        # print('time to apply actions is ', time() - t)
-
-    def get_state(self, order_agents=False):
-        veh_info = super().get_state()
-        t = time()
-        veh_info_copy = deepcopy(self.default_state)
-        # print('time to make copy is ', time() - t)
-        t = time()
-        rl_ids = self.k.vehicle.get_rl_ids()
-        if order_agents:
-            abs_pos = self.k.vehicle.get_x_by_id(rl_ids)
-            rl_ids = [rl_id for _, rl_id in sorted(zip(abs_pos, rl_ids))]
-            rl_ids = rl_ids[::-1]
-        self.rl_id_to_idx_map = {rl_id: i for i, rl_id in enumerate(rl_ids)}
-        self.idx_to_rl_id_map = {i: rl_id for i, rl_id in enumerate(rl_ids)}
-        veh_info_copy.update({self.rl_id_to_idx_map[rl_id]: {"obs": veh_info[rl_id],
-                                          "action_mask": self.get_action_mask(valid_agent=True)}
-                              for i, rl_id in enumerate(rl_ids) if i < self.max_num_agents})
-        # print('time to update copy is ', time() - t)
-        veh_info = veh_info_copy
-        return veh_info
-
-    def compute_reward(self, rl_actions, **kwargs):
-        # There has to be one global reward for qmix
-        des_speed = self.env_params.additional_params["target_velocity"]
-
-        speeds = self.k.vehicle.get_speed(self.k.vehicle.get_rl_ids())
-        des_speed_rew = np.mean([(des_speed - np.abs(speed - des_speed)) ** 2 for speed in speeds]) / (10 * (des_speed ** 2))
-        reward = np.nan_to_num(des_speed_rew)
-        temp_reward_dict = {idx: reward / self.max_num_agents for idx in
-                       range(self.max_num_agents)}
-        # print('time to compute reward is ', time() - t)
-        return temp_reward_dict
-
-    def get_action_mask(self, valid_agent):
-        """If a valid agent, return a 0 in the position of the no-op action. If not, return a 1 in that position
-        and a zero everywhere else."""
-        if valid_agent:
-            temp_list = np.array([1 for _ in range(self.action_space.n)])
-            temp_list[0] = 0
-        else:
-            temp_list = np.array([0 for _ in range(self.action_space.n)])
-            temp_list[0] = 1
-        return temp_list
-
-
 class MultiStraightRoad(I210MultiEnv):
     """Partially observable multi-agent environment for a straight road. Look at superclass for more information."""
 
@@ -341,32 +256,11 @@ class MultiStraightRoad(I210MultiEnv):
         """See class definition."""
         # in the warmup steps, rl_actions is None
         if rl_actions:
+            ids = []
+            accels = []
             for rl_id, actions in rl_actions.items():
-                accel = actions[0]
+                accels.append(actions[0])
+                ids.append(rl_ids)
 
-                # prevent the AV from blocking the entrance
-                self.k.vehicle.apply_acceleration(rl_id, accel)
-
-
-class MultiStraightRoadQMIX(I210QMIXMultiEnv):
-    def get_state(self, order_agents=True):
-        veh_info = super().get_state(order_agents=True)
-        return veh_info
-
-    def _apply_rl_actions(self, rl_actions):
-        """See class definition."""
-        # in the warmup steps, rl_actions is None
-        t = time()
-        if rl_actions:
-            accel_list = []
-            rl_ids = []
-            for idx, action in rl_actions.items():
-                if idx in self.idx_to_rl_id_map.keys() and self.idx_to_rl_id_map[idx] in self.k.vehicle.get_rl_ids():
-                    # 0 is the no-op
-                    # prevent the AV from blocking the entrance
-                    if action > 0:
-                        accel = self.action_values[action - 1]
-                        accel_list.append(accel)
-                        rl_ids.append(self.idx_to_rl_id_map[idx])
-            self.k.vehicle.apply_acceleration(rl_ids, accel_list)
-        # print('time to apply actions is ', time() - t)
+            # prevent the AV from blocking the entrance
+            self.k.vehicle.apply_acceleration(rl_ids, accels)

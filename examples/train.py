@@ -204,16 +204,6 @@ def setup_exps_rllib(flow_params,
             config["actor_lr"] = tune.grid_search([1e-3, 1e-4])
             config["critic_lr"] = tune.grid_search([1e-3, 1e-4])
             config["n_step"] = tune.grid_search([1, 10])
-    elif alg_run == "QMIX":
-        from flow.algorithms.qmix.qmix import QMixTrainer, DEFAULT_CONFIG as QMIX_CONFIG
-        alg_run = QMixTrainer
-        config = deepcopy(QMIX_CONFIG)
-        config["exploration_fraction"] = tune.grid_search([0.2])
-
-        if flags.grid_search:
-            config["exploration_fraction"] = tune.grid_search([0.2, 0.5])
-            config["buffer_size"] = tune.grid_search([10000, 100000])
-            config["mixer"] = tune.grid_search(["vdn", "qmix"])
     else:
         sys.exit("We only support PPO, TD3, and QMIX right now.")
 
