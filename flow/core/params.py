@@ -638,7 +638,8 @@ class EnvParams:
         they are inputted to the reward function. Note that the actions are
         still clipped before they are provided to `apply_rl_actions`.
     done_at_exit : bool, optional
-        If true, done is returned as True when the vehicle exits.
+        If true, done is returned as True when the vehicle exits. This is only
+        applied to multi-agent environments.
     """
 
     def __init__(self,

@@ -5,7 +5,7 @@ highway with ramps network.
 """
 import numpy as np
 
-from flow.controllers import GhostEdgeController, IDMController
+from flow.controllers import IDMController
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
                              VehicleParams, SumoParams, SumoLaneChangeParams

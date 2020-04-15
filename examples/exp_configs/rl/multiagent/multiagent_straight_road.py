@@ -3,7 +3,7 @@
 Trains a non-constant number of agents, all sharing the same policy, on the
 highway with ramps network.
 """
-from flow.controllers import RLController, GhostEdgeController
+from flow.controllers import RLController, IDMController
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
                              VehicleParams, SumoParams, SumoLaneChangeParams
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
@@ -64,7 +64,7 @@ vehicles.add(
     lane_change_params=SumoLaneChangeParams(
         lane_change_mode="strategic",
     ),
-    acceleration_controller=(GhostEdgeController, {"a": .3, "b": 2.0, "noise": 0.5, "ghost_edges": []}),
+    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
 )
 
 # autonomous vehicles
