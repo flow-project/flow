@@ -166,7 +166,7 @@ def visualizer_rllib(args):
     if multiagent:
         rets = {}
         # map the agent id to its policy
-        policy_map_fn = config['multiagent']['policy_mapping_fn'].func
+        policy_map_fn = config['multiagent']['policy_mapping_fn']
         for key in config['multiagent']['policies'].keys():
             rets[key] = []
     else:
