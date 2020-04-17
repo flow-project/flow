@@ -1,7 +1,7 @@
 # cluster.yaml ========================================= 
 
 # An unique identifier for the head node and workers of this cluster.
-cluster_name: test #<YOUR NAME>
+cluster_name: kj_td3_16 #<YOUR NAME>
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
@@ -40,7 +40,7 @@ auth:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
     InstanceType: c4.4xlarge
-    ImageId: ami-09544298704576518 # Flow AMI (Ubuntu)
+    ImageId: ami-0b489700e7f810707 # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -67,7 +67,7 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands:
-    - cd flow && git fetch && git checkout origin/i210_dev
+    - cd flow && git fetch && git checkout origin/kj_hbase
 
 head_setup_commands:
     - pip install ray==0.8.0

@@ -283,8 +283,7 @@ def train_rllib(submodule, flags):
     }
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
-    s3_string = "s3://i210.experiments/i210/" \
-                + date + '/' + flags.exp_title
+    s3_string = "s3://kathy.experiments/i210/"
     if flags.use_s3:
         exp_dict['upload_dir'] = s3_string
     tune.run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
