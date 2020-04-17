@@ -128,9 +128,29 @@ class HighwayNetwork(Network):
 
     def specify_edge_starts(self):
         """See parent class."""
-        edgestarts = [("highway_{}".format(i), 0)
-                      for i in range(self.num_edges)]
-        return edgestarts
+        junction_length = 0.1
+
+        # Add the main edges.
+        edge_starts = [
+            ("highway_{}".format(i),
+             i * (self.length / self.num_edges + junction_length))
+            for i in range(self.num_edges)
+        ]
+
+        return edge_starts
+
+    def specify_internal_edge_starts(self):
+        """See parent class."""
+        junction_length = 0.1
+
+        # Add the junctions.
+        edge_starts = [
+             (":edge_{}".format(i + 1),
+              (i + 1) * self.length / self.num_edges + i * junction_length)
+            for i in range(self.num_edges - 1)
+        ]
+
+        return edge_starts
 
     @staticmethod
     def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
