@@ -384,6 +384,12 @@ def create_parser():
         help='Specifies percentage of AVs.',
         required=False)
     parser.add_argument(
+        '-apr',
+        '--aggressive_driver_penetration_rate',
+        type=float,
+        help='Specifies aggressive driver percentage.',
+        required=False)
+    parser.add_argument(
         '-mct',
         '--max_completed_trips',
         type=int,
@@ -439,7 +445,8 @@ if __name__ == '__main__':
         output_dir = args.output_dir
 
     if args.run_transfer:
-        s = [ray.cloudpickle.dumps(transfer_test) for transfer_test in inflows_range(penetration_rates=[0.0, 0.1, 0.2, 0.3])]
+        s = [ray.cloudpickle.dumps(transfer_test) for transfer_test in inflows_range(penetration_rates=[0.0, 0.1, 0.2, 0.3],
+                                                                                     aggressive_driver_penetrations=[0.0, 0.1, 0.2])]
         ray_output = [replay.remote(args, flow_params, output_dir=output_dir, transfer_test=transfer_test,
                                     rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips)
                       for transfer_test in s]
@@ -454,9 +461,10 @@ if __name__ == '__main__':
         ray.get(ray_output)
 
     else:
-        if args.penetration_rate is not None:
+        if args.penetration_rate is not None or args.aggressive_driver_penetration_rate is not None:
             pr = args.penetration_rate if args.penetration_rate is not None else 0
-            single_transfer = next(inflows_range(penetration_rates=pr))
+            apr = args.aggressive_driver_penetration_rate if args.aggressive_driver_penetration_rate is not None else 0
+            single_transfer = next(inflows_range(penetration_rates=pr, aggressive_driver_penetrations=apr))
             ray.get(replay.remote(args, flow_params, output_dir=output_dir, transfer_test=single_transfer,
                                   rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips))
         else:
