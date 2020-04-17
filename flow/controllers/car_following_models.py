@@ -41,6 +41,12 @@ class CFMController(BaseController):
         time delay (default: 0.0)
     noise : float
         std dev of normal perturbation to the acceleration (default: 0)
+    ignore_noise : list of (float, float)
+        a list of (min_pos, max_pos) positions where noise should not be
+        applied to the accelerations. For example, if you would not like to
+        apply acceleration noise within the positions (0, 100) and (200, 300),
+        then this term is written as: [(0, 100), (200, 300)]. If set to None,
+        noise is applied to the accelerations everywhere.
     fail_safe : str
         type of flow-imposed failsafe the vehicle should posses, defaults
         to no failsafe (None)
@@ -56,6 +62,7 @@ class CFMController(BaseController):
                  v_des=8,
                  time_delay=0.0,
                  noise=0,
+                 ignore_noise=None,
                  fail_safe=None):
         """Instantiate a CFM controller."""
         BaseController.__init__(
@@ -64,9 +71,10 @@ class CFMController(BaseController):
             car_following_params,
             delay=time_delay,
             fail_safe=fail_safe,
-            noise=noise)
+            noise=noise,
+            ignore_noise=ignore_noise
+        )
 
-        self.veh_id = veh_id
         self.k_d = k_d
         self.k_v = k_v
         self.k_c = k_c
@@ -117,6 +125,12 @@ class BCMController(BaseController):
         time delay (default: 0.5)
     noise : float
         std dev of normal perturbation to the acceleration (default: 0)
+    ignore_noise : list of (float, float)
+        a list of (min_pos, max_pos) positions where noise should not be
+        applied to the accelerations. For example, if you would not like to
+        apply acceleration noise within the positions (0, 100) and (200, 300),
+        then this term is written as: [(0, 100), (200, 300)]. If set to None,
+        noise is applied to the accelerations everywhere.
     fail_safe : str
         type of flow-imposed failsafe the vehicle should posses, defaults
         to no failsafe (None)
@@ -132,6 +146,7 @@ class BCMController(BaseController):
                  v_des=8,
                  time_delay=0.0,
                  noise=0,
+                 ignore_noise=None,
                  fail_safe=None):
         """Instantiate a Bilateral car-following model controller."""
         BaseController.__init__(
@@ -140,9 +155,10 @@ class BCMController(BaseController):
             car_following_params,
             delay=time_delay,
             fail_safe=fail_safe,
-            noise=noise)
+            noise=noise,
+            ignore_noise=ignore_noise
+        )
 
-        self.veh_id = veh_id
         self.k_d = k_d
         self.k_v = k_v
         self.k_c = k_c
@@ -197,6 +213,12 @@ class LACController(BaseController):
         time delay (default: 0.5)
     noise : float
         std dev of normal perturbation to the acceleration (default: 0)
+    ignore_noise : list of (float, float)
+        a list of (min_pos, max_pos) positions where noise should not be
+        applied to the accelerations. For example, if you would not like to
+        apply acceleration noise within the positions (0, 100) and (200, 300),
+        then this term is written as: [(0, 100), (200, 300)]. If set to None,
+        noise is applied to the accelerations everywhere.
     fail_safe : str
         type of flow-imposed failsafe the vehicle should posses, defaults
         to no failsafe (None)
@@ -212,6 +234,7 @@ class LACController(BaseController):
                  a=0,
                  time_delay=0.0,
                  noise=0,
+                 ignore_noise=None,
                  fail_safe=None):
         """Instantiate a Linear Adaptive Cruise controller."""
         BaseController.__init__(
@@ -220,9 +243,10 @@ class LACController(BaseController):
             car_following_params,
             delay=time_delay,
             fail_safe=fail_safe,
-            noise=noise)
+            noise=noise,
+            ignore_noise=ignore_noise
+        )
 
-        self.veh_id = veh_id
         self.k_1 = k_1
         self.k_2 = k_2
         self.h = h
@@ -274,6 +298,12 @@ class OVMController(BaseController):
         time delay (default: 0.5)
     noise : float
         std dev of normal perturbation to the acceleration (default: 0)
+    ignore_noise : list of (float, float)
+        a list of (min_pos, max_pos) positions where noise should not be
+        applied to the accelerations. For example, if you would not like to
+        apply acceleration noise within the positions (0, 100) and (200, 300),
+        then this term is written as: [(0, 100), (200, 300)]. If set to None,
+        noise is applied to the accelerations everywhere.
     fail_safe : str
         type of flow-imposed failsafe the vehicle should posses, defaults
         to no failsafe (None)
@@ -289,6 +319,7 @@ class OVMController(BaseController):
                  v_max=30,
                  time_delay=0,
                  noise=0,
+                 ignore_noise=None,
                  fail_safe=None):
         """Instantiate an Optimal Vehicle Model controller."""
         BaseController.__init__(
@@ -297,8 +328,10 @@ class OVMController(BaseController):
             car_following_params,
             delay=time_delay,
             fail_safe=fail_safe,
-            noise=noise)
-        self.veh_id = veh_id
+            noise=noise,
+            ignore_noise=ignore_noise
+        )
+
         self.v_max = v_max
         self.alpha = alpha
         self.beta = beta
@@ -351,6 +384,12 @@ class LinearOVM(BaseController):
         time delay (default: 0.5)
     noise : float
         std dev of normal perturbation to the acceleration (default: 0)
+    ignore_noise : list of (float, float)
+        a list of (min_pos, max_pos) positions where noise should not be
+        applied to the accelerations. For example, if you would not like to
+        apply acceleration noise within the positions (0, 100) and (200, 300),
+        then this term is written as: [(0, 100), (200, 300)]. If set to None,
+        noise is applied to the accelerations everywhere.
     fail_safe : str
         type of flow-imposed failsafe the vehicle should posses, defaults
         to no failsafe (None)
@@ -364,6 +403,7 @@ class LinearOVM(BaseController):
                  h_st=5,
                  time_delay=0.0,
                  noise=0,
+                 ignore_noise=None,
                  fail_safe=None):
         """Instantiate a Linear OVM controller."""
         BaseController.__init__(
@@ -372,8 +412,10 @@ class LinearOVM(BaseController):
             car_following_params,
             delay=time_delay,
             fail_safe=fail_safe,
-            noise=noise)
-        self.veh_id = veh_id
+            noise=noise,
+            ignore_noise=ignore_noise
+        )
+
         # 4.8*1.85 for case I, 3.8*1.85 for case II, per Nakayama
         self.v_max = v_max
         # TAU in Traffic Flow Dynamics textbook
@@ -429,6 +471,12 @@ class IDMController(BaseController):
         linear jam distance, in m (default: 2)
     noise : float
         std dev of normal perturbation to the acceleration (default: 0)
+    ignore_noise : list of (float, float)
+        a list of (min_pos, max_pos) positions where noise should not be
+        applied to the accelerations. For example, if you would not like to
+        apply acceleration noise within the positions (0, 100) and (200, 300),
+        then this term is written as: [(0, 100), (200, 300)]. If set to None,
+        noise is applied to the accelerations everywhere.
     fail_safe : str
         type of flow-imposed failsafe the vehicle should posses, defaults
         to no failsafe (None)
@@ -444,6 +492,7 @@ class IDMController(BaseController):
                  s0=2,
                  time_delay=0.0,
                  noise=0,
+                 ignore_noise=None,
                  fail_safe=None,
                  car_following_params=None):
         """Instantiate an IDM controller."""
@@ -453,7 +502,10 @@ class IDMController(BaseController):
             car_following_params,
             delay=time_delay,
             fail_safe=fail_safe,
-            noise=noise)
+            noise=noise,
+            ignore_noise=ignore_noise
+        )
+
         self.v0 = v0
         self.T = T
         self.a = a
@@ -530,6 +582,12 @@ class GippsController(BaseController):
         reaction time in s (default: 1)
     noise : float
         std dev of normal perturbation to the acceleration (default: 0)
+    ignore_noise : list of (float, float)
+        a list of (min_pos, max_pos) positions where noise should not be
+        applied to the accelerations. For example, if you would not like to
+        apply acceleration noise within the positions (0, 100) and (200, 300),
+        then this term is written as: [(0, 100), (200, 300)]. If set to None,
+        noise is applied to the accelerations everywhere.
     fail_safe : str
         type of flow-imposed failsafe the vehicle should posses, defaults
         to no failsafe (None)
@@ -546,6 +604,7 @@ class GippsController(BaseController):
                  tau=1,
                  delay=0,
                  noise=0,
+                 ignore_noise=None,
                  fail_safe=None):
         """Instantiate a Gipps' controller."""
         BaseController.__init__(
@@ -554,8 +613,9 @@ class GippsController(BaseController):
             car_following_params,
             delay=delay,
             fail_safe=fail_safe,
-            noise=noise
-            )
+            noise=noise,
+            ignore_noise=ignore_noise
+        )
 
         self.v_desired = v0
         self.acc = acc
