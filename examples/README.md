@@ -53,11 +53,11 @@ trained through RL algorithms provided by *RLlib*.
 To execute these examples, run
 
 ```shell script
-python train.py EXP_CONFIG --rl_trainer "rllib"
+python train.py EXP_CONFIG --rl_trainer "rllib" --algorithm <ALGORITHM NAME>
 ```
 where `EXP_CONFIG` is the name of the experiment configuration file, as located
-in `exp_configs/rl/singleagent` or  `exp_configs/rl/multiagent.`
-
+in `exp_configs/rl/singleagent` or  `exp_configs/rl/multiagent.` Here `<ALGORITHM NAME>`
+should be the name of your desired algorithm. Currently we support PPO and TD3.
 
 ### stable-baselines
 

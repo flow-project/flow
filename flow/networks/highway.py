@@ -128,7 +128,8 @@ class HighwayNetwork(Network):
 
     def specify_edge_starts(self):
         """See parent class."""
-        edgestarts = [("highway_{}".format(i), 0)
+        length = self.net_params.additional_params["length"]
+        edgestarts = [("highway_{}".format(i), (length / self.num_edges) * i)
                       for i in range(self.num_edges)]
         return edgestarts
 
