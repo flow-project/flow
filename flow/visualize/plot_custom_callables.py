@@ -9,6 +9,33 @@ import os
 import pytz
 import sys
 
+def make_bar_plot(vals, title):
+    print(len(vals))
+    fig = plt.figure()
+    plt.hist(vals, 10, facecolor='blue', alpha=0.5)
+    plt.title(title)
+    plt.xlim(1000,3000)
+    return fig
+
+def plot_trip_distribution(all_trip_energy_distribution):
+    non_av_vals = []
+    figures = []
+    figure_names = []
+    for key in all_trip_energy_distribution:
+        if key != 'av':
+            non_av_vals.extend(all_trip_energy_distribution[key])
+        figures.append(make_bar_plot(all_trip_energy_distribution[key], key))
+        figure_names.append(key)
+    
+    figure_names.append('All Non-AV')
+    figures.append(make_bar_plot(non_av_vals, 'All Non-AV'))
+
+    figure_names.append('All')
+    figures.append(make_bar_plot(non_av_vals + all_trip_energy_distribution['av'], 'All'))
+
+    return figure_names, figures
+    
+    
 
 def parse_flags(args):
     """Parse training options user can specify in command line.

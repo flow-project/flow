@@ -26,6 +26,7 @@ from flow.utils.rllib import get_rllib_pkl
 from flow.utils.rllib import FlowParamsEncoder
 
 from flow.visualize.transfer.util import inflows_range
+from  flow.visualize.plot_custom_callables import plot_trip_distribution
 
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
@@ -194,6 +195,9 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         "avg_trip_time": [],
         "total_completed_trips": []
     }
+    all_trip_energy_distribution = defaultdict(lambda: [])
+    all_trip_time_distribution = defaultdict(lambda: [])
+
     info_dict.update({
         key: [] for key in custom_callables.keys()
     })
@@ -203,6 +207,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         print("Rollout iter", i)
         vel = []
         per_vehicle_energy_trace = defaultdict(lambda: [])
+        completed_veh_types = {}
         completed_vehicle_avg_energy = {}
         completed_vehicle_travel_time = {}
         custom_vals = {key: [] for key in custom_callables.keys()}
@@ -240,7 +245,9 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
                 custom_vals[key].append(lambda_func(env))
 
             for past_veh_id in per_vehicle_energy_trace.keys():
-                if past_veh_id not in veh_ids:
+                if past_veh_id not in veh_ids and past_veh_id not in completed_vehicle_avg_energy:
+                    all_trip_energy_distribution[completed_veh_types[past_veh_id]].append(np.sum(per_vehicle_energy_trace[past_veh_id]))
+                    all_trip_time_distribution[completed_veh_types[past_veh_id]].append(len(per_vehicle_energy_trace[past_veh_id]))
                     completed_vehicle_avg_energy[past_veh_id] = np.sum(per_vehicle_energy_trace[past_veh_id])
                     completed_vehicle_travel_time[past_veh_id] = len(per_vehicle_energy_trace[past_veh_id])
 
@@ -249,6 +256,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
                     if veh_id not in per_vehicle_energy_trace:
                         # we have to skip the first step's energy calculation
                         per_vehicle_energy_trace[veh_id].append(0)
+                        completed_veh_types[veh_id] = env.k.vehicle.get_type(veh_id)
                     else:
                         per_vehicle_energy_trace[veh_id].append(-1*vehicle_energy_consumption(env, veh_id))
 
@@ -310,6 +318,14 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
 
             # delete the .xml version of the emission file
             os.remove(emission_path)
+
+        all_trip_energies = os.path.join(output_dir, '{}-all_trip_energies.npy'.format(exp_name))
+        np.save(all_trip_energies, dict(all_trip_energy_distribution))
+        fig_names, figs = plot_trip_distribution(all_trip_energy_distribution)
+        
+        for fig_name, fig in zip(fig_names, figs):
+            edist_out = os.path.join(output_dir, '{}_energy_distribution.png'.format(fig_name))
+            fig.savefig(edist_out)
 
         # Create the flow_params object
         with open(os.path.join(output_dir, exp_name) + '.json', 'w') as outfile:
