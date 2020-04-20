@@ -758,39 +758,39 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                     edges=' '.join(r)
                 ))
 
-        # add the inflows from various edges to the xml file
-        if self.network.net_params.inflows is not None:
-            total_inflows = self.network.net_params.inflows.get()
-            for inflow in total_inflows:
-                # do not want to affect the original values
-                sumo_inflow = deepcopy(inflow)
-
-                # convert any non-string element in the inflow dict to a string
-                for key in sumo_inflow:
-                    if not isinstance(sumo_inflow[key], str):
-                        sumo_inflow[key] = repr(sumo_inflow[key])
-
-                edge = sumo_inflow['edge']
-                del sumo_inflow['edge']
-
-                if 'route' not in sumo_inflow:
-                    # distribute the inflow rates across all routes from a
-                    # given edge w.r.t. the provided fractions for each route
-                    for i, (_, ft) in enumerate(routes[edge]):
-                        sumo_inflow['name'] += str(i)
-                        sumo_inflow['route'] = 'route{}_{}'.format(edge, i)
-
-                        for key in ['vehsPerHour', 'probability', 'period']:
-                            if key in sumo_inflow:
-                                sumo_inflow[key] = str(float(inflow[key]) * ft)
-
-                        if 'number' in sumo_inflow:
-                            sumo_inflow['number'] = str(
-                                int(float(inflow['number']) * ft))
-
-                        routes_data.append(_flow(**sumo_inflow))
-                else:
-                    routes_data.append(_flow(**sumo_inflow))
+        # # add the inflows from various edges to the xml file
+        # if self.network.net_params.inflows is not None:
+        #     total_inflows = self.network.net_params.inflows.get()
+        #     for inflow in total_inflows:
+        #         # do not want to affect the original values
+        #         sumo_inflow = deepcopy(inflow)
+        #
+        #         # convert any non-string element in the inflow dict to a string
+        #         for key in sumo_inflow:
+        #             if not isinstance(sumo_inflow[key], str):
+        #                 sumo_inflow[key] = repr(sumo_inflow[key])
+        #
+        #         edge = sumo_inflow['edge']
+        #         del sumo_inflow['edge']
+        #
+        #         if 'route' not in sumo_inflow:
+        #             # distribute the inflow rates across all routes from a
+        #             # given edge w.r.t. the provided fractions for each route
+        #             for i, (_, ft) in enumerate(routes[edge]):
+        #                 sumo_inflow['name'] += str(i)
+        #                 sumo_inflow['route'] = 'route{}_{}'.format(edge, i)
+        #
+        #                 for key in ['vehsPerHour', 'probability', 'period']:
+        #                     if key in sumo_inflow:
+        #                         sumo_inflow[key] = str(float(inflow[key]) * ft)
+        #
+        #                 if 'number' in sumo_inflow:
+        #                     sumo_inflow['number'] = str(
+        #                         int(float(inflow['number']) * ft))
+        #
+        #                 routes_data.append(_flow(**sumo_inflow))
+        #         else:
+        #             routes_data.append(_flow(**sumo_inflow))
 
         printxml(routes_data, self.cfg_path + self.roufn)
 

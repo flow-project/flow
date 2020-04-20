@@ -156,7 +156,8 @@ class Env(gym.Env):
 
         # create the Flow kernel
         self.k = Kernel(simulator=self.simulator,
-                        sim_params=self.sim_params)
+                        sim_params=self.sim_params,
+                        net_params=self.net_params)
 
         # use the network class's network parameters to generate the necessary
         # network components within the network kernel

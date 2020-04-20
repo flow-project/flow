@@ -33,10 +33,37 @@ class TraCIVehicle(KernelVehicle):
 
     def __init__(self,
                  master_kernel,
-                 sim_params):
+                 sim_params,
+                 net_params):
         """See parent class."""
-        KernelVehicle.__init__(self, master_kernel, sim_params)
+        KernelVehicle.__init__(self, master_kernel, sim_params, net_params)
 
+        self.__inflows = {x["name"]: x for x in self.net_params.inflows.get()}
+
+        # TODO: add random inflow option
+        # cumulative inflow rate for all vehicles in a given edge
+        self.__inflows_by_edge = {
+            k: {"cumsum": [], "type": []}
+            for k in np.unique([
+                self.__inflows[key]["edge"] for key in self.__inflows.keys()
+            ])
+        }
+
+        for key in self.__inflows.keys():
+            edge = self.__inflows[key]["edge"]
+            inflow = self.__inflows[key]["vehsPerHour"]
+
+            # Add the cumulative inflow rates and the type of inflow.
+            self.__inflows_by_edge[edge]["type"].append(key)
+            self.__inflows_by_edge[edge]["cumsum"].append(inflow)
+            if len(self.__inflows_by_edge[edge]["cumsum"]) > 1:
+                self.__inflows_by_edge[edge]["cumsum"][-1] += \
+                    self.__inflows_by_edge[edge]["cumsum"][-2]
+
+        # number of vehicles of a specific inflow that have entered the network
+        self.__num_inflows = {name: 0 for name in self.__inflows.keys()}
+
+        self.total_time = 0
         self.__ids = []  # ids of all vehicles
         self.__human_ids = []  # ids of human-driven vehicles
         self.__controlled_ids = []  # ids of flow-controlled vehicles
@@ -130,8 +157,33 @@ class TraCIVehicle(KernelVehicle):
             specifies whether the simulator was reset in the last simulation
             step
         """
-        # copy over the previous speeds
+        # =================================================================== #
+        # Add the inflow vehicles.                                            #
+        # =================================================================== #
+        self.total_time += 1
 
+        for key in self.__inflows.keys():
+            veh_per_hour = self.__inflows[key]["vehsPerHour"]
+            steps_per_veh = int(3600 / (self.sim_step * veh_per_hour))
+
+            # Add a vehicle if the inflow rate requires it.
+            if self.total_time % steps_per_veh == 0:
+                name = self.__inflows[key]["name"]
+                self.add(
+                    veh_id="{}_{}".format(name, self.__num_inflows[name]),
+                    type_id=self.__inflows[key]["vtype"],
+                    edge=self.__inflows[key]["edge"],
+                    pos=0,
+                    lane=self.__inflows[key]["departLane"],
+                    speed=self.__inflows[key]["departSpeed"]
+                )
+                self.__num_inflows[name] += 1
+
+        # =================================================================== #
+        # Update the vehicle states.                                          #
+        # =================================================================== #
+
+        # copy over the previous speeds
         vehicle_obs = {}
         for veh_id in self.__ids:
             self.previous_speeds[veh_id] = self.get_speed(veh_id)
