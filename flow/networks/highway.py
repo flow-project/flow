@@ -147,7 +147,7 @@ class HighwayNetwork(Network):
         edge_starts = [
              (":edge_{}".format(i + 1),
               (i + 1) * self.length / self.num_edges + i * junction_length)
-            for i in range(self.num_edges - 1)
+             for i in range(self.num_edges - 1)
         ]
 
         return edge_starts
