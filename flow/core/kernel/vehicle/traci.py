@@ -13,6 +13,7 @@ from flow.controllers.lane_change_controllers import SimLaneChangeController
 from bisect import bisect_left
 import itertools
 from copy import deepcopy
+import random
 
 # colors for vehicles
 WHITE = (255, 255, 255)
@@ -163,18 +164,30 @@ class TraCIVehicle(KernelVehicle):
         self.total_time += 1
 
         for key in self.__inflows.keys():
+            # This inflow is using a sumo-specific feature, so ignore.
+            if "vehsPerHour" not in self.__inflows[key].keys():
+                continue
+
             veh_per_hour = self.__inflows[key]["vehsPerHour"]
             steps_per_veh = int(3600 / (self.sim_step * veh_per_hour))
 
             # Add a vehicle if the inflow rate requires it.
             if self.total_time % steps_per_veh == 0:
                 name = self.__inflows[key]["name"]
+                edge = self.__inflows[key]["edge"]
+                depart_lane = self.__inflows[key]["departLane"]
+
+                # Choose a random lane to depart from.
+                if depart_lane == "free":
+                    depart_lane = random.randint(
+                        0, self.master_kernel.network.num_lanes(edge) - 1)
+
                 self.add(
                     veh_id="{}_{}".format(name, self.__num_inflows[name]),
                     type_id=self.__inflows[key]["vtype"],
-                    edge=self.__inflows[key]["edge"],
+                    edge=edge,
                     pos=0,
-                    lane=self.__inflows[key]["departLane"],
+                    lane=depart_lane,
                     speed=self.__inflows[key]["departSpeed"]
                 )
                 self.__num_inflows[name] += 1
