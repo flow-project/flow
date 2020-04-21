@@ -14,6 +14,7 @@ from bisect import bisect_left
 import itertools
 from copy import deepcopy
 import random
+import math
 
 # colors for vehicles
 WHITE = (255, 255, 255)
@@ -169,28 +170,33 @@ class TraCIVehicle(KernelVehicle):
                 continue
 
             veh_per_hour = self.__inflows[key]["vehsPerHour"]
-            steps_per_veh = int(3600 / (self.sim_step * veh_per_hour))
+            steps_per_veh = 3600 / (self.sim_step * veh_per_hour)
 
             # Add a vehicle if the inflow rate requires it.
-            if self.total_time % steps_per_veh == 0:
+            if steps_per_veh < 1 or self.total_time % int(steps_per_veh) == 0:
                 name = self.__inflows[key]["name"]
-                edge = self.__inflows[key]["edge"]
-                depart_lane = self.__inflows[key]["departLane"]
 
-                # Choose a random lane to depart from.
-                if depart_lane == "free":
-                    depart_lane = random.randint(
-                        0, self.master_kernel.network.num_lanes(edge) - 1)
-
-                self.add(
-                    veh_id="{}_{}".format(name, self.__num_inflows[name]),
-                    type_id=self.__inflows[key]["vtype"],
-                    edge=edge,
-                    pos=0,
-                    lane=depart_lane,
-                    speed=self.__inflows[key]["departSpeed"]
+                # number of vehicles to add
+                num_vehicles = max(
+                    1,
+                    # number of vehicles to add if inflow rate is greater than
+                    # the simulation update time per step
+                    math.floor(1/steps_per_veh)
+                    + (1 if random.uniform(0, 1) <
+                       ((1/steps_per_veh) - math.floor(1/steps_per_veh))
+                       else 0)
                 )
-                self.__num_inflows[name] += 1
+
+                for _ in range(num_vehicles):
+                    self.add(
+                        veh_id="{}_{}".format(name, self.__num_inflows[name]),
+                        type_id=self.__inflows[key]["vtype"],
+                        edge=self.__inflows[key]["edge"],
+                        pos=0,
+                        lane=self.__inflows[key]["departLane"],
+                        speed=self.__inflows[key]["departSpeed"]
+                    )
+                    self.__num_inflows[name] += 1
 
         # =================================================================== #
         # Update the vehicle states.                                          #
