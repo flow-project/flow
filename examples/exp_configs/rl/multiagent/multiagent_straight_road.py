@@ -51,7 +51,7 @@ additional_env_params.update({
     'lead_obs': True,
     "terminate_on_wave": True,
     # the environment is not allowed to terminate below this horizon length
-    'wave_termination_horizon': 500,
+    'wave_termination_horizon': 1000,
     # the speed below which we consider a wave to have occured
     'wave_termination_speed': 10.0
 })
