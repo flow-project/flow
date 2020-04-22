@@ -97,17 +97,20 @@ class AimsunKernelVehicle(KernelVehicle):
         # FIXME lots of these used in simulation/aimsun.py, used when
         # we want to store the values in an emission file (necessary?)
 
-    def initialize(self, vehicles):
+    def initialize(self, vehicles, net_params):
         """Initialize vehicle state information.
 
         This is responsible for collecting vehicle type information from the
-        VehicleParams object and placing them within the Vehicles kernel.
+        VehicleParams object and inflow information from the NetParams object
+        and placing them within the Vehicles kernel.
 
         Parameters
         ----------
         vehicles : flow.core.params.VehicleParams
             initial vehicle parameter information, including the types of
             individual vehicles and their initial speeds
+        net_params : flow.core.params.NetParams
+            network-specific parameters
         """
         self.type_parameters = vehicles.type_parameters
         self.num_vehicles = 0

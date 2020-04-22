@@ -89,7 +89,7 @@ class TraCISimulation(KernelSimulation):
                     "--remote-port", str(sim_params.port),
                     "--num-clients", str(sim_params.num_clients),
                     "--step-length", str(sim_params.sim_step),
-                    "--max-depart-delay", "0",
+                    # "--max-depart-delay", "0",  TODO (ak): maybe use later
                 ]
 
                 # use a ballistic integration step (if request)

@@ -45,7 +45,7 @@ class Kernel(object):
     traffic simulators, e.g. SUMO, AIMSUN, TruckSim, etc...
     """
 
-    def __init__(self, simulator, sim_params, net_params):
+    def __init__(self, simulator, sim_params):
         """Instantiate a Flow kernel object.
 
         Parameters
@@ -65,7 +65,7 @@ class Kernel(object):
         if simulator == "traci":
             self.simulation = TraCISimulation(self)
             self.network = TraCIKernelNetwork(self, sim_params)
-            self.vehicle = TraCIVehicle(self, sim_params, net_params)
+            self.vehicle = TraCIVehicle(self, sim_params)
             self.traffic_light = TraCITrafficLight(self)
         elif simulator == 'aimsun':
             self.simulation = AimsunKernelSimulation(self)

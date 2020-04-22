@@ -477,10 +477,10 @@ class TrafficLightGridEnv(Env):
             self.k.vehicle.add(
                 veh_id=veh_id,
                 edge=route_id,
-                type_id=str(type_id),
-                lane=str(lane_index),
-                pos="0",
-                speed="max")
+                type_id=type_id,
+                lane=lane_index,
+                pos=0,
+                speed=20)
 
     def get_closest_to_intersection(self, edges, num_closest, padding=False):
         """Return the IDs of the vehicles that are closest to an intersection.

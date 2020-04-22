@@ -156,15 +156,15 @@ class Env(gym.Env):
 
         # create the Flow kernel
         self.k = Kernel(simulator=self.simulator,
-                        sim_params=self.sim_params,
-                        net_params=self.net_params)
+                        sim_params=self.sim_params)
 
         # use the network class's network parameters to generate the necessary
         # network components within the network kernel
         self.k.network.generate_network(self.network)
 
         # initial the vehicles kernel using the VehicleParams object
-        self.k.vehicle.initialize(deepcopy(self.network.vehicles))
+        self.k.vehicle.initialize(deepcopy(self.network.vehicles),
+                                  deepcopy(self.network.net_params))
 
         # initialize the simulation using the simulation kernel. This will use
         # the network kernel as an input in order to determine what network
@@ -259,7 +259,8 @@ class Env(gym.Env):
             self.sim_params.emission_path = sim_params.emission_path
 
         self.k.network.generate_network(self.network)
-        self.k.vehicle.initialize(deepcopy(self.network.vehicles))
+        self.k.vehicle.initialize(deepcopy(self.network.vehicles),
+                                  deepcopy(self.network.net_params))
         kernel_api = self.k.simulation.start_simulation(
             network=self.k.network, sim_params=self.sim_params)
         self.k.pass_api(kernel_api)

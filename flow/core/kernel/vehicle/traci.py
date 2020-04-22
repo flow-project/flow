@@ -33,39 +33,20 @@ class TraCIVehicle(KernelVehicle):
     Extends flow.core.kernel.vehicle.base.KernelVehicle
     """
 
-    def __init__(self,
-                 master_kernel,
-                 sim_params,
-                 net_params):
+    def __init__(self, master_kernel, sim_params):
         """See parent class."""
-        KernelVehicle.__init__(self, master_kernel, sim_params, net_params)
+        KernelVehicle.__init__(self, master_kernel, sim_params)
 
-        self.__inflows = {x["name"]: x for x in self.net_params.inflows.get()}
-
-        # TODO: add random inflow option
+        # a dictionary object containing information on the inflows of every
+        # inflow type
+        self._inflows = None
         # cumulative inflow rate for all vehicles in a given edge
-        self.__inflows_by_edge = {
-            k: {"cumsum": [], "type": []}
-            for k in np.unique([
-                self.__inflows[key]["edge"] for key in self.__inflows.keys()
-            ])
-        }
-
-        for key in self.__inflows.keys():
-            edge = self.__inflows[key]["edge"]
-            inflow = self.__inflows[key]["vehsPerHour"]
-
-            # Add the cumulative inflow rates and the type of inflow.
-            self.__inflows_by_edge[edge]["type"].append(key)
-            self.__inflows_by_edge[edge]["cumsum"].append(inflow)
-            if len(self.__inflows_by_edge[edge]["cumsum"]) > 1:
-                self.__inflows_by_edge[edge]["cumsum"][-1] += \
-                    self.__inflows_by_edge[edge]["cumsum"][-2]
-
+        self._inflows_by_edge = None
         # number of vehicles of a specific inflow that have entered the network
-        self.__num_inflows = {name: 0 for name in self.__inflows.keys()}
+        self._num_inflows = None
+        # time since the start of the simulation
+        self._total_time = None
 
-        self.total_time = 0
         self.__ids = []  # ids of all vehicles
         self.__human_ids = []  # ids of human-driven vehicles
         self.__controlled_ids = []  # ids of flow-controlled vehicles
@@ -114,18 +95,25 @@ class TraCIVehicle(KernelVehicle):
         # old speeds used to compute accelerations
         self.previous_speeds = {}
 
-    def initialize(self, vehicles):
+    def initialize(self, vehicles, net_params):
         """Initialize vehicle state information.
 
         This is responsible for collecting vehicle type information from the
-        VehicleParams object and placing them within the Vehicles kernel.
+        VehicleParams object and inflow information from the NetParams object
+        and placing them within the Vehicles kernel.
 
         Parameters
         ----------
         vehicles : flow.core.params.VehicleParams
             initial vehicle parameter information, including the types of
             individual vehicles and their initial speeds
+        net_params : flow.core.params.NetParams
+            network-specific parameters
         """
+        # =================================================================== #
+        # Add the vehicle features.                                           #
+        # =================================================================== #
+
         self.type_parameters = vehicles.type_parameters
         self.minGap = vehicles.minGap
         self.num_vehicles = 0
@@ -141,6 +129,41 @@ class TraCIVehicle(KernelVehicle):
                 self.num_vehicles += 1
                 if typ['acceleration_controller'][0] == RLController:
                     self.num_rl_vehicles += 1
+
+        # =================================================================== #
+        # Add the inflow features.                                            #
+        # =================================================================== #
+
+        self._total_time = 0
+
+        self._inflows = {x["name"]: x for x in net_params.inflows.get()}
+
+        # TODO: add random inflow option
+        # cumulative inflow rate for all vehicles in a given edge
+        self._inflows_by_edge = {
+            k: {"cumsum": [], "type": []}
+            for k in np.unique([
+                self._inflows[key]["edge"] for key in self._inflows.keys()
+            ])
+        }
+
+        for key in self._inflows.keys():
+            # This inflow is using a sumo-specific feature, so ignore.
+            if "vehsPerHour" not in self._inflows[key].keys():
+                continue
+
+            edge = self._inflows[key]["edge"]
+            inflow = self._inflows[key]["vehsPerHour"]
+
+            # Add the cumulative inflow rates and the type of inflow.
+            self._inflows_by_edge[edge]["type"].append(key)
+            self._inflows_by_edge[edge]["cumsum"].append(inflow)
+            if len(self._inflows_by_edge[edge]["cumsum"]) > 1:
+                self._inflows_by_edge[edge]["cumsum"][-1] += \
+                    self._inflows_by_edge[edge]["cumsum"][-2]
+
+        # number of vehicles of a specific inflow that have entered the network
+        self._num_inflows = {name: 0 for name in self._inflows.keys()}
 
     def update(self, reset):
         """See parent class.
@@ -162,19 +185,19 @@ class TraCIVehicle(KernelVehicle):
         # =================================================================== #
         # Add the inflow vehicles.                                            #
         # =================================================================== #
-        self.total_time += 1
+        self._total_time += 1
 
-        for key in self.__inflows.keys():
+        for key in self._inflows.keys():
             # This inflow is using a sumo-specific feature, so ignore.
-            if "vehsPerHour" not in self.__inflows[key].keys():
+            if "vehsPerHour" not in self._inflows[key].keys():
                 continue
 
-            veh_per_hour = self.__inflows[key]["vehsPerHour"]
+            veh_per_hour = self._inflows[key]["vehsPerHour"]
             steps_per_veh = 3600 / (self.sim_step * veh_per_hour)
 
             # Add a vehicle if the inflow rate requires it.
-            if steps_per_veh < 1 or self.total_time % int(steps_per_veh) == 0:
-                name = self.__inflows[key]["name"]
+            if steps_per_veh < 1 or self._total_time % int(steps_per_veh) == 0:
+                name = self._inflows[key]["name"]
 
                 # number of vehicles to add
                 num_vehicles = max(
@@ -189,14 +212,14 @@ class TraCIVehicle(KernelVehicle):
 
                 for _ in range(num_vehicles):
                     self.add(
-                        veh_id="{}_{}".format(name, self.__num_inflows[name]),
-                        type_id=self.__inflows[key]["vtype"],
-                        edge=self.__inflows[key]["edge"],
+                        veh_id="{}_{}".format(name, self._num_inflows[name]),
+                        type_id=self._inflows[key]["vtype"],
+                        edge=self._inflows[key]["edge"],
                         pos=0,
-                        lane=self.__inflows[key]["departLane"],
-                        speed=self.__inflows[key]["departSpeed"]
+                        lane=self._inflows[key]["departLane"],
+                        speed=self._inflows[key]["departSpeed"]
                     )
-                    self.__num_inflows[name] += 1
+                    self._num_inflows[name] += 1
 
         # =================================================================== #
         # Update the vehicle states.                                          #
@@ -222,7 +245,7 @@ class TraCIVehicle(KernelVehicle):
             self.remove(veh_id)
             # remove exiting vehicles from the vehicle subscription if they
             # haven't been removed already
-            if vehicle_obs[veh_id] is None:
+            if veh_id in vehicle_obs and vehicle_obs[veh_id] is None:
                 vehicle_obs.pop(veh_id, None)
         self._arrived_rl_ids.append(arrived_rl_ids)
 
