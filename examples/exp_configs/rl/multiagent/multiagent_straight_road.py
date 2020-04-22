@@ -46,7 +46,7 @@ additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
 additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
-    'target_velocity': 18,
+    'target_velocity': 14.0,
     'local_reward': True,
     'lead_obs': True,
     "terminate_on_wave": True,

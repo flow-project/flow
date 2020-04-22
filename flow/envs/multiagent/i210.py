@@ -70,6 +70,7 @@ class I210MultiEnv(MultiEnv):
         super().__init__(env_params, sim_params, network, simulator)
         self.lead_obs = env_params.additional_params.get("lead_obs")
         self.max_lanes = MAX_LANES
+        self.total_reward = 0.0
 
     @property
     def observation_space(self):
@@ -138,10 +139,10 @@ class I210MultiEnv(MultiEnv):
                     headway = self.k.vehicle.get_headway(rl_id)
                 veh_info.update({rl_id: np.array([speed / SPEED_SCALE, headway /HEADWAY_SCALE, lead_speed / SPEED_SCALE])})
 
-            if self.env_params.additional_params['reward_after_exit']:
-                for rl_id in self.left_av_set:
-                    veh_info.update(
-                        {rl_id: np.array([-1, -1, -1])})
+            # if self.env_params.additional_params['reward_after_exit']:
+            #     for rl_id in self.left_av_set:
+            #         veh_info.update(
+            #             {rl_id: np.array([-1, -1, -1])})
 
         else:
             veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
@@ -161,9 +162,9 @@ class I210MultiEnv(MultiEnv):
             for rl_id in self.k.vehicle.get_rl_ids():
                 rewards[rl_id] = 0
                 speeds = []
-                follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
-                if follow_speed >= 0:
-                    speeds.append(follow_speed)
+                # follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
+                # if follow_speed >= 0:
+                #     speeds.append(follow_speed)
                 if self.k.vehicle.get_speed(rl_id) >= 0:
                     speeds.append(self.k.vehicle.get_speed(rl_id))
                 if len(speeds) > 0:
@@ -172,9 +173,12 @@ class I210MultiEnv(MultiEnv):
                                               for speed in speeds]) / (des_speed**2)
             # you continue to accrue reward after you exit
             if self.env_params.additional_params['reward_after_exit']:
-                for rl_id in self.left_av_set:
-                    rewards.update(
-                        {rl_id: np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))})
+                speed = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids())))
+                global_rew = ((des_speed - np.abs(speed - des_speed)) ** 2) / (des_speed**2)
+                self.total_reward += global_rew
+                # for rl_id in self.left_av_set:
+                #     rewards.update(
+                #         {rl_id: np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))})
         else:
             for rl_id in self.k.vehicle.get_rl_ids():
                 if self.env_params.evaluate:
@@ -285,11 +289,22 @@ class MultiStraightRoad(I210MultiEnv):
         mean_speed = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids())))
         if self.env_params.additional_params['terminate_on_wave'] and \
             mean_speed < self.env_params.additional_params['wave_termination_speed'] \
-            and self.step_counter > self.env_params.additional_params['wave_termination_horizon']:
+            and self.step_counter > self.env_params.additional_params['wave_termination_horizon'] \
+                and len(self.k.vehicle.get_ids()) > 0:
             done['__all__'] = True
 
-        if self.env_params.additional_params['reward_after_exit']:
+        if self.env_params.additional_params['reward_after_exit'] and done['__all__']:
             for rl_id in self.left_av_set:
-                done[rl_id] = False
+                obs[rl_id] = [-1, -1, -1]
+                rew[rl_id] = self.total_reward
+                done[rl_id] = True
+            for rl_id in self.k.vehicle.get_rl_ids():
+                rew[rl_id] = self.total_reward
+                done[rl_id] = True
 
         return obs, rew, done, info
+
+    def reset(self, new_inflow_rate=None):
+        obs = super().reset()
+        self.total_reward = 0
+        return obs

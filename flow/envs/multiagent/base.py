@@ -113,6 +113,8 @@ class MultiEnv(MultiAgentEnv, Env):
         states = self.get_state()
         done = {key: key in self.k.vehicle.get_arrived_ids()
                 for key in states.keys()}
+        # TODO(@evinitsky) remove this
+        crash = False
         if crash or (self.step_counter >=
                      (self.env_params.warmup_steps + self.env_params.horizon)):
             done['__all__'] = True
