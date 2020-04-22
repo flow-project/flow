@@ -48,7 +48,12 @@ additional_env_params.update({
     'max_decel': 4.5,
     'target_velocity': 18,
     'local_reward': True,
-    'lead_obs': True
+    'lead_obs': True,
+    "terminate_on_wave": True,
+    # the environment is not allowed to terminate below this horizon length
+    'wave_termination_horizon': 500,
+    # the speed below which we consider a wave to have occured
+    'wave_termination_speed': 10.0
 })
 
 

@@ -48,9 +48,9 @@ class MultiEnv(MultiAgentEnv, Env):
         info : dict
             contains other diagnostic information from the previous action
         """
+        self.step_counter += 1
         for _ in range(self.env_params.sims_per_step):
             self.time_counter += 1
-            self.step_counter += 1
 
             # perform acceleration actions for controlled human-driven vehicles
             if len(self.k.vehicle.get_controlled_ids()) > 0:
@@ -147,7 +147,7 @@ class MultiEnv(MultiAgentEnv, Env):
             to be zero.
         """
         # reset the time counter
-        self.time_counter = 0
+        self.step_counter = 0
 
         # Now that we've passed the possibly fake init steps some rl libraries
         # do, we can feel free to actually render things
@@ -173,8 +173,8 @@ class MultiEnv(MultiAgentEnv, Env):
             )
 
         if self.sim_params.restart_instance or \
-                (self.step_counter > 2e6 and self.simulator != 'aimsun'):
-            self.step_counter = 0
+                (self.time_counter > 2e6 and self.simulator != 'aimsun'):
+            self.time_counter = 0
             # issue a random seed to induce randomness into the next rollout
             self.sim_params.seed = random.randint(0, 1e5)
 

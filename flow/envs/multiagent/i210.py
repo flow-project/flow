@@ -19,7 +19,13 @@ ADDITIONAL_ENV_PARAMS = {
     # whether we use an obs space that contains adjacent lane info or just the lead obs
     "lead_obs": True,
     # whether the reward should come from local vehicles instead of global rewards
-    "local_reward": True
+    "local_reward": True,
+    # if the environment terminates once a wave has occurred
+    "terminate_on_wave": True,
+    # the environment is not allowed to terminate below this horizon length
+    'wave_termination_horizon': 500,
+    # the speed below which we consider a wave to have occured
+    'wave_termination_speed': 10.0
 }
 
 
@@ -130,7 +136,6 @@ class I210MultiEnv(MultiEnv):
                 else:
                     lead_speed = self.k.vehicle.get_speed(lead_id)
                     headway = self.k.vehicle.get_headway(rl_id)
-                    self.leader.append(lead_id)
                 veh_info.update({rl_id: np.array([speed / SPEED_SCALE, headway /HEADWAY_SCALE, lead_speed / SPEED_SCALE])})
         else:
             veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
@@ -263,3 +268,13 @@ class MultiStraightRoad(I210MultiEnv):
 
             # prevent the AV from blocking the entrance
             self.k.vehicle.apply_acceleration(rl_ids, accels)
+
+    def step(self, rl_actions):
+        obs, rew, done, info = super().step(rl_actions)
+        mean_speed = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids())))
+        if self.env_params.additional_params['terminate_on_wave'] and \
+            mean_speed < self.env_params.additional_params['wave_termination_speed'] \
+            and self.step_counter > self.env_params.additional_params['wave_termination_horizon']:
+            done['__all__'] = True
+
+        return obs, rew, done, info
