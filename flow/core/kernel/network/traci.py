@@ -765,6 +765,11 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 # do not want to affect the original values
                 sumo_inflow = deepcopy(inflow)
 
+                # The vehsPerHour feature has been moved to the VehicleParams
+                # class.
+                if "vehsPerHour" in sumo_inflow.keys():
+                    continue
+
                 # convert any non-string element in the inflow dict to a string
                 for key in sumo_inflow:
                     if not isinstance(sumo_inflow[key], str):
@@ -780,7 +785,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                         sumo_inflow['name'] += str(i)
                         sumo_inflow['route'] = 'route{}_{}'.format(edge, i)
 
-                        for key in ['vehsPerHour', 'probability', 'period']:
+                        for key in ['probability', 'period']:
                             if key in sumo_inflow:
                                 sumo_inflow[key] = str(float(inflow[key]) * ft)
 

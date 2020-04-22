@@ -37,6 +37,12 @@ class BaseController:
         Should be either "instantaneous" or "safe_velocity"
     noise : double
         variance of the gaussian from which to sample a noisy acceleration
+    ignore_noise : list of (float, float)
+        a list of (min_pos, max_pos) positions where noise should not be
+        applied to the accelerations. For example, if you would not like to
+        apply acceleration noise within the positions (0, 100) and (200, 300),
+        then this term is written as: [(0, 100), (200, 300)]. If set to None,
+        noise is applied to the accelerations everywhere.
     """
 
     def __init__(self,
@@ -44,9 +50,11 @@ class BaseController:
                  car_following_params,
                  delay=0,
                  fail_safe=None,
-                 noise=0):
+                 noise=0,
+                 ignore_noise=None):
         """Instantiate the base class for acceleration behavior."""
         self.veh_id = veh_id
+        self.ignore_noise = ignore_noise or []
 
         # magnitude of gaussian noise
         self.accel_noise = noise
@@ -107,7 +115,22 @@ class BaseController:
 
         # add noise to the accelerations, if requested
         if self.accel_noise > 0:
-            accel += np.random.normal(0, self.accel_noise)
+            if self.ignore_noise is None:
+                # Add noise to the vehicle for all positions in this case.
+                accel += np.random.normal(0, self.accel_noise)
+            else:
+                pos = env.k.vehicle.get_x_by_id(self.veh_id)
+
+                # Check whether to apply the acceleration. If you are within
+                # one of the ignore_pos positions, noise is not applied to the
+                # accelerations.
+                apply_noise = True
+                for (min_pos, max_pos) in self.ignore_noise:
+                    if min_pos <= pos < max_pos:
+                        apply_noise = False
+
+                if apply_noise:
+                    accel += np.random.normal(0, self.accel_noise)
 
         # run the failsafes, if requested
         if self.fail_safe == 'instantaneous':

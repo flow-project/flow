@@ -163,7 +163,8 @@ class Env(gym.Env):
         self.k.network.generate_network(self.network)
 
         # initial the vehicles kernel using the VehicleParams object
-        self.k.vehicle.initialize(deepcopy(self.network.vehicles))
+        self.k.vehicle.initialize(deepcopy(self.network.vehicles),
+                                  deepcopy(self.network.net_params))
 
         # initialize the simulation using the simulation kernel. This will use
         # the network kernel as an input in order to determine what network
@@ -258,7 +259,8 @@ class Env(gym.Env):
             self.sim_params.emission_path = sim_params.emission_path
 
         self.k.network.generate_network(self.network)
-        self.k.vehicle.initialize(deepcopy(self.network.vehicles))
+        self.k.vehicle.initialize(deepcopy(self.network.vehicles),
+                                  deepcopy(self.network.net_params))
         kernel_api = self.k.simulation.start_simulation(
             network=self.k.network, sim_params=self.sim_params)
         self.k.pass_api(kernel_api)

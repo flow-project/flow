@@ -937,7 +937,7 @@ class TestBottleneckDesiredVelocityEnv(unittest.TestCase):
 
         # reset the environment and get a new inflow rate
         env.reset()
-        expected_inflow = 1353.6  # just from checking the new inflow
+        expected_inflow = 1440.0  # just from checking the new inflow
 
         # check that the first inflow rate is approximately what the seeded
         # value expects it to be

@@ -35,9 +35,7 @@ class KernelVehicle(object):
     vehicle kernel of separate simulators.
     """
 
-    def __init__(self,
-                 master_kernel,
-                 sim_params):
+    def __init__(self, master_kernel, sim_params):
         """Instantiate the Flow vehicle kernel.
 
         Parameters
