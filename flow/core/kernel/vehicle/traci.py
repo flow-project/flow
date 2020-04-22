@@ -165,10 +165,6 @@ class TraCIVehicle(KernelVehicle):
         # number of vehicles of a specific inflow that have entered the network
         self._num_inflows = {name: 0 for name in self._inflows.keys()}
 
-    def _congested(self):
-        """Check if the network is congested."""
-        return self.num_vehicles >= 40
-
     def update(self, reset):
         """See parent class.
 
