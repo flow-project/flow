@@ -165,6 +165,10 @@ class TraCIVehicle(KernelVehicle):
         # number of vehicles of a specific inflow that have entered the network
         self._num_inflows = {name: 0 for name in self._inflows.keys()}
 
+    def _congested(self):
+        """Check if the network is congested."""
+        return self.num_vehicles >= 40
+
     def update(self, reset):
         """See parent class.
 
@@ -187,17 +191,39 @@ class TraCIVehicle(KernelVehicle):
         # =================================================================== #
         self._total_time += 1
 
-        for key in self._inflows.keys():
+        for edge in self._inflows_by_edge.keys():
             # This inflow is using a sumo-specific feature, so ignore.
-            if "vehsPerHour" not in self._inflows[key].keys():
+            if len(self._inflows_by_edge[edge]["cumsum"]) == 0:
                 continue
 
-            veh_per_hour = self._inflows[key]["vehsPerHour"]
+            veh_per_hour = self._inflows_by_edge[edge]["cumsum"][-1]
             steps_per_veh = 3600 / (self.sim_step * veh_per_hour)
 
             # Add a vehicle if the inflow rate requires it.
             if steps_per_veh < 1 or self._total_time % int(steps_per_veh) == 0:
-                name = self._inflows[key]["name"]
+                # Choose the type of vehicle to push to this edge
+                names = self._inflows_by_edge[edge]["type"]
+                name = names[0]
+                cumsum = self._inflows_by_edge[edge]["cumsum"]
+                for i in range(len(names) - 1):
+                    # Deal with cases with no vehicles.
+                    if self._num_inflows[names[i]] == 0:
+                        break
+
+                    # This is used in order to maintain the inflow rate ratio.
+                    exp_inflow_ratio = (cumsum[i+1] - cumsum[i]) / cumsum[i]
+                    act_inflow_ratio = self._num_inflows[names[i+1]] \
+                        / sum(self._num_inflows[names[j]] for j in range(i+1))
+
+                    # If not enough vehicles of a specific type has been pushed
+                    # to the network yet, add it to the network.
+                    if exp_inflow_ratio < act_inflow_ratio:
+                        break
+                    else:
+                        name = names[i + 1]
+
+                # Choose the departure speed.
+                depart_speed = self._inflows[name]["departSpeed"]
 
                 # number of vehicles to add
                 num_vehicles = max(
@@ -210,16 +236,16 @@ class TraCIVehicle(KernelVehicle):
                        else 0)
                 )
 
-                for _ in range(num_vehicles):
+                for veh_num in range(num_vehicles):
+                    total_time = self._total_time
                     self.add(
-                        veh_id="{}_{}".format(name, self._num_inflows[name]),
-                        type_id=self._inflows[key]["vtype"],
-                        edge=self._inflows[key]["edge"],
+                        veh_id="{}_{}_{}".format(name, total_time, veh_num),
+                        type_id=self._inflows[name]["vtype"],
+                        edge=self._inflows[name]["edge"],
                         pos=0,
-                        lane=self._inflows[key]["departLane"],
-                        speed=self._inflows[key]["departSpeed"]
+                        lane=self._inflows[name]["departLane"],
+                        speed=depart_speed
                     )
-                    self._num_inflows[name] += 1
 
         # =================================================================== #
         # Update the vehicle states.                                          #
@@ -459,6 +485,12 @@ class TraCIVehicle(KernelVehicle):
 
         # get the subscription results from the new vehicle
         new_obs = self.kernel_api.vehicle.getSubscriptionResults(veh_id)
+
+        # Increment the vehicle counter of inflow vehicles of a specific type,
+        # if this is an inflow vehicle.
+        for key in self._num_inflows.keys():
+            if veh_id.startswith(key):
+                self._num_inflows[key] += 1
 
         return new_obs
 
