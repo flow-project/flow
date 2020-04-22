@@ -105,6 +105,11 @@ class MultiEnv(MultiAgentEnv, Env):
             if crash:
                 break
 
+            self.departed_av_ids.update(self.k.vehicle.get_rl_ids())
+            arrived_ids = self.k.vehicle.get_arrived_ids()
+            if not isinstance(arrived_ids, int):
+                self.left_av_set.update([veh_id for veh_id in self.k.vehicle.get_arrived_ids() if veh_id in self.departed_av_ids])
+
         states = self.get_state()
         done = {key: key in self.k.vehicle.get_arrived_ids()
                 for key in states.keys()}

@@ -137,6 +137,12 @@ class I210MultiEnv(MultiEnv):
                     lead_speed = self.k.vehicle.get_speed(lead_id)
                     headway = self.k.vehicle.get_headway(rl_id)
                 veh_info.update({rl_id: np.array([speed / SPEED_SCALE, headway /HEADWAY_SCALE, lead_speed / SPEED_SCALE])})
+
+            if self.env_params.additional_params['reward_after_exit']:
+                for rl_id in self.left_av_set:
+                    veh_info.update(
+                        {rl_id: np.array([-1, -1, -1])})
+
         else:
             veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
                                                self.veh_statistics(rl_id)))
@@ -164,6 +170,11 @@ class I210MultiEnv(MultiEnv):
                     # rescale so the q function can estimate it quickly
                     rewards[rl_id] = np.mean([(des_speed - np.abs(speed - des_speed))**2
                                               for speed in speeds]) / (des_speed**2)
+            # you continue to accrue reward after you exit
+            if self.env_params.additional_params['reward_after_exit']:
+                for rl_id in self.left_av_set:
+                    rewards.update(
+                        {rl_id: np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))})
         else:
             for rl_id in self.k.vehicle.get_rl_ids():
                 if self.env_params.evaluate:
@@ -276,5 +287,9 @@ class MultiStraightRoad(I210MultiEnv):
             mean_speed < self.env_params.additional_params['wave_termination_speed'] \
             and self.step_counter > self.env_params.additional_params['wave_termination_horizon']:
             done['__all__'] = True
+
+        if self.env_params.additional_params['reward_after_exit']:
+            for rl_id in self.left_av_set:
+                done[rl_id] = False
 
         return obs, rew, done, info

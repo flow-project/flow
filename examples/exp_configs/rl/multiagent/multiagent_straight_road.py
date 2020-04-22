@@ -53,7 +53,10 @@ additional_env_params.update({
     # the environment is not allowed to terminate below this horizon length
     'wave_termination_horizon': 1000,
     # the speed below which we consider a wave to have occured
-    'wave_termination_speed': 10.0
+    'wave_termination_speed': 10.0,
+    # whether the vehicle continues to acquire reward after it exits the system. This causes it to have incentive
+    # to leave the network in a good state after it leaves
+    'reward_after_exit': True
 })
 
 
@@ -97,6 +100,9 @@ inflows.add(
     name="rl_highway_inflow")
 
 # SET UP FLOW PARAMETERS
+done_at_exit = True
+if additional_env_params['reward_after_exit']:
+    done_at_exit = False
 
 flow_params = dict(
     # name of the experiment
@@ -116,6 +122,7 @@ flow_params = dict(
         horizon=HORIZON,
         warmup_steps=0,
         sims_per_step=1,  # do not put more than one
+        done_at_exit=done_at_exit,
         additional_params=additional_env_params,
     ),
 

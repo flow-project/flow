@@ -198,6 +198,7 @@ def setup_exps_rllib(flow_params,
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
         config["buffer_size"] = 20000  # reduced to test if this is the source of memory problems
+        config["sample_batch_size"] = 50
         if flags.grid_search:
             config["prioritized_replay"] = tune.grid_search(['True', 'False'])
             config["actor_lr"] = tune.grid_search([1e-3, 1e-4])

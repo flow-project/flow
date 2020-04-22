@@ -182,6 +182,10 @@ class Env(gym.Env):
         # store the initial vehicle ids
         self.initial_ids = deepcopy(self.network.vehicles.ids)
 
+        # track AVs that have exited the system
+        self.left_av_set = set()
+        self.departed_av_ids = set()
+
         # store the initial state of the vehicles kernel (needed for restarting
         # the simulation)
         self.k.vehicle.kernel_api = None
@@ -429,6 +433,10 @@ class Env(gym.Env):
         """
         # reset the time counter
         self.time_counter = 0
+
+        # reset the tracker of exited AVs
+        self.left_av_set = set()
+        self.departed_av_ids = set()
 
         # Now that we've passed the possibly fake init steps some rl libraries
         # do, we can feel free to actually render things
