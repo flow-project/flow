@@ -39,6 +39,24 @@ def generate_trajectory_table(data_path, extra_info, partition_name):
 
 
 def generate_trajectory_from_flow(data_path, extra_info, partition_name):
+    """ generate desired output for the trajectory_table based only on flow output
+
+           Parameters
+           ----------
+           data_path : str
+               output file path
+           extra_info: dict
+               extra information needed in the trajectory table, collected from flow
+           partition_name: str
+               the name of the partition to put this output to
+           Returns
+           -------
+           output_file_path: str
+               the local path of the outputted csv file that should be used for
+               upload to s3 only, it does not the human readable column names and
+               will be deleted after uploading to s3. A copy of this file with all
+               the column name will remain in the ./data folder
+           """
     extra_info = pd.DataFrame.from_dict(extra_info)
     # extra_info["partition"] = partition_name
     extra_info.to_csv(data_path, index=False)
@@ -47,7 +65,7 @@ def generate_trajectory_from_flow(data_path, extra_info, partition_name):
     return upload_only_file_path
 
 
-def upload_to_s3(bucket_name, bucket_key, file_path):
+def upload_to_s3(bucket_name, bucket_key, file_path, only_query):
     """ upload a file to S3 bucket
 
     Parameters
@@ -58,9 +76,15 @@ def upload_to_s3(bucket_name, bucket_key, file_path):
         the key within the bucket for the file
     file_path: str
         the path of the file to be uploaded
+    only_query: str
+        specify which query should be run on this file by lambda:
+        if empty: run none of them
+        if "all": run all available analysis query
+        if a string of list of queries: run only those mentioned in the list
     """
     s3 = boto3.resource("s3")
-    s3.Bucket(bucket_name).upload_file(file_path, bucket_key)
+    s3.Bucket(bucket_name).upload_file(file_path, bucket_key,
+                                       ExtraArgs={"Metadata": {"run-query": only_query}})
     return
 
 
