@@ -67,7 +67,7 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands:
-    - cd flow && git fetch && git checkout origin/i210_dev
+    - cd flow && git fetch && git checkout origin/termination_condition
 
 head_setup_commands:
     - pip install ray==0.8.0

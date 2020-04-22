@@ -10,6 +10,7 @@ from flow.envs.ring.lane_change_accel import LaneChangeAccelEnv, \
 from flow.envs.ring.accel import AccelEnv
 from flow.envs.ring.wave_attenuation import WaveAttenuationEnv, \
     WaveAttenuationPOEnv
+from flow.envs.straightroad_env import I210SingleEnv, SingleStraightRoad
 from flow.envs.merge import MergePOEnv
 from flow.envs.test import TestEnv
 
@@ -36,6 +37,8 @@ __all__ = [
     'BottleneckDesiredVelocityEnv',
     'TestEnv',
     'BayBridgeEnv',
+    'I210SingleEnv',
+    'SingleStraightRoad'
     # deprecated classes
     'BottleNeckAccelEnv',
     'DesiredVelocityEnv',

@@ -113,7 +113,7 @@ class FollowerStopper(BaseController):
             return None
         else:
             # compute the acceleration from the desired velocity
-            return (v_cmd - this_vel) / env.sim_step
+            return np.clip((v_cmd - this_vel) / env.sim_step, -np.abs(self.max_deaccel), self.max_accel)
 
 
 class NonLocalFollowerStopper(FollowerStopper):
