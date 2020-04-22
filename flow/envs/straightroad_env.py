@@ -232,7 +232,7 @@ class SingleStraightRoad(I210SingleEnv):
         mean_speed = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids())))
         if self.env_params.additional_params['terminate_on_wave'] and \
             mean_speed < self.env_params.additional_params['wave_termination_speed'] \
-            and self.step_counter > self.env_params.additional_params['wave_termination_horizon'] \
+            and self.time_counter > self.env_params.additional_params['wave_termination_horizon'] \
                 and len(self.k.vehicle.get_ids()) > 0:
             done = True
 
