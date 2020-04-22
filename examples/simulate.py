@@ -54,6 +54,12 @@ def parse_args(args):
         help='Specifies the name of the partition to store the output'
              'file on S3. Putting not None value for this argument'
              'automatically set gen_emission to True.')
+    parser.add_argument(
+        '--only_query',
+        nargs='*', default="[\'all\']",
+        help='specify which query should be run by lambda'
+             'for detail, see upload_to_s3 in data_pipeline.py'
+    )
 
     return parser.parse_known_args(args)[0]
 
@@ -91,4 +97,4 @@ if __name__ == "__main__":
     exp = Experiment(flow_params, callables)
 
     # Run for the specified number of rollouts.
-    exp.run(flags.num_runs, convert_to_csv=flags.gen_emission, partition_name=flags.to_aws)
+    exp.run(flags.num_runs, convert_to_csv=flags.gen_emission, partition_name=flags.to_aws, only_query=flags.only_query)
