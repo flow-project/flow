@@ -1,9 +1,6 @@
 import time
 import numpy as np
-import tensorflow as tf
-import gym
 import os
-from utils import *
 
 
 class ReplayBuffer(object):
@@ -33,7 +30,7 @@ class ReplayBuffer(object):
         for rollout in rollouts_list:
             self.rollouts.append(rollout)
 
-        observations, actions, expert_actions, rewards, next_observations, terminals = unpack_rollouts(rollouts_list)
+        observations, actions, expert_actions, rewards, next_observations, terminals = self.unpack_rollouts(rollouts_list)
 
         assert (not np.any(np.isnan(expert_actions))), "Invalid actions added to replay buffer"
 
@@ -61,4 +58,21 @@ class ReplayBuffer(object):
 
         size = len(self.observations)
         rand_inds = np.random.randint(0, size, batch_size)
-        return self.observations[rand_inds], self.actions[rand_inds], self.expert_actions[rand_inds], self.rewards[rand_inds], self.next_observations[rand_inds], self.terminals[rand_inds]
+        return self.observations[rand_inds], self.actions[rand_inds], self.expert_actions[rand_inds]
+
+
+
+    def unpack_rollouts(self, rollouts_list):
+        """
+            Convert list of rollout dictionaries to individual observation, action, rewards, next observation, terminal arrays
+            rollouts: list of rollout dictionaries, rollout dictionary: dictionary with keys "observations", "actions", "rewards", "next_observations", "is_terminals"
+            return separate np arrays of observations, actions, rewards, next_observations, and is_terminals
+        """
+        observations = np.concatenate([rollout["observations"] for rollout in rollouts_list])
+        actions = np.concatenate([rollout["actions"] for rollout in rollouts_list])
+        expert_actions = np.concatenate([rollout["expert_actions"] for rollout in rollouts_list])
+        rewards = np.concatenate([rollout["rewards"] for rollout in rollouts_list])
+        next_observations = np.concatenate([rollout["next_observations"] for rollout in rollouts_list])
+        terminals = np.concatenate([rollout["terminals"] for rollout in rollouts_list])
+
+        return observations, actions, expert_actions, rewards, next_observations, terminals

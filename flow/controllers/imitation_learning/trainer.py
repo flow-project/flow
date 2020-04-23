@@ -5,7 +5,7 @@ import numpy as np
 import gym
 import os
 from flow.utils.registry import make_create_env
-from multiagent_ring_env import flow_params
+from i210_multiagent import flow_params
 from imitating_controller import ImitatingController
 from imitating_network import ImitatingNetwork
 from flow.controllers.car_following_models import IDMController
@@ -13,6 +13,7 @@ from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import SumoCarFollowingParams
 import tensorflow as tf
 from utils import *
+from utils_tensorflow import *
 
 class Trainer(object):
     """
@@ -36,12 +37,7 @@ class Trainer(object):
         # TODO: remove print
         print("MULTI: ", self.multiagent)
 
-        if self.multiagent:
-            self.vehicle_ids = list(init_state.keys())
-        else:
-            print("IDS: ", self.env.k.vehicle.get_ids())
-            assert self.params['vehicle_id'] in self.env.k.vehicle.get_ids()
-            self.vehicle_ids = [self.params['vehicle_id']]
+        self.vehicle_ids = self.env.k.vehicle.get_rl_ids()
 
         # neural net setup
         obs_dim = self.env.observation_space.shape[0]
@@ -55,11 +51,11 @@ class Trainer(object):
 
         # controllers setup
         car_following_params = SumoCarFollowingParams()
-        self.expert_controllers = []
-        self.controllers = []
+        self.controllers = dict()
         for vehicle_id in self.vehicle_ids:
-            self.expert_controllers.append(FollowerStopper(vehicle_id, car_following_params=car_following_params))
-            self.controllers.append(ImitatingController(vehicle_id, self.action_network, self.multiagent, car_following_params=car_following_params))
+            expert = FollowerStopper(vehicle_id, car_following_params=car_following_params)
+            imitator = ImitatingController(vehicle_id, self.action_network, self.multiagent, car_following_params=car_following_params)
+            self.controllers[vehicle_id] = (imitator, expert)
 
 
     def run_training_loop(self, n_iter):
@@ -105,13 +101,8 @@ class Trainer(object):
             envsteps_this_batch: the sum over the numbers of environment steps in paths
         """
 
-        if itr == 0:
-            collect_controllers = self.expert_controllers
-        else:
-            collect_controllers = self.controllers
-
         print("\nCollecting data to be used for training...")
-        trajectories, envsteps_this_batch = sample_trajectories(self.env, self.vehicle_ids, collect_controllers, self.expert_controllers, batch_size, self.params['ep_len'], self.multiagent)
+        trajectories, envsteps_this_batch = sample_trajectories(self.env, self.controllers, self.action_network, batch_size, self.params['ep_len'], self.multiagent, use_expert=itr==0)
 
         return trajectories, envsteps_this_batch
 
@@ -122,7 +113,7 @@ class Trainer(object):
 
         print('Training controller using sampled data from replay buffer')
         for train_step in range(self.params['num_agent_train_steps_per_iter']):
-            ob_batch, ac_batch, expert_ac_batch, re_batch, next_ob_batch, terminal_batch = self.action_network.sample_data(self.params['train_batch_size'])
+            ob_batch, ac_batch, expert_ac_batch = self.action_network.sample_data(self.params['train_batch_size'])
             self.action_network.train(ob_batch, expert_ac_batch)
 
     def evaluate_controller(self, num_trajs = 10):
@@ -135,7 +126,7 @@ class Trainer(object):
 
         print("\n\n********** Evaluation ************ \n")
 
-        trajectories = sample_n_trajectories(self.env, self.vehicle_ids, self.controllers, self.expert_controllers, num_trajs, self.params['ep_len'], self.multiagent)
+        trajectories = sample_n_trajectories(self.env, self.controllers, self.action_network, num_trajs, self.params['ep_len'], self.multiagent, False)
 
         average_imitator_reward = 0
         total_imitator_steps = 0
@@ -146,7 +137,9 @@ class Trainer(object):
         average_action_imitator = 0
 
         # compare actions taken in each step of trajectories
-        for traj in trajectories:
+        for traj_pair in trajectories:
+            traj = traj_pair[0]
+            traj_len = traj_pair[1]
             imitator_actions = traj['actions']
             expert_actions = traj['expert_actions']
 
@@ -157,7 +150,7 @@ class Trainer(object):
             action_errors = np.append(action_errors, action_error)
 
             average_imitator_reward += np.sum(traj['rewards'])
-            total_imitator_steps += len(traj['rewards'])
+            total_imitator_steps += traj_len
             average_imitator_reward_per_rollout += np.sum(traj['rewards'])
 
         average_imitator_reward = average_imitator_reward / total_imitator_steps
@@ -167,16 +160,18 @@ class Trainer(object):
         average_action_imitator = average_action_imitator / total_imitator_steps
 
 
-        expert_trajectories = sample_n_trajectories(self.env, self.vehicle_ids, self.expert_controllers, self.expert_controllers, num_trajs, self.params['ep_len'], self.multiagent)
+        expert_trajectories = sample_n_trajectories(self.env, self.controllers, self.action_network, num_trajs, self.params['ep_len'], self.multiagent, True)
 
         average_expert_reward = 0
         total_expert_steps = 0
         average_expert_reward_per_rollout = 0
 
         # compare reward accumulated in trajectories collected via expert vs. via imitator
-        for traj in expert_trajectories:
+        for traj_pair in expert_trajectories:
+            traj = traj_pair[0]
+            traj_len = traj_pair[1]
             average_expert_reward += np.sum(traj['rewards'])
-            total_expert_steps += len(traj['rewards'])
+            total_expert_steps += traj_len
             average_expert_reward_per_rollout += np.sum(traj['rewards'])
 
         average_expert_reward_per_rollout = average_expert_reward_per_rollout / len(expert_trajectories)
@@ -188,8 +183,9 @@ class Trainer(object):
 
         print("AVERAGE REWARD PER ROLLOUT EXPERT: ", average_expert_reward_per_rollout)
         print("AVERAGE REWARD PER ROLLOUT IMITATOR: ", average_imitator_reward_per_rollout)
-        print("AVERAGE REWARD PER ROLLOUT DIFFERENCE: ", np.abs(average_expert_reward_per_rollout - average_imitator_reward_per_rollout), "\n")
+        print("AVERAGE REWARD PER ROLLOUT DIFFERENCE: \n", np.abs(average_expert_reward_per_rollout - average_imitator_reward_per_rollout), "\n")
 
+        print("MEAN EXPERT ACTION: ", average_action_expert)
         print("MEAN ACTION ERROR: ", np.mean(action_errors), "\n")
 
     def save_controller_network(self):

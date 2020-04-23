@@ -32,10 +32,10 @@ def main():
     parser.add_argument('--ep_len', type=int, default=3000)
 
     parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1000)  # number of gradient steps for training policy (per iter in n_iter)
-    parser.add_argument('--n_iter', '-n', type=int, default=5)
+    parser.add_argument('--n_iter', type=int, default=5)
 
-    parser.add_argument('--batch_size', type=int, default=10000)  # training data collected (in the env) during each iteration
-    parser.add_argument('--init_batch_size', type=int, default=30000)
+    parser.add_argument('--batch_size', type=int, default=1000)  # training data collected (in the env) during each iteration
+    parser.add_argument('--init_batch_size', type=int, default=3000)
 
     parser.add_argument('--train_batch_size', type=int,
                         default=100)  # number of sampled data points to be used per gradient/train step
@@ -46,7 +46,7 @@ def main():
     parser.add_argument('--replay_buffer_size', type=int, default=1000000)
     parser.add_argument('--save_path', type=str, default='')
     parser.add_argument('--save_model', type=int, default=0)
-    parser.add_argument('--num_eval_episodes', type=int, default=10)
+    parser.add_argument('--num_eval_episodes', type=int, default=30)
     parser.add_argument('--inject_noise', type=int, default=0)
     parser.add_argument('--noise_variance',type=float, default=0.5)
     parser.add_argument('--vehicle_id', type=str, default='rl_0')
@@ -63,16 +63,14 @@ def main():
     train = Runner(params)
     train.run_training_loop()
 
-    # evaluate
-    train.evaluate()
-    print("DONE")
-
+    # save model after training
     if params['save_model'] == 1:
         train.save_controller_network()
 
-    # tensorboard
-    if params['save_model'] == 1:
-        writer = tf.summary.FileWriter('./graphs2', tf.get_default_graph())
+
+    # evaluate
+    train.evaluate()
+    print("DONE")
 
 
 if __name__ == "__main__":
