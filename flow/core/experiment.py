@@ -231,7 +231,8 @@ class Experiment:
 
             if partition_name:
                 upload_to_s3('brent.experiments', 'trajectory-output/' + 'partition_name=' + partition_name + '/'
-                             + upload_file_path.split('/')[-1].split('_')[0] + '.csv', upload_file_path, str(only_query)[2:-2])
+                             + upload_file_path.split('/')[-1].split('_')[0] + '.csv',
+                             upload_file_path, str(only_query)[2:-2])
 
             # delete the S3-only version of the trajectory file
             os.remove(upload_file_path)
