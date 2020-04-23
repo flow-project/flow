@@ -163,7 +163,7 @@ class I210SingleEnv(Env):
 
     def get_sorted_rl_ids(self):
         rl_ids = self.k.vehicle.get_rl_ids()
-        rl_ids = sorted(rl_ids, key=lambda veh_id: self.k.vehicle.get_x_by_id(veh_id))[::-1]
+        rl_ids = sorted(rl_ids, key=lambda veh_id: self.k.vehicle.get_x_by_id(veh_id))
         rl_ids = rl_ids[-MAX_NUM_VEHS:]
         return rl_ids
 
