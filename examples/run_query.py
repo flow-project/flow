@@ -1,3 +1,4 @@
+"""runner script for invoking query manually."""
 import argparse
 from examples.data_pipeline import AthenaQuery, test_sql_query
 from examples.query import QueryStrings
