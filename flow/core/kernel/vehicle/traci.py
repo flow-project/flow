@@ -1132,17 +1132,22 @@ class TraCIVehicle(KernelVehicle):
 
     # add for data pipeline
     def get_accel(self, veh_id):
+        """See parent class."""
         return (self.get_speed(veh_id) - self.get_previous_speed(veh_id)) / self.sim_step
 
     def update_accel_without_noise(self, veh_id, accel_without_noise):
+        """See parent class."""
         self.__vehicles[veh_id]["accel_without_noise"] = accel_without_noise
 
     def get_accel_without_noise(self, veh_id):
+        """See parent class."""
         return self.__vehicles[veh_id]["accel_without_noise"]
 
     def get_2D_position(self, veh_id, error=-1001):
+        """See parent class."""
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_POSITION, error)
 
     def get_road_grade(self, veh_id):
+        """See parent class."""
         # TODO
         return 0
