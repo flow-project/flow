@@ -408,7 +408,6 @@ class Env(gym.Env):
                 "**********************************************************"
             )
 
-
         # compute the info for each agent
         infos = {}
 
