@@ -1,3 +1,4 @@
+"""contains class and helper functions for the data pipeline."""
 import pandas as pd
 import numpy as np
 import boto3
@@ -7,21 +8,21 @@ from time import time
 
 
 def generate_trajectory_table(data_path, extra_info, partition_name):
-    """ generate desired output for the trajectory_table based on standard SUMO emission
+    """Generate desired output for the trajectory_table based on standard SUMO emission.
 
-        Parameters
-        ----------
-        data_path : str
-            path to the standard SUMO emission
-        extra_info: dict
-            extra information needed in the trajectory table, collected from flow
-        partition_name: str
-            the name of the partition to put this output to
-        Returns
-        -------
-        output_file_path: str
-            the local path of the outputted csv file
-        """
+    Parameters
+    ----------
+    data_path : str
+        path to the standard SUMO emission
+    extra_info: dict
+        extra information needed in the trajectory table, collected from flow
+    partition_name: str
+        the name of the partition to put this output to
+    Returns
+    -------
+    output_file_path: str
+        the local path of the outputted csv file
+    """
     raw_output = pd.read_csv(data_path, index_col=["time", "id"])
     required_cols = {"time", "id", "speed", "x", "y"}
     raw_output = raw_output.drop(set(raw_output.columns) - required_cols, axis=1)
@@ -39,24 +40,24 @@ def generate_trajectory_table(data_path, extra_info, partition_name):
 
 
 def generate_trajectory_from_flow(data_path, extra_info, partition_name):
-    """ generate desired output for the trajectory_table based only on flow output
+    """Generate desired output for the trajectory_table based only on flow output.
 
-           Parameters
-           ----------
-           data_path : str
-               output file path
-           extra_info: dict
-               extra information needed in the trajectory table, collected from flow
-           partition_name: str
-               the name of the partition to put this output to
-           Returns
-           -------
-           output_file_path: str
-               the local path of the outputted csv file that should be used for
-               upload to s3 only, it does not the human readable column names and
-               will be deleted after uploading to s3. A copy of this file with all
-               the column name will remain in the ./data folder
-           """
+    Parameters
+    ----------
+    data_path : str
+        output file path
+    extra_info: dict
+        extra information needed in the trajectory table, collected from flow
+    partition_name: str
+        the name of the partition to put this output to
+    Returns
+    -------
+    output_file_path: str
+        the local path of the outputted csv file that should be used for
+        upload to s3 only, it does not the human readable column names and
+        will be deleted after uploading to s3. A copy of this file with all
+        the column name will remain in the ./data folder
+    """
     extra_info = pd.DataFrame.from_dict(extra_info)
     # extra_info["partition"] = partition_name
     extra_info.to_csv(data_path, index=False)
@@ -66,7 +67,7 @@ def generate_trajectory_from_flow(data_path, extra_info, partition_name):
 
 
 def upload_to_s3(bucket_name, bucket_key, file_path, only_query):
-    """ upload a file to S3 bucket
+    """Upload a file to S3 bucket.
 
     Parameters
     ----------
@@ -89,15 +90,40 @@ def upload_to_s3(bucket_name, bucket_key, file_path, only_query):
 
 
 class AthenaQuery:
+    """
+    Class used to run query.
+
+    Act as a query engine, maintains an open session with AWS Athena.
+
+    Attributes
+    ----------
+    MAX_WAIT: int
+        maximum number of seconds to wait before declares time-out
+    client: boto3.client
+        the athena client that is used to run the query
+    existing_partitions: list
+        a list of partitions that is already recorded in Athena's datalog,
+        this is obtained through query at the initialization of this class
+        instance.
+    """
 
     def __init__(self):
+        """Initialize AthenaQuery instance.
+
+        initialize a client session with AWS Athena,
+        query Athena to obtain extisting_partition.
+        """
         self.MAX_WAIT = 60
         self.client = boto3.client("athena")
         self.existing_partitions = self.get_existing_partitions()
 
     def get_existing_partitions(self):
-        """prints the existing partitions in the S3 bucket"""
+        """Return the existing partitions in the S3 bucket.
 
+        Returns
+        -------
+        partitions: a list of existing partitions on S3 bucket
+        """
         response = self.client.start_query_execution(
             QueryString='SHOW PARTITIONS trajectory_table',
             QueryExecutionContext={
@@ -114,7 +140,7 @@ class AthenaQuery:
         return [data['Data'][0]['VarCharValue'].split('=')[-1] for data in response['ResultSet']['Rows']]
 
     def check_status(self, execution_id):
-        """ Return the status of the execution with given id
+        """Return the status of the execution with given id.
 
         Parameters
         ----------
@@ -125,14 +151,13 @@ class AthenaQuery:
         status: str
             QUEUED|RUNNING|SUCCEEDED|FAILED|CANCELLED
         """
-
         response = self.client.get_query_execution(
             QueryExecutionId=execution_id
         )
         return response['QueryExecution']['Status']['State']
 
     def wait_for_execution(self, execution_id):
-        """ wait for the execution to finish or time-out
+        """Wait for the execution to finish or time-out.
 
         Parameters
         ----------
@@ -156,7 +181,7 @@ class AthenaQuery:
         return True
 
     def update_partition(self, partition):
-        """ load the given partition to the trajectory_table on Athena
+        """Load the given partition to the trajectory_table on Athena.
 
         Parameters
         ----------
@@ -176,7 +201,7 @@ class AthenaQuery:
         return
 
     def run_query(self, query_name, result_location="s3://brent.experiments/query-result/", partition="default"):
-        """ start the execution of a query, does not wait for it to finish
+        """Start the execution of a query, does not wait for it to finish.
 
         Parameters
         ----------
@@ -218,6 +243,16 @@ class AthenaQuery:
 
 
 def test_sql_query(query_name):
+    """Start the execution of a query, does not wait for it to finish.
+
+    Parameters
+    ----------
+    query_name : str
+        name of the query in QueryStrings enum that will be tested
+    Raises
+    ------
+        RuntimeError: if timeout
+    """
     if query_name not in testing_functions:
         raise ValueError("no tests supported for this query")
 
