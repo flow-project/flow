@@ -1125,7 +1125,7 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         return self.__vehicles[veh_id]["accel_without_noise"]
 
-    def get_2D_position(self, veh_id, error=-1001):
+    def get_2d_position(self, veh_id, error=-1001):
         """See parent class."""
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_POSITION, error)
 

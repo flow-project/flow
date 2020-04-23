@@ -683,7 +683,7 @@ class KernelVehicle(object):
         """Update stored acceleration without noise of vehicle with veh_id."""
         raise NotImplementedError
 
-    def get_2D_position(self, veh_id, error=-1001):
+    def get_2d_position(self, veh_id, error=-1001):
         """Return (x, y) position of vehicle with veh_id."""
         raise NotImplementedError
 

@@ -125,6 +125,7 @@ class BayBridgeRouter(ContinuousRouter):
 
         return new_route
 
+
 class I210Router(ContinuousRouter):
     """Assists in choosing routes in select cases for the Bay Bridge network.
 

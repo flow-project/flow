@@ -2,8 +2,7 @@
 import pandas as pd
 import numpy as np
 import boto3
-from botocore.exceptions import ClientError
-from examples.query import QueryStrings, testing_functions
+from flow.data_pipeline.query import QueryStrings, testing_functions
 from time import time
 
 
