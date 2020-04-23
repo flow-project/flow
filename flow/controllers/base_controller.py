@@ -110,18 +110,18 @@ class BaseController:
 
         # store the acceleration without noise to each vehicle
         # run fail safe if requested
-        accel_without_noice = accel
+        accel_without_noise = accel
         if self.fail_safe == 'instantaneous':
-            accel_without_noice = self.get_safe_action_instantaneous(env, accel_without_noice)
+            accel_without_noise = self.get_safe_action_instantaneous(env, accel_without_noise)
         elif self.fail_safe == 'safe_velocity':
-            accel_without_noice = self.get_safe_velocity_action(env, accel_without_noice)
-        env.k.vehicle.update_accel_without_noise(self.veh_id, accel_without_noice)
+            accel_without_noise = self.get_safe_velocity_action(env, accel_without_noise)
+        env.k.vehicle.update_accel_without_noise(self.veh_id, accel_without_noise)
 
         # add noise to the accelerations, if requested
         if self.accel_noise > 0:
             accel += np.sqrt(env.sim_step) * np.random.normal(0, self.accel_noise)
 
-        # run the failsafes, if requested
+        # run the fail-safes, if requested
         if self.fail_safe == 'instantaneous':
             accel = self.get_safe_action_instantaneous(env, accel)
         elif self.fail_safe == 'safe_velocity':
