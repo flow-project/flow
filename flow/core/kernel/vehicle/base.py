@@ -690,17 +690,21 @@ class KernelVehicle(object):
     ###########################################################################
 
     def get_accel(self, veh_id):
-        """ see traci class """
+        """Return the acceleration of vehicle with veh_id."""
         raise NotImplementedError
 
     def update_accel_without_noise(self, veh_id, accel_without_noise):
-        """ see traci class """
+        """Update stored acceleration without noise of vehicle with veh_id."""
         raise NotImplementedError
 
     def get_2D_position(self, veh_id, error=-1001):
-        """ see traci class """
+        """Return (x, y) position of vehicle with veh_id."""
         raise NotImplementedError
 
     def get_accel_without_noise(self, veh_id):
-        """ see traci class """
+        """Return the acceleration without noise of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def get_road_grade(self, veh_id):
+        """Return the road-grade of the vehicle with veh_id."""
         raise NotImplementedError
