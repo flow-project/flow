@@ -127,6 +127,7 @@ class BayBridgeRouter(ContinuousRouter):
 
 class I210Router(ContinuousRouter):
     """Assists in choosing routes in select cases for the Bay Bridge network.
+
     Extension to the Continuous Router.
     Usage
     -----

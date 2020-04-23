@@ -1,3 +1,4 @@
+"""lambda function on AWS Lambda."""
 import boto3
 from urllib.parse import unquote_plus
 from examples.data_pipeline import AthenaQuery
@@ -8,6 +9,15 @@ queryEngine = AthenaQuery()
 
 
 def lambda_handler(event, context):
+    """Invoke by AWS Lambda upon triggered by an event.
+
+    Parameters
+    ----------
+    event : dic < str: dic >
+        an S3 event
+    context:
+        not used
+    """
     for record in event['Records']:
         bucket = record['s3']['bucket']['name']
         key = unquote_plus(record['s3']['object']['key'])
