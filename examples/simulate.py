@@ -97,4 +97,5 @@ if __name__ == "__main__":
     exp = Experiment(flow_params, callables)
 
     # Run for the specified number of rollouts.
-    exp.run(flags.num_runs, convert_to_csv=flags.gen_emission, partition_name=flags.to_aws, only_query=flags.only_query)
+    exp.run(flags.num_runs, convert_to_csv=flags.gen_emission, partition_name=flags.to_aws,
+            only_query=flags.only_query)
