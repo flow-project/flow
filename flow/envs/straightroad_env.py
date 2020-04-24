@@ -117,7 +117,7 @@ class I210SingleEnv(Env):
             veh_ids = []
             rl_ids = self.get_sorted_rl_ids()
 
-            for i, rl_id in enumerate(rl_ids):
+            for i, rl_id in enumerate(self.rl_id_list):
                 accels.append(rl_actions[i])
                 veh_ids.append(rl_id)
 
@@ -132,6 +132,7 @@ class I210SingleEnv(Env):
     def get_state(self):
         """See class definition."""
         rl_ids = self.get_sorted_rl_ids()
+        self.rl_id_list = rl_ids
         veh_info = np.zeros(self.observation_space.shape[0])
         per_vehicle_obs = 3
         for i, rl_id in enumerate(rl_ids):
@@ -145,7 +146,7 @@ class I210SingleEnv(Env):
                 lead_speed = self.k.vehicle.get_speed(lead_id)
                 headway = self.k.vehicle.get_headway(rl_id)
             veh_info[i * per_vehicle_obs: (i+1) * per_vehicle_obs] = [speed / SPEED_SCALE,
-                                                                      headway /HEADWAY_SCALE, lead_speed / SPEED_SCALE]
+                                                                      headway / HEADWAY_SCALE, lead_speed / SPEED_SCALE]
         return veh_info
 
     def compute_reward(self, rl_actions, **kwargs):
