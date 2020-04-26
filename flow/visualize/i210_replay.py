@@ -191,12 +191,10 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     info_dict = {
         "velocities": [],
         "outflows": [],
-        "avg_trip_energy": [],
-        "avg_trip_time": [],
+        "mean_trip_energy": [],
+        "mean_trip_time": [],
         "total_completed_trips": []
     }
-    all_trip_energy_distribution = defaultdict(lambda: [])
-    all_trip_time_distribution = defaultdict(lambda: [])
 
     info_dict.update({
         key: [] for key in custom_callables.keys()
@@ -207,6 +205,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         print("Rollout iter", i)
         vel = []
         per_vehicle_energy_trace = defaultdict(lambda: [])
+        all_trip_energy_distribution = defaultdict(lambda: [])
+        all_trip_time_distribution = defaultdict(lambda: [])
         completed_veh_types = {}
         completed_vehicle_avg_energy = {}
         completed_vehicle_travel_time = {}
@@ -273,9 +273,19 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             outflow = env.k.vehicle.get_outflow_rate(int(500))
             info_dict["velocities"].append(np.mean(vel))
             info_dict["outflows"].append(outflow)
-            info_dict["avg_trip_energy"].append(np.mean(list(completed_vehicle_avg_energy.values())))
-            info_dict["avg_trip_time"].append(np.mean(list(completed_vehicle_travel_time.values())))
+            info_dict["mean_trip_energy"].append(np.mean(list(completed_vehicle_avg_energy.values())))
+            info_dict["mean_trip_time"].append(np.mean(list(completed_vehicle_travel_time.values())))
             info_dict["total_completed_trips"].append(len(list(completed_vehicle_avg_energy.values())))
+
+            for key in all_trip_energy_distribution:
+                info_dict_mean_string = "mean_trip_energy_{}".format(key)
+                info_dict_std_string = "std_trip_energy_{}".format(key)
+                if info_dict_mean_string not in info_dict:
+                    info_dict[info_dict_mean_string] = []
+                    info_dict[info_dict_std_string] = []
+                info_dict[info_dict_mean_string].append(np.mean(all_trip_energy_distribution[key]))
+                info_dict[info_dict_std_string].append(np.mean(all_trip_energy_distribution[key]))
+
             for key in custom_vals.keys():
                 info_dict[key].append(np.mean(custom_vals[key]))
             i += 1
@@ -287,8 +297,9 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
 
     # Print the averages/std for all variables in the info_dict.
     for key in info_dict.keys():
-        print("Average, std {}: {}, {}".format(
-            key, np.mean(info_dict[key]), np.std(info_dict[key])))
+        if len(info_dict[key]):
+            print("Average, stderr {}: {}, {}".format(
+                key, np.mean(info_dict[key]), np.std(info_dict[key])/len(info_dict[key])))
 
     # terminate the environment
     env.unwrapped.terminate()
@@ -466,8 +477,8 @@ if __name__ == '__main__':
         output_dir = args.output_dir
 
     if args.run_transfer:
-        s = [ray.cloudpickle.dumps(transfer_test) for transfer_test in inflows_range(penetration_rates=[0.0, 0.1, 0.2, 0.3],
-                                                                                     aggressive_driver_penetrations=[0.0, 0.1, 0.2])]
+        s = [ray.cloudpickle.dumps(transfer_test) for transfer_test in inflows_range(penetration_rates=np.linspace(0.0, 0.3, 13),
+                                                                                     aggressive_driver_penetrations=np.linspace(0.0, 0.3, 13))]
         ray_output = [replay.remote(args, flow_params, output_dir=output_dir, transfer_test=transfer_test,
                                     rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips,
                                     v_des=args.v_des)
@@ -487,7 +498,8 @@ if __name__ == '__main__':
             pr = args.penetration_rate if args.penetration_rate is not None else 0
             apr = args.aggressive_driver_penetration_rate if args.aggressive_driver_penetration_rate is not None else 0
             single_transfer = next(inflows_range(penetration_rates=pr, aggressive_driver_penetrations=apr))
-            ray.get(replay.remote(args, flow_params, output_dir=output_dir, transfer_test=single_transfer,
+            transfer_test_pickle = ray.cloudpickle.dumps(single_transfer)
+            ray.get(replay.remote(args, flow_params, output_dir=output_dir, transfer_test=transfer_test_pickle,
                                   rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips))
         else:
             ray.get(replay.remote(args, flow_params, output_dir=output_dir,

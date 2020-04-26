@@ -20,7 +20,7 @@ def make_flow_params(horizon, num_total_veh, num_av, num_lanes, ring_length, num
     vehicles = VehicleParams()
     # Add one automated vehicle.
     vehicles.add(
-        veh_id="rl",
+        veh_id="av",
         acceleration_controller=(RLController, {}),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=num_av,

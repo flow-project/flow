@@ -123,10 +123,10 @@ if __name__ == "__main__":
             controller = FollowerStopper
             test_params = {'v_des': flags.v_des}
 
-        flow_params['veh'].type_parameters['rl']['acceleration_controller'] = (controller, test_params)
+        flow_params['veh'].type_parameters['av']['acceleration_controller'] = (controller, test_params)
 
         for veh_param in flow_params['veh'].initial:
-            if veh_param['veh_id'] == 'rl':
+            if veh_param['veh_id'] == 'av':
                 veh_param['acceleration_controller'] = (controller, test_params)
 
         if flags.show_ts_diagram:
