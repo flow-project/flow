@@ -55,6 +55,8 @@ def parse_flags(args):
                         help='Folder to save charts to.')
     parser.add_argument("--show_images", action='store_true',
                         help='Whether to display charts.')
+    parser.add_argument("--heatmap", type=str, required=False,
+                        help='Make a heatmap of the supplied variable.')
     return parser.parse_args(args)
 
 
@@ -77,11 +79,12 @@ if __name__ == "__main__":
     exp_names = []
     for (dirpath, dir_names, file_names) in os.walk(flags.target_folder):
         for file_name in file_names:
-            if file_name[-4:] == ".npy":
+            if file_name[-8:] == "info.npy":
                 exp_name = os.path.basename(dirpath)
                 info_dict = np.load(os.path.join(dirpath, file_name), allow_pickle=True).item()
 
                 info_dicts.append(info_dict)
+                print(info_dict.keys())
                 exp_names.append(exp_name)
                 custom_callable_names.update(info_dict.keys())
 
@@ -89,17 +92,44 @@ if __name__ == "__main__":
     exp_names = [exp_names[i] for i in idxs]
     info_dicts = [info_dicts[i] for i in idxs]
 
-    for name in custom_callable_names:
-        y_vals = [np.mean(info_dict[name]) for info_dict in info_dicts]
-        y_stds = [np.std(info_dict[name]) for info_dict in info_dicts]
-        x_pos = np.arange(len(exp_names))
+    if flags.heatmap is not None:
+        heatmap = np.zeros((7, 7))
+        spacing = np.around(np.linspace(0, 0.3, 7), decimals=2)
+        for exp_name, info_dict in zip(exp_names, info_dicts):
+            apr_bucket = int(np.around(float(exp_name.split('_')[1][3:]) / 0.05))
+            pr_bucket = int(np.around(float(exp_name.split('_')[0][2:]) / 0.05))
 
-        plt.bar(x_pos, y_vals, align='center', alpha=0.5)
-        plt.xticks(x_pos, [exp_name for exp_name in exp_names], rotation=60)
-        plt.xlabel('Experiment')
-        plt.title('I210 Replay Result: {}'.format(name))
-        plt.tight_layout()
-        if flags.output_folder:
-            plt.savefig(os.path.join(flags.output_folder, '{}-plot.png'.format(name)))
+            if flags.heatmap not in info_dict:
+                print(exp_name)
+                continue
+            else:
+                val = np.mean(info_dict[flags.heatmap])
+                print(exp_name, pr_bucket, spacing[pr_bucket], apr_bucket, spacing[apr_bucket], val)
+                heatmap[pr_bucket, apr_bucket] = val
 
+        fig = plt.figure()
+        plt.imshow(heatmap, interpolation='nearest', cmap='seismic', aspect='equal', vmin=1500, vmax=3000)
+        plt.title(flags.heatmap)
+        plt.yticks(ticks=np.arange(7), labels=spacing)
+        plt.ylabel("AV Penetration")
+        plt.xticks(ticks=np.arange(7), labels=spacing)
+        plt.xlabel("Aggressive Driver Penetration")
+        plt.colorbar()
         plt.show()
+        plt.close(fig)
+
+    else:
+        for name in custom_callable_names:
+            y_vals = [np.mean(info_dict[name]) for info_dict in info_dicts]
+            y_stds = [np.std(info_dict[name]) for info_dict in info_dicts]
+            x_pos = np.arange(len(exp_names))
+
+            plt.bar(x_pos, y_vals, align='center', alpha=0.5)
+            plt.xticks(x_pos, [exp_name for exp_name in exp_names], rotation=60)
+            plt.xlabel('Experiment')
+            plt.title('I210 Replay Result: {}'.format(name))
+            plt.tight_layout()
+            if flags.output_folder:
+                plt.savefig(os.path.join(flags.output_folder, '{}-plot.png'.format(name)))
+
+            plt.show()
