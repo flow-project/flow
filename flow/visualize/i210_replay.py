@@ -284,7 +284,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
                     info_dict[info_dict_mean_string] = []
                     info_dict[info_dict_std_string] = []
                 info_dict[info_dict_mean_string].append(np.mean(all_trip_energy_distribution[key]))
-                info_dict[info_dict_std_string].append(np.mean(all_trip_energy_distribution[key]))
+                info_dict[info_dict_std_string].append(np.std(all_trip_energy_distribution[key]))
 
             for key in custom_vals.keys():
                 info_dict[key].append(np.mean(custom_vals[key]))
