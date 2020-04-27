@@ -496,8 +496,10 @@ if __name__ == '__main__':
 
     elif args.v_des_sweep:
         assert args.controller == 'follower_stopper'
-
+        single_transfer = next(inflows_range(penetration_rates=0.2, emission_distribution=emission_distribution))
+        transfer_test_pickle = ray.cloudpickle.dumps(single_transfer)
         ray_output = [replay.remote(args, flow_params, output_dir="{}/{}".format(output_dir, v_des), rllib_config=rllib_config,
+                                    transfer_test=transfer_test_pickle,
                                     result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips, v_des=v_des)
                       for v_des in range(8, 17, 2)]
         ray.get(ray_output)
