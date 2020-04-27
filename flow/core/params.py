@@ -242,7 +242,8 @@ class VehicleParams:
             num_vehicles=0,
             car_following_params=None,
             lane_change_params=None,
-            color=None):
+            color=None,
+            emissionClass=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
@@ -297,6 +298,10 @@ class VehicleParams:
             type_params['color'] = color
             self.type_parameters[veh_id]['color'] = color
 
+        if emissionClass:
+            type_params['emissionClass'] = emissionClass
+            self.type_parameters[veh_id]['emissionClass'] = emissionClass
+            
         # TODO: delete?
         self.initial.append({
             "veh_id":
@@ -1087,6 +1092,7 @@ class InFlows:
             begin=1,
             end=86400,
             number=None,
+            emissionClass='HBEFA3/PC_G_EU3',
             **kwargs):
         r"""Specify a new inflow for a given type of vehicles and edge.
 

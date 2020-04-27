@@ -26,7 +26,7 @@ from flow.utils.rllib import get_rllib_pkl
 from flow.utils.rllib import FlowParamsEncoder
 
 from flow.visualize.transfer.util import inflows_range
-from  flow.visualize.plot_custom_callables import plot_trip_distribution
+from flow.visualize.plot_custom_callables import plot_trip_distribution
 
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
@@ -41,6 +41,7 @@ Here the arguments are:
 1 - the path to the simulation results
 2 - the number of the checkpoint
 """
+
 
 @ray.remote
 def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=None, result_dir=None, max_completed_trips=None, v_des=12):
@@ -246,8 +247,10 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
 
             for past_veh_id in per_vehicle_energy_trace.keys():
                 if past_veh_id not in veh_ids and past_veh_id not in completed_vehicle_avg_energy:
-                    all_trip_energy_distribution[completed_veh_types[past_veh_id]].append(np.sum(per_vehicle_energy_trace[past_veh_id]))
-                    all_trip_time_distribution[completed_veh_types[past_veh_id]].append(len(per_vehicle_energy_trace[past_veh_id]))
+                    all_trip_energy_distribution[completed_veh_types[past_veh_id]].append(
+                        np.sum(per_vehicle_energy_trace[past_veh_id]))
+                    all_trip_time_distribution[completed_veh_types[past_veh_id]].append(
+                        len(per_vehicle_energy_trace[past_veh_id]))
                     completed_vehicle_avg_energy[past_veh_id] = np.sum(per_vehicle_energy_trace[past_veh_id])
                     completed_vehicle_travel_time[past_veh_id] = len(per_vehicle_energy_trace[past_veh_id])
 
@@ -336,7 +339,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         all_trip_energies = os.path.join(output_dir, '{}-all_trip_energies.npy'.format(exp_name))
         np.save(all_trip_energies, dict(all_trip_energy_distribution))
         fig_names, figs = plot_trip_distribution(all_trip_energy_distribution)
-        
+
         for fig_name, fig in zip(fig_names, figs):
             edist_out = os.path.join(output_dir, '{}_energy_distribution.png'.format(fig_name))
             fig.savefig(edist_out)
@@ -467,6 +470,8 @@ if __name__ == '__main__':
 
     flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
 
+    emission_distribution = dict(EU3=0.05, EU4=0.547, EU5=0.09, ALT=0.042, ZEV=0.008, LDV=0.215, HDV=0.048)
+
     if args.multi_node:
         ray.init(redis_address='localhost:6379')
     elif args.local:
@@ -481,7 +486,8 @@ if __name__ == '__main__':
 
     if args.run_transfer:
         s = [ray.cloudpickle.dumps(transfer_test) for transfer_test in inflows_range(penetration_rates=np.linspace(0.0, 0.3, 13),
-                                                                                     aggressive_driver_penetrations=np.linspace(0.0, 0.3, 13))]
+                                                                                     aggressive_driver_penetrations=np.linspace(
+                                                                                         0.0, 0.3, 13), emission_distribution=emission_distribution)]
         ray_output = [replay.remote(args, flow_params, output_dir=output_dir, transfer_test=transfer_test,
                                     rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips,
                                     v_des=args.v_des)
@@ -500,7 +506,7 @@ if __name__ == '__main__':
         if args.penetration_rate is not None or args.aggressive_driver_penetration_rate is not None:
             pr = args.penetration_rate if args.penetration_rate is not None else 0
             apr = args.aggressive_driver_penetration_rate if args.aggressive_driver_penetration_rate is not None else 0
-            single_transfer = next(inflows_range(penetration_rates=pr, aggressive_driver_penetrations=apr))
+            single_transfer = next(inflows_range(penetration_rates=pr, aggressive_driver_penetrations=apr, emission_distribution=emission_distribution))
             transfer_test_pickle = ray.cloudpickle.dumps(single_transfer)
             ray.get(replay.remote(args, flow_params, output_dir=output_dir, transfer_test=transfer_test_pickle,
                                   rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips))

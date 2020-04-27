@@ -93,26 +93,27 @@ if __name__ == "__main__":
     info_dicts = [info_dicts[i] for i in idxs]
 
     if flags.heatmap is not None:
-        heatmap = np.zeros((7, 7))
-        spacing = np.around(np.linspace(0, 0.3, 7), decimals=2)
+        heatmap = np.zeros((4, 6))
+        pr_spacing = np.around(np.linspace(0, 0.3, 4), decimals=2)
+        apr_spacing = np.around(np.linspace(0, 0.5, 6), decimals=2)
         for exp_name, info_dict in zip(exp_names, info_dicts):
-            apr_bucket = int(np.around(float(exp_name.split('_')[1][3:]) / 0.05))
-            pr_bucket = int(np.around(float(exp_name.split('_')[0][2:]) / 0.05))
+            apr_bucket = int(np.around(float(exp_name.split('_')[1][3:]) / 0.1))
+            pr_bucket = int(np.around(float(exp_name.split('_')[0][2:]) / 0.1))
 
             if flags.heatmap not in info_dict:
                 print(exp_name)
                 continue
             else:
                 val = np.mean(info_dict[flags.heatmap])
-                print(exp_name, pr_bucket, spacing[pr_bucket], apr_bucket, spacing[apr_bucket], val)
+                print(exp_name, pr_bucket, pr_spacing[pr_bucket], apr_bucket, apr_spacing[apr_bucket], val)
                 heatmap[pr_bucket, apr_bucket] = val
 
         fig = plt.figure()
         plt.imshow(heatmap, interpolation='nearest', cmap='seismic', aspect='equal', vmin=1500, vmax=3000)
         plt.title(flags.heatmap)
-        plt.yticks(ticks=np.arange(7), labels=spacing)
+        plt.yticks(ticks=np.arange(len(pr_spacing)), labels=pr_spacing)
         plt.ylabel("AV Penetration")
-        plt.xticks(ticks=np.arange(7), labels=spacing)
+        plt.xticks(ticks=np.arange(len(apr_spacing)), labels=apr_spacing)
         plt.xlabel("Aggressive Driver Penetration")
         plt.colorbar()
         plt.show()
