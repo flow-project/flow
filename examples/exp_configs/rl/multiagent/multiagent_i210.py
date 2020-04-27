@@ -69,10 +69,10 @@ vehicles.add(
     "aggressive",
     acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
     car_following_params=SumoCarFollowingParams(speed_mode='no_collide'),
-    # lane_change_params=SumoLaneChangeParams(lane_change_mode="no_lat_collide"),
-    lane_change_params=SumoLaneChangeParams(lane_change_mode=21, lc_speed_gain=100.0, lc_assertive=100.0, lcStrategic=40.0),
-    # lane_change_controller=(SafeAggressiveLaneChanger, {
-    #                         "target_velocity": 100.0, "threshold": 1.0, "desired_lc_time_headway": 0.1}),
+    lane_change_params=SumoLaneChangeParams(lane_change_mode="aggressive"),
+    # lane_change_params=SumoLaneChangeParams(lane_change_mode=21, lc_speed_gain=100.0, lc_assertive=100.0, lcStrategic=40.0),
+    lane_change_controller=(SafeAggressiveLaneChanger, {
+                            "target_velocity": 100.0, "threshold": 1.0, "desired_lc_time_headway": 0.1}),
     num_vehicles=0,
     color='green',
 )
