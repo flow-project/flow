@@ -449,7 +449,7 @@ def create_parser():
 
 if __name__ == '__main__':
     date = datetime.now(tz=pytz.utc)
-    date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
+    date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%H:%M:%S-%m-%d-%Y")
 
     parser = create_parser()
     args = parser.parse_args()
