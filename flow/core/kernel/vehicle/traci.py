@@ -165,6 +165,10 @@ class TraCIVehicle(KernelVehicle):
         # number of vehicles of a specific inflow that have entered the network
         self._num_inflows = {name: 0 for name in self._inflows.keys()}
 
+    def _congested(self):
+        """Check if the network is congested."""
+        return self.num_vehicles > 40
+
     def update(self, reset):
         """See parent class.
 
@@ -195,6 +199,19 @@ class TraCIVehicle(KernelVehicle):
             veh_per_hour = self._inflows_by_edge[edge]["cumsum"][-1]
             steps_per_veh = 3600 / (self.sim_step * veh_per_hour)
 
+            # Check if the network is in the congested region.
+            if self._congested():
+                # Compute the average veh/hr of the network currently.
+                veh_per_m = self.num_vehicles \
+                    / self.master_kernel.network.length()
+                m_per_s = np.mean(self.get_speed(self.get_ids()))
+
+                # Limit the inflow rate by the current flow of the network.
+                new_veh_per_hour = min(
+                    veh_per_m * m_per_s * 3600, veh_per_hour)
+                steps_per_veh = int(
+                    3600 / (self.sim_step * new_veh_per_hour))
+
             # Add a vehicle if the inflow rate requires it.
             if steps_per_veh < 1 or self._total_time % int(steps_per_veh) == 0:
                 # Choose the type of vehicle to push to this edge
@@ -220,6 +237,11 @@ class TraCIVehicle(KernelVehicle):
 
                 # Choose the departure speed.
                 depart_speed = self._inflows[name]["departSpeed"]
+
+                if self._congested():
+                    # Limit the speed of inflow vehicles by the average speed
+                    # of vehicles in the network.
+                    depart_speed = min(depart_speed, m_per_s)
 
                 # number of vehicles to add
                 num_vehicles = max(
