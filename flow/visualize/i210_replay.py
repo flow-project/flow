@@ -259,7 +259,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
                     if veh_id not in per_vehicle_energy_trace:
                         # we have to skip the first step's energy calculation
                         per_vehicle_energy_trace[veh_id].append(0)
-                        if env.k.vehicle.get_type(veh_id) is 'av':
+                        if env.k.vehicle.get_type(veh_id) == 'av':
                             completed_veh_types[veh_id] = 'av'
                         else:
                             completed_veh_types[veh_id] = 'non_av'
