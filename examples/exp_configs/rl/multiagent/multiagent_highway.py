@@ -4,6 +4,7 @@ Trains a non-constant number of agents, all sharing the same policy, on the
 highway with ramps network.
 """
 from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
+from ray.rllib.agents.ddpg.ddpg_policy import DDPGTFPolicy
 from flow.controllers import RLController
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
                              VehicleParams, SumoParams, \
@@ -180,7 +181,7 @@ obs_space = test_env.observation_space
 act_space = test_env.action_space
 
 
-POLICY_GRAPHS = {'av': (PPOTFPolicy, obs_space, act_space, {})}
+POLICY_GRAPHS = {'av': (DDPGTFPolicy, obs_space, act_space, {})}
 
 POLICIES_TO_TRAIN = ['av']
 
