@@ -11,7 +11,7 @@ from flow.controllers.car_following_models import IDMController, SimCarFollowing
 from flow.controllers.lane_change_controllers import SafeAggressiveLaneChanger
 
 emission_classes = {"EU3": "HBEFA3/PC_G_EU3", "EU4": "HBEFA3/PC_G_EU4", "EU5": "HBEFA3/PC_G_EU5",
-                    "ALT": "HBEFA3/PC_Alternative", "LDV": "HBEFA3/LDV", "ZEV": "HBEFA3/unknown", "HDV": "HBEFA3/HDV"}
+                    "ALT": "HBEFA3/PC_Alternative", "LDV": "HBEFA3/LDV", "ZEV": "Energy/unknown", "HDV": "HBEFA3/HDV"}
 
 
 def make_inflows(pr=0.1, fr_coef=1.0, departSpeed=20, on_ramp=False, apr=0.0, emission_distribution=None):
@@ -171,7 +171,8 @@ class InflowTransfer(BaseTransfer):
                     lane_change_controller=(SafeAggressiveLaneChanger, {
                                             "target_velocity": 100.0, "threshold": 1.0, "desired_lc_time_headway": 0.1}),
                     num_vehicles=0,
-                    color='green',
+                    emissionClass=emission_classes[emission_class]
+                    # color='green',
                 )
 
         flow_params['net'].inflows = make_inflows(pr=self.penetration_rate, fr_coef=self.flow_rate_coef,
