@@ -11,7 +11,7 @@ from flow.controllers.car_following_models import IDMController, SimCarFollowing
 from flow.controllers.lane_change_controllers import SafeAggressiveLaneChanger
 
 emission_classes = {"EU3": "HBEFA3/PC_G_EU3", "EU4": "HBEFA3/PC_G_EU4", "EU5": "HBEFA3/PC_G_EU5",
-                    "ALT": "HBEFA3/PC_Alternative", "LDV": "HBEFA3/LDV", "ZEV": "HBEFA3/zero", "HDV": "HBEFA3/HDV"}
+                    "ALT": "HBEFA3/PC_Alternative", "LDV": "HBEFA3/LDV", "ZEV": "HBEFA3/unknown", "HDV": "HBEFA3/HDV"}
 
 
 def make_inflows(pr=0.1, fr_coef=1.0, departSpeed=20, on_ramp=False, apr=0.0, emission_distribution=None):
