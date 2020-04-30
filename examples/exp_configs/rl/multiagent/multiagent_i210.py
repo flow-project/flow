@@ -43,7 +43,9 @@ additional_env_params.update({
     # configure the observation space. Look at the I210MultiEnv class for more info.
     'lead_obs': True,
     # whether to add in a reward for the speed of nearby vehicles
-    "local_reward": True
+    "local_reward": True,
+    # whether to reroute vehicles once they have exited
+    "reroute_on_exit": True
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
@@ -114,6 +116,10 @@ NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,
     "examples/exp_configs/templates/sumo/test2.net.xml")
 
+warmup_steps = 0
+if additional_env_params['reroute_on_exit']:
+    warmup_steps = 400
+
 flow_params = dict(
     # name of the experiment
     exp_tag='I_210_subnetwork',
@@ -140,7 +146,7 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         sims_per_step=1,
-        warmup_steps=0,
+        warmup_steps=warmup_steps,
         additional_params=additional_env_params,
     ),
 

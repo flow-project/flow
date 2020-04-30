@@ -148,6 +148,10 @@ class Env(gym.Env):
         self.state = None
         self.obs_var_labels = []
 
+        # track IDs that have ever been observed in the system
+        self.observed_ids = set()
+        self.observed_rl_ids = set()
+
         # simulation step size
         self.sim_step = sim_params.sim_step
 
@@ -429,6 +433,10 @@ class Env(gym.Env):
         """
         # reset the time counter
         self.time_counter = 0
+
+        # reset the observed ids
+        self.observed_ids = set()
+        self.observed_rl_ids = set()
 
         # Now that we've passed the possibly fake init steps some rl libraries
         # do, we can feel free to actually render things

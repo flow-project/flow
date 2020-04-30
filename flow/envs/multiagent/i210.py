@@ -63,7 +63,10 @@ class I210MultiEnv(MultiEnv):
     def __init__(self, env_params, sim_params, network, simulator='traci'):
         super().__init__(env_params, sim_params, network, simulator)
         self.lead_obs = env_params.additional_params.get("lead_obs")
+        self.reroute_on_exit = env_params.additional_params.get("reroute_on_exit")
         self.max_lanes = MAX_LANES
+        self.entrance_edge = "119257914"
+        self.exit_edge = "119257908#3"
 
     @property
     def observation_space(self):
@@ -130,7 +133,6 @@ class I210MultiEnv(MultiEnv):
                 else:
                     lead_speed = self.k.vehicle.get_speed(lead_id)
                     headway = self.k.vehicle.get_headway(rl_id)
-                    self.leader.append(lead_id)
                 veh_info.update({rl_id: np.array([speed / SPEED_SCALE, headway /HEADWAY_SCALE, lead_speed / SPEED_SCALE])})
         else:
             veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
@@ -194,14 +196,49 @@ class I210MultiEnv(MultiEnv):
     def additional_command(self):
         """See parent class.
 
-        Define which vehicles are observed for visualization purposes.
+        Define which vehicles are observed for visualization purposes. Additionally, optionally reroute vehicles
+        back once they have exited.
         """
+        super().additional_command()
         # specify observed vehicles
         for rl_id in self.k.vehicle.get_rl_ids():
             # leader
             lead_id = self.k.vehicle.get_leader(rl_id)
             if lead_id:
                 self.k.vehicle.set_observed(lead_id)
+
+        if self.reroute_on_exit and self.time_counter >= self.env_params.sims_per_step * self.env_params.warmup_steps \
+                and not self.env_params.evaluate:
+            veh_ids = self.k.vehicle.get_ids()
+            edges = self.k.vehicle.get_edge(veh_ids)
+            for veh_id, edge in zip(veh_ids, edges):
+                if edge == "":
+                    continue
+                if edge[0] == ":":  # center edge
+                    continue
+                # on the exit edge, near the end, and is the vehicle furthest along
+                if edge == self.exit_edge and \
+                        (self.k.vehicle.get_position(veh_id) > self.k.network.edge_length(self.exit_edge) - 100)\
+                        and self.k.vehicle.get_leader(veh_id) is None:
+                    type_id = self.k.vehicle.get_type(veh_id)
+                    # remove the vehicle
+                    self.k.vehicle.remove(veh_id)
+                    lane = np.random.randint(low=0, high=self.max_lanes)
+                    # reintroduce it at the start of the network
+                    # TODO(@evinitsky) select the lane and speed a bit more cleanly
+                    self.k.vehicle.add(
+                        veh_id=veh_id,
+                        edge=self.entrance_edge,
+                        type_id=str(type_id),
+                        lane=str(lane),
+                        pos="0",
+                        speed="20.0")
+
+            departed_ids = self.k.vehicle.get_departed_ids()
+            if len(departed_ids) > 0:
+                for veh_id in departed_ids:
+                    if veh_id not in self.observed_ids:
+                        self.k.vehicle.remove(veh_id)
 
     def state_util(self, rl_id):
         """Return an array of headway, tailway, leader speed, follower speed.
@@ -243,6 +280,17 @@ class I210MultiEnv(MultiEnv):
         lane = (self.k.vehicle.get_lane(rl_id) + 1) / 10.0
         return np.array([speed, lane])
 
+    def step(self, rl_actions):
+        state, reward, done, info = super().step(rl_actions)
+        # handle the edge case where a vehicle hasn't been put back when the rollout terminates
+        if self.reroute_on_exit and done['__all__']:
+            for rl_id in self.observed_rl_ids:
+                if rl_id not in state.keys():
+                    done[rl_id] = True
+                    reward[rl_id] = 0
+                    state[rl_id] = -1 * np.ones(self.observation_space.shape[0])
+        return state, reward, done, info
+
 
 class MultiStraightRoad(I210MultiEnv):
     """Partially observable multi-agent environment for a straight road. Look at superclass for more information."""
@@ -250,6 +298,8 @@ class MultiStraightRoad(I210MultiEnv):
     def __init__(self, env_params, sim_params, network, simulator):
         super().__init__(env_params, sim_params, network, simulator)
         self.max_lanes = 1
+        self.entrance_edge = self.network.routes['highway_0'][0][0][0]
+        self.exit_edge = self.network.routes['highway_0'][0][0][-1]
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""

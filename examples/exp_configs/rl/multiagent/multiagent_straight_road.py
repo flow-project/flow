@@ -48,7 +48,9 @@ additional_env_params.update({
     'max_decel': 4.5,
     'target_velocity': 18,
     'local_reward': True,
-    'lead_obs': True
+    'lead_obs': True,
+    # whether to reroute vehicles once they have exited
+    "reroute_on_exit": True
 })
 
 
@@ -92,6 +94,9 @@ inflows.add(
     name="rl_highway_inflow")
 
 # SET UP FLOW PARAMETERS
+warmup_steps = 0
+if additional_env_params['reroute_on_exit']:
+    warmup_steps = 400
 
 flow_params = dict(
     # name of the experiment
@@ -109,7 +114,7 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        warmup_steps=0,
+        warmup_steps=warmup_steps,
         sims_per_step=1,  # do not put more than one
         additional_params=additional_env_params,
     ),
