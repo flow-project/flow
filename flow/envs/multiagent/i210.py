@@ -226,13 +226,15 @@ class I210MultiEnv(MultiEnv):
                     lane = np.random.randint(low=0, high=self.max_lanes)
                     # reintroduce it at the start of the network
                     # TODO(@evinitsky) select the lane and speed a bit more cleanly
+                    # Note, the position is 10 so you are not overlapping with the inflow car that is being removed.
+                    # this allows the vehicle to be immediately inserted.
                     self.k.vehicle.add(
                         veh_id=veh_id,
                         edge=self.entrance_edge,
                         type_id=str(type_id),
                         lane=str(lane),
-                        pos="0",
-                        speed="20.0")
+                        pos="10.0",
+                        speed="23.0")
 
             departed_ids = self.k.vehicle.get_departed_ids()
             if len(departed_ids) > 0:

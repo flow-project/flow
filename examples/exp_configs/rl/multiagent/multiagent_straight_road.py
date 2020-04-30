@@ -71,6 +71,7 @@ vehicles.add(
 
 # autonomous vehicles
 vehicles.add(
+    color='red',
     veh_id='rl',
     acceleration_controller=(RLController, {}))
 
