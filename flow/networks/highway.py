@@ -13,7 +13,12 @@ ADDITIONAL_NET_PARAMS = {
     # speed limit for all edges
     "speed_limit": 30,
     # number of edges to divide the highway into
-    "num_edges": 1
+    "num_edges": 1,
+    # whether to include a ghost edge of length 500m. This edge is provided a
+    # different speed limit.
+    "use_ghost_edge": False,
+    # speed limit for the ghost edge
+    "ghost_speed_limit": 25,
 }
 
 
@@ -62,9 +67,7 @@ class HighwayNetwork(Network):
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
 
-        self.length = net_params.additional_params["length"]
-        self.lanes = net_params.additional_params["lanes"]
-        self.num_edges = net_params.additional_params.get("num_edges", 1)
+        self.end_length = 500
 
         super().__init__(name, vehicles, net_params, initial_config,
                          traffic_lights)
@@ -82,6 +85,12 @@ class HighwayNetwork(Network):
                 "x": segment_lengths[i],
                 "y": 0
             }]
+
+        nodes += [{
+            "id": "edge_{}".format(num_edges + 1),
+            "x": length + self.end_length,
+            "y": 0
+        }]
 
         return nodes
 
@@ -101,18 +110,33 @@ class HighwayNetwork(Network):
                 "length": segment_length
             }]
 
+        if self.net_params.additional_params["use_ghost_edge"]:
+            edges += [{
+                "id": "highway_end",
+                "type": "highway_end",
+                "from": "edge_{}".format(num_edges),
+                "to": "edge_{}".format(num_edges + 1),
+                "length": self.end_length
+            }]
+
         return edges
 
     def specify_types(self, net_params):
         """See parent class."""
         lanes = net_params.additional_params["lanes"]
         speed_limit = net_params.additional_params["speed_limit"]
+        end_speed_limit = net_params.additional_params["ghost_speed_limit"]
 
         types = [{
             "id": "highwayType",
             "numLanes": lanes,
             "speed": speed_limit
         }]
+
+        types += [{
+            "id": "highway_end",
+            "numLanes": lanes,
+            "speed": end_speed_limit}]
 
         return types
 
@@ -123,14 +147,50 @@ class HighwayNetwork(Network):
         for i in range(num_edges):
             rts["highway_{}".format(i)] = ["highway_{}".format(j) for
                                            j in range(i, num_edges)]
+            rts["highway_{}".format(i)].append("highway_end")
 
         return rts
 
     def specify_edge_starts(self):
         """See parent class."""
-        edgestarts = [("highway_{}".format(i), 0)
-                      for i in range(self.num_edges)]
-        return edgestarts
+        junction_length = 0.1
+        length = self.net_params.additional_params["length"]
+        num_edges = self.net_params.additional_params.get("num_edges", 1)
+
+        # Add the main edges.
+        edge_starts = [
+            ("highway_{}".format(i),
+             i * (length / num_edges + junction_length))
+            for i in range(num_edges)
+        ]
+
+        if self.net_params.additional_params["use_ghost_edge"]:
+            edge_starts += [
+                ("highway_end", length + num_edges * junction_length)
+            ]
+
+        return edge_starts
+
+    def specify_internal_edge_starts(self):
+        """See parent class."""
+        junction_length = 0.1
+        length = self.net_params.additional_params["length"]
+        num_edges = self.net_params.additional_params.get("num_edges", 1)
+
+        # Add the junctions.
+        edge_starts = [
+            (":edge_{}".format(i + 1),
+             (i + 1) * length / num_edges + i * junction_length)
+            for i in range(num_edges - 1)
+        ]
+
+        if self.net_params.additional_params["use_ghost_edge"]:
+            edge_starts += [
+                (":edge_{}".format(num_edges),
+                 length + (num_edges - 1) * junction_length)
+            ]
+
+        return edge_starts
 
     @staticmethod
     def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
