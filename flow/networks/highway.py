@@ -34,6 +34,9 @@ class HighwayNetwork(Network):
     * **lanes** : number of lanes in the highway
     * **speed_limit** : max speed limit of the highway
     * **num_edges** : number of edges to divide the highway into
+    * **use_ghost_edge** : whether to include a ghost edge of length 500m. This
+      edge is provided a different speed limit.
+    * **ghost_speed_limit** : speed limit for the ghost edge
 
     Usage
     -----
