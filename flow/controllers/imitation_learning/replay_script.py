@@ -20,7 +20,7 @@ def run_experiment():
     action_dim = (1,)[0]
 
     sess = create_tf_session()
-    action_network = ImitatingNetwork(sess, action_dim, obs_dim, None, None, None, None, load_existing=True, load_path='/Users/akashvelu/Documents/models2/')
+    action_network = ImitatingNetwork(sess, action_dim, obs_dim, None, None, None, None, load_existing=True, load_path='/Users/akashvelu/Documents/models8_vdes14/')
 
     def get_rl_actions(state):
         rl_actions = {}

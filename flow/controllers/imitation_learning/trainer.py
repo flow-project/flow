@@ -34,33 +34,32 @@ class Trainer(object):
         # vehicle setup
         self.multiagent = params['multiagent']
 
-        # TODO: remove print
-        print("MULTI: ", self.multiagent)
-
         self.vehicle_ids = self.env.k.vehicle.get_rl_ids()
 
         # neural net setup
         obs_dim = self.env.observation_space.shape[0]
-        action_dim = (1,)[0]
+        action_dim = self.env.action_space.shape[0]
+
         self.params['action_dim'] = action_dim
         self.params['obs_dim'] = obs_dim
 
-        self.action_network = ImitatingNetwork(self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['num_layers'], self.params['size'], self.params['learning_rate'], self.params['replay_buffer_size'], inject_noise=self.params['inject_noise'], noise_variance=self.params['noise_variance'])
+        self.action_network = ImitatingNetwork(self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['num_layers'], self.params['size'], self.params['learning_rate'], self.params['replay_buffer_size'], stochastic=self.params['stochastic'], noise_variance=self.params['noise_variance'])
 
         tf.global_variables_initializer().run(session=self.sess)
 
         # controllers setup
+        v_des = self.params['v_des']
         car_following_params = SumoCarFollowingParams()
         self.controllers = dict()
         for vehicle_id in self.vehicle_ids:
-            expert = FollowerStopper(vehicle_id, car_following_params=car_following_params)
+            expert = FollowerStopper(vehicle_id, car_following_params=car_following_params, v_des=v_des)
             imitator = ImitatingController(vehicle_id, self.action_network, self.multiagent, car_following_params=car_following_params)
             self.controllers[vehicle_id] = (imitator, expert)
 
 
     def run_training_loop(self, n_iter):
         """
-        Trains imitator for n_iter iterations
+        Trains imitator for n_iter iterations (each iter runs optimizer once on given batch of dat)
 
         Args:
             param n_iter:  number of iterations to execute training
@@ -68,14 +67,13 @@ class Trainer(object):
 
         # init vars at beginning of training
         self.total_envsteps = 0
-        self.start_time = time.time()
 
         for itr in range(n_iter):
             print("\n\n********** Iteration %i ************"%itr)
 
             # collect trajectories, to be used for training
             if itr == 0:
-                # first iteration is standard behavioral cloning
+                # first iteration is behavioral cloning
                 training_returns = self.collect_training_trajectories(itr, self.params['init_batch_size'])
             else:
                 training_returns = self.collect_training_trajectories(itr, self.params['batch_size'])
@@ -102,7 +100,7 @@ class Trainer(object):
         """
 
         print("\nCollecting data to be used for training...")
-        trajectories, envsteps_this_batch = sample_trajectories(self.env, self.controllers, self.action_network, batch_size, self.params['ep_len'], self.multiagent, use_expert=itr==0)
+        trajectories, envsteps_this_batch = sample_trajectories(self.env, self.controllers, self.action_network, batch_size, self.params['ep_len'], self.multiagent, use_expert=itr==0, v_des=self.params['v_des'])
 
         return trajectories, envsteps_this_batch
 
@@ -126,9 +124,8 @@ class Trainer(object):
 
         print("\n\n********** Evaluation ************ \n")
 
-        trajectories = sample_n_trajectories(self.env, self.controllers, self.action_network, num_trajs, self.params['ep_len'], self.multiagent, False)
+        trajectories = sample_n_trajectories(self.env, self.controllers, self.action_network, num_trajs, self.params['ep_len'], self.multiagent, False, v_des=self.params['v_des'])
 
-        average_imitator_reward = 0
         total_imitator_steps = 0
         average_imitator_reward_per_rollout = 0
 
@@ -137,9 +134,10 @@ class Trainer(object):
         average_action_imitator = 0
 
         # compare actions taken in each step of trajectories
-        for traj_pair in trajectories:
-            traj = traj_pair[0]
-            traj_len = traj_pair[1]
+        for traj_tuple in trajectories:
+            traj = traj_tuple[0]
+            traj_len = traj_tuple[1]
+
             imitator_actions = traj['actions']
             expert_actions = traj['expert_actions']
 
@@ -149,45 +147,45 @@ class Trainer(object):
             action_error = np.linalg.norm(imitator_actions - expert_actions) / len(imitator_actions)
             action_errors = np.append(action_errors, action_error)
 
-            average_imitator_reward += np.sum(traj['rewards'])
             total_imitator_steps += traj_len
             average_imitator_reward_per_rollout += np.sum(traj['rewards'])
 
-        average_imitator_reward = average_imitator_reward / total_imitator_steps
         average_imitator_reward_per_rollout = average_imitator_reward_per_rollout / len(trajectories)
 
         average_action_expert = average_action_expert / total_imitator_steps
         average_action_imitator = average_action_imitator / total_imitator_steps
 
 
-        expert_trajectories = sample_n_trajectories(self.env, self.controllers, self.action_network, num_trajs, self.params['ep_len'], self.multiagent, True)
+        expert_trajectories = sample_n_trajectories(self.env, self.controllers, self.action_network, num_trajs, self.params['ep_len'], self.multiagent, True, v_des=self.params['v_des'])
 
         average_expert_reward = 0
         total_expert_steps = 0
         average_expert_reward_per_rollout = 0
 
         # compare reward accumulated in trajectories collected via expert vs. via imitator
-        for traj_pair in expert_trajectories:
-            traj = traj_pair[0]
-            traj_len = traj_pair[1]
+        for traj_tuple in expert_trajectories:
+            traj = traj_tuple[0]
+            traj_len = traj_tuple[1]
             average_expert_reward += np.sum(traj['rewards'])
             total_expert_steps += traj_len
             average_expert_reward_per_rollout += np.sum(traj['rewards'])
 
         average_expert_reward_per_rollout = average_expert_reward_per_rollout / len(expert_trajectories)
-        average_expert_reward = average_expert_reward / total_expert_steps
 
-        print("\nAVERAGE REWARD PER STEP EXPERT: ", average_expert_reward)
-        print("AVERAGE REWARD PER STEP IMITATOR: ", average_imitator_reward)
-        print("AVERAGE REWARD PER STEP DIFFERENCE: ", np.abs(average_expert_reward - average_imitator_reward), "\n")
+        average_expert_reward = average_expert_reward / total_expert_steps
 
         print("AVERAGE REWARD PER ROLLOUT EXPERT: ", average_expert_reward_per_rollout)
         print("AVERAGE REWARD PER ROLLOUT IMITATOR: ", average_imitator_reward_per_rollout)
         print("AVERAGE REWARD PER ROLLOUT DIFFERENCE: \n", np.abs(average_expert_reward_per_rollout - average_imitator_reward_per_rollout), "\n")
 
+
         print("MEAN EXPERT ACTION: ", average_action_expert)
         print("MEAN ACTION ERROR: ", np.mean(action_errors), "\n")
 
+
     def save_controller_network(self):
+        """
+        Saves a tensorflow model to the specified path given in the command line params. Path must end with .ckpt
+        """
         print("Saving tensorflow model to: ", self.params['save_path'])
         self.action_network.save_network(self.params['save_path'])

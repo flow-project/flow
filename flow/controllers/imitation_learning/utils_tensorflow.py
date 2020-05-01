@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 
-# Below are tensorflow related functions
+""" Class agnostic helper functions related to tensorflow"""
 
 def build_neural_net(input_placeholder, output_size, scope, n_layers, size, activation=tf.tanh, output_activation=None):
     """
