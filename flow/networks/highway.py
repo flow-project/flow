@@ -89,11 +89,12 @@ class HighwayNetwork(Network):
                 "y": 0
             }]
 
-        nodes += [{
-            "id": "edge_{}".format(num_edges + 1),
-            "x": length + self.end_length,
-            "y": 0
-        }]
+        if self.net_params.additional_params["use_ghost_edge"]:
+            nodes += [{
+                "id": "edge_{}".format(num_edges + 1),
+                "x": length + self.end_length,
+                "y": 0
+            }]
 
         return nodes
 
@@ -136,10 +137,12 @@ class HighwayNetwork(Network):
             "speed": speed_limit
         }]
 
-        types += [{
-            "id": "highway_end",
-            "numLanes": lanes,
-            "speed": end_speed_limit}]
+        if self.net_params.additional_params["use_ghost_edge"]:
+            types += [{
+                "id": "highway_end",
+                "numLanes": lanes,
+                "speed": end_speed_limit
+            }]
 
         return types
 
@@ -150,7 +153,8 @@ class HighwayNetwork(Network):
         for i in range(num_edges):
             rts["highway_{}".format(i)] = ["highway_{}".format(j) for
                                            j in range(i, num_edges)]
-            rts["highway_{}".format(i)].append("highway_end")
+            if self.net_params.additional_params["use_ghost_edge"]:
+                rts["highway_{}".format(i)].append("highway_end")
 
         return rts
 

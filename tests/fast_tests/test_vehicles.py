@@ -258,7 +258,9 @@ class TestMultiLaneData(unittest.TestCase):
             "lanes": 3,
             "speed_limit": 30,
             "resolution": 40,
-            "num_edges": 1
+            "num_edges": 1,
+            "use_ghost_edge": False,
+            "ghost_speed_limit": 25,
         }
         net_params = NetParams(additional_params=additional_net_params)
         vehicles = VehicleParams()
