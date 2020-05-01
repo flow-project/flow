@@ -1,19 +1,19 @@
 
-from flow.controllers import IDMController, ContinuousRouter
+from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
-from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.networks.ring import RingNetwork, ADDITIONAL_NET_PARAMS
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.core.params import SumoParams, SumoCarFollowingParams, NetParams
 from flow.core.experiment import Experiment
+from flow.envs.ring.wave_attenuation import WaveAttenuationPOEnv, ADDITIONAL_ENV_PARAMS
 import numpy as np
 
 # rom the main flow directory, run;
 # python flow/visualize/visualizer_rllib.py examples/safety/data/trained_ring 200 --horizon 2000
 
 
-class safeEnv(AccelEnv):
+class safeEnv(WaveAttenuationPOEnv):
     """TODO: Try to overwrite EmergencyDecel with self.k.kernel_api.vehicle.setEmergencyDecel(self, vehID, decel):"""
 
     def step(self, rl_actions, teleport_=True):
@@ -181,26 +181,19 @@ vehicles = VehicleParams()
 #     routing_controller=(ContinuousRouter, {}),
 #     num_vehicles=1)
 
-
 vehicles.add(
     veh_id="idm",
     acceleration_controller=(SimCarFollowingController, {}),
     routing_controller=(ContinuousRouter, {}),
     car_following_params=SumoCarFollowingParams(
-        carFollowModel="IDM",
+        carFollowModel="IDM", minGap=0, tau=1, accel=1, max_speed=30, decel=1.5,
     ),
-    num_vehicles=20)
-
-
-# RLCar needs to be inserted here and somehow passed into params.json
+    num_vehicles=21)
 
 vehicles.add(
-    veh_id="idm2",
-    acceleration_controller=(SimCarFollowingController, {}),
+    veh_id="rl",
+    acceleration_controller=(RLController, {}),
     routing_controller=(ContinuousRouter, {}),
-    car_following_params=SumoCarFollowingParams(
-        carFollowModel="IDM", minGap=0, tau=0.001, accel=20, max_speed=300, decel=1.5,
-    ),
     num_vehicles=1)
 
 # carFollowModel="IDM", minGap=0, tau=0.1, accel=20, max_speed=300, decel=1.5, # causes acrash
@@ -227,14 +220,27 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=3000,
-        additional_params=ADDITIONAL_ENV_PARAMS,
+        horizon=1000,
+        warmup_steps=750,
+        clip_actions=False,
+        additional_params={
+                        # maximum acceleration of autonomous vehicles
+                        'max_accel': 1,
+                        # maximum deceleration of autonomous vehicles
+                        'max_decel': 1,
+                        # bounds on the ranges of ring road lengths the autonomous vehicle is
+                        # trained on
+                        'ring_length': [220, 270],}
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
     # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        additional_params=ADDITIONAL_NET_PARAMS.copy(),
+        additional_params={
+            "length": 260,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40}
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
@@ -243,19 +249,5 @@ flow_params = dict(
 
     # parameters specifying the positioning of vehicles upon initialization/
     # reset (see flow.core.params.InitialConfig)
-    initial=InitialConfig(
-        bunching=20,
-    ),
+    initial=InitialConfig(),
 )
-
-# # number of time steps
-# exp = Experiment(flow_params)
-#
-# # run the sumo simulation
-# _ = exp.run(1, convert_to_csv=False)
-
-# create RLcar for params
-# 1. Add RLCAR
-# 2. Parse.json file:
-# 3. overwrite flow_params
-# 4. Simulate

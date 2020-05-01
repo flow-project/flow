@@ -1,5 +1,5 @@
 
-from flow.controllers import IDMController, ContinuousRouter
+from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import VehicleParams
 from flow.envs.ring.accel import AccelEnv, ADDITIONAL_ENV_PARAMS
@@ -189,10 +189,7 @@ vehicles.add(
     car_following_params=SumoCarFollowingParams(
         carFollowModel="IDM",
     ),
-    num_vehicles=20)
-
-
-# RLCar needs to be inserted here and somehow passed into params.json
+    num_vehicles=21)
 
 vehicles.add(
     veh_id="idm2",
