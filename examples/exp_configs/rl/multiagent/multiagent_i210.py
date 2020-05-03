@@ -26,7 +26,7 @@ from flow.utils.registry import make_create_env
 # SET UP PARAMETERS FOR THE SIMULATION
 
 # number of steps per rollout
-HORIZON = 4000
+HORIZON = 2000
 
 VEH_PER_HOUR_BASE_119257914 = 10800
 VEH_PER_HOUR_BASE_27414345 = 321
@@ -45,7 +45,8 @@ additional_env_params.update({
     # whether to add in a reward for the speed of nearby vehicles
     "local_reward": True,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": True
+    "reroute_on_exit": True,
+    'target_velocity': 18,
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
@@ -148,6 +149,7 @@ flow_params = dict(
         sims_per_step=1,
         warmup_steps=warmup_steps,
         additional_params=additional_env_params,
+        done_at_exit=False
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
