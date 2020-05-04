@@ -8,6 +8,7 @@ class ReplayBuffer(object):
 
     def __init__(self, max_size=100000):
 
+        # max size of buffer
         self.max_size = max_size
 
         # store each rollout
@@ -34,6 +35,7 @@ class ReplayBuffer(object):
 
         assert (not np.any(np.isnan(expert_actions))), "Invalid actions added to replay buffer"
 
+        # only keep max_size tuples in buffer
         if self.observations is None:
             self.observations = observations[-self.max_size:]
             self.actions = actions[-self.max_size:]

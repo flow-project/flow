@@ -1,7 +1,6 @@
 import os
 import time
 import numpy as np
-#import tensorflow as tf
 from trainer import Trainer
 from flow.controllers.car_following_models import IDMController
 
@@ -11,22 +10,33 @@ class Runner(object):
 
     def __init__(self, params):
 
-        # initialize trainer
+        # initialize trainer class instance and params
         self.params = params
         self.trainer = Trainer(params)
 
     def run_training_loop(self):
-
+        """
+        Runs training for imitation learning for specified number of iterations
+        """
         self.trainer.run_training_loop(n_iter=self.params['n_iter'])
 
     def evaluate(self):
+        """
+        Evaluates a trained controller over a specified number trajectories; compares average action per step and average reward per trajectory between imitator and expert
+        """
         self.trainer.evaluate_controller(num_trajs=self.params['num_eval_episodes'])
 
     def save_controller_network(self):
+        """
+        Saves a tensorflow checkpoint to path specified in params (and writes to tensorboard)
+        """
         self.trainer.save_controller_network()
 
 
 def main():
+    """
+    Parse args, run training, and evalutation
+    """
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--ep_len', type=int, default=5000)

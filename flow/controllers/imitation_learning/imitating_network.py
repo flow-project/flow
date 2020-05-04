@@ -8,10 +8,29 @@ from replay_buffer import ReplayBuffer
 
 class ImitatingNetwork():
     """
-    Neural network which learns to imitate another given expert controller.
+    Class containing neural network which learns to imitate a given expert controller.
     """
 
-    def __init__(self, sess, action_dim, obs_dim, num_layers, size, learning_rate, replay_buffer_size, training = True, stochastic=False, noise_variance=0.5, policy_scope='policy_vars', load_existing=False, load_path=''):
+    def __init__(self, sess, action_dim, obs_dim, num_layers, size, learning_rate, replay_buffer_size, training = True, stochastic=False, policy_scope='policy_vars', load_existing=False, load_path=''):
+
+        """
+        Initializes and constructs neural network
+
+        Args:
+            sess: Tensorflow session variable
+            action_dim: dimension of action space (determines size of network output)
+            obs_dim: dimension of observation space (size of network input)
+            num_layers: number of hidden layers (for an MLP)
+            size: size of each layer in network
+            learning_rate: learning rate used in optimizer
+            replay_buffer_size: maximum size of replay buffer used to hold data for training
+            training: boolean, whether the network will be trained (as opposed to loaded)
+            stochastic: boolean indicating if the network outputs a stochastic (multivariate Gaussian) or deterministic policy
+            policy_scope: variable scope used by Tensorflow for weights/biases
+            load_existing: boolean, whether to load an existing tensorflow model
+            load_path: path to directory containing an existing tensorflow model
+
+        """
 
         self.sess = sess
         self.action_dim = action_dim
@@ -21,8 +40,8 @@ class ImitatingNetwork():
         self.learning_rate = learning_rate
         self.training = training
         self.stochastic=stochastic
-        self.noise_variance = noise_variance
 
+        # load network if specified, or construct network
         if load_existing:
             self.load_network(load_path)
 
@@ -30,21 +49,25 @@ class ImitatingNetwork():
             with tf.variable_scope(policy_scope, reuse=tf.AUTO_REUSE):
                 self.build_network()
 
+        # init replay buffer
         if self.training:
             self.replay_buffer = ReplayBuffer(replay_buffer_size)
         else:
             self.replay_buffer = None
 
+        # set up policy variables, and saver to save model. Save only non-training variables (weights/biases)
         if not load_existing:
             self.policy_vars = [v for v in tf.all_variables() if policy_scope in v.name and 'train' not in v.name]
             self.saver = tf.train.Saver(self.policy_vars, max_to_keep=None)
 
     def build_network(self):
         """
-        Defines neural network for choosing actions.
+        Defines neural network for choosing actions. Defines placeholders and forward pass
         """
+        # setup placeholders for network input and labels for training, and hidden layers/output
         self.define_placeholders()
         self.define_forward_pass()
+        # set up training operation (e.g. Adam optimizer)
         if self.training:
             with tf.variable_scope('train', reuse=tf.AUTO_REUSE):
                 self.define_train_op()
@@ -54,31 +77,39 @@ class ImitatingNetwork():
         """
         Load tensorflow model from the path specified, set action prediction to proper placeholder
         """
+        # load and restore model
         loader = tf.train.import_meta_graph(path + 'model.ckpt.meta')
         loader.restore(self.sess, path+'model.ckpt')
 
-        # print([n.name for n in tf.get_default_graph().as_graph_def().node])
+        # get observation placeholder (for input into network)
         self.obs_placeholder = tf.get_default_graph().get_tensor_by_name('policy_vars/observation:0')
+        # get output tensor (using name of appropriate tensor)
         network_output = tf.get_default_graph().get_tensor_by_name('policy_vars/network_scope/Output_Layer/BiasAdd:0')
 
+        # for stochastic policies, the network output is twice the action dimension. First half specifies the mean of a multivariate gaussian distribution, second half specifies the diagonal entries for the diagonal covariance matrix.
+        # for deterministic policies, network output is the action.
         if self.stochastic:
-            # determine mean and (diagonal) covariance matrix for action distribution
-            mean = network_output[:self.action_dim]
-            cov_diag = network_output[self.action_dim:]
+            # determine means and (diagonal entries of ) covariance matrices (could be many in the case of batch) for action distribution
+            means = network_output[:, :self.action_dim]
+            cov_diags = network_output[:, self.action_dim:]
+
             # set up action distribution (parameterized by network output)
-            dist = tfp.distributions.MultivariateNormalDiag(loc=mean, scale_diag=cov_diag)
-            # action is a sample from this distribution
-            self.action_predictions = dist.sample()
+            # if a batch of size k is input as observations, then the the self.dist will store k different Gaussians
+            self.dist = tfp.distributions.MultivariateNormalDiag(loc=means, scale_diag=cov_diags)
+            # action is a sample from this distribution; one sample output per Gaussian contained in self.dist
+            self.action_predictions = self.dist.sample()
         else:
+            self.dist = None
             self.action_predictions = network_output
 
     def define_placeholders(self):
         """
         Defines input, output, and training placeholders for neural net
         """
+        # placeholder for observations (input into network)
         self.obs_placeholder = tf.placeholder(shape=[None, self.obs_dim], name="observation", dtype=tf.float32)
-        self.action_placeholder = tf.placeholder(shape=[None, self.action_dim], name="action", dtype=tf.float32)
 
+        # if training, define placeholder for labels (supervised leearning)
         if self.training:
             self.action_labels_placeholder = tf.placeholder(shape=[None, self.action_dim], name="labels", dtype=tf.float32)
 
@@ -87,24 +118,30 @@ class ImitatingNetwork():
         """
         Build network and initialize proper action prediction op
         """
-        self.stochastic = False
+        # network output is twice action dim if stochastic (1st half mean, 2nd half diagonal elements of covariance)
         if self.stochastic:
             output_size = 2 * self.action_dim
         else:
             output_size = self.action_dim
 
+        # build forward pass and get the tensor for output of last layer
         network_output = build_neural_net(self.obs_placeholder, output_size=output_size, scope='network_scope', n_layers=self.num_layers, size=self.size)
-        self.network_output = network_output
 
-        # TODO: add this as a class variable
+        # unpack array of array into just array
+        # if self.stochastic:
+        #     # network_output = network_output[0]
+
+        # parse the mean and covariance from output if stochastic, and set up distribution
         if self.stochastic:
-            # determine mean and (diagonal) covariance matrix for action distribution
-            mean = network_output[:self.action_dim]
-            cov_diag = network_output[self.action_dim:]
+            # determine means and (diagonal entries of ) covariance matrices (could be many in the case of batch) for action distribution
+            means = network_output[:, :self.action_dim]
+            cov_diags = network_output[:, self.action_dim:]
+
             # set up action distribution (parameterized by network output)
-            self.dist = tfp.distributions.MultivariateNormalDiag(loc=mean, scale_diag=cov_diag)
-            # action is a sample from this distribution
-            self.action_predictions = dist.sample()
+            # if a batch of size k is input as observations, then the the self.dist will store k different Gaussians
+            self.dist = tfp.distributions.MultivariateNormalDiag(loc=means, scale_diag=cov_diags)
+            # action is a sample from this distribution; one sample output per Gaussian contained in self.dist
+            self.action_predictions = self.dist.sample()
 
         else:
             self.dist = None
@@ -115,9 +152,9 @@ class ImitatingNetwork():
         """
         Defines training operations for network (loss function and optimizer)
         """
+        # labels
         true_actions = self.action_labels_placeholder
-        network_prediction = self.network_output
-
+        predicted_actions = self.action_predictions
 
         if self.stochastic:
             # negative log likelihood loss for stochastic policy
@@ -125,16 +162,18 @@ class ImitatingNetwork():
             self.loss = -tf.reduce_mean(log_likelihood)
         else:
             # MSE loss for deterministic policy
-            self.loss = tf.losses.mean_squared_error(true_actions, network_prediction)
+            self.loss = tf.losses.mean_squared_error(true_actions, predicted_actions)
 
+        # Adam optimizer
         self.train_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
 
     def train(self, observation_batch, action_batch):
         """
         Executes one training step for the given batch of observation and action data
         """
+        # reshape action_batch to ensure a shape (batch_size, action_dim)
         action_batch = action_batch.reshape(action_batch.shape[0], self.action_dim)
-        ret = self.sess.run([self.train_op, self.loss], feed_dict={self.obs_placeholder: observation_batch, self.action_labels_placeholder: action_batch})
+        self.sess.run([self.train_op, self.loss], feed_dict={self.obs_placeholder: observation_batch, self.action_labels_placeholder: action_batch})
 
     def get_accel_from_observation(self, observation):
         """
@@ -144,14 +183,14 @@ class ImitatingNetwork():
         # network expects an array of arrays (matrix); if single observation (no batch), convert to array of arrays
         if len(observation.shape)<=1:
             observation = observation[None]
+        # "batch size" is 1, so just get single acceleration/acceleration vector
         ret_val = self.sess.run([self.action_predictions], feed_dict={self.obs_placeholder: observation})[0]
         return ret_val
 
     def get_accel(self, env):
         """
-        Get network's acceleration prediction based on given env
+        Get network's acceleration prediction(s) based on given env
         """
-        # network expects an array of arrays (matrix); if single observation (no batch), convert to array of arrays
         observation = env.get_state()
         return self.get_accel_from_observation(observation)
 
