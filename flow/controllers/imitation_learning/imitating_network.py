@@ -127,10 +127,6 @@ class ImitatingNetwork():
         # build forward pass and get the tensor for output of last layer
         network_output = build_neural_net(self.obs_placeholder, output_size=output_size, scope='network_scope', n_layers=self.num_layers, size=self.size)
 
-        # unpack array of array into just array
-        # if self.stochastic:
-        #     # network_output = network_output[0]
-
         # parse the mean and covariance from output if stochastic, and set up distribution
         if self.stochastic:
             # determine means and (diagonal entries of ) covariance matrices (could be many in the case of batch) for action distribution
