@@ -731,6 +731,17 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         [self.k.vehicle.set_observed(veh_id) for veh_id in self.observed_ids]
 
 
+class TrafficLightGridBenchmarkEnv(TrafficLightGridPOEnv):
+    """Class used for the benchmarks in `Benchmarks for reinforcement learning inmixed-autonomy traffic`."""
+
+    def compute_reward(self, rl_actions, **kwargs):
+        """See class definition."""
+        if self.env_params.evaluate:
+            return - rewards.min_delay_unscaled(self)
+        else:
+            return rewards.desired_velocity(self)
+
+
 class TrafficLightGridTestEnv(TrafficLightGridEnv):
     """
     Class for use in testing.
