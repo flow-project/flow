@@ -19,7 +19,8 @@ ADDITIONAL_ENV_PARAMS = {
     # whether we use an obs space that contains adjacent lane info or just the lead obs
     "lead_obs": True,
     # whether the reward should come from local vehicles instead of global rewards
-    "local_reward": True
+    "local_reward": True,
+    "target_velocity": 25
 }
 
 
@@ -64,6 +65,7 @@ class I210MultiEnv(MultiEnv):
         super().__init__(env_params, sim_params, network, simulator)
         self.lead_obs = env_params.additional_params.get("lead_obs")
         self.max_lanes = MAX_LANES
+        self.leader = []
 
     @property
     def observation_space(self):
