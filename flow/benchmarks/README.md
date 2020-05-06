@@ -38,12 +38,12 @@ inflow = 300 veh/hour/lane S=(915,), A=(25,), T=400.
 this problem is to learn to avoid the *capacity drop* that is characteristic to 
 bottleneck structures in transportation networks, and maximize the total 
 outflow in a mixed-autonomy setting. 
-- `flow.benchmarks.bottleneck0` 4 lanes, inflow = 1900 veh/hour, 10% CAV 
+- `flow.benchmarks.bottleneck0` 4 lanes, inflow = 2500 veh/hour, 10% CAV
 penetration, no vehicles are allowed to lane change, S=(141,), A=(20,), T=1000.
-- `flow.benchmarks.bottleneck1` 4 lanes, inflow = 1900 veh/hour, 10% CAV 
+- `flow.benchmarks.bottleneck1` 4 lanes, inflow = 2500 veh/hour, 10% CAV
 penetration, the human drivers follow the standard lane changing model in the 
 simulator, S=(141,), A=(20,), T=1000.
-- `flow.benchmarks.bottleneck2` 8 lanes, inflow = 3800 veh/hour, 10% CAV 
+- `flow.benchmarks.bottleneck2` 8 lanes, inflow = 5000 veh/hour, 10% CAV
 penetration, no vehicles are allowed to lane change, S=(281,), A=(40,), T=1000.
 
 ## Training on Custom Algorithms
