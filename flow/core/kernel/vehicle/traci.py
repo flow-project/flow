@@ -56,6 +56,8 @@ class TraCIVehicle(KernelVehicle):
         self.num_vehicles = 0
         # number of rl vehicles in the network
         self.num_rl_vehicles = 0
+        # number of vehicles  loaded but not departed vehicles
+        self.num_not_departed = 0
 
         # contains the parameters associated with each type of vehicle
         self.type_parameters = {}
@@ -101,6 +103,7 @@ class TraCIVehicle(KernelVehicle):
         self.minGap = vehicles.minGap
         self.num_vehicles = 0
         self.num_rl_vehicles = 0
+        self.num_not_departed = 0
 
         self.__vehicles.clear()
         for typ in vehicles.initial:
@@ -183,6 +186,7 @@ class TraCIVehicle(KernelVehicle):
             self._departed_ids.clear()
             self._arrived_ids.clear()
             self._arrived_rl_ids.clear()
+            self.num_not_departed = 0
 
             # add vehicles from a network template, if applicable
             if hasattr(self.master_kernel.network.network,
@@ -211,6 +215,10 @@ class TraCIVehicle(KernelVehicle):
             self._num_arrived.append(len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]))
             self._departed_ids.append(sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS])
             self._arrived_ids.append(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
+
+            # update the number of not departed vehicles
+            self.num_not_departed += sim_obs[tc.VAR_LOADED_VEHICLES_NUMBER] - \
+                                     sim_obs[tc.VAR_DEPARTED_VEHICLES_NUMBER]
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
@@ -522,6 +530,10 @@ class TraCIVehicle(KernelVehicle):
             return self._departed_ids[-1]
         else:
             return 0
+
+    def get_num_not_departed(self):
+        """See parent class."""
+        return self.num_not_departed
 
     def get_previous_speed(self, veh_id, error=-1001):
         """See parent class."""
