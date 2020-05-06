@@ -188,6 +188,14 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         else:
             use_lstm = False
 
+    if args.run_transfer:
+        exp_name = "{}-replay".format(transfer_test.transfer_str)
+    else:
+        exp_name = "i210_replay"
+
+    if output_dir:
+        ensure_dir(output_dir)
+
     # used to store
     info_dict = {
         "velocities": [],
@@ -294,6 +302,23 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
 
             for key in custom_vals.keys():
                 info_dict[key].append(np.mean(custom_vals[key]))
+
+            if args.gen_all_emissions:
+                emission_filename = '{0}-emission.xml'.format(env.network.name)
+                time.sleep(0.1)
+
+                emission_path = \
+                    '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
+
+                output_path = os.path.join(output_dir, '{}-emission-{}.csv'.format(exp_name, i))
+                # convert the emission file into a csv file
+                emission_to_csv(emission_path, output_path=output_path)
+
+                # print the location of the emission csv file
+                print("\nGenerated emission file at " + output_path)
+
+                # delete the .xml version of the emission file
+                os.remove(emission_path)
             i += 1
 
     print('======== Summary of results ========')
@@ -311,15 +336,10 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     env.unwrapped.terminate()
 
     if output_dir:
-        ensure_dir(output_dir)
-        if args.run_transfer:
-            exp_name = "{}-replay".format(transfer_test.transfer_str)
-        else:
-            exp_name = "i210_replay"
         replay_out = os.path.join(output_dir, '{}-info.npy'.format(exp_name))
         np.save(replay_out, info_dict)
         # if prompted, convert the emission file into a csv file
-        if args.gen_emission:
+        if args.gen_emission and not args.gen_all_emissions:
             emission_filename = '{0}-emission.xml'.format(env.network.name)
             time.sleep(0.1)
 
@@ -437,6 +457,11 @@ def create_parser():
         '--v_des_sweep',
         action='store_true',
         help='Runs a sweep over v_des params.',
+        default=None)
+    parser.add_argument(
+        '--gen_all_emissions',
+        action='store_true',
+        help='Save all emissions files.',
         default=None)
     parser.add_argument(
         '--output_dir',
