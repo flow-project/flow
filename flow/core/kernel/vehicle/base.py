@@ -293,8 +293,8 @@ class KernelVehicle(object):
     def get_num_not_departed(self):
         """Return the number of vehicles not departed in the last time step.
 
-         This includes vehicles that were loaded but not departed.
-         """
+        This includes vehicles that were loaded but not departed.
+        """
         raise NotImplementedError
 
     def get_speed(self, veh_id, error=-1001):
