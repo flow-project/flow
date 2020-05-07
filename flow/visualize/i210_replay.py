@@ -95,7 +95,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     sim_params.restart_instance = True
     dir_path = os.path.dirname(os.path.realpath(__file__))
     emission_path = '{0}/test_time_rollout/'.format(dir_path)
-    sim_params.emission_path = emission_path if args.gen_emission else None
+    sim_params.emission_path = emission_path if args.gen_emission or args.gen_all_emissions else None
 
     # pick your rendering mode
     if args.render_mode == 'sumo_web3d':
