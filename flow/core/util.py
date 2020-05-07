@@ -60,27 +60,27 @@ def emission_to_csv(emission_path, output_path=None):
             out_data.append(dict())
             try:
                 out_data[-1]['time'] = t
-                out_data[-1]['CO'] = float(car.attrib['CO'])
-                out_data[-1]['y'] = float(car.attrib['y'])
+                # out_data[-1]['CO'] = float(car.attrib['CO'])
+                # out_data[-1]['y'] = float(car.attrib['y'])
                 out_data[-1]['CO2'] = float(car.attrib['CO2'])
                 out_data[-1]['electricity'] = float(car.attrib['electricity'])
                 out_data[-1]['type'] = car.attrib['type']
                 out_data[-1]['id'] = car.attrib['id']
                 out_data[-1]['eclass'] = car.attrib['eclass']
-                out_data[-1]['waiting'] = float(car.attrib['waiting'])
-                out_data[-1]['NOx'] = float(car.attrib['NOx'])
+                # out_data[-1]['waiting'] = float(car.attrib['waiting'])
+                # out_data[-1]['NOx'] = float(car.attrib['NOx'])
                 out_data[-1]['fuel'] = float(car.attrib['fuel'])
-                out_data[-1]['HC'] = float(car.attrib['HC'])
-                out_data[-1]['x'] = float(car.attrib['x'])
-                out_data[-1]['route'] = car.attrib['route']
-                out_data[-1]['relative_position'] = float(car.attrib['pos'])
-                out_data[-1]['noise'] = float(car.attrib['noise'])
-                out_data[-1]['angle'] = float(car.attrib['angle'])
-                out_data[-1]['PMx'] = float(car.attrib['PMx'])
+                # out_data[-1]['HC'] = float(car.attrib['HC'])
+                # out_data[-1]['x'] = float(car.attrib['x'])
+                # out_data[-1]['route'] = car.attrib['route']
+                # out_data[-1]['relative_position'] = float(car.attrib['pos'])
+                # out_data[-1]['noise'] = float(car.attrib['noise'])
+                # out_data[-1]['angle'] = float(car.attrib['angle'])
+                # out_data[-1]['PMx'] = float(car.attrib['PMx'])
                 out_data[-1]['speed'] = float(car.attrib['speed'])
-                out_data[-1]['edge_id'] = car.attrib['lane'].rpartition('_')[0]
-                out_data[-1]['lane_number'] = car.attrib['lane'].\
-                    rpartition('_')[-1]
+                # out_data[-1]['edge_id'] = car.attrib['lane'].rpartition('_')[0]
+                # out_data[-1]['lane_number'] = car.attrib['lane'].\
+                #     rpartition('_')[-1]
             except KeyError:
                 del out_data[-1]
 
