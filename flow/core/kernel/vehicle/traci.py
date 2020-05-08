@@ -727,7 +727,7 @@ class TraCIVehicle(KernelVehicle):
                 for lane in range(max_lanes):
                     edge_dict[edge][lane].sort(key=lambda x: x[1])
 
-        for veh_id in self.get_rl_ids():
+        for veh_id in self.get_ids():  # FIXME (yf) use tracked vehicles
             # collect the lane leaders, followers, headways, and tailways for
             # each vehicle
             edge = self.get_edge(veh_id)

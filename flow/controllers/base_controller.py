@@ -67,6 +67,15 @@ class BaseController:
         """Return the acceleration of the controller."""
         raise NotImplementedError
 
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """Return the custom computed acceleration of the controller.
+
+        This method computes acceleration based on custom state information,
+        while get_accel() method compute acceleration based on the current state
+        information that are obtained from the environment.
+        """
+        raise NotImplementedError
+
     def get_action(self, env):
         """Convert the get_accel() acceleration into an action.
 
