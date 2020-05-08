@@ -70,59 +70,110 @@ class AILaneChangeController(BaseLaneChangeController):
 
     def get_lane_change_action(self, env):
         """See parent class."""
-        # get current acceleration controller
-        acc_controller = env.k.vehicle.get_acc_controller(self.veh_id)
-
-        # get lane leaders and followers
-        lane_leaders = env.k.vehicle.get_lane_leaders(self.veh_id)
-        lane_followers = env.k.vehicle.get_lane_followers(self.veh_id)
-
-        # get current lane number
-        current_lane = env.k.vehicle.get_lane(self.veh_id)
-
-        # get left and right leader and follower
-        left_leader = None
-        right_leader = None
-        left_follower = None
-        right_follower = None
-        for veh in lane_leaders:
-            if env.k.vehicle.get_lane(veh) == current_lane - 1:
-                left_leader = veh
-            elif env.k.vehicle.get_lane(veh) == current_lane + 1:
-                right_leader = veh
-
-        for veh in lane_followers:
-            if env.k.vehicle.get_lane(veh) == current_lane - 1:
-                left_follower = veh
-            elif env.k.vehicle.get_lane(veh) == current_lane + 1:
-                right_follower = veh
-
         # acceleration if the ego vehicle remains in current lane.
         ego_accel_controller = env.k.vehicle.get_acc_controller(self.veh_id)
         acc_in_present_lane = ego_accel_controller.get_accel(env)
 
+        # get ego vehicle lane number, and velocity
+        ego_lane = env.k.vehicle.get_lane(self.veh_id)
+        ego_vel = env.k.vehicle.get_speed(self.veh_id)
+
+        # get lane leaders, followers, headways, and tailways
+        lane_leaders = env.k.vehicle.get_lane_leaders(self.veh_id)
+        lane_followers = env.k.vehicle.get_lane_followers(self.veh_id)
+        lane_headways = env.k.vehicle.get_lane_headways(self.veh_id)
+        lane_tailways = env.k.vehicle.get_lane_tailways(self.veh_id)
+
+        # determine left and right lane number
+        this_edge = env.k.vehicle.get_edge(self.veh_id)
+        num_lanes = env.k.network.num_lanes(this_edge)
+        l_lane = ego_lane - 1 if ego_lane > 0 else None
+        r_lane = ego_lane + 1 if ego_lane < num_lanes - 1 else None
+
+        # compute ego and new follower accelerations if moving to left lane
+        if l_lane:
+            # get left leader and follower vehicle ID
+            l_l = lane_leaders[l_lane]
+            l_f = lane_followers[l_lane]
+
+            # ego acceleration if the ego vehicle is in the lane to the left
+            if l_l:
+                # left leader velocity and headway
+                l_l_vel = env.k.vehicle.get_speed(l_l)
+                l_l_headway = lane_headways[l_l]
+
+                acc_in_left_lane = ego_accel_controller.get_custom_accel(
+                    this_vel=ego_vel,
+                    lead_vel=l_l_vel,
+                    h=l_l_headway)
+            else:  # if left lane exist but left leader does not exist
+                # in this case we assign maximum acceleration
+                acc_in_left_lane = ego_accel_controller.max_accel
+
+            # follower acceleration if the ego vehicle is in the left lane
+            if l_f:
+                # left follower velocity and headway
+                l_f_vel = env.k.vehicle.get_speed(l_f)
+                l_f_tailway = lane_tailways[l_f]
+
+                l_f_accel_controller = env.k.vehicle.get_acc_controller(l_f)
+                left_lane_follower_acc = l_f_accel_controller.get_custom_accel(
+                    this_vel=l_f_vel,
+                    lead_vel=ego_vel,
+                    h=l_f_tailway)
+            else:  # if left lane exist but left follower does not exist
+                # in this case we assign maximum acceleration
+                left_lane_follower_acc = ego_accel_controller.max_accel
+        else:
+            acc_in_left_lane = None
+            left_lane_follower_acc = None
+
+        # compute ego and new follower accelerations if moving to right lane
+        if r_lane:
+            # get right leader and follower vehicle ID
+            r_l = lane_leaders[r_lane]
+            r_f = lane_followers[r_lane]
+
+            # ego acceleration if the ego vehicle is in the lane to the right
+            if r_l:
+                # right leader velocity and headway
+                r_l_vel = env.k.vehicle.get_speed(r_l)
+                r_l_headway = lane_headways[r_l]
+
+                acc_in_right_lane = ego_accel_controller.get_custom_accel(
+                    this_vel=ego_vel,
+                    lead_vel=r_l_vel,
+                    h=r_l_headway)
+            else:  # if right lane exist but right leader does not exist
+                # assign maximum acceleration
+                acc_in_right_lane = ego_accel_controller.max_accel
+
+            # follower acceleration if the ego vehicle is in the right lane
+            if r_f:
+                # right follower velocity and headway
+                r_f_vel = env.k.vehicle.get_speed(r_f)
+                r_f_headway = lane_tailways[r_f]
+
+                r_f_accel_controller = env.k.vehicle.get_acc_controller(r_f)
+                right_lane_follower_acc = r_f_accel_controller.get_custom_accel(
+                    this_vel=r_f_vel,
+                    lead_vel=ego_vel,
+                    h=r_f_headway)
+            else:  # if right lane exist but right follower does not exist
+                # assign maximum acceleration
+                right_lane_follower_acc = ego_accel_controller.max_accel
+        else:
+            acc_in_right_lane = None
+            right_lane_follower_acc = None
+
         # assert to make sure the CFM have the get_custom_accel()  # TODO
 
-        # acceleration if the ego vehicle is in the lane to the left
-        acc_in_left_lane = ego_accel_controller.get_accel(env)  # FIXME
-
-        # acceleration if the ego vehicle is in the lane to the right
-        acc_in_right_lane = ego_accel_controller.get_accel(env)  # FIXME
-
-        # acceleration of the new follower if left lane change is made
-        l_f_accel_controller = env.k.vehicle.get_acc_controller(left_follower)
-        left_lane_follower_acc = l_f_accel_controller.get_accel(env)  # FIXME
-
-        # acceleration of the new follower if right lane change is made
-        r_f_accel_controller = env.k.vehicle.get_acc_controller(right_follower)
-        right_lane_follower_acc = r_f_accel_controller.get_accel(env)  # FIXME
-
         # determine lane change action
-        if acc_in_left_lane >= - self.left_beta and \
+        if l_lane and acc_in_left_lane >= - self.left_beta and \
                 left_lane_follower_acc >= -self.left_beta and \
                 acc_in_left_lane >= acc_in_present_lane + self.left_delta:
             action = 1
-        elif acc_in_right_lane >= - self.right_beta and \
+        elif r_lane and acc_in_right_lane >= - self.right_beta and \
                 right_lane_follower_acc >= -self.right_beta and \
                 acc_in_right_lane >= acc_in_present_lane + self.right_delta:
             action = -1
