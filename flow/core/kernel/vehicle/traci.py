@@ -225,6 +225,10 @@ class TraCIVehicle(KernelVehicle):
             self.num_not_departed += sim_obs[tc.VAR_LOADED_VEHICLES_NUMBER] - \
                 sim_obs[tc.VAR_DEPARTED_VEHICLES_NUMBER]
 
+            # update the number of not departed vehicles
+            self.num_not_departed += sim_obs[tc.VAR_LOADED_VEHICLES_NUMBER] - \
+                sim_obs[tc.VAR_DEPARTED_VEHICLES_NUMBER]
+
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
             try:
@@ -547,6 +551,10 @@ class TraCIVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_fuel_consumption(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_FUELCONSUMPTION, error) * ml_to_gallons
+
+    def get_num_not_departed(self):
+        """See parent class."""
+        return self.num_not_departed
 
     def get_num_not_departed(self):
         """See parent class."""
