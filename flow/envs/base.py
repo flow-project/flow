@@ -326,6 +326,11 @@ class Env(gym.Env):
             contains other diagnostic information from the previous action
         """
         for _ in range(self.env_params.sims_per_step):
+            # This tracks vehicles that have appeared during warmup steps
+            if self.time_counter <= self.env_params.sims_per_step * self.env_params.warmup_steps:
+                self.observed_ids.update(self.k.vehicle.get_ids())
+                self.observed_rl_ids.update(self.k.vehicle.get_rl_ids())
+
             self.time_counter += 1
             self.step_counter += 1
 
