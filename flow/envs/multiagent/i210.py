@@ -3,7 +3,6 @@
 from gym.spaces import Box
 import numpy as np
 
-from flow.core.rewards import average_velocity
 from flow.envs.multiagent.base import MultiEnv
 
 # largest number of lanes on any given edge in the network
@@ -136,7 +135,8 @@ class I210MultiEnv(MultiEnv):
                 else:
                     lead_speed = self.k.vehicle.get_speed(lead_id)
                     headway = self.k.vehicle.get_headway(rl_id)
-                veh_info.update({rl_id: np.array([speed / SPEED_SCALE, headway /HEADWAY_SCALE, lead_speed / SPEED_SCALE])})
+                veh_info.update({rl_id: np.array([speed / SPEED_SCALE, headway / HEADWAY_SCALE,
+                                                  lead_speed / SPEED_SCALE])})
         else:
             veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
                                                self.veh_statistics(rl_id)))
@@ -162,14 +162,14 @@ class I210MultiEnv(MultiEnv):
                     speeds.append(self.k.vehicle.get_speed(rl_id))
                 if len(speeds) > 0:
                     # rescale so the critic can estimate it quickly
-                    rewards[rl_id] = np.mean([(des_speed - np.abs(speed - des_speed))**2
-                                              for speed in speeds]) / (des_speed**2)
+                    rewards[rl_id] = np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
+                                              for speed in speeds]) / (des_speed ** 2)
         else:
             speeds = self.k.vehicle.get_speed(self.k.vehicle.get_ids())
             des_speed = self.env_params.additional_params["target_velocity"]
             # rescale so the critic can estimate it quickly
-            reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed))**2
-                                              for speed in speeds]) / (des_speed**2))
+            reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
+                                            for speed in speeds]) / (des_speed ** 2))
             rewards = {rl_id: reward for rl_id in self.k.vehicle.get_rl_ids()}
         return rewards
 
@@ -198,7 +198,7 @@ class I210MultiEnv(MultiEnv):
                     continue
                 # on the exit edge, near the end, and is the vehicle furthest along
                 if edge == self.exit_edge and \
-                        (self.k.vehicle.get_position(veh_id) > self.k.network.edge_length(self.exit_edge) - 100)\
+                        (self.k.vehicle.get_position(veh_id) > self.k.network.edge_length(self.exit_edge) - 100) \
                         and self.k.vehicle.get_leader(veh_id) is None:
                     type_id = self.k.vehicle.get_type(veh_id)
                     # remove the vehicle
@@ -263,6 +263,7 @@ class I210MultiEnv(MultiEnv):
         return np.array([speed, lane])
 
     def step(self, rl_actions):
+        """See parent class for more details; add option to reroute vehicles."""
         state, reward, done, info = super().step(rl_actions)
         # handle the edge case where a vehicle hasn't been put back when the rollout terminates
         if self.reroute_on_exit and done['__all__']:

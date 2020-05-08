@@ -31,6 +31,7 @@ ADDITIONAL_ENV_PARAMS = {
 
 class I210SingleEnv(Env):
     """Partially observable single-agent environment for the I-210 subnetworks.
+
     The policy is shared among the agents, so there can be a non-constant
     number of RL vehicles throughout the simulation.
     Required from env_params:
@@ -118,7 +119,6 @@ class I210SingleEnv(Env):
                 #                                       p=lane_change_softmax)
 
             self.k.vehicle.apply_acceleration(rl_ids, accels)
-                # self.k.vehicle.apply_lane_change(rl_id, lane_change_action)
 
     def get_state(self):
         """See class definition."""
@@ -136,8 +136,9 @@ class I210SingleEnv(Env):
             else:
                 lead_speed = self.k.vehicle.get_speed(lead_id)
                 headway = self.k.vehicle.get_headway(rl_id)
-            veh_info[i * per_vehicle_obs: (i+1) * per_vehicle_obs] = [speed / SPEED_SCALE,
-                                                                      headway / HEADWAY_SCALE, lead_speed / SPEED_SCALE]
+            veh_info[i * per_vehicle_obs: (i + 1) * per_vehicle_obs] = [speed / SPEED_SCALE,
+                                                                        headway / HEADWAY_SCALE,
+                                                                        lead_speed / SPEED_SCALE]
         return veh_info
 
     def compute_reward(self, rl_actions, **kwargs):
@@ -149,20 +150,19 @@ class I210SingleEnv(Env):
         rl_ids = self.get_sorted_rl_ids()
 
         des_speed = self.env_params.additional_params["target_velocity"]
-        rewards = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed))**2
-                                              for speed in self.k.vehicle.get_speed(rl_ids)])) / (des_speed**2)
+        rewards = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
+                                         for speed in self.k.vehicle.get_speed(rl_ids)])) / (des_speed ** 2)
         return rewards
 
     def get_sorted_rl_ids(self):
+        """Return the MAX_NUM_VEHS closest to the exit."""
         rl_ids = self.k.vehicle.get_rl_ids()
         rl_ids = sorted(rl_ids, key=lambda veh_id: self.k.vehicle.get_x_by_id(veh_id))
         rl_ids = rl_ids[-MAX_NUM_VEHS:]
         return rl_ids
 
     def additional_command(self):
-        """See parent class.
-        Define which vehicles are observed for visualization purposes.
-        """
+        """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
         for rl_id in self.k.vehicle.get_rl_ids():
             # leader
@@ -172,6 +172,7 @@ class I210SingleEnv(Env):
 
     def state_util(self, rl_id):
         """Return an array of headway, tailway, leader speed, follower speed.
+
         Also return a 1 if leader is rl 0 otherwise, a 1 if follower is rl 0 otherwise.
         If there are fewer than MAX_LANES the extra
         entries are filled with -1 to disambiguate from zeros.
@@ -218,11 +219,12 @@ class SingleStraightRoad(I210SingleEnv):
         self.max_lanes = 1
 
     def step(self, rl_actions):
+        """See parent class."""
         obs, rew, done, info = super().step(rl_actions)
         mean_speed = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids())))
         if self.env_params.additional_params['terminate_on_wave'] and \
-            mean_speed < self.env_params.additional_params['wave_termination_speed'] \
-            and self.time_counter > self.env_params.additional_params['wave_termination_horizon'] \
+                mean_speed < self.env_params.additional_params['wave_termination_speed'] \
+                and self.time_counter > self.env_params.additional_params['wave_termination_horizon'] \
                 and len(self.k.vehicle.get_ids()) > 0:
             done = True
 
