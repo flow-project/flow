@@ -19,7 +19,8 @@ ADDITIONAL_ENV_PARAMS = {
     # whether we use an obs space that contains adjacent lane info or just the lead obs
     "lead_obs": True,
     # whether the reward should come from local vehicles instead of global rewards
-    "local_reward": True
+    "local_reward": True,
+    "target_velocity": 25
 }
 
 
@@ -68,6 +69,7 @@ class I210MultiEnv(MultiEnv):
         self.num_enter_lanes = 5
         self.entrance_edge = "119257914"
         self.exit_edge = "119257908#3"
+        self.leader = []
 
     @property
     def observation_space(self):
