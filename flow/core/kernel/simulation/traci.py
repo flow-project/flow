@@ -46,9 +46,12 @@ class TraCISimulation(KernelSimulation):
         # subscribe some simulation parameters needed to check for entering,
         # exiting, and colliding vehicles
         self.kernel_api.simulation.subscribe([
-            tc.VAR_DEPARTED_VEHICLES_IDS, tc.VAR_ARRIVED_VEHICLES_IDS,
-            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS, tc.VAR_TIME_STEP,
-            tc.VAR_DELTA_T, tc.VAR_LOADED_VEHICLES_NUMBER,
+            tc.VAR_DEPARTED_VEHICLES_IDS,
+            tc.VAR_ARRIVED_VEHICLES_IDS,
+            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS,
+            tc.VAR_TIME_STEP,
+            tc.VAR_DELTA_T,
+            tc.VAR_LOADED_VEHICLES_NUMBER,
             tc.VAR_DEPARTED_VEHICLES_NUMBER
         ])
 

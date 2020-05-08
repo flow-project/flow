@@ -330,8 +330,12 @@ class TraCIVehicle(KernelVehicle):
 
         # subscribe the new vehicle
         self.kernel_api.vehicle.subscribe(veh_id, [
-            tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
-            tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
+            tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
+            tc.VAR_ROAD_ID,
+            tc.VAR_SPEED,
+            tc.VAR_EDGES,
+            tc.VAR_POSITION,
+            tc.VAR_ANGLE,
             tc.VAR_SPEED_WITHOUT_TRACI
         ])
         self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
@@ -885,7 +889,7 @@ class TraCIVehicle(KernelVehicle):
                 if len(edge_dict[edge][lane]) > 0:
                     leader = edge_dict[edge][lane][0][0]
                     headway = edge_dict[edge][lane][0][1] - pos + add_length \
-                              - self.get_length(leader)
+                        - self.get_length(leader)
             except KeyError:
                 # current edge has no vehicles, so move on
                 # print(traceback.format_exc())
