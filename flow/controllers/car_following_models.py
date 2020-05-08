@@ -87,6 +87,10 @@ class CFMController(BaseController):
         return self.k_d*(d_l - self.d_des) + self.k_v*(lead_vel - this_vel) + \
             self.k_c*(self.v_des - this_vel)
 
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
+
 
 class BCMController(BaseController):
     """Bilateral car-following model controller.
@@ -175,6 +179,10 @@ class BCMController(BaseController):
             self.k_v * ((lead_vel - this_vel) - (this_vel - trail_vel)) + \
             self.k_c * (self.v_des - this_vel)
 
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
+
 
 class LACController(BaseController):
     """Linear Adaptive Cruise Control.
@@ -243,6 +251,10 @@ class LACController(BaseController):
         self.a = a_dot*env.sim_step + self.a
 
         return self.a
+
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
 
 
 class OVMController(BaseController):
@@ -327,6 +339,10 @@ class OVMController(BaseController):
 
         return self.alpha * (v_h - this_vel) + self.beta * h_dot
 
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
+
 
 class LinearOVM(BaseController):
     """Linear OVM controller.
@@ -395,6 +411,10 @@ class LinearOVM(BaseController):
             v_h = self.v_max
 
         return (v_h - this_vel) / self.adaptation
+
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
 
 
 class IDMController(BaseController):
@@ -481,6 +501,21 @@ class IDMController(BaseController):
 
         return self.a * (1 - (v / self.v0)**self.delta - (s_star / h)**2)
 
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        # in order to deal with ZeroDivisionError
+        if abs(h) < 1e-3:
+            h = 1e-3
+
+        if lead_vel is None:  # no car ahead
+            s_star = 0
+        else:
+            s_star = self.s0 + max(
+                0, this_vel * self.T + this_vel * (this_vel - lead_vel) /
+                (2 * np.sqrt(self.a * self.b)))
+
+        return self.a * (1 - (this_vel / self.v0)**self.delta - (s_star / h)**2)
+
 
 class SimCarFollowingController(BaseController):
     """Controller whose actions are purely defined by the simulator.
@@ -495,6 +530,10 @@ class SimCarFollowingController(BaseController):
     def get_accel(self, env):
         """See parent class."""
         return None
+
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
 
 
 class GippsController(BaseController):
@@ -580,6 +619,10 @@ class GippsController(BaseController):
         v_next = min(v_acc, v_safe, self.v_desired)
 
         return (v_next-v)/env.sim_step
+
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
 
 
 class BandoFTLController(BaseController):
