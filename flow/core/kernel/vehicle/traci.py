@@ -22,7 +22,8 @@ GREEN = (0, 255, 0)
 STEPS = 10
 rdelta = 255 / STEPS
 # smoothly go from red to green as the speed increases
-color_bins = [[int(255 - rdelta * i), int(rdelta * i), 0] for i in range(STEPS + 1)]
+color_bins = [[int(255 - rdelta * i), int(rdelta * i), 0] for i in
+              range(STEPS + 1)]
 
 
 class TraCIVehicle(KernelVehicle):
@@ -56,6 +57,8 @@ class TraCIVehicle(KernelVehicle):
         self.num_vehicles = 0
         # number of rl vehicles in the network
         self.num_rl_vehicles = 0
+        # number of vehicles  loaded but not departed vehicles
+        self.num_not_departed = 0
 
         # contains the parameters associated with each type of vehicle
         self.type_parameters = {}
@@ -101,6 +104,7 @@ class TraCIVehicle(KernelVehicle):
         self.minGap = vehicles.minGap
         self.num_vehicles = 0
         self.num_rl_vehicles = 0
+        self.num_not_departed = 0
 
         self.__vehicles.clear()
         for typ in vehicles.initial:
@@ -183,11 +187,12 @@ class TraCIVehicle(KernelVehicle):
             self._departed_ids.clear()
             self._arrived_ids.clear()
             self._arrived_rl_ids.clear()
+            self.num_not_departed = 0
 
             # add vehicles from a network template, if applicable
             if hasattr(self.master_kernel.network.network,
                        "template_vehicles"):
-                for veh_id in self.master_kernel.network.network.\
+                for veh_id in self.master_kernel.network.network. \
                         template_vehicles:
                     vals = deepcopy(self.master_kernel.network.network.
                                     template_vehicles[veh_id])
@@ -211,6 +216,10 @@ class TraCIVehicle(KernelVehicle):
             self._num_arrived.append(len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]))
             self._departed_ids.append(sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS])
             self._arrived_ids.append(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
+
+            # update the number of not departed vehicles
+            self.num_not_departed += sim_obs[tc.VAR_LOADED_VEHICLES_NUMBER] - \
+                sim_obs[tc.VAR_DEPARTED_VEHICLES_NUMBER]
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
@@ -321,8 +330,12 @@ class TraCIVehicle(KernelVehicle):
 
         # subscribe the new vehicle
         self.kernel_api.vehicle.subscribe(veh_id, [
-            tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
-            tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
+            tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
+            tc.VAR_ROAD_ID,
+            tc.VAR_SPEED,
+            tc.VAR_EDGES,
+            tc.VAR_POSITION,
+            tc.VAR_ANGLE,
             tc.VAR_SPEED_WITHOUT_TRACI
         ])
         self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
@@ -522,6 +535,10 @@ class TraCIVehicle(KernelVehicle):
             return self._departed_ids[-1]
         else:
             return 0
+
+    def get_num_not_departed(self):
+        """See parent class."""
+        return self.num_not_departed
 
     def get_previous_speed(self, veh_id, error=-1001):
         """See parent class."""
@@ -1009,7 +1026,8 @@ class TraCIVehicle(KernelVehicle):
         for veh_id in self.get_rl_ids():
             try:
                 # If vehicle is already being colored via argument to vehicles.add(), don't re-color it.
-                if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                if self._force_color_update or 'color' not in \
+                        self.type_parameters[self.get_type(veh_id)]:
                     # color rl vehicles red
                     self.set_color(veh_id=veh_id, color=RED)
             except (FatalTraCIError, TraCIException) as e:
@@ -1020,7 +1038,8 @@ class TraCIVehicle(KernelVehicle):
             try:
                 color = CYAN if veh_id in self.get_observed_ids() else WHITE
                 # If vehicle is already being colored via argument to vehicles.add(), don't re-color it.
-                if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                if self._force_color_update or 'color' not in \
+                        self.type_parameters[self.get_type(veh_id)]:
                     self.set_color(veh_id=veh_id, color=color)
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating human vehicle colors:', e)
@@ -1030,7 +1049,8 @@ class TraCIVehicle(KernelVehicle):
                 if 'av' in veh_id:
                     color = RED
                     # If vehicle is already being colored via argument to vehicles.add(), don't re-color it.
-                    if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                    if self._force_color_update or 'color' not in \
+                            self.type_parameters[self.get_type(veh_id)]:
                         self.set_color(veh_id=veh_id, color=color)
             except (FatalTraCIError, TraCIException) as e:
                 print('Error when updating human vehicle colors:', e)
@@ -1043,7 +1063,8 @@ class TraCIVehicle(KernelVehicle):
                 veh_speed = self.get_speed(veh_id)
                 bin_index = np.digitize(veh_speed, speed_ranges)
                 # If vehicle is already being colored via argument to vehicles.add(), don't re-color it.
-                if self._force_color_update or 'color' not in self.type_parameters[self.get_type(veh_id)]:
+                if self._force_color_update or 'color' not in \
+                        self.type_parameters[self.get_type(veh_id)]:
                     self.set_color(veh_id=veh_id, color=color_bins[bin_index])
 
         # clear the list of observed vehicles
