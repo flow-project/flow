@@ -33,7 +33,7 @@ inflow = InFlows()
 inflow.add(
     veh_type="human",
     edge="119257914",
-    vehs_per_hour=8378,
+    vehs_per_hour=10800,
     departLane="random",
     departSpeed=23)
 # on ramp

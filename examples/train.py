@@ -14,6 +14,7 @@ import sys
 from time import strftime
 from copy import deepcopy
 
+from gym.spaces import Tuple
 import numpy as np
 import pytz
 
@@ -21,12 +22,14 @@ try:
     from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
     from stable_baselines import PPO2
 except ImportError:
-    print("Stable-baselines not installed")
+    print("Stable-baselines not installed. Please install it if you need it.")
 
 import ray
 from ray import tune
 from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
+
 from ray.tune.registry import register_env
+from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
 try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
@@ -60,7 +63,7 @@ def parse_args(args):
 
     parser.add_argument(
         'exp_title', type=str,
-        help='Title to give the run.')
+        help='Name of experiment that results will be stored in')
 
     # optional input parameters
     parser.add_argument(
@@ -203,6 +206,18 @@ def setup_exps_rllib(flow_params,
             config["actor_lr"] = tune.grid_search([1e-3, 1e-4])
             config["critic_lr"] = tune.grid_search([1e-3, 1e-4])
             config["n_step"] = tune.grid_search([1, 10])
+    elif alg_run == "MADDPG":
+        from flow.algorithms.maddpg.maddpg import MADDPGTrainer, DEFAULT_CONFIG
+        config = deepcopy(DEFAULT_CONFIG)
+        alg_run = MADDPGTrainer
+
+    elif alg_run == "QMIX":
+        from flow.algorithms.qmix.qmix import QMixTrainer2, DEFAULT_CONFIG
+        config = deepcopy(DEFAULT_CONFIG)
+        if flags.grid_search:
+            config["exploration_fraction"] = tune.grid_search([0.1, 0.3])
+            config["buffer_size"] = tune.grid_search([10000, 100000])
+        alg_run = QMixTrainer2
     else:
         sys.exit("We only support PPO, TD3, right now.")
 
@@ -210,6 +225,7 @@ def setup_exps_rllib(flow_params,
     def on_episode_start(info):
         episode = info["episode"]
         episode.user_data["avg_speed"] = []
+        episode.user_data["avg_speed_avs"] = []
         episode.user_data["avg_energy"] = []
 
     def on_episode_step(info):
@@ -220,12 +236,17 @@ def setup_exps_rllib(flow_params,
         speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0])
         if not np.isnan(speed):
             episode.user_data["avg_speed"].append(speed)
+        av_speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_rl_ids()) if speed >= 0])
+        if not np.isnan(av_speed):
+            episode.user_data["avg_speed_avs"].append(av_speed)
         episode.user_data["avg_energy"].append(energy_consumption(env))
 
     def on_episode_end(info):
         episode = info["episode"]
         avg_speed = np.mean(episode.user_data["avg_speed"])
         episode.custom_metrics["avg_speed"] = avg_speed
+        avg_speed_avs = np.mean(episode.user_data["avg_speed_avs"])
+        episode.custom_metrics["avg_speed_avs"] = avg_speed_avs
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
 
     config["callbacks"] = {"on_episode_start": tune.function(on_episode_start),
@@ -240,7 +261,6 @@ def setup_exps_rllib(flow_params,
 
     # multiagent configuration
     if policy_graphs is not None:
-        print("policy_graphs", policy_graphs)
         config['multiagent'].update({'policies': policy_graphs})
     if policy_mapping_fn is not None:
         config['multiagent'].update({'policy_mapping_fn': tune.function(policy_mapping_fn)})
@@ -249,7 +269,12 @@ def setup_exps_rllib(flow_params,
 
     create_env, gym_name = make_create_env(params=flow_params)
 
-    register_env(gym_name, create_env)
+    if flags.algorithm.upper() == "MADDPG":
+        config['max_num_agents'] = flow_params['env'].additional_params['max_num_agents']
+        register_env(gym_name, create_env)
+    else:
+        # Register as rllib env
+        register_env(gym_name, create_env)
     return alg_run, gym_name, config
 
 
@@ -278,7 +303,7 @@ def train_rllib(submodule, flags):
         ray.init()
     exp_dict = {
         "run_or_experiment": alg_run,
-        "name": gym_name,
+        "name": flags.exp_title,
         "config": config,
         "checkpoint_freq": flags.checkpoint_freq,
         "checkpoint_at_end": True,
@@ -290,7 +315,7 @@ def train_rllib(submodule, flags):
     }
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
-    s3_string = "s3://i210.experiments/i210/" \
+    s3_string = "s3://eugene.experiments/i210/" \
                 + date + '/' + flags.exp_title
     if flags.use_s3:
         exp_dict['upload_dir'] = s3_string

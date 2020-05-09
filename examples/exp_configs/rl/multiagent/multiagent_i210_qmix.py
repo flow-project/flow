@@ -4,7 +4,6 @@ Trains a non-constant number of agents, all sharing the same policy, on the
 highway with ramps network.
 """
 import os
-import numpy as np
 
 from ray.tune.registry import register_env
 
@@ -18,20 +17,14 @@ from flow.core.params import InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
-from flow.core.rewards import energy_consumption
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
-from flow.envs.multiagent.i210 import I210MultiEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.multiagent.i210 import I210QMIXMultiEnv, ADDITIONAL_ENV_PARAMS
 from flow.utils.registry import make_create_env
 
 # SET UP PARAMETERS FOR THE SIMULATION
 
 # number of steps per rollout
 HORIZON = 2000
-
-VEH_PER_HOUR_BASE_119257914 = 10800
-VEH_PER_HOUR_BASE_27414345 = 321
-VEH_PER_HOUR_BASE_27414342 = 421
-
 
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10
@@ -45,9 +38,8 @@ additional_env_params.update({
     'lead_obs': True,
     # whether to add in a reward for the speed of nearby vehicles
     "local_reward": True,
-    # whether to reroute vehicles once they have exited
-    "reroute_on_exit": True,
-    'target_velocity': 18,
+    "num_actions": 5,
+    "max_num_agents_qmix": 200
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
@@ -57,7 +49,7 @@ vehicles.add(
     "human",
     num_vehicles=0,
     lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"),
-    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
+    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.6}),
 )
 vehicles.add(
     "av",
@@ -73,61 +65,57 @@ assert pen_rate > 0.0, "your penetration rate should be above zero"
 inflow.add(
     veh_type="human",
     edge="119257914",
-    vehs_per_hour=int(VEH_PER_HOUR_BASE_119257914 * (1 - pen_rate)),
+    vehs_per_hour=int(10800 * (1 - pen_rate)),
     # probability=1.0,
-    depart_lane="random",
+    departLane="random",
     departSpeed=20)
 # # on ramp
 # inflow.add(
 #     veh_type="human",
 #     edge="27414345",
 #     vehs_per_hour=321 * pen_rate,
-#     depart_lane="random",
-#     depart_speed=20)
+#     departLane="random",
+#     departSpeed=20)
 # inflow.add(
 #     veh_type="human",
 #     edge="27414342#0",
 #     vehs_per_hour=421 * pen_rate,
-#     depart_lane="random",
-#     depart_speed=20)
+#     departLane="random",
+#     departSpeed=20)
 
 # Now add the AVs
 # main highway
 inflow.add(
     veh_type="av",
     edge="119257914",
-    vehs_per_hour=int(VEH_PER_HOUR_BASE_119257914 * pen_rate),
+    vehs_per_hour=int(10800 * pen_rate),
     # probability=1.0,
-    depart_lane="random",
-    depart_speed=20)
+    departLane="random",
+    departSpeed=20)
 # # on ramp
 # inflow.add(
 #     veh_type="av",
 #     edge="27414345",
-#     vehs_per_hour=int(VEH_PER_HOUR_BASE_27414345 * pen_rate),
-#     depart_lane="random",
-#     depart_speed=20)
+#     vehs_per_hour=int(321 * pen_rate),
+#     departLane="random",
+#     departSpeed=20)
 # inflow.add(
 #     veh_type="av",
 #     edge="27414342#0",
-#     vehs_per_hour=int(VEH_PER_HOUR_BASE_27414342 * pen_rate),
-#     depart_lane="random",
-#     depart_speed=20)
+#     vehs_per_hour=int(421 * pen_rate),
+#     departLane="random",
+#     departSpeed=20)
 
 NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,
     "examples/exp_configs/templates/sumo/test2.net.xml")
-
-warmup_steps = 0
-if additional_env_params['reroute_on_exit']:
-    warmup_steps = 400
 
 flow_params = dict(
     # name of the experiment
     exp_tag='I_210_subnetwork',
 
     # name of the flow environment the experiment is running on
-    env_name=I210MultiEnv,
+    env_name=I210QMIXMultiEnv,
 
     # name of the network class the experiment is running on
     network=I210SubNetwork,
@@ -148,9 +136,8 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         sims_per_step=1,
-        warmup_steps=warmup_steps,
+        warmup_steps=0,
         additional_params=additional_env_params,
-        done_at_exit=False
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
@@ -183,20 +170,11 @@ test_env = create_env()
 obs_space = test_env.observation_space
 act_space = test_env.action_space
 
-POLICY_GRAPHS = {'av': (None, obs_space, act_space, {})}
+# POLICY_GRAPHS = {'av': (None, obs_space, act_space, {})}
 
-POLICIES_TO_TRAIN = ['av']
-
-
-def policy_mapping_fn(_):
-    """Map a policy in RLlib."""
-    return 'av'
+# POLICIES_TO_TRAIN = ['av']
 
 
-custom_callables = {
-    "avg_speed": lambda env: np.mean([speed for speed in
-                                      env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
-    "avg_outflow": lambda env: np.nan_to_num(
-        env.k.vehicle.get_outflow_rate(120)),
-    "avg_energy": lambda env: -1*energy_consumption(env, 0.1)
-}
+# def policy_mapping_fn(_):
+#     """Map a policy in RLlib."""
+#     return 'av'
