@@ -211,11 +211,10 @@ class TraCIVehicle(KernelVehicle):
                     self.__vehicles[veh_id]["last_lc"] = self.time_counter
 
             # updated the list of departed and arrived vehicles
-            self._num_departed.append(
-                len(sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]))
-            self._num_arrived.append(len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]))
-            self._departed_ids.append(sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS])
-            self._arrived_ids.append(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
+            self._num_departed.append(sim_obs[tc.VAR_LOADED_VEHICLES_NUMBER])
+            self._num_arrived.append(sim_obs[tc.VAR_ARRIVED_VEHICLES_NUMBER])
+            self._departed_ids = sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]
+            self._arrived_ids = sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]
 
             # update the number of not departed vehicles
             self.num_not_departed += sim_obs[tc.VAR_LOADED_VEHICLES_NUMBER] - \
@@ -518,7 +517,7 @@ class TraCIVehicle(KernelVehicle):
     def get_arrived_ids(self):
         """See parent class."""
         if len(self._arrived_ids) > 0:
-            return self._arrived_ids[-1]
+            return self._arrived_ids
         else:
             return 0
 
@@ -532,7 +531,7 @@ class TraCIVehicle(KernelVehicle):
     def get_departed_ids(self):
         """See parent class."""
         if len(self._departed_ids) > 0:
-            return self._departed_ids[-1]
+            return self._departed_ids
         else:
             return 0
 
