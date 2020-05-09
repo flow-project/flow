@@ -209,6 +209,7 @@ def setup_exps_rllib(flow_params,
     elif alg_run == "MADDPG":
         from flow.algorithms.maddpg.maddpg import MADDPGTrainer, DEFAULT_CONFIG
         config = deepcopy(DEFAULT_CONFIG)
+        config["actor_feature_reg"] = 0.0
         alg_run = MADDPGTrainer
 
     elif alg_run == "QMIX":

@@ -85,8 +85,8 @@ class MADDPGTFPolicy(MADDPGPostprocessing, TFPolicy):
                         _) in sorted(config["multiagent"]["policies"].items())
             ]
         else:
-            obs_space = config["multiagent"]["policies"][list(config["multiagent"]["policies"].keys())][1]
-            act_space = config["multiagent"]["policies"][list(config["multiagent"]["policies"].keys())][2]
+            obs_space = config["multiagent"]["policies"][list(config["multiagent"]["policies"].keys())[0]][1]
+            act_space = config["multiagent"]["policies"][list(config["multiagent"]["policies"].keys())[0]][2]
             num_agents = config["max_num_agents"]
             obs_space_n = [
                 _make_continuous_space(obs_space)
@@ -385,10 +385,11 @@ class MADDPGTFPolicy(MADDPGPostprocessing, TFPolicy):
                 out = tf.layers.dense(out, units=hidden, activation=activation)
             feature = tf.layers.dense(
                 out, units=act_space.shape[0], activation=None)
-            sampler = tfp.distributions.RelaxedOneHotCategorical(
-                temperature=1.0, logits=feature).sample()
+            # TODO(@ev) what is going on here?? Why is this here??
+            # sampler = tfp.distributions.RelaxedOneHotCategorical(
+            #     temperature=1.0, logits=feature).sample()
 
-        return sampler, feature, model, tf.global_variables(scope.name)
+        return feature, feature, model, tf.global_variables(scope.name)
 
     def update_target(self, tau=None):
         if tau is not None:

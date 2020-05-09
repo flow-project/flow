@@ -16,7 +16,7 @@ import logging
 
 from ray.rllib.agents.trainer import with_common_config
 from ray.rllib.agents.dqn.dqn import GenericOffPolicyTrainer
-from ray.rllib.contrib.maddpg.maddpg_policy import MADDPGTFPolicy
+from flow.algorithms.maddpg.maddpg_policy import MADDPGTFPolicy
 from ray.rllib.optimizers import SyncReplayOptimizer
 from ray.rllib.policy.sample_batch import SampleBatch, MultiAgentBatch
 

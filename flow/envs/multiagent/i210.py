@@ -72,7 +72,7 @@ class I210MultiEnv(MultiEnv):
         self.max_lanes = MAX_LANES
         self.num_enter_lanes = 5
         self.entrance_edge = "119257914"
-        self.exit_edge = "119257908#3"
+        self.exit_edge = "119257908#2"
         self.leader = []
 
     @property
@@ -196,6 +196,8 @@ class I210MultiEnv(MultiEnv):
                 and not self.env_params.evaluate:
             veh_ids = self.k.vehicle.get_ids()
             edges = self.k.vehicle.get_edge(veh_ids)
+            valid_lanes = list(range(self.num_enter_lanes))
+            num_trials = 0
             for veh_id, edge in zip(veh_ids, edges):
                 if edge == "":
                     continue
@@ -205,10 +207,14 @@ class I210MultiEnv(MultiEnv):
                 if edge == self.exit_edge and \
                         (self.k.vehicle.get_position(veh_id) > self.k.network.edge_length(self.exit_edge) - 100) \
                         and self.k.vehicle.get_leader(veh_id) is None:
+                    # if self.step_counter > 6000:
+                    #     import ipdb; ipdb.set_trace()
                     type_id = self.k.vehicle.get_type(veh_id)
                     # remove the vehicle
                     self.k.vehicle.remove(veh_id)
-                    lane = np.random.randint(low=0, high=self.num_enter_lanes)
+                    index = np.random.randint(low=0, high=len(valid_lanes))
+                    lane = valid_lanes[index]
+                    del valid_lanes[index]
                     # reintroduce it at the start of the network
                     # TODO(@evinitsky) select the lane and speed a bit more cleanly
                     # Note, the position is 10 so you are not overlapping with the inflow car that is being removed.
@@ -218,7 +224,7 @@ class I210MultiEnv(MultiEnv):
                         edge=self.entrance_edge,
                         type_id=str(type_id),
                         lane=str(lane),
-                        pos="10.0",
+                        pos="20.0",
                         speed="23.0")
 
             departed_ids = self.k.vehicle.get_departed_ids()
@@ -283,7 +289,7 @@ class I210MultiEnv(MultiEnv):
 class I210MADDPGMultiEnv(I210MultiEnv):
     def __init__(self, env_params, sim_params, network, simulator='traci'):
         super().__init__(env_params, sim_params, network, simulator)
-        self.max_num_agents = env_params.additional_params.get("max_num_agents")
+        self.max_num_agents = env_params.additional_params["max_num_agents"]
         self.rl_id_to_idx_map = OrderedDict()
         self.idx_to_rl_id_map = OrderedDict()
         self.index_counter = 0
@@ -295,6 +301,7 @@ class I210MADDPGMultiEnv(I210MultiEnv):
         # in the warmup steps, rl_actions is None
         t = time()
         if rl_actions:
+            # print(rl_actions)
             accel_list = []
             rl_ids = []
             for rl_id in self.k.vehicle.get_rl_ids():
@@ -302,27 +309,33 @@ class I210MADDPGMultiEnv(I210MultiEnv):
                     accel_list.append(rl_actions[self.rl_id_to_idx_map[rl_id]])
                     rl_ids.append(rl_id)
             self.k.vehicle.apply_acceleration(rl_ids, accel_list)
-        print('time to apply actions is ', time() - t)
+        # print('time to apply actions is ', time() - t)
 
     def get_state(self):
         t = time()
 
-        for key in self.k.vehicle.get_departed_ids():
-            if key not in self.rl_id_to_idx_map and key in self.k.vehicle.get_rl_ids():
-                self.rl_id_to_idx_map[key] = self.index_counter
-                self.idx_to_rl_id_map[self.index_counter] = key
-                self.index_counter += 1
-                print(self.index_counter)
+        # TODO(@evinitsky) clean this up
+        self.index_counter = 0
+        self.rl_id_to_idx_map = {}
+        for key in self.k.vehicle.get_rl_ids():
+            self.rl_id_to_idx_map[key] = self.index_counter
+            self.idx_to_rl_id_map[self.index_counter] = key
+            self.index_counter += 1
+            if self.index_counter > self.max_num_agents:
+                break
 
-        rl_ids = self.k.vehicle.get_rl_ids()
         veh_info = super().get_state()
         # TODO(@evinitsky) think this doesn't have to be a deepcopy
         veh_info_copy = deepcopy(self.default_state)
-        veh_info_copy.update({self.rl_id_to_idx_map[rl_id]: veh_info[rl_id]
-                              for rl_id in rl_ids})
+        # id_list = zip(list(range(self.max_num_agents)), rl_ids)
+        try:
+            veh_info_copy.update({self.rl_id_to_idx_map[rl_id]: veh_info[rl_id]
+                                  for rl_id in self.rl_id_to_idx_map.keys()})
+        except:
+            import ipdb; ipdb.set_trace()
         # print('time to update copy is ', time() - t)
         veh_info = veh_info_copy
-        print('state time is ', time() - t)
+        # print('state time is ', time() - t)
 
         return veh_info
 
@@ -332,26 +345,16 @@ class I210MADDPGMultiEnv(I210MultiEnv):
         reward = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))) / (20 * self.env_params.horizon)
         temp_reward_dict = {idx: reward for idx in
                        range(self.max_num_agents)}
-        print('reward time is ', time() - t)
+        # print('reward time is ', time() - t)
         return temp_reward_dict
 
     def reset(self, new_inflow_rate=None):
-        veh_info = super().reset(new_inflow_rate)
+        super().reset(new_inflow_rate)
         self.rl_id_to_idx_map = OrderedDict()
         self.idx_to_rl_id_map = OrderedDict()
         self.index_counter = 0
-        rl_ids = self.k.vehicle.get_rl_ids()
-        for key in self.k.vehicle.get_departed_ids() + self.k.vehicle.get_rl_ids():
-            if key not in self.rl_id_to_idx_map and key in self.k.vehicle.get_rl_ids():
-                self.rl_id_to_idx_map[key] = self.index_counter
-                self.idx_to_rl_id_map[self.index_counter] = key
-                self.index_counter += 1
-        # TODO(@evinitsky) think this doesn't have to be a deepcopy
-        veh_info_copy = deepcopy(self.default_state)
-        veh_info_copy.update({self.rl_id_to_idx_map[rl_id]: veh_info[rl_id]
-                              for rl_id in enumerate(rl_ids)})
 
-        return veh_info_copy
+        return self.get_state()
 
 
 class MultiStraightRoad(I210MultiEnv):
@@ -388,11 +391,16 @@ class MultiStraightRoadMADDPG(I210MADDPGMultiEnv):
         """See class definition."""
         # in the warmup steps, rl_actions is None
         if rl_actions:
+            # print(rl_actions)
+
             rl_ids = []
             accels = []
-            for rl_id, actions in rl_actions.items():
-                accels.append(actions[0])
-                rl_ids.append(rl_id)
+            for idx, actions in rl_actions.items():
+                if idx < self.index_counter:
+                    accels.append(actions[0])
+                    rl_ids.append(self.idx_to_rl_id_map[idx])
+                else:
+                    break
 
             # prevent the AV from blocking the entrance
             self.k.vehicle.apply_acceleration(rl_ids, accels)

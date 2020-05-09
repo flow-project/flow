@@ -49,8 +49,9 @@ additional_env_params.update({
     'target_velocity': 18,
     'local_reward': True,
     'lead_obs': True,
+    'max_num_agents': 25,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": True
+    "reroute_on_exit": False,
 })
 
 
@@ -125,7 +126,7 @@ flow_params = dict(
         sim_step=0.5,
         render=False,
         use_ballistic=True,
-        restart_instance=True
+        restart_instance=False
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
