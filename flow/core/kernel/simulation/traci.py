@@ -52,7 +52,8 @@ class TraCISimulation(KernelSimulation):
             tc.VAR_TIME_STEP,
             tc.VAR_DELTA_T,
             tc.VAR_LOADED_VEHICLES_NUMBER,
-            tc.VAR_DEPARTED_VEHICLES_NUMBER
+            tc.VAR_DEPARTED_VEHICLES_NUMBER,
+            tc.VAR_ARRIVED_VEHICLES_NUMBER
         ])
 
     def simulation_step(self):
