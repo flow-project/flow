@@ -119,7 +119,7 @@ flow_params = dict(
         sim_step=0.5,
         render=False,
         use_ballistic=True,
-        restart_instance=False
+        restart_instance=True
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
