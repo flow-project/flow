@@ -47,7 +47,7 @@ additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
     'target_velocity': 18,
-    'local_reward': False,
+    'local_reward': True,
     'lead_obs': True,
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": True,
