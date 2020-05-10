@@ -705,6 +705,10 @@ class KernelVehicle(object):
         """Return the acceleration without noise of vehicle with veh_id."""
         raise NotImplementedError
 
+    def get_velocity_without_noise(self, veh_id):
+        """Return the velocity without noise of vehicle with veh_id."""
+        raise NotImplementedError
+
     def get_road_grade(self, veh_id):
         """Return the road-grade of the vehicle with veh_id."""
         raise NotImplementedError
