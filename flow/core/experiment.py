@@ -1,7 +1,7 @@
 """Contains an experiment class for running simulations."""
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
-from examples.data_pipeline import generate_trajectory_from_flow, upload_to_s3
+from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3
 import datetime
 import logging
 import time
@@ -178,7 +178,7 @@ class Experiment:
                         self.env.k.vehicle.get_leader(vid)) - self.env.k.vehicle.get_speed(vid))
                     extra_info["accel_without_noise"].append(self.env.k.vehicle.get_accel_without_noise(vid))
                     extra_info["road_grade"].append(self.env.k.vehicle.get_road_grade(vid))
-                    position = self.env.k.vehicle.get_2D_position(vid)
+                    position = self.env.k.vehicle.get_2d_position(vid)
                     extra_info["x"].append(position[0])
                     extra_info["y"].append(position[1])
                     extra_info["speed"].append(self.env.k.vehicle.get_speed(vid))
