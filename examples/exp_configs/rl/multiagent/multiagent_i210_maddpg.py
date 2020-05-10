@@ -38,6 +38,8 @@ additional_env_params.update({
     'lead_obs': True,
     # whether to add in a reward for the speed of nearby vehicles
     "local_reward": True,
+    # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
+    "mpg_reward": True,
     "num_actions": 5,
     "max_num_agents": 200
 })

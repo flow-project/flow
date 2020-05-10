@@ -47,10 +47,12 @@ additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
     'target_velocity': 18,
-    'local_reward': True,
+    'local_reward': False,
     'lead_obs': True,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": True
+    "reroute_on_exit": True,
+    # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
+    "mpg_reward": True,
 })
 
 

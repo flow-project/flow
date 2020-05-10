@@ -52,6 +52,8 @@ additional_env_params.update({
     'max_num_agents': 5,
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": False,
+    # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
+    "mpg_reward": True
 })
 
 

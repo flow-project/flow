@@ -330,3 +330,67 @@ def energy_consumption(env, gain=.001):
         power += M * speed * accel + M * g * Cr * speed + 0.5 * rho * A * Ca * speed ** 3
 
     return -gain * power
+
+
+def veh_energy_consumption(env, veh_id, gain=.001):
+    """Calculate power consumption of a vehicle.
+
+    Assumes vehicle is an average sized vehicle.
+    The power calculated here is the lower bound of the actual power consumed
+    by a vehicle.
+    """
+    power = 0
+
+    M = 1200  # mass of average sized vehicle (kg)
+    g = 9.81  # gravitational acceleration (m/s^2)
+    Cr = 0.005  # rolling resistance coefficient
+    Ca = 0.3  # aerodynamic drag coefficient
+    rho = 1.225  # air density (kg/m^3)
+    A = 2.6  # vehicle cross sectional area (m^2)
+    speed = env.k.vehicle.get_speed(veh_id)
+    prev_speed = env.k.vehicle.get_previous_speed(veh_id)
+
+    accel = abs(speed - prev_speed) / env.sim_step
+
+    power += M * speed * accel + M * g * Cr * speed + 0.5 * rho * A * Ca * speed ** 3
+
+    return -gain * power
+
+
+def miles_per_gallon(env, veh_id=None, gain=.001):
+    """Calculate mpg of either a particular vehicle or the total average of all the vehilces.
+
+    Assumes vehicle is an average sized vehicle.
+    The power calculated here is the lower bound of the actual power consumed
+    by a vehicle.
+    """
+    mpg = 0
+    counter = 0
+    # engine_efficiency = 0.2
+    # joules_per_gallon = 120 * 10**6
+    if not isinstance(veh_id, list):
+        speed = env.k.vehicle.get_speed(veh_id)
+        # convert to be positive since the above is a penalty
+        gallons_per_s = env.k.vehicle.get_fuel_consumption(veh_id)
+        if gallons_per_s > 0 and speed >= 0.0:
+            # meters / gallon is (v * \delta t) / (gallons_s * \delta t)
+            mpg = speed / gallons_per_s
+    else:
+        for veh_id in env.k.vehicle.get_ids():
+            speed = env.k.vehicle.get_speed(veh_id)
+            # convert to be positive since the above is a penalty
+            gallons_per_s = env.k.vehicle.get_fuel_consumption(veh_id)
+            if gallons_per_s > 0 and speed >= 0.0:
+                counter += 1
+                # meters / gallon is (v * \delta t) / (gallons_per_s * \delta t)
+                mpg += speed / gallons_per_s
+        if counter > 0:
+            mpg /= counter
+
+    # convert from meters per gallon to miles per gallon
+    mpg /= 1609.0
+    # mpg *= engine_efficiency
+    # mpg *= joules_per_gallon
+
+    return mpg
+

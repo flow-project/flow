@@ -36,7 +36,7 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 
 from flow.core.util import ensure_dir
-from flow.core.rewards import energy_consumption
+from flow.core.rewards import energy_consumption, miles_per_gallon
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 from flow.utils.registry import make_create_env
@@ -199,7 +199,7 @@ def setup_exps_rllib(flow_params,
         config["horizon"] = horizon
         config["model"].update({"fcnet_hiddens": [32, 32, 32]})
         config["train_batch_size"] = horizon * n_rollouts
-        config["gamma"] = 0.999  # discount rate
+        config["gamma"] = 0.995  # discount rate
         config["use_gae"] = True
         config["lambda"] = 0.97
         config["kl_target"] = 0.02
@@ -238,6 +238,8 @@ def setup_exps_rllib(flow_params,
         episode.user_data["avg_speed"] = []
         episode.user_data["avg_speed_avs"] = []
         episode.user_data["avg_energy"] = []
+        episode.user_data["avg_mpg"] = []
+
 
     def on_episode_step(info):
         episode = info["episode"]
@@ -251,6 +253,8 @@ def setup_exps_rllib(flow_params,
         if not np.isnan(av_speed):
             episode.user_data["avg_speed_avs"].append(av_speed)
         episode.user_data["avg_energy"].append(energy_consumption(env))
+        episode.user_data["avg_mpg"].append(miles_per_gallon(env, env.k.vehicle.get_ids()))
+
 
     def on_episode_end(info):
         episode = info["episode"]
@@ -259,6 +263,8 @@ def setup_exps_rllib(flow_params,
         avg_speed_avs = np.mean(episode.user_data["avg_speed_avs"])
         episode.custom_metrics["avg_speed_avs"] = avg_speed_avs
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
+        episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["avg_mpg"])
+
 
     config["callbacks"] = {"on_episode_start": tune.function(on_episode_start),
                            "on_episode_step": tune.function(on_episode_step),

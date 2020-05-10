@@ -160,6 +160,9 @@ def visualizer_rllib(args):
     else:
         env = gym.make(env_name)
 
+    if hasattr(env, "reroute_on_exit"):
+        env.reroute_on_exit = False
+
     if args.render_mode == 'sumo_gui':
         env.sim_params.render = True  # set to True after initializing agent and env
 

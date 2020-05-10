@@ -7,6 +7,7 @@ from time import time
 from gym.spaces import Box, Discrete, Dict
 import numpy as np
 
+from flow.core.rewards import miles_per_gallon
 from flow.envs.multiagent.base import MultiEnv
 
 # largest number of lanes on any given edge in the network
@@ -73,6 +74,7 @@ class I210MultiEnv(MultiEnv):
         self.num_enter_lanes = 5
         self.entrance_edge = "119257914"
         self.exit_edge = "119257908#2"
+        self.mpg_reward = env_params.additional_params["mpg_reward"]
         self.leader = []
 
     @property
@@ -159,22 +161,28 @@ class I210MultiEnv(MultiEnv):
             des_speed = self.env_params.additional_params["target_velocity"]
             for rl_id in self.k.vehicle.get_rl_ids():
                 rewards[rl_id] = 0
-                speeds = []
-                follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
-                if follow_speed >= 0:
-                    speeds.append(follow_speed)
-                if self.k.vehicle.get_speed(rl_id) >= 0:
-                    speeds.append(self.k.vehicle.get_speed(rl_id))
-                if len(speeds) > 0:
-                    # rescale so the critic can estimate it quickly
-                    rewards[rl_id] = np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
-                                              for speed in speeds]) / (des_speed ** 2)
+                if self.mpg_reward:
+                    rewards[rl_id] = miles_per_gallon(self, rl_id) / 100.0
+                else:
+                    speeds = []
+                    follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
+                    if follow_speed >= 0:
+                        speeds.append(follow_speed)
+                    if self.k.vehicle.get_speed(rl_id) >= 0:
+                        speeds.append(self.k.vehicle.get_speed(rl_id))
+                    if len(speeds) > 0:
+                        # rescale so the critic can estimate it quickly
+                        rewards[rl_id] = np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
+                                                  for speed in speeds]) / (des_speed ** 2)
         else:
-            speeds = self.k.vehicle.get_speed(self.k.vehicle.get_ids())
-            des_speed = self.env_params.additional_params["target_velocity"]
-            # rescale so the critic can estimate it quickly
-            reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
-                                            for speed in speeds]) / (des_speed ** 2))
+            if self.mpg_reward:
+                reward = np.nan_to_num(miles_per_gallon(self, self.k.vehicle.get_ids())) / 100.0
+            else:
+                speeds = self.k.vehicle.get_speed(self.k.vehicle.get_ids())
+                des_speed = self.env_params.additional_params["target_velocity"]
+                # rescale so the critic can estimate it quickly
+                reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
+                                                for speed in speeds]) / (des_speed ** 2))
             rewards = {rl_id: reward for rl_id in self.k.vehicle.get_rl_ids()}
         return rewards
 
@@ -342,7 +350,10 @@ class I210MADDPGMultiEnv(I210MultiEnv):
     def compute_reward(self, rl_actions, **kwargs):
         # There has to be one global reward for qmix
         t = time()
-        reward = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))) / (20 * self.env_params.horizon)
+        if self.mpg_reward:
+            reward = np.nan_to_num(miles_per_gallon(self, self.k.vehicle.get_ids()))
+        else:
+            reward = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))) / (20 * self.env_params.horizon)
         temp_reward_dict = {idx: reward for idx in
                        range(self.max_num_agents)}
         # print('reward time is ', time() - t)

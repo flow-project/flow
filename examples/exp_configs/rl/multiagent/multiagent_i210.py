@@ -45,9 +45,11 @@ additional_env_params.update({
     'lead_obs': True,
     # whether to add in a reward for the speed of nearby vehicles
     "local_reward": True,
+    # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
+    "mpg_reward": True,
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": True,
-    'target_velocity': 18,
+    'target_velocity': 12.0,
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
