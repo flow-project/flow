@@ -321,18 +321,15 @@ class I210MADDPGMultiEnv(I210MultiEnv):
             self.rl_id_to_idx_map[key] = self.index_counter
             self.idx_to_rl_id_map[self.index_counter] = key
             self.index_counter += 1
-            if self.index_counter > self.max_num_agents:
+            if self.index_counter >= self.max_num_agents:
                 break
 
         veh_info = super().get_state()
         # TODO(@evinitsky) think this doesn't have to be a deepcopy
         veh_info_copy = deepcopy(self.default_state)
         # id_list = zip(list(range(self.max_num_agents)), rl_ids)
-        try:
-            veh_info_copy.update({self.rl_id_to_idx_map[rl_id]: veh_info[rl_id]
-                                  for rl_id in self.rl_id_to_idx_map.keys()})
-        except:
-            import ipdb; ipdb.set_trace()
+        veh_info_copy.update({self.rl_id_to_idx_map[rl_id]: veh_info[rl_id]
+                              for rl_id in self.rl_id_to_idx_map.keys()})
         # print('time to update copy is ', time() - t)
         veh_info = veh_info_copy
         # print('state time is ', time() - t)

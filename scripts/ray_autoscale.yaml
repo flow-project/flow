@@ -1,4 +1,4 @@
-\# cluster.yaml =========================================
+# cluster.yaml =========================================
 
 # An unique identifier for the head node and workers of this cluster.
 cluster_name: test #<YOUR NAME>
@@ -32,7 +32,7 @@ auth:
 # By default Ray creates a new private keypair, but you can also use your own.
 # If you do so, make sure to also set "KeyName" in the head and worker node
 # configurations below.
-    ssh_private_key: /Users/eugenevinitsky/.ssh/MyKeyPair.pem
+    ssh_private_key: /Users/eugenevinitsky/.ssh/MyKeyPair2.pem
 
 # Provider-specific config for the head node, e.g. instance type. By default
 # Ray will auto-configure unspecified fields such as SubnetId and KeyName.
@@ -40,7 +40,8 @@ auth:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
     InstanceType: c4.4xlarge
-    ImageId: ami-0b489700e7f810707 # Flow AMI (Ubuntu)
+    ImageId: ami-09544298704576518 # Flow AMI (Ubuntu)
+    KeyName: MyKeyPair2
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -55,7 +56,8 @@ head_node:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
     InstanceType: c4.4xlarge
-    ImageId: ami-0b489700e7f810707 # Flow AMI (Ubuntu)
+    ImageId: ami-09544298704576518 # Flow AMI (Ubuntu)
+    KeyName: MyKeyPair2
 
   #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
@@ -75,7 +77,6 @@ head_setup_commands:
     - pip install boto3==1.10.45  # 1.4.8 adds InstanceMarketOptions
     - pip install awscli==1.16.309
     - pip install stable-baselines
-    - pip install torch==1.4.0
     - pip install pytz
     - pip install torch==1.3.1
     - pip install tabulate

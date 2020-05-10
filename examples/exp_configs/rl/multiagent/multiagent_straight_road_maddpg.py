@@ -49,7 +49,7 @@ additional_env_params.update({
     'target_velocity': 18,
     'local_reward': True,
     'lead_obs': True,
-    'max_num_agents': 25,
+    'max_num_agents': 5,
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": False,
 })
