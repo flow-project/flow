@@ -17,7 +17,7 @@ import flow.config as config
 from flow.envs import TestEnv
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
-PENETRATION_RATE = 10.0
+PENETRATION_RATE = 0.0
 HIGHWAY_INFLOW_RATE = 10800
 
 # create the base vehicle type that will be used for inflows
@@ -101,7 +101,7 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=2000,
-        warmup_steps=400
+        warmup_steps=600
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

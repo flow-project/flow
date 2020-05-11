@@ -137,7 +137,7 @@ NET_TEMPLATE = os.path.join(
 
 warmup_steps = 0
 if additional_env_params['reroute_on_exit']:
-    warmup_steps = 400
+    warmup_steps = 1200
 
 flow_params = dict(
     # name of the experiment

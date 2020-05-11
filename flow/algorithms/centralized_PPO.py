@@ -482,8 +482,23 @@ def new_ppo_surrogate_loss(policy, model, dist_class, train_batch):
     return loss
 
 
+class KLCoeffMixin(object):
+    def __init__(self, config):
+        # KL Coefficient
+        self.kl_coeff_val = config["kl_coeff"]
+        self.kl_target = config["kl_target"]
+        self.kl_coeff = tf.get_variable(
+            initializer=tf.constant_initializer(self.kl_coeff_val),
+            name="kl_coeff",
+            shape=(),
+            trainable=False,
+            dtype=tf.float32)
+
+
 def setup_mixins(policy, obs_space, action_space, config):
     # copied from PPO
+    KLCoeffMixin.__init__(policy, config)
+
     EntropyCoeffSchedule.__init__(policy, config["entropy_coeff"],
                                   config["entropy_coeff_schedule"])
     LearningRateSchedule.__init__(policy, config["lr"], config["lr_schedule"])
@@ -527,7 +542,7 @@ CCPPO = PPOTFPolicy.with_updates(
     grad_stats_fn=central_vf_stats,
     mixins=[
         LearningRateSchedule, EntropyCoeffSchedule,
-        CentralizedValueMixin
+        CentralizedValueMixin, KLCoeffMixin
     ])
 
 CCTrainer = PPOTrainer.with_updates(name="CCPPOTrainer", default_policy=CCPPO)
