@@ -59,7 +59,7 @@ additional_env_params.update({
     'local_reward': True,
     'lead_obs': True,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": False,
+    "reroute_on_exit": True,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
     "mpg_reward": True,
     # how many AVs there can be at once (this is only for centralized critics)
@@ -127,7 +127,7 @@ inflows.add(
     name="rl_highway_inflow")
 
 # SET UP FLOW PARAMETERS
-warmup_steps = 0
+warmup_steps = 400
 if additional_env_params['reroute_on_exit']:
     warmup_steps = 400
 

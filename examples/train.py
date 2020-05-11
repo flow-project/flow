@@ -192,10 +192,13 @@ def setup_exps_rllib(flow_params,
     alg_run = flags.algorithm.upper()
 
     if alg_run == "PPO":
-        from flow.algorithms.custom_ppo import CustomPPOTrainer
-        from ray.rllib.agents.ppo import DEFAULT_CONFIG
-        alg_run = CustomPPOTrainer
-        config = deepcopy(DEFAULT_CONFIG)
+        # from flow.algorithms.custom_ppo import CustomPPOTrainer
+        # from ray.rllib.agents.ppo import DEFAULT_CONFIG
+        # alg_run = CustomPPOTrainer
+        # config = deepcopy(DEFAULT_CONFIG)
+        agent_cls = get_agent_class(alg_run)
+        config = deepcopy(agent_cls._default_config)
+
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
@@ -240,12 +243,14 @@ def setup_exps_rllib(flow_params,
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
+        config["learning_starts"] = 0
         config["buffer_size"] = 20000  # reduced to test if this is the source of memory problems
         if flags.grid_search:
             config["prioritized_replay"] = tune.grid_search(['True', 'False'])
             config["actor_lr"] = tune.grid_search([1e-3, 1e-4])
             config["critic_lr"] = tune.grid_search([1e-3, 1e-4])
             config["n_step"] = tune.grid_search([1, 10])
+
     elif alg_run == "MADDPG":
         from flow.algorithms.maddpg.maddpg import MADDPGTrainer, DEFAULT_CONFIG
         config = deepcopy(DEFAULT_CONFIG)
