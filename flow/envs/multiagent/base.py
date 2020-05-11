@@ -98,10 +98,6 @@ class MultiEnv(MultiAgentEnv, Env):
             # store new observations in the vehicles and traffic lights class
             self.k.update(reset=False)
 
-            if self.time_counter <= self.env_params.sims_per_step * self.env_params.warmup_steps:
-                self.observed_ids.update(self.k.vehicle.get_ids())
-                self.observed_rl_ids.update(self.k.vehicle.get_rl_ids())
-
             # update the colors of vehicles
             if self.sim_params.render:
                 self.k.vehicle.update_vehicle_colors()

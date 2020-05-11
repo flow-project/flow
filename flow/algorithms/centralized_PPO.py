@@ -129,8 +129,10 @@ class CentralizedCriticModelRNN(RecurrentTFModelV2):
         other_obs = tf.keras.layers.Input(shape=(obs_space.shape[0] * self.max_num_agents,), name="all_agent_obs")
         central_vf_dense = tf.keras.layers.Dense(
             model_config.get("central_vf_size", 64), activation=tf.nn.tanh, name="c_vf_dense")(other_obs)
+        central_vf_dense2 = tf.keras.layers.Dense(
+            model_config.get("central_vf_size", 64), activation=tf.nn.tanh, name="c_vf_dense")(central_vf_dense)
         central_vf_out = tf.keras.layers.Dense(
-            1, activation=None, name="c_vf_out")(central_vf_dense)
+            1, activation=None, name="c_vf_out")(central_vf_dense2)
         self.central_vf = tf.keras.Model(
             inputs=[other_obs], outputs=central_vf_out)
         self.register_variables(self.central_vf.variables)

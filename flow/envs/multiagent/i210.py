@@ -75,6 +75,18 @@ class I210MultiEnv(MultiEnv):
         self.entrance_edge = "119257914"
         self.exit_edge = "119257908#2"
         self.mpg_reward = env_params.additional_params["mpg_reward"]
+        # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
+        self.headway_curriculum = env_params.additional_params["headway_curriculum"]
+        # how many timesteps to anneal the headway curriculum over
+        self.headway_curriculum_iters = env_params.additional_params["headway_curriculum_iters"]
+        self.headway_reward_gain = env_params.additional_params["headway_curriculum_iters"]
+
+        # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
+        self.speed_curriculum = env_params.additional_params["speed_curriculum"]
+        # how many timesteps to anneal the headway curriculum over
+        self.speed_curriculum_iters = env_params.additional_params["speed_curriculum_iters"]
+        self.speed_reward_gain = env_params.additional_params["speed_curriculum_iters"]
+        self.num_training_iters = 0
         self.leader = []
 
     @property
@@ -184,7 +196,36 @@ class I210MultiEnv(MultiEnv):
                 reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
                                                 for speed in speeds]) / (des_speed ** 2))
             rewards = {rl_id: reward for rl_id in self.k.vehicle.get_rl_ids()}
+        if self.headway_curriculum and self.num_training_iters <= self.headway_curriculum_iters:
+            t_min = 1  # smallest acceptable time headway
+            for veh_id, rew in rewards.items():
+                lead_id = self.k.vehicle.get_leader(veh_id)
+                penalty = 0
+                if lead_id not in ["", None] \
+                        and self.k.vehicle.get_speed(veh_id) > 0:
+                    t_headway = max(
+                        self.k.vehicle.get_headway(veh_id) /
+                        self.k.vehicle.get_speed(veh_id), 0)
+                    # print('time headway is {}, headway is {}'.format(t_headway, self.k.vehicle.get_headway(veh_id)))
+                    scaling_factor = max(0, 1 - self.num_training_iters / self.headway_curriculum_iters)
+                    penalty += scaling_factor * self.headway_reward_gain * min((t_headway - t_min) / t_min, 0)
+                    # print('penalty is ', penalty)
+
+                rewards[veh_id] += penalty
+
+        if self.speed_curriculum and self.num_training_iters <= self.speed_curriculum_iters:
+            des_speed = self.env_params.additional_params["target_velocity"]
+
+            for veh_id, rew in rewards.items():
+                speed = self.k.vehicle.get_speed(veh_id)
+                speed_reward = 0.0
+                if speed >= 0:
+                    speed_reward = ((des_speed - np.abs(speed - des_speed)) ** 2) / (des_speed ** 2)
+                rewards[veh_id] += speed_reward
         return rewards
+
+    def set_iteration_num(self):
+        self.num_training_iters += 1
 
     def additional_command(self):
         """See parent class.

@@ -51,7 +51,20 @@ additional_env_params.update({
     "reroute_on_exit": True,
     'target_velocity': 12.0,
     # how many AVs there can be at once (this is only for centralized critics)
-    "max_num_agents": 10
+    "max_num_agents": 10,
+    # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
+    "headway_curriculum": False,
+    # how many timesteps to anneal the headway curriculum over
+    "headway_curriculum_iters": 100,
+    # weight of the headway reward
+    "headway_reward_gain": 0.1,
+
+    # whether to add a slight reward for traveling at a desired speed
+    "speed_curriculum": True,
+    # how many timesteps to anneal the headway curriculum over
+    "speed_curriculum_iters": 100,
+    # weight of the headway reward
+    "speed_reward_gain": 0.5
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS

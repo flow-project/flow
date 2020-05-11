@@ -293,10 +293,17 @@ def setup_exps_rllib(flow_params,
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
         episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["avg_mpg"])
 
+    def on_train_result(info):
+        """Store the mean score of the episode, and increment or decrement how many adversaries are on"""
+        trainer = info["trainer"]
+        trainer.workers.foreach_worker(
+            lambda ev: ev.foreach_env(
+                lambda env: env.set_iteration_num()))
 
     config["callbacks"] = {"on_episode_start": tune.function(on_episode_start),
                            "on_episode_step": tune.function(on_episode_step),
-                           "on_episode_end": tune.function(on_episode_end)}
+                           "on_episode_end": tune.function(on_episode_end),
+                           "on_train_result": tune.function(on_train_result)}
 
     # save the flow params for replay
     flow_json = json.dumps(

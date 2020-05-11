@@ -46,7 +46,7 @@ additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
 additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
-    'target_velocity': 18,
+    'target_velocity': 12.0,
     'local_reward': True,
     'lead_obs': True,
     # whether to reroute vehicles once they have exited
@@ -54,7 +54,21 @@ additional_env_params.update({
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
     "mpg_reward": True,
     # how many AVs there can be at once (this is only for centralized critics)
-    "max_num_agents": 10
+    "max_num_agents": 10,
+
+    # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
+    "headway_curriculum": False,
+    # how many timesteps to anneal the headway curriculum over
+    "headway_curriculum_iters": 100,
+    # weight of the headway reward
+    "headway_reward_gain": 1.0,
+
+    # whether to add a slight reward for traveling at a desired speed
+    "speed_curriculum": True,
+    # how many timesteps to anneal the headway curriculum over
+    "speed_curriculum_iters": 100,
+    # weight of the headway reward
+    "speed_reward_gain": 0.5
 })
 
 
