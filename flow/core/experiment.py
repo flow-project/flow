@@ -182,6 +182,7 @@ class Experiment:
                     extra_info["x"].append(position[0])
                     extra_info["y"].append(position[1])
                     extra_info["speed"].append(self.env.k.vehicle.get_speed(vid))
+                    #extra_info["next_v"].append(self.env.k.vehicle.get_next_v(vid))
                 extra_info["source_id"].extend([source_id+"run" + str(i)] * len(veh_ids))
 
                 # Compute the results for the custom callables.
