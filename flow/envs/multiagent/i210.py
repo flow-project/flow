@@ -351,13 +351,31 @@ class I210MADDPGMultiEnv(I210MultiEnv):
         # There has to be one global reward for qmix
         t = time()
         if self.mpg_reward:
-            reward = np.nan_to_num(miles_per_gallon(self, self.k.vehicle.get_ids()))
-        else:
-            reward = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))) / (20 * self.env_params.horizon)
-        temp_reward_dict = {idx: reward for idx in
+            if self.env_params.additional_params["local_reward"]:
+                reward = super().compute_reward(rl_actions)
+                reward_dict = {idx: 0 for idx in
                        range(self.max_num_agents)}
+                reward_dict.update({self.rl_id_to_idx_map[rl_id]: reward[rl_id] for rl_id in reward.keys()
+                                    if rl_id in self.rl_id_to_idx_map.keys()})
+                print(reward_dict)
+            else:
+                reward = np.nan_to_num(miles_per_gallon(self, self.k.vehicle.get_ids())) / 100.0
+                reward_dict = {idx: reward for idx in
+                                    range(self.max_num_agents)}
+        else:
+            if self.env_params.additional_params["local_reward"]:
+                reward = super().compute_reward(rl_actions)
+                reward_dict = {idx: 0 for idx in
+                       range(self.max_num_agents)}
+                reward_dict.update({self.rl_id_to_idx_map[rl_id]: reward[rl_id] for rl_id in reward.keys()
+                                    if rl_id in self.rl_id_to_idx_map.keys()})
+            else:
+                reward = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))) / (20 * self.env_params.horizon)
+                reward_dict = {idx: reward for idx in
+                                    range(self.max_num_agents)}
+
         # print('reward time is ', time() - t)
-        return temp_reward_dict
+        return reward_dict
 
     def reset(self, new_inflow_rate=None):
         super().reset(new_inflow_rate)

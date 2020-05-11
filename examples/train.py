@@ -197,13 +197,41 @@ def setup_exps_rllib(flow_params,
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
-        config["model"].update({"fcnet_hiddens": [32, 32, 32]})
+        config["model"].update({"fcnet_hiddens": [32, 32]})
         config["train_batch_size"] = horizon * n_rollouts
         config["gamma"] = 0.995  # discount rate
         config["use_gae"] = True
         config["lambda"] = 0.97
         config["kl_target"] = 0.02
         config["num_sgd_iter"] = 10
+        if flags.grid_search:
+            config["lambda"] = tune.grid_search([0.5, 0.9])
+            config["lr"] = tune.grid_search([5e-4, 5e-5])
+    elif alg_run == "CENTRALIZEDPPO":
+        from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
+        from ray.rllib.agents.ppo import DEFAULT_CONFIG
+        from ray.rllib.models import ModelCatalog
+        alg_run = CCTrainer
+        config = deepcopy(DEFAULT_CONFIG)
+        config['model']['custom_model'] = "cc_model"
+        config["model"]["custom_options"]["max_num_agents"] = flow_params['env'].additional_params['max_num_agents']
+        config["model"]["custom_options"]["central_vf_size"] = 100
+
+        ModelCatalog.register_custom_model("cc_model", CentralizedCriticModel)
+
+        config["num_workers"] = n_cpus
+        config["horizon"] = horizon
+        config["model"].update({"fcnet_hiddens": [32, 32]})
+        config["train_batch_size"] = horizon * n_rollouts
+        config["gamma"] = 0.995  # discount rate
+        config["use_gae"] = True
+        config["lambda"] = 0.97
+        config["kl_target"] = 0.02
+        config["num_sgd_iter"] = 10
+        if flags.grid_search:
+            config["lambda"] = tune.grid_search([0.5, 0.9])
+            config["lr"] = tune.grid_search([5e-4, 5e-5])
+
     elif alg_run == "TD3":
         agent_cls = get_agent_class(alg_run)
         config = deepcopy(agent_cls._default_config)

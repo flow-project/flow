@@ -23,7 +23,7 @@ HORIZON = 2000
 # inflow rate on the highway in vehicles per hour
 HIGHWAY_INFLOW_RATE = 10800 / 5
 # percentage of autonomous vehicles compared to human vehicles on highway
-PENETRATION_RATE = 0.0
+PENETRATION_RATE = 10.0
 
 
 # SET UP PARAMETERS FOR THE NETWORK
@@ -99,7 +99,7 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        warmup_steps=0,
+        warmup_steps=400,
         sims_per_step=1,
     ),
 

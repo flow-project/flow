@@ -79,9 +79,8 @@ head_setup_commands:
     - pip install stable-baselines
     - pip install pytz
     - pip install torch==1.3.1
-    - pip install tabulate
-    - pip install ray==0.8.0
-    - pip install tensorflow==1.14.0
+    - pip install tensorflow==2.0.0
+    - pip install lz4
 
 # Custom commands that will be run on worker nodes after common setup.
 worker_setup_commands: []

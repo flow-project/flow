@@ -53,6 +53,8 @@ additional_env_params.update({
     "reroute_on_exit": True,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
     "mpg_reward": True,
+    # how many AVs there can be at once (this is only for centralized critics)
+    "max_num_agents": 10
 })
 
 

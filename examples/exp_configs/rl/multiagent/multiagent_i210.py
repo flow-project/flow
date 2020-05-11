@@ -50,6 +50,8 @@ additional_env_params.update({
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": True,
     'target_velocity': 12.0,
+    # how many AVs there can be at once (this is only for centralized critics)
+    "max_num_agents": 10
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
