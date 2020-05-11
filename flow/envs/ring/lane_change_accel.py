@@ -159,7 +159,6 @@ class LaneChangeAccelEnv(AccelEnv):
         if self.k.vehicle.num_rl_vehicles > 0:
             for veh_id in self.k.vehicle.get_human_ids():
                 self.k.vehicle.set_observed(veh_id)
-        print("lkhkhkhkhkhkhkh")
 
 
 class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
