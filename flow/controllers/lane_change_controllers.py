@@ -120,9 +120,9 @@ class AILaneChangeController(BaseLaneChangeController):
                         "=====================================================")
                     sys.exit(1)
             else:  # if left lane exists but left leader does not exist
-                # in this case we assign high velocity and headway to the leader
-                l_l_vel = 30
-                l_l_headway = 1000
+                # in this case we assign None to the leader velocity and headway
+                l_l_vel = None
+                l_l_headway = None
                 try:
                     acc_in_left_lane = ego_accel_controller.get_custom_accel(
                         this_vel=ego_vel,
@@ -191,9 +191,9 @@ class AILaneChangeController(BaseLaneChangeController):
                         "=====================================================")
                     sys.exit(1)
             else:  # if right lane exists but right leader does not exist
-                # in this case we assign high velocity and headway to the leader
-                r_l_vel = 30
-                r_l_headway = 1000
+                # in this case we assign None to the leader velocity and headway
+                r_l_vel = None
+                r_l_headway = None
                 try:
                     acc_in_right_lane = ego_accel_controller.get_custom_accel(
                         this_vel=ego_vel,
