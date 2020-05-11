@@ -967,8 +967,10 @@ class TraCIVehicle(KernelVehicle):
 
         for i, vid in enumerate(veh_ids):
             if acc[i] is not None and vid in self.get_ids():
+                self.__vehicles[vid]["accel"] = acc[i]
                 this_vel = self.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
+                #self.__vehicles[vid]["next_v"] = next_vel
                 self.kernel_api.vehicle.slowDown(vid, next_vel, 1e-3)
 
     def apply_lane_change(self, veh_ids, direction):
@@ -1131,9 +1133,18 @@ class TraCIVehicle(KernelVehicle):
         self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
 
     # add for data pipeline
+    def get_next_v(self, veh_id):
+        """See parent class."""
+        if not "next_v" in self.__vehicles[veh_id]:
+            self.__vehicles[veh_id]["next_v"] = None
+        return self.__vehicles[veh_id]["next_v"]
+        #return (self.get_speed(veh_id) - self.get_previous_speed(veh_id)) / self.sim_step
+
     def get_accel(self, veh_id):
         """See parent class."""
-        return (self.get_speed(veh_id) - self.get_previous_speed(veh_id)) / self.sim_step
+        if not "accel" in self.__vehicles[veh_id]:
+            self.__vehicles[veh_id]["accel"] = None
+        return self.__vehicles[veh_id]["accel"]
 
     def update_accel_without_noise(self, veh_id, accel_without_noise):
         """See parent class."""
@@ -1141,6 +1152,8 @@ class TraCIVehicle(KernelVehicle):
 
     def get_accel_without_noise(self, veh_id):
         """See parent class."""
+        if not "accel_without_noise" in self.__vehicles[veh_id]:
+            self.__vehicles[veh_id]["accel_without_noise"] = None
         return self.__vehicles[veh_id]["accel_without_noise"]
 
     def get_velocity_without_noise(self, veh_id):
