@@ -143,7 +143,7 @@ class I210MultiEnv(MultiEnv):
                 accel_list.append(accel)
             self.k.vehicle.apply_acceleration(id_list, accel_list)
             # self.k.vehicle.apply_lane_change(rl_id, lane_change_action)
-            print('time to apply actions is ', time() - t)
+            # print('time to apply actions is ', time() - t)
 
     def get_state(self):
         """See class definition."""
@@ -166,7 +166,7 @@ class I210MultiEnv(MultiEnv):
             veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
                                                self.veh_statistics(rl_id)))
                         for rl_id in self.k.vehicle.get_rl_ids()}
-        print('time to get state is ', time() - t)
+        # print('time to get state is ', time() - t)
         return veh_info
 
     def compute_reward(self, rl_actions, **kwargs):
@@ -229,8 +229,10 @@ class I210MultiEnv(MultiEnv):
                 speed_reward = 0.0
                 if speed >= 0:
                     speed_reward = ((des_speed - np.abs(speed - des_speed)) ** 2) / (des_speed ** 2)
-                rewards[veh_id] += speed_reward
-        print('time to get reward is ', time() - t)
+                scaling_factor = max(0, 1 - self.num_training_iters / self.headway_curriculum_iters)
+
+                rewards[veh_id] += speed_reward * scaling_factor * self.speed_reward_gain
+        # print('time to get reward is ', time() - t)
 
         return rewards
 

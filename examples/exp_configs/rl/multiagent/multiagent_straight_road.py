@@ -59,7 +59,7 @@ additional_env_params.update({
     'local_reward': True,
     'lead_obs': True,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": True,
+    "reroute_on_exit": False,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
     "mpg_reward": True,
     # how many AVs there can be at once (this is only for centralized critics)
@@ -77,7 +77,7 @@ additional_env_params.update({
     # how many timesteps to anneal the headway curriculum over
     "speed_curriculum_iters": 100,
     # weight of the headway reward
-    "speed_reward_gain": 0.5
+    "speed_reward_gain": 1.0
 })
 
 

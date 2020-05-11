@@ -3,7 +3,11 @@
 Trains a non-constant number of agents, all sharing the same policy, on the
 highway with ramps network.
 """
+
+import numpy as np
+
 from flow.controllers import BandoFTLController
+from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import InitialConfig
@@ -11,6 +15,7 @@ from flow.core.params import InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
+from flow.core.rewards import miles_per_gallon
 from flow.networks import HighwayNetwork
 from flow.envs import TestEnv
 from flow.networks.highway import ADDITIONAL_NET_PARAMS
@@ -18,8 +23,9 @@ from flow.networks.highway import ADDITIONAL_NET_PARAMS
 TRAFFIC_SPEED = 11
 END_SPEED = 16
 TRAFFIC_FLOW = 2056
-HORIZON = 3600
+HORIZON = 2000
 INCLUDE_NOISE = False
+PENETRATION_RATE = 0.10
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
@@ -55,14 +61,32 @@ vehicles.add(
     }),
 )
 
+
+if PENETRATION_RATE > 0.0:
+    vehicles.add(
+        "av",
+        color='red',
+        num_vehicles=0,
+        acceleration_controller=(FollowerStopper, {"v_des": 12.0}),
+    )
+
 inflows = InFlows()
 inflows.add(
     veh_type="human",
     edge="highway_0",
-    vehs_per_hour=TRAFFIC_FLOW,
+    vehs_per_hour=int(TRAFFIC_FLOW * (1-PENETRATION_RATE)),
     depart_lane="free",
     depart_speed=TRAFFIC_SPEED,
     name="idm_highway_inflow")
+
+if PENETRATION_RATE > 0.0:
+    inflows.add(
+        veh_type="av",
+        edge="highway_0",
+        vehs_per_hour=int(TRAFFIC_FLOW * (PENETRATION_RATE)),
+        depart_lane="free",
+        depart_speed=TRAFFIC_SPEED,
+        name="idm_highway_inflow")
 
 # SET UP FLOW PARAMETERS
 
@@ -82,7 +106,7 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        warmup_steps=0,
+        warmup_steps=400,
         sims_per_step=1,
     ),
 
@@ -108,3 +132,11 @@ flow_params = dict(
     # reset (see flow.core.params.InitialConfig)
     initial=InitialConfig(),
 )
+
+custom_callables = {
+    "avg_merge_speed": lambda env: np.nan_to_num(np.mean(
+        env.k.vehicle.get_speed(env.k.vehicle.get_ids()))),
+    "avg_outflow": lambda env: np.nan_to_num(
+        env.k.vehicle.get_outflow_rate(120)),
+    "mpg": lambda env: miles_per_gallon(env, env.k.vehicle.get_ids(), gain=1.0)
+}
