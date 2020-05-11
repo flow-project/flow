@@ -192,8 +192,10 @@ def setup_exps_rllib(flow_params,
     alg_run = flags.algorithm.upper()
 
     if alg_run == "PPO":
-        agent_cls = get_agent_class(alg_run)
-        config = deepcopy(agent_cls._default_config)
+        from flow.algorithms.custom_ppo import CustomPPOTrainer
+        from ray.rllib.agents.ppo import DEFAULT_CONFIG
+        alg_run = CustomPPOTrainer
+        config = deepcopy(DEFAULT_CONFIG)
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
@@ -248,6 +250,7 @@ def setup_exps_rllib(flow_params,
         from flow.algorithms.maddpg.maddpg import MADDPGTrainer, DEFAULT_CONFIG
         config = deepcopy(DEFAULT_CONFIG)
         config["actor_feature_reg"] = 0.0
+        config["learning_starts"] = 100
         alg_run = MADDPGTrainer
 
     elif alg_run == "QMIX":

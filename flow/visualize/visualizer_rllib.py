@@ -26,6 +26,7 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
 
+from flow.core.rewards import miles_per_gallon
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
@@ -200,6 +201,7 @@ def visualizer_rllib(args):
     # Simulate and collect metrics
     final_outflows = []
     final_inflows = []
+    mpg = []
     mean_speed = []
     std_speed = []
     for i in range(args.num_rollouts):
@@ -216,6 +218,8 @@ def visualizer_rllib(args):
             # only include non-empty speeds
             if speeds:
                 vel.append(np.mean(speeds))
+
+            mpg.append(miles_per_gallon(env.unwrapped, vehicles.get_ids()))
 
             if multiagent:
                 action = {}
@@ -286,6 +290,8 @@ def visualizer_rllib(args):
     print(std_speed)
     print('Average, std: {}, {}'.format(np.mean(std_speed), np.std(
         std_speed)))
+
+    print('Average, std miles per gallon: {}, {}'.format(np.mean(mpg), np.std(mpg)))
 
     # Compute arrival rate of vehicles in the last 500 sec of the run
     print("\nOutflows (veh/hr):")

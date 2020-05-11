@@ -105,13 +105,11 @@ class PPOLoss(object):
             vf_loss = tf.maximum(vf_loss1, vf_loss2)
             self.mean_vf_loss = reduce_mean_valid(vf_loss)
             loss = reduce_mean_valid(
-                -surrogate_loss + cur_kl_coeff * action_kl +
+                -surrogate_loss +
                 vf_loss_coeff * vf_loss - entropy_coeff * curr_entropy)
         else:
             self.mean_vf_loss = tf.constant(0.0)
-            loss = reduce_mean_valid(-surrogate_loss +
-                                     cur_kl_coeff * action_kl -
-                                     entropy_coeff * curr_entropy)
+            loss = reduce_mean_valid(-surrogate_loss -entropy_coeff * curr_entropy)
         self.loss = loss
 
 
@@ -184,24 +182,7 @@ def postprocess_ppo_gae(policy,
                         episode=None):
     """Adds the policy logits, VF preds, and advantages to the trajectory."""
 
-    net_outflow = 0.0
-    if episode is not None:
-        post_exit_rew_len = policy.post_exit_rew_len
-        outflow = np.array(episode.user_data['outflow'])
-        final_time = sample_batch['t'][-1]
-        if final_time + post_exit_rew_len >= outflow.shape[0]:
-            if final_time > 0:
-                net_outflow = np.mean((outflow[final_time:]))
-            else:
-                net_outflow = np.mean((outflow[final_time:]))
-        else:
-            net_outflow = np.mean((outflow[final_time:final_time + post_exit_rew_len]))
-    # This is a hack because we are never returning done correctly so we just check if we have a time equal to the horizon
-    # if we do, we clearly never completed
-    if 't' in sample_batch.keys():
-        completed = (sample_batch['t'][-1] < policy.horizon - 1) or sample_batch["dones"][-1]
-    else:
-        completed = False
+    completed = sample_batch["dones"][-1]
     if completed:
         last_r = 0.0
     else:
@@ -212,13 +193,6 @@ def postprocess_ppo_gae(policy,
                                sample_batch[SampleBatch.ACTIONS][-1],
                                sample_batch[SampleBatch.REWARDS][-1],
                                *next_state)
-
-    # now scale the rewards by the horizo so the cumulative reward is independent of time in the system
-    # TODO(@evinitsky) does this make sense?
-    # if policy.terminal_reward and sample_batch['rewards'].shape[0] > 1:
-    #     sample_batch['rewards'][:-1] = sample_batch['rewards'][:-1] / (sample_batch['rewards'][:-1].shape[0])
-    # else:
-    #     sample_batch['rewards'] = sample_batch['rewards'] / (sample_batch['rewards'].shape[0])
 
     batch = compute_advantages(
         sample_batch,
@@ -240,27 +214,6 @@ def clip_gradients(policy, optimizer, loss):
         return clipped_grads
     else:
         return optimizer.compute_gradients(loss, variables)
-
-
-class KLCoeffMixin(object):
-    def __init__(self, config):
-        # KL Coefficient
-        self.kl_coeff_val = config["kl_coeff"]
-        self.kl_target = config["kl_target"]
-        self.kl_coeff = tf.get_variable(
-            initializer=tf.constant_initializer(self.kl_coeff_val),
-            name="kl_coeff",
-            shape=(),
-            trainable=False,
-            dtype=tf.float32)
-
-    def update_kl(self, sampled_kl):
-        if sampled_kl > 2.0 * self.kl_target:
-            self.kl_coeff_val *= 1.5
-        elif sampled_kl < 0.5 * self.kl_target:
-            self.kl_coeff_val *= 0.5
-        self.kl_coeff.load(self.kl_coeff_val, session=self.get_session())
-        return self.kl_coeff_val
 
 
 class ValueNetworkMixin(object):
@@ -296,7 +249,6 @@ def setup_config(policy, obs_space, action_space, config):
 
 def setup_mixins(policy, obs_space, action_space, config):
     ValueNetworkMixin.__init__(policy, obs_space, action_space, config)
-    KLCoeffMixin.__init__(policy, config)
     EntropyCoeffSchedule.__init__(policy, config["entropy_coeff"],
                                   config["entropy_coeff_schedule"])
     LearningRateSchedule.__init__(policy, config["lr"], config["lr_schedule"])
@@ -313,7 +265,7 @@ CustomPPOTFPolicy = build_tf_policy(
     before_init=setup_config,
     before_loss_init=setup_mixins,
     mixins=[
-        LearningRateSchedule, EntropyCoeffSchedule, KLCoeffMixin,
+        LearningRateSchedule, EntropyCoeffSchedule,
         ValueNetworkMixin
     ])
 

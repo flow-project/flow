@@ -76,16 +76,16 @@ class I210MultiEnv(MultiEnv):
         self.exit_edge = "119257908#2"
         self.mpg_reward = env_params.additional_params["mpg_reward"]
         # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
-        self.headway_curriculum = env_params.additional_params["headway_curriculum"]
+        self.headway_curriculum = env_params.additional_params.get("headway_curriculum", False)
         # how many timesteps to anneal the headway curriculum over
-        self.headway_curriculum_iters = env_params.additional_params["headway_curriculum_iters"]
-        self.headway_reward_gain = env_params.additional_params["headway_curriculum_iters"]
+        self.headway_curriculum_iters = env_params.additional_params.get("headway_curriculum_iters", 0)
+        self.headway_reward_gain = env_params.additional_params.get("headway_reward_gain", 0.0)
 
         # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
-        self.speed_curriculum = env_params.additional_params["speed_curriculum"]
+        self.speed_curriculum = env_params.additional_params.get("speed_curriculum", False)
         # how many timesteps to anneal the headway curriculum over
-        self.speed_curriculum_iters = env_params.additional_params["speed_curriculum_iters"]
-        self.speed_reward_gain = env_params.additional_params["speed_curriculum_iters"]
+        self.speed_curriculum_iters = env_params.additional_params.get("speed_curriculum_iters", 0)
+        self.speed_reward_gain = env_params.additional_params.get("speed_reward_gain", 0.0)
         self.num_training_iters = 0
         self.leader = []
 
@@ -128,7 +128,10 @@ class I210MultiEnv(MultiEnv):
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         # in the warmup steps, rl_actions is None
+        id_list = []
+        accel_list = []
         if rl_actions:
+            t = time()
             for rl_id, actions in rl_actions.items():
                 accel = actions[0]
 
@@ -136,12 +139,15 @@ class I210MultiEnv(MultiEnv):
                 # lane_change_softmax /= np.sum(lane_change_softmax)
                 # lane_change_action = np.random.choice([-1, 0, 1],
                 #                                       p=lane_change_softmax)
-
-                self.k.vehicle.apply_acceleration(rl_id, accel)
-                # self.k.vehicle.apply_lane_change(rl_id, lane_change_action)
+                id_list.append(rl_id)
+                accel_list.append(accel)
+            self.k.vehicle.apply_acceleration(id_list, accel_list)
+            # self.k.vehicle.apply_lane_change(rl_id, lane_change_action)
+            print('time to apply actions is ', time() - t)
 
     def get_state(self):
         """See class definition."""
+        t = time()
         if self.lead_obs:
             veh_info = {}
             for rl_id in self.k.vehicle.get_rl_ids():
@@ -160,6 +166,7 @@ class I210MultiEnv(MultiEnv):
             veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
                                                self.veh_statistics(rl_id)))
                         for rl_id in self.k.vehicle.get_rl_ids()}
+        print('time to get state is ', time() - t)
         return veh_info
 
     def compute_reward(self, rl_actions, **kwargs):
@@ -168,6 +175,7 @@ class I210MultiEnv(MultiEnv):
         if rl_actions is None:
             return {}
 
+        t = time()
         rewards = {}
         if self.env_params.additional_params["local_reward"]:
             des_speed = self.env_params.additional_params["target_velocity"]
@@ -222,6 +230,8 @@ class I210MultiEnv(MultiEnv):
                 if speed >= 0:
                     speed_reward = ((des_speed - np.abs(speed - des_speed)) ** 2) / (des_speed ** 2)
                 rewards[veh_id] += speed_reward
+        print('time to get reward is ', time() - t)
+
         return rewards
 
     def set_iteration_num(self):
@@ -385,6 +395,7 @@ class I210MADDPGMultiEnv(I210MultiEnv):
         # print('time to update copy is ', time() - t)
         veh_info = veh_info_copy
         # print('state time is ', time() - t)
+        print(veh_info)
 
         return veh_info
 

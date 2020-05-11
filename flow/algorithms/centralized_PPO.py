@@ -10,7 +10,7 @@ from gym.spaces import Dict
 
 from ray import tune
 from ray.rllib.agents.ppo.ppo import PPOTrainer
-from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy, KLCoeffMixin, BEHAVIOUR_LOGITS
+from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy, BEHAVIOUR_LOGITS
 from ray.rllib.evaluation.postprocessing import compute_advantages, \
     Postprocessing
 from ray.rllib.policy.sample_batch import SampleBatch
@@ -468,12 +468,11 @@ class PPOLoss(object):
             vf_loss = tf.maximum(vf_loss1, vf_loss2)
             self.mean_vf_loss = reduce_mean_valid(vf_loss)
             loss = reduce_mean_valid(
-                -surrogate_loss + cur_kl_coeff * action_kl +
+                -surrogate_loss +
                 vf_loss_coeff * vf_loss - entropy_coeff * curr_entropy)
         else:
             self.mean_vf_loss = tf.constant(0.0)
-            loss = reduce_mean_valid(-surrogate_loss +
-                                     cur_kl_coeff * action_kl -
+            loss = reduce_mean_valid(-surrogate_loss -
                                      entropy_coeff * curr_entropy)
         self.loss = loss
 
@@ -485,7 +484,6 @@ def new_ppo_surrogate_loss(policy, model, dist_class, train_batch):
 
 def setup_mixins(policy, obs_space, action_space, config):
     # copied from PPO
-    KLCoeffMixin.__init__(policy, config)
     EntropyCoeffSchedule.__init__(policy, config["entropy_coeff"],
                                   config["entropy_coeff_schedule"])
     LearningRateSchedule.__init__(policy, config["lr"], config["lr_schedule"])
@@ -528,7 +526,7 @@ CCPPO = PPOTFPolicy.with_updates(
     before_loss_init=setup_mixins,
     grad_stats_fn=central_vf_stats,
     mixins=[
-        LearningRateSchedule, EntropyCoeffSchedule, KLCoeffMixin,
+        LearningRateSchedule, EntropyCoeffSchedule,
         CentralizedValueMixin
     ])
 

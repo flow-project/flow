@@ -3,26 +3,30 @@
 Trains a non-constant number of agents, all sharing the same policy, on the
 highway with ramps network.
 """
-from flow.controllers import RLController, IDMController
-from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
-                             VehicleParams, SumoParams, SumoLaneChangeParams
-from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
+from flow.controllers import BandoFTLController, RLController
+from flow.core.params import EnvParams
+from flow.core.params import NetParams
+from flow.core.params import InitialConfig
+from flow.core.params import InFlows
+from flow.core.params import VehicleParams
+from flow.core.params import SumoParams
+from flow.core.params import SumoLaneChangeParams
 from flow.networks import HighwayNetwork
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.envs.multiagent import MultiStraightRoad
 from flow.networks.highway import ADDITIONAL_NET_PARAMS
 from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
 
-
 # SET UP PARAMETERS FOR THE SIMULATION
-
-# number of steps per rollout
-HORIZON = 2000
-
-# inflow rate on the highway in vehicles per hour
-HIGHWAY_INFLOW_RATE = 10800 / 5
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10
+
+TRAFFIC_SPEED = 11
+END_SPEED = 16
+TRAFFIC_FLOW = 2056
+HORIZON = 2000
+INCLUDE_NOISE = False
 
 
 # SET UP PARAMETERS FOR THE NETWORK
@@ -36,7 +40,12 @@ additional_net_params.update({
     # speed limit for all edges
     "speed_limit": 30,
     # number of edges to divide the highway into
-    "num_edges": 2
+    "num_edges": 2,
+    # whether to include a ghost edge of length 500m. This edge is provided a
+    # different speed limit.
+    "use_ghost_edge": True,
+    # speed limit for the ghost edge
+    "ghost_speed_limit": END_SPEED
 })
 
 
@@ -76,15 +85,20 @@ additional_env_params.update({
 
 vehicles = VehicleParams()
 inflows = InFlows()
-
-# human vehicles
 vehicles.add(
     "human",
     num_vehicles=0,
     lane_change_params=SumoLaneChangeParams(
         lane_change_mode="strategic",
     ),
-    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
+    acceleration_controller=(BandoFTLController, {
+        'alpha': .5,
+        'beta': 20.0,
+        'h_st': 12.0,
+        'h_go': 50.0,
+        'v_max': 30.0,
+        'noise': 1.0 if INCLUDE_NOISE else 0.0,
+    }),
 )
 
 # autonomous vehicles
@@ -97,7 +111,7 @@ vehicles.add(
 inflows.add(
     veh_type="human",
     edge="highway_0",
-    vehs_per_hour=int(HIGHWAY_INFLOW_RATE * (1 - PENETRATION_RATE / 100)),
+    vehs_per_hour=int(TRAFFIC_FLOW * (1 - PENETRATION_RATE / 100)),
     depart_lane="free",
     depart_speed="23.0",
     name="idm_highway_inflow")
@@ -107,7 +121,7 @@ inflows.add(
 inflows.add(
     veh_type="rl",
     edge="highway_0",
-    vehs_per_hour=int(HIGHWAY_INFLOW_RATE * (PENETRATION_RATE / 100)),
+    vehs_per_hour=int(TRAFFIC_FLOW * (PENETRATION_RATE / 100)),
     depart_lane="free",
     depart_speed="23.0",
     name="rl_highway_inflow")
