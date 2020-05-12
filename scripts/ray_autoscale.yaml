@@ -39,7 +39,7 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: c4.4xlarge
+    InstanceType: c4.8xlarge
     ImageId: ami-09544298704576518 # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
@@ -54,7 +54,7 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
-    InstanceType: c4.4xlarge
+    InstanceType: c4.8xlarge
     ImageId: ami-09544298704576518 # Flow AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
@@ -67,11 +67,14 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands:
-    - cd flow && git fetch && git checkout origin/master
+    - cd flow && git fetch && git checkout origin/offline_rl
 
 head_setup_commands:
     - pip install boto3==1.10.45  # 1.4.8 adds InstanceMarketOptions
     - pip install awscli==1.16.309
+    - pip install tensorflow==2.0.0
+    - pip install -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.9.0.dev0-cp37-cp37m-manylinux1_x86_64.whl
+    - pip install tensorflow-probability
     - pip install pytz
 
 # Custom commands that will be run on worker nodes after common setup.
