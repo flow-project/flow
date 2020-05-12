@@ -99,6 +99,11 @@ warmup_steps = 0
 if additional_env_params['reroute_on_exit']:
     warmup_steps = 400
 
+if additional_env_params['reroute_on_exit'] is True:
+    done_at_exit = False
+else:
+    done_at_exit = True
+
 flow_params = dict(
     # name of the experiment
     exp_tag='multiagent_highway',
@@ -118,6 +123,7 @@ flow_params = dict(
         warmup_steps=warmup_steps,
         sims_per_step=1,  # do not put more than one
         additional_params=additional_env_params,
+        done_at_exit=done_at_exit
     ),
 
     # sumo-related parameters (see flow.core.params.SumoParams)
