@@ -70,8 +70,7 @@ if __name__ == "__main__":
     config = agent_cls._default_config.copy()
     if args.grid_search:
         config['prioritized_replay'] = grid_search([True, False])
-        config['n_step'] = grid_search([1, 10])
-        config['target_network_update_freq'] = grid_search([1, 10])
+        config['target_network_update_freq'] = grid_search([0, 10])
         config['optimization']['actor_learning_rate'] = grid_search([3e-3, 3e-4])
         config['optimization']['critic_learning_rate'] = grid_search([3e-3, 3e-4])
 
