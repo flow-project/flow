@@ -72,8 +72,8 @@ if __name__ == "__main__":
         config['prioritized_replay'] = grid_search([True, False])
         config['n_step'] = grid_search([1, 10])
         config['target_network_update_freq'] = grid_search([1, 10])
-        config['actor_learning_rate'] = grid_search([3e-3, 3e-4])
-        config['critic_learning_rate'] = grid_search([3e-3, 3e-4])
+        config['optimization']['actor_learning_rate'] = grid_search([3e-3, 3e-4])
+        config['optimization']['critic_learning_rate'] = grid_search([3e-3, 3e-4])
 
     # save the flow params for replay
     flow_json = json.dumps(
