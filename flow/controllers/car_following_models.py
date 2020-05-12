@@ -320,12 +320,199 @@ class OVMController(BaseController):
         if h <= self.h_st:
             v_h = 0
         elif self.h_st < h < self.h_go:
-            v_h = self.v_max / 2 * (1 - math.cos(math.pi * (h - self.h_st) /
-                                                 (self.h_go - self.h_st)))
+            v_h = self.OV_Func(h)
+            # v_h = self.v_max / 2 * (1 - math.cos(math.pi * (h - self.h_st) /
+            #                                      (self.h_go - self.h_st)))
         else:
             v_h = self.v_max
 
         return self.alpha * (v_h - this_vel) + self.beta * h_dot
+
+    def OV_Func(self,h):
+        v_h = self.v_max / 2 * (1 - math.cos(math.pi * (h - self.h_st) /
+                                                 (self.h_go - self.h_st)))
+        return v_h
+class BandoFTL_Controller(BaseController):
+    """Optimal Vehicle Model controller.
+
+    Usage
+    -----
+    See BaseController for usage example.
+
+    Attributes
+    ----------
+    veh_id : str
+        Vehicle ID for SUMO identification
+    car_following_params : flow.core.params.SumoCarFollowingParams
+        see parent class
+    alpha : float
+        gain on desired velocity to current velocity difference
+        (default: 0.6)
+    beta : float
+        gain on lead car velocity and self velocity difference
+        (default: 0.9)
+    h_st : float
+        headway for stopping (default: 5)
+    h_go : float
+        headway for full speed (default: 35)
+    v_max : float
+        max velocity (default: 30)
+    time_delay : float
+        time delay (default: 0.5)
+    noise : float
+        std dev of normal perturbation to the acceleration (default: 0)
+    fail_safe : str
+        type of flow-imposed failsafe the vehicle should posses, defaults
+        to no failsafe (None)
+    """
+
+    def __init__(self,
+                 veh_id,
+                 car_following_params,
+                 alpha=.5,
+                 beta=20,
+                 h_st=2,
+                 h_go=10,
+                 v_max=32,
+                 want_max_accel=False,
+                 time_delay=0,
+                 noise=0,
+                 fail_safe=None):
+        """Instantiate an Optimal Vehicle Model controller."""
+        BaseController.__init__(
+            self,
+            veh_id,
+            car_following_params,
+            delay=time_delay,
+            fail_safe=fail_safe,
+            noise=noise)
+        self.veh_id = veh_id
+        self.v_max = v_max
+        self.alpha = alpha
+        self.beta = beta
+        self.h_st = h_st
+        self.h_go = h_go
+        self.want_max_accel = want_max_accel
+
+    def get_accel(self, env):
+        """See parent class."""
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+
+        if not lead_id:  # no car ahead
+            if(self.want_max_accel):
+                return self.max_accel
+
+        v_l = env.k.vehicle.get_speed(lead_id)
+        v = env.k.vehicle.get_speed(self.veh_id)
+        s = env.k.vehicle.get_headway(self.veh_id)
+
+        self.a = self.accel_func(v, v_l, s)
+
+
+        return self.a
+
+
+    def accel_func(self, v, v_l, s):
+        # V function here - input: h, output : Vh
+        # if s <= self.h_st:
+        #     v_h = 0
+        # elif self.h_st < s < self.h_go:
+        #     v_h = self.v_max  * ((np.tanh(s/self.h_st-2)+np.tanh(2))/(1+np.tanh(2)))
+        # else:
+        #     v_h = self.v_max
+
+
+
+        v_h = self.v_max  * ((np.tanh(s/self.h_st-2)+np.tanh(2))/(1+np.tanh(2)))
+
+        s_dot = v_l - v
+
+        u = self.alpha * (v_h - v) + self.beta * s_dot/(s**2)
+
+        return u
+
+
+class OV_FTL_Controller(BaseController):
+    """Optimal Vehicle Model controller.
+
+    Usage
+    -----
+    See BaseController for usage example.
+
+    Attributes
+    ----------
+    veh_id : str
+        Vehicle ID for SUMO identification
+    car_following_params : flow.core.params.SumoCarFollowingParams
+        see parent class
+    alpha : float
+        gain on desired velocity to current velocity difference
+        (default: 0.6)
+    beta : float
+        gain on lead car velocity and self velocity difference
+        (default: 0.9)
+    h_st : float
+        headway for stopping (default: 5)
+    h_go : float
+        headway for full speed (default: 35)
+    v_max : float
+        max velocity (default: 30)
+    time_delay : float
+        time delay (default: 0.5)
+    noise : float
+        std dev of normal perturbation to the acceleration (default: 0)
+    fail_safe : str
+        type of flow-imposed failsafe the vehicle should posses, defaults
+        to no failsafe (None)
+    """
+
+    def __init__(self,
+                 veh_id,
+                 car_following_params,
+                 alpha=1.5,
+                 beta=20.0,
+                 s0=2.0,
+                 s_star=2.0,
+                 vM=30.0,
+                 time_delay=0,
+                 noise=0,
+                 fail_safe=None):
+        """Instantiate an Optimal Vehicle Model controller."""
+        BaseController.__init__(
+            self,
+            veh_id,
+            car_following_params,
+            delay=time_delay,
+            fail_safe=fail_safe,
+            noise=noise)
+        self.veh_id = veh_id
+        self.vM = vM
+        self.alpha = alpha
+        self.beta = beta
+        self.vM = vM
+        self.s0 = s0 
+        self.s_star = s_star
+
+    def get_accel(self, env):
+        """See parent class."""
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        if not lead_id:  # no car ahead
+            return self.max_accel
+
+        lead_vel = env.k.vehicle.get_speed(lead_id)
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
+        h = env.k.vehicle.get_headway(self.veh_id)
+        h_dot = lead_vel - this_vel
+
+
+        return self.alpha*(self.OV_Func(h)-this_vel) + self.beta * self.FTL_Func(h,h_dot)
+
+    def OV_Func(self,h):
+        v_h = self.vM*(np.tanh(h/self.s0 - self.s_star) - np.tanh(self.s_star))/(1 + np.tanh(self.s_star))
+        return v_h
+
+    def FTL_Func(self,h,h_dot):
+        return h_dot/(h**2.0)
 
 
 class LinearOVM(BaseController):

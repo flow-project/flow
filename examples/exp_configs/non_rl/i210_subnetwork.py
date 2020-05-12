@@ -16,7 +16,18 @@ from flow.core.params import InFlows
 import flow.config as config
 from flow.envs import TestEnv
 
-WANT_GHOST_CELL = False
+WANT_GHOST_CELL = True
+WANT_DOWNSTREAM_BOUNDARY = True
+ON_RAMP = True
+
+
+inflow_rate = 5*2215
+inflow_speed = 24.1
+
+
+accel_data = (IDMController,{'a':1.3,'b':2.0,'noise':0.3})
+
+
 
 highway_start_edge = ''
 
@@ -28,12 +39,6 @@ else:
     highway_start_edge = "119257914"
 
 
-
-ON_RAMP = False
-
-param_dict = {"a": 0.3, "b": 2.0, "noise": 0.5}
-
-
 if ON_RAMP:
     vehicles = VehicleParams()
     vehicles.add(
@@ -42,7 +47,7 @@ if ON_RAMP:
         lane_change_params=SumoLaneChangeParams(
             lane_change_mode="strategic",
         ),
-        acceleration_controller=(IDMController, param_dict),
+        acceleration_controller=accel_data,
         routing_controller=(I210Router, {})
     )
 
@@ -55,7 +60,7 @@ else:
         lane_change_params=SumoLaneChangeParams(
             lane_change_mode="strategic",
         ),
-        acceleration_controller=(IDMController, param_dict),
+        acceleration_controller=accel_data,
     )
 
 inflow = InFlows()
@@ -63,9 +68,9 @@ inflow = InFlows()
 inflow.add(
     veh_type="human",
     edge=highway_start_edge,
-    vehs_per_hour=10800,
+    vehs_per_hour=inflow_rate,
     departLane="best",
-    departSpeed=20.0)
+    departSpeed=inflow_speed)
 # on ramp
 if ON_RAMP:
     inflow.add(
@@ -93,6 +98,13 @@ else:
         config.PROJECT_PATH,
         "examples/exp_configs/templates/sumo/test2.net.xml")
 
+if(WANT_DOWNSTREAM_BOUNDARY):
+    NET_TEMPLATE = os.path.join(
+        config.PROJECT_PATH,
+        "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_downstream.xml")
+
+
+
 flow_params = dict(
     # name of the experiment
     exp_tag='I-210_subnetwork',
@@ -108,7 +120,7 @@ flow_params = dict(
 
     # simulation-related parameters
     sim=SumoParams(
-        sim_step=0.5,
+        sim_step=0.4,
         render=False,
         color_by_speed=True,
         use_ballistic=True
@@ -116,7 +128,7 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=7200,
+        horizon=10000,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

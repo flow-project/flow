@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+  <route id="routeghost0_0" edges="ghost0 119257914 119257908#0 119257908#1-AddedOnRampEdge 119257908#1 119257908#1-AddedOffRampEdge 119257908#2 119257908#3"/>
+  <route id="routeghost0_1" edges="119257914 119257908#0 119257908#1-AddedOnRampEdge 119257908#1 119257908#1-AddedOffRampEdge 173381935"/>
+  <route id="route119257914_0" edges="119257914 119257908#0 119257908#1-AddedOnRampEdge 119257908#1 119257908#1-AddedOffRampEdge 119257908#2 119257908#3"/>
+  <route id="route119257914_1" edges="119257914 119257908#0 119257908#1-AddedOnRampEdge 119257908#1 119257908#1-AddedOffRampEdge 173381935"/>
+  <route id="route119257908#0_0" edges="119257908#0 119257908#1-AddedOnRampEdge 119257908#1 119257908#1-AddedOffRampEdge 119257908#2 119257908#3"/>
+  <route id="route119257908#1-AddedOnRampEdge_0" edges="119257908#1-AddedOnRampEdge 119257908#1 119257908#1-AddedOffRampEdge 119257908#2 119257908#3"/>
+  <route id="route119257908#1_0" edges="119257908#1 119257908#1-AddedOffRampEdge 119257908#2 119257908#3"/>
+  <route id="route119257908#1-AddedOffRampEdge_0" edges="119257908#1-AddedOffRampEdge 119257908#2 119257908#3"/>
+  <route id="route119257908#2_0" edges="119257908#2 119257908#3"/>
+  <route id="route119257908#3_0" edges="119257908#3"/>
+  <route id="route27414345_0" edges="27414345 27414342#1-AddedOnRampEdge 27414342#1 119257908#1-AddedOnRampEdge 119257908#1 119257908#1-AddedOffRampEdge 119257908#2 119257908#3"/>
+  <route id="route27414345_1" edges="27414345 27414342#1-AddedOnRampEdge 27414342#1 119257908#1-AddedOnRampEdge 119257908#1 119257908#1-AddedOffRampEdge 173381935"/>
+  <route id="route27414342#0_0" edges="27414342#0 27414342#1-AddedOnRampEdge 27414342#1 119257908#1-AddedOnRampEdge 119257908#1 119257908#1-AddedOffRampEdge 119257908#2 119257908#3"/>
+  <route id="route27414342#0_1" edges="27414342#0 27414342#1-AddedOnRampEdge 27414342#1 119257908#1-AddedOnRampEdge 119257908#1 119257908#1-AddedOffRampEdge 173381935"/>
+  <route id="route27414342#1-AddedOnRampEdge_0" edges="27414342#1-AddedOnRampEdge 27414342#1 119257908#1-AddedOnRampEdge 119257908#1 119257908#1-AddedOffRampEdge 119257908#2 119257908#3"/>
+  <route id="route27414342#1-AddedOnRampEdge_1" edges="27414342#1-AddedOnRampEdge 27414342#1 119257908#1-AddedOnRampEdge 119257908#1 119257908#1-AddedOffRampEdge 173381935"/>
+  <route id="route173381935_0" edges="173381935"/>
+  <flow id="flow_00" route="routeghost0_0" type="human" departLane="best" departSpeed="20.0" begin="1" end="86400" vehsPerHour="10800.0"/>
+  <flow id="flow_001" route="routeghost0_1" type="human" departLane="best" departSpeed="20.0" begin="1" end="86400" vehsPerHour="21.914538075913104"/>
+  <flow id="flow_10" route="route27414345_0" type="human" departLane="random" departSpeed="10" begin="1" end="86400" vehsPerHour="971.9626168224299"/>
+  <flow id="flow_101" route="route27414345_1" type="human" departLane="random" departSpeed="10" begin="1" end="86400" vehsPerHour="28.037383177570092"/>
+  <flow id="flow_20" route="route27414342#0_0" type="human" departLane="random" departSpeed="10" begin="1" end="86400" vehsPerHour="952.4940617577197"/>
+  <flow id="flow_201" route="route27414342#0_1" type="human" departLane="random" departSpeed="10" begin="1" end="86400" vehsPerHour="47.50593824228029"/>
+</routes>
