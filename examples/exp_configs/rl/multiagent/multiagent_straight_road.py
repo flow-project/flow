@@ -34,7 +34,7 @@ INCLUDE_NOISE = False
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
     # length of the highway
-    "length": 2000,
+    "length": 2500,
     # number of lanes
     "lanes": 1,
     # speed limit for all edges
@@ -56,7 +56,7 @@ additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
     'target_velocity': 12.0,
-    'local_reward': True,
+    'local_reward': False,
     'lead_obs': True,
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": True,

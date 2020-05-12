@@ -91,6 +91,11 @@ def visualizer_rllib(args):
             sys.exit(1)
     if args.run:
         agent_cls = get_agent_class(args.run)
+    elif config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CCPPOTrainer'>":
+        from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
+        from ray.rllib.models import ModelCatalog
+        agent_cls = CCTrainer
+        ModelCatalog.register_custom_model("cc_model", CentralizedCriticModel)
     elif config_run:
         agent_cls = get_agent_class(config_run)
     else:
@@ -163,6 +168,7 @@ def visualizer_rllib(args):
 
     if hasattr(env, "reroute_on_exit"):
         env.reroute_on_exit = False
+        env.env_params.horizon += env.env_params.warmup_steps
         env.env_params.warmup_steps = 0
 
     if args.render_mode == 'sumo_gui':

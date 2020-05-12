@@ -183,6 +183,9 @@ class I210MultiEnv(MultiEnv):
                 rewards[rl_id] = 0
                 if self.mpg_reward:
                     rewards[rl_id] = miles_per_gallon(self, rl_id) / 100.0
+                    follow_id = self.k.vehicle.get_follower(rl_id)
+                    if follow_id not in ["", None]:
+                        rewards[rl_id] += miles_per_gallon(self, follow_id) / 100.0
                 else:
                     speeds = []
                     follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
