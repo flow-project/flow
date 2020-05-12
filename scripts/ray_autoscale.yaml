@@ -40,7 +40,7 @@ auth:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
     InstanceType: c4.4xlarge
-    ImageId: ami-0b489700e7f810707 # Flow AMI (Ubuntu)
+    ImageId: ami-0c047f3ddd3939b30 # Flow AMI (Ubuntu)
     KeyName: MyKeyPair2
     InstanceMarketOptions:
         MarketType: spot
@@ -56,7 +56,7 @@ head_node:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
     InstanceType: c4.4xlarge
-    ImageId: ami-0b489700e7f810707 # Flow AMI (Ubuntu)
+    ImageId: ami-0c047f3ddd3939b30 # Flow AMI (Ubuntu)
     KeyName: MyKeyPair2
 
   #Run workers on spot by default. Comment this out to use on-demand.
@@ -72,7 +72,7 @@ setup_commands:
     - cd flow && git fetch && git checkout origin/flow_maddpg
 
 head_setup_commands:
-    - pip install ray==0.8.0
+    - pip install -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.9.0.dev0-cp37-cp37m-manylinux1_x86_64.whl
     - pip install tabulate
     - pip install boto3==1.10.45  # 1.4.8 adds InstanceMarketOptions
     - pip install awscli==1.16.309
@@ -81,6 +81,7 @@ head_setup_commands:
     - pip install torch==1.3.1
     - pip install tensorflow==2.0.0
     - pip install lz4
+    - pip install dm-tree
 
 # Custom commands that will be run on worker nodes after common setup.
 worker_setup_commands: []

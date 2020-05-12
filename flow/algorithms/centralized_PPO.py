@@ -10,12 +10,12 @@ from gym.spaces import Dict
 
 from ray import tune
 from ray.rllib.agents.ppo.ppo import PPOTrainer
-from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy, BEHAVIOUR_LOGITS
+from flow.algorithms.custom_ppo import CustomPPOTFPolicy
 from ray.rllib.evaluation.postprocessing import compute_advantages, \
     Postprocessing
 from ray.rllib.policy.sample_batch import SampleBatch
 from ray.rllib.policy.tf_policy import LearningRateSchedule, \
-    EntropyCoeffSchedule, ACTION_LOGP
+    EntropyCoeffSchedule
 from ray.rllib.models.modelv2 import ModelV2
 from ray.rllib.models.tf.tf_modelv2 import TFModelV2
 from ray.rllib.models.tf.recurrent_tf_modelv2 import RecurrentTFModelV2
@@ -184,46 +184,38 @@ def centralized_critic_postprocessing(policy,
     if policy.loss_initialized():
         assert other_agent_batches is not None
 
-        time_span = (sample_batch['t'][0], sample_batch['t'][-1])
-        # there's a new problem here, namely that a segment might not be continuous due to the rerouting
-        other_agent_timespans = {agent_id:
-                                 (other_agent_batches[agent_id][1]["t"][0],
-                                  other_agent_batches[agent_id][1]["t"][-1])
-                             for agent_id in other_agent_batches.keys()}
+        # time_span = (sample_batch['t'][0], sample_batch['t'][-1])
+        # # there's a new problem here, namely that a segment might not be continuous due to the rerouting
+        # other_agent_timespans = {agent_id:
+        #                          (other_agent_batches[agent_id][1]["t"][0],
+        #                           other_agent_batches[agent_id][1]["t"][-1])
+        #                      for agent_id in other_agent_batches.keys()}
         other_agent_times = {agent_id: other_agent_batches[agent_id][1]["t"]
                              for agent_id in other_agent_batches.keys()}
         agent_time = sample_batch['t']
-        # find agents whose time overlaps with the current agent
-        rel_agents = {agent_id: other_agent_time for agent_id,
-                                                     other_agent_time in
-                      other_agent_timespans.items()
-                      if time_overlap(time_span, other_agent_time)}
-        if len(rel_agents) > 0:
-            other_obs = {agent_id:
-                             other_agent_batches[agent_id][1]["obs"].copy()
-                         for agent_id in rel_agents.keys()}
-            # padded_agent_obs = {agent_id:
-            #     overlap_and_pad_agent(
-            #         time_span,
-            #         rel_agent_time,
-            #         other_obs[agent_id])
-            #     for agent_id,
-            #         rel_agent_time in rel_agents.items()}
-            padded_agent_obs = {agent_id:
-                fill_missing(
-                    agent_time,
-                    other_agent_times[agent_id],
-                    other_obs[agent_id])
-                for agent_id,
-                    rel_agent_time in rel_agents.items()}
-            # okay, now we need to stack and sort
-            central_obs_list = [padded_obs for padded_obs in padded_agent_obs.values()]
-            try:
-                central_obs_batch = np.hstack((sample_batch["obs"], np.hstack(central_obs_list)))
-            except:
-                import ipdb; ipdb.set_trace()
-        else:
-            central_obs_batch = sample_batch["obs"]
+        # # find agents whose time overlaps with the current agent
+        rel_agents = {agent_id: other_agent_time for agent_id, other_agent_time in other_agent_times.items()}
+        # if len(rel_agents) > 0:
+        other_obs = {agent_id:
+                         other_agent_batches[agent_id][1]["obs"].copy()
+                     for agent_id in other_agent_batches.keys()}
+        # padded_agent_obs = {agent_id:
+        #     overlap_and_pad_agent(
+        #         time_span,
+        #         rel_agent_time,
+        #         other_obs[agent_id])
+        #     for agent_id,
+        #         rel_agent_time in rel_agents.items()}
+        padded_agent_obs = {agent_id:
+            fill_missing(
+                agent_time,
+                other_agent_times[agent_id],
+                other_obs[agent_id])
+            for agent_id,
+                rel_agent_time in rel_agents.items()}
+        # okay, now we need to stack and sort
+        central_obs_list = [padded_obs for padded_obs in padded_agent_obs.values()]
+        central_obs_batch = np.hstack((sample_batch["obs"], np.hstack(central_obs_list)))
         max_vf_agents = policy.model.max_num_agents
         num_agents = len(rel_agents) + 1
         if num_agents < max_vf_agents:
@@ -372,8 +364,8 @@ def loss_with_central_critic(policy, model, dist_class, train_batch):
         train_batch[Postprocessing.VALUE_TARGETS],
         train_batch[Postprocessing.ADVANTAGES],
         train_batch[SampleBatch.ACTIONS],
-        train_batch[BEHAVIOUR_LOGITS],
-        train_batch[ACTION_LOGP],
+        train_batch[SampleBatch.ACTION_DIST_INPUTS],
+        train_batch[SampleBatch.ACTION_LOGP],
         train_batch[SampleBatch.VF_PREDS],
         action_dist,
         policy.central_value_function,
@@ -533,7 +525,7 @@ def kl_and_loss_stats(policy, train_batch):
         "avg_rew": train_batch["rewards"][-1]
     }
 
-CCPPO = PPOTFPolicy.with_updates(
+CCPPO = CustomPPOTFPolicy.with_updates(
     name="CCPPO",
     postprocess_fn=centralized_critic_postprocessing,
     loss_fn=new_ppo_surrogate_loss,

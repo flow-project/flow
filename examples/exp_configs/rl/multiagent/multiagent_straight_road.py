@@ -77,7 +77,7 @@ additional_env_params.update({
     # how many timesteps to anneal the headway curriculum over
     "speed_curriculum_iters": 100,
     # weight of the headway reward
-    "speed_reward_gain": 1.0
+    "speed_reward_gain": 2.0
 })
 
 
@@ -127,9 +127,9 @@ inflows.add(
     name="rl_highway_inflow")
 
 # SET UP FLOW PARAMETERS
-warmup_steps = 400
+warmup_steps = 200
 if additional_env_params['reroute_on_exit']:
-    warmup_steps = 400
+    warmup_steps = 200
 
 flow_params = dict(
     # name of the experiment

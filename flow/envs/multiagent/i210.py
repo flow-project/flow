@@ -76,16 +76,16 @@ class I210MultiEnv(MultiEnv):
         self.exit_edge = "119257908#2"
         self.mpg_reward = env_params.additional_params["mpg_reward"]
         # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
-        self.headway_curriculum = env_params.additional_params.get("headway_curriculum", False)
+        self.headway_curriculum = env_params.additional_params["headway_curriculum"]
         # how many timesteps to anneal the headway curriculum over
-        self.headway_curriculum_iters = env_params.additional_params.get("headway_curriculum_iters", 0)
-        self.headway_reward_gain = env_params.additional_params.get("headway_reward_gain", 0.0)
+        self.headway_curriculum_iters = env_params.additional_params["headway_curriculum_iters"]
+        self.headway_reward_gain = env_params.additional_params["headway_reward_gain"]
 
         # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
-        self.speed_curriculum = env_params.additional_params.get("speed_curriculum", False)
+        self.speed_curriculum = env_params.additional_params["speed_curriculum"]
         # how many timesteps to anneal the headway curriculum over
-        self.speed_curriculum_iters = env_params.additional_params.get("speed_curriculum_iters", 0)
-        self.speed_reward_gain = env_params.additional_params.get("speed_reward_gain", 0.0)
+        self.speed_curriculum_iters = env_params.additional_params["speed_curriculum_iters"]
+        self.speed_reward_gain = env_params.additional_params["speed_reward_gain"]
         self.num_training_iters = 0
         self.leader = []
 
@@ -229,7 +229,7 @@ class I210MultiEnv(MultiEnv):
                 speed_reward = 0.0
                 if speed >= 0:
                     speed_reward = ((des_speed - np.abs(speed - des_speed)) ** 2) / (des_speed ** 2)
-                scaling_factor = max(0, 1 - self.num_training_iters / self.headway_curriculum_iters)
+                scaling_factor = max(0, 1 - self.num_training_iters / self.speed_curriculum_iters)
 
                 rewards[veh_id] += speed_reward * scaling_factor * self.speed_reward_gain
         # print('time to get reward is ', time() - t)

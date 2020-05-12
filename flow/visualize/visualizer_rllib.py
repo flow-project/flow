@@ -163,6 +163,7 @@ def visualizer_rllib(args):
 
     if hasattr(env, "reroute_on_exit"):
         env.reroute_on_exit = False
+        env.env_params.warmup_steps = 0
 
     if args.render_mode == 'sumo_gui':
         env.sim_params.render = True  # set to True after initializing agent and env
