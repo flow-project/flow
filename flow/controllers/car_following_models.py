@@ -623,4 +623,3 @@ class GippsController(BaseController):
     def get_custom_accel(self, this_vel, lead_vel, h):
         """See parent class."""
         raise NotImplementedError
-

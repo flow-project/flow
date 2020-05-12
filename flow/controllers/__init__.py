@@ -38,6 +38,7 @@ __all__ = [
     "CFMController", "BCMController", "OVMController", "LinearOVM",
     "IDMController", "SimCarFollowingController", "FollowerStopper",
     "PISaturation", "StaticLaneChanger", "SimLaneChangeController",
-    "ContinuousRouter", "GridRouter", "BayBridgeRouter","I210Router", "LACController",
-    "GippsController", "NonLocalFollowerStopper", "AILaneChangeController"
+    "ContinuousRouter", "GridRouter", "BayBridgeRouter","I210Router",
+    "LACController", "GippsController", "NonLocalFollowerStopper",
+    "AILaneChangeController"
 ]
