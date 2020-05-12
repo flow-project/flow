@@ -56,12 +56,14 @@ additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
     'target_velocity': 12.0,
-    'local_reward': False,
+    'local_reward': True,
     'lead_obs': True,
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": True,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
     "mpg_reward": True,
+    # how many vehicles to look back for the MPG reward
+    "look_back_length": 3,
     # how many AVs there can be at once (this is only for centralized critics)
     "max_num_agents": 10,
 

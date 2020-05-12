@@ -47,6 +47,8 @@ additional_env_params.update({
     "local_reward": True,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
     "mpg_reward": True,
+    # how many vehicles to look back for the MPG reward
+    "look_back_length": 1,
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": False,
     'target_velocity': 12.0,

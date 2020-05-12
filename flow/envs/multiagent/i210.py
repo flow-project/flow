@@ -75,6 +75,8 @@ class I210MultiEnv(MultiEnv):
         self.entrance_edge = "119257914"
         self.exit_edge = "119257908#2"
         self.mpg_reward = env_params.additional_params["mpg_reward"]
+        self.look_back_length = env_params.additional_params["look_back_length"]
+
         # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
         self.headway_curriculum = env_params.additional_params["headway_curriculum"]
         # how many timesteps to anneal the headway curriculum over
@@ -183,9 +185,13 @@ class I210MultiEnv(MultiEnv):
                 rewards[rl_id] = 0
                 if self.mpg_reward:
                     rewards[rl_id] = miles_per_gallon(self, rl_id) / 100.0
-                    follow_id = self.k.vehicle.get_follower(rl_id)
-                    if follow_id not in ["", None]:
-                        rewards[rl_id] += miles_per_gallon(self, follow_id) / 100.0
+                    follow_id = rl_id
+                    for i in range(self.look_back_length):
+                        follow_id = self.k.vehicle.get_follower(follow_id)
+                        if follow_id not in ["", None]:
+                            rewards[rl_id] += miles_per_gallon(self, follow_id) / 100.0
+                        else:
+                            break
                 else:
                     speeds = []
                     follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
