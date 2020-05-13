@@ -22,7 +22,7 @@ for run_script in rllib/ppo_runner.py; do
         echo "ray exec ../../scripts/ray_autoscale.yaml \"python ./flow/flow/benchmarks/${run_script} --upload_dir=\"eugene.experiments/offline_rl/${dt}/\" --benchmark_name=${benchmark} --num_cpus 14\" --start --stop --cluster-name=all_benchmark_${benchmark}_${alg}_$dt --tmux"
         echo "====================================================================="
         ray exec ../../scripts/ray_autoscale.yaml "python ./flow/flow/benchmarks/${run_script} \
-        --upload_dir=\"eugene.experiments/offline_rl/${dt}/\" --benchmark_name=${benchmark} --num_cpus 25" \
+        --upload_dir=\"eugene.experiments/offline_rl/${dt}/\" --benchmark_name=${benchmark} --num_cpus 25 --num_rollouts 25" \
         --start --stop --cluster-name=all_benchmark2_${benchmark}_${alg}_$dt --tmux
     done
 done
