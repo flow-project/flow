@@ -1,18 +1,17 @@
 name: flow
 
 dependencies:
-    - python==3.6.8
-    - scipy==1.1.0
-    - lxml==4.4.1
-    - six==1.11.0
-    - path.py
-    - python-dateutil==2.7.3
-    - pip>=18.0
-    - tensorflow==1.9.0
-    - cloudpickle==1.2.1
-    - setuptools==41.0.0
-    - plotly==2.4.0
+    - python==3.7.3
     - pip:
+        - scipy==1.1.0
+        - lxml==4.4.1
+        - six==1.11.0
+        - path.py
+        - python-dateutil==2.7.3
+        - pip>=18.0
+        - tensorflow==1.14.0
+        - setuptools==41.0.0
+        - plotly==2.4.0
         - gym==0.14.0
         - pyprind==2.11.2
         - nose2==0.8.0
@@ -21,9 +20,11 @@ dependencies:
         - matplotlib==3.0.0
         - dill
         - lz4
-        - ray==0.7.3
+        - ray==0.8.0
         - setproctitle
         - psutil
         - opencv-python
-        - boto3==1.4.8
+        - boto3==1.10.45
         - redis~=2.10.6
+        - tabulate
+        - pytz

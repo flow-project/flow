@@ -1010,6 +1010,8 @@ class TraCIVehicle(KernelVehicle):
 
     def get_x_by_id(self, veh_id):
         """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_x_by_id(vehID) for vehID in veh_id]
         if self.get_edge(veh_id) == '':
             # occurs when a vehicle crashes is teleported for some other reason
             return 0.

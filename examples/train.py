@@ -7,13 +7,31 @@ Usage
     python train.py EXP_CONFIG
 """
 import argparse
+from datetime import datetime
 import json
 import os
 import sys
 from time import strftime
 from copy import deepcopy
 
+import numpy as np
+import pytz
+
+try:
+    from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
+    from stable_baselines import PPO2
+except ImportError:
+    print("Stable-baselines not installed")
+
+from ray import tune
+from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
+
 from flow.core.util import ensure_dir
+from flow.core.rewards import energy_consumption
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 from flow.utils.registry import make_create_env
@@ -38,20 +56,44 @@ def parse_args(args):
         help='Name of the experiment configuration file, as located in '
              'exp_configs/rl/singleagent or exp_configs/rl/multiagent.')
 
+    parser.add_argument(
+        'exp_title', type=str,
+        help='Title to give the run.')
+
     # optional input parameters
     parser.add_argument(
         '--rl_trainer', type=str, default="rllib",
         help='the RL trainer to use. either rllib or Stable-Baselines')
-
+    parser.add_argument(
+        '--algorithm', type=str, default="PPO",
+        help='RL algorithm to use. Options are PPO, TD3, MATD3 (MADDPG w/ TD3) right now.'
+    )
     parser.add_argument(
         '--num_cpus', type=int, default=1,
         help='How many CPUs to use')
     parser.add_argument(
         '--num_steps', type=int, default=5000,
-        help='How many total steps to perform learning over')
+        help='How many total steps to perform learning over. Relevant for stable-baselines')
+    parser.add_argument(
+        '--grid_search', action='store_true', default=False,
+        help='Whether to grid search over hyperparams')
+    parser.add_argument(
+        '--num_iterations', type=int, default=200,
+        help='How many iterations are in a training run.')
+    parser.add_argument(
+        '--checkpoint_freq', type=int, default=20,
+        help='How often to checkpoint.')
+    parser.add_argument(
+        '--num_rollouts', type=int, default=1,
+        help='How many rollouts are in a training batch')
     parser.add_argument(
         '--rollout_size', type=int, default=1000,
         help='How many steps are in a training batch.')
+    parser.add_argument('--use_s3', action='store_true', help='If true, upload results to s3')
+    parser.add_argument('--local_mode', action='store_true', default=False,
+                        help='If true only 1 CPU will be used')
+    parser.add_argument('--render', action='store_true', default=False,
+                        help='If true, we render the display')
     parser.add_argument(
         '--checkpoint_path', type=str, default=None,
         help='Directory with checkpoint to restore training from.')
@@ -101,9 +143,11 @@ def run_model_stablebaseline(flow_params,
 def setup_exps_rllib(flow_params,
                      n_cpus,
                      n_rollouts,
+                     flags,
                      policy_graphs=None,
                      policy_mapping_fn=None,
-                     policies_to_train=None):
+                     policies_to_train=None,
+                     ):
     """Return the relevant components of an RLlib experiment.
 
     Parameters
@@ -114,13 +158,14 @@ def setup_exps_rllib(flow_params,
         number of CPUs to run the experiment over
     n_rollouts : int
         number of rollouts per training iteration
+    flags:
+        custom arguments
     policy_graphs : dict, optional
         TODO
     policy_mapping_fn : function, optional
         TODO
     policies_to_train : list of str, optional
         TODO
-
     Returns
     -------
     str
@@ -139,20 +184,61 @@ def setup_exps_rllib(flow_params,
 
     horizon = flow_params['env'].horizon
 
-    alg_run = "PPO"
+    alg_run = flags.algorithm.upper()
 
-    agent_cls = get_agent_class(alg_run)
-    config = deepcopy(agent_cls._default_config)
+    if alg_run == "PPO":
+        agent_cls = get_agent_class(alg_run)
+        config = deepcopy(agent_cls._default_config)
 
-    config["num_workers"] = n_cpus
-    config["train_batch_size"] = horizon * n_rollouts
-    config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [32, 32, 32]})
-    config["use_gae"] = True
-    config["lambda"] = 0.97
-    config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 10
-    config["horizon"] = horizon
+        config["num_workers"] = n_cpus
+        config["horizon"] = horizon
+        config["model"].update({"fcnet_hiddens": [32, 32, 32]})
+        config["train_batch_size"] = horizon * n_rollouts
+        config["gamma"] = 0.999  # discount rate
+        config["use_gae"] = True
+        config["lambda"] = 0.97
+        config["kl_target"] = 0.02
+        config["num_sgd_iter"] = 10
+    elif alg_run == "TD3":
+        agent_cls = get_agent_class(alg_run)
+        config = deepcopy(agent_cls._default_config)
+
+        config["num_workers"] = n_cpus
+        config["horizon"] = horizon
+        config["buffer_size"] = 20000  # reduced to test if this is the source of memory problems
+        if flags.grid_search:
+            config["prioritized_replay"] = tune.grid_search(['True', 'False'])
+            config["actor_lr"] = tune.grid_search([1e-3, 1e-4])
+            config["critic_lr"] = tune.grid_search([1e-3, 1e-4])
+            config["n_step"] = tune.grid_search([1, 10])
+    else:
+        sys.exit("We only support PPO, TD3, right now.")
+
+    # define some standard and useful callbacks
+    def on_episode_start(info):
+        episode = info["episode"]
+        episode.user_data["avg_speed"] = []
+        episode.user_data["avg_energy"] = []
+
+    def on_episode_step(info):
+        episode = info["episode"]
+        env = info["env"].get_unwrapped()[0]
+        if isinstance(env, _GroupAgentsWrapper):
+            env = env.env
+        speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0])
+        if not np.isnan(speed):
+            episode.user_data["avg_speed"].append(speed)
+        episode.user_data["avg_energy"].append(energy_consumption(env))
+
+    def on_episode_end(info):
+        episode = info["episode"]
+        avg_speed = np.mean(episode.user_data["avg_speed"])
+        episode.custom_metrics["avg_speed"] = avg_speed
+        episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
+
+    config["callbacks"] = {"on_episode_start": tune.function(on_episode_start),
+                           "on_episode_step": tune.function(on_episode_step),
+                           "on_episode_end": tune.function(on_episode_end)}
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -165,14 +251,12 @@ def setup_exps_rllib(flow_params,
         print("policy_graphs", policy_graphs)
         config['multiagent'].update({'policies': policy_graphs})
     if policy_mapping_fn is not None:
-        config['multiagent'].update(
-            {'policy_mapping_fn': tune.function(policy_mapping_fn)})
+        config['multiagent'].update({'policy_mapping_fn': tune.function(policy_mapping_fn)})
     if policies_to_train is not None:
         config['multiagent'].update({'policies_to_train': policies_to_train})
 
     create_env, gym_name = make_create_env(params=flow_params)
 
-    # Register as rllib env
     register_env(gym_name, create_env)
     return alg_run, gym_name, config
 
@@ -183,34 +267,45 @@ def train_rllib(submodule, flags):
     from ray.tune import run_experiments
 
     flow_params = submodule.flow_params
-    n_cpus = submodule.N_CPUS
-    n_rollouts = submodule.N_ROLLOUTS
+    flow_params['sim'].render = flags.render
     policy_graphs = getattr(submodule, "POLICY_GRAPHS", None)
     policy_mapping_fn = getattr(submodule, "policy_mapping_fn", None)
     policies_to_train = getattr(submodule, "policies_to_train", None)
 
     alg_run, gym_name, config = setup_exps_rllib(
-        flow_params, n_cpus, n_rollouts,
+        flow_params, flags.num_cpus, flags.num_rollouts, flags,
         policy_graphs, policy_mapping_fn, policies_to_train)
 
-    ray.init(num_cpus=n_cpus + 1, object_store_memory=200 * 1024 * 1024)
-    exp_config = {
-        "run": alg_run,
-        "env": gym_name,
-        "config": {
-            **config
-        },
-        "checkpoint_freq": 20,
+    config['num_workers'] = flags.num_cpus
+    config['env'] = gym_name
+
+    # create a custom string that makes looking at the experiment names easier
+    def trial_str_creator(trial):
+        return "{}_{}".format(trial.trainable_name, trial.experiment_tag)
+
+    if flags.local_mode:
+        ray.init(local_mode=True)
+    else:
+        ray.init()
+    exp_dict = {
+        "run_or_experiment": alg_run,
+        "name": gym_name,
+        "config": config,
+        "checkpoint_freq": flags.checkpoint_freq,
         "checkpoint_at_end": True,
-        "max_failures": 999,
+        'trial_name_creator': trial_str_creator,
+        "max_failures": 0,
         "stop": {
-            "training_iteration": flags.num_steps,
+            "training_iteration": flags.num_iterations,
         },
     }
-
-    if flags.checkpoint_path is not None:
-        exp_config['restore'] = flags.checkpoint_path
-    run_experiments({flow_params["exp_tag"]: exp_config})
+    date = datetime.now(tz=pytz.utc)
+    date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
+    s3_string = "s3://i210.experiments/i210/" \
+                + date + '/' + flags.exp_title
+    if flags.use_s3:
+        exp_dict['upload_dir'] = s3_string
+    tune.run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
 
 
 def train_h_baselines(flow_params, args, multiagent):

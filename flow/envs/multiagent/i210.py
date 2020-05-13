@@ -8,6 +8,8 @@ from flow.envs.multiagent.base import MultiEnv
 
 # largest number of lanes on any given edge in the network
 MAX_LANES = 6
+SPEED_SCALE = 50
+HEADWAY_SCALE = 1000
 
 ADDITIONAL_ENV_PARAMS = {
     # maximum acceleration for autonomous vehicles, in m/s^2
@@ -16,6 +18,8 @@ ADDITIONAL_ENV_PARAMS = {
     "max_decel": 1,
     # whether we use an obs space that contains adjacent lane info or just the lead obs
     "lead_obs": True,
+    # whether the reward should come from local vehicles instead of global rewards
+    "local_reward": True
 }
 
 
@@ -59,6 +63,7 @@ class I210MultiEnv(MultiEnv):
     def __init__(self, env_params, sim_params, network, simulator='traci'):
         super().__init__(env_params, sim_params, network, simulator)
         self.lead_obs = env_params.additional_params.get("lead_obs")
+        self.max_lanes = MAX_LANES
 
     @property
     def observation_space(self):
@@ -74,8 +79,8 @@ class I210MultiEnv(MultiEnv):
         # speed, dist to ego vehicle, binary value which is 1 if the vehicle is
         # an AV
         else:
-            leading_obs = 3 * MAX_LANES
-            follow_obs = 3 * MAX_LANES
+            leading_obs = 3 * self.max_lanes
+            follow_obs = 3 * self.max_lanes
 
             # speed and lane
             self_obs = 2
@@ -117,11 +122,16 @@ class I210MultiEnv(MultiEnv):
             veh_info = {}
             for rl_id in self.k.vehicle.get_rl_ids():
                 speed = self.k.vehicle.get_speed(rl_id)
-                headway = self.k.vehicle.get_headway(rl_id)
-                lead_speed = self.k.vehicle.get_speed(self.k.vehicle.get_leader(rl_id))
-                if lead_speed == -1001:
-                    lead_speed = 0
-                veh_info.update({rl_id: np.array([speed / 50.0, headway / 1000.0, lead_speed / 50.0])})
+                lead_id = self.k.vehicle.get_leader(rl_id)
+                if lead_id in ["", None]:
+                    # in case leader is not visible
+                    lead_speed = SPEED_SCALE
+                    headway = HEADWAY_SCALE
+                else:
+                    lead_speed = self.k.vehicle.get_speed(lead_id)
+                    headway = self.k.vehicle.get_headway(rl_id)
+                    self.leader.append(lead_id)
+                veh_info.update({rl_id: np.array([speed / SPEED_SCALE, headway /HEADWAY_SCALE, lead_speed / SPEED_SCALE])})
         else:
             veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
                                                self.veh_statistics(rl_id)))
@@ -129,43 +139,56 @@ class I210MultiEnv(MultiEnv):
         return veh_info
 
     def compute_reward(self, rl_actions, **kwargs):
-        # TODO(@evinitsky) we need something way better than this. Something that adds
-        # in notions of local reward
         """See class definition."""
         # in the warmup steps
         if rl_actions is None:
             return {}
 
         rewards = {}
-        for rl_id in self.k.vehicle.get_rl_ids():
-            if self.env_params.evaluate:
-                # reward is speed of vehicle if we are in evaluation mode
-                reward = self.k.vehicle.get_speed(rl_id)
-            elif kwargs['fail']:
-                # reward is 0 if a collision occurred
-                reward = 0
-            else:
-                # reward high system-level velocities
-                cost1 = average_velocity(self, fail=kwargs['fail'])
+        if self.env_params.additional_params["local_reward"]:
+            des_speed = self.env_params.additional_params["target_velocity"]
+            for rl_id in self.k.vehicle.get_rl_ids():
+                rewards[rl_id] = 0
+                speeds = []
+                follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
+                if follow_speed >= 0:
+                    speeds.append(follow_speed)
+                if self.k.vehicle.get_speed(rl_id) >= 0:
+                    speeds.append(self.k.vehicle.get_speed(rl_id))
+                if len(speeds) > 0:
+                    # rescale so the q function can estimate it quickly
+                    rewards[rl_id] = np.mean([(des_speed - np.abs(speed - des_speed))**2
+                                              for speed in speeds]) / (des_speed**2)
+        else:
+            for rl_id in self.k.vehicle.get_rl_ids():
+                if self.env_params.evaluate:
+                    # reward is speed of vehicle if we are in evaluation mode
+                    reward = self.k.vehicle.get_speed(rl_id)
+                elif kwargs['fail']:
+                    # reward is 0 if a collision occurred
+                    reward = 0
+                else:
+                    # reward high system-level velocities
+                    cost1 = average_velocity(self, fail=kwargs['fail'])
 
-                # penalize small time headways
-                cost2 = 0
-                t_min = 1  # smallest acceptable time headway
+                    # penalize small time headways
+                    cost2 = 0
+                    t_min = 1  # smallest acceptable time headway
 
-                lead_id = self.k.vehicle.get_leader(rl_id)
-                if lead_id not in ["", None] \
-                        and self.k.vehicle.get_speed(rl_id) > 0:
-                    t_headway = max(
-                        self.k.vehicle.get_headway(rl_id) /
-                        self.k.vehicle.get_speed(rl_id), 0)
-                    cost2 += min((t_headway - t_min) / t_min, 0)
+                    lead_id = self.k.vehicle.get_leader(rl_id)
+                    if lead_id not in ["", None] \
+                            and self.k.vehicle.get_speed(rl_id) > 0:
+                        t_headway = max(
+                            self.k.vehicle.get_headway(rl_id) /
+                            self.k.vehicle.get_speed(rl_id), 0)
+                        cost2 += min((t_headway - t_min) / t_min, 0)
 
-                # weights for cost1, cost2, and cost3, respectively
-                eta1, eta2 = 1.00, 0.10
+                    # weights for cost1, cost2, and cost3, respectively
+                    eta1, eta2 = 1.00, 0.10
 
-                reward = max(eta1 * cost1 + eta2 * cost2, 0)
+                    reward = max(eta1 * cost1 + eta2 * cost2, 0)
 
-            rewards[rl_id] = reward
+                rewards[rl_id] = reward
         return rewards
 
     def additional_command(self):
@@ -179,10 +202,6 @@ class I210MultiEnv(MultiEnv):
             lead_id = self.k.vehicle.get_leader(rl_id)
             if lead_id:
                 self.k.vehicle.set_observed(lead_id)
-            # follower
-            follow_id = self.k.vehicle.get_follower(rl_id)
-            if follow_id:
-                self.k.vehicle.set_observed(follow_id)
 
     def state_util(self, rl_id):
         """Return an array of headway, tailway, leader speed, follower speed.
@@ -223,3 +242,24 @@ class I210MultiEnv(MultiEnv):
         speed = self.k.vehicle.get_speed(rl_id) / 100.0
         lane = (self.k.vehicle.get_lane(rl_id) + 1) / 10.0
         return np.array([speed, lane])
+
+
+class MultiStraightRoad(I210MultiEnv):
+    """Partially observable multi-agent environment for a straight road. Look at superclass for more information."""
+
+    def __init__(self, env_params, sim_params, network, simulator):
+        super().__init__(env_params, sim_params, network, simulator)
+        self.max_lanes = 1
+
+    def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
+        # in the warmup steps, rl_actions is None
+        if rl_actions:
+            rl_ids = []
+            accels = []
+            for rl_id, actions in rl_actions.items():
+                accels.append(actions[0])
+                rl_ids.append(rl_id)
+
+            # prevent the AV from blocking the entrance
+            self.k.vehicle.apply_acceleration(rl_ids, accels)
