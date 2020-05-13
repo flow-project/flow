@@ -934,7 +934,7 @@ class BottleneckDesiredVelocityEnv(BottleneckEnv):
             if int(unnorm_rl_list[i]) else 0 for i in range(num_rl)
         ]) / 50
         outflow = np.asarray(
-            self.k.vehicle.get_outflow_rate(20 * self.sim_step) / 2000.0)
+            self.k.vehicle.get_outflow_rate(20 * self.sim_step) / 4000.0)
         return np.concatenate((num_vehicles_list, num_rl_vehicles_list,
                                mean_speed_norm, mean_rl_speed, [outflow]))
 

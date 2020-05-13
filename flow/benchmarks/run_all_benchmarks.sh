@@ -3,14 +3,14 @@ echo "Running all benchmarks"
 
 declare -a benchmarks=(
                         "bottleneck0" "bottleneck1" "bottleneck2"
-                        "grid0" "grid1"
+#                        "grid0" "grid1"
                         )
 
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
 cd "$parent_path"
 
-dt=$(date '+%Y_%m_%d_%H%M');
+dt=$(date '+%Y_%m_%d');
 echo $dt
 i=0
 for run_script in rllib/sac_runner.py; do

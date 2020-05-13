@@ -8,7 +8,9 @@ Proximal Policy Optimization Algorithms by Schulman et. al.
 import json
 import argparse
 
+import numpy as np
 import ray
+from ray import tune
 try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
@@ -82,6 +84,15 @@ if __name__ == "__main__":
 
     # Register as rllib env
     register_env(env_name, create_env)
+
+
+    def on_episode_end(info):
+        env = info['env'].get_unwrapped()[0]
+        env = env.env
+        episode = info["episode"]
+        episode.custom_metrics["outflow"] = env.k.vehicle.get_outflow_rate(500)
+
+    config["callbacks"] = {"on_episode_end": tune.function(on_episode_end)}
 
     exp_tag = {
         "run": alg_run,

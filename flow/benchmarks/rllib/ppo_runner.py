@@ -122,7 +122,7 @@ if __name__ == "__main__":
         "stop": {
             "training_iteration": 500
         },
-        "num_samples": 3,
+        "num_samples": 1,
 
     }
 
