@@ -55,11 +55,11 @@ additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
 additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
-    'target_velocity': 12.0,
-    'local_reward': False,
+    'target_velocity': 11.0,
+    'local_reward': True,
     'lead_obs': True,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": False,
+    "reroute_on_exit": True,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
     "mpg_reward": True,
     # how many vehicles to look back for the MPG reward
@@ -77,9 +77,9 @@ additional_env_params.update({
     # whether to add a slight reward for traveling at a desired speed
     "speed_curriculum": True,
     # how many timesteps to anneal the headway curriculum over
-    "speed_curriculum_iters": 100,
+    "speed_curriculum_iters": 50,
     # weight of the headway reward
-    "speed_reward_gain": 10.0
+    "speed_reward_gain": 2.0
 })
 
 
@@ -132,7 +132,7 @@ inflows.add(
 # TODO(@evinitsky) how do we warm up the network without setting a wave in to start?
 warmup_steps = 0
 if additional_env_params['reroute_on_exit']:
-    warmup_steps = 200
+    warmup_steps = 400
 
 flow_params = dict(
     # name of the experiment
