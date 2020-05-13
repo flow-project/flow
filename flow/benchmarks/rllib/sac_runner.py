@@ -85,7 +85,6 @@ if __name__ == "__main__":
     # Register as rllib env
     register_env(env_name, create_env)
 
-
     def on_episode_end(info):
         env = info['env'].get_unwrapped()[0]
         env = env.env

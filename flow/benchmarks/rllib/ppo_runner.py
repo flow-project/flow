@@ -13,6 +13,7 @@ try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
+from ray import tune
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -107,6 +108,14 @@ if __name__ == "__main__":
         flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
     config['env_config']['run'] = alg_run
+
+    def on_episode_end(info):
+        env = info['env'].get_unwrapped()[0]
+        env = env.env
+        episode = info["episode"]
+        episode.custom_metrics["outflow"] = env.k.vehicle.get_outflow_rate(500)
+
+    config["callbacks"] = {"on_episode_end": tune.function(on_episode_end)}
 
     # Register as rllib env
     register_env(env_name, create_env)
