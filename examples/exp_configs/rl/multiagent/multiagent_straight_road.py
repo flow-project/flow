@@ -56,14 +56,14 @@ additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
     'target_velocity': 12.0,
-    'local_reward': True,
+    'local_reward': False,
     'lead_obs': True,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": True,
+    "reroute_on_exit": False,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
     "mpg_reward": True,
     # how many vehicles to look back for the MPG reward
-    "look_back_length": 3,
+    "look_back_length": 10,
     # how many AVs there can be at once (this is only for centralized critics)
     "max_num_agents": 10,
 
@@ -79,7 +79,7 @@ additional_env_params.update({
     # how many timesteps to anneal the headway curriculum over
     "speed_curriculum_iters": 100,
     # weight of the headway reward
-    "speed_reward_gain": 2.0
+    "speed_reward_gain": 10.0
 })
 
 
@@ -129,7 +129,8 @@ inflows.add(
     name="rl_highway_inflow")
 
 # SET UP FLOW PARAMETERS
-warmup_steps = 200
+# TODO(@evinitsky) how do we warm up the network without setting a wave in to start?
+warmup_steps = 0
 if additional_env_params['reroute_on_exit']:
     warmup_steps = 200
 
