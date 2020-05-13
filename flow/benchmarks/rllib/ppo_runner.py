@@ -111,7 +111,6 @@ if __name__ == "__main__":
 
     def on_episode_end(info):
         env = info['env'].get_unwrapped()[0]
-        env = env.env
         episode = info["episode"]
         episode.custom_metrics["outflow"] = env.k.vehicle.get_outflow_rate(500)
 
