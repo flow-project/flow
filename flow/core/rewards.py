@@ -322,11 +322,39 @@ def energy_consumption(env, gain=.001):
     rho = 1.225  # air density (kg/m^3)
     A = 2.6  # vehicle cross sectional area (m^2)
     for veh_id in env.k.vehicle.get_ids():
+        if veh_id not in env.k.vehicle.previous_speeds:
+            continue
         speed = env.k.vehicle.get_speed(veh_id)
         prev_speed = env.k.vehicle.get_previous_speed(veh_id)
 
         accel = abs(speed - prev_speed) / env.sim_step
 
         power += M * speed * accel + M * g * Cr * speed + 0.5 * rho * A * Ca * speed ** 3
+
+    return -gain * power
+
+def vehicle_energy_consumption(env, veh_id, gain=.001):
+    """Calculate power consumption of a vehicle.
+
+    Assumes vehicle is an average sized vehicle.
+    The power calculated here is the lower bound of the actual power consumed
+    by a vehicle.
+    """
+    power = 0
+
+    M = 1200  # mass of average sized vehicle (kg)
+    g = 9.81  # gravitational acceleration (m/s^2)
+    Cr = 0.005  # rolling resistance coefficient
+    Ca = 0.3  # aerodynamic drag coefficient
+    rho = 1.225  # air density (kg/m^3)
+    A = 2.6  # vehicle cross sectional area (m^2)
+    if veh_id not in env.k.vehicle.previous_speeds:
+        return 0
+    speed = env.k.vehicle.get_speed(veh_id)
+    prev_speed = env.k.vehicle.get_previous_speed(veh_id)
+
+    accel = abs(speed - prev_speed) / env.sim_step
+
+    power += M * speed * accel + M * g * Cr * speed + 0.5 * rho * A * Ca * speed ** 3
 
     return -gain * power

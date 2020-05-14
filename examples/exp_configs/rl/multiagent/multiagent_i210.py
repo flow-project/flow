@@ -9,7 +9,7 @@ import numpy as np
 from ray.tune.registry import register_env
 
 from flow.controllers import RLController
-from flow.controllers.car_following_models import IDMController
+from flow.controllers.car_following_models import IDMController, SimCarFollowingController
 import flow.config as config
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
@@ -18,6 +18,7 @@ from flow.core.params import InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
+from flow.core.params import SumoCarFollowingParams
 from flow.core.rewards import energy_consumption
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 from flow.envs.multiagent.i210 import I210MultiEnv, ADDITIONAL_ENV_PARAMS
@@ -57,11 +58,13 @@ vehicles.add(
     num_vehicles=0,
     lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"),
     acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
+    car_following_params=SumoCarFollowingParams(speed_mode="no_collide"),
 )
 vehicles.add(
     "av",
     acceleration_controller=(RLController, {}),
     num_vehicles=0,
+    color='red'
 )
 
 inflow = InFlows()
@@ -140,7 +143,8 @@ flow_params = dict(
         render=False,
         color_by_speed=False,
         restart_instance=True,
-        use_ballistic=True
+        use_ballistic=True,
+        disable_collisions=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -195,7 +199,7 @@ def policy_mapping_fn(_):
 custom_callables = {
     "avg_speed": lambda env: np.mean([speed for speed in
                                       env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
-    "avg_outflow": lambda env: np.nan_to_num(
-        env.k.vehicle.get_outflow_rate(120)),
-    "avg_energy": lambda env: -1*energy_consumption(env, 0.1)
+    "avg_outflow": lambda env: np.nan_to_num(env.k.vehicle.get_outflow_rate(120)),
+    "avg_energy": lambda env: -1*energy_consumption(env, 0.1),
+    "avg_per_step_energy": lambda env: -1*energy_consumption(env, 0.1) / env.k.vehicle.num_vehicles,
 }
