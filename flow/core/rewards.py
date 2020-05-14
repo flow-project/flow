@@ -376,10 +376,10 @@ def miles_per_megajoule(env, veh_ids=None, gain=.001):
     """
     mpj = 0
     counter = 0
-    if not isinstance(veh_ids, list):
-        veh_ids = [veh_ids]
-    elif veh_ids is None:
+    if veh_ids is None:
         veh_ids = env.k.vehicle.get_ids()
+    elif not isinstance(veh_ids, list):
+        veh_ids = [veh_ids]
     for veh_id in veh_ids:
         speed = env.k.vehicle.get_speed(veh_id)
         # convert to be positive since the function called is a penalty
@@ -418,10 +418,10 @@ def miles_per_gallon(env, veh_ids=None, gain=.001):
     """
     mpg = 0
     counter = 0
-    if not isinstance(veh_ids, list):
-        veh_ids = [veh_ids]
-    elif veh_ids is None:
+    if veh_ids is None:
         veh_ids = env.k.vehicle.get_ids()
+    elif not isinstance(veh_ids, list):
+        veh_ids = [veh_ids]
     for veh_id in veh_ids:
         speed = env.k.vehicle.get_speed(veh_id)
         gallons_per_s = env.k.vehicle.get_fuel_consumption(veh_id)
