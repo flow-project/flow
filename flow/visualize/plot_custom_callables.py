@@ -4,7 +4,12 @@ import argparse
 from datetime import datetime
 import errno
 import numpy as np
-import matplotlib.pyplot as plt
+try:
+    from matplotlib import pyplot as plt
+except ImportError:
+    import matplotlib
+    matplotlib.use('TkAgg')
+    from matplotlib import pyplot as plt
 import os
 import pytz
 import sys
