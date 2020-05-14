@@ -334,6 +334,7 @@ def energy_consumption(env, gain=.001):
 
 def veh_energy_consumption(env, veh_id, gain=.001):
     """Calculate power consumption of a vehicle.
+
     Assumes vehicle is an average sized vehicle.
     The power calculated here is the lower bound of the actual power consumed
     by a vehicle.
@@ -357,7 +358,8 @@ def veh_energy_consumption(env, veh_id, gain=.001):
 
 
 def miles_per_megajoule(env, veh_ids=None, gain=.001):
-    """Calculate miles per mega-joule of either a particular vehicle or the total average of all the vehilces.
+    """Calculate miles per mega-joule of either a particular vehicle or the total average of all the vehicles.
+
     Assumes vehicle is an average sized vehicle.
     The power calculated here is the lower bound of the actual power consumed
     by a vehicle.
@@ -398,7 +400,8 @@ def miles_per_megajoule(env, veh_ids=None, gain=.001):
 
 
 def miles_per_gallon(env, veh_ids=None, gain=.001):
-    """Calculate mpg of either a particular vehicle or the total average of all the vehilces.
+    """Calculate mpg of either a particular vehicle or the total average of all the vehicles.
+
     Assumes vehicle is an average sized vehicle.
     The power calculated here is the lower bound of the actual power consumed
     by a vehicle.
