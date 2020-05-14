@@ -356,32 +356,38 @@ def veh_energy_consumption(env, veh_id, gain=.001):
     return -gain * power
 
 
-def miles_per_megajoule(env, veh_id=None, gain=.001):
+def miles_per_megajoule(env, veh_ids=None, gain=.001):
     """Calculate miles per mega-joule of either a particular vehicle or the total average of all the vehilces.
     Assumes vehicle is an average sized vehicle.
     The power calculated here is the lower bound of the actual power consumed
     by a vehicle.
+
+    Parameters
+    ----------
+    env : flow.envs.Env
+        the environment variable, which contains information on the current
+        state of the system.
+    veh_ids : [list]
+        list of veh_ids to compute the reward over
+    gain : float
+        scaling factor for the reward
     """
     mpj = 0
     counter = 0
-    if not isinstance(veh_id, list):
+    if not isinstance(veh_ids, list):
+        veh_ids = [veh_ids]
+    elif veh_ids is None:
+        veh_ids = env.k.vehicle.get_ids()
+    for veh_id in veh_ids:
         speed = env.k.vehicle.get_speed(veh_id)
         # convert to be positive since the function called is a penalty
         power = -veh_energy_consumption(env, veh_id, gain=1.0)
         if power > 0 and speed >= 0.0:
+            counter += 1
             # meters / joule is (v * \delta t) / (power * \delta t)
-            mpj = speed / power
-    else:
-        for veh_id in env.k.vehicle.get_ids():
-            speed = env.k.vehicle.get_speed(veh_id)
-            # convert to be positive since the function called is a penalty
-            power = -veh_energy_consumption(env, veh_id, gain=1.0)
-            if power > 0 and speed >= 0.0:
-                counter += 1
-                # meters / joule is (v * \delta t) / (power * \delta t)
-                mpj += speed / power
-        if counter > 0:
-            mpj /= counter
+            mpj += speed / power
+    if counter > 0:
+        mpj /= counter
 
     # convert from meters per joule to miles per joule
     mpj /= 1609.0
@@ -391,30 +397,37 @@ def miles_per_megajoule(env, veh_id=None, gain=.001):
     return mpj * gain
 
 
-def miles_per_gallon(env, veh_id=None, gain=.001):
+def miles_per_gallon(env, veh_ids=None, gain=.001):
     """Calculate mpg of either a particular vehicle or the total average of all the vehilces.
     Assumes vehicle is an average sized vehicle.
     The power calculated here is the lower bound of the actual power consumed
     by a vehicle.
+
+    Parameters
+    ----------
+    env : flow.envs.Env
+        the environment variable, which contains information on the current
+        state of the system.
+    veh_ids : [list]
+        list of veh_ids to compute the reward over
+    gain : float
+        scaling factor for the reward
     """
     mpg = 0
     counter = 0
-    if not isinstance(veh_id, list):
+    if not isinstance(veh_ids, list):
+        veh_ids = [veh_ids]
+    elif veh_ids is None:
+        veh_ids = env.k.vehicle.get_ids()
+    for veh_id in veh_ids:
         speed = env.k.vehicle.get_speed(veh_id)
         gallons_per_s = env.k.vehicle.get_fuel_consumption(veh_id)
         if gallons_per_s > 0 and speed >= 0.0:
-            # meters / gallon is (v * \delta t) / (gallons_s * \delta t)
-            mpg = speed / gallons_per_s
-    else:
-        for veh_id in env.k.vehicle.get_ids():
-            speed = env.k.vehicle.get_speed(veh_id)
-            gallons_per_s = env.k.vehicle.get_fuel_consumption(veh_id)
-            if gallons_per_s > 0 and speed >= 0.0:
-                counter += 1
-                # meters / gallon is (v * \delta t) / (gallons_per_s * \delta t)
-                mpg += speed / gallons_per_s
-        if counter > 0:
-            mpg /= counter
+            counter += 1
+            # meters / gallon is (v * \delta t) / (gallons_per_s * \delta t)
+            mpg += speed / gallons_per_s
+    if counter > 0:
+        mpg /= counter
 
     # convert from meters per gallon to miles per gallon
     mpg /= 1609.0
