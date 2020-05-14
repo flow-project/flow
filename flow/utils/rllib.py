@@ -146,11 +146,7 @@ def get_flow_params(config):
     if flow_params["net"]["inflows"]:
         net.inflows.__dict__ = flow_params["net"]["inflows"].copy()
 
-<<<<<<< HEAD
     if net.template is not None and len(net.template) > 0:
-=======
-    if net.template and len(net.template) > 0:
->>>>>>> origin/i210_dev
         dirname = os.getcwd()
         filename = os.path.join(dirname, '../../examples')
         split = net.template.split('examples')[1][1:]
