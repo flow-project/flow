@@ -56,7 +56,7 @@ additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
     'target_velocity': 11.0,
-    'local_reward': True,
+    'local_reward': False,
     'lead_obs': True,
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": True,
@@ -75,7 +75,7 @@ additional_env_params.update({
     "headway_reward_gain": 1.0,
 
     # whether to add a slight reward for traveling at a desired speed
-    "speed_curriculum": True,
+    "speed_curriculum": False,
     # how many timesteps to anneal the headway curriculum over
     "speed_curriculum_iters": 50,
     # weight of the headway reward
