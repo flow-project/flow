@@ -192,13 +192,10 @@ def setup_exps_rllib(flow_params,
     alg_run = flags.algorithm.upper()
 
     if alg_run == "PPO":
-        # from flow.algorithms.custom_ppo import CustomPPOTrainer
-        # from ray.rllib.agents.ppo import DEFAULT_CONFIG
-        # alg_run = CustomPPOTrainer
-        # config = deepcopy(DEFAULT_CONFIG)
-        agent_cls = get_agent_class(alg_run)
-        config = deepcopy(agent_cls._default_config)
-
+        from flow.algorithms.custom_ppo import CustomPPOTrainer
+        from ray.rllib.agents.ppo import DEFAULT_CONFIG
+        alg_run = CustomPPOTrainer
+        config = deepcopy(DEFAULT_CONFIG)
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon

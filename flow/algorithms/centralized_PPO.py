@@ -15,7 +15,7 @@ from ray.rllib.evaluation.postprocessing import compute_advantages, \
     Postprocessing
 from ray.rllib.policy.sample_batch import SampleBatch
 from ray.rllib.policy.tf_policy import LearningRateSchedule, \
-    EntropyCoeffSchedule
+    EntropyCoeffSchedule, ACTION_LOGP
 from ray.rllib.models.modelv2 import ModelV2
 from ray.rllib.models.tf.tf_modelv2 import TFModelV2
 from ray.rllib.models.tf.recurrent_tf_modelv2 import RecurrentTFModelV2
@@ -27,6 +27,9 @@ from ray.rllib.utils import try_import_tf
 
 
 tf = try_import_tf()
+
+# Frozen logits of the policy that computed the action
+BEHAVIOUR_LOGITS = "behaviour_logits"
 
 CENTRAL_OBS = "central_obs"
 OPPONENT_ACTION = "opponent_action"
@@ -215,7 +218,10 @@ def centralized_critic_postprocessing(policy,
                 rel_agent_time in rel_agents.items()}
         # okay, now we need to stack and sort
         central_obs_list = [padded_obs for padded_obs in padded_agent_obs.values()]
-        central_obs_batch = np.hstack((sample_batch["obs"], np.hstack(central_obs_list)))
+        try:
+            central_obs_batch = np.hstack((sample_batch["obs"], np.hstack(central_obs_list)))
+        except:
+            import ipdb; ipdb.set_trace()
         max_vf_agents = policy.model.max_num_agents
         num_agents = len(rel_agents) + 1
         if num_agents < max_vf_agents:
@@ -364,8 +370,8 @@ def loss_with_central_critic(policy, model, dist_class, train_batch):
         train_batch[Postprocessing.VALUE_TARGETS],
         train_batch[Postprocessing.ADVANTAGES],
         train_batch[SampleBatch.ACTIONS],
-        train_batch[SampleBatch.ACTION_DIST_INPUTS],
-        train_batch[SampleBatch.ACTION_LOGP],
+        train_batch[BEHAVIOUR_LOGITS],
+        train_batch[ACTION_LOGP],
         train_batch[SampleBatch.VF_PREDS],
         action_dist,
         policy.central_value_function,
@@ -485,6 +491,8 @@ class KLCoeffMixin(object):
             shape=(),
             trainable=False,
             dtype=tf.float32)
+    def update_kl(self, blah):
+        pass
 
 
 def setup_mixins(policy, obs_space, action_space, config):
@@ -508,7 +516,6 @@ def central_vf_stats(policy, train_batch, grads):
     }
 
 def kl_and_loss_stats(policy, train_batch):
-    print(train_batch["rewards"])
     return {
         "cur_kl_coeff": tf.cast(policy.kl_coeff, tf.float64),
         "cur_lr": tf.cast(policy.cur_lr, tf.float64),
@@ -522,7 +529,6 @@ def kl_and_loss_stats(policy, train_batch):
         "kl": policy.loss_obj.mean_kl,
         "entropy": policy.loss_obj.mean_entropy,
         "entropy_coeff": tf.cast(policy.entropy_coeff, tf.float64),
-        "avg_rew": train_batch["rewards"][-1]
     }
 
 CCPPO = CustomPPOTFPolicy.with_updates(

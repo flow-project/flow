@@ -3,7 +3,7 @@
 Trains a non-constant number of agents, all sharing the same policy, on the
 highway with ramps network.
 """
-from flow.controllers import BandoFTLController, RLController
+from flow.controllers import IDMController, RLController
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import InitialConfig
@@ -75,7 +75,7 @@ additional_env_params.update({
     "headway_reward_gain": 1.0,
 
     # whether to add a slight reward for traveling at a desired speed
-    "speed_curriculum": False,
+    "speed_curriculum": True,
     # how many timesteps to anneal the headway curriculum over
     "speed_curriculum_iters": 50,
     # weight of the headway reward
@@ -93,14 +93,7 @@ vehicles.add(
     lane_change_params=SumoLaneChangeParams(
         lane_change_mode="strategic",
     ),
-    acceleration_controller=(BandoFTLController, {
-        'alpha': .5,
-        'beta': 20.0,
-        'h_st': 12.0,
-        'h_go': 50.0,
-        'v_max': 30.0,
-        'noise': 1.0 if INCLUDE_NOISE else 0.0,
-    }),
+    acceleration_controller=(IDMController, {}),
 )
 
 # autonomous vehicles
@@ -160,7 +153,7 @@ flow_params = dict(
         sim_step=0.5,
         render=False,
         use_ballistic=True,
-        restart_instance=True
+        restart_instance=False
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

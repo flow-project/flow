@@ -6,7 +6,7 @@ highway with ramps network.
 
 import numpy as np
 
-from flow.controllers import BandoFTLController
+from flow.controllers import BandoFTLController, IDMController
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
@@ -15,7 +15,7 @@ from flow.core.params import InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
-from flow.core.rewards import miles_per_gallon
+from flow.core.rewards import miles_per_gallon, 
 from flow.networks import HighwayNetwork
 from flow.envs import TestEnv
 from flow.networks.highway import ADDITIONAL_NET_PARAMS
@@ -51,14 +51,15 @@ vehicles.add(
     lane_change_params=SumoLaneChangeParams(
         lane_change_mode="strategic",
     ),
-    acceleration_controller=(BandoFTLController, {
-        'alpha': .5,
-        'beta': 20.0,
-        'h_st': 12.0,
-        'h_go': 50.0,
-        'v_max': 30.0,
-        'noise': 1.0 if INCLUDE_NOISE else 0.0,
-    }),
+    # acceleration_controller=(BandoFTLController, {
+    #     'alpha': .5,
+    #     'beta': 20.0,
+    #     'h_st': 12.0,
+    #     'h_go': 50.0,
+    #     'v_max': 30.0,
+    #     'noise': 1.0 if INCLUDE_NOISE else 0.0,
+    # }),
+    acceleration_controller=(IDMController, {}),
 )
 
 
@@ -86,7 +87,7 @@ if PENETRATION_RATE > 0.0:
         vehs_per_hour=int(TRAFFIC_FLOW * (PENETRATION_RATE)),
         depart_lane="free",
         depart_speed=TRAFFIC_SPEED,
-        name="idm_highway_inflow")
+        name="rl_highway_inflow")
 
 # SET UP FLOW PARAMETERS
 

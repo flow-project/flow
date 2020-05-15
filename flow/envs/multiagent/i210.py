@@ -189,7 +189,7 @@ class I210MultiEnv(MultiEnv):
                     for i in range(self.look_back_length):
                         follow_id = self.k.vehicle.get_follower(follow_id)
                         if follow_id not in ["", None]:
-                            rewards[rl_id] += miles_per_gallon(self, follow_id) / 100.0
+                            rewards[rl_id] += (miles_per_gallon(self, follow_id) - 14.0) / 100.0
                         else:
                             break
                 else:
@@ -210,8 +210,12 @@ class I210MultiEnv(MultiEnv):
                 speeds = self.k.vehicle.get_speed(self.k.vehicle.get_ids())
                 des_speed = self.env_params.additional_params["target_velocity"]
                 # rescale so the critic can estimate it quickly
-                reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
-                                                for speed in speeds]) / (des_speed ** 2))
+                if self.reroute_on_exit:
+                    reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed))
+                                                    for speed in speeds]) / (des_speed))
+                else:
+                    reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
+                                                    for speed in speeds]) / (des_speed ** 2))
             rewards = {rl_id: reward for rl_id in self.k.vehicle.get_rl_ids()}
         if self.headway_curriculum and self.num_training_iters <= self.headway_curriculum_iters:
             t_min = 1  # smallest acceptable time headway
@@ -237,7 +241,10 @@ class I210MultiEnv(MultiEnv):
                 speed = self.k.vehicle.get_speed(veh_id)
                 speed_reward = 0.0
                 if speed >= 0:
-                    speed_reward = ((des_speed - np.abs(speed - des_speed)) ** 2) / (des_speed ** 2)
+                    if self.reroute_on_exit:
+                        speed_reward = ((des_speed - np.abs(speed - des_speed))) / (des_speed)
+                    else:
+                        speed_reward = ((des_speed - np.abs(speed - des_speed)) ** 2) / (des_speed ** 2)
                 scaling_factor = max(0, 1 - self.num_training_iters / self.speed_curriculum_iters)
 
                 rewards[veh_id] += speed_reward * scaling_factor * self.speed_reward_gain

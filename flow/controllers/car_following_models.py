@@ -649,18 +649,15 @@ class BandoFTLController(BaseController):
         """See parent class."""
         # TODO(@evinitsky) this is a hack to make rerouting works. This gets vehicles into the network
         # without generating waves.
-        if env.time_counter < env.env_params.warmup_steps:
-            return None
-        else:
-            lead_id = env.k.vehicle.get_leader(self.veh_id)
-            if not lead_id:  # no car ahead
-                if self.want_max_accel:
-                    return self.max_accel
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        if not lead_id:  # no car ahead
+            if self.want_max_accel:
+                return self.max_accel
 
-            v_l = env.k.vehicle.get_speed(lead_id)
-            v = env.k.vehicle.get_speed(self.veh_id)
-            s = env.k.vehicle.get_headway(self.veh_id)
-            return self.accel_func(v, v_l, s)
+        v_l = env.k.vehicle.get_speed(lead_id)
+        v = env.k.vehicle.get_speed(self.veh_id)
+        s = env.k.vehicle.get_headway(self.veh_id)
+        return self.accel_func(v, v_l, s)
 
     def accel_func(self, v, v_l, s):
         """Compute the acceleration function."""

@@ -104,6 +104,8 @@ class BaseController:
         # time step
         if accel is None:
             return None
+        else:
+            accel = min(max(accel, -self.max_deaccel), self.max_accel)
 
         # add noise to the accelerations, if requested
         if self.accel_noise > 0:

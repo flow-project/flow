@@ -12,7 +12,7 @@ from ray.rllib.evaluation.postprocessing import compute_advantages, \
     Postprocessing
 from ray.rllib.policy.sample_batch import SampleBatch
 from ray.rllib.policy.tf_policy import LearningRateSchedule, \
-    EntropyCoeffSchedule
+    EntropyCoeffSchedule, ACTION_LOGP
 from ray.rllib.policy.tf_policy_template import build_tf_policy
 from ray.rllib.utils.explained_variance import explained_variance
 from ray.rllib.utils.tf_ops import make_tf_callable
@@ -133,7 +133,7 @@ def ppo_surrogate_loss(policy, model, dist_class, train_batch):
         train_batch[Postprocessing.ADVANTAGES],
         train_batch[SampleBatch.ACTIONS],
         train_batch[BEHAVIOUR_LOGITS],
-        train_batch[SampleBatch.ACTION_LOGP],
+        train_batch[ACTION_LOGP],
         train_batch[SampleBatch.VF_PREDS],
         action_dist,
         model.value_function(),
