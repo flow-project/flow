@@ -538,9 +538,10 @@ class TraCIVehicle(KernelVehicle):
 
     def get_fuel_consumption(self, veh_id, error=-1001):
         """Return fuel consumption in gallons/s."""
+        ml_to_gallons = 0.000264172
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_fuel_consumption(vehID, error) for vehID in veh_id]
-        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_FUELCONSUMPTION, error) * 0.000264172
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_FUELCONSUMPTION, error) * ml_to_gallons
 
     def get_previous_speed(self, veh_id, error=-1001):
         """See parent class."""
