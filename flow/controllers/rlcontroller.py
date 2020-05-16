@@ -39,4 +39,5 @@ class RLController(BaseController):
             car_following_params)
 
     def get_accel(self, env):
+        """Dummy get_accel method, which is never called."""
         pass
