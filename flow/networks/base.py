@@ -640,7 +640,6 @@ class Network(object, metaclass=ABCMeta):
         return None
 
     @staticmethod
-    @abstractmethod
     def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
         """Generate a user defined set of starting positions.
 
@@ -664,7 +663,7 @@ class Network(object, metaclass=ABCMeta):
         list of float
             list of start speeds
         """
-        pass
+        raise NotImplementedError
 
     @staticmethod
     def _vehicle_infos(file_names):
