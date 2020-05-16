@@ -1,5 +1,7 @@
 """Contains the base network class."""
 
+from abc import ABCMeta, abstractmethod
+
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
@@ -17,7 +19,7 @@ DEFAULT_LENGTH = 5
 DEFAULT_VCLASS = 0
 
 
-class Network(object):
+class Network(object, metaclass=ABCMeta):
     """Base network class.
 
     Initializes a new network. Networks are used to specify features of
@@ -432,6 +434,7 @@ class Network(object):
         return [(':', -1)]
 
     # TODO: convert to property
+    @abstractmethod
     def specify_nodes(self, net_params):
         """Specify the attributes of nodes in the network.
 
@@ -457,6 +460,7 @@ class Network(object):
         raise NotImplementedError
 
     # TODO: convert to property
+    @abstractmethod
     def specify_edges(self, net_params):
         """Specify the attributes of edges connecting pairs on nodes.
 
@@ -636,6 +640,7 @@ class Network(object):
         return None
 
     @staticmethod
+    @abstractmethod
     def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
         """Generate a user defined set of starting positions.
 

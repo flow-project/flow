@@ -1,7 +1,9 @@
 """Contains the base routing controller class."""
 
+from abc import ABCMeta, abstractmethod
 
-class BaseRouter:
+
+class BaseRouter(metaclass=ABCMeta):
     """Base class for routing controllers.
 
     These controllers are used to dynamically change the routes of vehicles
@@ -30,6 +32,7 @@ class BaseRouter:
         self.veh_id = veh_id
         self.router_params = router_params
 
+    @abstractmethod
     def choose_route(self, env):
         """Return the routing method implemented by the controller.
 

@@ -1,9 +1,10 @@
 """Contains the base acceleration controller class."""
 
+from abc import ABCMeta, abstractmethod
 import numpy as np
 
 
-class BaseController:
+class BaseController(metaclass=ABCMeta):
     """Base class for flow-controlled acceleration behavior.
 
     Instantiates a controller and forces the user to pass a
@@ -63,6 +64,7 @@ class BaseController:
 
         self.car_following_params = car_following_params
 
+    @abstractmethod
     def get_accel(self, env):
         """Return the acceleration of the controller."""
         raise NotImplementedError

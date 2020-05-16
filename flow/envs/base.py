@@ -1,5 +1,6 @@
 """Base environment class. This is the parent of all other environments."""
 
+from abc import ABCMeta, abstractmethod
 from copy import deepcopy
 import os
 import atexit
@@ -26,7 +27,7 @@ from flow.core.kernel import Kernel
 from flow.utils.exceptions import FatalFlowError
 
 
-class Env(gym.Env):
+class Env(gym.Env, metaclass=ABSMeta):
     """Base environment class.
 
     Provides the interface for interacting with various aspects of a traffic
@@ -614,9 +615,11 @@ class Env(gym.Env):
         rl_clipped = self.clip_actions(rl_actions)
         self._apply_rl_actions(rl_clipped)
 
+    @abstractmethod
     def _apply_rl_actions(self, rl_actions):
         raise NotImplementedError
 
+    @abstractmethod
     def get_state(self):
         """Return the state of the simulation as perceived by the RL agent.
 
@@ -631,6 +634,7 @@ class Env(gym.Env):
         raise NotImplementedError
 
     @property
+    @abstractmethod
     def action_space(self):
         """Identify the dimensions and bounds of the action space.
 
@@ -644,6 +648,7 @@ class Env(gym.Env):
         raise NotImplementedError
 
     @property
+    @abstractmethod
     def observation_space(self):
         """Identify the dimensions and bounds of the observation space.
 

@@ -1,7 +1,9 @@
 """Contains the base lane change controller class."""
 
+from abc import ABCMeta, abstractmethod
 
-class BaseLaneChangeController:
+
+class BaseLaneChangeController(metaclass=ABCMeta):
     """Base class for lane-changing controllers.
 
     Instantiates a controller and forces the user to pass a
@@ -36,6 +38,7 @@ class BaseLaneChangeController:
         self.veh_id = veh_id
         self.lane_change_params = lane_change_params
 
+    @abstractmethod
     def get_lane_change_action(self, env):
         """Specify the lane change action to be performed.
 
