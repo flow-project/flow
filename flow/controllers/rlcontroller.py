@@ -37,3 +37,6 @@ class RLController(BaseController):
             self,
             veh_id,
             car_following_params)
+
+    def get_accel(self, env):
+        pass
