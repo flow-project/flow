@@ -27,7 +27,7 @@ from flow.core.kernel import Kernel
 from flow.utils.exceptions import FatalFlowError
 
 
-class Env(gym.Env, metaclass=ABSMeta):
+class Env(gym.Env, metaclass=ABCMeta):
     """Base environment class.
 
     Provides the interface for interacting with various aspects of a traffic
