@@ -67,7 +67,7 @@ class BaseController(metaclass=ABCMeta):
     @abstractmethod
     def get_accel(self, env):
         """Return the acceleration of the controller."""
-        raise NotImplementedError
+        pass
 
     def get_action(self, env):
         """Convert the get_accel() acceleration into an action.

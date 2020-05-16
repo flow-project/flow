@@ -457,7 +457,7 @@ class Network(object, metaclass=ABCMeta):
         Other attributes may also be specified. See:
         http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Node_Descriptions
         """
-        raise NotImplementedError
+        pass
 
     # TODO: convert to property
     @abstractmethod
@@ -492,7 +492,7 @@ class Network(object, metaclass=ABCMeta):
         Other attributes may also be specified. See:
         http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Edge_Descriptions
         """
-        raise NotImplementedError
+        pass
 
     # TODO: convert to property
     def specify_types(self, net_params):
@@ -664,7 +664,7 @@ class Network(object, metaclass=ABCMeta):
         list of float
             list of start speeds
         """
-        raise NotImplementedError
+        pass
 
     @staticmethod
     def _vehicle_infos(file_names):

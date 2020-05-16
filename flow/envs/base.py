@@ -617,7 +617,7 @@ class Env(gym.Env, metaclass=ABCMeta):
 
     @abstractmethod
     def _apply_rl_actions(self, rl_actions):
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def get_state(self):
@@ -631,7 +631,7 @@ class Env(gym.Env, metaclass=ABCMeta):
             information on the state of the vehicles, which is provided to the
             agent
         """
-        raise NotImplementedError
+        pass
 
     @property
     @abstractmethod
@@ -645,7 +645,7 @@ class Env(gym.Env, metaclass=ABCMeta):
         gym Box or Tuple type
             a bounded box depicting the shape and bounds of the action space
         """
-        raise NotImplementedError
+        pass
 
     @property
     @abstractmethod
@@ -660,7 +660,7 @@ class Env(gym.Env, metaclass=ABCMeta):
             a bounded box depicting the shape and bounds of the observation
             space
         """
-        raise NotImplementedError
+        pass
 
     def compute_reward(self, rl_actions, **kwargs):
         """Reward function for the RL agent(s).

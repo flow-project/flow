@@ -58,7 +58,7 @@ class BaseLaneChangeController(metaclass=ABCMeta):
         float or int
             requested lane change action
         """
-        raise NotImplementedError
+        pass
 
     def get_action(self, env):
         """Return the action of the lane change controller.

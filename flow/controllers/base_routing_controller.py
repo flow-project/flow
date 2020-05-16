@@ -48,4 +48,4 @@ class BaseRouter(metaclass=ABCMeta):
             is returned, the vehicle performs no routing action in the current
             time step.
         """
-        raise NotImplementedError
+        pass
