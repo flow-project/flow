@@ -1,7 +1,5 @@
 """Contains the base network class."""
 
-from abc import ABCMeta, abstractmethod
-
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoCarFollowingParams
@@ -19,7 +17,7 @@ DEFAULT_LENGTH = 5
 DEFAULT_VCLASS = 0
 
 
-class Network(object, metaclass=ABCMeta):
+class Network(object):
     """Base network class.
 
     Initializes a new network. Networks are used to specify features of
@@ -434,7 +432,6 @@ class Network(object, metaclass=ABCMeta):
         return [(':', -1)]
 
     # TODO: convert to property
-    @abstractmethod
     def specify_nodes(self, net_params):
         """Specify the attributes of nodes in the network.
 
@@ -457,10 +454,9 @@ class Network(object, metaclass=ABCMeta):
         Other attributes may also be specified. See:
         http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Node_Descriptions
         """
-        pass
+        raise NotImplementedError
 
     # TODO: convert to property
-    @abstractmethod
     def specify_edges(self, net_params):
         """Specify the attributes of edges connecting pairs on nodes.
 
@@ -492,7 +488,7 @@ class Network(object, metaclass=ABCMeta):
         Other attributes may also be specified. See:
         http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Edge_Descriptions
         """
-        pass
+        raise NotImplementedError
 
     # TODO: convert to property
     def specify_types(self, net_params):
