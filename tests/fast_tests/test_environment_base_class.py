@@ -318,27 +318,28 @@ class TestAbstractMethods(unittest.TestCase):
 
     def test_abstract_base_class(self):
         """Checks that instantiating abstract base class raises an error."""
-        self.assertRaises(TypeError, Env(sim_params=self.sim_params,
-                                         env_params=self.env_params,
-                                         network=self.network))
+        with self.assertRaises(TypeError):
+            Env(sim_params=self.sim_params,
+                env_params=self.env_params,
+                network=self.network))
 
     def test_get_state(self):
         """Checks that instantiating without get_state implemented
         raises an error.
         """
-        self.assertRaises(TypeError,
-                          TestFailGetStateEnv(sim_params=self.sim_params,
-                                              env_params=self.env_params,
-                                              network=self.network))
+        with self.assertRaises(TypeError):
+            TestFailGetStateEnv(sim_params=self.sim_params,
+                                env_params=self.env_params,
+                                network=self.network))
 
     def test__apply_rl_actions(self):
         """Checks that instantiating without _apply_rl_actions
         implemented raises an error.
         """
-        self.assertRaises(TypeError,
-                          TestFailRLActionsEnv(sim_params=self.sim_params,
-                                               env_params=self.env_params,
-                                               network=self.network))
+        with self.assertRaises(TypeError):
+            TestFailRLActionsEnv(sim_params=self.sim_params,
+                                 env_params=self.env_params,
+                                 network=self.network))
 
 
 class TestVehicleColoring(unittest.TestCase):
