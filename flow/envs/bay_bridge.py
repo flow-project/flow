@@ -234,6 +234,22 @@ class BayBridgeEnv(Env):
     #         The below methods need to be updated by child classes.          #
     ###########################################################################
 
+    @property
+    def action_space(self):
+        """See parent class.
+
+        To be implemented by child classes.
+        """
+        pass
+
+    @property
+    def observation_space(self):
+        """See parent class.
+
+        To be implemented by child classes.
+        """
+        pass
+
     def _apply_rl_actions(self, rl_actions):
         """See parent class.
 
