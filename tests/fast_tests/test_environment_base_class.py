@@ -321,7 +321,7 @@ class TestAbstractMethods(unittest.TestCase):
         with self.assertRaises(TypeError):
             Env(sim_params=self.sim_params,
                 env_params=self.env_params,
-                network=self.network))
+                network=self.network)
 
     def test_get_state(self):
         """Checks that instantiating without get_state implemented
@@ -330,7 +330,7 @@ class TestAbstractMethods(unittest.TestCase):
         with self.assertRaises(TypeError):
             TestFailGetStateEnv(sim_params=self.sim_params,
                                 env_params=self.env_params,
-                                network=self.network))
+                                network=self.network)
 
     def test__apply_rl_actions(self):
         """Checks that instantiating without _apply_rl_actions
@@ -339,7 +339,7 @@ class TestAbstractMethods(unittest.TestCase):
         with self.assertRaises(TypeError):
             TestFailRLActionsEnv(sim_params=self.sim_params,
                                  env_params=self.env_params,
-                                 network=self.network))
+                                 network=self.network)
 
 
 class TestVehicleColoring(unittest.TestCase):
