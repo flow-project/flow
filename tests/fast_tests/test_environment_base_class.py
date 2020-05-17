@@ -311,28 +311,33 @@ class TestAbstractMethods(unittest.TestCase):
     """
 
     def setUp(self):
-        env, network, _ = ring_road_exp_setup()
-        sim_params = SumoParams()  # FIXME: make ambiguous
-        env_params = EnvParams()
-        self.env = Env(sim_params=sim_params,
-                       env_params=env_params,
-                       network=network)
+        self.env, self.network, _ = ring_road_exp_setup()
+        self.sim_params = SumoParams()  # FIXME: make ambiguous
+        self.env_params = EnvParams()
 
-    def tearDown(self):
-        self.env.terminate()
-        self.env = None
+    def test_abstract_base_class(self):
+        """Checks that instantiating abstract base class raises an error."""
+        self.assertRaises(TypeError, Env(sim_params=self.sim_params,
+                                         env_params=self.env_params,
+                                         network=self.network))
 
     def test_get_state(self):
-        """Checks that get_state raises an error."""
-        self.assertRaises(NotImplementedError, self.env.get_state)
-
-    def test_compute_reward(self):
-        """Checks that compute_reward returns 0."""
-        self.assertEqual(self.env.compute_reward([]), 0)
+        """Checks that instantiating without get_state implemented
+        raises an error.
+        """
+        self.assertRaises(TypeError,
+                          TestFailGetStateEnv(sim_params=self.sim_params,
+                                              env_params=self.env_params,
+                                              network=self.network))
 
     def test__apply_rl_actions(self):
-        self.assertRaises(NotImplementedError, self.env._apply_rl_actions,
-                          rl_actions=None)
+        """Checks that instantiating without _apply_rl_actions
+        implemented raises an error.
+        """
+        self.assertRaises(TypeError,
+                          TestFailRLActionsEnv(sim_params=self.sim_params,
+                                               env_params=self.env_params,
+                                               network=self.network))
 
 
 class TestVehicleColoring(unittest.TestCase):
