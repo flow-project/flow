@@ -1,7 +1,7 @@
 """Two test environments designed to fail abstract base class tests."""
 
 from flow.envs.base import Env
-
+from gym.spaces.box import Box
 import numpy as np
 
 
