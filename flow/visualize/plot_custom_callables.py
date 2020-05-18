@@ -18,6 +18,7 @@ import sys
 
 
 def make_bar_plot(vals, title):
+    """Make a bar plot."""
     print(len(vals))
     fig = plt.figure()
     plt.hist(vals, 10, facecolor='blue', alpha=0.5)
@@ -27,6 +28,7 @@ def make_bar_plot(vals, title):
 
 
 def plot_trip_distribution(all_trip_energy_distribution):
+    """Plot a distribution of trips."""
     non_av_vals = []
     figures = []
     figure_names = []
