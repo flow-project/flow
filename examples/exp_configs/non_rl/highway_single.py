@@ -15,7 +15,7 @@ from flow.core.params import InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
-from flow.core.rewards import miles_per_gallon, 
+from flow.core.rewards import miles_per_gallon, miles_per_megajoule
 from flow.networks import HighwayNetwork
 from flow.envs import TestEnv
 from flow.networks.highway import ADDITIONAL_NET_PARAMS
@@ -51,15 +51,15 @@ vehicles.add(
     lane_change_params=SumoLaneChangeParams(
         lane_change_mode="strategic",
     ),
-    # acceleration_controller=(BandoFTLController, {
-    #     'alpha': .5,
-    #     'beta': 20.0,
-    #     'h_st': 12.0,
-    #     'h_go': 50.0,
-    #     'v_max': 30.0,
-    #     'noise': 1.0 if INCLUDE_NOISE else 0.0,
-    # }),
-    acceleration_controller=(IDMController, {}),
+    acceleration_controller=(BandoFTLController, {
+        'alpha': .5,
+        'beta': 20.0,
+        'h_st': 12.0,
+        'h_go': 50.0,
+        'v_max': 30.0,
+        'noise': 1.0 if INCLUDE_NOISE else 0.0,
+    }),
+    # acceleration_controller=(IDMController, {}),
 )
 
 
@@ -68,7 +68,7 @@ if PENETRATION_RATE > 0.0:
         "av",
         color='red',
         num_vehicles=0,
-        acceleration_controller=(FollowerStopper, {"v_des": 12.0}),
+        acceleration_controller=(FollowerStopper, {"v_des": 11.0}),
     )
 
 inflows = InFlows()
@@ -139,5 +139,7 @@ custom_callables = {
         env.k.vehicle.get_speed(env.k.vehicle.get_ids()))),
     "avg_outflow": lambda env: np.nan_to_num(
         env.k.vehicle.get_outflow_rate(120)),
-    "mpg": lambda env: miles_per_gallon(env, env.k.vehicle.get_ids(), gain=1.0)
+    "mpg": lambda env: miles_per_gallon(env, env.k.vehicle.get_ids(), gain=1.0),
+    "mpj": lambda env: miles_per_megajoule(env, env.k.vehicle.get_ids(), gain=1.0)
+
 }

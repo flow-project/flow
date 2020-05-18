@@ -3,7 +3,7 @@
 Trains a non-constant number of agents, all sharing the same policy, on the
 highway with ramps network.
 """
-from flow.controllers import IDMController, RLController
+from flow.controllers import IDMController, RLController, BandoFTLController
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import InitialConfig
@@ -56,28 +56,30 @@ additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
     'target_velocity': 11.0,
-    'local_reward': False,
+    'local_reward': True,
     'lead_obs': True,
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": True,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
     "mpg_reward": True,
     # how many vehicles to look back for the MPG reward
-    "look_back_length": 10,
+    "look_back_length": 3,
     # how many AVs there can be at once (this is only for centralized critics)
     "max_num_agents": 10,
 
     # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
-    "headway_curriculum": False,
+    "headway_curriculum": True,
     # how many timesteps to anneal the headway curriculum over
     "headway_curriculum_iters": 100,
     # weight of the headway reward
-    "headway_reward_gain": 1.0,
+    "headway_reward_gain": 2.0,
+    # desired time headway
+    "min_time_headway": 2.0,
 
     # whether to add a slight reward for traveling at a desired speed
-    "speed_curriculum": True,
+    "speed_curriculum": False,
     # how many timesteps to anneal the headway curriculum over
-    "speed_curriculum_iters": 50,
+    "speed_curriculum_iters": 100,
     # weight of the headway reward
     "speed_reward_gain": 2.0
 })
@@ -93,7 +95,15 @@ vehicles.add(
     lane_change_params=SumoLaneChangeParams(
         lane_change_mode="strategic",
     ),
-    acceleration_controller=(IDMController, {}),
+    acceleration_controller=(BandoFTLController, {
+        'alpha': .5,
+        'beta': 20.0,
+        'h_st': 12.0,
+        'h_go': 50.0,
+        'v_max': 30.0,
+        'noise': 1.0 if INCLUDE_NOISE else 0.0,
+    }),
+    # acceleration_controller=(IDMController, {}),
 )
 
 # autonomous vehicles
@@ -153,7 +163,7 @@ flow_params = dict(
         sim_step=0.5,
         render=False,
         use_ballistic=True,
-        restart_instance=False
+        restart_instance=True
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

@@ -54,12 +54,15 @@ additional_env_params.update({
     'target_velocity': 12.0,
     # how many AVs there can be at once (this is only for centralized critics)
     "max_num_agents": 10,
+
     # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
-    "headway_curriculum": False,
+    "headway_curriculum": True,
     # how many timesteps to anneal the headway curriculum over
     "headway_curriculum_iters": 100,
     # weight of the headway reward
-    "headway_reward_gain": 0.1,
+    "headway_reward_gain": 2.0,
+    # desired time headway
+    "min_time_headway": 2.0,
 
     # whether to add a slight reward for traveling at a desired speed
     "speed_curriculum": True,

@@ -275,7 +275,7 @@ def setup_exps_rllib(flow_params,
         if not np.isnan(av_speed):
             episode.user_data["avg_speed_avs"].append(av_speed)
         episode.user_data["avg_energy"].append(energy_consumption(env))
-        episode.user_data["avg_mpg"].append(miles_per_gallon(env, env.k.vehicle.get_ids()))
+        episode.user_data["avg_mpg"].append(miles_per_gallon(env, env.k.vehicle.get_ids(), gain=1.0))
 
 
     def on_episode_end(info):

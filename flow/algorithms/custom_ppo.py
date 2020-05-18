@@ -266,6 +266,8 @@ class KLCoeffMixin(object):
             shape=(),
             trainable=False,
             dtype=tf.float32)
+    def update_kl(self, blah):
+        pass
 
 
 CustomPPOTFPolicy = build_tf_policy(

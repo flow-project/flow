@@ -96,6 +96,9 @@ def visualizer_rllib(args):
         from ray.rllib.models import ModelCatalog
         agent_cls = CCTrainer
         ModelCatalog.register_custom_model("cc_model", CentralizedCriticModel)
+    elif config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CustomPPOTrainer'>":
+        from flow.algorithms.custom_ppo import CustomPPOTrainer
+        agent_cls = CustomPPOTrainer
     elif config_run:
         agent_cls = get_agent_class(config_run)
     else:
@@ -226,7 +229,7 @@ def visualizer_rllib(args):
             if speeds:
                 vel.append(np.mean(speeds))
 
-            mpg.append(miles_per_gallon(env.unwrapped, vehicles.get_ids()))
+            mpg.append(miles_per_gallon(env.unwrapped, vehicles.get_ids(), gain=1.0))
 
             if multiagent:
                 action = {}

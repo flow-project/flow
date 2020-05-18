@@ -82,6 +82,7 @@ class I210MultiEnv(MultiEnv):
         # how many timesteps to anneal the headway curriculum over
         self.headway_curriculum_iters = env_params.additional_params["headway_curriculum_iters"]
         self.headway_reward_gain = env_params.additional_params["headway_reward_gain"]
+        self.min_time_headway = env_params.additional_params["min_time_headway"]
 
         # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
         self.speed_curriculum = env_params.additional_params["speed_curriculum"]
@@ -184,12 +185,12 @@ class I210MultiEnv(MultiEnv):
             for rl_id in self.k.vehicle.get_rl_ids():
                 rewards[rl_id] = 0
                 if self.mpg_reward:
-                    rewards[rl_id] = miles_per_gallon(self, rl_id) / 100.0
+                    rewards[rl_id] = miles_per_gallon(self, rl_id, gain=1.0) / 100.0
                     follow_id = rl_id
                     for i in range(self.look_back_length):
                         follow_id = self.k.vehicle.get_follower(follow_id)
                         if follow_id not in ["", None]:
-                            rewards[rl_id] += (miles_per_gallon(self, follow_id) - 14.0) / 100.0
+                            rewards[rl_id] += (miles_per_gallon(self, follow_id, gain=1.0) - 14.0) / 100.0
                         else:
                             break
                 else:
@@ -205,7 +206,7 @@ class I210MultiEnv(MultiEnv):
                                                   for speed in speeds]) / (des_speed ** 2)
         else:
             if self.mpg_reward:
-                reward = np.nan_to_num(miles_per_gallon(self, self.k.vehicle.get_ids())) / 100.0
+                reward = np.nan_to_num(miles_per_gallon(self, self.k.vehicle.get_ids(), gain=1.0)) / 100.0
             else:
                 speeds = self.k.vehicle.get_speed(self.k.vehicle.get_ids())
                 des_speed = self.env_params.additional_params["target_velocity"]
@@ -217,8 +218,10 @@ class I210MultiEnv(MultiEnv):
                     reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
                                                     for speed in speeds]) / (des_speed ** 2))
             rewards = {rl_id: reward for rl_id in self.k.vehicle.get_rl_ids()}
+
+        # curriculum over time-gaps
         if self.headway_curriculum and self.num_training_iters <= self.headway_curriculum_iters:
-            t_min = 1  # smallest acceptable time headway
+            t_min = self.min_time_headway  # smallest acceptable time headway
             for veh_id, rew in rewards.items():
                 lead_id = self.k.vehicle.get_leader(veh_id)
                 penalty = 0
@@ -240,11 +243,16 @@ class I210MultiEnv(MultiEnv):
             for veh_id, rew in rewards.items():
                 speed = self.k.vehicle.get_speed(veh_id)
                 speed_reward = 0.0
-                if speed >= 0:
-                    if self.reroute_on_exit:
-                        speed_reward = ((des_speed - np.abs(speed - des_speed))) / (des_speed)
+                follow_id = veh_id
+                for i in range(self.look_back_length):
+                    follow_id = self.k.vehicle.get_follower(follow_id)
+                    if follow_id not in ["", None]:
+                        if self.reroute_on_exit:
+                            speed_reward += ((des_speed - np.abs(speed - des_speed))) / (des_speed)
+                        else:
+                            speed_reward += ((des_speed - np.abs(speed - des_speed)) ** 2) / (des_speed ** 2)
                     else:
-                        speed_reward = ((des_speed - np.abs(speed - des_speed)) ** 2) / (des_speed ** 2)
+                        break
                 scaling_factor = max(0, 1 - self.num_training_iters / self.speed_curriculum_iters)
 
                 rewards[veh_id] += speed_reward * scaling_factor * self.speed_reward_gain
@@ -429,7 +437,7 @@ class I210MADDPGMultiEnv(I210MultiEnv):
                                     if rl_id in self.rl_id_to_idx_map.keys()})
                 print(reward_dict)
             else:
-                reward = np.nan_to_num(miles_per_gallon(self, self.k.vehicle.get_ids())) / 100.0
+                reward = np.nan_to_num(miles_per_gallon(self, self.k.vehicle.get_ids(), gain=1.0)) / 100.0
                 reward_dict = {idx: reward for idx in
                                     range(self.max_num_agents)}
         else:
