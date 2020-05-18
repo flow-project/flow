@@ -336,7 +336,8 @@ class TraCIVehicle(KernelVehicle):
             tc.VAR_EDGES,
             tc.VAR_POSITION,
             tc.VAR_ANGLE,
-            tc.VAR_SPEED_WITHOUT_TRACI
+            tc.VAR_SPEED_WITHOUT_TRACI,
+            tc.VAR_FUELCONSUMPTION
         ])
         self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
 
@@ -371,6 +372,8 @@ class TraCIVehicle(KernelVehicle):
             self.kernel_api.vehicle.getLaneIndex(veh_id)
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = \
             self.kernel_api.vehicle.getSpeed(veh_id)
+        self.__sumo_obs[veh_id][tc.VAR_FUELCONSUMPTION] = \
+            self.kernel_api.vehicle.getFuelConsumption(veh_id)
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
@@ -533,6 +536,13 @@ class TraCIVehicle(KernelVehicle):
     def get_num_not_departed(self):
         """See parent class."""
         return self.num_not_departed
+
+    def get_fuel_consumption(self, veh_id, error=-1001):
+        """Return fuel consumption in gallons/s."""
+        ml_to_gallons = 0.000264172
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_fuel_consumption(vehID, error) for vehID in veh_id]
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_FUELCONSUMPTION, error) * ml_to_gallons
 
     def get_previous_speed(self, veh_id, error=-1001):
         """See parent class."""
@@ -738,7 +748,7 @@ class TraCIVehicle(KernelVehicle):
                 for lane in range(max_lanes):
                     edge_dict[edge][lane].sort(key=lambda x: x[1])
 
-        for veh_id in self.get_rl_ids():
+        for veh_id in self.get_ids():
             # collect the lane leaders, followers, headways, and tailways for
             # each vehicle
             edge = self.get_edge(veh_id)
@@ -983,7 +993,7 @@ class TraCIVehicle(KernelVehicle):
             # perform the requested lane action action in TraCI
             if target_lane != this_lane:
                 self.kernel_api.vehicle.changeLane(
-                    veh_id, int(target_lane), 100000)
+                    veh_id, int(target_lane), self.sim_step)
 
                 if veh_id in self.get_rl_ids():
                     self.prev_last_lc[veh_id] = \

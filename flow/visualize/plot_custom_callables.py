@@ -4,10 +4,47 @@ import argparse
 from datetime import datetime
 import errno
 import numpy as np
-import matplotlib.pyplot as plt
+
+try:
+    from matplotlib import pyplot as plt
+except ImportError:
+    import matplotlib
+
+    matplotlib.use('TkAgg')
+    from matplotlib import pyplot as plt
 import os
 import pytz
 import sys
+
+
+def make_bar_plot(vals, title):
+    """Make a bar plot."""
+    print(len(vals))
+    fig = plt.figure()
+    plt.hist(vals, 10, facecolor='blue', alpha=0.5)
+    plt.title(title)
+    plt.xlim(1000, 3000)
+    return fig
+
+
+def plot_trip_distribution(all_trip_energy_distribution):
+    """Plot a distribution of trips."""
+    non_av_vals = []
+    figures = []
+    figure_names = []
+    for key in all_trip_energy_distribution:
+        if key != 'av':
+            non_av_vals.extend(all_trip_energy_distribution[key])
+        figures.append(make_bar_plot(all_trip_energy_distribution[key], key))
+        figure_names.append(key)
+
+    figure_names.append('All Non-AV')
+    figures.append(make_bar_plot(non_av_vals, 'All Non-AV'))
+
+    figure_names.append('All')
+    figures.append(make_bar_plot(non_av_vals + all_trip_energy_distribution['av'], 'All'))
+
+    return figure_names, figures
 
 
 def parse_flags(args):
@@ -51,12 +88,16 @@ if __name__ == "__main__":
     for (dirpath, dir_names, file_names) in os.walk(flags.target_folder):
         for file_name in file_names:
             if file_name[-4:] == ".npy":
-                exp_name = os.path.basename(os.path.dirname(dirpath))
+                exp_name = os.path.basename(dirpath)
                 info_dict = np.load(os.path.join(dirpath, file_name), allow_pickle=True).item()
 
                 info_dicts.append(info_dict)
                 exp_names.append(exp_name)
                 custom_callable_names.update(info_dict.keys())
+
+    idxs = np.argsort(exp_names)
+    exp_names = [exp_names[i] for i in idxs]
+    info_dicts = [info_dicts[i] for i in idxs]
 
     for name in custom_callable_names:
         y_vals = [np.mean(info_dict[name]) for info_dict in info_dicts]
@@ -65,7 +106,7 @@ if __name__ == "__main__":
 
         plt.bar(x_pos, y_vals, align='center', alpha=0.5)
         plt.xticks(x_pos, [exp_name for exp_name in exp_names], rotation=60)
-        plt.ylabel('Experiment')
+        plt.xlabel('Experiment')
         plt.title('I210 Replay Result: {}'.format(name))
         plt.tight_layout()
         if flags.output_folder:
