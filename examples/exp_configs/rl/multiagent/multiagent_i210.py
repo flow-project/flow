@@ -9,7 +9,7 @@ import numpy as np
 from ray.tune.registry import register_env
 
 from flow.controllers import RLController
-from flow.controllers.car_following_models import IDMController
+from flow.controllers.car_following_models import IDMController, SimCarFollowingController
 import flow.config as config
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
@@ -18,6 +18,7 @@ from flow.core.params import InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
+from flow.core.params import SumoCarFollowingParams
 from flow.core.rewards import energy_consumption
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 from flow.envs.multiagent.i210 import I210MultiEnv, ADDITIONAL_ENV_PARAMS
@@ -26,7 +27,7 @@ from flow.utils.registry import make_create_env
 # SET UP PARAMETERS FOR THE SIMULATION
 
 # number of steps per rollout
-HORIZON = 4000
+HORIZON = 2000
 
 VEH_PER_HOUR_BASE_119257914 = 10800
 VEH_PER_HOUR_BASE_27414345 = 321
@@ -43,7 +44,10 @@ additional_env_params.update({
     # configure the observation space. Look at the I210MultiEnv class for more info.
     'lead_obs': True,
     # whether to add in a reward for the speed of nearby vehicles
-    "local_reward": True
+    "local_reward": True,
+    # whether to reroute vehicles once they have exited
+    "reroute_on_exit": True,
+    'target_velocity': 18,
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
@@ -54,11 +58,13 @@ vehicles.add(
     num_vehicles=0,
     lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"),
     acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
+    car_following_params=SumoCarFollowingParams(speed_mode="no_collide"),
 )
 vehicles.add(
     "av",
     acceleration_controller=(RLController, {}),
     num_vehicles=0,
+    color='red'
 )
 
 inflow = InFlows()
@@ -114,6 +120,10 @@ NET_TEMPLATE = os.path.join(
     config.PROJECT_PATH,
     "examples/exp_configs/templates/sumo/test2.net.xml")
 
+warmup_steps = 0
+if additional_env_params['reroute_on_exit']:
+    warmup_steps = 400
+
 flow_params = dict(
     # name of the experiment
     exp_tag='I_210_subnetwork',
@@ -133,15 +143,17 @@ flow_params = dict(
         render=False,
         color_by_speed=False,
         restart_instance=True,
-        use_ballistic=True
+        use_ballistic=True,
+        disable_collisions=True
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
         sims_per_step=1,
-        warmup_steps=0,
+        warmup_steps=warmup_steps,
         additional_params=additional_env_params,
+        done_at_exit=False
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
@@ -187,7 +199,7 @@ def policy_mapping_fn(_):
 custom_callables = {
     "avg_speed": lambda env: np.mean([speed for speed in
                                       env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
-    "avg_outflow": lambda env: np.nan_to_num(
-        env.k.vehicle.get_outflow_rate(120)),
-    "avg_energy": lambda env: -1*energy_consumption(env, 0.1)
+    "avg_outflow": lambda env: np.nan_to_num(env.k.vehicle.get_outflow_rate(120)),
+    "avg_energy": lambda env: -1*energy_consumption(env, 0.1),
+    "avg_per_step_energy": lambda env: -1*energy_consumption(env, 0.1) / env.k.vehicle.num_vehicles,
 }
