@@ -1,13 +1,9 @@
 """stores all the pre-defined query strings."""
 from enum import Enum
-from flow.data_pipeline.datapipeline_test import apply_energy_one
 
 # tags for different queries
 tags = {"energy": ["POWER_DEMAND_MODEL", "POWER_DEMAND_MODEL_DENOISED_ACCEL", "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"],
         "analysis": ["POWER_DEMAND_MODEL"]}
-
-# specify the function to calculate the expected result of each query
-testing_functions = {"POWER_DEMAND_MODEL": apply_energy_one}
 
 
 class QueryStrings(Enum):
