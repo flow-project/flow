@@ -149,7 +149,11 @@ flow_params = dict(
     # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-        template=NET_TEMPLATE
+        template=NET_TEMPLATE,
+        additional_params={
+            "on_ramp": False,
+            "ghost_edge": False
+        }
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
