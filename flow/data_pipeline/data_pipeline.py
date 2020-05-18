@@ -88,6 +88,34 @@ def upload_to_s3(bucket_name, bucket_key, file_path, only_query):
     return
 
 
+def extra_init():
+    """Return the dictionary with all the feild pre-populated with empty list."""
+    extra_info = {"time": [], "id": [], "x": [], "y": [], "speed": [], "headway": [], "acceleration": [],
+                  "accel_without_noise": [], "realilzed_accel": [], "leader_id": [], "follower_id": [],
+                  "leader_rel_speed": [], "road_grade": [], "source_id": []}
+    return extra_info
+
+
+def get_extra_info(veh_kernel, extra_info, veh_ids):
+    """Get all the necessary information for the trajectory output from flow."""
+    for vid in veh_ids:
+        extra_info["time"].append(veh_kernel.get_timestep(vid) / 1000)
+        extra_info["id"].append(vid)
+        extra_info["headway"].append(veh_kernel.get_headway(vid))
+        extra_info["acceleration"].append(veh_kernel.get_accel(vid))
+        extra_info["leader_id"].append(veh_kernel.get_leader(vid))
+        extra_info["follower_id"].append(veh_kernel.get_follower(vid))
+        extra_info["leader_rel_speed"].append(veh_kernel.get_speed(
+            veh_kernel.get_leader(vid)) - veh_kernel.get_speed(vid))
+        extra_info["accel_without_noise"].append(veh_kernel.get_accel_without_noise(vid))
+        extra_info["realilzed_accel"].append(veh_kernel.get_realized_accel(vid))
+        extra_info["road_grade"].append(veh_kernel.get_road_grade(vid))
+        position = veh_kernel.get_2d_position(vid)
+        extra_info["x"].append(position[0])
+        extra_info["y"].append(position[1])
+        extra_info["speed"].append(veh_kernel.get_speed(vid))
+
+
 class AthenaQuery:
     """
     Class used to run query.
@@ -199,7 +227,7 @@ class AthenaQuery:
         self.existing_partitions.append(partition)
         return
 
-    def run_query(self, query_name, result_location="s3://brent.experiments/query-result/", partition="default"):
+    def run_query(self, query_name, result_location="s3://circles.data/query-result/", partition="default"):
         """Start the execution of a query, does not wait for it to finish.
 
         Parameters
@@ -257,14 +285,14 @@ def test_sql_query(query_name):
 
     # Run the respective sql query
     queryEngine = AthenaQuery()
-    execution_id = queryEngine.run_query(query_name, result_location="s3://brent.experiments/query-result/query-test",
+    execution_id = queryEngine.run_query(query_name, result_location="s3://circles.data/query-result/query-test",
                                          partition="test")
     if queryEngine.wait_for_execution(execution_id):
         raise RuntimeError("execution timed out")
 
     # get the Athena query result from S3
     s3 = boto3.resource("s3")
-    s3.Bucket("brent.experiments").download_file("query-result/query-test/"+execution_id+".csv",
+    s3.Bucket("circles.data").download_file("query-result/query-test/"+execution_id+".csv",
                                                  "data/athena_result.csv")
     athena_result = pd.read_csv("data/athena_result.csv")
     athena_result = athena_result.sort_values(by=["time", "id"])
