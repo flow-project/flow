@@ -27,6 +27,9 @@ from flow.visualize.transfer.util import inflows_range
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 
+from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3, extra_init, get_extra_info
+import uuid
+
 EXAMPLE_USAGE = """
 example usage:
     python i210_replay.py -r /ray_results/experiment_dir/result_dir -c 1
@@ -190,6 +193,9 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         key: [] for key in custom_callables.keys()
     })
 
+    extra_info = extra_init()
+    source_id = uuid.uuid4().hex
+
     for i in range(args.num_rollouts):
         vel = []
         custom_vals = {key: [] for key in custom_callables.keys()}
@@ -221,6 +227,10 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             # Compute the velocity speeds and cumulative returns.
             veh_ids = env.k.vehicle.get_ids()
             vel.append(np.mean(env.k.vehicle.get_speed(veh_ids)))
+
+            # Collect information from flow for the trajectory output
+            get_extra_info(env.k.vehicle, extra_info, veh_ids)
+            extra_info["source_id"].extend([source_id + "run" + str(i)] * len(veh_ids))
 
             # Compute the results for the custom callables.
             for (key, lambda_func) in custom_callables.items():
