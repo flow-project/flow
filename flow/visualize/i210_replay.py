@@ -211,7 +211,6 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     extra_info = extra_init()
     source_id = uuid.uuid4().hex
 
-    for i in range(args.num_rollouts):
     i = 0
     while i < args.num_rollouts:
         print("Rollout iter", i)
