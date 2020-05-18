@@ -88,6 +88,10 @@ class TraCIVehicle(KernelVehicle):
         # old speeds used to compute accelerations
         self.previous_speeds = {}
 
+        # the acceleration of individual vehicles with and without noise
+        self._accel = dict()
+        self._accel_no_noise = dict()
+
     def initialize(self, vehicles):
         """Initialize vehicle state information.
 
@@ -1108,3 +1112,24 @@ class TraCIVehicle(KernelVehicle):
     def set_max_speed(self, veh_id, max_speed):
         """See parent class."""
         self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
+
+    def store_acceleration(self, veh_id, acceleration, env):
+        """See parent class.
+
+        If no acceleration was passed, it is collected from sumo.
+        """
+        if acceleration is None:
+            a = self.master_kernel.kernel_api.vehicle.getAcceleration(veh_id)
+            self._accel[veh_id] = a
+            self._accel_no_noise[veh_id] = a
+        else:
+            self._accel[veh_id] = acceleration
+            self._accel_no_noise[veh_id] = self.get_acc_controller(
+                veh_id).get_action(env, apply_noise=False)
+
+    def get_previous_acceleration(self, veh_id, noise=True):
+        """See parent class."""
+        if noise:
+            return self._accel.get(veh_id, 0)
+        else:
+            return self._accel_no_noise.get(veh_id, 0)

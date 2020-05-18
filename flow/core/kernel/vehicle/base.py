@@ -670,3 +670,34 @@ class KernelVehicle(object):
         float
         """
         raise NotImplementedError
+
+    def store_acceleration(self, veh_id, acceleration, env):
+        """Store vehicle acceleration data internally
+
+        Parameters
+        ----------
+        veh_id : str
+            vehicle id
+        acceleration : float or None
+            the requested acceleration
+        env : flow.envs.Env
+            the current state of the environment
+        """
+        raise NotImplementedError
+
+    def get_previous_acceleration(self, veh_id, noise=True):
+        """Return the acceleration from the previous time step.
+
+        Parameters
+        ----------
+        veh_id : str
+            vehicle id
+        noise : bool
+            whether to return the noisy or noiseless acceleration
+
+        Returns
+        -------
+        float
+            the output acceleration
+        """
+        raise NotImplementedError

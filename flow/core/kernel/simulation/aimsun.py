@@ -19,7 +19,7 @@ class AimsunKernelSimulation(KernelSimulation):
         an API that may be used to interact with the simulator
     sim_step : float
         seconds per simulation step; 0.5 by default
-    emission_path : str
+    emission_path : str or None
         Path to the folder in which to create the emissions output.
         Emissions output is not generated if this value is not specified
     time : float

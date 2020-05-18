@@ -67,7 +67,7 @@ class BaseController:
         """Return the acceleration of the controller."""
         raise NotImplementedError
 
-    def get_action(self, env):
+    def get_action(self, env, apply_noise=True):
         """Convert the get_accel() acceleration into an action.
 
         If no acceleration is specified, the action returns a None as well,
@@ -82,6 +82,8 @@ class BaseController:
         ----------
         env : flow.envs.Env
             state of the environment at the current time step
+        apply_noise : bool
+            whether to add noise to the action
 
         Returns
         -------
@@ -106,7 +108,7 @@ class BaseController:
             return None
 
         # add noise to the accelerations, if requested
-        if self.accel_noise > 0:
+        if self.accel_noise > 0 and apply_noise:
             accel += np.random.normal(0, self.accel_noise)
 
         # run the failsafes, if requested

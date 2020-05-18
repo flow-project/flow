@@ -331,6 +331,7 @@ class Env(gym.Env):
                 for veh_id in self.k.vehicle.get_controlled_ids():
                     action = self.k.vehicle.get_acc_controller(
                         veh_id).get_action(self)
+                    self.k.vehicle.store_acceleration(veh_id, action, self)
                     accel.append(action)
                 self.k.vehicle.apply_acceleration(
                     self.k.vehicle.get_controlled_ids(), accel)
