@@ -9,7 +9,7 @@ import numpy as np
 from ray.tune.registry import register_env
 
 from flow.controllers import RLController
-from flow.controllers.car_following_models import IDMController, SimCarFollowingController
+from flow.controllers.car_following_models import IDMController
 import flow.config as config
 from flow.core.params import EnvParams
 from flow.core.params import NetParams

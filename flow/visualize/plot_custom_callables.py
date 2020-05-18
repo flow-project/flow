@@ -4,25 +4,31 @@ import argparse
 from datetime import datetime
 import errno
 import numpy as np
+
 try:
     from matplotlib import pyplot as plt
 except ImportError:
     import matplotlib
+
     matplotlib.use('TkAgg')
     from matplotlib import pyplot as plt
 import os
 import pytz
 import sys
 
+
 def make_bar_plot(vals, title):
+    """Make a bar plot."""
     print(len(vals))
     fig = plt.figure()
     plt.hist(vals, 10, facecolor='blue', alpha=0.5)
     plt.title(title)
-    plt.xlim(1000,3000)
+    plt.xlim(1000, 3000)
     return fig
 
+
 def plot_trip_distribution(all_trip_energy_distribution):
+    """Plot a distribution of trips."""
     non_av_vals = []
     figures = []
     figure_names = []
@@ -31,7 +37,7 @@ def plot_trip_distribution(all_trip_energy_distribution):
             non_av_vals.extend(all_trip_energy_distribution[key])
         figures.append(make_bar_plot(all_trip_energy_distribution[key], key))
         figure_names.append(key)
-    
+
     figure_names.append('All Non-AV')
     figures.append(make_bar_plot(non_av_vals, 'All Non-AV'))
 
@@ -39,8 +45,7 @@ def plot_trip_distribution(all_trip_energy_distribution):
     figures.append(make_bar_plot(non_av_vals + all_trip_energy_distribution['av'], 'All'))
 
     return figure_names, figures
-    
-    
+
 
 def parse_flags(args):
     """Parse training options user can specify in command line.
