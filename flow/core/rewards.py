@@ -333,6 +333,7 @@ def energy_consumption(env, gain=.001):
 
     return -gain * power
 
+
 def vehicle_energy_consumption(env, veh_id, gain=.001):
     """Calculate power consumption of a vehicle.
 
@@ -398,7 +399,7 @@ def miles_per_megajoule(env, veh_ids=None, gain=.001):
     # convert from meters per joule to miles per joule
     mpj /= 1609.0
     # convert from miles per joule to miles per megajoule
-    mpj *= 10**6
+    mpj *= 10 ** 6
 
     return mpj * gain
 

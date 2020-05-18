@@ -28,8 +28,7 @@ def make_inflows(pr=0.1, fr_coef=1.0, departSpeed=20, on_ramp=False):
 
     inflow_119257914 = dict(veh_type="human",
                             edge="119257914",
-                            vehs_per_hour=VEH_PER_HOUR_BASE_119257914 *
-                            (1 - (pr)) * fr_coef,
+                            vehs_per_hour=VEH_PER_HOUR_BASE_119257914 * (1 - (pr)) * fr_coef,
                             # probability=1.0,
                             departLane="random",
                             departSpeed=departSpeed)
@@ -47,17 +46,16 @@ def make_inflows(pr=0.1, fr_coef=1.0, departSpeed=20, on_ramp=False):
     if on_ramp:
         inflow_27414345 = dict(veh_type="human",
                                edge="27414345",
-                               vehs_per_hour=VEH_PER_HOUR_BASE_27414345 *
-                               (1 - (pr)) * fr_coef,
+                               vehs_per_hour=VEH_PER_HOUR_BASE_27414345 * (1 - (pr)) * fr_coef,
                                departLane="random",
                                departSpeed=departSpeed)
         all_inflows.append(inflow_27414345)
         if pr > 0.0:
             inflow_27414342 = dict(veh_type="human",
-                                edge="27414342#0",
-                                vehs_per_hour=VEH_PER_HOUR_BASE_27414342 * pr * fr_coef,
-                                departLane="random",
-                                departSpeed=departSpeed)
+                                   edge="27414342#0",
+                                   vehs_per_hour=VEH_PER_HOUR_BASE_27414342 * pr * fr_coef,
+                                   departLane="random",
+                                   departSpeed=departSpeed)
             all_inflows.append(inflow_27414342)
 
     for inflow_def in all_inflows:
