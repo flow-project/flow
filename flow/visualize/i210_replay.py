@@ -11,6 +11,7 @@ import subprocess
 import time
 
 import ray
+
 try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
@@ -26,7 +27,7 @@ from flow.utils.rllib import get_rllib_pkl
 from flow.utils.rllib import FlowParamsEncoder
 
 from flow.visualize.transfer.util import inflows_range
-from  flow.visualize.plot_custom_callables import plot_trip_distribution
+from flow.visualize.plot_custom_callables import plot_trip_distribution
 
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
@@ -42,8 +43,10 @@ Here the arguments are:
 2 - the number of the checkpoint
 """
 
+
 @ray.remote
-def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=None, result_dir=None, max_completed_trips=None, v_des=12):
+def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=None, result_dir=None,
+           max_completed_trips=None, v_des=12):
     """Replay or run transfer test (defined by transfer_fn) by modif.
 
     Arguments:
@@ -221,8 +224,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
                         if use_lstm:
                             action[agent_id], lstm_state[agent_id], _ = \
                                 agent.compute_action(
-                                state[agent_id], state=lstm_state[agent_id],
-                                policy_id=policy_map_fn(agent_id))
+                                    state[agent_id], state=lstm_state[agent_id],
+                                    policy_id=policy_map_fn(agent_id))
                         else:
                             action[agent_id] = agent.compute_action(
                                 state[agent_id], policy_id=policy_map_fn(agent_id))
@@ -246,8 +249,10 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
 
             for past_veh_id in per_vehicle_energy_trace.keys():
                 if past_veh_id not in veh_ids and past_veh_id not in completed_vehicle_avg_energy:
-                    all_trip_energy_distribution[completed_veh_types[past_veh_id]].append(np.sum(per_vehicle_energy_trace[past_veh_id]))
-                    all_trip_time_distribution[completed_veh_types[past_veh_id]].append(len(per_vehicle_energy_trace[past_veh_id]))
+                    all_trip_energy_distribution[completed_veh_types[past_veh_id]].append(
+                        np.sum(per_vehicle_energy_trace[past_veh_id]))
+                    all_trip_time_distribution[completed_veh_types[past_veh_id]].append(
+                        len(per_vehicle_energy_trace[past_veh_id]))
                     completed_vehicle_avg_energy[past_veh_id] = np.sum(per_vehicle_energy_trace[past_veh_id])
                     completed_vehicle_travel_time[past_veh_id] = len(per_vehicle_energy_trace[past_veh_id])
 
@@ -258,7 +263,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
                         per_vehicle_energy_trace[veh_id].append(0)
                         completed_veh_types[veh_id] = env.k.vehicle.get_type(veh_id)
                     else:
-                        per_vehicle_energy_trace[veh_id].append(-1*vehicle_energy_consumption(env, veh_id))
+                        per_vehicle_energy_trace[veh_id].append(-1 * vehicle_energy_consumption(env, veh_id))
 
             if type(done) is dict and done['__all__']:
                 break
@@ -322,7 +327,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         all_trip_energies = os.path.join(output_dir, '{}-all_trip_energies.npy'.format(exp_name))
         np.save(all_trip_energies, dict(all_trip_energy_distribution))
         fig_names, figs = plot_trip_distribution(all_trip_energy_distribution)
-        
+
         for fig_name, fig in zip(fig_names, figs):
             edist_out = os.path.join(output_dir, '{}_energy_distribution.png'.format(fig_name))
             fig.savefig(edist_out)
@@ -455,18 +460,21 @@ if __name__ == '__main__':
         output_dir = args.output_dir
 
     if args.run_transfer:
-        s = [ray.cloudpickle.dumps(transfer_test) for transfer_test in inflows_range(penetration_rates=[0.0, 0.1, 0.2, 0.3])]
+        s = [ray.cloudpickle.dumps(transfer_test) for transfer_test in
+             inflows_range(penetration_rates=[0.0, 0.1, 0.2, 0.3])]
         ray_output = [replay.remote(args, flow_params, output_dir=output_dir, transfer_test=transfer_test,
-                                    rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips)
+                                    rllib_config=rllib_config, result_dir=rllib_result_dir,
+                                    max_completed_trips=args.max_completed_trips)
                       for transfer_test in s]
         ray.get(ray_output)
 
     elif args.v_des_sweep:
         assert args.controller == 'follower_stopper'
 
-        ray_output = [replay.remote(args, flow_params, output_dir="{}/{}".format(output_dir, v_des), rllib_config=rllib_config,
-                                    result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips, v_des=v_des)
-                      for v_des in range(8, 17, 2)]
+        ray_output = [
+            replay.remote(args, flow_params, output_dir="{}/{}".format(output_dir, v_des), rllib_config=rllib_config,
+                          result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips, v_des=v_des)
+            for v_des in range(8, 17, 2)]
         ray.get(ray_output)
 
     else:
@@ -474,10 +482,12 @@ if __name__ == '__main__':
             pr = args.penetration_rate if args.penetration_rate is not None else 0
             single_transfer = next(inflows_range(penetration_rates=pr))
             ray.get(replay.remote(args, flow_params, output_dir=output_dir, transfer_test=single_transfer,
-                                  rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips))
+                                  rllib_config=rllib_config, result_dir=rllib_result_dir,
+                                  max_completed_trips=args.max_completed_trips))
         else:
             ray.get(replay.remote(args, flow_params, output_dir=output_dir,
-                                  rllib_config=rllib_config, result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips))
+                                  rllib_config=rllib_config, result_dir=rllib_result_dir,
+                                  max_completed_trips=args.max_completed_trips))
 
     if args.use_s3:
         s3_string = 's3://kanaad.experiments/i210_replay/' + date

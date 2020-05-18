@@ -290,6 +290,27 @@ class KernelVehicle(object):
         """Return the ids of vehicles that departed in the last time step."""
         raise NotImplementedError
 
+    def get_num_not_departed(self):
+        """Return the number of vehicles not departed in the last time step.
+
+        This includes vehicles that were loaded but not departed.
+        """
+        raise NotImplementedError
+
+    def get_fuel_consumption(selfself, veh_id, error=-1001):
+        """Return the mpg / s of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+        Returns
+        -------
+        float
+        """
+
     def get_speed(self, veh_id, error=-1001):
         """Return the speed of the specified vehicle.
 

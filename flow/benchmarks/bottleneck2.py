@@ -66,7 +66,7 @@ additional_env_params = {
 }
 
 # flow rate
-flow_rate = 2000 * SCALING
+flow_rate = 2500 * SCALING
 
 # percentage of flow coming out of each lane
 inflow = InFlows()

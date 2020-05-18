@@ -25,8 +25,8 @@ except ImportError:
 
 import ray
 from ray import tune
-from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
 from ray.tune.registry import register_env
+from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
 try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
@@ -301,7 +301,7 @@ def train_h_baselines(flow_params, args, multiagent):
     """Train policies using SAC and TD3 with h-baselines."""
     from hbaselines.algorithms import OffPolicyRLAlgorithm
     from hbaselines.utils.train import parse_options, get_hyperparameters
-    from hbaselines.envs.mixed_autonomy.envs import FlowEnv
+    from hbaselines.envs.mixed_autonomy import FlowEnv
 
     flow_params = deepcopy(flow_params)
 

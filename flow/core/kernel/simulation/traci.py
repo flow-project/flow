@@ -12,7 +12,6 @@ import logging
 import subprocess
 import signal
 
-
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
 
@@ -46,9 +45,14 @@ class TraCISimulation(KernelSimulation):
         # subscribe some simulation parameters needed to check for entering,
         # exiting, and colliding vehicles
         self.kernel_api.simulation.subscribe([
-            tc.VAR_DEPARTED_VEHICLES_IDS, tc.VAR_ARRIVED_VEHICLES_IDS,
-            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS, tc.VAR_TIME_STEP,
-            tc.VAR_DELTA_T
+            tc.VAR_DEPARTED_VEHICLES_IDS,
+            tc.VAR_ARRIVED_VEHICLES_IDS,
+            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS,
+            tc.VAR_TIME_STEP,
+            tc.VAR_DELTA_T,
+            tc.VAR_LOADED_VEHICLES_NUMBER,
+            tc.VAR_DEPARTED_VEHICLES_NUMBER,
+            tc.VAR_ARRIVED_VEHICLES_NUMBER
         ])
 
     def simulation_step(self):
@@ -94,7 +98,7 @@ class TraCISimulation(KernelSimulation):
                 # disable all collisions and teleporting in the simulation.
                 if sim_params.disable_collisions:
                     sumo_call.extend(["--collision.mingap-factor", str(0),
-                    "--collision.action", str("none")])
+                                      "--collision.action", str("none")])
 
                 # use a ballistic integration step (if request)
                 if sim_params.use_ballistic:
