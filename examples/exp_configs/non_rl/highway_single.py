@@ -3,7 +3,11 @@
 Trains a non-constant number of agents, all sharing the same policy, on the
 highway with ramps network.
 """
+
+import numpy as np
+
 from flow.controllers import BandoFTLController
+from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import InitialConfig
@@ -11,6 +15,7 @@ from flow.core.params import InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
+from flow.core.rewards import miles_per_megajoule
 from flow.networks import HighwayNetwork
 from flow.envs import TestEnv
 from flow.networks.highway import ADDITIONAL_NET_PARAMS
@@ -18,8 +23,11 @@ from flow.networks.highway import ADDITIONAL_NET_PARAMS
 TRAFFIC_SPEED = 11
 END_SPEED = 16
 TRAFFIC_FLOW = 2056
-HORIZON = 3600
-INCLUDE_NOISE = True
+HORIZON = 2000
+INCLUDE_NOISE = False
+
+# percentage of autonomous vehicles compared to human vehicles on highway
+PENETRATION_RATE = 10.0
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
@@ -55,14 +63,31 @@ vehicles.add(
     }),
 )
 
+if PENETRATION_RATE > 0.0:
+    vehicles.add(
+        "av",
+        num_vehicles=0,
+        acceleration_controller=(FollowerStopper, {"v_des": 11.0}),
+    )
+
 inflows = InFlows()
+
 inflows.add(
     veh_type="human",
     edge="highway_0",
-    vehs_per_hour=TRAFFIC_FLOW,
+    vehs_per_hour=int(TRAFFIC_FLOW * (1 - PENETRATION_RATE / 100)),
     depart_lane="free",
-    depart_speed=TRAFFIC_SPEED,
+    depart_speed="23",
     name="idm_highway_inflow")
+
+if PENETRATION_RATE > 0.0:
+    inflows.add(
+        veh_type="av",
+        edge="highway_0",
+        vehs_per_hour=int(TRAFFIC_FLOW * (PENETRATION_RATE / 100)),
+        depart_lane="free",
+        depart_speed="23",
+        name="av_highway_inflow")
 
 # SET UP FLOW PARAMETERS
 
@@ -108,3 +133,13 @@ flow_params = dict(
     # reset (see flow.core.params.InitialConfig)
     initial=InitialConfig(),
 )
+
+custom_callables = {
+    "avg_merge_speed": lambda env: np.nan_to_num(np.mean(
+        env.k.vehicle.get_speed(env.k.vehicle.get_ids()))),
+    "avg_outflow": lambda env: np.nan_to_num(
+        env.k.vehicle.get_outflow_rate(120)),
+    "miles_per_megajoule": lambda env: np.nan_to_num(
+        miles_per_megajoule(env, env.k.vehicle.get_ids(), gain=1.0)
+    )
+}
