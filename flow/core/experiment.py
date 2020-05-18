@@ -1,10 +1,11 @@
 """Contains an experiment class for running simulations."""
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
-from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3
+from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3, extra_init, get_extra_info
 import datetime
 import logging
 import time
+from datetime import date
 import os
 import numpy as np
 import uuid
@@ -145,9 +146,7 @@ class Experiment:
         # time profiling information
         t = time.time()
         times = []
-        extra_info = {"time": [], "id": [], "x": [], "y": [], "speed": [], "headway": [], "acceleration": [],
-                      "leader_id": [], "follower_id": [], "leader_rel_speed": [], "accel_without_noise": [],
-                      "road_grade": [], "source_id": []}
+        extra_info = extra_init()
         source_id = uuid.uuid4().hex
 
         for i in range(num_runs):
@@ -167,22 +166,7 @@ class Experiment:
                 ret += reward
 
                 # collect additional information for the data pipeline
-                for vid in veh_ids:
-                    extra_info["time"].append(self.env.k.vehicle.get_timestep(vid) / 1000)
-                    extra_info["id"].append(vid)
-                    extra_info["headway"].append(self.env.k.vehicle.get_headway(vid))
-                    extra_info["acceleration"].append(self.env.k.vehicle.get_accel(vid))
-                    extra_info["leader_id"].append(self.env.k.vehicle.get_leader(vid))
-                    extra_info["follower_id"].append(self.env.k.vehicle.get_follower(vid))
-                    extra_info["leader_rel_speed"].append(self.env.k.vehicle.get_speed(
-                        self.env.k.vehicle.get_leader(vid)) - self.env.k.vehicle.get_speed(vid))
-                    extra_info["accel_without_noise"].append(self.env.k.vehicle.get_accel_without_noise(vid))
-                    extra_info["road_grade"].append(self.env.k.vehicle.get_road_grade(vid))
-                    position = self.env.k.vehicle.get_2d_position(vid)
-                    extra_info["x"].append(position[0])
-                    extra_info["y"].append(position[1])
-                    extra_info["speed"].append(self.env.k.vehicle.get_speed(vid))
-                    #extra_info["next_v"].append(self.env.k.vehicle.get_next_v(vid))
+                get_extra_info(self.env.k.vehicle, extra_info, veh_ids)
                 extra_info["source_id"].extend([source_id+"run" + str(i)] * len(veh_ids))
 
                 # Compute the results for the custom callables.
@@ -231,7 +215,10 @@ class Experiment:
             upload_file_path = generate_trajectory_from_flow(trajectory_table_path, extra_info, partition_name)
 
             if partition_name:
-                upload_to_s3('brent.experiments', 'trajectory-output/' + 'partition_name=' + partition_name + '/'
+                if partition_name == "default":
+                    partition_name = source_id[0:3]
+                partition_name = date.today().isoformat() + " " + partition_name
+                upload_to_s3('circles.data', 'trajectory-output/' + 'partition_name=' + partition_name + '/'
                              + upload_file_path.split('/')[-1].split('_')[0] + '.csv',
                              upload_file_path, str(only_query)[2:-2])
 

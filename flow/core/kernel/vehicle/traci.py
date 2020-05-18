@@ -1115,13 +1115,6 @@ class TraCIVehicle(KernelVehicle):
         self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
 
     # add for data pipeline
-    def get_next_v(self, veh_id):
-        """See parent class."""
-        if not "next_v" in self.__vehicles[veh_id]:
-            self.__vehicles[veh_id]["next_v"] = None
-        return self.__vehicles[veh_id]["next_v"]
-        #return (self.get_speed(veh_id) - self.get_previous_speed(veh_id)) / self.sim_step
-
     def get_accel(self, veh_id):
         """See parent class."""
         if not "accel" in self.__vehicles[veh_id]:
@@ -1138,9 +1131,9 @@ class TraCIVehicle(KernelVehicle):
             self.__vehicles[veh_id]["accel_without_noise"] = None
         return self.__vehicles[veh_id]["accel_without_noise"]
 
-    def get_velocity_without_noise(self, veh_id):
+    def get_realized_accel(self, veh_id):
         """See parent class."""
-        return max([self.get_speed(veh_id) + self.get_accel_without_noise(veh_id) * self.sim_step, 0])
+        return (self.get_speed(veh_id) - self.get_previous_speed(veh_id)) / self.sim_step
 
     def get_2d_position(self, veh_id, error=-1001):
         """See parent class."""
@@ -1148,5 +1141,5 @@ class TraCIVehicle(KernelVehicle):
 
     def get_road_grade(self, veh_id):
         """See parent class."""
-        # TODO
+        # TODO : Brent
         return 0

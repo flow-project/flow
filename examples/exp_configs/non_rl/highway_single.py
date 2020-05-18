@@ -19,7 +19,7 @@ TRAFFIC_SPEED = 11
 END_SPEED = 16
 TRAFFIC_FLOW = 2056
 HORIZON = 3600
-INCLUDE_NOISE = False
+INCLUDE_NOISE = True
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
