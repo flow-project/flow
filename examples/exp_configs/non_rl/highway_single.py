@@ -19,7 +19,7 @@ END_SPEED = 6.0
 # the inflow rate of vehicles
 TRAFFIC_FLOW = 2215
 # the simulation time horizon (in steps)
-HORIZON = 4500
+HORIZON = 1500
 # whether to include noise in the car-following models
 INCLUDE_NOISE = True
 
@@ -82,8 +82,8 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        warmup_steps=0,
-        sims_per_step=1,
+        warmup_steps=500,
+        sims_per_step=3,
     ),
 
     # sumo-related parameters (see flow.core.params.SumoParams)
