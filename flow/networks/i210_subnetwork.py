@@ -1,9 +1,18 @@
 """Contains the I-210 sub-network class."""
-
 from flow.networks.base import Network
+from flow.core.params import InitialConfig
+from flow.core.params import TrafficLightParams
+
+ADDITIONAL_NET_PARAMS = {
+    # whether to include vehicle on the on-ramp
+    "on_ramp": False,
+    # whether to include the downstream slow-down edge in the network
+    "ghost_edge": False,
+}
 
 EDGES_DISTRIBUTION = [
     # Main highway
+    "ghost0",
     "119257914",
     "119257908#0",
     "119257908#1-AddedOnRampEdge",
@@ -25,6 +34,12 @@ EDGES_DISTRIBUTION = [
 class I210SubNetwork(Network):
     """A network used to simulate the I-210 sub-network.
 
+    Requires from net_params:
+
+    * **on_ramp** : whether to include vehicle on the on-ramp
+    * **ghost_edge** : whether to include the downstream slow-down edge in the
+      network
+
     Usage
     -----
     >>> from flow.core.params import NetParams
@@ -39,58 +54,85 @@ class I210SubNetwork(Network):
     >>> )
     """
 
-    def specify_routes(self, net_params):
-        """See parent class.
+    def __init__(self,
+                 name,
+                 vehicles,
+                 net_params,
+                 initial_config=InitialConfig(),
+                 traffic_lights=TrafficLightParams()):
+        """Initialize the I210 sub-network scenario."""
+        for p in ADDITIONAL_NET_PARAMS.keys():
+            if p not in net_params.additional_params:
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
 
-        Routes for vehicles moving through the bay bridge from Oakland to San
-        Francisco.
-        """
-        if net_params.additional_params["use_on_ramp"]:
-            rts = {
-                # Main highway
-                "119257914": [
-                    (["119257914", "119257908#0", "119257908#1-AddedOnRampEdge",
-                      "119257908#1", "119257908#1-AddedOffRampEdge", "119257908#2",
-                      "119257908#3"],
-                     1),  # HOV: 1509 (on ramp: 57), Non HOV: 6869 (onramp: 16)
-                    (["119257914", "119257908#0", "119257908#1-AddedOnRampEdge",
-                      "119257908#1", "119257908#1-AddedOffRampEdge", "173381935"],
-                     17 / 8378)
+        super(I210SubNetwork, self).__init__(
+            name=name,
+            vehicles=vehicles,
+            net_params=net_params,
+            initial_config=initial_config,
+            traffic_lights=traffic_lights,
+        )
+
+    def specify_routes(self, net_params):
+        """See parent class."""
+        rts = {
+            "119257914": [
+                (["119257914",
+                  "119257908#0",
+                  "119257908#1-AddedOnRampEdge",
+                  "119257908#1",
+                  "119257908#1-AddedOffRampEdge",
+                  "119257908#2",
+                  "119257908#3"], 1.0),
+            ]
+        }
+
+        if net_params.additional_params["ghost_edge"]:
+            rts.update({
+                "ghost0": [
+                    (["ghost0",
+                      "119257914",
+                      "119257908#0",
+                      "119257908#1-AddedOnRampEdge",
+                      "119257908#1",
+                      "119257908#1-AddedOffRampEdge",
+                      "119257908#2",
+                      "119257908#3"], 1),
                 ],
+            })
+
+        if net_params.additional_params["on_ramp"]:
+            rts.update({
+                # Main highway
                 "119257908#0": [
-                    (["119257908#0", "119257908#1-AddedOnRampEdge", "119257908#1",
-                      "119257908#1-AddedOffRampEdge", "119257908#2",
-                      "119257908#3"],
-                     1.0),
-                    # (["119257908#0", "119257908#1-AddedOnRampEdge", "119257908#1",
-                    #   "119257908#1-AddedOffRampEdge", "173381935"],
-                    #  0.5),
+                    (["119257908#0",
+                      "119257908#1-AddedOnRampEdge",
+                      "119257908#1",
+                      "119257908#1-AddedOffRampEdge",
+                      "119257908#2",
+                      "119257908#3"], 1.0),
                 ],
                 "119257908#1-AddedOnRampEdge": [
-                    (["119257908#1-AddedOnRampEdge", "119257908#1",
-                      "119257908#1-AddedOffRampEdge", "119257908#2",
-                      "119257908#3"],
-                     1.0),
-                    # (["119257908#1-AddedOnRampEdge", "119257908#1",
-                    #   "119257908#1-AddedOffRampEdge", "173381935"],
-                    #  0.5),
+                    (["119257908#1-AddedOnRampEdge",
+                      "119257908#1",
+                      "119257908#1-AddedOffRampEdge",
+                      "119257908#2",
+                      "119257908#3"], 1.0),
                 ],
                 "119257908#1": [
-                    (["119257908#1", "119257908#1-AddedOffRampEdge", "119257908#2",
-                      "119257908#3"],
-                     1.0),
-                    # (["119257908#1", "119257908#1-AddedOffRampEdge", "173381935"],
-                    #  0.5),
+                    (["119257908#1",
+                      "119257908#1-AddedOffRampEdge",
+                      "119257908#2",
+                      "119257908#3"], 1.0),
                 ],
                 "119257908#1-AddedOffRampEdge": [
-                    (["119257908#1-AddedOffRampEdge", "119257908#2",
-                      "119257908#3"],
-                     1.0),
-                    # (["119257908#1-AddedOffRampEdge", "173381935"],
-                    #  0.5),
+                    (["119257908#1-AddedOffRampEdge",
+                      "119257908#2",
+                      "119257908#3"], 1.0),
                 ],
                 "119257908#2": [
-                    (["119257908#2", "119257908#3"], 1),
+                    (["119257908#2",
+                      "119257908#3"], 1),
                 ],
                 "119257908#3": [
                     (["119257908#3"], 1),
@@ -98,56 +140,59 @@ class I210SubNetwork(Network):
 
                 # On-ramp
                 "27414345": [
-                    (["27414345", "27414342#1-AddedOnRampEdge",
+                    (["27414345",
+                      "27414342#1-AddedOnRampEdge",
                       "27414342#1",
-                      "119257908#1-AddedOnRampEdge", "119257908#1",
-                      "119257908#1-AddedOffRampEdge", "119257908#2",
-                      "119257908#3"],
-                     1 - 9 / 321),
-                    (["27414345", "27414342#1-AddedOnRampEdge",
+                      "119257908#1-AddedOnRampEdge",
+                      "119257908#1",
+                      "119257908#1-AddedOffRampEdge",
+                      "119257908#2",
+                      "119257908#3"], 1 - 9 / 321),
+                    (["27414345",
+                      "27414342#1-AddedOnRampEdge",
                       "27414342#1",
-                      "119257908#1-AddedOnRampEdge", "119257908#1",
-                      "119257908#1-AddedOffRampEdge", "173381935"],
-                     9 / 321),
+                      "119257908#1-AddedOnRampEdge",
+                      "119257908#1",
+                      "119257908#1-AddedOffRampEdge",
+                      "173381935"], 9 / 321),
                 ],
                 "27414342#0": [
-                    (["27414342#0", "27414342#1-AddedOnRampEdge",
+                    (["27414342#0",
+                      "27414342#1-AddedOnRampEdge",
                       "27414342#1",
-                      "119257908#1-AddedOnRampEdge", "119257908#1",
-                      "119257908#1-AddedOffRampEdge", "119257908#2",
-                      "119257908#3"],
-                     1 - 20 / 421),
-                    (["27414342#0", "27414342#1-AddedOnRampEdge",
+                      "119257908#1-AddedOnRampEdge",
+                      "119257908#1",
+                      "119257908#1-AddedOffRampEdge",
+                      "119257908#2",
+                      "119257908#3"], 1 - 20 / 421),
+                    (["27414342#0",
+                      "27414342#1-AddedOnRampEdge",
                       "27414342#1",
-                      "119257908#1-AddedOnRampEdge", "119257908#1",
-                      "119257908#1-AddedOffRampEdge", "173381935"],
-                     20 / 421),
+                      "119257908#1-AddedOnRampEdge",
+                      "119257908#1",
+                      "119257908#1-AddedOffRampEdge",
+                      "173381935"], 20 / 421),
                 ],
                 "27414342#1-AddedOnRampEdge": [
-                    (["27414342#1-AddedOnRampEdge", "27414342#1", "119257908#1-AddedOnRampEdge",
-                      "119257908#1", "119257908#1-AddedOffRampEdge", "119257908#2",
-                      "119257908#3"],
-                     0.5),
-                    (["27414342#1-AddedOnRampEdge", "27414342#1", "119257908#1-AddedOnRampEdge",
-                      "119257908#1", "119257908#1-AddedOffRampEdge", "173381935"],
-                     0.5),
+                    (["27414342#1-AddedOnRampEdge",
+                      "27414342#1",
+                      "119257908#1-AddedOnRampEdge",
+                      "119257908#1",
+                      "119257908#1-AddedOffRampEdge",
+                      "119257908#2",
+                      "119257908#3"], 0.5),
+                    (["27414342#1-AddedOnRampEdge",
+                      "27414342#1",
+                      "119257908#1-AddedOnRampEdge",
+                      "119257908#1",
+                      "119257908#1-AddedOffRampEdge",
+                      "173381935"], 0.5),
                 ],
 
                 # Off-ramp
                 "173381935": [
                     (["173381935"], 1),
                 ],
-            }
-
-        else:
-            rts = {
-                # Main highway
-                "119257914": [
-                    (["119257914", "119257908#0", "119257908#1-AddedOnRampEdge",
-                      "119257908#1", "119257908#1-AddedOffRampEdge", "119257908#2",
-                      "119257908#3"],
-                     1),
-                ],
-            }
+            })
 
         return rts
