@@ -127,9 +127,10 @@ class BayBridgeRouter(ContinuousRouter):
 
 
 class I210Router(ContinuousRouter):
-    """Assists in choosing routes in select cases for the Bay Bridge network.
+    """Assists in choosing routes in select cases for the I-210 sub-network.
 
     Extension to the Continuous Router.
+
     Usage
     -----
     See base class for usage example.
@@ -140,9 +141,11 @@ class I210Router(ContinuousRouter):
         edge = env.k.vehicle.get_edge(self.veh_id)
         lane = env.k.vehicle.get_lane(self.veh_id)
 
-        # vehicles on these edges in lanes 4 and 5 are not going to be able to make it out in time
+        # vehicles on these edges in lanes 4 and 5 are not going to be able to
+        # make it out in time
         if edge == "119257908#1-AddedOffRampEdge" and lane in [5, 4, 3]:
-            new_route = env.available_routes["119257908#1-AddedOffRampEdge"][0][0]
+            new_route = env.available_routes[
+                "119257908#1-AddedOffRampEdge"][0][0]
         else:
             new_route = super().choose_route(env)
 

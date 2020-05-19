@@ -14,11 +14,13 @@ ADDITIONAL_NET_PARAMS = {
     "speed_limit": 30,
     # number of edges to divide the highway into
     "num_edges": 1,
-    # whether to include a ghost edge of length 500m. This edge is provided a
-    # different speed limit.
+    # whether to include a ghost edge. This edge is provided a different speed
+    # limit.
     "use_ghost_edge": False,
     # speed limit for the ghost edge
     "ghost_speed_limit": 25,
+    # length of the cell imposing a boundary
+    "boundary_cell_length": 500
 }
 
 
@@ -34,9 +36,10 @@ class HighwayNetwork(Network):
     * **lanes** : number of lanes in the highway
     * **speed_limit** : max speed limit of the highway
     * **num_edges** : number of edges to divide the highway into
-    * **use_ghost_edge** : whether to include a ghost edge of length 500m. This
-      edge is provided a different speed limit.
+    * **use_ghost_edge** : whether to include a ghost edge. This edge is
+      provided a different speed limit.
     * **ghost_speed_limit** : speed limit for the ghost edge
+    * **boundary_cell_length** : length of the cell imposing a boundary
 
     Usage
     -----
@@ -80,6 +83,7 @@ class HighwayNetwork(Network):
         length = net_params.additional_params["length"]
         num_edges = net_params.additional_params.get("num_edges", 1)
         segment_lengths = np.linspace(0, length, num_edges+1)
+        end_length = net_params.additional_params["boundary_cell_length"]
 
         nodes = []
         for i in range(num_edges+1):
@@ -92,7 +96,7 @@ class HighwayNetwork(Network):
         if self.net_params.additional_params["use_ghost_edge"]:
             nodes += [{
                 "id": "edge_{}".format(num_edges + 1),
-                "x": length + self.end_length,
+                "x": length + end_length,
                 "y": 0
             }]
 
@@ -103,6 +107,7 @@ class HighwayNetwork(Network):
         length = net_params.additional_params["length"]
         num_edges = net_params.additional_params.get("num_edges", 1)
         segment_length = length/float(num_edges)
+        end_length = net_params.additional_params["boundary_cell_length"]
 
         edges = []
         for i in range(num_edges):
@@ -120,7 +125,7 @@ class HighwayNetwork(Network):
                 "type": "highway_end",
                 "from": "edge_{}".format(num_edges),
                 "to": "edge_{}".format(num_edges + 1),
-                "length": self.end_length
+                "length": end_length
             }]
 
         return edges
