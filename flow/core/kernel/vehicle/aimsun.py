@@ -403,7 +403,7 @@ class AimsunKernelVehicle(KernelVehicle):
 
     def reset(self):
         """See parent class."""
-        pass
+        raise NotImplementedError
 
     def remove(self, aimsun_id):
         """See parent class."""
@@ -517,13 +517,17 @@ class AimsunKernelVehicle(KernelVehicle):
             edge the vehicle is currently on. If a value of None is provided,
             the vehicle does not update its route
         """
-        pass  # FIXME
+        raise NotImplementedError  # FIXME
         # for i, veh_id in enumerate(veh_ids):
         #     if route_choices[i] is not None:
         #         aimsun_id = self._id_flow2aimsun[veh_id]
         #         size_next_sections = len(route_choices[i])
         #         self.kernel_api.AKIVehTrackedModifyNextSections(
         #             aimsun_id, size_next_sections, route_choices[i])
+
+    def set_max_speed(self, veh_id, max_speed):
+        """See parent class."""
+        raise NotImplementedError
 
     ###########################################################################
     # Methods to visually distinguish vehicles by {RL, observed, unobserved}  #
@@ -560,9 +564,29 @@ class AimsunKernelVehicle(KernelVehicle):
         """Return the list of observed vehicles."""
         return self.__observed_ids
 
+    def get_color(self, veh_id):
+        """See parent class."""
+        raise NotImplementedError
+
+    def set_color(self, veh_id, color):
+        """See parent class."""
+        raise NotImplementedError
+
     ###########################################################################
     #                        State acquisition methods                        #
     ###########################################################################
+
+    def get_orientation(self, veh_id):
+        """See parent class."""
+        raise NotImplementedError
+
+    def get_timestep(self, veh_id):
+        """See parent class."""
+        raise NotImplementedError
+
+    def get_timedelta(self, veh_id):
+        """See parent class."""
+        raise NotImplementedError
 
     def get_ids(self):
         """See parent class."""
@@ -611,6 +635,22 @@ class AimsunKernelVehicle(KernelVehicle):
         else:
             return 0
 
+    def get_arrived_ids(self):
+        """See parent class."""
+        raise NotImplementedError
+
+    def get_departed_ids(self):
+        """See parent class."""
+        raise NotImplementedError
+
+    def get_num_not_departed(self):
+        """See parent class."""
+        raise NotImplementedError
+
+    def get_fuel_consumption(self):
+        """See parent class."""
+        raise NotImplementedError
+
     def get_type(self, veh_id):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
@@ -626,6 +666,10 @@ class AimsunKernelVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed(veh, error) for veh in veh_id]
         return self.__vehicles[veh_id]['tracking_info'].CurrentSpeed / 3.6
+
+    def get_default_speed(self, veh_id, error=-1001):
+        """See parent class."""
+        raise NotImplementedError
 
     def get_position(self, veh_id, error=-1001):
         """See parent class."""
@@ -804,5 +848,9 @@ class AimsunKernelVehicle(KernelVehicle):
         raise NotImplementedError
 
     def get_lane_leaders_speed(self, veh_id, error=None):
+        """See parent class."""
+        raise NotImplementedError
+
+    def get_max_speed(self, veh_id, error):
         """See parent class."""
         raise NotImplementedError

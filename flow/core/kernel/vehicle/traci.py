@@ -533,6 +533,10 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         return self.num_not_departed
 
+    def get_fuel_consumption(self, veh_id, error=-1001):
+        """See parent class."""
+        raise NotImplementedError
+
     def get_previous_speed(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
