@@ -23,6 +23,7 @@ VEHICLE_POWER_DEMAND_FINAL_SELECT = """
     ORDER BY id, "time"
     """
 
+
 class QueryStrings(Enum):
     """An enumeration of all the pre-defined query strings."""
 
