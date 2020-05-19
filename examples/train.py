@@ -23,9 +23,7 @@ try:
 except ImportError:
     print("Stable-baselines not installed")
 
-import ray
 from ray import tune
-from ray.tune.registry import register_env
 from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
 try:
     from ray.rllib.agents.agent import get_agent_class
