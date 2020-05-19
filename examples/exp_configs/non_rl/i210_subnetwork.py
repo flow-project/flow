@@ -117,7 +117,7 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.4,
         render=False,
-        color_by_speed=False,
+        color_by_speed=True,
         use_ballistic=True
     ),
 
