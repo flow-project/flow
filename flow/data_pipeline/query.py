@@ -48,7 +48,7 @@ class QueryStrings(Enum):
                 source_id
             FROM trajectory_table
             WHERE 1 = 1
-                AND partition_name=\'{partition}\'
+                AND partition_name=\'{{partition}}\'
         )
         {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('regular_cte'))
 
@@ -63,7 +63,7 @@ class QueryStrings(Enum):
                 source_id
             FROM trajectory_table
             WHERE 1 = 1
-                AND partition_name=\'{partition}\'
+                AND partition_name=\'{{partition}}\'
         )
         {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('denoised_accel_cte'))
 
@@ -81,7 +81,7 @@ class QueryStrings(Enum):
                     OVER (PARTITION BY id ORDER BY "time" ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) AS prev_speed
             FROM trajectory_table
             WHERE 1 = 1
-                AND partition_name=\'{partition}\'
+                AND partition_name=\'{{partition}}\'
         ), denoised_speed_cte AS (
             SELECT
                 id,
