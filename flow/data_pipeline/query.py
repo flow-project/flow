@@ -20,8 +20,6 @@ VEHICLE_POWER_DEMAND_FINAL_SELECT = """
         'POWER_DEMAND_MODEL' AS energy_model_id,
         source_id
     FROM {}
-    WHERE 1 = 1
-        AND partition_name=\'{partition}\'
     ORDER BY id, "time"
     """
 
@@ -40,7 +38,20 @@ class QueryStrings(Enum):
         ADD IF NOT EXISTS PARTITION (partition_name=\'{partition}\');
         """
 
-    POWER_DEMAND_MODEL = VEHICLE_POWER_DEMAND_FINAL_SELECT.format('trajectory_table')
+    POWER_DEMAND_MODEL = """
+        WITH regular_cte AS (
+            SELECT
+                id,
+                "time",
+                speed,
+                acceleration,
+                road_grade,
+                source_id
+            FROM trajectory_table
+            WHERE 1 = 1
+                AND partition_name=\'{partition}\'
+        )
+        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('regular_cte'))
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL = """
         WITH denoised_accel_cte AS (
@@ -52,14 +63,16 @@ class QueryStrings(Enum):
                 road_grade,
                 source_id
             FROM trajectory_table
+            WHERE 1 = 1
+                AND partition_name=\'{partition}\'
         )
         {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('denoised_accel_cte'))
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL = """
         WITH lagged_timestep AS (
             SELECT
-                "time",
                 id,
+                "time",
                 accel_without_noise,
                 road_grade,
                 source_id,
