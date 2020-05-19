@@ -5,7 +5,7 @@ from enum import Enum
 tags = {"energy": ["POWER_DEMAND_MODEL", "POWER_DEMAND_MODEL_DENOISED_ACCEL", "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"],
         "analysis": ["POWER_DEMAND_MODEL"]}
 
-VEHICLE_POWER_DEMAND_SUBQUERY = """
+VEHICLE_POWER_DEMAND_FINAL_SELECT = """
     SELECT
         id,
         "time",
@@ -39,7 +39,7 @@ class QueryStrings(Enum):
         ADD IF NOT EXISTS PARTITION (partition_name=\'{partition}\');
         """
 
-    POWER_DEMAND_MODEL = VEHICLE_POWER_DEMAND_SUBQUERY.format('trajectory_table')
+    POWER_DEMAND_MODEL = VEHICLE_POWER_DEMAND_FINAL_SELECT.format('trajectory_table')
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL = """
         WITH denoised_accel_cte AS (
@@ -52,7 +52,7 @@ class QueryStrings(Enum):
                 source_id
             FROM trajectory_table
         )
-        {}""".format(VEHICLE_POWER_DEMAND_SUBQUERY.format('denoised_accel_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('denoised_accel_cte'))
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL = """
         WITH lagged_timestep AS (
@@ -79,4 +79,4 @@ class QueryStrings(Enum):
                 source_id
             FROM lagged_timestep
         )
-        {}""".format(VEHICLE_POWER_DEMAND_SUBQUERY.format('denoised_speed_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('denoised_speed_cte'))
