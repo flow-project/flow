@@ -38,7 +38,7 @@ def generate_trajectory_table(data_path, extra_info, partition_name):
     return output_file_path
 
 
-def generate_trajectory_from_flow(data_path, extra_info, partition_name):
+def generate_trajectory_from_flow(data_path, extra_info, partition_name=None):
     """Generate desired output for the trajectory_table based only on flow output.
 
     Parameters
@@ -227,7 +227,7 @@ class AthenaQuery:
         self.existing_partitions.append(partition)
         return
 
-    def run_query(self, query_name, result_location="s3://circles.data/query-result/", partition="default"):
+    def run_query(self, query_name, result_location="s3://circles.data.pipeline/query-result/", partition="default"):
         """Start the execution of a query, does not wait for it to finish.
 
         Parameters
@@ -285,15 +285,15 @@ def test_sql_query(query_name):
 
     # Run the respective sql query
     queryEngine = AthenaQuery()
-    execution_id = queryEngine.run_query(query_name, result_location="s3://circles.data/query-result/query-test",
-                                         partition="test")
+    execution_id = queryEngine.run_query(query_name, result_location="s3://circles.data.pipeline/"
+                                                                     "query-result/query-test", partition="test")
     if queryEngine.wait_for_execution(execution_id):
         raise RuntimeError("execution timed out")
 
     # get the Athena query result from S3
     s3 = boto3.resource("s3")
-    s3.Bucket("circles.data").download_file("query-result/query-test/"+execution_id+".csv",
-                                                 "data/athena_result.csv")
+    s3.Bucket("circles.data.pipeline").download_file("query-result/query-test/"+execution_id+".csv",
+                                                     "data/athena_result.csv")
     athena_result = pd.read_csv("data/athena_result.csv")
     athena_result = athena_result.sort_values(by=["time", "id"])
 
