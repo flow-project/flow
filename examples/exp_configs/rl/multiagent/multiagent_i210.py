@@ -35,6 +35,10 @@ VEH_PER_HOUR_BASE_27414342 = 421
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10
 
+# TODO: temporary fix
+edges_distribution = EDGES_DISTRIBUTION.copy()
+edges_distribution.remove("ghost0")
+
 # SET UP PARAMETERS FOR THE ENVIRONMENT
 additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
 additional_env_params.update({
@@ -148,7 +152,11 @@ flow_params = dict(
     # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-        template=NET_TEMPLATE
+        template=NET_TEMPLATE,
+        additional_params={
+            "on_ramp": False,
+            "ghost_edge": False
+        }
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
@@ -158,7 +166,7 @@ flow_params = dict(
     # parameters specifying the positioning of vehicles upon initialization/
     # reset (see flow.core.params.InitialConfig)
     initial=InitialConfig(
-        edges_distribution=EDGES_DISTRIBUTION,
+        edges_distribution=edges_distribution,
     ),
 )
 
