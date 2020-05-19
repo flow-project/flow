@@ -22,7 +22,7 @@ class QueryStrings(Enum):
                          ORDER BY id, time"""
     POWER_DEMAND_MODEL_DENOISED_ACCEL = """
                          SELECT id, time, speed, accel_without_noise,
-                         1200 * speed * ((CASE WHEN accel_without_noise > 0 THEN 1 ELSE 0 END * (1-0.8) 
+                         1200 * speed * ((CASE WHEN accel_without_noise > 0 THEN 1 ELSE 0 END * (1-0.8)
                          * accel_without_noise)+0.8 + 9.81 * SIN(road_grade))
                          + 1200 * 9.81 * 0.005 * speed + 0.5 * 1.225 * 2.6 * 0.3 * POW(speed,3) AS power,
                          'POWER_DEMAND_MODEL_DENOISED_ACCEL' AS energy_model_id, source_id
