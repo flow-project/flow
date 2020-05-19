@@ -88,7 +88,7 @@ class Experiment:
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, rl_actions=None, convert_to_csv=False, partition_name=None, only_query=None):
+    def run(self, num_runs, rl_actions=None, convert_to_csv=False, partition_name=None, only_query=""):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -106,8 +106,9 @@ class Experiment:
             will be used to later for query. If NONE, won't upload output
             to S3.
         only_query: str
-            Specifies whether queries should be automatically run the
-            simulation data when it gets uploaded to s3
+            Specifies which queries should be automatically run when the
+            simulation data gets uploaded to S3. If an empty str is passed in,
+            then it implies no queries should be run on this.
 
         Returns
         -------
@@ -147,7 +148,7 @@ class Experiment:
         t = time.time()
         times = []
         extra_info = extra_init()
-        source_id = uuid.uuid4().hex
+        source_id = 'flow_{}'.format(uuid.uuid4().hex)
 
         for i in range(num_runs):
             ret = 0
@@ -167,7 +168,7 @@ class Experiment:
 
                 # collect additional information for the data pipeline
                 get_extra_info(self.env.k.vehicle, extra_info, veh_ids)
-                extra_info["source_id"].extend([source_id+"run" + str(i)] * len(veh_ids))
+                extra_info["source_id"].extend(['{}_run_{}'.format(source_id, i)] * len(veh_ids))
 
                 # Compute the results for the custom callables.
                 for (key, lambda_func) in self.custom_callables.items():
@@ -218,8 +219,8 @@ class Experiment:
                 if partition_name == "default":
                     partition_name = source_id[0:3]
                 partition_name = date.today().isoformat() + " " + partition_name
-                upload_to_s3('circles.data', 'trajectory-output/' + 'partition_name=' + partition_name + '/'
-                             + upload_file_path.split('/')[-1].split('_')[0] + '.csv',
+                upload_to_s3('circles.data.pipeline', 'trajectory-output/partition_name={}/{}.csv'.format(
+                             partition_name, upload_file_path.split('/')[-1].split('_')[0]),
                              upload_file_path, str(only_query)[2:-2])
 
             # delete the S3-only version of the trajectory file

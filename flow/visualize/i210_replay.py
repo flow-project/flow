@@ -209,7 +209,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     })
 
     extra_info = extra_init()
-    source_id = uuid.uuid4().hex
+    source_id = 'flow_{}'.format(uuid.uuid4().hex)
 
     for i in range(args.num_rollouts):
         vel = []
@@ -249,7 +249,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
 
             # Collect information from flow for the trajectory output
             get_extra_info(env.k.vehicle, extra_info, veh_ids)
-            extra_info["source_id"].extend([source_id + "run" + str(i)] * len(veh_ids))
+            extra_info["source_id"].extend(['{}_run_{}'.format(source_id, i)] * len(veh_ids))
 
             # Compute the results for the custom callables.
             for (key, lambda_func) in custom_callables.items():
@@ -325,6 +325,17 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             output_path = os.path.join(output_dir, '{}-emission.csv'.format(exp_name))
             # convert the emission file into a csv file
             emission_to_csv(emission_path, output_path=output_path)
+
+            # generate the trajectory output file
+            trajectory_table_path = './data/' + source_id + ".csv"
+            upload_file_path = generate_trajectory_from_flow(trajectory_table_path, extra_info)
+
+            # upload to s3 if asked
+            if args.use_s3:
+                partition_name = date.today().isoformat() + " " + source_id[0:3]
+                upload_to_s3('circles.data.pipeline', 'trajectory-output/' + 'partition_name=' + partition_name + '/'
+                             + upload_file_path.split('/')[-1].split('_')[0] + '.csv',
+                             upload_file_path, str(args.only_query)[2:-2])
 
             # print the location of the emission csv file
             print("\nGenerated emission file at " + output_path)
@@ -435,6 +446,12 @@ def create_parser():
                                                                   'be run in cluster mode')
     parser.add_argument('--exp_title', type=str, required=False, default=None,
                         help='Informative experiment title to help distinguish results')
+    parser.add_argument(
+        '--only_query',
+        nargs='*', default="[\'all\']",
+        help='specify which query should be run by lambda'
+             'for detail, see upload_to_s3 in data_pipeline.py'
+    )
     return parser
 
 

@@ -25,7 +25,7 @@ def lambda_handler(event, context):
         response = s3.head_object(Bucket=bucket, Key=key)
         run_query = response["Metadata"]["run-query"]
 
-        if bucket == 'circles.data' and 'trajectory-output/' in key:
+        if bucket == 'circles.data.pipeline' and 'trajectory-output/' in key:
             if run_query == "all":
                 query_list = tags["analysis"]
             elif not run_query:
@@ -33,4 +33,4 @@ def lambda_handler(event, context):
             else:
                 query_list = run_query.split("\', \'")
             for query_name in query_list:
-                queryEngine.run_query(query_name, 's3://circles.data/query-result/auto/', partition)
+                queryEngine.run_query(query_name, 's3://circles.data.pipeline/query-result/auto/', partition)
