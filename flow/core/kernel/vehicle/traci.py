@@ -335,7 +335,8 @@ class TraCIVehicle(KernelVehicle):
             tc.VAR_EDGES,
             tc.VAR_POSITION,
             tc.VAR_ANGLE,
-            tc.VAR_SPEED_WITHOUT_TRACI
+            tc.VAR_SPEED_WITHOUT_TRACI,
+            tc.VAR_FUELCONSUMPTION
         ])
         self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
 
@@ -370,6 +371,8 @@ class TraCIVehicle(KernelVehicle):
             self.kernel_api.vehicle.getLaneIndex(veh_id)
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = \
             self.kernel_api.vehicle.getSpeed(veh_id)
+        self.__sumo_obs[veh_id][tc.VAR_FUELCONSUMPTION] = \
+            self.kernel_api.vehicle.getFuelConsumption(veh_id)
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
@@ -534,8 +537,11 @@ class TraCIVehicle(KernelVehicle):
         return self.num_not_departed
 
     def get_fuel_consumption(self, veh_id, error=-1001):
-        """See parent class."""
-        raise NotImplementedError
+        """Return fuel consumption in gallons/s."""
+        ml_to_gallons = 0.000264172
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_fuel_consumption(vehID, error) for vehID in veh_id]
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_FUELCONSUMPTION, error) * ml_to_gallons
 
     def get_previous_speed(self, veh_id, error=-1001):
         """See parent class."""
