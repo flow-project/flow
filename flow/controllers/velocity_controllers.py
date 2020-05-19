@@ -29,7 +29,7 @@ class FollowerStopper(BaseController):
                  danger_edges=None):
         """Instantiate FollowerStopper."""
         BaseController.__init__(
-            self, veh_id, car_following_params, delay=1.0,
+            self, veh_id, car_following_params, delay=0.0,
             fail_safe='safe_velocity')
 
         # desired speed of the vehicle
@@ -45,6 +45,7 @@ class FollowerStopper(BaseController):
         self.d_1 = 1.5
         self.d_2 = 1.0
         self.d_3 = 0.5
+
         self.danger_edges = danger_edges if danger_edges else {}
 
     def find_intersection_dist(self, env):
@@ -116,7 +117,7 @@ class FollowerStopper(BaseController):
                 return None
             else:
                 # compute the acceleration from the desired velocity
-                return (v_cmd - this_vel) / env.sim_step
+                return np.clip((v_cmd - this_vel) / env.sim_step, -np.abs(self.max_deaccel), self.max_accel)
 
 
 class NonLocalFollowerStopper(FollowerStopper):
@@ -157,11 +158,6 @@ class NonLocalFollowerStopper(FollowerStopper):
 
         if edge == "":
             return None
-
-        if self.find_intersection_dist(env) <= 10 and \
-                env.k.vehicle.get_edge(self.veh_id) in self.danger_edges or \
-                env.k.vehicle.get_edge(self.veh_id)[0] == ":":
-            return None
         else:
             # compute the acceleration from the desired velocity
             return (v_cmd - this_vel) / env.sim_step
@@ -187,7 +183,7 @@ class PISaturation(BaseController):
 
     def __init__(self, veh_id, car_following_params):
         """Instantiate PISaturation."""
-        BaseController.__init__(self, veh_id, car_following_params, delay=1.0)
+        BaseController.__init__(self, veh_id, car_following_params, delay=0.0)
 
         # maximum achievable acceleration by the vehicle
         self.max_accel = car_following_params.controller_params['accel']

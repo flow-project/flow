@@ -3,14 +3,10 @@
 Trains a non-constant number of agents, all sharing the same policy, on the
 highway with ramps network.
 """
-from flow.controllers import IDMController, RLController, BandoFTLController
-from flow.core.params import EnvParams
-from flow.core.params import NetParams
-from flow.core.params import InitialConfig
-from flow.core.params import InFlows
-from flow.core.params import VehicleParams
-from flow.core.params import SumoParams
-from flow.core.params import SumoLaneChangeParams
+from flow.controllers import RLController, IDMController
+from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
+                             VehicleParams, SumoParams, SumoLaneChangeParams, SumoCarFollowingParams
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.networks import HighwayNetwork
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.envs.multiagent import MultiStraightRoad
@@ -19,17 +15,19 @@ from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
 
 # SET UP PARAMETERS FOR THE SIMULATION
-# percentage of autonomous vehicles compared to human vehicles on highway
-PENETRATION_RATE = 10
 
-TRAFFIC_SPEED = 11
-END_SPEED = 16
-TRAFFIC_FLOW = 2056
-HORIZON = 2000
-INCLUDE_NOISE = False
+# the speed of vehicles entering the network
+TRAFFIC_SPEED = 24.1
+# the maximum speed at the downstream boundary edge
+END_SPEED = 6.0
+# the inflow rate of vehicles
+HIGHWAY_INFLOW_RATE = 2215
+# the simulation time horizon (in steps)
+HORIZON = 1500
+# whether to include noise in the car-following models
+INCLUDE_NOISE = True
 
-
-# SET UP PARAMETERS FOR THE NETWORK
+PENETRATION_RATE = 10.0
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
@@ -41,11 +39,12 @@ additional_net_params.update({
     "speed_limit": 30,
     # number of edges to divide the highway into
     "num_edges": 2,
-    # whether to include a ghost edge of length 500m. This edge is provided a
-    # different speed limit.
+    # whether to include a ghost edge
     "use_ghost_edge": True,
     # speed limit for the ghost edge
-    "ghost_speed_limit": END_SPEED
+    "ghost_speed_limit": END_SPEED,
+    # length of the cell imposing a boundary
+    "boundary_cell_length": 300,
 })
 
 
@@ -91,19 +90,18 @@ vehicles = VehicleParams()
 inflows = InFlows()
 vehicles.add(
     "human",
-    num_vehicles=0,
-    lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="strategic",
-    ),
-    acceleration_controller=(BandoFTLController, {
-        'alpha': .5,
-        'beta': 20.0,
-        'h_st': 12.0,
-        'h_go': 50.0,
-        'v_max': 30.0,
-        'noise': 1.0 if INCLUDE_NOISE else 0.0,
+    acceleration_controller=(IDMController, {
+        'a': 1.3,
+        'b': 2.0,
+        'noise': 0.3 if INCLUDE_NOISE else 0.0
     }),
-    # acceleration_controller=(IDMController, {}),
+    car_following_params=SumoCarFollowingParams(
+        min_gap=0.5
+    ),
+    lane_change_params=SumoLaneChangeParams(
+        model="SL2015",
+        lc_sublane=2.0,
+    ),
 )
 
 # autonomous vehicles
@@ -116,7 +114,7 @@ vehicles.add(
 inflows.add(
     veh_type="human",
     edge="highway_0",
-    vehs_per_hour=int(TRAFFIC_FLOW * (1 - PENETRATION_RATE / 100)),
+    vehs_per_hour=int(HIGHWAY_INFLOW_RATE * (1 - PENETRATION_RATE / 100)),
     depart_lane="free",
     depart_speed="23.0",
     name="idm_highway_inflow")
@@ -126,13 +124,12 @@ inflows.add(
 inflows.add(
     veh_type="rl",
     edge="highway_0",
-    vehs_per_hour=int(TRAFFIC_FLOW * (PENETRATION_RATE / 100)),
+    vehs_per_hour=int(HIGHWAY_INFLOW_RATE * (PENETRATION_RATE / 100)),
     depart_lane="free",
     depart_speed="23.0",
     name="rl_highway_inflow")
 
 # SET UP FLOW PARAMETERS
-# TODO(@evinitsky) how do we warm up the network without setting a wave in to start?
 warmup_steps = 0
 if additional_env_params['reroute_on_exit']:
     warmup_steps = 400

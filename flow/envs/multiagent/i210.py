@@ -257,7 +257,6 @@ class I210MultiEnv(MultiEnv):
 
                 rewards[veh_id] += speed_reward * scaling_factor * self.speed_reward_gain
         # print('time to get reward is ', time() - t)
-
         return rewards
 
     def set_iteration_num(self):

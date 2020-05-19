@@ -157,8 +157,8 @@ class Experiment:
                 for (key, lambda_func) in self.custom_callables.items():
                     custom_vals[key].append(lambda_func(self.env))
 
-                # if done:
-                #     break
+                if type(done) is dict and done['__all__'] or type(done) is not dict and done:
+                    break
 
             # Store the information from the run in info_dict.
             outflow = self.env.k.vehicle.get_outflow_rate(int(500))
