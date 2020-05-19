@@ -6,18 +6,20 @@ import ray.rllib.agents.ppo as ppo
 from ray import tune
 from ray.tune import run as run_tune
 from ray.tune.registry import register_env
+from flow.envs.multiagent.base import MultiEnv
+from ray.rllib.env import MultiAgentEnv
 
-class DummyEnv(Env):
+class DummyEnv(MultiAgentEnv):
     @property
     def observation_space(self):
-        return Box(low=0, high=1, shape=(20, ))
+        return Box(low=-1, high=1, shape=(20, ))
     @property
     def action_space(self):
-        return Box(low=0, high=1, shape=(2,))
+        return Box(low=-1, high=1, shape=(2,))
     def step(self, action):
-        return np.zeros(self.observation_space.shape), 1, False, {}
+        return {'test': np.zeros(self.observation_space.shape)}, {'test': 1}, {'test': False, '__all__': False}, {}
     def reset(self):
-        return np.zeros(self.observation_space.shape)
+        return {'test': np.zeros(self.observation_space.shape)}
 
 def env_creator(env_config):
     return DummyEnv()
@@ -35,11 +37,16 @@ if __name__=='__main__':
     config['lr'] = tune.grid_search([1e-3, 1e-4, 1e-5, 1e-6])
     config["horizon"] = horizon
     config['train_batch_size'] = horizon * num_cpus
+    
+    temp_env = DummyEnv()
+    obs_space = temp_env.observation_space
+    act_space = temp_env.action_space
     policy_graphs = {'av': (None, obs_space, act_space, {})}
     policies_to_train = ['av']
     def policy_mapping_fn(_):
         """Map a policy in RLlib."""
         return 'av'
+
     config['multiagent'].update({'policies': policy_graphs})
     config['multiagent'].update({'policy_mapping_fn': tune.function(policy_mapping_fn)})
     config['multiagent'].update({'policies_to_train': policies_to_train})
