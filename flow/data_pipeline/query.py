@@ -6,9 +6,24 @@ from flow.data_pipeline.datapipeline_test import apply_energy_one
 tags = {"energy": ["POWER_DEMAND_MODEL", "POWER_DEMAND_MODEL_DENOISED_ACCEL", "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"],
         "analysis": ["POWER_DEMAND_MODEL"]}
 
-# specify the function to calculate the expected result of each query
-testing_functions = {"POWER_DEMAND_MODEL": apply_energy_one}
-
+VEHICLE_POWER_DEMAND_FINAL_SELECT = """
+    SELECT
+        id,
+        "time",
+        speed,
+        acceleration,
+        road_grade,
+        1200 * speed * (
+            (CASE WHEN acceleration > 0 THEN 1 ELSE 0 END * (1-0.8) * acceleration)
+            + 0.8 + 9.81 * SIN(road_grade)
+            ) + 1200 * 9.81 * 0.005 * speed + 0.5 * 1.225 * 2.6 * 0.3 * POW(speed,3) AS power,
+        'POWER_DEMAND_MODEL' AS energy_model_id,
+        source_id
+    FROM {}
+    WHERE 1 = 1
+        AND partition_name=\'{partition}\'
+    ORDER BY id, "time"
+    """
 
 class QueryStrings(Enum):
     """An enumeration of all the pre-defined query strings."""
@@ -25,7 +40,7 @@ class QueryStrings(Enum):
         ADD IF NOT EXISTS PARTITION (partition_name=\'{partition}\');
         """
 
-    POWER_DEMAND_MODEL = VEHICLE_POWER_DEMAND_SUBQUERY.format('trajectory_table')
+    POWER_DEMAND_MODEL = VEHICLE_POWER_DEMAND_FINAL_SELECT.format('trajectory_table')
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL = """
         WITH denoised_accel_cte AS (
@@ -38,7 +53,7 @@ class QueryStrings(Enum):
                 source_id
             FROM trajectory_table
         )
-        {}""".format(VEHICLE_POWER_DEMAND_SUBQUERY.format('denoised_accel_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('denoised_accel_cte'))
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL = """
         WITH lagged_timestep AS (
@@ -65,4 +80,4 @@ class QueryStrings(Enum):
                 source_id
             FROM lagged_timestep
         )
-        {}""".format(VEHICLE_POWER_DEMAND_SUBQUERY.format('denoised_speed_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('denoised_speed_cte'))
