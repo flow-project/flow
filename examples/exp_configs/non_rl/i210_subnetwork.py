@@ -1,11 +1,10 @@
 """I-210 subnetwork example."""
 import os
-
 import numpy as np
 
-from flow.controllers.car_following_models import IDMController
-from flow.controllers.routing_controllers import I210Router
-from flow.core.params import SumoParams, SumoCarFollowingParams
+from flow.controllers import IDMController
+from flow.controllers import I210Router
+from flow.core.params import SumoParams
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import SumoLaneChangeParams
@@ -16,62 +15,90 @@ import flow.config as config
 from flow.envs import TestEnv
 from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
-ON_RAMP = False
+# =========================================================================== #
+# Specify some configurable constants.                                        #
+# =========================================================================== #
 
-if ON_RAMP:
-    vehicles = VehicleParams()
-    vehicles.add(
-        "human",
-        num_vehicles=0,
-        lane_change_params=SumoLaneChangeParams(
-            lane_change_mode="strategic",
-        ),
-        acceleration_controller=(IDMController, {
-            "a": 0.3, "b": 2.0, "noise": 0.5
-        }),
-        routing_controller=(I210Router, {})
-    )
+# whether to include the upstream ghost edge in the network
+WANT_GHOST_CELL = True
+# whether to include the downstream slow-down edge in the network
+WANT_DOWNSTREAM_BOUNDARY = True
+# whether to include vehicles on the on-ramp
+ON_RAMP = True
+# the inflow rate of vehicles (in veh/hr)
+INFLOW_RATE = 5 * 2215
+# the speed of inflowing vehicles from the main edge (in m/s)
+INFLOW_SPEED = 24.1
 
+# =========================================================================== #
+# Specify the path to the network template.                                   #
+# =========================================================================== #
+
+if WANT_DOWNSTREAM_BOUNDARY:
+    net_template = os.path.join(
+        config.PROJECT_PATH,
+        "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_"
+        "downstream.xml")
+elif WANT_GHOST_CELL:
+    net_template = os.path.join(
+        config.PROJECT_PATH,
+        "examples/exp_configs/templates/sumo/i210_with_ghost_cell.xml")
 else:
-    # create the base vehicle type that will be used for inflows
-    vehicles = VehicleParams()
-    vehicles.add(
-        "human",
-        num_vehicles=0,
-        lane_change_params=SumoLaneChangeParams(
-            lane_change_mode="strategic",
-        ),
-        acceleration_controller=(IDMController, {
-            "a": 0.3, "b": 2.0, "noise": 0.5
-        }),
-    )
+    net_template = os.path.join(
+        config.PROJECT_PATH,
+        "examples/exp_configs/templates/sumo/test2.net.xml")
+
+# If the ghost cell is not being used, remove it from the initial edges that
+# vehicles can be placed on.
+edges_distribution = EDGES_DISTRIBUTION.copy()
+if not WANT_GHOST_CELL:
+    edges_distribution.remove("ghost0")
+
+# =========================================================================== #
+# Specify vehicle-specific information and inflows.                           #
+# =========================================================================== #
+
+vehicles = VehicleParams()
+vehicles.add(
+    "human",
+    num_vehicles=0,
+    lane_change_params=SumoLaneChangeParams(
+        lane_change_mode="strategic",
+    ),
+    acceleration_controller=(IDMController, {
+        "a": 1.3,
+        "b": 2.0,
+        "noise": 0.3,
+    }),
+    routing_controller=(I210Router, {}) if ON_RAMP else None,
+)
 
 inflow = InFlows()
 # main highway
 inflow.add(
     veh_type="human",
-    edge="119257914",
-    vehs_per_hour=10800,
+    edge="ghost0" if WANT_GHOST_CELL else "119257914",
+    vehs_per_hour=INFLOW_RATE,
     departLane="best",
-    departSpeed=23.0)
+    departSpeed=INFLOW_SPEED)
 # on ramp
 if ON_RAMP:
     inflow.add(
         veh_type="human",
         edge="27414345",
-        vehs_per_hour=321,
+        vehs_per_hour=500,
         departLane="random",
-        departSpeed=20)
+        departSpeed=10)
     inflow.add(
         veh_type="human",
         edge="27414342#0",
-        vehs_per_hour=421,
+        vehs_per_hour=500,
         departLane="random",
-        departSpeed=20)
+        departSpeed=10)
 
-NET_TEMPLATE = os.path.join(
-    config.PROJECT_PATH,
-    "examples/exp_configs/templates/sumo/test2.net.xml")
+# =========================================================================== #
+# Generate the flow_params dict with all relevant simulation information.     #
+# =========================================================================== #
 
 flow_params = dict(
     # name of the experiment
@@ -88,7 +115,7 @@ flow_params = dict(
 
     # simulation-related parameters
     sim=SumoParams(
-        sim_step=0.5,
+        sim_step=0.4,
         render=False,
         color_by_speed=False,
         use_ballistic=True
@@ -96,15 +123,18 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=7200,
+        horizon=10000,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
     # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-        template=NET_TEMPLATE,
-        additional_params={"use_on_ramp": ON_RAMP}
+        template=net_template,
+        additional_params={
+            "on_ramp": ON_RAMP,
+            "ghost_edge": WANT_GHOST_CELL,
+        }
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
@@ -114,9 +144,13 @@ flow_params = dict(
     # parameters specifying the positioning of vehicles upon initialization/
     # reset (see flow.core.params.InitialConfig)
     initial=InitialConfig(
-        edges_distribution=EDGES_DISTRIBUTION,
+        edges_distribution=edges_distribution,
     ),
 )
+
+# =========================================================================== #
+# Specify custom callable that is logged during simulation runtime.           #
+# =========================================================================== #
 
 edge_id = "119257908#1-AddedOnRampEdge"
 custom_callables = {
