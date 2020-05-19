@@ -6,7 +6,7 @@ from flow.data_pipeline.query import QueryStrings
 parser = argparse.ArgumentParser(prog="run_query", description="runs query on AWS Athena and stores the result to"
                                                                "a S3 location")
 parser.add_argument("--run", type=str, nargs="+")
-parser.add_argument("--result_location", type=str, nargs='?', default="s3://brent.experiments/query-result/")
+parser.add_argument("--result_location", type=str, nargs='?', default="s3://circles.data.pipeline/query-result/")
 parser.add_argument("--partition", type=str, nargs='?', default="default")
 parser.add_argument("--list_partitions", action="store_true")
 parser.add_argument("--check_status", type=str, nargs='+')
