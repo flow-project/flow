@@ -334,9 +334,10 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
 
             # upload to s3 if asked
             if args.use_s3:
-                partition_name = date.today().isoformat() + " " + source_id[0:3]
-                upload_to_s3('circles.data.pipeline', 'trajectory-output/' + 'partition_name=' + partition_name + '/'
-                             + upload_file_path.split('/')[-1].split('_')[0] + '.csv',
+                partition_name = source_id[-3:]
+                cur_date = date.today().isoformat()
+                upload_to_s3('circles.data.pipeline', 'trajectory-output/date={}/partition_name={}/{}.csv'.format(
+                    cur_date, partition_name, upload_file_path.split('/')[-1].split('_upload')[0]),
                              upload_file_path, str(args.only_query)[2:-2])
 
             # print the location of the emission csv file
