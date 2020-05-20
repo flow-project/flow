@@ -217,10 +217,10 @@ class Experiment:
 
             if partition_name:
                 if partition_name == "default":
-                    partition_name = source_id[0:3]
-                partition_name = date.today().isoformat() + " " + partition_name
-                upload_to_s3('circles.data.pipeline', 'trajectory-output/partition_name={}/{}.csv'.format(
-                             partition_name, upload_file_path.split('/')[-1].split('_')[0]),
+                    partition_name = source_id[-3:]
+                cur_date = date.today().isoformat()
+                upload_to_s3('circles.data.pipeline', 'trajectory-output/date={}/partition_name={}/{}.csv'.format(
+                             cur_date, partition_name, upload_file_path.split('/')[-1].split('_upload')[0]),
                              upload_file_path, str(only_query)[2:-2])
 
             # delete the S3-only version of the trajectory file

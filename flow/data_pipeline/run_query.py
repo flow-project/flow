@@ -1,6 +1,6 @@
 """runner script for invoking query manually."""
 import argparse
-from flow.data_pipeline.data_pipeline import AthenaQuery, test_sql_query
+from flow.data_pipeline.data_pipeline import AthenaQuery
 from flow.data_pipeline.query import QueryStrings
 
 parser = argparse.ArgumentParser(prog="run_query", description="runs query on AWS Athena and stores the result to"
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     if args.run:
         execution_ids = []
         for query_name in args.run:
-            execution_ids.append(queryEngine.run_query(query_name, args.result_location, args.partition))
+            execution_ids.append(queryEngine.run_query(query_name, args.result_location, partition=args.partition))
         print(execution_ids)
     if args.list_partitions:
         print(queryEngine.existing_partitions)
@@ -33,5 +33,3 @@ if __name__ == "__main__":
     if args.list_queries:
         for q in QueryStrings:
             print(q)
-    if args.test_query:
-        test_sql_query(args.test_query[0])
