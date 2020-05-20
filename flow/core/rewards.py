@@ -388,7 +388,7 @@ def miles_per_megajoule(env, veh_ids=None, gain=.001):
         speed = env.k.vehicle.get_speed(veh_id)
         # convert to be positive since the function called is a penalty
         power = -vehicle_energy_consumption(env, veh_id, gain=1.0)
-        if power > 0 and speed >= 0.0:
+        if power > 0 and not speed < 0.1:
             counter += 1
             # meters / joule is (v * \delta t) / (power * \delta t)
             mpj += speed / power

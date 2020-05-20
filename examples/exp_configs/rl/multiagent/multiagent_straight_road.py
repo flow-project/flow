@@ -23,7 +23,7 @@ END_SPEED = 6.0
 # the inflow rate of vehicles
 HIGHWAY_INFLOW_RATE = 2215
 # the simulation time horizon (in steps)
-HORIZON = 1500
+HORIZON = 1000
 # whether to include noise in the car-following models
 INCLUDE_NOISE = True
 
@@ -54,20 +54,23 @@ additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
 additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
-    'target_velocity': 11.0,
+    'target_velocity': 6.0,
     'local_reward': True,
     'lead_obs': True,
+    'control_range': [500, 2300],
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": True,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
-    "mpg_reward": True,
+    "mpg_reward": False,
+    # whether to use the joules reward. Otherwise, defaults to a target velocity reward
+    "mpj_reward": True,
     # how many vehicles to look back for the MPG reward
     "look_back_length": 3,
     # how many AVs there can be at once (this is only for centralized critics)
     "max_num_agents": 10,
 
     # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
-    "headway_curriculum": True,
+    "headway_curriculum": False,
     # how many timesteps to anneal the headway curriculum over
     "headway_curriculum_iters": 100,
     # weight of the headway reward
@@ -132,7 +135,7 @@ inflows.add(
 # SET UP FLOW PARAMETERS
 warmup_steps = 0
 if additional_env_params['reroute_on_exit']:
-    warmup_steps = 400
+    warmup_steps = 500
 
 flow_params = dict(
     # name of the experiment
@@ -151,16 +154,16 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         warmup_steps=warmup_steps,
-        sims_per_step=1,  # do not put more than one
-        additional_params=additional_env_params,
+        sims_per_step=3,
+        additional_params=additional_env_params
     ),
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
-        sim_step=0.5,
+        sim_step=0.4,
         render=False,
-        use_ballistic=True,
-        restart_instance=True
+        restart_instance=True,
+        use_ballistic=True
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

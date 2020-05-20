@@ -28,7 +28,7 @@ HORIZON = 600
 # whether to include noise in the car-following models
 INCLUDE_NOISE = True
 
-PENETRATION_RATE = 0.0
+PENETRATION_RATE = 10.0
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
@@ -71,7 +71,7 @@ if PENETRATION_RATE > 0.0:
         "av",
         color='red',
         num_vehicles=0,
-        acceleration_controller=(FollowerStopper, {"v_des": 6.0}),
+        acceleration_controller=(FollowerStopper, {"v_des": 6.0, "control_length": [500, 2300]}),
     )
 
 inflows = InFlows()
@@ -147,7 +147,7 @@ custom_callables = {
     "miles_per_megajoule": lambda env: np.nan_to_num(
         miles_per_megajoule(env, env.k.vehicle.get_ids(), gain=1.0)
     ),
-    "miles_per_gallone": lambda env: np.nan_to_num(
+    "miles_per_gallon": lambda env: np.nan_to_num(
         miles_per_gallon(env, env.k.vehicle.get_ids(), gain=1.0)
     )
 }

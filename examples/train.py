@@ -23,6 +23,7 @@ try:
 except ImportError:
     print("Stable-baselines not installed. Please install it if you need it.")
 
+import ray
 from ray import tune
 from ray.tune.registry import register_env
 from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
@@ -32,7 +33,7 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 
 from flow.core.util import ensure_dir
-from flow.core.rewards import energy_consumption, miles_per_gallon
+from flow.core.rewards import energy_consumption, miles_per_gallon, miles_per_megajoule
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 from flow.utils.registry import make_create_env
@@ -260,6 +261,7 @@ def setup_exps_rllib(flow_params,
         episode.user_data["avg_speed_avs"] = []
         episode.user_data["avg_energy"] = []
         episode.user_data["avg_mpg"] = []
+        episode.user_data["avg_mpj"] = []
 
 
     def on_episode_step(info):
@@ -275,6 +277,7 @@ def setup_exps_rllib(flow_params,
             episode.user_data["avg_speed_avs"].append(av_speed)
         episode.user_data["avg_energy"].append(energy_consumption(env))
         episode.user_data["avg_mpg"].append(miles_per_gallon(env, env.k.vehicle.get_ids(), gain=1.0))
+        episode.user_data["avg_mpj"].append(miles_per_megajoule(env, env.k.vehicle.get_ids(), gain=1.0))
 
 
     def on_episode_end(info):
@@ -285,6 +288,7 @@ def setup_exps_rllib(flow_params,
         episode.custom_metrics["avg_speed_avs"] = avg_speed_avs
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
         episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["avg_mpg"])
+        episode.custom_metrics["avg_mpj_per_veh"] = np.mean(episode.user_data["avg_mpj"])
 
     def on_train_result(info):
         """Store the mean score of the episode, and increment or decrement how many adversaries are on"""

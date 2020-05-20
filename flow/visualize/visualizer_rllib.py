@@ -296,10 +296,6 @@ def visualizer_rllib(args):
     print(mean_speed)
     print('Average, std: {}, {}'.format(np.mean(mean_speed), np.std(
         mean_speed)))
-    print("\nSpeed, std (m/s):")
-    print(std_speed)
-    print('Average, std: {}, {}'.format(np.mean(std_speed), np.std(
-        std_speed)))
 
     print('Average, std miles per gallon: {}, {}'.format(np.mean(mpg), np.std(mpg)))
 
