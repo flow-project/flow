@@ -80,9 +80,9 @@ class QueryStrings(Enum):
                 road_grade,
                 source_id,
                 time_step - LAG(time_step, 1)
-                    OVER (PARTITION BY id ORDER BY time_step ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) AS sim_step,
+                  OVER (PARTITION BY id ORDER BY time_step ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) AS sim_step,
                 LAG(speed, 1)
-                    OVER (PARTITION BY id ORDER BY time_step ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) AS prev_speed
+                  OVER (PARTITION BY id ORDER BY time_step ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) AS prev_speed
             FROM trajectory_table
             WHERE 1 = 1
                 AND date = \'{{date}}\'
