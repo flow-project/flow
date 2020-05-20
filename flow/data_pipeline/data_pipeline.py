@@ -2,8 +2,9 @@
 import pandas as pd
 import numpy as np
 import boto3
-from flow.data_pipeline.query import QueryStrings, testing_functions
+from flow.data_pipeline.query import QueryStrings
 from time import time
+from datetime import date
 
 
 def generate_trajectory_table(data_path, extra_info, partition_name):
@@ -90,7 +91,7 @@ def upload_to_s3(bucket_name, bucket_key, file_path, only_query):
 
 def extra_init():
     """Return the dictionary with all the feild pre-populated with empty list."""
-    extra_info = {"time": [], "id": [], "x": [], "y": [], "speed": [], "headway": [], "acceleration": [],
+    extra_info = {"time_step": [], "id": [], "x": [], "y": [], "speed": [], "headway": [], "acceleration": [],
                   "accel_without_noise": [], "realilzed_accel": [], "leader_id": [], "follower_id": [],
                   "leader_rel_speed": [], "road_grade": [], "source_id": []}
     return extra_info
@@ -99,7 +100,7 @@ def extra_init():
 def get_extra_info(veh_kernel, extra_info, veh_ids):
     """Get all the necessary information for the trajectory output from flow."""
     for vid in veh_ids:
-        extra_info["time"].append(veh_kernel.get_timestep(vid) / 1000)
+        extra_info["time_step"].append(veh_kernel.get_timestep(vid) / 1000)
         extra_info["id"].append(vid)
         extra_info["headway"].append(veh_kernel.get_headway(vid))
         extra_info["acceleration"].append(veh_kernel.get_accel(vid))
@@ -154,7 +155,7 @@ class AthenaQuery:
         response = self.client.start_query_execution(
             QueryString='SHOW PARTITIONS trajectory_table',
             QueryExecutionContext={
-                'Database': 'simulation'
+                'Database': 'circles'
             },
             WorkGroup='primary'
         )
@@ -164,7 +165,7 @@ class AthenaQuery:
             QueryExecutionId=response['QueryExecutionId'],
             MaxResults=1000
         )
-        return [data['Data'][0]['VarCharValue'].split('=')[-1] for data in response['ResultSet']['Rows']]
+        return [data['Data'][0]['VarCharValue'] for data in response['ResultSet']['Rows']]
 
     def check_status(self, execution_id):
         """Return the status of the execution with given id.
@@ -207,27 +208,30 @@ class AthenaQuery:
                 return False
         return True
 
-    def update_partition(self, partition):
+    def update_partition(self, query_date, partition):
         """Load the given partition to the trajectory_table on Athena.
 
         Parameters
         ----------
+        query_date : str
+            the new partition date that needs to be loaded
         partition : str
             the new partition that needs to be loaded
         """
         response = self.client.start_query_execution(
-            QueryString=QueryStrings['UPDATE_PARTITION'].value.format(partition=partition),
+            QueryString=QueryStrings['UPDATE_PARTITION'].value.format(date=query_date, partition=partition),
             QueryExecutionContext={
-                'Database': 'simulation'
+                'Database': 'circles'
             },
             WorkGroup='primary'
         )
         if self.wait_for_execution(response['QueryExecutionId']):
             raise RuntimeError("update partition timed out")
-        self.existing_partitions.append(partition)
+        self.existing_partitions.append("date={}/partition_name={}".format(query_date, partition))
         return
 
-    def run_query(self, query_name, result_location="s3://circles.data.pipeline/query-result/", partition="default"):
+    def run_query(self, query_name, result_location="s3://circles.data.pipeline/result/",
+                  query_date="today", partition="default"):
         """Start the execution of a query, does not wait for it to finish.
 
         Parameters
@@ -236,6 +240,8 @@ class AthenaQuery:
             name of the query in QueryStrings enum that will be run
         result_location: str, optional
             location on the S3 bucket where the result will be stored
+        query_date : str
+            name of the partition date to run this query on
         partition: str, optional
             name of the partition to run this query on
         Returns
@@ -249,13 +255,16 @@ class AthenaQuery:
         if query_name not in QueryStrings.__members__:
             raise ValueError("query not existed: please add it to query.py")
 
-        if partition not in self.existing_partitions:
-            self.update_partition(partition)
+        if query_date == "today":
+            query_date = date.today().isoformat()
+
+        if "date={}/partition_name={}".format(query_date, partition) not in self.existing_partitions:
+            self.update_partition(query_date, partition)
 
         response = self.client.start_query_execution(
-            QueryString=QueryStrings[query_name].value.format(partition=partition),
+            QueryString=QueryStrings[query_name].value.format(date=query_date, partition=partition),
             QueryExecutionContext={
-                'Database': 'simulation'
+                'Database': 'circles'
             },
             ResultConfiguration={
                 'OutputLocation': result_location,
@@ -263,50 +272,3 @@ class AthenaQuery:
             WorkGroup='primary'
         )
         return response['QueryExecutionId']
-
-###########################################################################
-#                  Helpers for testing the SQL Queries                    #
-###########################################################################
-
-
-def test_sql_query(query_name):
-    """Start the execution of a query, does not wait for it to finish.
-
-    Parameters
-    ----------
-    query_name : str
-        name of the query in QueryStrings enum that will be tested
-    Raises
-    ------
-        RuntimeError: if timeout
-    """
-    if query_name not in testing_functions:
-        raise ValueError("no tests supported for this query")
-
-    # Run the respective sql query
-    queryEngine = AthenaQuery()
-    execution_id = queryEngine.run_query(query_name, result_location="s3://circles.data.pipeline/"
-                                                                     "query-result/query-test", partition="test")
-    if queryEngine.wait_for_execution(execution_id):
-        raise RuntimeError("execution timed out")
-
-    # get the Athena query result from S3
-    s3 = boto3.resource("s3")
-    s3.Bucket("circles.data.pipeline").download_file("query-result/query-test/"+execution_id+".csv",
-                                                     "data/athena_result.csv")
-    athena_result = pd.read_csv("data/athena_result.csv")
-    athena_result = athena_result.sort_values(by=["time", "id"])
-
-    # get the python expected result
-    expected_result = pd.read_csv("data/test_data.csv")
-    expected_result = expected_result.apply(testing_functions[query_name], axis=1, result_type="expand")
-    expected_result.columns = ["time", "id", "power"]
-    expected_result = expected_result.sort_values(by=["time", "id"])
-
-    difference = athena_result["power"] - expected_result["power"]
-    print("average difference is: " + str(np.mean(difference)))
-    print("std of difference is: " + str(np.std(difference)))
-    print("average ratio of difference to expected is: " +
-          str(np.mean(np.divide(difference, expected_result["power"]))))
-    difference = pd.DataFrame(difference)
-    difference.to_csv("./difference.csv")
