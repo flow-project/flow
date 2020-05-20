@@ -1,6 +1,5 @@
 """contains class and helper functions for the data pipeline."""
 import pandas as pd
-import numpy as np
 import boto3
 from flow.data_pipeline.query import QueryStrings
 from time import time
