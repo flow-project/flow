@@ -279,9 +279,6 @@ class I210MultiEnv(MultiEnv):
         # print('time to get reward is ', time() - t)
         return rewards
 
-    def set_iteration_num(self):
-        self.num_training_iters += 1
-
     def additional_command(self):
         """See parent class.
 
