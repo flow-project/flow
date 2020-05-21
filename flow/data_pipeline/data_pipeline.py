@@ -91,7 +91,7 @@ def upload_to_s3(bucket_name, bucket_key, file_path, only_query):
 def extra_init():
     """Return the dictionary with all the feild pre-populated with empty list."""
     extra_info = {"time_step": [], "id": [], "x": [], "y": [], "speed": [], "headway": [], "acceleration": [],
-                  "accel_without_noise": [], "realilzed_accel": [], "leader_id": [], "follower_id": [],
+                  "accel_without_noise": [], "realized_accel": [], "leader_id": [], "follower_id": [],
                   "leader_rel_speed": [], "road_grade": [], "source_id": []}
     return extra_info
 
@@ -108,7 +108,7 @@ def get_extra_info(veh_kernel, extra_info, veh_ids):
         extra_info["leader_rel_speed"].append(veh_kernel.get_speed(
             veh_kernel.get_leader(vid)) - veh_kernel.get_speed(vid))
         extra_info["accel_without_noise"].append(veh_kernel.get_accel_without_noise(vid))
-        extra_info["realilzed_accel"].append(veh_kernel.get_realized_accel(vid))
+        extra_info["realized_accel"].append(veh_kernel.get_realized_accel(vid))
         extra_info["road_grade"].append(veh_kernel.get_road_grade(vid))
         position = veh_kernel.get_2d_position(vid)
         extra_info["x"].append(position[0])
