@@ -3,7 +3,13 @@ from enum import Enum
 from flow.data_pipeline.datapipeline_test import apply_energy_one
 
 # tags for different queries
-tags = {"energy": ["POWER_DEMAND_MODEL", "POWER_DEMAND_MODEL_DENOISED_ACCEL", "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"]}
+tags = {
+    "energy": [
+        "POWER_DEMAND_MODEL", 
+        "POWER_DEMAND_MODEL_DENOISED_ACCEL", 
+        "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"
+        ]
+    }
 
 VEHICLE_POWER_DEMAND_FINAL_SELECT = """
     SELECT
@@ -56,7 +62,8 @@ class QueryStrings(Enum):
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
         )
-        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('POWER_DEMAND_MODEL', 'regular_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('POWER_DEMAND_MODEL', 
+                                                              'regular_cte'))
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL = """
         WITH denoised_accel_cte AS (
@@ -72,7 +79,8 @@ class QueryStrings(Enum):
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
         )
-        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('POWER_DEMAND_MODEL_DENOISED_ACCEL', 'denoised_accel_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('POWER_DEMAND_MODEL_DENOISED_ACCEL',
+                                                              'denoised_accel_cte'))
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL = """
         WITH lagged_timestep AS (
@@ -100,4 +108,5 @@ class QueryStrings(Enum):
                 source_id
             FROM lagged_timestep
         )
-        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL', 'denoised_speed_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL', 
+                                                              'denoised_speed_cte'))
