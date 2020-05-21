@@ -63,7 +63,7 @@ additional_env_params.update({
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
     "mpg_reward": False,
     # whether to use the joules reward. Otherwise, defaults to a target velocity reward
-    "mpj_reward": True,
+    "mpj_reward": False,
     # how many vehicles to look back for the MPG reward
     "look_back_length": 3,
     # how many AVs there can be at once (this is only for centralized critics)
@@ -83,7 +83,10 @@ additional_env_params.update({
     # how many timesteps to anneal the headway curriculum over
     "speed_curriculum_iters": 20,
     # weight of the headway reward
-    "speed_reward_gain": 1.0
+    "speed_reward_gain": 1.0,
+
+    # penalize stopped vehicles
+    "penalize_stops": True
 })
 
 
