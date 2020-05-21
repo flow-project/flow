@@ -19,12 +19,17 @@
 #--num_iterations 200 --num_cpus 8 --num_rollouts 8 --rl_trainer rllib --use_s3" --start --stop \
 #--cluster-name=ev_i210_test2 --tmux
 
-ray exec ray_autoscale.yaml "python flow/examples/train.py multiagent_straight_road \
-straight_road_reroute_local_rew_mpg_curr --algorithm PPO \
---num_iterations 200 --num_cpus 7 --num_rollouts 7 --rl_trainer rllib --use_s3 --grid_search" --start --stop \
---cluster-name=ev_i210_test3 --tmux
+#ray exec ray_autoscale.yaml "python flow/examples/train.py multiagent_straight_road \
+#straight_road_reroute_local_rew_mpg_curr --algorithm PPO \
+#--num_iterations 200 --num_cpus 7 --num_rollouts 7 --rl_trainer rllib --use_s3 --grid_search" --start --stop \
+#--cluster-name=ev_i210_test3 --tmux
+#
+#ray exec ray_autoscale.yaml "python flow/examples/train.py multiagent_i210 \
+#i210_reroute_local_rew_mpg_curr --algorithm PPO \
+#--num_iterations 200 --num_cpus 7 --num_rollouts 7 --rl_trainer rllib --use_s3 --grid_search" --start --stop \
+#--cluster-name=ev_i210_test4 --tmux
 
-ray exec ray_autoscale.yaml "python flow/examples/train.py multiagent_i210 \
-i210_reroute_local_rew_mpg_curr --algorithm PPO \
---num_iterations 200 --num_cpus 7 --num_rollouts 7 --rl_trainer rllib --use_s3 --grid_search" --start --stop \
---cluster-name=ev_i210_test4 --tmux
+ray exec ray_autoscale.yaml "python flow/examples/train.py multiagent_straight_road \
+straight_road_reroute_local_rew_mpj_curr --algorithm PPO \
+--num_iterations 100 --num_cpus 30 --num_rollouts 30 --rl_trainer rllib --use_s3" --start --stop \
+--cluster-name=ev_i210_test3 --tmux
