@@ -89,7 +89,7 @@ class Experiment:
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, rl_actions=None, convert_to_csv=False, partition_name=None, only_query=""):
+    def run(self, num_runs, rl_actions=None, convert_to_csv=False, to_aws=None, only_query=""):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -102,7 +102,7 @@ class Experiment:
         convert_to_csv : bool
             Specifies whether to convert the emission file created by sumo
             into a csv file
-        partition_name: str
+        to_aws: str
             Specifies the S3 partition you want to store the output file,
             will be used to later for query. If NONE, won't upload output
             to S3.
@@ -214,14 +214,12 @@ class Experiment:
             os.remove(emission_path)
 
             trajectory_table_path = './data/' + source_id + ".csv"
-            upload_file_path = generate_trajectory_from_flow(trajectory_table_path, extra_info, partition_name)
+            upload_file_path = generate_trajectory_from_flow(trajectory_table_path, extra_info)
 
-            if partition_name:
-                if partition_name == "default":
-                    partition_name = source_id[-3:]
+            if to_aws:
                 cur_date = date.today().isoformat()
                 upload_to_s3('circles.data.pipeline', 'trajectory-output/date={}/partition_name={}/{}.csv'.format(
-                             cur_date, partition_name, upload_file_path.split('/')[-1].split('_upload')[0]),
+                             cur_date, source_id, upload_file_path.split('/')[-1].split('_upload')[0]),
                              upload_file_path, str(only_query)[2:-2])
 
             # delete the S3-only version of the trajectory file
