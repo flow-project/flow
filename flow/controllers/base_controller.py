@@ -130,7 +130,7 @@ class BaseController:
         elif self.fail_safe == 'safe_velocity':
             accel = self.get_safe_velocity_action(env, accel)
         env.k.vehicle.update_accel_with_noise_with_failsafe(self.veh_id, accel)
-        
+
         return accel
 
     def get_safe_action_instantaneous(self, env, action):
