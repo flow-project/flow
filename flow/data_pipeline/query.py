@@ -4,8 +4,8 @@ from enum import Enum
 # tags for different queries
 tags = {
     "energy": [
-        "POWER_DEMAND_MODEL", 
-        "POWER_DEMAND_MODEL_DENOISED_ACCEL", 
+        "POWER_DEMAND_MODEL",
+        "POWER_DEMAND_MODEL_DENOISED_ACCEL",
         "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"
         ]
     }
@@ -61,7 +61,7 @@ class QueryStrings(Enum):
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
         )
-        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('POWER_DEMAND_MODEL', 
+        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('POWER_DEMAND_MODEL',
                                                               'regular_cte'))
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL = """
@@ -107,5 +107,5 @@ class QueryStrings(Enum):
                 source_id
             FROM lagged_timestep
         )
-        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL', 
+        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL',
                                                               'denoised_speed_cte'))
