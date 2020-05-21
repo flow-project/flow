@@ -184,7 +184,6 @@ class I210MultiEnv(MultiEnv):
 
         t = time()
         rewards = {}
-        print(self.time_counter)
         if self.env_params.additional_params["local_reward"]:
             des_speed = self.env_params.additional_params["target_velocity"]
             for rl_id in self.k.vehicle.get_rl_ids():
