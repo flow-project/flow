@@ -70,8 +70,7 @@ worker_nodes:
 
 setup_commands:
     - cd flow && git fetch && git checkout origin/flow_maddpg
-
-head_setup_commands:
+    - flow/scripts/setup_sumo_ubuntu1604.sh
     - pip install ray==0.8.0
     - pip install tabulate
     - pip install boto3==1.10.45  # 1.4.8 adds InstanceMarketOptions
@@ -82,6 +81,9 @@ head_setup_commands:
     - pip install tensorflow==2.0.0
     - pip install lz4
     - pip install dm-tree
+    - pip install numpy==1.18.4
+
+head_setup_commands: []
 
 # Custom commands that will be run on worker nodes after common setup.
 worker_setup_commands: []
