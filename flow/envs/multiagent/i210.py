@@ -64,6 +64,7 @@ class I210MultiEnv(MultiEnv):
         super().__init__(env_params, sim_params, network, simulator)
         self.lead_obs = env_params.additional_params.get("lead_obs")
         self.reroute_on_exit = env_params.additional_params.get("reroute_on_exit")
+        self.control_range = env_params.additional_params.get("control_range")
         self.max_lanes = MAX_LANES
         self.num_enter_lanes = 5
         self.entrance_edge = "119257914"
@@ -126,6 +127,8 @@ class I210MultiEnv(MultiEnv):
         if self.lead_obs:
             veh_info = {}
             for rl_id in self.k.vehicle.get_rl_ids():
+                if not self.in_control(rl_id):
+                    continue
                 speed = self.k.vehicle.get_speed(rl_id)
                 lead_id = self.k.vehicle.get_leader(rl_id)
                 if lead_id in ["", None]:
@@ -153,6 +156,8 @@ class I210MultiEnv(MultiEnv):
         if self.env_params.additional_params["local_reward"]:
             des_speed = self.env_params.additional_params["target_velocity"]
             for rl_id in self.k.vehicle.get_rl_ids():
+                if not self.in_control(rl_id):
+                    continue
                 rewards[rl_id] = 0
                 speeds = []
                 follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
@@ -186,6 +191,8 @@ class I210MultiEnv(MultiEnv):
             lead_id = self.k.vehicle.get_leader(rl_id)
             if lead_id:
                 self.k.vehicle.set_observed(lead_id)
+            if self.in_control(rl_id):
+                self.k.vehicle.set_color(rl_id, [51, 102, 0])
 
         if self.reroute_on_exit and self.time_counter >= self.env_params.sims_per_step * self.env_params.warmup_steps \
                 and not self.env_params.evaluate:
@@ -261,6 +268,16 @@ class I210MultiEnv(MultiEnv):
         speed = self.k.vehicle.get_speed(rl_id) / 100.0
         lane = (self.k.vehicle.get_lane(rl_id) + 1) / 10.0
         return np.array([speed, lane])
+
+    def in_control(self, veh_id):
+        """Return true if veh_id in control range specified in EnvParams else false."""
+        if self.control_range is None: # unspecified, therefore the whole road is controlled
+            return True
+        pos = self.k.vehicle.get_x_by_id(veh_id)
+        if pos >= self.control_range[0] and pos <= self.control_range[1]:
+            return True
+        else:
+            return False
 
     def step(self, rl_actions):
         """See parent class for more details; add option to reroute vehicles."""
