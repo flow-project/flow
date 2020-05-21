@@ -97,7 +97,8 @@ class TestHighwayNetwork(unittest.TestCase):
                     "speed_limit": 30,
                     "num_edges": 1,
                     "use_ghost_edge": False,
-                    "ghost_speed_limit": 25
+                    "ghost_speed_limit": 25,
+                    "boundary_cell_length": 300,
                 }
             )
         )
@@ -116,7 +117,8 @@ class TestHighwayNetwork(unittest.TestCase):
                 "speed_limit": 30,
                 "num_edges": 1,
                 "use_ghost_edge": False,
-                "ghost_speed_limit": 25
+                "ghost_speed_limit": 25,
+                "boundary_cell_length": 300,
             })
         )
         env.reset()

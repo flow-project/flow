@@ -1,27 +1,27 @@
-"""Example of an open network with human-driven vehicles and a wave."""
-import numpy as np
+"""Multi-agent highway with ramps example.
 
-from flow.controllers import IDMController
-from flow.controllers.velocity_controllers import FollowerStopper
-from flow.core.params import EnvParams
-from flow.core.params import NetParams
-from flow.core.params import InitialConfig
-from flow.core.params import InFlows
-from flow.core.params import VehicleParams
-from flow.core.params import SumoParams
-from flow.core.params import SumoLaneChangeParams
-from flow.core.params import SumoCarFollowingParams
-from flow.core.rewards import miles_per_megajoule
+Trains a non-constant number of agents, all sharing the same policy, on the
+highway with ramps network.
+"""
+from flow.controllers import RLController, IDMController
+from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
+                             VehicleParams, SumoParams, SumoLaneChangeParams, SumoCarFollowingParams
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.networks import HighwayNetwork
-from flow.envs import TestEnv
+from flow.envs.multiagent import MultiStraightRoad
 from flow.networks.highway import ADDITIONAL_NET_PARAMS
+from flow.utils.registry import make_create_env
+from ray.tune.registry import register_env
+
+
+# SET UP PARAMETERS FOR THE SIMULATION
 
 # the speed of vehicles entering the network
 TRAFFIC_SPEED = 24.1
 # the maximum speed at the downstream boundary edge
 END_SPEED = 6.0
 # the inflow rate of vehicles
-TRAFFIC_FLOW = 2215
+HIGHWAY_INFLOW_RATE = 2215
 # the simulation time horizon (in steps)
 HORIZON = 1500
 # whether to include noise in the car-following models
@@ -47,7 +47,27 @@ additional_net_params.update({
     "boundary_cell_length": 300,
 })
 
+
+# SET UP PARAMETERS FOR THE ENVIRONMENT
+
+additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
+additional_env_params.update({
+    'max_accel': 2.6,
+    'max_decel': 4.5,
+    'target_velocity': 18,
+    'local_reward': True,
+    'lead_obs': True,
+    # whether to reroute vehicles once they have exited
+    "reroute_on_exit": True
+})
+
+
+# CREATE VEHICLE TYPES AND INFLOWS
+
 vehicles = VehicleParams()
+inflows = InFlows()
+
+# human vehicles
 vehicles.add(
     "human",
     acceleration_controller=(IDMController, {
@@ -64,42 +84,42 @@ vehicles.add(
     ),
 )
 
-inflows = InFlows()
+# autonomous vehicles
+vehicles.add(
+    color='red',
+    veh_id='rl',
+    acceleration_controller=(RLController, {}))
 
-if PENETRATION_RATE > 0.0:
-    vehicles.add(
-        "av",
-        num_vehicles=0,
-        acceleration_controller=(FollowerStopper, {"v_des": 6.0}),
-    )
-
-inflows = InFlows()
-
+# add human vehicles on the highway
 inflows.add(
     veh_type="human",
     edge="highway_0",
-    vehs_per_hour=int(TRAFFIC_FLOW * (1 - PENETRATION_RATE / 100)),
+    vehs_per_hour=int(HIGHWAY_INFLOW_RATE * (1 - PENETRATION_RATE / 100)),
     depart_lane="free",
-    depart_speed=TRAFFIC_SPEED,
+    depart_speed="23.0",
     name="idm_highway_inflow")
 
-if PENETRATION_RATE > 0.0:
-    inflows.add(
-        veh_type="av",
-        edge="highway_0",
-        vehs_per_hour=int(TRAFFIC_FLOW * (PENETRATION_RATE / 100)),
-        depart_lane="free",
-        depart_speed=TRAFFIC_SPEED,
-        name="av_highway_inflow")
+# add autonomous vehicles on the highway
+# they will stay on the highway, i.e. they won't exit through the off-ramps
+inflows.add(
+    veh_type="rl",
+    edge="highway_0",
+    vehs_per_hour=int(HIGHWAY_INFLOW_RATE * (PENETRATION_RATE / 100)),
+    depart_lane="free",
+    depart_speed="23.0",
+    name="rl_highway_inflow")
 
 # SET UP FLOW PARAMETERS
+warmup_steps = 0
+if additional_env_params['reroute_on_exit']:
+    warmup_steps = 400
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='highway-single',
+    exp_tag='multiagent_highway',
 
     # name of the flow environment the experiment is running on
-    env_name=TestEnv,
+    env_name=MultiStraightRoad,
 
     # name of the network class the experiment is running on
     network=HighwayNetwork,
@@ -110,16 +130,17 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        warmup_steps=500,
-        sims_per_step=3,
+        warmup_steps=warmup_steps,
+        sims_per_step=1,  # do not put more than one
+        additional_params=additional_env_params,
     ),
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
-        sim_step=0.4,
+        sim_step=0.5,
         render=False,
-        restart_instance=False,
-        use_ballistic=True
+        use_ballistic=True,
+        restart_instance=True
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
@@ -138,12 +159,25 @@ flow_params = dict(
     initial=InitialConfig(),
 )
 
-custom_callables = {
-    "avg_merge_speed": lambda env: np.nan_to_num(np.mean(
-        env.k.vehicle.get_speed(env.k.vehicle.get_ids()))),
-    "avg_outflow": lambda env: np.nan_to_num(
-        env.k.vehicle.get_outflow_rate(120)),
-    "miles_per_megajoule": lambda env: np.nan_to_num(
-        miles_per_megajoule(env, env.k.vehicle.get_ids(), gain=1.0)
-    )
-}
+
+# SET UP RLLIB MULTI-AGENT FEATURES
+
+create_env, env_name = make_create_env(params=flow_params, version=0)
+
+# register as rllib env
+register_env(env_name, create_env)
+
+# multiagent configuration
+test_env = create_env()
+obs_space = test_env.observation_space
+act_space = test_env.action_space
+
+
+POLICY_GRAPHS = {'av': (None, obs_space, act_space, {})}
+
+POLICIES_TO_TRAIN = ['av']
+
+
+def policy_mapping_fn(_):
+    """Map a policy in RLlib."""
+    return 'av'

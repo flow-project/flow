@@ -49,6 +49,10 @@ class MultiEnv(MultiAgentEnv, Env):
             contains other diagnostic information from the previous action
         """
         for _ in range(self.env_params.sims_per_step):
+            if self.time_counter <= self.env_params.sims_per_step * self.env_params.warmup_steps:
+                self.observed_ids.update(self.k.vehicle.get_ids())
+                self.observed_rl_ids.update(self.k.vehicle.get_rl_ids())
+
             self.time_counter += 1
             self.step_counter += 1
 
@@ -100,9 +104,10 @@ class MultiEnv(MultiAgentEnv, Env):
 
             # crash encodes whether the simulator experienced a collision
             crash = self.k.simulation.check_collision()
-
+            self.crash = crash
             # stop collecting new simulation steps if there is a collision
             if crash:
+                print('A CRASH! A CRASH!!!!!! AAAAAAAAAH!!!!!')
                 break
 
         states = self.get_state()
@@ -122,10 +127,11 @@ class MultiEnv(MultiAgentEnv, Env):
         else:
             reward = self.compute_reward(rl_actions, fail=crash)
 
-        for rl_id in self.k.vehicle.get_arrived_rl_ids():
-            done[rl_id] = True
-            reward[rl_id] = 0
-            states[rl_id] = np.zeros(self.observation_space.shape[0])
+        if self.env_params.done_at_exit:
+            for rl_id in self.k.vehicle.get_arrived_rl_ids():
+                done[rl_id] = True
+                reward[rl_id] = 0
+                states[rl_id] = -1 * np.ones(self.observation_space.shape[0])
 
         return states, reward, done, infos
 
@@ -148,12 +154,17 @@ class MultiEnv(MultiAgentEnv, Env):
         # reset the time counter
         self.time_counter = 0
 
+        # reset the observed ids
+        self.observed_ids = set()
+        self.observed_rl_ids = set()
+
         # Now that we've passed the possibly fake init steps some rl libraries
         # do, we can feel free to actually render things
         if self.should_render:
             self.sim_params.render = True
             # got to restart the simulation to make it actually display anything
             self.restart_simulation(self.sim_params)
+            self.should_render = False
 
         # warn about not using restart_instance when using inflows
         if len(self.net_params.inflows.get()) > 0 and \

@@ -14,6 +14,22 @@ import sys
 from time import strftime
 from copy import deepcopy
 
+import numpy as np
+import pytz
+
+try:
+    from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
+    from stable_baselines import PPO2
+except ImportError:
+    print("Stable-baselines not installed")
+
+from ray import tune
+from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
+
 from flow.core.util import ensure_dir
 from flow.core.rewards import energy_consumption
 from flow.utils.registry import env_constructor
@@ -196,7 +212,7 @@ def setup_exps_rllib(flow_params,
             config["critic_lr"] = tune.grid_search([1e-3, 1e-4])
             config["n_step"] = tune.grid_search([1, 10])
     else:
-        sys.exit("We only support PPO and TD3 right now.")
+        sys.exit("We only support PPO, TD3, right now.")
 
     # define some standard and useful callbacks
     def on_episode_start(info):
@@ -207,6 +223,8 @@ def setup_exps_rllib(flow_params,
     def on_episode_step(info):
         episode = info["episode"]
         env = info["env"].get_unwrapped()[0]
+        if isinstance(env, _GroupAgentsWrapper):
+            env = env.env
         speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0])
         if not np.isnan(speed):
             episode.user_data["avg_speed"].append(speed)
@@ -239,7 +257,6 @@ def setup_exps_rllib(flow_params,
 
     create_env, gym_name = make_create_env(params=flow_params)
 
-    # Register as rllib env
     register_env(gym_name, create_env)
     return alg_run, gym_name, config
 
@@ -262,6 +279,10 @@ def train_rllib(submodule, flags):
     config['num_workers'] = flags.num_cpus
     config['env'] = gym_name
 
+    # create a custom string that makes looking at the experiment names easier
+    def trial_str_creator(trial):
+        return "{}_{}".format(trial.trainable_name, trial.experiment_tag)
+
     if flags.local_mode:
         ray.init(local_mode=True)
     else:
@@ -272,6 +293,7 @@ def train_rllib(submodule, flags):
         "config": config,
         "checkpoint_freq": flags.checkpoint_freq,
         "checkpoint_at_end": True,
+        'trial_name_creator': trial_str_creator,
         "max_failures": 0,
         "stop": {
             "training_iteration": flags.num_iterations,
