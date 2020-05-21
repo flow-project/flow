@@ -88,8 +88,10 @@ class BaseController:
         float
             the modified form of the acceleration
         """
-        # clear the current stored accel_without_noise of this vehicle None
-        env.k.vehicle.update_accel_without_noise(self.veh_id, None)
+        # clear the current stored accel_no_noise_no_failsafe of this vehicle None
+        env.k.vehicle.update_accel_no_noise_no_failsafe(self.veh_id, None)
+        env.k.vehicle.update_accel_no_noise_with_failsafe(self.veh_id, None)
+        env.k.vehicle.update_accel_with_noise_no_failsafe(self.veh_id, None)
 
         # this is to avoid abrupt decelerations when a vehicle has just entered
         # a network and it's data is still not subscribed
@@ -110,23 +112,25 @@ class BaseController:
 
         # store the acceleration without noise to each vehicle
         # run fail safe if requested
-        accel_without_noise = accel
+        env.k.vehicle.update_accel_no_noise_no_failsafe(self.veh_id, accel)
         if self.fail_safe == 'instantaneous':
-            accel_without_noise = self.get_safe_action_instantaneous(env, accel_without_noise)
+            accel_no_noise_with_failsafe = self.get_safe_action_instantaneous(env, accel)
         elif self.fail_safe == 'safe_velocity':
-            accel_without_noise = self.get_safe_velocity_action(env, accel_without_noise)
-        env.k.vehicle.update_accel_without_noise(self.veh_id, accel_without_noise)
+            accel_no_noise_with_failsafe = self.get_safe_velocity_action(env, accel)
+        env.k.vehicle.update_accel_no_noise_with_failsafe(self.veh_id, accel_no_noise_with_failsafe)
 
         # add noise to the accelerations, if requested
         if self.accel_noise > 0:
             accel += np.sqrt(env.sim_step) * np.random.normal(0, self.accel_noise)
+        env.k.vehicle.update_accel_with_noise_no_failsafe(self.veh_id, accel)
 
         # run the fail-safes, if requested
         if self.fail_safe == 'instantaneous':
             accel = self.get_safe_action_instantaneous(env, accel)
         elif self.fail_safe == 'safe_velocity':
             accel = self.get_safe_velocity_action(env, accel)
-
+        env.k.vehicle.update_accel_with_noise_with_failsafe(self.veh_id, accel)
+        
         return accel
 
     def get_safe_action_instantaneous(self, env, action):
