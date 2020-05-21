@@ -693,7 +693,15 @@ class KernelVehicle(object):
         """Return the acceleration of vehicle with veh_id."""
         raise NotImplementedError
 
-    def update_accel_without_noise(self, veh_id, accel_without_noise):
+    def update_accel_no_noise_no_failsafe(self, veh_id, accel_no_noise_no_failsafe):
+        """Update stored acceleration without noise of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def update_accel_no_noise_with_failsafe(self, veh_id, accel_no_noise_with_failsafe):
+        """Update stored acceleration without noise of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def update_accel_with_noise_no_failsafe(self, veh_id, accel_with_noise_no_failsafe):
         """Update stored acceleration without noise of vehicle with veh_id."""
         raise NotImplementedError
 
@@ -701,7 +709,15 @@ class KernelVehicle(object):
         """Return (x, y) position of vehicle with veh_id."""
         raise NotImplementedError
 
-    def get_accel_without_noise(self, veh_id):
+    def get_accel_no_noise_no_failsafe(self, veh_id):
+        """Return the acceleration without noise of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def get_accel_no_noise_with_failsafe(self, veh_id):
+        """Return the acceleration without noise of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def get_accel_with_noise_no_failsafe(self, veh_id):
         """Return the acceleration without noise of vehicle with veh_id."""
         raise NotImplementedError
 
