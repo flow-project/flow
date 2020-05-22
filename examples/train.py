@@ -23,10 +23,8 @@ try:
 except ImportError:
     print("Stable-baselines not installed")
 
-import ray
 from ray import tune
 from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
-from ray.tune.registry import register_env
 try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
@@ -126,6 +124,9 @@ def run_model_stablebaseline(flow_params,
     stable_baselines.*
         the trained model
     """
+    from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
+    from stable_baselines import PPO2
+
     if num_cpus == 1:
         constructor = env_constructor(params=flow_params, version=0)()
         # The algorithms require a vectorized environment to run
@@ -174,6 +175,13 @@ def setup_exps_rllib(flow_params,
     dict
         training configuration parameters
     """
+    from ray import tune
+    from ray.tune.registry import register_env
+    try:
+        from ray.rllib.agents.agent import get_agent_class
+    except ImportError:
+        from ray.rllib.agents.registry import get_agent_class
+
     horizon = flow_params['env'].horizon
 
     alg_run = flags.algorithm.upper()
@@ -255,6 +263,9 @@ def setup_exps_rllib(flow_params,
 
 def train_rllib(submodule, flags):
     """Train policies using the PPO algorithm in RLlib."""
+    import ray
+    from ray.tune import run_experiments
+
     flow_params = submodule.flow_params
     flow_params['sim'].render = flags.render
     policy_graphs = getattr(submodule, "POLICY_GRAPHS", None)
@@ -301,7 +312,7 @@ def train_h_baselines(flow_params, args, multiagent):
     """Train policies using SAC and TD3 with h-baselines."""
     from hbaselines.algorithms import OffPolicyRLAlgorithm
     from hbaselines.utils.train import parse_options, get_hyperparameters
-    from hbaselines.envs.mixed_autonomy.envs import FlowEnv
+    from hbaselines.envs.mixed_autonomy import FlowEnv
 
     flow_params = deepcopy(flow_params)
 
@@ -402,6 +413,9 @@ def train_h_baselines(flow_params, args, multiagent):
 
 def train_stable_baselines(submodule, flags):
     """Train policies using the PPO algorithm in stable-baselines."""
+    from stable_baselines.common.vec_env import DummyVecEnv
+    from stable_baselines import PPO2
+
     flow_params = submodule.flow_params
     # Path to the saved files
     exp_tag = flow_params['exp_tag']

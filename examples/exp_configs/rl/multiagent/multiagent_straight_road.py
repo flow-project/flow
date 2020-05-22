@@ -5,7 +5,7 @@ highway with ramps network.
 """
 from flow.controllers import RLController, IDMController
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
-                             VehicleParams, SumoParams, SumoLaneChangeParams
+                             VehicleParams, SumoParams, SumoLaneChangeParams, SumoCarFollowingParams
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.networks import HighwayNetwork
 from flow.envs.multiagent import MultiStraightRoad
@@ -16,27 +16,35 @@ from ray.tune.registry import register_env
 
 # SET UP PARAMETERS FOR THE SIMULATION
 
-# number of steps per rollout
-HORIZON = 2000
+# the speed of vehicles entering the network
+TRAFFIC_SPEED = 24.1
+# the maximum speed at the downstream boundary edge
+END_SPEED = 6.0
+# the inflow rate of vehicles
+HIGHWAY_INFLOW_RATE = 2215
+# the simulation time horizon (in steps)
+HORIZON = 1500
+# whether to include noise in the car-following models
+INCLUDE_NOISE = True
 
-# inflow rate on the highway in vehicles per hour
-HIGHWAY_INFLOW_RATE = 10800 / 5
-# percentage of autonomous vehicles compared to human vehicles on highway
-PENETRATION_RATE = 10
-
-
-# SET UP PARAMETERS FOR THE NETWORK
+PENETRATION_RATE = 10.0
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
     # length of the highway
-    "length": 2000,
+    "length": 2500,
     # number of lanes
     "lanes": 1,
     # speed limit for all edges
     "speed_limit": 30,
     # number of edges to divide the highway into
-    "num_edges": 2
+    "num_edges": 2,
+    # whether to include a ghost edge
+    "use_ghost_edge": True,
+    # speed limit for the ghost edge
+    "ghost_speed_limit": END_SPEED,
+    # length of the cell imposing a boundary
+    "boundary_cell_length": 300,
 })
 
 
@@ -62,11 +70,18 @@ inflows = InFlows()
 # human vehicles
 vehicles.add(
     "human",
-    num_vehicles=0,
-    lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="strategic",
+    acceleration_controller=(IDMController, {
+        'a': 1.3,
+        'b': 2.0,
+        'noise': 0.3 if INCLUDE_NOISE else 0.0
+    }),
+    car_following_params=SumoCarFollowingParams(
+        min_gap=0.5
     ),
-    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
+    lane_change_params=SumoLaneChangeParams(
+        model="SL2015",
+        lc_sublane=2.0,
+    ),
 )
 
 # autonomous vehicles
