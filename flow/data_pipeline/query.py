@@ -109,17 +109,25 @@ class QueryStrings(Enum):
                                                               'denoised_speed_cte'))
 
     FACT_NETWORK_THROUGHPUT_AGG = """
-        WITH agg AS (
-            SELECT 
+        WITH min_time AS (
+            SELECT
                 source_id,
-                COUNT(DISTINCT id) AS n_vehicles,
-                MAX(time_step) - MIN(time_step) AS total_time_seconds
+                id,
+                MIN(time_step) AS enter_time
             FROM fact_vehicle_trace
             WHERE 1 = 1
                 AND date = \'{date}\'
                 AND partition_name = \'{partition}\'
                 AND x BETWEEN 500 AND 2300
-                AND time_step >= 600
+            GROUP BY 1, 2
+        ), agg AS (
+            SELECT
+                source_id,
+                COUNT(DISTINCT id) AS n_vehicles,
+                MAX(enter_time) - MIN(enter_time) AS total_time_seconds
+            FROM min_time
+            WHERE 1 = 1
+                AND enter_time >= 600
             GROUP BY 1
         )
         SELECT
@@ -133,7 +141,7 @@ class QueryStrings(Enum):
             SELECT
                 id,
                 source_id,
-                MAX(x) AS distance_meters
+                MAX(x)-MIN(x) AS distance_meters
             FROM fact_vehicle_trace
             WHERE 1 = 1
                 AND date = \'{date}\'
