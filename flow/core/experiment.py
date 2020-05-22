@@ -217,7 +217,7 @@ class Experiment:
 
             if to_aws:
                 cur_date = date.today().isoformat()
-                upload_to_s3('circles.data.pipeline', 'trajectory-output/date={}/partition_name={}/{}.csv'.format(
+                upload_to_s3('circles.data.pipeline', 'fact_vehicle_trace/date={}/partition_name={}/{}.csv'.format(
                              cur_date, source_id, upload_file_path.split('/')[-1].split('_upload')[0]),
                              upload_file_path, str(only_query)[2:-2])
 
