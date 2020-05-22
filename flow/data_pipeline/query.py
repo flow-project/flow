@@ -2,8 +2,16 @@
 from enum import Enum
 
 # tags for different queries
-tags = {"vehicle_energy": ["POWER_DEMAND_MODEL", "POWER_DEMAND_MODEL_DENOISED_ACCEL",
-                           "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"]}
+tags = {"fact_vehicle_trace": {"fact_energy_trace": ["POWER_DEMAND_MODEL", "POWER_DEMAND_MODEL_DENOISED_ACCEL",
+                               "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"],
+                               "fact_network_throughput_agg": ["FACT_NETWORK_THROUGHPUT_AGG"],
+                               "fact_network_inflows_outflows": ["FACT_NETWORK_INFLOWS_OUTFLOWS"]},
+        "fact_energy_trace": {"fact_vehicle_fuel_efficiency_agg": ["FACT_VEHICLE_FUEL_EFFICIENCY_AGG"],
+                              "fact_network_metrics_by_distance_agg": ["FACT_NETWORK_METRICS_BY_DISTANCE_AGG"],
+                              "fact_network_metrics_by_time_agg": ["FACT_NETWORK_METRICS_BY_TIME_AGG"]},
+        "fact_vehicle_fuel_efficiency_agg": ["FACT_NETWORK_FUEL_EFFICIENCY_AGG"],
+        "fact_network_fuel_efficiency_agg": ["LEADERBOARD_CHART"]
+        }
 
 VEHICLE_POWER_DEMAND_FINAL_SELECT = """
     SELECT
@@ -35,7 +43,7 @@ class QueryStrings(Enum):
         """
 
     UPDATE_PARTITION = """
-        ALTER TABLE trajectory_table
+        ALTER TABLE {table}
         ADD IF NOT EXISTS PARTITION (date = \'{date}\', partition_name=\'{partition}\');
         """
 
@@ -48,7 +56,7 @@ class QueryStrings(Enum):
                 acceleration,
                 road_grade,
                 source_id
-            FROM trajectory_table
+            FROM fact_vehicle_trace
             WHERE 1 = 1
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
@@ -64,7 +72,7 @@ class QueryStrings(Enum):
                 accel_without_noise AS acceleration,
                 road_grade,
                 source_id
-            FROM trajectory_table
+            FROM fact_vehicle_trace
             WHERE 1 = 1
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
@@ -83,7 +91,7 @@ class QueryStrings(Enum):
                   OVER (PARTITION BY id ORDER BY time_step ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) AS sim_step,
                 LAG(speed, 1)
                   OVER (PARTITION BY id ORDER BY time_step ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) AS prev_speed
-            FROM trajectory_table
+            FROM fact_vehicle_trace
             WHERE 1 = 1
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
@@ -108,8 +116,8 @@ class QueryStrings(Enum):
                 MAX(time_step) - MIN(time_step) AS total_time_seconds
             FROM fact_vehicle_trace
             WHERE 1 = 1
-                AND date = \'{{date}}\'
-                AND partition_name = \'{{partition}}\'
+                AND date = \'{date}\'
+                AND partition_name = \'{partition}\'
                 AND x BETWEEN 500 AND 2300
                 AND time_step >= 600
             GROUP BY 1
@@ -128,8 +136,8 @@ class QueryStrings(Enum):
                 MAX(x) AS distance_meters
             FROM fact_vehicle_trace
             WHERE 1 = 1
-                AND date = \'{{date}}\'
-                AND partition_name = \'{{partition}}\'
+                AND date = \'{date}\'
+                AND partition_name = \'{partition}\'
                 AND source_id = 
                 AND x BETWEEN 500 AND 2300
                 AND time_step >= 600
@@ -143,8 +151,8 @@ class QueryStrings(Enum):
                 SUM(power) AS power_watts
             FROM fact_energy_trace
             WHERE 1 = 1
-                AND date = \'{{date}}\'
-                AND partition_name = \'{{partition}}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
+                AND date = \'{date}\'
+                AND partition_name = \'{partition}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
                 AND energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
                 AND x BETWEEN 500 AND 2300
                 AND time_step >= 600
@@ -176,8 +184,8 @@ class QueryStrings(Enum):
             74564 * SUM(distance_meters) / SUM(energy_joules) AS efficiency_miles_per_gallon
         FROM fact_vehicle_fuel_efficiency_agg
         WHERE 1 = 1
-            AND date = \'{{date}}\'
-            AND parititon_name = \'{{partition}}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
+            AND date = \'{date}\'
+            AND parititon_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
             AND energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
         GROUP BY 1, 2
         ;"""
@@ -191,10 +199,10 @@ class QueryStrings(Enum):
             t.throughput_per_hour
         FROM fact_network_throughput_agg t 
         JOIN fact_network_fuel_efficiency_agg e ON 1 = 1
-            AND t.date = \'{{date}}\'
-            AND t.partition_name = \'{{partition}}_FACT_NETWORK_THROUGHPUT_AGG\'
-            AND e.date = \'{{date}}\'
-            AND e.partition_name = \'{{partition}}_FACT_NETWORK_FUEL_EFFICIENCY_AGG\'
+            AND t.date = \'{date}\'
+            AND t.partition_name = \'{partition}_FACT_NETWORK_THROUGHPUT_AGG\'
+            AND e.date = \'{date}\'
+            AND e.partition_name = \'{partition}_FACT_NETWORK_FUEL_EFFICIENCY_AGG\'
             AND t.source_id = e.source_id
             AND e.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
         WHERE 1 = 1
@@ -209,21 +217,21 @@ class QueryStrings(Enum):
                 MAX(time_step) AS max_time_step
             FROM fact_vehicle_trace
             WHERE 1 = 1
-                AND date = \'{{date}}\'
-                AND partition_name = \'{{partition}}\'
+                AND date = \'{date}\'
+                AND partition_name = \'{partition}\'
                 AND x BETWEEN 500 AND 2300
                 AND time_step >= 600
             GROUP BY 1, 2
         ), inflows AS (
             SELECT
-                INT(min_time_step / 60) * 60 AS time_step,
+                CAST(min_time_step / 60 AS INTEGER) * 60 AS time_step,
                 source_id,
                 60 * COUNT(DISTINCT id) AS inflow_rate
             FROM min_max_time_step
             GROUP BY 1, 2
         ), outflows AS (
             SELECT
-                INT(max_time_step / 60) * 60 AS time_step,
+                CAST(max_time_step / 60 AS INTEGER) * 60 AS time_step,
                 source_id,
                 60 * COUNT(DISTINCT id) AS outflow_rate
             FROM min_max_time_step
@@ -255,10 +263,10 @@ class QueryStrings(Enum):
                      cumulative_power
             FROM fact_vehicle_trace vt 
             JOIN fact_energy_trace et ON 1 = 1
-                AND vt.date = \'{{date}}\'
-                AND vt.partition_name = \'{{partition}}\'
-                AND et.date = \'{{date}}\'
-                AND et.partition_name = \'{{partition}}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
+                AND vt.date = \'{date}\'
+                AND vt.partition_name = \'{partition}\'
+                AND et.date = \'{date}\'
+                AND et.partition_name = \'{partition}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
                 AND vt.id = et.id
                 AND vt.source_id = et.source_id
                 AND vt.time_step = et.time_step
@@ -284,7 +292,7 @@ class QueryStrings(Enum):
         ), binned_cumulative_energy AS (
             SELECT
                 source_id,
-                INT(x/10) * 10 AS distance_meters_bin,
+                CAST(x/10 AS INTEGER) * 10 AS distance_meters_bin,
                 AVG(energy_joules) AS cumulative_energy_avg,
                 AVG(energy_joules) + STDEV(energy_joules) AS cumulative_energy_upper_bound,
                 AVG(energy_joules) - STDEV(energy_joules) AS cumulative_energy_lower_bound
@@ -293,7 +301,7 @@ class QueryStrings(Enum):
         ), binned_speed_accel AS (
             SELECT
                 source_id,
-                INT(x/10) * 10 AS distance_meters_bin,
+                CAST(x/10 AS INTEGER) * 10 AS distance_meters_bin,
                 AVG(speed) AS speed_avg,
                 AVG(speed) + STDEV(speed) AS speed_upper_bound,
                 AVG(speed) - STDEV(speed) AS speed_lower_bound,
@@ -302,8 +310,8 @@ class QueryStrings(Enum):
                 AVG(accel_without_noise) - STDEV(accel_without_noise) AS accel_lower_bound
             FROM fact_vehicle_trace
             WHERE 1 = 1
-                AND date =  \'{{date}}\'
-                AND partition_name = \'{{partition}}\'
+                AND date =  \'{date}\'
+                AND partition_name = \'{partition}\'
                 AND x BETWEEN 500 AND 2300
                 AND time_step >= 600
             GROUP BY 1, 2
@@ -311,9 +319,9 @@ class QueryStrings(Enum):
             SELECT DISTINCT
                 source_id,
                 id,
-                INT(x/10) * 10 AS distance_meters_bin,
-                FIRST_VALUE(energy_joules) OVER (PARTITION BY id, INT(x/10) * 10 ORDER BY x ASC) AS energy_start,
-                LAST_VALUE(energy_joules) OVER (PARTITION BY id, INT(x/10) * 10 ORDER BY x ASC) AS energy_end
+                CAST(x/10 AS INTEGER) * 10 AS distance_meters_bin,
+                FIRST_VALUE(energy_joules) OVER (PARTITION BY id, CAST(x/10 AS INTEGER) * 10 ORDER BY x ASC) AS energy_start,
+                LAST_VALUE(energy_joules) OVER (PARTITION BY id, CAST(x/10 AS INTEGER) * 10 ORDER BY x ASC) AS energy_end
             FROM cumulative_energy
         ), binned_energy AS (
             SELECT
@@ -364,10 +372,10 @@ class QueryStrings(Enum):
                      cumulative_power
             FROM fact_vehicle_trace vt 
             JOIN fact_energy_trace et ON 1 = 1
-                AND vt.date = \'{{date}}\'
-                AND vt.partition_name = \'{{partition}}\'
-                AND et.date = \'{{date}}\'
-                AND et.partition_name = \'{{partition}}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
+                AND vt.date = \'{date}\'
+                AND vt.partition_name = \'{partition}\'
+                AND et.date = \'{date}\'
+                AND et.partition_name = \'{partitio}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
                 AND vt.id = et.id
                 AND vt.source_id = et.source_id
                 AND vt.time_step = et.time_step
@@ -396,7 +404,7 @@ class QueryStrings(Enum):
         ), binned_cumulative_energy AS (
             SELECT
                 source_id,
-                INT(time_step/60) * 60 AS time_seconds_bin,
+                CAST(time_step/60 AS INTEGER) * 60 AS time_seconds_bin,
                 AVG(energy_joules) AS cumulative_energy_avg,
                 AVG(energy_joules) + STDEV(energy_joules) AS cumulative_energy_upper_bound,
                 AVG(energy_joules) - STDEV(energy_joules) AS cumulative_energy_lower_bound
@@ -405,7 +413,7 @@ class QueryStrings(Enum):
         ), binned_speed_accel AS (
             SELECT
                 source_id,
-                INT(time_step/60) * 60 AS time_seconds_bin,
+                CAST(time_step/60 AS INTEGER) * 60 AS time_seconds_bin,
                 AVG(speed) AS speed_avg,
                 AVG(speed) + STDEV(speed) AS speed_upper_bound,
                 AVG(speed) - STDEV(speed) AS speed_lower_bound,
@@ -414,8 +422,8 @@ class QueryStrings(Enum):
                 AVG(accel_without_noise) - STDEV(accel_without_noise) AS accel_lower_bound
             FROM fact_vehicle_trace
             WHERE 1 = 1
-                AND date =  \'{{date}}\'
-                AND partition_name = \'{{partition}}\'
+                AND date =  \'{date}\'
+                AND partition_name = \'{partition}\'
                 AND x BETWEEN 500 AND 2300
                 AND time_step >= 600
             GROUP BY 1, 2
@@ -423,9 +431,9 @@ class QueryStrings(Enum):
             SELECT DISTINCT
                 source_id,
                 id,
-                INT(time_step/60) * 60 AS time_seconds_bin,
-                FIRST_VALUE(energy_joules) OVER (PARTITION BY id, INT(x/10) * 10 ORDER BY x ASC) AS energy_start,
-                LAST_VALUE(energy_joules) OVER (PARTITION BY id, INT(x/10) * 10 ORDER BY x ASC) AS energy_end
+                CAST(time_step/60 AS INTEGER) * 60 AS time_seconds_bin,
+                FIRST_VALUE(energy_joules) OVER (PARTITION BY id, CAST(x/10 AS INTEGER) * 10 ORDER BY x ASC) AS energy_start,
+                LAST_VALUE(energy_joules) OVER (PARTITION BY id, CAST(x/10 AS INTEGER) * 10 ORDER BY x ASC) AS energy_end
             FROM cumulative_energy
         ), binned_energy AS (
             SELECT
