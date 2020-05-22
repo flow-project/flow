@@ -52,6 +52,7 @@ additional_env_params.update({
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": True,
     'target_velocity': 18,
+    "control_range": [500, 2300]
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS

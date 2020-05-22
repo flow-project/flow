@@ -59,11 +59,11 @@ additional_env_params.update({
     'lead_obs': True,
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": True,
-    "control_range": [500, 2500]
+    "control_range": [500, 2300]
 })
 
 
-# CREATE VEHICLE TYPES AND INFLOWS
+# CREATE VEHICLE TYPES AND INFLOWsS
 
 vehicles = VehicleParams()
 inflows = InFlows()
