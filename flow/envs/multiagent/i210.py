@@ -97,6 +97,9 @@ class I210MultiEnv(MultiEnv):
         # penalize stops
         self.penalize_stops = env_params.additional_params["penalize_stops"]
 
+        # penalize accel
+        self.penalize_accel = env_params.additional_params.get("penalize_accel", False)
+
     @property
     def observation_space(self):
         """See class definition."""
@@ -279,11 +282,15 @@ class I210MultiEnv(MultiEnv):
 
                 rewards[veh_id] += speed_reward * scaling_factor * self.speed_reward_gain
 
-        if self.penalize_stops:
-            for veh_id in rewards.keys():
-                speed = self.k.vehicle.get_speed(veh_id)
+        for veh_id in rewards.keys():
+            speed = self.k.vehicle.get_speed(veh_id)
+            if self.penalize_stops:
                 if speed < 1.0:
                     rewards[veh_id] -= .01
+            if self.penalize_accel and veh_id in self.k.vehicle.previous_speeds:
+                prev_speed = self.k.vehicle.get_previous_speed(veh_id)
+                abs_accel = abs(speed - prev_speed) / self.sim_step
+                rewards[veh_id] -= abs_accel / 400.0
 
         # print('time to get reward is ', time() - t)
         return rewards

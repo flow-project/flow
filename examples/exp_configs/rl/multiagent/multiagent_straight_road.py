@@ -86,7 +86,10 @@ additional_env_params.update({
     "speed_reward_gain": 1.0,
 
     # penalize stopped vehicles
-    "penalize_stops": True
+    "penalize_stops": True,
+
+    # penalize accels
+    "penalize_accel": True
 })
 
 

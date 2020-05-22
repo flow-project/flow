@@ -256,12 +256,19 @@ def _highway(data, params, all_time):
         time step. Set to zero if the vehicle is not present in the network at
         that time step.
     """
-    length = params['net'].additional_params['length']
-    num_edges = params['net'].additional_params['num_edges']
-    edge_len = length / num_edges
+    junction_length = 0.1
+    length = params['net'].additional_params["length"]
+    num_edges = params['net'].additional_params.get("num_edges", 1)
     edge_starts = {}
-    for i in range(num_edges):
-        edge_starts.update({"highway_{}".format(i): i * edge_len, ":edge_{}_0".format(i): i * edge_len})
+    # Add the main edges.
+    edge_starts.update({
+        "highway_{}".format(i):
+         i * (length / num_edges + junction_length)
+        for i in range(num_edges)
+    })
+
+    if params['net'].additional_params["use_ghost_edge"]:
+        edge_starts.update({"highway_end": length + num_edges * junction_length})
 
     # compute the absolute position
     for veh_id in data.keys():
