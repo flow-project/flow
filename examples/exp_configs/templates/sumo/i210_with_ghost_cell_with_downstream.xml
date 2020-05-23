@@ -3501,11 +3501,11 @@
         </lane>
     </edge>
     <edge id="ghost0" from="gneJ0" to="300944378" priority="1" spreadType="center">
-        <lane id="ghost0_0" index="0" speed="13.89" length="573.08" shape="-17.02,1355.30 478.76,1067.86"/>
-        <lane id="ghost0_1" index="1" speed="13.89" length="573.08" shape="-15.36,1358.16 480.42,1070.71"/>
-        <lane id="ghost0_2" index="2" speed="13.89" length="573.08" shape="-13.71,1361.01 482.07,1073.56"/>
-        <lane id="ghost0_3" index="3" speed="13.89" length="573.08" shape="-12.05,1363.86 483.73,1076.42"/>
-        <lane id="ghost0_4" index="4" speed="13.89" length="573.08" shape="-10.40,1366.72 485.38,1079.27"/>
+        <lane id="ghost0_0" index="0" speed="30" length="573.08" shape="-17.02,1355.30 478.76,1067.86"/>
+        <lane id="ghost0_1" index="1" speed="30" length="573.08" shape="-15.36,1358.16 480.42,1070.71"/>
+        <lane id="ghost0_2" index="2" speed="30" length="573.08" shape="-13.71,1361.01 482.07,1073.56"/>
+        <lane id="ghost0_3" index="3" speed="30" length="573.08" shape="-12.05,1363.86 483.73,1076.42"/>
+        <lane id="ghost0_4" index="4" speed="30" length="573.08" shape="-10.40,1366.72 485.38,1079.27"/>
     </edge>
 
     <tlLogic id="122684743" type="static" programID="0" offset="0">

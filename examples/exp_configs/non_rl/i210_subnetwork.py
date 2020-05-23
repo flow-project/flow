@@ -13,20 +13,24 @@ from flow.core.params import SumoLaneChangeParams
 from flow.core.params import VehicleParams
 from flow.core.params import InitialConfig
 from flow.core.params import InFlows
+
+from flow.core.params import SumoCarFollowingParams
+
 import flow.config as config
 from flow.envs import TestEnv
 
+# Instantiate which conditions we want to be true about the network
+
 WANT_GHOST_CELL = True
 WANT_DOWNSTREAM_BOUNDARY = True
-ON_RAMP = True
+ON_RAMP = False
 
 
-inflow_rate = 5*2215
-inflow_speed = 24.1
+inflow_rate = 2050
+inflow_speed = 25.5
 
 
 accel_data = (IDMController,{'a':1.3,'b':2.0,'noise':0.3})
-
 
 
 highway_start_edge = ''
@@ -39,8 +43,11 @@ else:
     highway_start_edge = "119257914"
 
 
-if ON_RAMP:
-    vehicles = VehicleParams()
+vehicles = VehicleParams()
+
+inflow = InFlows()
+
+if ON_RAMP:   
     vehicles.add(
         "human",
         num_vehicles=0,
@@ -51,28 +58,23 @@ if ON_RAMP:
         routing_controller=(I210Router, {})
     )
 
-else:
-    # create the base vehicle type that will be used for inflows
-    vehicles = VehicleParams()
-    vehicles.add(
-        "human",
-        num_vehicles=0,
-        lane_change_params=SumoLaneChangeParams(
-            lane_change_mode="strategic",
-        ),
-        acceleration_controller=accel_data,
-    )
+    # inflow.add(
+    #     veh_type="human",
+    #     edge=highway_start_edge,
+    #     vehs_per_hour=inflow_rate,
+    #     departLane="best",
+    #     departSpeed=inflow_speed)
 
-inflow = InFlows()
-# main highway
-inflow.add(
-    veh_type="human",
-    edge=highway_start_edge,
-    vehs_per_hour=inflow_rate,
-    departLane="best",
-    departSpeed=inflow_speed)
-# on ramp
-if ON_RAMP:
+    lane_list = ['0','1','2','3','4']
+
+    for lane in lane_list:
+        inflow.add(
+            veh_type="human",
+            edge=highway_start_edge,
+            vehs_per_hour=inflow_rate,
+            departLane=lane,
+            departSpeed=inflow_speed)
+
     inflow.add(
         veh_type="human",
         edge="27414345",
@@ -86,23 +88,45 @@ if ON_RAMP:
         departLane="random",
         departSpeed=10)
 
-
-NET_TEMPLATE = ''
-
-if(WANT_GHOST_CELL):
-    NET_TEMPLATE = os.path.join(
-        config.PROJECT_PATH,
-        "examples/exp_configs/templates/sumo/i210_with_ghost_cell.xml")
 else:
-    NET_TEMPLATE = os.path.join(
-        config.PROJECT_PATH,
-        "examples/exp_configs/templates/sumo/test2.net.xml")
+    # create the base vehicle type that will be used for inflows
+    vehicles.add(
+        "human",
+        num_vehicles=0,
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode="strategic",
+        ),
+        acceleration_controller=accel_data,
+    )
 
-if(WANT_DOWNSTREAM_BOUNDARY):
-    NET_TEMPLATE = os.path.join(
-        config.PROJECT_PATH,
-        "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_downstream.xml")
+    # If you want to turn off the fail safes uncomment this:
 
+    # vehicles.add(
+    #     'human',
+    #     num_vehicles=0,
+    #     lane_change_params=SumoLaneChangeParams(
+    #         lane_change_mode='strategic',
+    #     ),
+    #     acceleration_controller=accel_data,
+    #     car_following_params=SumoCarFollowingParams(speed_mode='19')
+    # )
+
+    lane_list = ['0','1','2','3','4']
+
+    for lane in lane_list:
+        inflow.add(
+            veh_type="human",
+            edge=highway_start_edge,
+            vehs_per_hour=inflow_rate,
+            departLane=lane,
+            departSpeed=inflow_speed)
+
+
+network_xml_file = "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_downstream.xml"
+
+# network_xml_file = "examples/exp_configs/templates/sumo/i210_with_congestion.xml"
+
+NET_TEMPLATE = os.path.join(config.PROJECT_PATH,network_xml_file)
 
 
 flow_params = dict(
@@ -128,7 +152,7 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=10000,
+        horizon=1000,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
