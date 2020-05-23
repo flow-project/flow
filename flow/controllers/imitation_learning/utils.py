@@ -11,7 +11,7 @@ from flow.core.rewards import *
 
 """ Class agnostic helper functions """
 
-def sample_trajectory_singleagent(env, controllers, action_network, max_trajectory_length, use_expert, v_des):
+def sample_trajectory_singleagent(env, controllers, action_network, max_trajectory_length, use_expert, v_des, max_decel):
     """
     Samples a trajectory for a given vehicle using the actions prescribed by specified controller.
     Args:
@@ -68,8 +68,9 @@ def sample_trajectory_singleagent(env, controllers, action_network, max_trajecto
         for i in range(action_dim):
             # if max number of RL vehicles is not reached, insert dummy values
             if i >= len(vehicle_ids):
-                rl_actions.append(0.0)
-                actions_expert.append(0.0)
+                ignore_accel = -2 * max_decel
+                rl_actions.append(ignore_accel)
+                actions_expert.append(ignore_accel)
             else:
                 imitator = controllers[vehicle_ids[i]][0]
                 expert = controllers[vehicle_ids[i]][1]
@@ -224,7 +225,7 @@ def sample_trajectory_multiagent(env, controllers, action_network, max_trajector
     return traj_dict(observations, actions, expert_actions, rewards, next_observations, terminals), traj_length
 
 
-def sample_trajectories(env, controllers, action_network, min_batch_timesteps, max_trajectory_length, multiagent, use_expert, v_des=15):
+def sample_trajectories(env, controllers, action_network, min_batch_timesteps, max_trajectory_length, multiagent, use_expert, v_des=15, max_decel=4.5):
     """
     Samples trajectories to collect at least min_batch_timesteps steps in the environment
 
@@ -248,7 +249,7 @@ def sample_trajectories(env, controllers, action_network, min_batch_timesteps, m
         if multiagent:
             trajectory, traj_length = sample_trajectory_multiagent(env, controllers, action_network, max_trajectory_length, use_expert, v_des)
         else:
-            trajectory, traj_length = sample_trajectory_singleagent(env, controllers, action_network, max_trajectory_length, use_expert, v_des)
+            trajectory, traj_length = sample_trajectory_singleagent(env, controllers, action_network, max_trajectory_length, use_expert, v_des, max_decel)
 
         trajectories.append(trajectory)
 
@@ -256,7 +257,7 @@ def sample_trajectories(env, controllers, action_network, min_batch_timesteps, m
 
     return trajectories, total_envsteps
 
-def sample_n_trajectories(env, controllers, action_network, n, max_trajectory_length, multiagent, use_expert, v_des=15):
+def sample_n_trajectories(env, controllers, action_network, n, max_trajectory_length, multiagent, use_expert, v_des=15, max_decel=4.5):
     """
     Collects a fixed number of trajectories.
 
@@ -280,7 +281,7 @@ def sample_n_trajectories(env, controllers, action_network, n, max_trajectory_le
         if multiagent:
             trajectory, length = sample_trajectory_multiagent(env, controllers, action_network, max_trajectory_length, use_expert, v_des)
         else:
-            trajectory, length = sample_trajectory_singleagent(env, controllers, action_network, max_trajectory_length, use_expert, v_des)
+            trajectory, length = sample_trajectory_singleagent(env, controllers, action_network, max_trajectory_length, use_expert, v_des, max_decel)
 
         trajectories.append((trajectory, length))
 

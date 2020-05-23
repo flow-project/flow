@@ -23,7 +23,7 @@ def build_neural_net(input_placeholder, output_size, scope, n_layers, size, acti
             output_placeholder: the result of pass through Neural Network
     """
     output_placeholder = input_placeholder
-    with tf.variable_scope(scope):
+    with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
         for _ in range(n_layers):
             output_placeholder = tf.layers.dense(output_placeholder, size, activation=activation)
         output_placeholder = tf.layers.dense(output_placeholder, output_size, activation=output_activation,name='Output_Layer')

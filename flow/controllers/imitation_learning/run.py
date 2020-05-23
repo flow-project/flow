@@ -41,7 +41,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--ep_len', type=int, default=5000)
 
-    parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1000)  # number of gradient steps for training policy (per iter in n_iter)
+    parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1000)  # number of gradient steps for training policy
     parser.add_argument('--n_iter', type=int, default=5)
 
     parser.add_argument('--batch_size', type=int, default=3000)  # training data collected (in the env) during each iteration
@@ -50,7 +50,7 @@ def main():
     parser.add_argument('--train_batch_size', type=int,
                         default=100)  # number of sampled data points to be used per gradient/train step
 
-    parser.add_argument('--num_layers', type=int, default=3)  # depth, of policy to be learned
+    parser.add_argument('--num_layers', type=int, default=3)  # number of hidden layers, of policy to be learned
     parser.add_argument('--size', type=int, default=64)  # width of each layer, of policy to be learned
     parser.add_argument('--learning_rate', '-lr', type=float, default=5e-3)  # learning rate for supervised learning
     parser.add_argument('--replay_buffer_size', type=int, default=1000000)

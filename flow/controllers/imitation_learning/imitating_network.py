@@ -46,8 +46,9 @@ class ImitatingNetwork():
             self.load_network(load_path)
 
         else:
-            with tf.variable_scope(policy_scope, reuse=tf.AUTO_REUSE):
-                self.build_network()
+            print("HERE")
+            self.build_network()
+
 
         # init replay buffer
         if self.training:
@@ -57,8 +58,13 @@ class ImitatingNetwork():
 
         # set up policy variables, and saver to save model. Save only non-training variables (weights/biases)
         if not load_existing:
-            self.policy_vars = [v for v in tf.all_variables() if policy_scope in v.name and 'train' not in v.name]
+            self.policy_vars = [v for v in tf.all_variables() if 'network_scope' in v.name and 'train' not in v.name]
             self.saver = tf.train.Saver(self.policy_vars, max_to_keep=None)
+
+        # tensorboard
+        self.writer = tf.summary.FileWriter('/Users/akashvelu/Documents/Random/tensorboard/', tf.get_default_graph())
+        # track number of training steps
+        self.train_steps = 0
 
     def build_network(self):
         """
@@ -69,8 +75,9 @@ class ImitatingNetwork():
         self.define_forward_pass()
         # set up training operation (e.g. Adam optimizer)
         if self.training:
-            with tf.variable_scope('train', reuse=tf.AUTO_REUSE):
+            with tf.variable_scope('train'):
                 self.define_train_op()
+
 
 
     def load_network(self, path):
@@ -91,11 +98,12 @@ class ImitatingNetwork():
         if self.stochastic:
             # determine means and (diagonal entries of ) covariance matrices (could be many in the case of batch) for action distribution
             means = network_output[:, :self.action_dim]
-            cov_diags = network_output[:, self.action_dim:]
+            log_vars = network_output[:, self.action_dim:]
+            vars = tf.math.exp(log_vars)
 
             # set up action distribution (parameterized by network output)
             # if a batch of size k is input as observations, then the the self.dist will store k different Gaussians
-            self.dist = tfp.distributions.MultivariateNormalDiag(loc=means, scale_diag=cov_diags)
+            self.dist = tfp.distributions.MultivariateNormalDiag(loc=means, scale_diag=vars, name='Prediction Distribution')
             # action is a sample from this distribution; one sample output per Gaussian contained in self.dist
             self.action_predictions = self.dist.sample()
         else:
@@ -109,7 +117,7 @@ class ImitatingNetwork():
         # placeholder for observations (input into network)
         self.obs_placeholder = tf.placeholder(shape=[None, self.obs_dim], name="observation", dtype=tf.float32)
 
-        # if training, define placeholder for labels (supervised leearning)
+        # if training, define placeholder for labels (supervised learning)
         if self.training:
             self.action_labels_placeholder = tf.placeholder(shape=[None, self.action_dim], name="labels", dtype=tf.float32)
 
@@ -130,12 +138,14 @@ class ImitatingNetwork():
         # parse the mean and covariance from output if stochastic, and set up distribution
         if self.stochastic:
             # determine means and (diagonal entries of ) covariance matrices (could be many in the case of batch) for action distribution
-            means = network_output[:, :self.action_dim]
-            cov_diags = network_output[:, self.action_dim:]
+
+            means, log_vars = tf.split(network_output, num_or_size_splits=2, axis=1)
+            vars = tf.math.exp(log_vars)
 
             # set up action distribution (parameterized by network output)
             # if a batch of size k is input as observations, then the the self.dist will store k different Gaussians
-            self.dist = tfp.distributions.MultivariateNormalDiag(loc=means, scale_diag=cov_diags)
+            with tf.variable_scope('Action_Distribution'):
+                self.dist = tfp.distributions.MultivariateNormalDiag(loc=means, scale_diag=vars)
             # action is a sample from this distribution; one sample output per Gaussian contained in self.dist
             self.action_predictions = self.dist.sample()
 
@@ -154,12 +164,17 @@ class ImitatingNetwork():
 
         if self.stochastic:
             # negative log likelihood loss for stochastic policy
-            log_likelihood = self.dist.log_prob(true_actions)
-            self.loss = -tf.reduce_mean(log_likelihood)
+            self.loss = self.dist.log_prob(true_actions)
+            self.loss = tf.negative(self.loss)
+            self.loss = tf.reduce_mean(self.loss)
+            summary_name = 'Loss_tracking_NLL'
         else:
             # MSE loss for deterministic policy
             self.loss = tf.losses.mean_squared_error(true_actions, predicted_actions)
+            summary_name = 'Loss_tracking_MSE'
 
+
+        self.loss_summary = tf.summary.scalar(name=summary_name, tensor=self.loss)
         # Adam optimizer
         self.train_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
 
@@ -169,7 +184,9 @@ class ImitatingNetwork():
         """
         # reshape action_batch to ensure a shape (batch_size, action_dim)
         action_batch = action_batch.reshape(action_batch.shape[0], self.action_dim)
-        self.sess.run([self.train_op, self.loss], feed_dict={self.obs_placeholder: observation_batch, self.action_labels_placeholder: action_batch})
+        _, loss, summary = self.sess.run([self.train_op, self.loss, self.loss_summary], feed_dict={self.obs_placeholder: observation_batch, self.action_labels_placeholder: action_batch})
+        self.writer.add_summary(summary, global_step=self.train_steps)
+        self.train_steps += 1
 
     def get_accel_from_observation(self, observation):
         """

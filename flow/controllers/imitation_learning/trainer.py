@@ -5,7 +5,7 @@ import numpy as np
 import gym
 import os
 from flow.utils.registry import make_create_env
-from env_configs.singleagent_straight_road import flow_params
+from examples.exp_configs.rl.multiagent.multiagent_straight_road import flow_params
 from imitating_controller import ImitatingController
 from imitating_network import ImitatingNetwork
 from flow.controllers.car_following_models import IDMController
@@ -111,7 +111,8 @@ class Trainer(object):
         """
 
         print("\nCollecting data to be used for training...")
-        trajectories, envsteps_this_batch = sample_trajectories(self.env, self.controllers, self.action_network, batch_size, self.params['ep_len'], self.multiagent, use_expert=itr==0, v_des=self.params['v_des'])
+        max_decel = flow_params['env'].additional_params['max_decel']
+        trajectories, envsteps_this_batch = sample_trajectories(self.env, self.controllers, self.action_network, batch_size, self.params['ep_len'], self.multiagent, use_expert=itr==0, v_des=self.params['v_des'], max_decel=max_decel)
 
         return trajectories, envsteps_this_batch
 
