@@ -24,7 +24,7 @@ END_SPEED = 6.0
 # the inflow rate of vehicles
 TRAFFIC_FLOW = 2215
 # the simulation time horizon (in steps)
-HORIZON = 600
+HORIZON = 1000
 # whether to include noise in the car-following models
 INCLUDE_NOISE = True
 
@@ -71,7 +71,7 @@ if PENETRATION_RATE > 0.0:
         "av",
         color='red',
         num_vehicles=0,
-        acceleration_controller=(FollowerStopper, {"v_des": 6.0, "control_length": [500, 2300]}),
+        acceleration_controller=(FollowerStopper, {"v_des": 5.0, "control_length": [500, 2300]}),
     )
 
 inflows = InFlows()

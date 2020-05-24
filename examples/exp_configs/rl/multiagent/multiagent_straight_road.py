@@ -125,7 +125,7 @@ inflows.add(
     edge="highway_0",
     vehs_per_hour=int(HIGHWAY_INFLOW_RATE * (1 - PENETRATION_RATE / 100)),
     depart_lane="free",
-    depart_speed="23.0",
+    depart_speed=TRAFFIC_SPEED,
     name="idm_highway_inflow")
 
 # add autonomous vehicles on the highway
@@ -135,7 +135,7 @@ inflows.add(
     edge="highway_0",
     vehs_per_hour=int(HIGHWAY_INFLOW_RATE * (PENETRATION_RATE / 100)),
     depart_lane="free",
-    depart_speed="23.0",
+    depart_speed=TRAFFIC_SPEED,
     name="rl_highway_inflow")
 
 # SET UP FLOW PARAMETERS

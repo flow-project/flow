@@ -77,7 +77,7 @@ class FollowerStopper(BaseController):
 
     def get_accel(self, env):
         """See parent class."""
-        if env.time_counter < env.env_params.warmup_steps:
+        if env.time_counter < env.env_params.warmup_steps * env.env_params.sims_per_step:
             return None
         else:
             lead_id = env.k.vehicle.get_leader(self.veh_id)

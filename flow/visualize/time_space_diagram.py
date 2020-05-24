@@ -270,6 +270,18 @@ def _highway(data, params, all_time):
     if params['net'].additional_params["use_ghost_edge"]:
         edge_starts.update({"highway_end": length + num_edges * junction_length})
 
+    edge_starts.update({
+        ":edge_{}".format(i + 1):
+         (i + 1) * length / num_edges + i * junction_length
+        for i in range(num_edges - 1)
+    })
+
+    if params['net'].additional_params["use_ghost_edge"]:
+        edge_starts.update({
+            ":edge_{}".format(num_edges):
+             length + (num_edges - 1) * junction_length
+        })
+
     # compute the absolute position
     for veh_id in data.keys():
         data[veh_id]['abs_pos'] = _get_abs_pos_1_edge(data[veh_id]['edge'],
