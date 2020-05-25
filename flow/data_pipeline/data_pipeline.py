@@ -60,9 +60,9 @@ def generate_trajectory_from_flow(data_path, extra_info, partition_name=None):
     extra_info = pd.DataFrame.from_dict(extra_info)
     # extra_info["partition"] = partition_name
     extra_info.to_csv(data_path, index=False)
-    upload_only_file_path = data_path[:-4] + "_upload" + ".csv"
-    extra_info.to_csv(upload_only_file_path, index=False, header=False)
-    return upload_only_file_path
+    # upload_only_file_path = data_path[:-4] + "_upload" + ".csv"
+    # extra_info.to_csv(upload_only_file_path, index=False, header=False)
+    return
 
 
 def upload_to_s3(bucket_name, bucket_key, file_path, only_query):
