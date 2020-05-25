@@ -32,6 +32,9 @@ from flow.visualize.plot_custom_callables import plot_trip_distribution
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 
+from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3, get_extra_info
+import uuid
+
 EXAMPLE_USAGE = """
 example usage:
     python i210_replay.py -r /ray_results/experiment_dir/result_dir -c 1
@@ -205,6 +208,9 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         key: [] for key in custom_callables.keys()
     })
 
+    extra_info = defaultdict(lambda: [])
+    source_id = 'flow_{}'.format(uuid.uuid4().hex)
+
     i = 0
     while i < args.num_rollouts:
         print("Rollout iter", i)
@@ -242,6 +248,10 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             # Compute the velocity speeds and cumulative returns.
             veh_ids = env.k.vehicle.get_ids()
             vel.append(np.mean(env.k.vehicle.get_speed(veh_ids)))
+
+            # Collect information from flow for the trajectory output
+            get_extra_info(env.k.vehicle, extra_info, veh_ids)
+            extra_info["source_id"].extend(['{}_run_{}'.format(source_id, i)] * len(veh_ids))
 
             # Compute the results for the custom callables.
             for (key, lambda_func) in custom_callables.items():
@@ -317,6 +327,18 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             output_path = os.path.join(output_dir, '{}-emission.csv'.format(exp_name))
             # convert the emission file into a csv file
             emission_to_csv(emission_path, output_path=output_path)
+
+            # generate the trajectory output file
+            trajectory_table_path = './data/' + source_id + ".csv"
+            upload_file_path = generate_trajectory_from_flow(trajectory_table_path, extra_info)
+
+            # upload to s3 if asked
+            if args.use_s3:
+                partition_name = source_id[-3:]
+                cur_date = date.today().isoformat()
+                upload_to_s3('circles.data.pipeline', 'trajectory-output/date={}/partition_name={}/{}.csv'.format(
+                    cur_date, partition_name, upload_file_path.split('/')[-1].split('_upload')[0]),
+                             upload_file_path, str(args.only_query)[2:-2])
 
             # print the location of the emission csv file
             print("\nGenerated emission file at " + output_path)
@@ -427,6 +449,12 @@ def create_parser():
                                                                   'be run in cluster mode')
     parser.add_argument('--exp_title', type=str, required=False, default=None,
                         help='Informative experiment title to help distinguish results')
+    parser.add_argument(
+        '--only_query',
+        nargs='*', default="[\'all\']",
+        help='specify which query should be run by lambda'
+             'for detail, see upload_to_s3 in data_pipeline.py'
+    )
     return parser
 
 
