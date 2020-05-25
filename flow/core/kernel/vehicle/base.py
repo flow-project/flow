@@ -690,13 +690,49 @@ class KernelVehicle(object):
     ###########################################################################
 
     def get_accel(self, veh_id):
-        """ see traci class """
+        """Return the acceleration of vehicle with veh_id."""
         raise NotImplementedError
 
-    def update_accel_without_noise(self, veh_id, accel_without_noise):
-        """ see traci class """
+    def update_accel_no_noise_no_failsafe(self, veh_id, accel_no_noise_no_failsafe):
+        """Update stored acceleration without noise without failsafe of vehicle with veh_id."""
         raise NotImplementedError
 
-    def get_accel_without_noise(self, veh_id):
-        """ see traci class """
+    def update_accel_no_noise_with_failsafe(self, veh_id, accel_no_noise_with_failsafe):
+        """Update stored acceleration without noise with failsafe of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def update_accel_with_noise_no_failsafe(self, veh_id, accel_with_noise_no_failsafe):
+        """Update stored acceleration with noise without failsafe of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def update_accel_with_noise_with_failsafe(self, veh_id, accel_with_noise_with_failsafe):
+        """Update stored acceleration with noise with failsafe of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def get_2d_position(self, veh_id, error=-1001):
+        """Return (x, y) position of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def get_accel_no_noise_no_failsafe(self, veh_id):
+        """Return the acceleration without noise without failsafe of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def get_accel_no_noise_with_failsafe(self, veh_id):
+        """Return the acceleration without noise with failsafe of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def get_accel_with_noise_no_failsafe(self, veh_id):
+        """Return the acceleration with noise without failsafe of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def get_accel_with_noise_with_failsafe(self, veh_id):
+        """Return the acceleration with noise with failsafe of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def get_realized_accel(self, veh_id):
+        """Return the acceleration that the vehicle actually make."""
+        raise NotImplementedError
+
+    def get_road_grade(self, veh_id):
+        """Return the road-grade of the vehicle with veh_id."""
         raise NotImplementedError
