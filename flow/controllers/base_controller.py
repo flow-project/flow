@@ -92,6 +92,7 @@ class BaseController:
         env.k.vehicle.update_accel_no_noise_no_failsafe(self.veh_id, None)
         env.k.vehicle.update_accel_no_noise_with_failsafe(self.veh_id, None)
         env.k.vehicle.update_accel_with_noise_no_failsafe(self.veh_id, None)
+        env.k.vehicle.update_accel_with_noise_with_failsafe(self.veh_id, None)
 
         # this is to avoid abrupt decelerations when a vehicle has just entered
         # a network and it's data is still not subscribed
