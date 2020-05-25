@@ -2,22 +2,28 @@
 from enum import Enum
 
 # tags for different queries
-tags = {"energy": ["POWER_DEMAND_MODEL", "POWER_DEMAND_MODEL_DENOISED_ACCEL", "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"]}
+tags = {
+    "energy": [
+        "POWER_DEMAND_MODEL",
+        "POWER_DEMAND_MODEL_DENOISED_ACCEL",
+        "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"
+    ]
+}
 
-VEHICLE_POWER_DEMAND_FINAL_SELECT = """
+VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT = """
     SELECT
         id,
         time_step,
         speed,
         acceleration,
         road_grade,
-        1200 * speed * MAX(0, (
+        MAX(0, 1200 * speed * (
             CASE
                 WHEN acceleration > 0 THEN 1
                 WHEN acceleration < 0 THEN 0
                 ELSE 0.5
-            END * (1 - 0.8) + 0.8) * acceleration + 9.81 * SIN(road_grade)
-            ) + 1200 * 9.81 * 0.005 * speed + 0.5 * 1.225 * 2.6 * 0.3 * POW(speed,3) AS power,
+            END * (1 - {}) + {}) * acceleration + 9.81 * SIN(road_grade)
+            ) + 1200 * 9.81 * 0.005 * speed + 0.5 * 1.225 * 2.6 * 0.3 * POW(speed,3)) AS power,
         \'{}\' AS energy_model_id,
         source_id
     FROM {}
@@ -55,7 +61,9 @@ class QueryStrings(Enum):
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
         )
-        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('POWER_DEMAND_MODEL', 'regular_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT.format(1,
+                                                                         'POWER_DEMAND_MODEL',
+                                                                         'regular_cte'))
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL = """
         WITH denoised_accel_cte AS (
@@ -71,7 +79,9 @@ class QueryStrings(Enum):
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
         )
-        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('POWER_DEMAND_MODEL_DENOISED_ACCEL', 'denoised_accel_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT.format(1,
+                                                                         'POWER_DEMAND_MODEL_DENOISED_ACCEL',
+                                                                         'denoised_accel_cte'))
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL = """
         WITH lagged_timestep AS (
@@ -99,4 +109,6 @@ class QueryStrings(Enum):
                 source_id
             FROM lagged_timestep
         )
-        {}""".format(VEHICLE_POWER_DEMAND_FINAL_SELECT.format('POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL', 'denoised_speed_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT.format(1,
+                                                                         'POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL',
+                                                                         'denoised_speed_cte'))
