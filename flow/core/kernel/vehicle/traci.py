@@ -223,14 +223,6 @@ class TraCIVehicle(KernelVehicle):
             self.num_not_departed += sim_obs[tc.VAR_LOADED_VEHICLES_NUMBER] - \
                 sim_obs[tc.VAR_DEPARTED_VEHICLES_NUMBER]
 
-            # update the number of not departed vehicles
-            self.num_not_departed += sim_obs[tc.VAR_LOADED_VEHICLES_NUMBER] - \
-                sim_obs[tc.VAR_DEPARTED_VEHICLES_NUMBER]
-
-            # update the number of not departed vehicles
-            self.num_not_departed += sim_obs[tc.VAR_LOADED_VEHICLES_NUMBER] - \
-                sim_obs[tc.VAR_DEPARTED_VEHICLES_NUMBER]
-
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
             try:
