@@ -32,7 +32,7 @@ from flow.visualize.plot_custom_callables import plot_trip_distribution
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 
-from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3, extra_init, get_extra_info
+from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3, get_extra_info
 import uuid
 
 EXAMPLE_USAGE = """
@@ -208,7 +208,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         key: [] for key in custom_callables.keys()
     })
 
-    extra_info = extra_init()
+    extra_info = defaultdict(lambda: [])
     source_id = 'flow_{}'.format(uuid.uuid4().hex)
 
     i = 0
