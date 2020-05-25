@@ -1144,6 +1144,10 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         self.__vehicles[veh_id]["accel_with_noise_no_failsafe"] = accel_with_noise_no_failsafe
 
+    def update_accel_with_noise_with_failsafe(self, veh_id, accel_with_noise_with_failsafe):
+        """See parent class."""
+        self.__vehicles[veh_id]["accel_with_noise_with_failsafe"] = accel_with_noise_with_failsafe
+
     def get_accel_no_noise_no_failsafe(self, veh_id):
         """See parent class."""
         if "accel_no_noise_no_failsafe" not in self.__vehicles[veh_id]:
@@ -1161,6 +1165,12 @@ class TraCIVehicle(KernelVehicle):
         if "accel_with_noise_no_failsafe" not in self.__vehicles[veh_id]:
             self.__vehicles[veh_id]["accel_with_noise_no_failsafe"] = None
         return self.__vehicles[veh_id]["accel_with_noise_no_failsafe"]
+
+    def get_accel_with_noise_with_failsafe(self, veh_id):
+        """See parent class."""
+        if "accel_with_noise_with_failsafe" not in self.__vehicles[veh_id]:
+            self.__vehicles[veh_id]["accel_with_noise_with_failsafe"] = None
+        return self.__vehicles[veh_id]["accel_with_noise_with_failsafe"]
 
     def get_realized_accel(self, veh_id):
         """See parent class."""
