@@ -214,15 +214,15 @@ class Experiment:
             os.remove(emission_path)
 
             trajectory_table_path = './data/' + source_id + ".csv"
-            upload_file_path = generate_trajectory_from_flow(trajectory_table_path, extra_info)
+            generate_trajectory_from_flow(trajectory_table_path, extra_info)
 
             if to_aws:
                 cur_date = date.today().isoformat()
                 upload_to_s3('circles.data.pipeline', 'fact_vehicle_trace/date={}/partition_name={}/{}.csv'.format(
-                             cur_date, source_id, upload_file_path.split('/')[-1].split('_upload')[0]),
-                             upload_file_path, str(only_query)[2:-2])
+                             cur_date, source_id, source_id),
+                             trajectory_table_path, str(only_query)[2:-2])
 
             # delete the S3-only version of the trajectory file
-            os.remove(upload_file_path)
+            # os.remove(upload_file_path)
 
         return info_dict
