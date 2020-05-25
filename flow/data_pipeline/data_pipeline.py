@@ -88,14 +88,6 @@ def upload_to_s3(bucket_name, bucket_key, file_path, only_query):
     return
 
 
-def extra_init():
-    """Return the dictionary with all the feild pre-populated with empty list."""
-    extra_info = {"time_step": [], "id": [], "x": [], "y": [], "speed": [], "headway": [], "acceleration": [],
-                  "accel_without_noise": [], "realilzed_accel": [], "leader_id": [], "follower_id": [],
-                  "leader_rel_speed": [], "road_grade": [], "source_id": []}
-    return extra_info
-
-
 def get_extra_info(veh_kernel, extra_info, veh_ids):
     """Get all the necessary information for the trajectory output from flow."""
     for vid in veh_ids:

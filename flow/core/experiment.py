@@ -1,7 +1,8 @@
 """Contains an experiment class for running simulations."""
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
-from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3, extra_init, get_extra_info
+from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3, get_extra_info
+from collections import defaultdict
 import datetime
 import logging
 import time
@@ -147,7 +148,7 @@ class Experiment:
         # time profiling information
         t = time.time()
         times = []
-        extra_info = extra_init()
+        extra_info = defaultdict(lambda: [])
         source_id = 'flow_{}'.format(uuid.uuid4().hex)
 
         for i in range(num_runs):
