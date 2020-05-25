@@ -113,6 +113,7 @@ class BaseController:
         # store the acceleration without noise to each vehicle
         # run fail safe if requested
         env.k.vehicle.update_accel_no_noise_no_failsafe(self.veh_id, accel)
+        accel_no_noise_with_failsafe = accel
         if self.fail_safe == 'instantaneous':
             accel_no_noise_with_failsafe = self.get_safe_action_instantaneous(env, accel)
         elif self.fail_safe == 'safe_velocity':
