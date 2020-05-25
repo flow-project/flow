@@ -22,11 +22,11 @@ VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT = """
                 WHEN acceleration > 0 THEN 1
                 WHEN acceleration < 0 THEN 0
                 ELSE 0.5
-            END * (1 - {}) + {}) * acceleration + 9.81 * SIN(road_grade)
+            END * (1 - {0}) + {0}) * acceleration + 9.81 * SIN(road_grade)
             ) + 1200 * 9.81 * 0.005 * speed + 0.5 * 1.225 * 2.6 * 0.3 * POW(speed,3)) AS power,
-        \'{}\' AS energy_model_id,
+        \'{1}\' AS energy_model_id,
         source_id
-    FROM {}
+    FROM {2}
     ORDER BY id, time_step
     """
 
