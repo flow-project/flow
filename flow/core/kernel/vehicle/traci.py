@@ -113,7 +113,10 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id] = dict()
                 self.__vehicles[veh_id]['type'] = typ['veh_id']
                 self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
-                self.__vehicles[veh_id]["accel_without_noise"] = None
+                self.__vehicles[veh_id]["accel_no_noise_no_failsafe"] = None
+                self.__vehicles[veh_id]["accel_no_noise_with_failsafe"] = None
+                self.__vehicles[veh_id]["accel_with_noise_no_failsafe"] = None
+                self.__vehicles[veh_id]["accel_with_noise_with_failsafe"] = None
                 self.num_vehicles += 1
                 if typ['acceleration_controller'][0] == RLController:
                     self.num_rl_vehicles += 1
@@ -967,6 +970,7 @@ class TraCIVehicle(KernelVehicle):
 
         for i, vid in enumerate(veh_ids):
             if acc[i] is not None and vid in self.get_ids():
+                self.__vehicles[vid]["accel"] = acc[i]
                 this_vel = self.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
                 self.kernel_api.vehicle.slowDown(vid, next_vel, 1e-3)
@@ -1132,14 +1136,60 @@ class TraCIVehicle(KernelVehicle):
 
     # add for data pipeline
     def get_accel(self, veh_id):
+        """See parent class."""
+        if "accel" not in self.__vehicles[veh_id]:
+            self.__vehicles[veh_id]["accel"] = None
+        return self.__vehicles[veh_id]["accel"]
+
+    def update_accel_no_noise_no_failsafe(self, veh_id, accel_no_noise_no_failsafe):
+        """See parent class."""
+        self.__vehicles[veh_id]["accel_no_noise_no_failsafe"] = accel_no_noise_no_failsafe
+
+    def update_accel_no_noise_with_failsafe(self, veh_id, accel_no_noise_with_failsafe):
+        """See parent class."""
+        self.__vehicles[veh_id]["accel_no_noise_with_failsafe"] = accel_no_noise_with_failsafe
+
+    def update_accel_with_noise_no_failsafe(self, veh_id, accel_with_noise_no_failsafe):
+        """See parent class."""
+        self.__vehicles[veh_id]["accel_with_noise_no_failsafe"] = accel_with_noise_no_failsafe
+
+    def update_accel_with_noise_with_failsafe(self, veh_id, accel_with_noise_with_failsafe):
+        """See parent class."""
+        self.__vehicles[veh_id]["accel_with_noise_with_failsafe"] = accel_with_noise_with_failsafe
+
+    def get_accel_no_noise_no_failsafe(self, veh_id):
+        """See parent class."""
+        if "accel_no_noise_no_failsafe" not in self.__vehicles[veh_id]:
+            self.__vehicles[veh_id]["accel_no_noise_no_failsafe"] = None
+        return self.__vehicles[veh_id]["accel_no_noise_no_failsafe"]
+
+    def get_accel_no_noise_with_failsafe(self, veh_id):
+        """See parent class."""
+        if "accel_no_noise_with_failsafe" not in self.__vehicles[veh_id]:
+            self.__vehicles[veh_id]["accel_no_noise_with_failsafe"] = None
+        return self.__vehicles[veh_id]["accel_no_noise_with_failsafe"]
+
+    def get_accel_with_noise_no_failsafe(self, veh_id):
+        """See parent class."""
+        if "accel_with_noise_no_failsafe" not in self.__vehicles[veh_id]:
+            self.__vehicles[veh_id]["accel_with_noise_no_failsafe"] = None
+        return self.__vehicles[veh_id]["accel_with_noise_no_failsafe"]
+
+    def get_accel_with_noise_with_failsafe(self, veh_id):
+        """See parent class."""
+        if "accel_with_noise_with_failsafe" not in self.__vehicles[veh_id]:
+            self.__vehicles[veh_id]["accel_with_noise_with_failsafe"] = None
+        return self.__vehicles[veh_id]["accel_with_noise_with_failsafe"]
+
+    def get_realized_accel(self, veh_id):
+        """See parent class."""
         return (self.get_speed(veh_id) - self.get_previous_speed(veh_id)) / self.sim_step
 
-    def update_accel_without_noise(self, veh_id, accel_without_noise):
-        self.__vehicles[veh_id]["accel_without_noise"] = accel_without_noise
-
-    def get_accel_without_noise(self, veh_id):
-        return self.__vehicles[veh_id]["accel_without_noise"]
+    def get_2d_position(self, veh_id, error=-1001):
+        """See parent class."""
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_POSITION, error)
 
     def get_road_grade(self, veh_id):
-        # TODO
+        """See parent class."""
+        # TODO : Brent
         return 0

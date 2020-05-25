@@ -1,12 +1,15 @@
 """Contains an experiment class for running simulations."""
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
-from examples.data_pipeline import generate_trajectory_table, upload_to_s3
+from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3, get_extra_info
+from collections import defaultdict
 import datetime
 import logging
 import time
+from datetime import date
 import os
 import numpy as np
+import uuid
 
 
 class Experiment:
@@ -86,7 +89,7 @@ class Experiment:
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, rl_actions=None, convert_to_csv=False, partition_name=None):
+    def run(self, num_runs, rl_actions=None, convert_to_csv=False, partition_name=None, only_query=""):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -103,6 +106,10 @@ class Experiment:
             Specifies the S3 partition you want to store the output file,
             will be used to later for query. If NONE, won't upload output
             to S3.
+        only_query: str
+            Specifies which queries should be automatically run when the
+            simulation data gets uploaded to S3. If an empty str is passed in,
+            then it implies no queries should be run on this.
 
         Returns
         -------
@@ -141,8 +148,8 @@ class Experiment:
         # time profiling information
         t = time.time()
         times = []
-        extra_info = {"time": [], "id": [], "headway": [], "acceleration": [], "leader_id": [], "follower_id": [],
-                   "leader_rel_speed": [], "accel_without_noise": [], "road_grade": []}
+        extra_info = defaultdict(lambda: [])
+        source_id = 'flow_{}'.format(uuid.uuid4().hex)
 
         for i in range(num_runs):
             ret = 0
@@ -161,16 +168,8 @@ class Experiment:
                 ret += reward
 
                 # collect additional information for the data pipeline
-                for vid in veh_ids:
-                    extra_info["time"].append(self.env.k.vehicle.get_timestep(veh_ids[0]) / 1000)
-                    extra_info["id"].append(vid)
-                    extra_info["headway"].append(self.env.k.vehicle.get_headway(vid))
-                    extra_info["acceleration"].append(self.env.k.vehicle.get_accel(vid))
-                    extra_info["leader_id"].append(self.env.k.vehicle.get_leader(vid))
-                    extra_info["follower_id"].append(self.env.k.vehicle.get_follower(vid))
-                    extra_info["leader_rel_speed"].append(self.env.k.vehicle.get_speed(self.env.k.vehicle.get_leader(vid)) - self.env.k.vehicle.get_speed(vid))
-                    extra_info["accel_without_noise"].append(self.env.k.vehicle.get_accel_without_noise(vid))
-                    extra_info["road_grade"].append(self.env.k.vehicle.get_road_grade(vid))
+                get_extra_info(self.env.k.vehicle, extra_info, veh_ids)
+                extra_info["source_id"].extend(['{}_run_{}'.format(source_id, i)] * len(veh_ids))
 
                 # Compute the results for the custom callables.
                 for (key, lambda_func) in self.custom_callables.items():
@@ -214,10 +213,18 @@ class Experiment:
             # Delete the .xml version of the emission file.
             os.remove(emission_path)
 
-            output_file = generate_trajectory_table(emission_path[:-4] + ".csv", extra_info, partition_name)
+            trajectory_table_path = './data/' + source_id + ".csv"
+            upload_file_path = generate_trajectory_from_flow(trajectory_table_path, extra_info, partition_name)
 
             if partition_name:
-                upload_to_s3('brent.experiments', 'trajectory-output/' + 'partition_name=' + partition_name + '/'
-                             + output_file.split('/')[-1], output_file)
+                if partition_name == "default":
+                    partition_name = source_id[-3:]
+                cur_date = date.today().isoformat()
+                upload_to_s3('circles.data.pipeline', 'trajectory-output/date={}/partition_name={}/{}.csv'.format(
+                             cur_date, partition_name, upload_file_path.split('/')[-1].split('_upload')[0]),
+                             upload_file_path, str(only_query)[2:-2])
+
+            # delete the S3-only version of the trajectory file
+            os.remove(upload_file_path)
 
         return info_dict
