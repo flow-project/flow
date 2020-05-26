@@ -9,7 +9,7 @@ ADDITIONAL_NET_PARAMS = {
     # length of the highway
     "length": 1000,
     # number of lanes
-    "lanes": 1,
+    "lanes": 4,
     # speed limit for all edges
     "speed_limit": 30,
     # number of edges to divide the highway into
