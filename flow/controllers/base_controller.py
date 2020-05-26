@@ -34,7 +34,7 @@ class BaseController:
     delay : int
         delay in applying the action (time)
     fail_safe : str
-        Should be either "instantaneous" or "safe_velocity"
+        Should be "instantaneous", "safe_velocity", "feasible_accel", or "all"
     noise : double
         variance of the gaussian from which to sample a noisy acceleration
     """
@@ -75,8 +75,10 @@ class BaseController:
         time step.
 
         This method also augments the controller with the desired level of
-        stochastic noise, and utlizes the "instantaneous" or "safe_velocity"
-        failsafes if requested.
+        stochastic noise, and utlizes the "instantaneous", "safe_velocity",
+        "feasible_accel", or "all" failsafes if requested. The "all" failsafe
+        performs all three failsafes with this order: 1)"safe_velocity",
+        2) "feasible_accel", 3) "instantaneous".
 
         Parameters
         ----------
@@ -115,6 +117,13 @@ class BaseController:
             accel_without_noise = self.get_safe_action_instantaneous(env, accel_without_noise)
         elif self.fail_safe == 'safe_velocity':
             accel_without_noise = self.get_safe_velocity_action(env, accel_without_noise)
+        elif self.fail_safe == 'feasible_accel':
+            accel_without_noise = self.get_feasible_action(accel_without_noise)
+        elif self.fail_safe == 'all':
+            accel_without_noise = self.get_safe_velocity_action(env, accel_without_noise)
+            accel_without_noise = self.get_feasible_action(accel_without_noise)
+            accel_without_noise = self.get_safe_action_instantaneous(env, accel_without_noise)
+
         env.k.vehicle.update_accel_without_noise(self.veh_id, accel_without_noise)
 
         # add noise to the accelerations, if requested
@@ -126,6 +135,12 @@ class BaseController:
             accel = self.get_safe_action_instantaneous(env, accel)
         elif self.fail_safe == 'safe_velocity':
             accel = self.get_safe_velocity_action(env, accel)
+        elif self.fail_safe == 'feasible_accel':
+            accel = self.get_feasible_action(accel)
+        elif self.fail_safe == 'all':
+            accel = self.get_safe_velocity_action(env, accel)
+            accel = self.get_feasible_action(accel)
+            accel = self.get_safe_action_instantaneous(env, accel)
 
         return accel
 
@@ -172,6 +187,14 @@ class BaseController:
                 # if the vehicle will crash into the vehicle ahead of it in the
                 # next time step (assuming the vehicle ahead of it is not
                 # moving), then stop immediately
+                print(
+                    "=====================================\n"
+                    "Vehicle {} is about to crash. Instantaneous acceleration "
+                    "clipping applied.\n"
+                    "=====================================".format(self.veh_id))
+
+                print("Vehicle {} is about to crash. Instantaneous acceleration"
+                      "clipping applied.".format(self.veh_id))
                 return -this_vel / sim_step
             else:
                 # if the vehicle is not in danger of crashing, continue with
@@ -245,4 +268,53 @@ class BaseController:
 
         v_safe = 2 * h / env.sim_step + dv - this_vel * (2 * self.delay)
 
+        # check for speed limit
+        this_edge = env.k.vehicle.get_edge(self.veh_id)
+        edge_speed_limit = env.k.network.speed_limit(this_edge)
+
+        if v_safe > edge_speed_limit:
+            v_safe = edge_speed_limit
+            print(
+                "=====================================\n"
+                "Speed of vehicle {} is greater than speed limit. Safe "
+                "velocity clipping applied.\n"
+                "=====================================".format(self.veh_id))
+
         return v_safe
+
+    def get_feasible_action(self, action):
+        """Perform the "feasible_accel" failsafe action.
+
+        Checks if the computed acceleration would put us above maximum
+        acceleration or deceleration. If it would, output the acceleration
+        equal to maximum acceleration or deceleration.
+
+        Parameters
+        ----------
+        action : float
+            requested acceleration action
+
+        Returns
+        -------
+        float
+            the requested action clipped by the safe velocity
+        """
+        if action > self.max_accel:
+            action = self.max_accel
+
+            print(
+                "=====================================\n"
+                "Acceleration of vehicle {} is greater than the max "
+                "acceleration. Feasible acceleration clipping applied.\n"
+                "=====================================".format(self.veh_id))
+
+        if action < -self.max_deaccel:
+            action = -self.max_deaccel
+
+            print(
+                "=====================================\n"
+                "Deceleration of vehicle {} is greater than the max "
+                "deceleration. Feasible acceleration clipping applied.\n"
+                "=====================================".format(self.veh_id))
+
+        return action
