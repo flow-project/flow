@@ -124,6 +124,23 @@ class KernelVehicle(object):
     def apply_acceleration(self, veh_id, acc):
         """Apply the acceleration requested by a vehicle in the simulator.
 
+        In SUMO, this function applies slowDown method which applies smoothing.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            list of vehicle identifiers
+        acc : float or array_like
+            requested accelerations from the vehicles
+        """
+        raise NotImplementedError
+
+    def apply_acceleration_not_smooth(self, veh_id, acc):
+        """Apply the acceleration requested by a vehicle in the simulator.
+
+        In SUMO, this function applies setSpeed method which doesn't apply
+        smoothing.
+
         Parameters
         ----------
         veh_id : str or list of str
