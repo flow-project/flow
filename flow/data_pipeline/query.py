@@ -36,14 +36,14 @@ class QueryStrings(Enum):
 
     SAMPLE = """
         SELECT *
-        FROM fact_vehicle_trace
+        FROM trajectory_table
         WHERE date = \'{date}\'
             AND partition_name=\'{partition}\'
         LIMIT 15;
         """
 
     UPDATE_PARTITION = """
-        ALTER TABLE fact_vehicle_trace
+        ALTER TABLE trajectory_table
         ADD IF NOT EXISTS PARTITION (date = \'{date}\', partition_name=\'{partition}\');
         """
 
@@ -56,7 +56,7 @@ class QueryStrings(Enum):
                 target_accel_with_noise_with_failsafe AS acceleration,
                 road_grade,
                 source_id
-            FROM fact_vehicle_trace
+            FROM trajectory_table
             WHERE 1 = 1
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
@@ -73,7 +73,7 @@ class QueryStrings(Enum):
                 target_accel_no_noise_with_failsafe AS acceleration,
                 road_grade,
                 source_id
-            FROM fact_vehicle_trace
+            FROM trajectory_table
             WHERE 1 = 1
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
@@ -93,7 +93,7 @@ class QueryStrings(Enum):
                   OVER (PARTITION BY id ORDER BY time_step ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) AS sim_step,
                 LAG(speed, 1)
                   OVER (PARTITION BY id ORDER BY time_step ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) AS prev_speed
-            FROM fact_vehicle_trace
+            FROM trajectory_table
             WHERE 1 = 1
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
