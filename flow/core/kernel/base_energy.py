@@ -16,7 +16,7 @@ class BaseEnergyModel(metaclass=ABCMeta):
     Calculate the instantanoeus power consumption of a vehicle in
     the network.  It returns the power in Watts regardless of the 
     vehicle type: whether EV or Combustion Engine, Toyota Prius or Tacoma
-    or non-Toyota vehicles. Non-Toyota vehicles are set by deafult 
+    or non-Toyota vehicles. Non-Toyota vehicles are set by default 
     to be an averaged-size vehicle.
     
     """
