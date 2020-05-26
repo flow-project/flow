@@ -9,6 +9,7 @@ queryEngine = AthenaQuery()
 
 
 def lambda_handler(event, context):
+    """Run on AWS Lambda to start query automatically."""
     for record in event['Records']:
         bucket = record['s3']['bucket']['name']
         key = unquote_plus(record['s3']['object']['key'])

@@ -116,6 +116,7 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id]["accel_no_noise_no_failsafe"] = None
                 self.__vehicles[veh_id]["accel_no_noise_with_failsafe"] = None
                 self.__vehicles[veh_id]["accel_with_noise_no_failsafe"] = None
+                self.__vehicles[veh_id]["accel_with_noise_with_failsafe"] = None
                 self.num_vehicles += 1
                 if typ['acceleration_controller'][0] == RLController:
                     self.num_rl_vehicles += 1

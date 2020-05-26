@@ -1,6 +1,5 @@
 """stores all the pre-defined query strings."""
 from enum import Enum
-from flow.data_pipeline.datapipeline_test import apply_energy_one
 
 # tags for different queries
 tags = {
