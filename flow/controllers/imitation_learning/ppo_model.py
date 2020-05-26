@@ -74,16 +74,20 @@ class PPONetwork(TFModelV2):
             self.register_variables(imitation_model.variables)
 
             # copy these weights into the base model (only the policy hidden layer and output weights)
-            for i in range(len(hiddens)):
-                imitation_layer = imitation_model.layers[i + 1]
-                base_model_layer_name = 'policy_hidden_layer_' + str(i + 1)
+            try:
+                for i in range(len(hiddens)):
+                    imitation_layer = imitation_model.layers[i + 1]
+                    base_model_layer_name = 'policy_hidden_layer_' + str(i + 1)
+                    base_model_layer = self.base_model.get_layer(base_model_layer_name)
+                    base_model_layer.set_weights(imitation_layer.get_weights())
+
+                imitation_layer = imitation_model.layers[-1]
+                base_model_layer_name = 'policy_output_layer'
                 base_model_layer = self.base_model.get_layer(base_model_layer_name)
                 base_model_layer.set_weights(imitation_layer.get_weights())
-
-            imitation_layer = imitation_model.layers[-1]
-            base_model_layer_name = 'policy_output_layer'
-            base_model_layer = self.base_model.get_layer(base_model_layer_name)
-            base_model_layer.set_weights(imitation_layer.get_weights())
+            except Exception as e:
+                print("Error in loading weights from h5 file to this model")
+                raise e
 
 
     def forward(self, input_dict, state, seq_lens):
