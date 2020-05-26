@@ -124,6 +124,8 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id] = dict()
                 self.__vehicles[veh_id]['type'] = typ['veh_id']
                 self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
+                self.__vehicles[veh_id]["accel_without_noise"] = None
+
                 # self.energy.initialize(veh_id)
                 # energy.intialize(veh_id)
                 self.__vehicles[veh_id]['SOC'] = float(random.randrange(8, 92))/100 #move to experiment code
@@ -131,6 +133,7 @@ class TraCIVehicle(KernelVehicle):
                 # # Tacoma has 21.1 gallon capacity = 79.87219 L
                 # # Use density of gasoline = 748.9 g/L (needs to convert b/c fc is in g/s)
                 self.__vehicles[veh_id]['fuel'] = float(random.randrange(598163, 5981628))/100
+
                 self.num_vehicles += 1
                 if typ['acceleration_controller'][0] == RLController:
                     self.num_rl_vehicles += 1
@@ -971,6 +974,7 @@ class TraCIVehicle(KernelVehicle):
 
         for i, vid in enumerate(veh_ids):
             if acc[i] is not None and vid in self.get_ids():
+                self.__vehicles[vid]["accel"] = acc[i]
                 this_vel = self.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
                 self.kernel_api.vehicle.slowDown(vid, next_vel, 1e-3)
@@ -1133,6 +1137,36 @@ class TraCIVehicle(KernelVehicle):
     def set_max_speed(self, veh_id, max_speed):
         """See parent class."""
         self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
+
+    # add for data pipeline
+    def get_accel(self, veh_id):
+        """See parent class."""
+        if "accel" not in self.__vehicles[veh_id]:
+            self.__vehicles[veh_id]["accel"] = None
+        return self.__vehicles[veh_id]["accel"]
+
+    def update_accel_without_noise(self, veh_id, accel_without_noise):
+        """See parent class."""
+        self.__vehicles[veh_id]["accel_without_noise"] = accel_without_noise
+
+    def get_accel_without_noise(self, veh_id):
+        """See parent class."""
+        if "accel_without_noise" not in self.__vehicles[veh_id]:
+            self.__vehicles[veh_id]["accel_without_noise"] = None
+        return self.__vehicles[veh_id]["accel_without_noise"]
+
+    def get_realized_accel(self, veh_id):
+        """See parent class."""
+        return (self.get_speed(veh_id) - self.get_previous_speed(veh_id)) / self.sim_step
+
+    def get_2d_position(self, veh_id, error=-1001):
+        """See parent class."""
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_POSITION, error)
+
+    def get_road_grade(self, veh_id):
+        """See parent class."""
+        # TODO : Brent
+        return 0
 
     def get_soc(self, veh_id):
         return self.__vehicles[veh_id]['SOC']
