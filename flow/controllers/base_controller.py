@@ -198,8 +198,6 @@ class BaseController:
                     "clipping applied.\n"
                     "=====================================".format(self.veh_id))
 
-                print("Vehicle {} is about to crash. Instantaneous acceleration"
-                      "clipping applied.".format(self.veh_id))
                 return -this_vel / sim_step
             else:
                 # if the vehicle is not in danger of crashing, continue with
