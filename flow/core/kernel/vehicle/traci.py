@@ -964,6 +964,20 @@ class TraCIVehicle(KernelVehicle):
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
                 self.kernel_api.vehicle.slowDown(vid, next_vel, 1e-3)
 
+    def apply_acceleration_not_smooth(self, veh_ids, acc):
+        """See parent class."""
+        # to hand the case of a single vehicle
+        if type(veh_ids) == str:
+            veh_ids = [veh_ids]
+            acc = [acc]
+
+        for i, vid in enumerate(veh_ids):
+            if acc[i] is not None and vid in self.get_ids():
+                self.__vehicles[vid]["accel"] = acc[i]
+                this_vel = self.get_speed(vid)
+                next_vel = max([this_vel + acc[i] * self.sim_step, 0])
+                self.kernel_api.vehicle.setSpeed(vid, next_vel)
+
     def apply_lane_change(self, veh_ids, direction):
         """See parent class."""
         # to hand the case of a single vehicle
