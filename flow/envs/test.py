@@ -52,3 +52,17 @@ class TestEnv(Env):
     def get_state(self, **kwargs):
         """See class definition."""
         return np.array([])
+
+class TestI210Env(TestEnv):
+
+    def additional_command(self):
+        edge = "119257908#0"
+        edge_length = self.k.network.edge_length(edge)
+        for veh_id in self.k.vehicle.get_ids():
+            edge = self.k.vehicle.get_edge(veh_id)
+            pos = self.k.vehicle.get_position(veh_id)
+
+            # disable lane changes to prevent vehicles from being on the wrong route
+            if edge == edge and np.abs(pos - edge_length) < 20:
+                # import ipdb; ipdb.set_trace()
+                self.k.vehicle.apply_lane_change([veh_id], direction=[0])

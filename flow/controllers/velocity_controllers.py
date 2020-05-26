@@ -27,7 +27,8 @@ class FollowerStopper(BaseController):
                  car_following_params,
                  v_des=15,
                  danger_edges=None,
-                 control_length=None):
+                 control_length=None,
+                 no_control_edges=None):
         """Instantiate FollowerStopper."""
         BaseController.__init__(
             self, veh_id, car_following_params, delay=0.0,
@@ -49,6 +50,7 @@ class FollowerStopper(BaseController):
 
         self.danger_edges = danger_edges if danger_edges else {}
         self.control_length = control_length
+        self.no_control_edges = no_control_edges
 
     def find_intersection_dist(self, env):
         """Find distance to intersection.
@@ -118,6 +120,8 @@ class FollowerStopper(BaseController):
                     env.k.vehicle.get_edge(self.veh_id)[0] == ":"\
                     or (self.control_length and (env.k.vehicle.get_x_by_id(self.veh_id) < self.control_length[0]
                     or env.k.vehicle.get_x_by_id(self.veh_id) > self.control_length[1])):
+                # TODO(@evinitsky) put back
+                    # or env.k.vehicle.get_edge(self.veh_id) in self.no_control_edges:
                 return None
             else:
                 # compute the acceleration from the desired velocity

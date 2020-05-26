@@ -12,7 +12,7 @@ from flow.envs.ring.wave_attenuation import WaveAttenuationEnv, \
     WaveAttenuationPOEnv
 from flow.envs.merge import MergePOEnv
 from flow.envs.straightroad_env import SingleStraightRoad
-from flow.envs.test import TestEnv
+from flow.envs.test import TestEnv, TestI210Env
 
 # deprecated classes whose names have changed
 from flow.envs.bottleneck_env import BottleNeckAccelEnv
@@ -37,6 +37,7 @@ __all__ = [
     'TrafficLightGridBenchmarkEnv',
     'BottleneckDesiredVelocityEnv',
     'TestEnv',
+    'TestI210Env'
     'BayBridgeEnv',
     'SingleStraightRoad',
     # deprecated classes

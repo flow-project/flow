@@ -72,9 +72,10 @@ class I210MultiEnv(MultiEnv):
         self.reroute_on_exit = env_params.additional_params.get("reroute_on_exit")
         self.max_lanes = MAX_LANES
         self.num_enter_lanes = 5
-        self.entrance_edge = "119257914"
+        self.entrance_edge = "ghost0"
         self.exit_edge = "119257908#2"
-        self.control_range = env_params.additional_params['control_range']
+        self.control_range = env_params.additional_params.get('control_range', None)
+        self.invalid_control_edges = env_params.additional_params.get('invalid_control_edges', [])
         self.mpg_reward = env_params.additional_params["mpg_reward"]
         self.mpj_reward = env_params.additional_params["mpj_reward"]
         self.look_back_length = env_params.additional_params["look_back_length"]
@@ -162,8 +163,10 @@ class I210MultiEnv(MultiEnv):
         if self.lead_obs:
             veh_info = {}
             for rl_id in self.k.vehicle.get_rl_ids():
-                if self.k.vehicle.get_x_by_id(rl_id) < self.control_range[1] \
-                        and self.k.vehicle.get_x_by_id(rl_id) > self.control_range[0]:
+                if (self.control_range and self.k.vehicle.get_x_by_id(rl_id) < self.control_range[1] \
+                 and self.k.vehicle.get_x_by_id(rl_id) > self.control_range[0]) or \
+                (len(self.invalid_control_edges) > 0 and self.k.vehicle.get_edge(rl_id) not in
+                 self.invalid_control_edges):
                     speed = self.k.vehicle.get_speed(rl_id)
                     lead_id = self.k.vehicle.get_leader(rl_id)
                     if lead_id in ["", None]:
@@ -193,8 +196,10 @@ class I210MultiEnv(MultiEnv):
         if self.env_params.additional_params["local_reward"]:
             des_speed = self.env_params.additional_params["target_velocity"]
             for rl_id in self.k.vehicle.get_rl_ids():
-                if self.k.vehicle.get_x_by_id(rl_id) < self.control_range[1] \
-                        and self.k.vehicle.get_x_by_id(rl_id) > self.control_range[0]:
+                if (self.control_range and self.k.vehicle.get_x_by_id(rl_id) < self.control_range[1] \
+                        and self.k.vehicle.get_x_by_id(rl_id) > self.control_range[0]) or \
+                    (len(self.invalid_control_edges) > 0 and self.k.vehicle.get_edge(rl_id) not in
+                            self.invalid_control_edges):
                     rewards[rl_id] = 0
                     if self.mpg_reward:
                         rewards[rl_id] = miles_per_gallon(self, rl_id, gain=1.0) / 100.0
@@ -241,8 +246,10 @@ class I210MultiEnv(MultiEnv):
                     reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
                                                     for speed in speeds]) / (des_speed ** 2))
             rewards = {rl_id: reward for rl_id in self.k.vehicle.get_rl_ids()
-                       if self.k.vehicle.get_x_by_id(rl_id) < self.control_range[1] \
-                       and self.k.vehicle.get_x_by_id(rl_id) > self.control_range[0]}
+                       if (self.control_range and self.k.vehicle.get_x_by_id(rl_id) < self.control_range[1] \
+                           and self.k.vehicle.get_x_by_id(rl_id) > self.control_range[0]) or \
+                       (len(self.invalid_control_edges) > 0 and self.k.vehicle.get_edge(rl_id) not in
+                        self.invalid_control_edges)}
 
         # curriculum over time-gaps
         if self.headway_curriculum and self.num_training_iters <= self.headway_curriculum_iters:
@@ -348,10 +355,17 @@ class I210MultiEnv(MultiEnv):
                         print(e)
 
             departed_ids = self.k.vehicle.get_departed_ids()
-            if len(departed_ids) > 0:
+            if isinstance(departed_ids, tuple) and len(departed_ids) > 0:
                 for veh_id in departed_ids:
                     if veh_id not in self.observed_ids:
                         self.k.vehicle.remove(veh_id)
+
+        # for veh_id in self.k.vehicle.get_ids():
+        #     edge = self.k.vehicle.get_edge(veh_id)
+        #
+        #     # disable lane changes to prevent vehicles from being on the wrong route
+        #     if edge == "119257908#1-AddedOnRampEdge":
+        #         self.k.vehicle.apply_lane_change([veh_id], direction=[0])
 
     def state_util(self, rl_id):
         """Return an array of headway, tailway, leader speed, follower speed.

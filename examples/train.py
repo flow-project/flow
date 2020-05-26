@@ -23,12 +23,14 @@ try:
 except ImportError:
     print("Stable-baselines not installed. Please install it if you need it.")
 
+import ray
 from ray import tune
 from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
 try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
+from ray.tune.registry import register_env
 
 from flow.core.util import ensure_dir
 from flow.core.rewards import energy_consumption, miles_per_gallon, miles_per_megajoule
@@ -267,15 +269,25 @@ def setup_exps_rllib(flow_params,
         env = info["env"].get_unwrapped()[0]
         if isinstance(env, _GroupAgentsWrapper):
             env = env.env
-        speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0])
+        if hasattr(env, 'invalid_control_edges'):
+            veh_ids = [veh_id for veh_id in env.k.vehicle.get_ids() if (env.k.vehicle.get_speed(veh_id) >= 0
+                                                                        and env.k.vehicle.get_edge(veh_id)
+                                                                        not in env.invalid_control_edges)]
+            rl_ids = [veh_id for veh_id in env.k.vehicle.get_rl_ids() if (env.k.vehicle.get_speed(veh_id) >= 0
+                                                                        and env.k.vehicle.get_edge(veh_id)
+                                                                        not in env.invalid_control_edges)]
+        else:
+            veh_ids = [veh_id for veh_id in env.k.vehicle.get_ids() if env.k.vehicle.get_speed(veh_id) >= 0]
+            rl_ids = [veh_id for veh_id in env.k.vehicle.get_rl_ids() if env.k.vehicle.get_speed(veh_id) >= 0]
+
+        speed = np.mean([speed for speed in env.k.vehicle.get_speed(veh_ids)])
         if not np.isnan(speed):
             episode.user_data["avg_speed"].append(speed)
-        av_speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_rl_ids()) if speed >= 0])
+        av_speed = np.mean([speed for speed in env.k.vehicle.get_speed(rl_ids) if speed >= 0])
         if not np.isnan(av_speed):
             episode.user_data["avg_speed_avs"].append(av_speed)
-        episode.user_data["avg_energy"].append(energy_consumption(env))
-        episode.user_data["avg_mpg"].append(miles_per_gallon(env, env.k.vehicle.get_ids(), gain=1.0))
-        episode.user_data["avg_mpj"].append(miles_per_megajoule(env, env.k.vehicle.get_ids(), gain=1.0))
+        episode.user_data["avg_mpg"].append(miles_per_gallon(env, veh_ids, gain=1.0))
+        episode.user_data["avg_mpj"].append(miles_per_megajoule(env, veh_ids, gain=1.0))
 
 
     def on_episode_end(info):

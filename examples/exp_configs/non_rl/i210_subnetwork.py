@@ -4,7 +4,6 @@ import numpy as np
 
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.velocity_controllers import FollowerStopper
-from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.controllers.routing_controllers import I210Router
 from flow.core.params import SumoParams
 from flow.core.params import EnvParams
@@ -13,9 +12,7 @@ from flow.core.params import SumoLaneChangeParams
 from flow.core.params import VehicleParams
 from flow.core.params import InitialConfig
 from flow.core.params import InFlows
-from flow.core.rewards import miles_per_gallon
-
-from flow.core.params import SumoCarFollowingParams
+from flow.core.rewards import miles_per_gallon, miles_per_megajoule
 
 import flow.config as config
 from flow.envs import TestEnv
@@ -23,39 +20,28 @@ from flow.envs import TestEnv
 # Instantiate which conditions we want to be true about the network
 
 WANT_GHOST_CELL = True
-WANT_DOWNSTREAM_BOUNDARY = True
+# WANT_DOWNSTREAM_BOUNDARY = True
 ON_RAMP = False
-PENETRATION_RATE = 0.10
-V_DES = 13.0
+PENETRATION_RATE = 0.0
+V_DES = 5.0
 HORIZON = 1000
-WARMUP_STEPS = 400
+WARMUP_STEPS = 600
 
 inflow_rate = 2050
 inflow_speed = 25.5
 
+accel_data = (IDMController, {'a': 1.3, 'b': 2.0, 'noise': 0.3})
 
-accel_data = (IDMController,{'a':1.3,'b':2.0,'noise':0.3})
-
-
-highway_start_edge = ''
-
-if(WANT_GHOST_CELL):
+if WANT_GHOST_CELL:
     from flow.networks.i210_subnetwork_ghost_cell import I210SubNetworkGhostCell, EDGES_DISTRIBUTION
+
     highway_start_edge = 'ghost0'
 else:
     from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
+
     highway_start_edge = "119257914"
 
-
 vehicles = VehicleParams()
-
-if PENETRATION_RATE > 0.0:
-    vehicles.add(
-        "av",
-        num_vehicles=0,
-        acceleration_controller=(FollowerStopper, {"v_des": 12.0}),
-    )
-
 
 inflow = InFlows()
 
@@ -75,7 +61,9 @@ if ON_RAMP:
             "av",
             num_vehicles=0,
             color="red",
-            acceleration_controller=(FollowerStopper, {"v_des": V_DES}),
+            acceleration_controller=(FollowerStopper, {"v_des": V_DES,
+                                                       "no_control_edges": ["ghost0", "119257908#3"]
+                                                       }),
             routing_controller=(I210Router, {})
         )
 
@@ -86,7 +74,7 @@ if ON_RAMP:
     #     departLane="best",
     #     departSpeed=inflow_speed)
 
-    lane_list = ['0','1','2','3','4']
+    lane_list = ['0', '1', '2', '3', '4']
 
     for lane in lane_list:
         inflow.add(
@@ -146,7 +134,9 @@ else:
             "av",
             color="red",
             num_vehicles=0,
-            acceleration_controller=(FollowerStopper, {"v_des": V_DES}),
+            acceleration_controller=(FollowerStopper, {"v_des": V_DES,
+                                                       "no_control_edges": ["ghost0", "119257908#3"]
+                                                       }),
         )
 
     # If you want to turn off the fail safes uncomment this:
@@ -161,7 +151,7 @@ else:
     #     car_following_params=SumoCarFollowingParams(speed_mode='19')
     # )
 
-    lane_list = ['0','1','2','3','4']
+    lane_list = ['0', '1', '2', '3', '4']
 
     for lane in lane_list:
         inflow.add(
@@ -180,18 +170,16 @@ else:
                 departLane=lane,
                 departSpeed=inflow_speed)
 
-
-network_xml_file = "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_downstream.xml"
+network_xml_file = "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_downstream_test.xml"
 
 # network_xml_file = "examples/exp_configs/templates/sumo/i210_with_congestion.xml"
 
-NET_TEMPLATE = os.path.join(config.PROJECT_PATH,network_xml_file)
+NET_TEMPLATE = os.path.join(config.PROJECT_PATH, network_xml_file)
 
 if WANT_GHOST_CELL:
     network = I210SubNetworkGhostCell
 else:
     network = I210SubNetwork
-
 
 flow_params = dict(
     # name of the experiment
@@ -226,7 +214,7 @@ flow_params = dict(
     net=NetParams(
         inflows=inflow,
         template=NET_TEMPLATE,
-        additional_params={"use_on_ramp": ON_RAMP}
+        additional_params={"on_ramp": ON_RAMP, "ghost_edge": WANT_GHOST_CELL}
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
@@ -255,5 +243,6 @@ custom_callables = {
     "avg_density": lambda env: 5 * 1000 * len(env.k.vehicle.get_ids_by_edge(
         edge_id)) / (env.k.network.edge_length(edge_id)
                      * env.k.network.num_lanes(edge_id)),
-    "mpg": lambda env: miles_per_gallon(env, env.k.vehicle.get_ids(), gain=1.0)
+    "mpg": lambda env: miles_per_gallon(env, env.k.vehicle.get_ids(), gain=1.0),
+    "mpj": lambda env: miles_per_megajoule(env, env.k.vehicle.get_ids(), gain=1.0),
 }

@@ -9,6 +9,7 @@ import numpy as np
 from ray.tune.registry import register_env
 
 from flow.controllers import RLController
+from flow.controllers.routing_controllers import I210Router
 from flow.controllers.car_following_models import IDMController
 import flow.config as config
 from flow.core.params import EnvParams
@@ -25,21 +26,32 @@ from flow.envs.multiagent.i210 import I210MultiEnv, ADDITIONAL_ENV_PARAMS
 from flow.utils.registry import make_create_env
 
 # SET UP PARAMETERS FOR THE SIMULATION
+WANT_GHOST_CELL = True
+# WANT_DOWNSTREAM_BOUNDARY = True
+ON_RAMP = False
+PENETRATION_RATE = 0.10
+V_DES = 5.0
+HORIZON = 1000
+WARMUP_STEPS = 600
 
-# number of steps per rollout
-HORIZON = 2000
+inflow_rate = 2050
+inflow_speed = 25.5
+
+accel_data = (IDMController, {'a': 1.3, 'b': 2.0, 'noise': 0.3})
 
 VEH_PER_HOUR_BASE_119257914 = 10800
 VEH_PER_HOUR_BASE_27414345 = 321
 VEH_PER_HOUR_BASE_27414342 = 421
 
+if WANT_GHOST_CELL:
+    from flow.networks.i210_subnetwork_ghost_cell import I210SubNetworkGhostCell, EDGES_DISTRIBUTION
 
-# percentage of autonomous vehicles compared to human vehicles on highway
-PENETRATION_RATE = 10
-
-# TODO: temporary fix
-edges_distribution = EDGES_DISTRIBUTION.copy()
-edges_distribution.remove("ghost0")
+    edges_distribution = EDGES_DISTRIBUTION
+    highway_start_edge = 'ghost0'
+else:
+    from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
+    edges_distribution = EDGES_DISTRIBUTION
+    highway_start_edge = "119257914"
 
 # SET UP PARAMETERS FOR THE ENVIRONMENT
 additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
@@ -51,17 +63,21 @@ additional_env_params.update({
     # whether to add in a reward for the speed of nearby vehicles
     "local_reward": True,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
-    "mpg_reward": True,
+    "mpg_reward": False,
+    # whether to use the MPJ reward. Otherwise, defaults to a target velocity reward
+    "mpj_reward": False,
     # how many vehicles to look back for the MPG reward
     "look_back_length": 1,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": False,
-    'target_velocity': 12.0,
+    "reroute_on_exit": True,
+    'target_velocity': 8.0,
     # how many AVs there can be at once (this is only for centralized critics)
     "max_num_agents": 10,
+    # which edges we shouldn't apply control on
+    "invalid_control_edges": ["ghost0", "119257908#3"],
 
     # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
-    "headway_curriculum": True,
+    "headway_curriculum": False,
     # how many timesteps to anneal the headway curriculum over
     "headway_curriculum_iters": 100,
     # weight of the headway reward
@@ -72,84 +88,154 @@ additional_env_params.update({
     # whether to add a slight reward for traveling at a desired speed
     "speed_curriculum": True,
     # how many timesteps to anneal the headway curriculum over
-    "speed_curriculum_iters": 100,
+    "speed_curriculum_iters": 20,
     # weight of the headway reward
-    "speed_reward_gain": 0.5
+    "speed_reward_gain": 0.5,
+    # penalize stopped vehicles
+    "penalize_stops": True,
+
+    # penalize accels
+    "penalize_accel": True
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
 # no vehicles in the network
 vehicles = VehicleParams()
-vehicles.add(
-    "human",
-    num_vehicles=0,
-    lane_change_params=SumoLaneChangeParams(lane_change_mode="strategic"),
-    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
-    car_following_params=SumoCarFollowingParams(speed_mode="no_collide"),
-)
-vehicles.add(
-    "av",
-    acceleration_controller=(RLController, {}),
-    num_vehicles=0,
-    color='red'
-)
 
 inflow = InFlows()
-# main highway
-pen_rate = PENETRATION_RATE / 100
-assert pen_rate < 1.0, "your penetration rate is over 100%"
-assert pen_rate > 0.0, "your penetration rate should be above zero"
-inflow.add(
-    veh_type="human",
-    edge="119257914",
-    vehs_per_hour=int(VEH_PER_HOUR_BASE_119257914 * (1 - pen_rate)),
-    # probability=1.0,
-    depart_lane="random",
-    departSpeed=20)
-# # on ramp
-# inflow.add(
-#     veh_type="human",
-#     edge="27414345",
-#     vehs_per_hour=321 * pen_rate,
-#     depart_lane="random",
-#     depart_speed=20)
-# inflow.add(
-#     veh_type="human",
-#     edge="27414342#0",
-#     vehs_per_hour=421 * pen_rate,
-#     depart_lane="random",
-#     depart_speed=20)
 
-# Now add the AVs
-# main highway
-inflow.add(
-    veh_type="av",
-    edge="119257914",
-    vehs_per_hour=int(VEH_PER_HOUR_BASE_119257914 * pen_rate),
-    # probability=1.0,
-    depart_lane="random",
-    depart_speed=20)
-# # on ramp
-# inflow.add(
-#     veh_type="av",
-#     edge="27414345",
-#     vehs_per_hour=int(VEH_PER_HOUR_BASE_27414345 * pen_rate),
-#     depart_lane="random",
-#     depart_speed=20)
-# inflow.add(
-#     veh_type="av",
-#     edge="27414342#0",
-#     vehs_per_hour=int(VEH_PER_HOUR_BASE_27414342 * pen_rate),
-#     depart_lane="random",
-#     depart_speed=20)
+if ON_RAMP:
+    vehicles.add(
+        "human",
+        num_vehicles=0,
+        color="white",
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode="strategic",
+        ),
+        acceleration_controller=accel_data,
+        routing_controller=(I210Router, {})
+    )
+    if PENETRATION_RATE > 0.0:
+        vehicles.add(
+            "av",
+            num_vehicles=0,
+            color="red",
+            acceleration_controller=(RLController, {}),
+            routing_controller=(I210Router, {})
+        )
 
-NET_TEMPLATE = os.path.join(
-    config.PROJECT_PATH,
-    "examples/exp_configs/templates/sumo/test2.net.xml")
+    # inflow.add(
+    #     veh_type="human",
+    #     edge=highway_start_edge,
+    #     vehs_per_hour=inflow_rate,
+    #     departLane="best",
+    #     departSpeed=inflow_speed)
 
-warmup_steps = 0
-if additional_env_params['reroute_on_exit']:
-    warmup_steps = 400
+    lane_list = ['0', '1', '2', '3', '4']
+
+    for lane in lane_list:
+        inflow.add(
+            veh_type="human",
+            edge=highway_start_edge,
+            vehs_per_hour=int(inflow_rate * (1 - PENETRATION_RATE)),
+            departLane=lane,
+            departSpeed=inflow_speed)
+
+    inflow.add(
+        veh_type="human",
+        edge="27414345",
+        vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
+        departLane="random",
+        departSpeed=10)
+    inflow.add(
+        veh_type="human",
+        edge="27414342#0",
+        vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
+        departLane="random",
+        departSpeed=10)
+
+    if PENETRATION_RATE > 0.0:
+        for lane in lane_list:
+            inflow.add(
+                veh_type="av",
+                edge=highway_start_edge,
+                vehs_per_hour=int(inflow_rate * PENETRATION_RATE),
+                departLane=lane,
+                departSpeed=inflow_speed)
+
+        inflow.add(
+            veh_type="av",
+            edge="27414345",
+            vehs_per_hour=int(500 * PENETRATION_RATE),
+            departLane="random",
+            departSpeed=10)
+        inflow.add(
+            veh_type="av",
+            edge="27414342#0",
+            vehs_per_hour=int(500 * PENETRATION_RATE),
+            departLane="random",
+            departSpeed=10)
+
+else:
+    # create the base vehicle type that will be used for inflows
+    vehicles.add(
+        "human",
+        num_vehicles=0,
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode="strategic",
+        ),
+        acceleration_controller=accel_data,
+    )
+    if PENETRATION_RATE > 0.0:
+        vehicles.add(
+            "av",
+            color="red",
+            num_vehicles=0,
+            acceleration_controller=(RLController, {}),
+        )
+
+    # If you want to turn off the fail safes uncomment this:
+
+    # vehicles.add(
+    #     'human',
+    #     num_vehicles=0,
+    #     lane_change_params=SumoLaneChangeParams(
+    #         lane_change_mode='strategic',
+    #     ),
+    #     acceleration_controller=accel_data,
+    #     car_following_params=SumoCarFollowingParams(speed_mode='19')
+    # )
+
+    lane_list = ['0', '1', '2', '3', '4']
+
+    for lane in lane_list:
+        inflow.add(
+            veh_type="human",
+            edge=highway_start_edge,
+            vehs_per_hour=int(inflow_rate * (1 - PENETRATION_RATE)),
+            departLane=lane,
+            departSpeed=inflow_speed)
+
+    if PENETRATION_RATE > 0.0:
+        for lane in lane_list:
+            inflow.add(
+                veh_type="av",
+                edge=highway_start_edge,
+                vehs_per_hour=int(inflow_rate * PENETRATION_RATE),
+                departLane=lane,
+                departSpeed=inflow_speed)
+
+
+network_xml_file = "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_downstream_test.xml"
+
+# network_xml_file = "examples/exp_configs/templates/sumo/i210_with_congestion.xml"
+
+NET_TEMPLATE = os.path.join(config.PROJECT_PATH, network_xml_file)
+
+if WANT_GHOST_CELL:
+    network = I210SubNetworkGhostCell
+else:
+    network = I210SubNetwork
 
 flow_params = dict(
     # name of the experiment
@@ -159,14 +245,14 @@ flow_params = dict(
     env_name=I210MultiEnv,
 
     # name of the network class the experiment is running on
-    network=I210SubNetwork,
+    network=network,
 
     # simulator that is used by the experiment
     simulator='traci',
 
     # simulation-related parameters
     sim=SumoParams(
-        sim_step=0.5,
+        sim_step=0.4,
         render=False,
         color_by_speed=False,
         restart_instance=True,
@@ -177,8 +263,8 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        sims_per_step=1,
-        warmup_steps=warmup_steps,
+        sims_per_step=3,
+        warmup_steps=WARMUP_STEPS,
         additional_params=additional_env_params,
         done_at_exit=False
     ),
