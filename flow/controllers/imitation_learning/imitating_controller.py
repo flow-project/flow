@@ -58,4 +58,4 @@ class ImitatingController(BaseController):
             return action[ind]
 
         # in other cases, acceleration is the output of the network
-        return action[0]
+        return action

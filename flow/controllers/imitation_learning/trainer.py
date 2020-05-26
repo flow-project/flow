@@ -7,7 +7,7 @@ import os
 from flow.utils.registry import make_create_env
 from examples.exp_configs.rl.multiagent.multiagent_straight_road import flow_params
 from imitating_controller import ImitatingController
-from imitating_network import ImitatingNetwork
+from imitating_network2 import ImitatingNetwork2
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import SumoCarFollowingParams
@@ -51,9 +51,9 @@ class Trainer(object):
         self.params['obs_dim'] = obs_dim
 
         # initialize neural network class and tf variables
-        self.action_network = ImitatingNetwork(self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['num_layers'], self.params['size'], self.params['learning_rate'], self.params['replay_buffer_size'], stochastic=self.params['stochastic'])
+        self.action_network = ImitatingNetwork2(self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['num_layers'], self.params['size'], self.params['learning_rate'], self.params['replay_buffer_size'], stochastic=self.params['stochastic'])
 
-        tf.global_variables_initializer().run(session=self.sess)
+        # tf.global_variables_initializer().run(session=self.sess)
 
         # controllers setup
         v_des = self.params['v_des'] # for FollowerStopper
