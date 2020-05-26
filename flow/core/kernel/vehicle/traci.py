@@ -13,7 +13,7 @@ import statistics
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
-from flow.core.kernel.energy import Energy
+from flow.core.kernel.base_energy import BaseEnergyModel
 from bisect import bisect_left
 import itertools
 from copy import deepcopy
@@ -284,7 +284,7 @@ class TraCIVehicle(KernelVehicle):
         # make sure the rl vehicle list is still sorted
         self.__rl_ids.sort()
 
-        self.energy.calc_energy_level(self)
+        #self.base_energy.get_energy(self)
 
     def _add_departed(self, veh_id, veh_type):
         """Add a vehicle that entered the network from an inflow or reset.
