@@ -58,7 +58,8 @@ additional_env_params.update({
     'local_reward': True,
     'lead_obs': True,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": True
+    "reroute_on_exit": True,
+    "control_range": [500, 2300]
 })
 
 

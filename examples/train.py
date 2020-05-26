@@ -184,7 +184,7 @@ def setup_exps_rllib(flow_params,
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
-        config["model"].update({"fcnet_hiddens": [32, 32, 32]})
+        config["model"].update({"fcnet_hiddens": [12, 12]})
         config["train_batch_size"] = horizon * n_rollouts
         config["gamma"] = 0.999  # discount rate
         config["use_gae"] = True
@@ -252,6 +252,56 @@ def setup_exps_rllib(flow_params,
     register_env(gym_name, create_env)
     return alg_run, gym_name, config
 
+def train_rllib_with_imitation(submodule, flags):
+    """Train policies using the PPO algorithm in RLlib."""
+    import ray
+    from flow.controllers.imitation_learning.ppo_model import PPONetwork
+    from ray.rllib.models import ModelCatalog
+
+    flow_params = submodule.flow_params
+    flow_params['sim'].render = flags.render
+    policy_graphs = getattr(submodule, "POLICY_GRAPHS", None)
+    policy_mapping_fn = getattr(submodule, "policy_mapping_fn", None)
+    policies_to_train = getattr(submodule, "policies_to_train", None)
+
+    alg_run, gym_name, config = setup_exps_rllib(
+        flow_params, flags.num_cpus, flags.num_rollouts, flags,
+        policy_graphs, policy_mapping_fn, policies_to_train)
+
+    ModelCatalog.register_custom_model("Imitation_Learning", PPONetwork)
+
+    config['num_workers'] = flags.num_cpus
+    config['env'] = gym_name
+    config['model']['custom_model'] = "Imitation_Learning"
+
+    # create a custom string that makes looking at the experiment names easier
+    def trial_str_creator(trial):
+        return "{}_{}".format(trial.trainable_name, trial.experiment_tag)
+
+    if flags.local_mode:
+        ray.init(local_mode=True)
+    else:
+        ray.init()
+
+    exp_dict = {
+        "run_or_experiment": alg_run,
+        "name": gym_name,
+        "config": config,
+        "checkpoint_freq": flags.checkpoint_freq,
+        "checkpoint_at_end": True,
+        'trial_name_creator': trial_str_creator,
+        "max_failures": 0,
+        "stop": {
+            "training_iteration": flags.num_iterations,
+        },
+    }
+    date = datetime.now(tz=pytz.utc)
+    date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
+    s3_string = "s3://i210.experiments/i210/" \
+                + date + '/' + flags.exp_title
+    if flags.use_s3:
+        exp_dict['upload_dir'] = s3_string
+    tune.run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
 
 def train_rllib(submodule, flags):
     """Train policies using the PPO algorithm in RLlib."""
@@ -278,6 +328,7 @@ def train_rllib(submodule, flags):
         ray.init(local_mode=True)
     else:
         ray.init()
+
     exp_dict = {
         "run_or_experiment": alg_run,
         "name": gym_name,
@@ -472,7 +523,7 @@ def main(args):
 
     # Perform the training operation.
     if flags.rl_trainer.lower() == "rllib":
-        train_rllib(submodule, flags)
+        train_rllib_with_imitation(submodule, flags)
     elif flags.rl_trainer.lower() == "stable-baselines":
         train_stable_baselines(submodule, flags)
     elif flags.rl_trainer.lower() == "h-baselines":

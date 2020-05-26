@@ -68,6 +68,7 @@ class I210MultiEnv(MultiEnv):
         self.num_enter_lanes = 5
         self.entrance_edge = "119257914"
         self.exit_edge = "119257908#3"
+        self.control_range = env_params.additional_params['control_range']
         self.leader = []
 
     @property
@@ -126,17 +127,18 @@ class I210MultiEnv(MultiEnv):
         if self.lead_obs:
             veh_info = {}
             for rl_id in self.k.vehicle.get_rl_ids():
-                speed = self.k.vehicle.get_speed(rl_id)
-                lead_id = self.k.vehicle.get_leader(rl_id)
-                if lead_id in ["", None]:
-                    # in case leader is not visible
-                    lead_speed = SPEED_SCALE
-                    headway = HEADWAY_SCALE
-                else:
-                    lead_speed = self.k.vehicle.get_speed(lead_id)
-                    headway = self.k.vehicle.get_headway(rl_id)
-                veh_info.update({rl_id: np.array([speed / SPEED_SCALE, headway / HEADWAY_SCALE,
-                                                  lead_speed / SPEED_SCALE])})
+                if self.k.vehicle.get_x_by_id(rl_id) < self.control_range[1] and self.k.vehicle.get_x_by_id(rl_id) > self.control_range[0]:
+                    speed = self.k.vehicle.get_speed(rl_id)
+                    lead_id = self.k.vehicle.get_leader(rl_id)
+                    if lead_id in ["", None]:
+                        # in case leader is not visible
+                        lead_speed = SPEED_SCALE
+                        headway = HEADWAY_SCALE
+                    else:
+                        lead_speed = self.k.vehicle.get_speed(lead_id)
+                        headway = self.k.vehicle.get_headway(rl_id)
+                    veh_info.update({rl_id: np.array([speed / SPEED_SCALE, headway / HEADWAY_SCALE,
+                                                      lead_speed / SPEED_SCALE])})
         else:
             veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
                                                self.veh_statistics(rl_id)))
@@ -153,24 +155,25 @@ class I210MultiEnv(MultiEnv):
         if self.env_params.additional_params["local_reward"]:
             des_speed = self.env_params.additional_params["target_velocity"]
             for rl_id in self.k.vehicle.get_rl_ids():
-                rewards[rl_id] = 0
-                speeds = []
-                follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
-                if follow_speed >= 0:
-                    speeds.append(follow_speed)
-                if self.k.vehicle.get_speed(rl_id) >= 0:
-                    speeds.append(self.k.vehicle.get_speed(rl_id))
-                if len(speeds) > 0:
-                    # rescale so the critic can estimate it quickly
-                    rewards[rl_id] = np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
-                                              for speed in speeds]) / (des_speed ** 2)
+                if self.k.vehicle.get_x_by_id(rl_id) < self.control_range[1] and self.k.vehicle.get_x_by_id(rl_id) > self.control_range[0]:
+                    rewards[rl_id] = 0
+                    speeds = []
+                    follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
+                    if follow_speed >= 0:
+                        speeds.append(follow_speed)
+                    if self.k.vehicle.get_speed(rl_id) >= 0:
+                        speeds.append(self.k.vehicle.get_speed(rl_id))
+                    if len(speeds) > 0:
+                        # rescale so the critic can estimate it quickly
+                        rewards[rl_id] = np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
+                                                  for speed in speeds]) / (des_speed ** 2)
         else:
             speeds = self.k.vehicle.get_speed(self.k.vehicle.get_ids())
             des_speed = self.env_params.additional_params["target_velocity"]
             # rescale so the critic can estimate it quickly
             reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
                                             for speed in speeds]) / (des_speed ** 2))
-            rewards = {rl_id: reward for rl_id in self.k.vehicle.get_rl_ids()}
+            rewards = {rl_id: reward for rl_id in self.k.vehicle.get_rl_ids() if self.k.vehicle.get_x_by_id(rl_id) < self.control_range[1] and self.k.vehicle.get_x_by_id(rl_id) > self.control_range[0]}
         return rewards
 
     def additional_command(self):
