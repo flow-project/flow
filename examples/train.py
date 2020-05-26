@@ -253,7 +253,7 @@ def setup_exps_rllib(flow_params,
     return alg_run, gym_name, config
 
 def train_rllib_with_imitation(submodule, flags):
-    """Train policies using the PPO algorithm in RLlib."""
+    """Train policies using the PPO algorithm in RLlib, with initiale policy weights from imitation learning."""
     import ray
     from flow.controllers.imitation_learning.ppo_model import PPONetwork
     from ray.rllib.models import ModelCatalog
@@ -268,10 +268,13 @@ def train_rllib_with_imitation(submodule, flags):
         flow_params, flags.num_cpus, flags.num_rollouts, flags,
         policy_graphs, policy_mapping_fn, policies_to_train)
 
+    # Register custom model
     ModelCatalog.register_custom_model("Imitation_Learning", PPONetwork)
 
     config['num_workers'] = flags.num_cpus
     config['env'] = gym_name
+    
+    # set model to the custom model for run
     config['model']['custom_model'] = "Imitation_Learning"
 
     # create a custom string that makes looking at the experiment names easier
