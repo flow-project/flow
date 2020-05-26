@@ -847,6 +847,7 @@ class SumoCarFollowingParams:
             speed_dev=0.1,
             impatience=0.5,
             car_follow_model="IDM",
+            control_range=None,
             **kwargs):
         """Instantiate SumoCarFollowingParams."""
         # check for deprecations (minGap)
@@ -886,6 +887,7 @@ class SumoCarFollowingParams:
             "speedDev": speed_dev,
             "impatience": impatience,
             "carFollowModel": car_follow_model,
+            "control_range": control_range,
         }
 
         # adjust the speed mode value

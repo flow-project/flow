@@ -1,6 +1,7 @@
 """Contains a list of custom velocity controllers."""
 
 from flow.controllers.base_controller import BaseController
+from flow.controllers.car_following_models import IDMController
 import numpy as np
 
 
@@ -36,6 +37,7 @@ class FollowerStopper(BaseController):
 
         # maximum achievable acceleration by the vehicle
         self.max_accel = car_following_params.controller_params['accel']
+        self.control_range = car_following_params.controller_params['control_range']
 
         # other parameters
         self.dx_1_0 = 4.5
@@ -104,9 +106,15 @@ class FollowerStopper(BaseController):
 
         if edge == "":
             return None
-        else:
+
+        x_pos = env.k.vehicle.get_x_by_id(self.veh_id)
+        if self.control_range and x_pos >= self.control_range[0] and x_pos <= self.control_range[1]:
             # compute the acceleration from the desired velocity
             return np.clip((v_cmd - this_vel) / env.sim_step, -np.abs(self.max_deaccel), self.max_accel)
+        else: 
+            # return IDM command
+            idm = IDMController(self.veh_id)
+            return idm.get_accel(env)
 
 
 class NonLocalFollowerStopper(FollowerStopper):
