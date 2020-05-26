@@ -261,8 +261,8 @@ class BaseController:
         Returns
         -------
         float
-            maximum safe velocity given a maximum deceleration and delay in
-            performing the breaking action
+            maximum safe velocity given a maximum deceleration, delay in
+            performing the breaking action, and speed limit
         """
         lead_id = env.k.vehicle.get_leader(self.veh_id)
         lead_vel = env.k.vehicle.get_speed(lead_id)
@@ -302,7 +302,8 @@ class BaseController:
         Returns
         -------
         float
-            the requested action clipped by the safe velocity
+            the requested action clipped by the feasible acceleration or
+            deceleration.
         """
         if action > self.max_accel:
             action = self.max_accel
