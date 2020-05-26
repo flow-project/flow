@@ -3,10 +3,9 @@ import json
 import h5py
 from ray.rllib.models.tf.misc import normc_initializer
 from ray.rllib.models.tf.tf_modelv2 import TFModelV2
-from ray.rllib.utils.framework import get_activation_fn, try_import_tf
+# from ray.rllib.utils.framework import get_activation_fn, try_import_tf
 # from flow.controllers.imitation_learning.keras_utils import *
-
-tf = try_import_tf()
+import tensorflow as tf
 
 
 
@@ -24,7 +23,7 @@ class PPONetwork(TFModelV2):
 
     def setup_model(self, obs_space, action_space, model_config, num_outputs, imitation_h5_path):
 
-        activation = get_activation_fn(model_config.get("fcnet_activation"))
+        activation = model_config.get("fcnet_activation")
         hiddens = model_config.get("fcnet_hiddens", [])
         vf_share_layers = model_config.get("vf_share_layers")
 
