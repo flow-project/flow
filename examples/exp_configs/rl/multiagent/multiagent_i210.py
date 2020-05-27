@@ -30,7 +30,7 @@ WANT_GHOST_CELL = True
 # WANT_DOWNSTREAM_BOUNDARY = True
 ON_RAMP = False
 PENETRATION_RATE = 0.10
-V_DES = 6.0
+V_DES = 7.0
 HORIZON = 1000
 WARMUP_STEPS = 600
 
@@ -88,7 +88,7 @@ additional_env_params.update({
     # whether to add a slight reward for traveling at a desired speed
     "speed_curriculum": True,
     # how many timesteps to anneal the headway curriculum over
-    "speed_curriculum_iters": 20,
+    "speed_curriculum_iters": 10,
     # weight of the headway reward
     "speed_reward_gain": 0.5,
     # penalize stopped vehicles
