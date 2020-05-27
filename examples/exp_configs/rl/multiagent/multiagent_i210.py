@@ -59,7 +59,7 @@ additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
     # configure the observation space. Look at the I210MultiEnv class for more info.
-    'lead_obs': True,
+    'lead_obs': False,
     # whether to add in a reward for the speed of nearby vehicles
     "local_reward": True,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward

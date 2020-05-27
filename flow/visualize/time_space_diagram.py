@@ -17,7 +17,7 @@ Usage
     python time_space_diagram.py </path/to/emission>.csv </path/to/params>.json
 """
 from flow.utils.rllib import get_flow_params
-from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork, HighwayNetwork
+from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork, HighwayNetwork, I210SubNetworkGhostCell
 
 import argparse
 import csv
@@ -38,6 +38,7 @@ ACCEPTABLE_NETWORKS = [
     FigureEightNetwork,
     MergeNetwork,
     I210SubNetwork,
+    I210SubNetworkGhostCell,
     HighwayNetwork
 ]
 
@@ -137,6 +138,7 @@ def get_time_space_data(data, params):
         MergeNetwork: _merge,
         FigureEightNetwork: _figure_eight,
         I210SubNetwork: _i210_subnetwork,
+        I210SubNetworkGhostCell: _i210_subnetwork,
         HighwayNetwork: _highway,
     }
 
@@ -434,7 +436,7 @@ def _i210_subnetwork(data, params, all_time):
     # create the output variables
     # TODO(@ev) handle subsampling better than this
     low_time = int(0 / params['sim'].sim_step)
-    high_time = int(1600 / params['sim'].sim_step)
+    high_time = int(1600 * params['env'].sims_per_step / params['sim'].sim_step)
     all_time = all_time[low_time:high_time]
 
     # track only vehicles that were around during this time period

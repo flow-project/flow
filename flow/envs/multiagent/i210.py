@@ -159,28 +159,29 @@ class I210MultiEnv(MultiEnv):
 
     def get_state(self):
         """See class definition."""
-        if self.lead_obs:
-            veh_info = {}
-            for rl_id in self.k.vehicle.get_rl_ids():
-                if (self.control_range and self.k.vehicle.get_x_by_id(rl_id) < self.control_range[1] \
+        valid_ids = [rl_id for rl_id in self.k.vehicle.get_rl_ids()
+                     if (self.control_range and self.k.vehicle.get_x_by_id(rl_id) < self.control_range[1] \
                  and self.k.vehicle.get_x_by_id(rl_id) > self.control_range[0]) or \
                 (len(self.invalid_control_edges) > 0 and self.k.vehicle.get_edge(rl_id) not in
-                 self.invalid_control_edges):
-                    speed = self.k.vehicle.get_speed(rl_id)
-                    lead_id = self.k.vehicle.get_leader(rl_id)
-                    if lead_id in ["", None]:
-                        # in case leader is not visible
-                        lead_speed = SPEED_SCALE
-                        headway = HEADWAY_SCALE
-                    else:
-                        lead_speed = self.k.vehicle.get_speed(lead_id)
-                        headway = self.k.vehicle.get_headway(rl_id)
-                    veh_info.update({rl_id: np.array([speed / SPEED_SCALE, headway / HEADWAY_SCALE,
-                                                      lead_speed / SPEED_SCALE])})
+                 self.invalid_control_edges)]
+        if self.lead_obs:
+            veh_info = {}
+            for rl_id in valid_ids:
+                speed = self.k.vehicle.get_speed(rl_id)
+                lead_id = self.k.vehicle.get_leader(rl_id)
+                if lead_id in ["", None]:
+                    # in case leader is not visible
+                    lead_speed = SPEED_SCALE
+                    headway = HEADWAY_SCALE
+                else:
+                    lead_speed = self.k.vehicle.get_speed(lead_id)
+                    headway = self.k.vehicle.get_headway(rl_id)
+                veh_info.update({rl_id: np.array([speed / SPEED_SCALE, headway / HEADWAY_SCALE,
+                                                  lead_speed / SPEED_SCALE])})
         else:
             veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
                                                self.veh_statistics(rl_id)))
-                        for rl_id in self.k.vehicle.get_rl_ids()}
+                        for rl_id in valid_ids}
         # print('time to get state is ', time() - t)
         return veh_info
 
