@@ -233,16 +233,20 @@ flow_params = dict(
 # =========================================================================== #
 
 edge_id = "119257908#1-AddedOnRampEdge"
+
+def valid_ids(env, veh_ids):
+    return [veh_id for veh_id in veh_ids if env.k.vehicle.get_edge(veh_id) not in ["ghost0", "119257908#3"]]
+
 custom_callables = {
     "avg_merge_speed": lambda env: np.nan_to_num(np.mean(
-        env.k.vehicle.get_speed(env.k.vehicle.get_ids_by_edge(edge_id)))),
+        env.k.vehicle.get_speed(valid_ids(env, env.k.vehicle.get_ids())))),
     "avg_outflow": lambda env: np.nan_to_num(
         env.k.vehicle.get_outflow_rate(120)),
-    # we multiply by 5 to account for the vehicle length and by 1000 to convert
-    # into veh/km
-    "avg_density": lambda env: 5 * 1000 * len(env.k.vehicle.get_ids_by_edge(
-        edge_id)) / (env.k.network.edge_length(edge_id)
-                     * env.k.network.num_lanes(edge_id)),
-    "mpg": lambda env: miles_per_gallon(env, env.k.vehicle.get_ids(), gain=1.0),
-    "mpj": lambda env: miles_per_megajoule(env, env.k.vehicle.get_ids(), gain=1.0),
+    # # we multiply by 5 to account for the vehicle length and by 1000 to convert
+    # # into veh/km
+    # "avg_density": lambda env: 5 * 1000 * len(env.k.vehicle.get_ids_by_edge(
+    #     edge_id)) / (env.k.network.edge_length(edge_id)
+    #                  * env.k.network.num_lanes(edge_id)),
+    "mpg": lambda env: miles_per_gallon(env,  valid_ids(env, env.k.vehicle.get_ids()), gain=1.0),
+    "mpj": lambda env: miles_per_megajoule(env, valid_ids(env, env.k.vehicle.get_ids()), gain=1.0),
 }

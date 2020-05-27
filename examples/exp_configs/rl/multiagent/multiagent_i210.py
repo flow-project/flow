@@ -88,7 +88,7 @@ additional_env_params.update({
     # whether to add a slight reward for traveling at a desired speed
     "speed_curriculum": True,
     # how many timesteps to anneal the headway curriculum over
-    "speed_curriculum_iters": 10,
+    "speed_curriculum_iters": 20,
     # weight of the headway reward
     "speed_reward_gain": 0.5,
     # penalize stopped vehicles
