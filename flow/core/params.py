@@ -1020,7 +1020,7 @@ class SumoLaneChangeParams:
     """
 
     def __init__(self,
-                 lane_change_mode="no_lat_collide",
+                 lane_change_mode="no_lc_safe",
                  model="LC2013",
                  lc_strategic=1.0,
                  lc_cooperative=1.0,
@@ -1128,7 +1128,7 @@ class SumoLaneChangeParams:
         elif not (isinstance(lane_change_mode, int)
                   or isinstance(lane_change_mode, float)):
             logging.error("Setting lane change mode to default.")
-            lane_change_mode = LC_MODES["no_lat_collide"]
+            lane_change_mode = LC_MODES["no_lc_safe"]
 
         self.lane_change_mode = lane_change_mode
 

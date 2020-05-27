@@ -33,7 +33,7 @@ class TestVehiclesClass(unittest.TestCase):
                 speed_mode='obey_safe_speed',
             ),
             lane_change_params=SumoLaneChangeParams(
-                lane_change_mode="no_lat_collide",
+                lane_change_mode="no_lc_safe",
             )
         )
 
@@ -89,7 +89,7 @@ class TestVehiclesClass(unittest.TestCase):
                 speed_mode="obey_safe_speed",
             ),
             lane_change_params=SumoLaneChangeParams(
-                lane_change_mode="no_lat_collide",
+                lane_change_mode="no_lc_safe",
             ))
         default_mingap = SumoCarFollowingParams().controller_params["minGap"]
         self.assertEqual(vehicles.types[0]["type_params"]["minGap"],
