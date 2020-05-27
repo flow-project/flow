@@ -16,7 +16,7 @@ class PPONetwork(TFModelV2):
         super(PPONetwork, self).__init__(obs_space, action_space, num_outputs, model_config, name)
 
         # setup model with weights loaded in from model in h5 path
-        self.setup_model(obs_space, action_space, model_config, num_outputs, '/Users/akashvelu/Desktop/follower_stopper1.h5')
+        self.setup_model(obs_space, action_space, model_config, num_outputs, 'model_files/follower_stopper1.h5')
         # register variables for base model
         self.register_variables(self.base_model.variables)
 
