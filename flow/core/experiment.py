@@ -148,8 +148,12 @@ class Experiment:
         # time profiling information
         t = time.time()
         times = []
+
+        # data pipeline
         extra_info = defaultdict(lambda: [])
         source_id = 'flow_{}'.format(uuid.uuid4().hex)
+        metadate = defaultdict(lambda: "")
+        metadate['network'] = self.env.network.name.split('_')[0]
 
         for i in range(num_runs):
             ret = 0
@@ -169,7 +173,8 @@ class Experiment:
 
                 # collect additional information for the data pipeline
                 get_extra_info(self.env.k.vehicle, extra_info, veh_ids)
-                extra_info["source_id"].extend(['{}_run_{}'.format(source_id, i)] * len(veh_ids))
+                extra_info["source_id"].extend([source_id] * len(veh_ids))
+                extra_info["run_id"].extend(['run_{}'.format(i)] * len(veh_ids))
 
                 # Compute the results for the custom callables.
                 for (key, lambda_func) in self.custom_callables.items():
@@ -220,7 +225,7 @@ class Experiment:
                 cur_date = date.today().isoformat()
                 upload_to_s3('circles.data.pipeline', 'fact_vehicle_trace/date={}/partition_name={}/{}.csv'.format(
                              cur_date, source_id, source_id),
-                             trajectory_table_path, str(only_query)[2:-2])
+                             trajectory_table_path, metadate)
 
             # delete the S3-only version of the trajectory file
             # os.remove(upload_file_path)
