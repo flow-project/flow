@@ -107,10 +107,25 @@ def get_table_url(table_name="fact_vehicle_trace", bucket="circles.data.pipeline
 
 
 def get_metadata(name, bucket="circles.data.pipeline"):
+    """Get the metadata by name.
+
+    Parameters
+    ----------
+    name: str
+        the name of the table whose metadata will be returned
+    bucket: str
+        the bucket that hold the table
+
+    Returns
+    -------
+    metadata: dict
+        a dictionary of all the metadata, there is no guarantee
+        for which keys are included
+    """
     s3 = boto3.client("s3")
     name_list = name.split('_')
     source_id = "flow_{}".format(name_list[2])
     response = s3.head_object(Bucket=bucket,
-                              Key="vehicle_trace_table/date={0}/partition_name={1}/{1}.csv".format(name_list[0],
+                              Key="fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv".format(name_list[0],
                                                                                                    source_id))
     return response["Metadata"]

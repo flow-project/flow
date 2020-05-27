@@ -26,7 +26,7 @@ VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT = """
         speed,
         acceleration,
         road_grade,
-        MAX(0, 1200 * speed * (
+        GREATEST(0, 1200 * speed * ((
             CASE
                 WHEN acceleration > 0 THEN 1
                 WHEN acceleration < 0 THEN 0

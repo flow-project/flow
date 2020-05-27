@@ -65,7 +65,7 @@ def generate_trajectory_from_flow(data_path, extra_info, partition_name=None):
     return
 
 
-def upload_to_s3(bucket_name, bucket_key, file_path, only_query):
+def upload_to_s3(bucket_name, bucket_key, file_path, metadata):
     """Upload a file to S3 bucket.
 
     Parameters
@@ -76,15 +76,12 @@ def upload_to_s3(bucket_name, bucket_key, file_path, only_query):
         the key within the bucket for the file
     file_path: str
         the path of the file to be uploaded
-    only_query: str
-        specify which query should be run on this file by lambda:
-        if empty: run none of them
-        if "all": run all available analysis query
-        if a string of list of queries: run only those mentioned in the list
+    metadata: dict
+        all the metadata that should be attached to this simulation
     """
     s3 = boto3.resource("s3")
     s3.Bucket(bucket_name).upload_file(file_path, bucket_key,
-                                       ExtraArgs={"Metadata": {"run-query": only_query}})
+                                       ExtraArgs={"Metadata": metadata})
     return
 
 
