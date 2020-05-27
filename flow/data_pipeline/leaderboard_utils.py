@@ -50,7 +50,7 @@ def get_table_memory(table_name="fact_vehicle_trace", bucket="circles.data.pipel
     existing_results: list
         tables that should not be fetched,
         the names must follow the convention:
-        {source_id(no run number)}_{query_name}.csv
+        {date}_{source_id(no run number)}_{query_name}.csv
 
     Returns
     -------
@@ -85,7 +85,7 @@ def get_table_url(table_name="fact_vehicle_trace", bucket="circles.data.pipeline
     existing_results: list
         tables that should not be fetched,
         the names must follow the convention:
-        {source_id(no run number)}_{query_name}.csv
+        {date}_{source_id(no run number)}_{query_name}.csv
 
     Returns
     -------
