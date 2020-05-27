@@ -159,7 +159,6 @@ class I210MultiEnv(MultiEnv):
 
     def get_state(self):
         """See class definition."""
-        t = time()
         if self.lead_obs:
             veh_info = {}
             for rl_id in self.k.vehicle.get_rl_ids():
