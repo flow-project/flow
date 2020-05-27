@@ -129,3 +129,42 @@ class ImitatingNetwork2():
         # tensorboard
 
         # writer = tf.summary.FileWriter('./graphs2', tf.get_default_graph())
+
+
+    def save_network_PPO(self, save_path):
+        input = tf.keras.layers.Input(self.model.input.shape[1].value)
+        curr_layer = input
+
+        # build layers for policy
+        for i in range(num_layers):
+            size = self.model.layers[i + 1].output.shape[1].value
+            activation = tf.keras.activations.serialize(self.model.layers[i + 1].activation)
+            curr_layer = tf.keras.layers.Dense(size, activation=activation, name="policy_hidden_layer_{}".format(i + 1))(curr_layer)
+        output_layer_policy = tf.keras.layers.Dense(self.model.output.shape[1].value, activation=None, name="policy_output_layer")
+
+        # build layers for value function
+        curr_layer = input
+        for i in range(num_layers):
+            curr_layer = tf.keras.layers.Dense(self.size, activation="tanh", name="vf_hidden_layer_{}".format(i+1))(curr_layer)
+        output_layer_vf = tf.keras.layers.Dense(1, activation=None, name="vf_output_layer")
+
+        ppo_model = tf.keras.Model(inputs=input, outputs=[output_layer_policy, output_layer_vf], name="ppo_model")
+
+        # set the policy weights to those learned from imitation
+        for i in range(num_layers):
+            policy_layer = ppo_model.get_layer(name="policy_hidden_layer_{}".format(i + 1))
+            policy_layer.set_weights(self.model.layers[i + 1].get_weights())
+        policy_output = ppo_model.get_layer("policy_output_layer")
+        policy_output.set_weights(self.model.layers[-1].get_weights)
+
+        # save the model (as a h5 file) 
+        ppo_model.save(save_path)
+
+
+
+
+
+
+
+
+
