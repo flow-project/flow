@@ -53,7 +53,7 @@ class QueryStrings(Enum):
                 id,
                 time_step,
                 speed,
-                acceleration,
+                target_accel_with_noise_with_failsafe AS acceleration,
                 road_grade,
                 source_id
             FROM trajectory_table
@@ -71,7 +71,7 @@ class QueryStrings(Enum):
                 id,
                 time_step,
                 speed,
-                accel_without_noise AS acceleration,
+                target_accel_no_noise_with_failsafe AS acceleration,
                 road_grade,
                 source_id
             FROM trajectory_table
@@ -88,7 +88,7 @@ class QueryStrings(Enum):
             SELECT
                 id,
                 time_step,
-                accel_without_noise,
+                target_accel_no_noise_with_failsafe,
                 road_grade,
                 source_id,
                 time_step - LAG(time_step, 1)
@@ -103,8 +103,8 @@ class QueryStrings(Enum):
             SELECT
                 id,
                 time_step,
-                prev_speed + accel_without_noise * sim_step AS speed,
-                accel_without_noise AS acceleration,
+                prev_speed + target_accel_no_noise_with_failsafe * sim_step AS speed,
+                target_accel_no_noise_with_failsafe AS acceleration,
                 road_grade,
                 source_id
             FROM lagged_timestep
