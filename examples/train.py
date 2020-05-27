@@ -33,7 +33,7 @@ except ImportError:
 from ray.tune.registry import register_env
 
 from flow.core.util import ensure_dir
-from flow.core.rewards import energy_consumption, miles_per_gallon, miles_per_megajoule
+from flow.core.rewards import miles_per_gallon, miles_per_megajoule
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 from flow.utils.registry import make_create_env
@@ -68,7 +68,7 @@ def parse_args(args):
         help='the RL trainer to use. either rllib or Stable-Baselines')
     parser.add_argument(
         '--algorithm', type=str, default="PPO",
-        help='RL algorithm to use. Options are PPO, TD3, MATD3 (MADDPG w/ TD3) right now.'
+        help='RL algorithm to use. Options are PPO, TD3 right now.'
     )
     parser.add_argument(
         '--num_cpus', type=int, default=1,
@@ -237,20 +237,6 @@ def setup_exps_rllib(flow_params,
             config["critic_lr"] = tune.grid_search([1e-3, 1e-4])
             config["n_step"] = tune.grid_search([1, 10])
 
-    elif alg_run == "MADDPG":
-        from flow.algorithms.maddpg.maddpg import MADDPGTrainer, DEFAULT_CONFIG
-        config = deepcopy(DEFAULT_CONFIG)
-        config["actor_feature_reg"] = 0.0
-        config["learning_starts"] = 100
-        alg_run = MADDPGTrainer
-
-    elif alg_run == "QMIX":
-        from flow.algorithms.qmix.qmix import QMixTrainer2, DEFAULT_CONFIG
-        config = deepcopy(DEFAULT_CONFIG)
-        if flags.grid_search:
-            config["exploration_fraction"] = tune.grid_search([0.1, 0.3])
-            config["buffer_size"] = tune.grid_search([10000, 100000])
-        alg_run = QMixTrainer2
     else:
         sys.exit("We only support PPO, TD3, right now.")
 
@@ -328,12 +314,7 @@ def setup_exps_rllib(flow_params,
 
     create_env, gym_name = make_create_env(params=flow_params)
 
-    if flags.algorithm.upper() == "MADDPG":
-        config['max_num_agents'] = flow_params['env'].additional_params['max_num_agents']
-        register_env(gym_name, create_env)
-    else:
-        # Register as rllib env
-        register_env(gym_name, create_env)
+    register_env(gym_name, create_env)
     return alg_run, gym_name, config
 
 

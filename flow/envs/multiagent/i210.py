@@ -420,97 +420,6 @@ class I210MultiEnv(MultiEnv):
         return state, reward, done, info
 
 
-class I210MADDPGMultiEnv(I210MultiEnv):
-    def __init__(self, env_params, sim_params, network, simulator='traci'):
-        super().__init__(env_params, sim_params, network, simulator)
-        self.max_num_agents = env_params.additional_params["max_num_agents"]
-        self.rl_id_to_idx_map = OrderedDict()
-        self.idx_to_rl_id_map = OrderedDict()
-        self.index_counter = 0
-        self.default_state = {idx: np.zeros(self.observation_space.shape[0])
-                              for idx in range(self.max_num_agents)}
-
-    def _apply_rl_actions(self, rl_actions):
-        """See class definition."""
-        # in the warmup steps, rl_actions is None
-        t = time()
-        if rl_actions:
-            # print(rl_actions)
-            accel_list = []
-            rl_ids = []
-            for rl_id in self.k.vehicle.get_rl_ids():
-                if rl_id in self.rl_id_to_idx_map:
-                    accel_list.append(rl_actions[self.rl_id_to_idx_map[rl_id]])
-                    rl_ids.append(rl_id)
-            self.k.vehicle.apply_acceleration(rl_ids, accel_list)
-        # print('time to apply actions is ', time() - t)
-
-    def get_state(self):
-        t = time()
-
-        # TODO(@evinitsky) clean this up
-        self.index_counter = 0
-        self.rl_id_to_idx_map = {}
-        for key in self.k.vehicle.get_rl_ids():
-            self.rl_id_to_idx_map[key] = self.index_counter
-            self.idx_to_rl_id_map[self.index_counter] = key
-            self.index_counter += 1
-            if self.index_counter >= self.max_num_agents:
-                break
-
-        veh_info = super().get_state()
-        # TODO(@evinitsky) think this doesn't have to be a deepcopy
-        veh_info_copy = deepcopy(self.default_state)
-        # id_list = zip(list(range(self.max_num_agents)), rl_ids)
-        veh_info_copy.update({self.rl_id_to_idx_map[rl_id]: veh_info[rl_id]
-                              for rl_id in self.rl_id_to_idx_map.keys()})
-        # print('time to update copy is ', time() - t)
-        veh_info = veh_info_copy
-        # print('state time is ', time() - t)
-        print(veh_info)
-
-        return veh_info
-
-    def compute_reward(self, rl_actions, **kwargs):
-        # There has to be one global reward for qmix
-        t = time()
-        if self.mpg_reward:
-            if self.env_params.additional_params["local_reward"]:
-                reward = super().compute_reward(rl_actions)
-                reward_dict = {idx: 0 for idx in
-                               range(self.max_num_agents)}
-                reward_dict.update({self.rl_id_to_idx_map[rl_id]: reward[rl_id] for rl_id in reward.keys()
-                                    if rl_id in self.rl_id_to_idx_map.keys()})
-                print(reward_dict)
-            else:
-                reward = np.nan_to_num(miles_per_gallon(self, self.k.vehicle.get_ids(), gain=1.0)) / 100.0
-                reward_dict = {idx: reward for idx in
-                               range(self.max_num_agents)}
-        else:
-            if self.env_params.additional_params["local_reward"]:
-                reward = super().compute_reward(rl_actions)
-                reward_dict = {idx: 0 for idx in
-                               range(self.max_num_agents)}
-                reward_dict.update({self.rl_id_to_idx_map[rl_id]: reward[rl_id] for rl_id in reward.keys()
-                                    if rl_id in self.rl_id_to_idx_map.keys()})
-            else:
-                reward = np.nan_to_num(np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))) / (
-                            20 * self.env_params.horizon)
-                reward_dict = {idx: reward for idx in
-                               range(self.max_num_agents)}
-
-        # print('reward time is ', time() - t)
-        return reward_dict
-
-    def reset(self, new_inflow_rate=None):
-        super().reset(new_inflow_rate)
-        self.rl_id_to_idx_map = OrderedDict()
-        self.idx_to_rl_id_map = OrderedDict()
-        self.index_counter = 0
-
-        return self.get_state()
-
-
 class MultiStraightRoad(I210MultiEnv):
     """Partially observable multi-agent environment for a straight road. Look at superclass for more information."""
 
@@ -529,32 +438,6 @@ class MultiStraightRoad(I210MultiEnv):
             for rl_id, actions in rl_actions.items():
                 accels.append(actions[0])
                 rl_ids.append(rl_id)
-
-            # prevent the AV from blocking the entrance
-            self.k.vehicle.apply_acceleration(rl_ids, accels)
-
-
-class MultiStraightRoadMADDPG(I210MADDPGMultiEnv):
-    def __init__(self, env_params, sim_params, network, simulator):
-        super().__init__(env_params, sim_params, network, simulator)
-        self.num_enter_lanes = 1
-        self.entrance_edge = self.network.routes['highway_0'][0][0][0]
-        self.exit_edge = self.network.routes['highway_0'][0][0][-1]
-
-    def _apply_rl_actions(self, rl_actions):
-        """See class definition."""
-        # in the warmup steps, rl_actions is None
-        if rl_actions:
-            # print(rl_actions)
-
-            rl_ids = []
-            accels = []
-            for idx, actions in rl_actions.items():
-                if idx < self.index_counter:
-                    accels.append(actions[0])
-                    rl_ids.append(self.idx_to_rl_id_map[idx])
-                else:
-                    break
 
             # prevent the AV from blocking the entrance
             self.k.vehicle.apply_acceleration(rl_ids, accels)
