@@ -77,8 +77,10 @@ class BaseController:
         This method also augments the controller with the desired level of
         stochastic noise, and utlizes the "instantaneous", "safe_velocity",
         "feasible_accel", or "all" failsafes if requested. The "all" failsafe
-        performs all three failsafes with this order: 1)"safe_velocity",
-        2) "feasible_accel", 3) "instantaneous".
+        performs all three failsafes with this order:
+        1) "safe_velocity",
+        2) "feasible_accel",
+        3) "instantaneous".
 
         Parameters
         ----------
