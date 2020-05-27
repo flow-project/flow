@@ -322,7 +322,6 @@ class I210MultiEnv(MultiEnv):
             veh_ids = self.k.vehicle.get_ids()
             edges = self.k.vehicle.get_edge(veh_ids)
             valid_lanes = list(range(self.num_enter_lanes))
-            num_trials = 0
             for veh_id, edge in zip(veh_ids, edges):
                 if edge == "":
                     continue
@@ -354,6 +353,8 @@ class I210MultiEnv(MultiEnv):
                             speed="23.0")
                     except Exception as e:
                         print(e)
+                    if len(valid_lanes) == 0:
+                        break
 
             departed_ids = self.k.vehicle.get_departed_ids()
             if isinstance(departed_ids, tuple) and len(departed_ids) > 0:
