@@ -351,6 +351,7 @@ def vehicle_energy_consumption(env, veh_id, gain=.001):
 
     if veh_id not in env.k.vehicle.previous_speeds:
         return 0
+
     speed = env.k.vehicle.get_speed(veh_id)
     prev_speed = env.k.vehicle.get_previous_speed(veh_id)
 

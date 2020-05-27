@@ -167,6 +167,7 @@ class I210MultiEnv(MultiEnv):
                  and self.k.vehicle.get_x_by_id(rl_id) > self.control_range[0]) or \
                 (len(self.invalid_control_edges) > 0 and self.k.vehicle.get_edge(rl_id) not in
                  self.invalid_control_edges):
+                    print('edge', self.k.vehicle.get_edge(rl_id))
                     speed = self.k.vehicle.get_speed(rl_id)
                     lead_id = self.k.vehicle.get_leader(rl_id)
                     if lead_id in ["", None]:

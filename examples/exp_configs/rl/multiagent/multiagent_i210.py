@@ -32,7 +32,7 @@ ON_RAMP = False
 PENETRATION_RATE = 0.10
 V_DES = 5.0
 HORIZON = 1000
-WARMUP_STEPS = 600
+WARMUP_STEPS = 40
 
 inflow_rate = 2050
 inflow_speed = 25.5
