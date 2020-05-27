@@ -1,3 +1,4 @@
+"""APIs for the leader board front end"""
 import os
 import boto3
 import pandas as pd

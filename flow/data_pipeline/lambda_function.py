@@ -9,7 +9,7 @@ queryEngine = AthenaQuery()
 
 
 def lambda_handler(event, context):
-    """Handles S3 put event on AWS Lambda."""
+    """Handle S3 put event on AWS Lambda."""
     records = []
     # delete all unwanted metadata
     for record in event['Records']:
