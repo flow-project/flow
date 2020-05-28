@@ -25,7 +25,10 @@ class FollowerStopper(BaseController):
     def __init__(self,
                  veh_id,
                  car_following_params,
-                 v_des=15):
+                 v_des=15,
+                 danger_edges=None,
+                 control_length=None,
+                 no_control_edges=None):
         """Instantiate FollowerStopper."""
         BaseController.__init__(
             self, veh_id, car_following_params, delay=0.0,
@@ -44,6 +47,10 @@ class FollowerStopper(BaseController):
         self.d_1 = 1.5
         self.d_2 = 1.0
         self.d_3 = 0.5
+
+        self.danger_edges = danger_edges if danger_edges else {}
+        self.control_length = control_length
+        self.no_control_edges = no_control_edges
 
     def find_intersection_dist(self, env):
         """Find distance to intersection.
@@ -72,41 +79,54 @@ class FollowerStopper(BaseController):
 
     def get_accel(self, env):
         """See parent class."""
-        lead_id = env.k.vehicle.get_leader(self.veh_id)
-        this_vel = env.k.vehicle.get_speed(self.veh_id)
-        lead_vel = env.k.vehicle.get_speed(lead_id)
-
-        if self.v_des is None:
+        if env.time_counter < env.env_params.warmup_steps * env.env_params.sims_per_step:
             return None
-
-        if lead_id is None:
-            v_cmd = self.v_des
         else:
-            dx = env.k.vehicle.get_headway(self.veh_id)
-            dv_minus = min(lead_vel - this_vel, 0)
+            lead_id = env.k.vehicle.get_leader(self.veh_id)
+            this_vel = env.k.vehicle.get_speed(self.veh_id)
+            lead_vel = env.k.vehicle.get_speed(lead_id)
 
-            dx_1 = self.dx_1_0 + 1 / (2 * self.d_1) * dv_minus**2
-            dx_2 = self.dx_2_0 + 1 / (2 * self.d_2) * dv_minus**2
-            dx_3 = self.dx_3_0 + 1 / (2 * self.d_3) * dv_minus**2
-            v = min(max(lead_vel, 0), self.v_des)
-            # compute the desired velocity
-            if dx <= dx_1:
-                v_cmd = 0
-            elif dx <= dx_2:
-                v_cmd = v * (dx - dx_1) / (dx_2 - dx_1)
-            elif dx <= dx_3:
-                v_cmd = v + (self.v_des - this_vel) * (dx - dx_2) \
-                        / (dx_3 - dx_2)
-            else:
+            if self.v_des is None:
+                return None
+
+            if lead_id is None:
                 v_cmd = self.v_des
+            else:
+                dx = env.k.vehicle.get_headway(self.veh_id)
+                dv_minus = min(lead_vel - this_vel, 0)
 
-        edge = env.k.vehicle.get_edge(self.veh_id)
+                dx_1 = self.dx_1_0 + 1 / (2 * self.d_1) * dv_minus**2
+                dx_2 = self.dx_2_0 + 1 / (2 * self.d_2) * dv_minus**2
+                dx_3 = self.dx_3_0 + 1 / (2 * self.d_3) * dv_minus**2
+                v = min(max(lead_vel, 0), self.v_des)
+                # compute the desired velocity
+                if dx <= dx_1:
+                    v_cmd = 0
+                elif dx <= dx_2:
+                    v_cmd = v * (dx - dx_1) / (dx_2 - dx_1)
+                elif dx <= dx_3:
+                    v_cmd = v + (self.v_des - this_vel) * (dx - dx_2) \
+                            / (dx_3 - dx_2)
+                else:
+                    v_cmd = self.v_des
 
-        if edge == "":
-            return None
-        else:
-            # compute the acceleration from the desired velocity
-            return np.clip((v_cmd - this_vel) / env.sim_step, -np.abs(self.max_deaccel), self.max_accel)
+            edge = env.k.vehicle.get_edge(self.veh_id)
+
+            if edge == "":
+                return None
+
+            if (self.find_intersection_dist(env) <= 10 and \
+                    env.k.vehicle.get_edge(self.veh_id) in self.danger_edges) or \
+                    env.k.vehicle.get_edge(self.veh_id)[0] == ":"\
+                    or (self.control_length and (env.k.vehicle.get_x_by_id(self.veh_id) < self.control_length[0]
+                    or env.k.vehicle.get_x_by_id(self.veh_id) > self.control_length[1]))\
+                    or edge in self.no_control_edges:
+                # TODO(@evinitsky) put back
+                    # or env.k.vehicle.get_edge(self.veh_id) in self.no_control_edges:
+                return None
+            else:
+                # compute the acceleration from the desired velocity
+                return np.clip((v_cmd - this_vel) / env.sim_step, -np.abs(self.max_deaccel), self.max_accel)
 
 
 class NonLocalFollowerStopper(FollowerStopper):

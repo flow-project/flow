@@ -113,10 +113,6 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id] = dict()
                 self.__vehicles[veh_id]['type'] = typ['veh_id']
                 self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
-                self.__vehicles[veh_id]["accel_no_noise_no_failsafe"] = None
-                self.__vehicles[veh_id]["accel_no_noise_with_failsafe"] = None
-                self.__vehicles[veh_id]["accel_with_noise_no_failsafe"] = None
-                self.__vehicles[veh_id]["accel_with_noise_with_failsafe"] = None
                 self.num_vehicles += 1
                 if typ['acceleration_controller'][0] == RLController:
                     self.num_rl_vehicles += 1
@@ -955,7 +951,7 @@ class TraCIVehicle(KernelVehicle):
 
     def apply_acceleration(self, veh_ids, acc):
         """See parent class."""
-        # to hand the case of a single vehicle
+        # to handle the case of a single vehicle
         if type(veh_ids) == str:
             veh_ids = [veh_ids]
             acc = [acc]
@@ -969,7 +965,7 @@ class TraCIVehicle(KernelVehicle):
 
     def apply_acceleration_not_smooth(self, veh_ids, acc):
         """See parent class."""
-        # to hand the case of a single vehicle
+        # to handle the case of a single vehicle
         if type(veh_ids) == str:
             veh_ids = [veh_ids]
             acc = [acc]

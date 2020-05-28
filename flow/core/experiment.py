@@ -213,7 +213,7 @@ class Experiment:
             # Delete the .xml version of the emission file.
             os.remove(emission_path)
 
-            trajectory_table_path = './data/' + source_id + ".csv"
+            trajectory_table_path = dir_path + source_id + ".csv"
             upload_file_path = generate_trajectory_from_flow(trajectory_table_path, extra_info, partition_name)
 
             if partition_name:
