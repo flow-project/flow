@@ -20,6 +20,14 @@ class Trainer(object):
     """
 
     def __init__(self, params, submodule):
+        """
+        Parameters
+        __________
+        params: dict
+            Dictionary of parameters used to run imitation learning
+        submodule: Module
+            Python module for file containing flow_params
+        """
 
         # get flow params
         self.flow_params = submodule.flow_params
@@ -72,8 +80,10 @@ class Trainer(object):
         """
         Trains imitator for n_iter iterations (each iteration collects new trajectories to put in replay buffer)
 
-        Args:
-            param n_iter:  number of iterations to execute training
+        Parameters
+        __________
+        n_iter :
+            intnumber of iterations to execute training
         """
 
         # init vars at beginning of training
@@ -104,12 +114,18 @@ class Trainer(object):
         """
         Collect (state, action, reward, next_state, terminal) tuples for training
 
-        Args:
-            itr: iteration of training during which function is called. Used to determine whether to run behavioral cloning or DAgger
-            batch_size: number of tuples to collect
-        Returns:
-            paths: list of trajectories
-            envsteps_this_batch: the sum over the numbers of environment steps in paths
+        Parameters
+        __________
+        itr: int
+            iteration of training during which function is called. Used to determine whether to run behavioral cloning or DAgger
+        batch_size: int
+            number of tuples to collect
+        Returns
+        _______
+        paths: list
+            list of trajectories
+        envsteps_this_batch: int
+            the sum over the numbers of environment steps in paths (total number of env transitions in trajectories collected)
         """
 
         print("\nCollecting data to be used for training...")
@@ -132,10 +148,12 @@ class Trainer(object):
 
     def evaluate_controller(self, num_trajs = 10):
         """
-        Evaluates a trained imitation controller on similarity with expert with respect to action taken and total reward per rollout
+        Evaluates a trained imitation controller on similarity with expert with respect to action taken and total reward per rollout.
 
-        Args:
-            num_trajs: number of trajectories to evaluate performance on
+        Parameters
+        __________
+        num_trajs: int
+            number of trajectories to evaluate performance on
         """
 
         print("\n\n********** Evaluation ************ \n")
@@ -211,10 +229,13 @@ class Trainer(object):
 
     def save_controller_network(self):
         """
-        Saves a tensorflow model to the specified path given in the command line params. Path must end with .ckpt
+        Saves a keras tensorflow model to the specified path given in the command line params. Path must end with .h5.
         """
         print("Saving tensorflow model to: ", self.params['save_path'])
         self.action_network.save_network(self.params['save_path'])
 
     def save_controller_for_PPO(self):
+        """
+        Creates and saves a keras tensorflow model for training PPO with weights learned from imitation, to the specified path given in the command line params. Path must end with .h5.
+        """
         self.action_network.save_network_PPO(self.params['save_path'])

@@ -5,6 +5,8 @@ from keras_utils import *
 import tensorflow_probability as tfp
 from flow.controllers.base_controller import BaseController
 from replay_buffer import ReplayBuffer
+from time import time
+from tensorflow.python.keras.callbacks import TensorBoard
 
 
 class ImitatingNetwork():
@@ -12,21 +14,29 @@ class ImitatingNetwork():
     Class containing neural network which learns to imitate a given expert controller.
     """
 
-    def __init__(self, sess, action_dim, obs_dim, fcnet_hiddens, replay_buffer_size, stochastic=False, variance_regularizer = 0, load_existing=False, load_path=''):
+    def __init__(self, sess, action_dim, obs_dim, fcnet_hiddens, replay_buffer_size, stochastic=False, variance_regularizer = 0, load_model=False, load_path=''):
 
-        """
-        Initializes and constructs neural network
-
-        Args:
-            sess: Tensorflow session variable
-            action_dim: dimension of action space (determines size of network output)
-            obs_dim: dimension of observation space (size of network input)
-            num_layers: number of hidden layers (for an MLP)
-            size: size of each layer in network
-            replay_buffer_size: maximum size of replay buffer used to hold data for training
-            stochastic: boolean indicating if the network outputs a stochastic (multivariate Gaussian) or deterministic policy
-            load_existing: boolean, whether to load an existing tensorflow model
-            load_path: path to directory containing an existing tensorflow model
+        """Initializes and constructs neural network.
+        Parameters
+        ----------
+        sess : tf.Session
+            Tensorflow session variable
+        action_dim : int
+            action_space dimension
+        obs_dim : int
+            dimension of observation space (size of network input)
+        fcnet_hiddens : list
+            list of hidden layer sizes for fully connected network (length of list is number of hidden layers)
+        replay_buffer_size: int
+            maximum size of replay buffer used to hold data for training
+        stochastic: bool
+            indicates if network outputs a stochastic (MV Gaussian) or deterministic policy
+        variance_regularizer: float
+            regularization hyperparameter to penalize high variance policies
+        load_model: bool
+            if True, load model from path specified in load_path
+        load_path: String
+            path to h5 file containing model to load.
 
         """
 
@@ -38,7 +48,7 @@ class ImitatingNetwork():
         self.variance_regularizer = variance_regularizer
 
         # load network if specified, or construct network
-        if load_existing:
+        if load_model:
             self.load_network(load_path)
 
         else:
@@ -46,8 +56,6 @@ class ImitatingNetwork():
             self.compile_network()
 
         self.replay_buffer = ReplayBuffer(replay_buffer_size)
-
-
 
     def build_network(self):
         """
@@ -61,22 +69,43 @@ class ImitatingNetwork():
 
 
     def compile_network(self):
+        """
+        Compiles Keras network with appropriate loss and optimizer
+        """
         loss = get_loss(self.stochastic, self.variance_regularizer)
         self.model.compile(loss=loss, optimizer='adam')
 
 
     def train(self, observation_batch, action_batch):
         """
-        Executes one training step for the given batch of observation and action data
+        Executes one training (gradient) step for the given batch of observation and action data
+
+        Parameters
+        ----------
+        observation_batch : numpy array
+            numpy array containing batch of observations (inputs)
+        action_batch : numpy array
+            numpy array containing batch of actions (labels)
         """
+
         # reshape action_batch to ensure a shape (batch_size, action_dim)
         action_batch = action_batch.reshape(action_batch.shape[0], self.action_dim)
-        batch_size = action_batch.shape[0]
-        self.model.fit(observation_batch, action_batch, batch_size=batch_size, epochs=1, steps_per_epoch=1, verbose=0)
+        # one gradient step on batch
+        self.model.train_on_batch(observation_batch, action_batch)
 
     def get_accel_from_observation(self, observation):
         """
         Gets the network's acceleration prediction based on given observation/state
+
+        Parameters
+        ----------
+        observation : numpy array
+            numpy array containing a single observation
+
+        Returns
+        -------
+        numpy array
+            one element numpy array containing accleeration
         """
 
         # network expects an array of arrays (matrix); if single observation (no batch), convert to array of arrays
@@ -95,24 +124,56 @@ class ImitatingNetwork():
     def get_accel(self, env):
         """
         Get network's acceleration prediction(s) based on given env
+
+        Parameters
+        ----------
+        env :
+            environment object
+
+        Returns
+        -------
+        numpy array
+            one element numpy array containing accleeration
+
         """
         observation = env.get_state()
         return self.get_accel_from_observation(observation)
 
 
     def add_to_replay_buffer(self, rollout_list):
-        """ Add rollouts to replay buffer """
+        """
+        Add data to a replay buffer
+
+        Parameters
+        ----------
+        rollout_list : list
+            list of rollout dictionaries
+        """
 
         self.replay_buffer.add_rollouts(rollout_list)
 
 
     def sample_data(self, batch_size):
-        """ Sample a batch of data from replay buffer """
+        """
+        Sample a batch of data from replay buffer.
+
+        Parameters
+        ----------
+        batch_size : int
+            size of batch to sample
+        """
 
         return self.replay_buffer.sample_batch(batch_size)
 
     def save_network(self, save_path):
-        """ Save network to given path and to tensorboard """
+        """
+        Save imitation network as a h5 file in save_path
+
+        Parameters
+        ----------
+        save_path : String
+            path to h5 file to save to
+        """
 
         self.model.save(save_path)
         # tensorboard
@@ -120,18 +181,30 @@ class ImitatingNetwork():
         # writer = tf.summary.FileWriter('./graphs2', tf.get_default_graph())
 
     def load_network(self, load_path):
+        """
+        Load imitation network from a h5 file in load_path
+
+        Parameters
+        ----------
+        load_path : String
+            path to h5 file containing model to load from
+        """
         if self.stochastic:
             self.model = tf.keras.models.load_model(load_path, custom_objects={'negative_log_likelihood_loss': negative_log_likelihood_loss})
+        else:
+            self.model = tf.keras.models.load_model(load_path)
 
 
     def save_network_PPO(self, save_path):
         """
-        Builds and saves keras model for training PPO using policy weights learned from imitation.
+        Build a model, with same policy architecture as imitation network, to run PPO, copy weights from imitation, and save this model.
 
-        Args:
-            save_path: path (including h5 format filename) where the PPO model should be saved
-
+        Parameters
+        ----------
+        load_path : save_path
+            path to h5 file to save to
         """
+
         input = tf.keras.layers.Input(self.model.input.shape[1].value)
         curr_layer = input
 

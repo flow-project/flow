@@ -4,6 +4,21 @@ from tensorflow.keras import Input
 from tensorflow.keras.layers import Dense
 
 def build_neural_net_deterministic(input_dim, action_dim, fcnet_hiddens):
+    """Build a keras model to output a deterministic policy.
+    Parameters
+    ----------
+    input_dim : int
+        dimension of input layer
+    action_dim : int
+        action_space dimension
+    fcnet_hiddens : list
+        list containing size of each hidden layer (length of list is number of hidden layers)
+
+    Returns
+    -------
+    Keras model (untrained)
+    """
+
     input_layer = Input(shape=(input_dim, ))
     curr_layer = input_layer
 
@@ -17,6 +32,20 @@ def build_neural_net_deterministic(input_dim, action_dim, fcnet_hiddens):
     return model
 
 def build_neural_net_stochastic(input_dim, action_dim, fcnet_hiddens):
+    """Build a keras model to output a stochastic policy.
+    Parameters
+    ----------
+    input_dim : int
+        dimension of input layer
+    action_dim : int
+        action_space dimension
+    fcnet_hiddens : list
+        list containing size of each hidden layer (length of list is number of hidden layers)
+
+    Returns
+    -------
+    Keras model (untrained)
+    """
     input_layer = Input(shape=(input_dim, ))
     curr_layer = input_layer
 
@@ -31,20 +60,46 @@ def build_neural_net_stochastic(input_dim, action_dim, fcnet_hiddens):
     return model
 
 def get_loss(stochastic, variance_regularizer):
+    """Get appropriate loss function for training.
+    Parameters
+    ----------
+    stochastic : bool
+        determines if policy to be learned is deterministic or stochastic
+    variance_regularizer : float
+        regularization hyperparameter to penalize high variance policies
+
+    Returns
+    -------
+    Keras loss function to use for imitation learning.
+    """
     if stochastic:
         return negative_log_likelihood_loss(variance_regularizer)
     else:
         return tf.keras.losses.mean_squared_error
 
 def negative_log_likelihood_loss(variance_regularizer):
+    """Negative log likelihood loss for learning stochastic policies.
 
-    def nll_loss(y, distribution_params):
-        assert distribution_params.shape[1] % 2 == 0, "Stochastic policies must output vectors of even length"
+    Parameters
+    ----------
+    variance_regularizer : float
+        regularization hyperparameter to penalize high variance policies
+    Returns
+    -------
+    Negative log likelihood loss function with variance regularization.
+    """
 
-        action_dim = distribution_params.shape[1]//2
-        means, log_stds = distribution_params[:, :action_dim], distribution_params[:, action_dim:]
+    def nll_loss(y, network_output):
+        assert network_output.shape[1] % 2 == 0, "Stochastic policies must output vectors of even length"
+
+        action_dim = network_output.shape[1] // 2
+
+        # first half of network_output is mean, second half is log_std
+        means, log_stds = network_output[:, :action_dim], network_output[:, action_dim:]
         stds = tf.math.exp(log_stds)
         variances = tf.math.square(stds)
+
+        # Multivariate Gaussian distribution
         dist = tfp.distributions.MultivariateNormalDiag(loc=means, scale_diag=variances)
         loss = dist.log_prob(y)
         loss = tf.negative(loss)

@@ -14,10 +14,14 @@ class ImitatingController(BaseController):
 
     def __init__(self, veh_id, action_network, multiagent, car_following_params=None, time_delay=0.0, noise=0, fail_safe=None):
         """
-        Args:
-            veh_id: ID of vehicle to control
-            action_network: Instance of imitating_network class; neural net that gives action given state
-            multiagent: boolean indicating if env is multiagent or singleagent
+        Parameters
+        __________
+        veh_id: String
+            ID of vehicle to control
+        action_network: ImitatingNetwork
+            Instance of imitating_network class; neural net that gives action given state
+        multiagent: bool
+            boolean indicating if env is multiagent or singleagent
         """
 
         BaseController.__init__(self, veh_id, car_following_params, delay=time_delay, fail_safe=fail_safe, noise=noise)
@@ -25,12 +29,14 @@ class ImitatingController(BaseController):
         self.multiagent = multiagent # whether env is multiagent or singleagent
         self.veh_id = veh_id # vehicle id that controller is controlling
 
+
     def get_accel(self, env):
         """
-        Args:
-            env: instance of environment being used
-
-        Get acceleration for vehicle in the env, using action_network. Overrides superclass method.
+        Get acceleration for vehicle in the environment. Overrides superclass method.
+        Parameters
+        __________
+        env: Gym Env
+            instance of environment being used
         """
         # observation is a dictionary for multiagent envs, list for singleagent envs
         if self.multiagent:

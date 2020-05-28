@@ -13,14 +13,26 @@ from flow.core.rewards import *
 
 def sample_trajectory_singleagent(env, controllers, action_network, max_trajectory_length, use_expert, v_des, max_decel):
     """
-    Samples a trajectory for a given vehicle using the actions prescribed by specified controller.
-    Args:
-        env: environment
-        vehicle_id: id of the vehicle that is being controlled/tracked during trajectory
-        controller: subclass of BaseController, decides actions taken by vehicle
-        expert_controller: subclass of BaseController, "expert" for imitation learning
-        max_trajectory_length: maximum steps in a trajectory
-    Returns:
+    Samples a single trajectory from a singleagent environment.
+    Parameters
+    __________
+    env: gym.Env
+        environment
+    controllers: dict
+        Dictionary of 2-tuples (Imitating_Controller, Expert_Controller), with keys of vehicle_ids
+    action_network: ImitatingNetwork
+        ImitatingNetwork class containing neural net for action prediction
+    max_trajectory_length: int
+        maximum steps in a trajectory
+    use_expert: bool
+        if True, trajectory is collected using expert policy (for behavioral cloning)
+    v_des: float
+        v_des parameter for follower-stopper
+    max_decel: float
+        maximum deceleration of environment. Used to determine dummy values to put as labels when environment has less vehicles than the maximum amount.
+    Returns
+    _______
+    dict
         Dictionary of numpy arrays, where matching indeces of each array given (state, action, expert_action, reward, next_state, terminal) tuples
     """
 
@@ -85,7 +97,7 @@ def sample_trajectory_singleagent(env, controllers, action_network, max_trajecto
 
                 if use_expert:
                     if traj_length == 0 and i == 0:
-                        print("Controller collecing trajectory: ", type(expert))
+                        print("Controller collecting trajectory: ", type(expert))
                     rl_actions.append(expert_action)
                 else:
                     if traj_length == 0 and i == 0:
@@ -130,16 +142,25 @@ def sample_trajectory_singleagent(env, controllers, action_network, max_trajecto
 
 def sample_trajectory_multiagent(env, controllers, action_network, max_trajectory_length, use_expert, v_des):
     """
-    Samples a trajectory for a given set of vehicles using the actions prescribed by specified controller.
+    Samples a single trajectory from a multiagent environment.
 
-    Args:
-        env: environment
-        vehicle_ids: id of the vehicle that is being controlled/tracked during trajectory
-        controllers: subclass of BaseController, decides actions taken by vehicle
-        expert_controllers: subclass of BaseController, "expert" for imitation learning
-        max_trajectory_length: maximum steps in a trajectory
-
-    Returns:
+    Parameters
+    __________
+    env: gym.Env
+        environment
+    controllers: dict
+        Dictionary of 2-tuples (Imitating_Controller, Expert_Controller), with keys of vehicle_ids
+    action_network: ImitatingNetwork
+        ImitatingNetwork class containing neural net for action prediction
+    max_trajectory_length: int
+        maximum steps in a trajectory
+    use_expert: bool
+        if True, trajectory is collected using expert policy (for behavioral cloning)
+    v_des: float
+        v_des parameter for follower-stopper
+    Returns
+    _______
+    dict
         Dictionary of numpy arrays, where matching indeces of each array given (state, action, expert_action, reward, next_state, terminal) tuples
     """
 
@@ -150,8 +171,6 @@ def sample_trajectory_multiagent(env, controllers, action_network, max_trajector
 
     while True:
 
-
-        # vehicle_ids = env.k.vehicle.get_rl_ids() **this doesn't work now due to control range restriction**
         vehicle_ids = list(observation_dict.keys())
         # add nothing to replay buffer if no vehicles
         if len(vehicle_ids) == 0:
@@ -230,19 +249,34 @@ def sample_trajectory_multiagent(env, controllers, action_network, max_trajector
 
 def sample_trajectories(env, controllers, action_network, min_batch_timesteps, max_trajectory_length, multiagent, use_expert, v_des=15, max_decel=4.5):
     """
-    Samples trajectories to collect at least min_batch_timesteps steps in the environment
+    Samples trajectories from environment.
 
-    Args:
-        env: environment
-        vehicle_id: id of vehicle being tracked/controlled
-        controller: subclass of BaseController, decides actions taken by vehicle
-        expert_controller: subclass of BaseController, "expert" for imitation learning
-        min_batch_timesteps: minimum number of environment steps to collect
-        max_trajectory_length: maximum steps in a trajectory
-        v_des: parameter used for follower-stopper (applies if Expert controller is follower-stopper)
+    Parameters
+    __________
+    env: gym.Env
+        environment
+    controllers: dict
+        Dictionary of 2-tuples (Imitating_Controller, Expert_Controller), with keys of vehicle_ids
+    action_network: ImitatingNetwork
+        ImitatingNetwork class containing neural net for action prediction
+    min_batch_timesteps: int
+        minimum number of env transitions to collect
+    max_trajectory_length: int
+        maximum steps in a trajectory
+    multiagent: bool
+        if True, env is a multiagent env
+    use_expert: bool
+        if True, trajectory is collected using expert policy (for behavioral cloning)
+    v_des: float
+        v_des parameter for follower-stopper
+    max_decel: float
+        maximum deceleration of environment. Used to determine dummy values to put as labels when environment has less vehicles than the maximum amount.
 
-    Returns:
-        List of rollout dictionaries, total steps taken by environment
+    Returns
+    _______
+    dict, int
+        Dictionary of trajectory numpy arrays, where matching indeces of each array given (state, action, expert_action, reward, next_state, terminal) tuples
+        Total number of env transitions seen over trajectories
     """
     total_envsteps = 0
     trajectories = []
@@ -262,22 +296,35 @@ def sample_trajectories(env, controllers, action_network, min_batch_timesteps, m
 
 def sample_n_trajectories(env, controllers, action_network, n, max_trajectory_length, multiagent, use_expert, v_des=15, max_decel=4.5):
     """
-    Collects a fixed number of trajectories.
+    Samples n trajectories from environment.
 
-    Args:
-        env: environment
-        vehicle_id: id of vehicle being tracked/controlled
-        controller: subclass of BaseController, decides actions taken by vehicle
-        expert_controller: subclass of BaseController, "expert" for imitation learning
-        n: number of trajectories to collect
-        max_trajectory_length: maximum steps in a trajectory
-        v_des: parameter used for follower-stopper (applies if Expert controller is follower-stopper)
+    Parameters
+    __________
+    env: gym.Env
+        environment
+    controllers: dict
+        Dictionary of 2-tuples (Imitating_Controller, Expert_Controller), with keys of vehicle_ids
+    action_network: ImitatingNetwork
+        ImitatingNetwork class containing neural net for action prediction
+    n: int
+        number of trajectories to collect
+    max_trajectory_length: int
+        maximum steps in a trajectory
+    multiagent: bool
+        if True, env is a multiagent env
+    use_expert: bool
+        if True, trajectory is collected using expert policy (for behavioral cloning)
+    v_des: float
+        v_des parameter for follower-stopper
+    max_decel: float
+        maximum deceleration of environment. Used to determine dummy values to put as labels when environment has less vehicles than the maximum amount.
 
-
-    Returns:
-        List of rollouts (tuple of rollout dictionary, length of rollout)
-
+    Returns
+    _______
+    dict
+        Dictionary of trajectory numpy arrays, where matching indeces of each array given (state, action, expert_action, reward, next_state, terminal) tuples
     """
+
     trajectories = []
     for _ in range(n):
 
@@ -293,7 +340,24 @@ def sample_n_trajectories(env, controllers, action_network, n, max_trajectory_le
 
 def traj_dict(observations, actions, expert_actions, rewards, next_observations, terminals):
     """
-    Collects individual observation, action, expert_action, rewards, next observation, terminal arrays into a single rollout dictionary
+    Collects  observation, action, expert_action, rewards, next observation, terminal lists (collected over a rollout) into a single rollout dictionary.
+    Parameters
+    __________
+    observations: list
+        list of observations; ith entry is ith observation
+    actions: list
+        list of actions; ith entry is action taken at ith timestep
+    rewards: list
+        list of rewards; ith entry is reward received at ith timestep
+    next_observations: list
+        list of next observations; ith entry is the observation transitioned to due to state and action at ith timestep
+    terminals: list
+        list of booleans indicating if rollout ended at that timestep
+
+    Returns
+    _______
+    dict
+        dictionary containing above lists in numpy array form.
     """
     return {"observations" : np.array(observations),
             "actions" : np.array(actions),

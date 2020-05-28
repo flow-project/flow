@@ -8,10 +8,11 @@ def parse_args(args):
     -------
     argparse.Namespace
         the output parser object
+    dict_args
+        dictionary version of the argparse
     """
 
     # train.py args
-
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -23,6 +24,7 @@ def parse_args(args):
         'exp_config', type=str,
         help='Name of the experiment configuration file, as located in '
              'exp_configs/rl/singleagent or exp_configs/rl/multiagent.')
+
 
     parser.add_argument(
         'exp_title', type=str,
@@ -71,26 +73,26 @@ def parse_args(args):
         '--checkpoint_path', type=str, default=None,
         help='Directory with checkpoint to restore training from.')
 
+    # Imitation Learning args
 
+    parser.add_argument('--ep_len', type=int, default=5000, help="Maximum length of episode for imitation learning")
 
-    parser.add_argument('--ep_len', type=int, default=5000)
+    parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1000, help="Number of gradient steps to take per iteration")  # number of gradient steps for training policy
+    parser.add_argument('--n_iter', type=int, default=5, help="Number of iterations of DAgger to perform (1st iteration is behavioral cloning)")
 
-    parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1000)  # number of gradient steps for training policy
-    parser.add_argument('--n_iter', type=int, default=5)
-
-    parser.add_argument('--batch_size', type=int, default=3000)  # training data collected (in the env) during each iteration
+    parser.add_argument('--batch_size', type=int, default=3000, help="")  # training data collected (in the env) during each iteration
     parser.add_argument('--init_batch_size', type=int, default=4000)
 
-    parser.add_argument('--train_batch_size', type=int,
-                        default=100)  # number of sampled data points to be used per gradient/train step
-
+    parser.add_argument('--train_batch_size', type=int, default=100, help="Batch size for training")  # number of sampled data points to be used per gradient/train step
+    parser.add_argument('--tensorboard_path', type=str, help='Path to tensorboard log dir for imitation')
 
     parser.add_argument('--replay_buffer_size', type=int, default=1000000)
-    parser.add_argument('--num_eval_episodes', type=int, default=0)
-    parser.add_argument('--stochastic', type=bool, default=False)
-    parser.add_argument('--multiagent', type=bool, default=False)
-    parser.add_argument('--v_des', type=float, default=15)
-    parser.add_argument('--variance_regularizer', type=float, default=0.5)
+    parser.add_argument('--num_eval_episodes', type=int, default=0, help="Number of episodes to evaluate imitation controller.")
+    parser.add_argument('--stochastic', type=bool, default=False, help="If true, controller learns stochastic policy (multivariate gaussian)")
+    parser.add_argument('--multiagent', type=bool, default=False, help="Whether the env is multiagent")
+    parser.add_argument('--v_des', type=float, default=15, help="v_des for FollowerStopper")
+    parser.add_argument('--variance_regularizer', type=float, default=0.5, help="Regularization parameter to penalize high variance in negative log likelihood loss")
+
 
     parsed_args = parser.parse_known_args(args)[0]
     dict_args = vars(parsed_args)
@@ -102,28 +104,24 @@ def parse_args(args):
 
 
 def main(args):
-    """
-    Parse args, run training, and evalutation
-    """
-    flags, params = parse_args(args)
-    params["fcnet_hiddens"] = [32, 32, 32]
 
-    # change this to determine number and size of hidden layers
+    # Parse args, train imitation learning
+
+    flags, params = parse_args(args)
     params["fcnet_hiddens"] = [32, 32, 32]
 
     assert flags.n_iter>1, ('DAgger needs >1 iteration')
 
-
+    print("\n\n********** IMITATION LEARNING ************ \n")
     # run training
     imitation_runner = Runner(params)
     imitation_runner.run_training_loop()
 
-    # save model after training
+    # convert model to work for PPO and save for training
     imitation_runner.save_controller_for_PPO()
 
-    ### IMITATION DONE
-
-
+    # Imitation Done, start RL
+    print("\n\n********** RL ************ \n")
 
     # Import relevant information from the exp_config script.
     module = __import__(
@@ -157,8 +155,6 @@ def main(args):
     else:
         raise ValueError("rl_trainer should be either 'rllib', 'h-baselines', "
                          "or 'stable-baselines'.")
-
-
 
 if __name__ == "__main__":
     main(sys.argv[1:])

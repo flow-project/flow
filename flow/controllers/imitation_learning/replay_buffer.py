@@ -26,6 +26,12 @@ class ReplayBuffer(object):
     def add_rollouts(self, rollouts_list):
         """
         Add a list of rollouts to the replay buffer
+
+        Parameters
+        __________
+        rollouts_list: list
+            list of rollout dictionaries
+
         """
 
         for rollout in rollouts_list:
@@ -53,10 +59,18 @@ class ReplayBuffer(object):
 
     def sample_batch(self, batch_size):
         """
-            Sample a batch of data (with size batch_size) from replay buffer.
-            Returns data in separate numpy arrays of observations, actions, rewards, next_observations, terminals
+        Sample a batch of data (with size batch_size) from replay buffer.
+
+        Parameters
+        ----------
+        batch_size: int
+            size of batch to sample
+
+        Returns
+        _______
+        Data in separate numpy arrays of observations, actions, and expert actionis
         """
-        assert self.observations is not None and self.actions is not None and self.expert_actions is not None and self.rewards is not None and self.next_observations is not None and self.terminals is not None
+        assert self.observations is not None and self.actions is not None and self.expert_actions is not None
 
         size = len(self.observations)
         rand_inds = np.random.randint(0, size, batch_size)
@@ -66,9 +80,15 @@ class ReplayBuffer(object):
 
     def unpack_rollouts(self, rollouts_list):
         """
-            Convert list of rollout dictionaries to individual observation, action, rewards, next observation, terminal arrays
-            rollouts: list of rollout dictionaries, rollout dictionary: dictionary with keys "observations", "actions", "rewards", "next_observations", "is_terminals"
-            return separate np arrays of observations, actions, rewards, next_observations, and is_terminals
+        Convert list of rollout dictionaries to individual observation, action, rewards, next observation, terminal arrays
+        Parameters
+        ----------
+        rollouts: list
+            list of rollout dictionaries
+
+        Returns
+        ----------
+        separate numpy arrays of observations, actions, rewards, next_observations, and is_terminals
         """
         observations = np.concatenate([rollout["observations"] for rollout in rollouts_list])
         actions = np.concatenate([rollout["actions"] for rollout in rollouts_list])

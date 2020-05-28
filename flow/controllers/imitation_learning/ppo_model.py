@@ -8,11 +8,26 @@ import tensorflow as tf
 
 class PPONetwork(TFModelV2):
     """
-    Custom RLLib PPOModel (using tensorflow keras) to load weights from a pretained policy model (e.g. from imitation learning) and start RL training with loaded weights.
-    Subclass of TFModelV2
+    Custom RLLib PPOModel (using tensorflow keras) to load weights from a pre-trained policy model (e.g. from imitation learning) and start RL training with loaded weights.
+    Subclass of TFModelV2. See https://docs.ray.io/en/master/rllib-models.html.
     """
 
     def __init__(self, obs_space, action_space, num_outputs, model_config, name):
+        """
+        Parameters
+        __________
+        obs_space: gym.Space
+            observation space of gym environment
+        action_space: gym.Space
+            action_space of gym environment
+        num_outputs: int
+            number of outputs for policy network. For deterministic policies, this is dimension of the action space. For continuous stochastic policies, this is 2 * dimension of the action space
+        model_config: dict
+            configuration of model
+        name: str
+            name of model
+
+        """
 
         super(PPONetwork, self).__init__(obs_space, action_space, num_outputs, model_config, name)
 
@@ -28,12 +43,19 @@ class PPONetwork(TFModelV2):
     def setup_model(self, obs_space, action_space, model_config, num_outputs, imitation_h5_path):
         """
         Loads/builds model for both policy and value function
-        Args:
-             obs_space: observation space of env
-             action_space: action space of env
-             model_config: configuration parameters for model
-             num_outputs: number of outputs expected for policy
-             imitation_h5_path: path to h5 file containing weights of a pretrained network (empty string if no such file)
+        Parameters
+        __________
+
+        obs_space: gym.Space
+            observation space of env
+        action_space: gym.Space
+            action space of env
+        model_config: dict
+            configuration parameters for model
+        num_outputs: int
+            number of outputs expected for policy
+        imitation_h5_path: str
+            path to h5 file containing weights of a pretrained network (empty string if no such file)
         """
 
         if imitation_h5_path:
@@ -77,7 +99,20 @@ class PPONetwork(TFModelV2):
 
     def forward(self, input_dict, state, seq_lens):
         """
-            Overrides parent class's method. Used to pass a input through model and get policy/vf output.
+        Overrides parent class's method. Used to pass a input through model and get policy/vf output.
+        Parameters
+        __________
+        input_dict: dict
+            dictionary of input tensors, including “obs”, “obs_flat”, “prev_action”, “prev_reward”, “is_training”
+        state: list
+            list of state tensors with sizes matching those returned by get_initial_state + the batch dimension
+        seq_lens: tensor
+            1d tensor holding input sequence lengths
+
+        Returns
+        _______
+        (outputs, state)
+            Tuple, first element is policy output, second element state
         """
 
         policy_out, value_out = self.base_model(input_dict["obs_flat"])
@@ -86,9 +121,21 @@ class PPONetwork(TFModelV2):
 
     def value_function(self):
         """
-            Overrides parent class's method. Get value function method.
+        Returns the value function output for the most recent forward pass.
+
+        Returns
+        _______
+        tensor
+            value estimate tensor of shape [BATCH].
         """
         return tf.reshape(self.value_out, [-1])
 
     def import_from_h5(self, import_file):
+        """
+        Overrides parent class method. Import base_model from h5 import_file.
+        Parameters:
+         __________
+        import_file: str
+            filepath to h5 file
+        """
         self.setup_model(self, self.obs_space, self.action_space, self.model_config, self.num_outputs, import_file)
