@@ -33,8 +33,10 @@ class BaseController:
         specified to in this model are as desired.
     delay : int
         delay in applying the action (time)
-    fail_safe : str
-        Should be either "instantaneous" or "safe_velocity"
+    fail_safe : list of str or str
+        List of failsafes which can be "instantaneous", "safe_velocity",
+        "feasible_accel", or "obey_speed_limit". The order of applying the
+        falsafes will be based on the order in the list.
     noise : double
         variance of the gaussian from which to sample a noisy acceleration
     """
@@ -55,7 +57,18 @@ class BaseController:
         self.delay = delay
 
         # longitudinal failsafe used by the vehicle
-        self.fail_safe = fail_safe
+        if isinstance(fail_safe, str):
+            self.fail_safe = [fail_safe]
+        elif isinstance(fail_safe, list) or fail_safe is None:
+            self.fail_safe = fail_safe
+        else:
+            print(
+                "==========================================================\n"
+                "WARNING: fail_safe should be string or list of strings. \n"
+                "Set fal_safe to None\n"
+                "==========================================================\n"
+            )
+            self.fail_safe = None
 
         self.max_accel = car_following_params.controller_params['accel']
         # max deaccel should always be a positive
@@ -75,8 +88,8 @@ class BaseController:
         time step.
 
         This method also augments the controller with the desired level of
-        stochastic noise, and utlizes the "instantaneous" or "safe_velocity"
-        failsafes if requested.
+        stochastic noise, and utlizes the "instantaneous", "safe_velocity",
+        "feasible_accel", and/or "obey_speed_limit" failsafes if requested.
 
         Parameters
         ----------
@@ -88,8 +101,11 @@ class BaseController:
         float
             the modified form of the acceleration
         """
-        # clear the current stored accel_without_noise of this vehicle None
-        env.k.vehicle.update_accel_without_noise(self.veh_id, None)
+        # clear the current stored accel_no_noise_no_failsafe of this vehicle None
+        env.k.vehicle.update_accel_no_noise_no_failsafe(self.veh_id, None)
+        env.k.vehicle.update_accel_no_noise_with_failsafe(self.veh_id, None)
+        env.k.vehicle.update_accel_with_noise_no_failsafe(self.veh_id, None)
+        env.k.vehicle.update_accel_with_noise_with_failsafe(self.veh_id, None)
 
         # this is to avoid abrupt decelerations when a vehicle has just entered
         # a network and it's data is still not subscribed
@@ -110,23 +126,40 @@ class BaseController:
 
         # store the acceleration without noise to each vehicle
         # run fail safe if requested
-        accel_without_noise = accel
-        if self.fail_safe == 'instantaneous':
-            accel_without_noise = self.get_safe_action_instantaneous(env, accel_without_noise)
-        elif self.fail_safe == 'safe_velocity':
-            accel_without_noise = self.get_safe_velocity_action(env, accel_without_noise)
-        env.k.vehicle.update_accel_without_noise(self.veh_id, accel_without_noise)
+        env.k.vehicle.update_accel_no_noise_no_failsafe(self.veh_id, accel)
+        accel_no_noise_with_failsafe = accel
+
+        if self.fail_safe is not None:
+            for check in self.fail_safe:
+                if check == 'instantaneous':
+                    accel_no_noise_with_failsafe = self.get_safe_action_instantaneous(env, accel_no_noise_with_failsafe)
+                elif check == 'safe_velocity':
+                    accel_no_noise_with_failsafe = self.get_safe_velocity_action(env, accel_no_noise_with_failsafe)
+                elif check == 'feasible_accel':
+                    accel_no_noise_with_failsafe = self.get_feasible_action(accel_no_noise_with_failsafe)
+                elif check == 'obey_speed_limit':
+                    accel_no_noise_with_failsafe = self.get_obey_speed_limit_action(env, accel_no_noise_with_failsafe)
+
+        env.k.vehicle.update_accel_no_noise_with_failsafe(self.veh_id, accel_no_noise_with_failsafe)
 
         # add noise to the accelerations, if requested
         if self.accel_noise > 0:
             accel += np.sqrt(env.sim_step) * np.random.normal(0, self.accel_noise)
+        env.k.vehicle.update_accel_with_noise_no_failsafe(self.veh_id, accel)
 
         # run the fail-safes, if requested
-        if self.fail_safe == 'instantaneous':
-            accel = self.get_safe_action_instantaneous(env, accel)
-        elif self.fail_safe == 'safe_velocity':
-            accel = self.get_safe_velocity_action(env, accel)
+        if self.fail_safe is not None:
+            for check in self.fail_safe:
+                if check == 'instantaneous':
+                    accel = self.get_safe_action_instantaneous(env, accel)
+                elif check == 'safe_velocity':
+                    accel = self.get_safe_velocity_action(env, accel)
+                elif check == 'feasible_accel':
+                    accel = self.get_feasible_action(accel)
+                elif check == 'obey_speed_limit':
+                    accel = self.get_obey_speed_limit_action(env, accel)
 
+        env.k.vehicle.update_accel_with_noise_with_failsafe(self.veh_id, accel)
         return accel
 
     def get_safe_action_instantaneous(self, env, action):
@@ -172,6 +205,12 @@ class BaseController:
                 # if the vehicle will crash into the vehicle ahead of it in the
                 # next time step (assuming the vehicle ahead of it is not
                 # moving), then stop immediately
+                print(
+                    "=====================================\n"
+                    "Vehicle {} is about to crash. Instantaneous acceleration "
+                    "clipping applied.\n"
+                    "=====================================".format(self.veh_id))
+
                 return -this_vel / sim_step
             else:
                 # if the vehicle is not in danger of crashing, continue with
@@ -233,8 +272,8 @@ class BaseController:
         Returns
         -------
         float
-            maximum safe velocity given a maximum deceleration and delay in
-            performing the breaking action
+            maximum safe velocity given a maximum deceleration, delay in
+            performing the breaking action, and speed limit
         """
         lead_id = env.k.vehicle.get_leader(self.veh_id)
         lead_vel = env.k.vehicle.get_speed(lead_id)
@@ -245,4 +284,93 @@ class BaseController:
 
         v_safe = 2 * h / env.sim_step + dv - this_vel * (2 * self.delay)
 
+        # check for speed limit
+        this_edge = env.k.vehicle.get_edge(self.veh_id)
+        edge_speed_limit = env.k.network.speed_limit(this_edge)
+
+        if this_vel > v_safe:
+            print(
+                "=====================================\n"
+                "Speed of vehicle {} is greater than safe speed. Safe velocity "
+                "clipping applied.\n"
+                "=====================================".format(self.veh_id))
+
         return v_safe
+
+    def get_obey_speed_limit_action(self, env, action):
+        """Perform the "obey_speed_limit" failsafe action.
+
+        Checks if the computed acceleration would put us above edge speed limit.
+        If it would, output the acceleration that would put at the speed limit
+        velocity.
+
+        Parameters
+        ----------
+        env : flow.envs.Env
+            current environment, which contains information of the state of the
+            network at the current time step
+        action : float
+            requested acceleration action
+
+        Returns
+        -------
+        float
+            the requested action clipped by the speed limit
+        """
+        # check for speed limit
+        this_edge = env.k.vehicle.get_edge(self.veh_id)
+        edge_speed_limit = env.k.network.speed_limit(this_edge)
+
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
+        sim_step = env.sim_step
+
+        if this_vel + action * sim_step > edge_speed_limit:
+            if edge_speed_limit > 0:
+                print(
+                    "=====================================\n"
+                    "Speed of vehicle {} is greater than speed limit. Obey "
+                    "speed limit clipping applied.\n"
+                    "=====================================".format(self.veh_id))
+                return (edge_speed_limit - this_vel) / sim_step
+            else:
+                return -this_vel / sim_step
+        else:
+            return action
+
+    def get_feasible_action(self, action):
+        """Perform the "feasible_accel" failsafe action.
+
+        Checks if the computed acceleration would put us above maximum
+        acceleration or deceleration. If it would, output the acceleration
+        equal to maximum acceleration or deceleration.
+
+        Parameters
+        ----------
+        action : float
+            requested acceleration action
+
+        Returns
+        -------
+        float
+            the requested action clipped by the feasible acceleration or
+            deceleration.
+        """
+        if action > self.max_accel:
+            action = self.max_accel
+
+            print(
+                "=====================================\n"
+                "Acceleration of vehicle {} is greater than the max "
+                "acceleration. Feasible acceleration clipping applied.\n"
+                "=====================================".format(self.veh_id))
+
+        if action < -self.max_deaccel:
+            action = -self.max_deaccel
+
+            print(
+                "=====================================\n"
+                "Deceleration of vehicle {} is greater than the max "
+                "deceleration. Feasible acceleration clipping applied.\n"
+                "=====================================".format(self.veh_id))
+
+        return action

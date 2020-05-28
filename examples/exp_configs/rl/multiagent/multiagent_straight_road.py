@@ -6,13 +6,12 @@ highway with ramps network.
 from flow.controllers import RLController, IDMController
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
                              VehicleParams, SumoParams, SumoLaneChangeParams, SumoCarFollowingParams
-from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.networks import HighwayNetwork
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.envs.multiagent import MultiStraightRoad
 from flow.networks.highway import ADDITIONAL_NET_PARAMS
 from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
-
 
 # SET UP PARAMETERS FOR THE SIMULATION
 
@@ -23,7 +22,7 @@ END_SPEED = 6.0
 # the inflow rate of vehicles
 HIGHWAY_INFLOW_RATE = 2215
 # the simulation time horizon (in steps)
-HORIZON = 1500
+HORIZON = 1000
 # whether to include noise in the car-following models
 INCLUDE_NOISE = True
 
@@ -54,12 +53,42 @@ additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
 additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
-    'target_velocity': 18,
+    'target_velocity': 6.0,
     'local_reward': True,
     'lead_obs': True,
+    'control_range': [500, 2300],
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": True,
-    "control_range": [500, 2300]
+    # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
+    "mpg_reward": False,
+    # whether to use the joules reward. Otherwise, defaults to a target velocity reward
+    "mpj_reward": False,
+    # how many vehicles to look back for the MPG reward
+    "look_back_length": 3,
+    # how many AVs there can be at once (this is only for centralized critics)
+    "max_num_agents": 10,
+
+    # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
+    "headway_curriculum": False,
+    # how many timesteps to anneal the headway curriculum over
+    "headway_curriculum_iters": 100,
+    # weight of the headway reward
+    "headway_reward_gain": 2.0,
+    # desired time headway
+    "min_time_headway": 2.0,
+
+    # whether to add a slight reward for traveling at a desired speed
+    "speed_curriculum": True,
+    # how many timesteps to anneal the headway curriculum over
+    "speed_curriculum_iters": 20,
+    # weight of the headway reward
+    "speed_reward_gain": 1.0,
+
+    # penalize stopped vehicles
+    "penalize_stops": True,
+
+    # penalize accels
+    "penalize_accel": True
 })
 
 
@@ -67,8 +96,6 @@ additional_env_params.update({
 
 vehicles = VehicleParams()
 inflows = InFlows()
-
-# human vehicles
 vehicles.add(
     "human",
     acceleration_controller=(IDMController, {
@@ -97,7 +124,7 @@ inflows.add(
     edge="highway_0",
     vehs_per_hour=int(HIGHWAY_INFLOW_RATE * (1 - PENETRATION_RATE / 100)),
     depart_lane="free",
-    depart_speed="23.0",
+    depart_speed=TRAFFIC_SPEED,
     name="idm_highway_inflow")
 
 # add autonomous vehicles on the highway
@@ -107,13 +134,13 @@ inflows.add(
     edge="highway_0",
     vehs_per_hour=int(HIGHWAY_INFLOW_RATE * (PENETRATION_RATE / 100)),
     depart_lane="free",
-    depart_speed="23.0",
+    depart_speed=TRAFFIC_SPEED,
     name="rl_highway_inflow")
 
 # SET UP FLOW PARAMETERS
 warmup_steps = 0
 if additional_env_params['reroute_on_exit']:
-    warmup_steps = 400
+    warmup_steps = 500
 
 flow_params = dict(
     # name of the experiment
@@ -132,16 +159,16 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         warmup_steps=warmup_steps,
-        sims_per_step=1,  # do not put more than one
-        additional_params=additional_env_params,
+        sims_per_step=3,
+        additional_params=additional_env_params
     ),
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
-        sim_step=0.5,
+        sim_step=0.4,
         render=False,
-        use_ballistic=True,
-        restart_instance=True
+        restart_instance=True,
+        use_ballistic=True
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

@@ -39,8 +39,8 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: c4.4xlarge
-    ImageId: ami-0b489700e7f810707 # Flow AMI (Ubuntu)
+    InstanceType: c4.8xlarge
+    ImageId: ami-0c047f3ddd3939b30 # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -54,10 +54,10 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
-    InstanceType: c4.4xlarge
-    ImageId: ami-0b489700e7f810707 # Flow AMI (Ubuntu)
+    InstanceType: c4.8xlarge
+    ImageId: ami-0c047f3ddd3939b30 # Flow AMI (Ubuntu)
 
-    #Run workers on spot by default. Comment this out to use on-demand.
+  #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
         MarketType: spot
          # Additional options can be found in the boto docs, e.g.
@@ -67,7 +67,8 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands:
-    - cd flow && git fetch && git checkout origin/akash-dagger
+    - cd flow && git fetch && git checkout origin/flow_maddpg
+    - flow/scripts/setup_sumo_ubuntu1604.sh
     - pip install ray==0.8.0
     - pip install tabulate
     - pip install boto3==1.10.45  # 1.4.8 adds InstanceMarketOptions
@@ -79,7 +80,6 @@ setup_commands:
     - pip install lz4
     - pip install dm-tree
     - pip install numpy==1.18.4
-    - ./flow/scripts/setup_sumo_ubuntu1604.sh
 
 head_setup_commands: []
 

@@ -124,6 +124,23 @@ class KernelVehicle(object):
     def apply_acceleration(self, veh_id, acc):
         """Apply the acceleration requested by a vehicle in the simulator.
 
+        In SUMO, this function applies slowDown method which applies smoothing.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            list of vehicle identifiers
+        acc : float or array_like
+            requested accelerations from the vehicles
+        """
+        raise NotImplementedError
+
+    def apply_acceleration_not_smooth(self, veh_id, acc):
+        """Apply the acceleration requested by a vehicle in the simulator.
+
+        In SUMO, this function applies setSpeed method which doesn't apply
+        smoothing.
+
         Parameters
         ----------
         veh_id : str or list of str
@@ -306,6 +323,7 @@ class KernelVehicle(object):
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
+
         Returns
         -------
         float
@@ -693,16 +711,40 @@ class KernelVehicle(object):
         """Return the acceleration of vehicle with veh_id."""
         raise NotImplementedError
 
-    def update_accel_without_noise(self, veh_id, accel_without_noise):
-        """Update stored acceleration without noise of vehicle with veh_id."""
+    def update_accel_no_noise_no_failsafe(self, veh_id, accel_no_noise_no_failsafe):
+        """Update stored acceleration without noise without failsafe of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def update_accel_no_noise_with_failsafe(self, veh_id, accel_no_noise_with_failsafe):
+        """Update stored acceleration without noise with failsafe of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def update_accel_with_noise_no_failsafe(self, veh_id, accel_with_noise_no_failsafe):
+        """Update stored acceleration with noise without failsafe of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def update_accel_with_noise_with_failsafe(self, veh_id, accel_with_noise_with_failsafe):
+        """Update stored acceleration with noise with failsafe of vehicle with veh_id."""
         raise NotImplementedError
 
     def get_2d_position(self, veh_id, error=-1001):
         """Return (x, y) position of vehicle with veh_id."""
         raise NotImplementedError
 
-    def get_accel_without_noise(self, veh_id):
-        """Return the acceleration without noise of vehicle with veh_id."""
+    def get_accel_no_noise_no_failsafe(self, veh_id):
+        """Return the acceleration without noise without failsafe of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def get_accel_no_noise_with_failsafe(self, veh_id):
+        """Return the acceleration without noise with failsafe of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def get_accel_with_noise_no_failsafe(self, veh_id):
+        """Return the acceleration with noise without failsafe of vehicle with veh_id."""
+        raise NotImplementedError
+
+    def get_accel_with_noise_with_failsafe(self, veh_id):
+        """Return the acceleration with noise with failsafe of vehicle with veh_id."""
         raise NotImplementedError
 
     def get_realized_accel(self, veh_id):
