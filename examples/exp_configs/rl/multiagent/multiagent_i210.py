@@ -59,7 +59,7 @@ additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
     # configure the observation space. Look at the I210MultiEnv class for more info.
-    'lead_obs': False,
+    'lead_obs': True,
     # whether to add in a reward for the speed of nearby vehicles
     "local_reward": True,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
@@ -69,8 +69,8 @@ additional_env_params.update({
     # how many vehicles to look back for the MPG reward
     "look_back_length": 1,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": True,
-    'target_velocity': 8.0,
+    "reroute_on_exit": False,
+    'target_velocity': 5.0,
     # how many AVs there can be at once (this is only for centralized critics)
     "max_num_agents": 10,
     # which edges we shouldn't apply control on
@@ -93,9 +93,11 @@ additional_env_params.update({
     "speed_reward_gain": 0.5,
     # penalize stopped vehicles
     "penalize_stops": True,
+    "stop_penalty": 0.05,
 
     # penalize accels
-    "penalize_accel": True
+    "penalize_accel": True,
+    "accel_penalty": 0.05
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS

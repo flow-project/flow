@@ -97,9 +97,11 @@ class I210MultiEnv(MultiEnv):
 
         # penalize stops
         self.penalize_stops = env_params.additional_params["penalize_stops"]
+        self.stop_penalty = env_params.additional_params["stop_penalty"]
 
         # penalize accel
         self.penalize_accel = env_params.additional_params.get("penalize_accel", False)
+        self.accel_penalty = env_params.additional_params["accel_penalty"]
 
     @property
     def observation_space(self):
@@ -222,16 +224,18 @@ class I210MultiEnv(MultiEnv):
                             else:
                                 break
                     else:
-                        speeds = []
-                        follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
-                        if follow_speed >= 0:
-                            speeds.append(follow_speed)
-                        if self.k.vehicle.get_speed(rl_id) >= 0:
-                            speeds.append(self.k.vehicle.get_speed(rl_id))
-                        if len(speeds) > 0:
-                            # rescale so the critic can estimate it quickly
-                            rewards[rl_id] = np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
-                                                      for speed in speeds]) / (des_speed ** 2)
+                        follow_id = rl_id
+                        rewards[rl_id] = ((des_speed - np.abs(self.k.vehicle.get_speed(rl_id)
+                                                              - des_speed))) ** 2 / ((des_speed ** 2) * self.look_back_length)
+
+                        for i in range(self.look_back_length):
+                            follow_id = self.k.vehicle.get_follower(follow_id)
+                            if follow_id not in ["", None]:
+
+                                follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(follow_id))
+                                rewards[rl_id] += ((des_speed - np.abs(follow_speed
+                                                              - des_speed))) ** 2 / ((des_speed ** 2) * self.look_back_length)
+
         else:
             if self.mpg_reward:
                 reward = np.nan_to_num(miles_per_gallon(self, self.k.vehicle.get_ids(), gain=1.0)) / 100.0
@@ -293,11 +297,11 @@ class I210MultiEnv(MultiEnv):
             speed = self.k.vehicle.get_speed(veh_id)
             if self.penalize_stops:
                 if speed < 1.0:
-                    rewards[veh_id] -= .01
+                    rewards[veh_id] -= self.stop_penalty
             if self.penalize_accel and veh_id in self.k.vehicle.previous_speeds:
                 prev_speed = self.k.vehicle.get_previous_speed(veh_id)
                 abs_accel = abs(speed - prev_speed) / self.sim_step
-                rewards[veh_id] -= abs_accel / 400.0
+                rewards[veh_id] -= abs_accel * self.accel_penalty
 
         # print('time to get reward is ', time() - t)
         return rewards
