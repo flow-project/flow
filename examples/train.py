@@ -127,7 +127,6 @@ def run_model_stablebaseline(flow_params,
     stable_baselines.*
         the trained model
     """
-
     if num_cpus == 1:
         constructor = env_constructor(params=flow_params, version=0)()
         # The algorithms require a vectorized environment to run
@@ -469,7 +468,6 @@ def train_h_baselines(flow_params, args, multiagent):
 
 def train_stable_baselines(submodule, flags):
     """Train policies using the PPO algorithm in stable-baselines."""
-
     flow_params = submodule.flow_params
     # Path to the saved files
     exp_tag = flow_params['exp_tag']
