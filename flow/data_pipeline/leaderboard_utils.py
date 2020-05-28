@@ -145,8 +145,7 @@ def get_metadata(name, bucket="circles.data.pipeline"):
     """
     s3 = boto3.client("s3")
     name_list = name.split('_')
-    source_id = "flow_{}".format(name_list[2])
     response = s3.head_object(Bucket=bucket,
                               Key="fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv".format(name_list[0],
-                                                                                                   source_id))
+                                                                                                  name_list[1]))
     return response["Metadata"]
