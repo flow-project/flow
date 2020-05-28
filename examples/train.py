@@ -262,7 +262,9 @@ def setup_exps_rllib(flow_params,
         episode.user_data["avg_energy"] = []
         episode.user_data["avg_mpg"] = []
         episode.user_data["avg_mpj"] = []
-        episode.user_data["num_avs"] = []
+        episode.user_data["num_cars"] = []
+        episode.user_data["avg_accel_human"] = []
+        episode.user_data["avg_accel_avs"] = []
 
 
     def on_episode_step(info):
@@ -290,6 +292,14 @@ def setup_exps_rllib(flow_params,
         episode.user_data["avg_mpg"].append(miles_per_gallon(env, veh_ids, gain=1.0))
         episode.user_data["avg_mpj"].append(miles_per_megajoule(env, veh_ids, gain=1.0))
         episode.user_data["num_cars"].append(len(env.k.vehicle.get_ids()))
+        episode.user_data["avg_accel_human"].append(np.nan_to_num(np.mean(
+            [np.abs((env.k.vehicle.get_speed(veh_id) - env.k.vehicle.get_previous_speed(veh_id))/env.sim_step) for
+             veh_id in veh_ids if veh_id in env.k.vehicle.previous_speeds.keys()]
+        )))
+        episode.user_data["avg_accel_avs"].append(np.nan_to_num(np.mean(
+            [np.abs((env.k.vehicle.get_speed(veh_id) - env.k.vehicle.get_previous_speed(veh_id))/env.sim_step) for
+             veh_id in rl_ids if veh_id in env.k.vehicle.previous_speeds.keys()]
+        )))
 
 
     def on_episode_end(info):

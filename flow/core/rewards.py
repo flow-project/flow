@@ -322,7 +322,7 @@ def energy_consumption(env, gain=.001):
     rho = 1.225  # air density (kg/m^3)
     A = 2.6  # vehicle cross sectional area (m^2)
     for veh_id in env.k.vehicle.get_ids():
-        if veh_id not in env.k.vehicle.previous_speeds:
+        if veh_id not in env.k.vehicle.previous_speeds.keys():
             continue
         speed = env.k.vehicle.get_speed(veh_id)
         prev_speed = env.k.vehicle.get_previous_speed(veh_id)
