@@ -221,8 +221,16 @@ class AthenaQuery:
         self.existing_partitions[table].append("date={}/partition_name={}".format(query_date, partition))
         return
 
+    def repair_partition(self, table, query_date, partition):
+        """Load the missing partitions."""
+        if table not in self.existing_partitions.keys():
+            self.existing_partitions[table] = self.get_existing_partitions(table)
+        if "date={}/partition_name={}".format(query_date, partition) not in \
+                self.existing_partitions[table]:
+            self.update_partition(table, query_date, partition)
+
     def run_query(self, query_name, result_location="s3://circles.data.pipeline/result/",
-                  query_date="today", partition="default", primary_table=""):
+                  query_date="today", partition="default"):
         """Start the execution of a query, does not wait for it to finish.
 
         Parameters
@@ -235,8 +243,6 @@ class AthenaQuery:
             name of the partition date to run this query on
         partition: str, optional
             name of the partition to run this query on
-        primary_table: str
-            the table whose partition that may need update
         Returns
         -------
         execution_id: str
@@ -252,13 +258,6 @@ class AthenaQuery:
             query_date = date.today().isoformat()
 
         source_id = "flow_{}".format(partition.split('_')[1])
-
-        if primary_table:
-            if primary_table not in self.existing_partitions.keys():
-                self.existing_partitions[primary_table] = self.get_existing_partitions(primary_table)
-            if "date={}/partition_name={}".format(query_date, partition) not in \
-                    self.existing_partitions[primary_table]:
-                self.update_partition(primary_table, query_date, partition)
 
         response = self.client.start_query_execution(
             QueryString=QueryStrings[query_name].value.format(date=query_date, partition=source_id),
