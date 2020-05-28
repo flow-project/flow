@@ -280,6 +280,7 @@ class QueryStrings(Enum):
         FULL OUTER JOIN outflows o ON 1 = 1
             AND i.time_step = o.time_step 
             AND i.source_id = o.source_id 
+        ORDER BY time_step
         ;"""
 
     FACT_NETWORK_METRICS_BY_DISTANCE_AGG = """
@@ -388,6 +389,7 @@ class QueryStrings(Enum):
         FULL OUTER JOIN binned_energy be ON 1 = 1
             AND COALESCE(bce.source_id, bsa.source_id) = be.source_id
             AND COALESCE(bce.distance_meters_bin, bce.distance_meters_bin) = be.distance_meters_bin
+        ORDER BY distance_meters_bin ASC
         ;"""
 
     FACT_NETWORK_METRICS_BY_TIME_AGG = """
@@ -495,4 +497,5 @@ class QueryStrings(Enum):
         FULL OUTER JOIN binned_energy be ON 1 = 1
             AND COALESCE(bce.source_id, bsa.source_id) = be.source_id
             AND COALESCE(bce.time_seconds_bin, bce.time_seconds_bin) = be.time_seconds_bin
+        ORDER BY time_seconds_bin ASC
         ;"""
