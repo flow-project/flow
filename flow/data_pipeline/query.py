@@ -12,12 +12,14 @@ tags = {"fact_vehicle_trace": {"fact_energy_trace": ["POWER_DEMAND_MODEL", "POWE
                                                   ["FACT_NETWORK_METRICS_BY_DISTANCE_AGG"],
                                               "fact_network_metrics_by_time_agg": ["FACT_NETWORK_METRICS_BY_TIME_AGG"]},
         "fact_vehicle_fuel_efficiency_agg": {"fact_network_fuel_efficiency_agg": ["FACT_NETWORK_FUEL_EFFICIENCY_AGG"]},
-        "fact_network_fuel_efficiency_agg": {"leaderboard_chart": ["LEADERBOARD_CHART"]}
+        "fact_network_fuel_efficiency_agg": {"leaderboard_chart": ["LEADERBOARD_CHART"]},
+        "leaderboard_chart": {"leaderboard_chart_agg": ["LEADERBOARD_CHART_AGG"]}
         }
 
 tables = ["fact_vehicle_trace", "fact_energy_trace", "fact_network_throughput_agg", "fact_network_inflows_outflows",
           "fact_vehicle_fuel_efficiency_agg", "fact_network_metrics_by_distance_agg",
-          "fact_network_metrics_by_time_agg", "fact_network_fuel_efficiency_agg", "leaderboard_chart"]
+          "fact_network_metrics_by_time_agg", "fact_network_fuel_efficiency_agg", "leaderboard_chart",
+          "leaderboard_chart_agg"]
 
 VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT = """
     SELECT
@@ -343,9 +345,9 @@ class QueryStrings(Enum):
                 AVG(speed) AS speed_avg,
                 AVG(speed) + STDDEV(speed) AS speed_upper_bound,
                 AVG(speed) - STDDEV(speed) AS speed_lower_bound,
-                AVG(accel_without_noise) AS accel_avg,
-                AVG(accel_without_noise) + STDDEV(accel_without_noise) AS accel_upper_bound,
-                AVG(accel_without_noise) - STDDEV(accel_without_noise) AS accel_lower_bound
+                AVG(target_accel_no_noise_with_failsafe) AS accel_avg,
+                AVG(target_accel_no_noise_with_failsafe) + STDDEV(target_accel_no_noise_with_failsafe) AS accel_upper_bound,
+                AVG(target_accel_no_noise_with_failsafe) - STDDEV(target_accel_no_noise_with_failsafe) AS accel_lower_bound
             FROM fact_vehicle_trace
             WHERE 1 = 1
                 AND date =  \'{date}\'
@@ -405,10 +407,11 @@ class QueryStrings(Enum):
                 vt.x,
                 energy_model_id,
                 vt.time_step - LAG(vt.time_step, 1)
-                    OVER (PARTITION BY vt.id ORDER BY vt.time_step ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) AS sim_step,
+                    OVER (PARTITION BY vt.id ORDER BY vt.time_step ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) 
+                        AS sim_step,
                 SUM(power)
-                    OVER (PARTITION BY vt.id ORDER BY vt.time_step ASC ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS
-                     cumulative_power
+                    OVER (PARTITION BY vt.id ORDER BY vt.time_step ASC ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) 
+                        AS cumulative_power
             FROM fact_vehicle_trace vt 
             JOIN fact_energy_trace et ON 1 = 1
                 AND vt.date = \'{date}\'
@@ -451,9 +454,11 @@ class QueryStrings(Enum):
                 AVG(speed) AS speed_avg,
                 AVG(speed) + STDDEV(speed) AS speed_upper_bound,
                 AVG(speed) - STDDEV(speed) AS speed_lower_bound,
-                AVG(accel_without_noise) AS accel_avg,
-                AVG(accel_without_noise) + STDDEV(accel_without_noise) AS accel_upper_bound,
-                AVG(accel_without_noise) - STDDEV(accel_without_noise) AS accel_lower_bound
+                AVG(target_accel_no_noise_with_failsafe) AS accel_avg,
+                AVG(target_accel_no_noise_with_failsafe) + STDDEV(target_accel_no_noise_with_failsafe) 
+                    AS accel_upper_bound,
+                AVG(target_accel_no_noise_with_failsafe) - STDDEV(target_accel_no_noise_with_failsafe) 
+                    AS accel_lower_bound
             FROM fact_vehicle_trace
             WHERE 1 = 1
                 AND date =  \'{date}\'
@@ -466,8 +471,10 @@ class QueryStrings(Enum):
                 source_id,
                 id,
                 CAST(time_step/60 AS INTEGER) * 60 AS time_seconds_bin,
-                FIRST_VALUE(energy_joules) OVER (PARTITION BY id, CAST(x/10 AS INTEGER) * 10 ORDER BY x ASC) AS energy_start,
-                LAST_VALUE(energy_joules) OVER (PARTITION BY id, CAST(x/10 AS INTEGER) * 10 ORDER BY x ASC) AS energy_end
+                FIRST_VALUE(energy_joules) OVER (PARTITION BY id, CAST(x/10 AS INTEGER) * 10 ORDER BY x ASC) 
+                    AS energy_start,
+                LAST_VALUE(energy_joules) OVER (PARTITION BY id, CAST(x/10 AS INTEGER) * 10 ORDER BY x ASC) 
+                    AS energy_end
             FROM cumulative_energy
         ), binned_energy AS (
             SELECT
@@ -502,4 +509,15 @@ class QueryStrings(Enum):
             AND COALESCE(bce.source_id, bsa.source_id) = be.source_id
             AND COALESCE(bce.time_seconds_bin, bce.time_seconds_bin) = be.time_seconds_bin
         ORDER BY time_seconds_bin ASC
+        ;"""
+
+    LEADERBOARD_CHART_AGG = """
+        SELECT
+            source_id,
+            energy_model_id,
+            efficiency_meters_per_joules,
+            efficiency_miles_per_gallon,
+            throughput_per_hour
+        FROM  leaderboard_chart
+        ORDER BY date, source_id ASC
         ;"""
