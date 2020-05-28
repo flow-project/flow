@@ -26,6 +26,7 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
 
+from flow.core.rewards import miles_per_gallon, miles_per_megajoule
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
@@ -90,6 +91,14 @@ def visualizer_rllib(args):
             sys.exit(1)
     if args.run:
         agent_cls = get_agent_class(args.run)
+    elif config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CCPPOTrainer'>":
+        from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
+        from ray.rllib.models import ModelCatalog
+        agent_cls = CCTrainer
+        ModelCatalog.register_custom_model("cc_model", CentralizedCriticModel)
+    elif config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CustomPPOTrainer'>":
+        from flow.algorithms.custom_ppo import CustomPPOTrainer
+        agent_cls = CustomPPOTrainer
     elif config_run:
         agent_cls = get_agent_class(config_run)
     else:
@@ -160,6 +169,10 @@ def visualizer_rllib(args):
     else:
         env = gym.make(env_name)
 
+    # reroute on exit is a training hack, it should be turned off at test time. 
+    if hasattr(env, "reroute_on_exit"):
+        env.reroute_on_exit = False
+
     if args.render_mode == 'sumo_gui':
         env.sim_params.render = True  # set to True after initializing agent and env
 
@@ -197,6 +210,8 @@ def visualizer_rllib(args):
     # Simulate and collect metrics
     final_outflows = []
     final_inflows = []
+    mpg = []
+    mpj = []
     mean_speed = []
     std_speed = []
     for i in range(args.num_rollouts):
@@ -213,6 +228,9 @@ def visualizer_rllib(args):
             # only include non-empty speeds
             if speeds:
                 vel.append(np.mean(speeds))
+
+            mpg.append(miles_per_gallon(env.unwrapped, vehicles.get_ids(), gain=1.0))
+            mpj.append(miles_per_megajoule(env.unwrapped, vehicles.get_ids(), gain=1.0))
 
             if multiagent:
                 action = {}
@@ -279,10 +297,11 @@ def visualizer_rllib(args):
     print(mean_speed)
     print('Average, std: {}, {}'.format(np.mean(mean_speed), np.std(
         mean_speed)))
-    print("\nSpeed, std (m/s):")
-    print(std_speed)
-    print('Average, std: {}, {}'.format(np.mean(std_speed), np.std(
-        std_speed)))
+
+    print('Average, std miles per gallon: {}, {}'.format(np.mean(mpg), np.std(mpg)))
+
+    print('Average, std miles per megajoule: {}, {}'.format(np.mean(mpj), np.std(mpj)))
+
 
     # Compute arrival rate of vehicles in the last 500 sec of the run
     print("\nOutflows (veh/hr):")
