@@ -262,6 +262,7 @@ def setup_exps_rllib(flow_params,
         episode.user_data["avg_energy"] = []
         episode.user_data["avg_mpg"] = []
         episode.user_data["avg_mpj"] = []
+        episode.user_data["num_avs"] = []
 
 
     def on_episode_step(info):
@@ -288,6 +289,7 @@ def setup_exps_rllib(flow_params,
             episode.user_data["avg_speed_avs"].append(av_speed)
         episode.user_data["avg_mpg"].append(miles_per_gallon(env, veh_ids, gain=1.0))
         episode.user_data["avg_mpj"].append(miles_per_megajoule(env, veh_ids, gain=1.0))
+        episode.user_data["num_cars"].append(len(env.k.vehicle.get_ids()))
 
 
     def on_episode_end(info):
@@ -299,6 +301,7 @@ def setup_exps_rllib(flow_params,
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
         episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["avg_mpg"])
         episode.custom_metrics["avg_mpj_per_veh"] = np.mean(episode.user_data["avg_mpj"])
+        episode.custom_metrics["num_cars"] = np.mean(episode.user_data["num_cars"])
 
     def on_train_result(info):
         """Store the mean score of the episode, and increment or decrement how many adversaries are on"""
