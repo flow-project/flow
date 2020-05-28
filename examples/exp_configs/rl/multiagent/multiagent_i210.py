@@ -66,8 +66,8 @@ additional_env_params.update({
     "mpg_reward": False,
     # whether to use the MPJ reward. Otherwise, defaults to a target velocity reward
     "mpj_reward": False,
-    # how many vehicles to look back for the MPG reward
-    "look_back_length": 1,
+    # how many vehicles to look back for any reward
+    "look_back_length": 10,
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": False,
     'target_velocity': 5.0,
