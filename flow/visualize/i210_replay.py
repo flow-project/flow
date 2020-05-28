@@ -329,7 +329,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             emission_to_csv(emission_path, output_path=output_path)
 
             # generate the trajectory output file
-            trajectory_table_path = './data/' + source_id + ".csv"
+            trajectory_table_path = dir_path + source_id + ".csv"
             upload_file_path = generate_trajectory_from_flow(trajectory_table_path, extra_info)
 
             # upload to s3 if asked
