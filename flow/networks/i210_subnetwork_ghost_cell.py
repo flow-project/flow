@@ -52,7 +52,7 @@ class I210SubNetworkGhostCell(Network):
                     (["ghost0", "119257914", "119257908#0", "119257908#1-AddedOnRampEdge",
                       "119257908#1", "119257908#1-AddedOffRampEdge", "119257908#2",
                       "119257908#3"],
-                     1),  # HOV: 1509 (on ramp: 57), Non HOV: 6869 (onramp: 16)
+                     1 - 17 / 8378),  # HOV: 1509 (on ramp: 57), Non HOV: 6869 (onramp: 16)
                     (["119257914", "119257908#0", "119257908#1-AddedOnRampEdge",
                       "119257908#1", "119257908#1-AddedOffRampEdge", "173381935"],
                      17 / 8378)
@@ -61,7 +61,7 @@ class I210SubNetworkGhostCell(Network):
                     (["119257914", "119257908#0", "119257908#1-AddedOnRampEdge",
                       "119257908#1", "119257908#1-AddedOffRampEdge", "119257908#2",
                       "119257908#3"],
-                     1),  # HOV: 1509 (on ramp: 57), Non HOV: 6869 (onramp: 16)
+                     1 - 17 / 8378),  # HOV: 1509 (on ramp: 57), Non HOV: 6869 (onramp: 16)
                     (["119257914", "119257908#0", "119257908#1-AddedOnRampEdge",
                       "119257908#1", "119257908#1-AddedOffRampEdge", "173381935"],
                      17 / 8378)

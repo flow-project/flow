@@ -275,8 +275,8 @@ flow_params = dict(
         inflows=inflow,
         template=NET_TEMPLATE,
         additional_params={
-            "on_ramp": False,
-            "ghost_edge": False
+            "on_ramp": ON_RAMP,
+            "ghost_edge": WANT_GHOST_CELL
         }
     ),
 
