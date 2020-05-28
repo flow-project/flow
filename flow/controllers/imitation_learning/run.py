@@ -38,6 +38,9 @@ class Runner(object):
         """
         self.trainer.save_controller_network()
 
+    def save_controller_for_PPO(self):
+        self.trainer.save_controller_for_PPO()
+
 
 def main():
     """

@@ -148,7 +148,8 @@ class ImitatingNetwork():
         # build layers for value function
         curr_layer = input
         for i in range(num_layers):
-            curr_layer = tf.keras.layers.Dense(self.size, activation="tanh", name="vf_hidden_layer_{}".format(i+1))(curr_layer)
+            size = self.fcnet_hiddens[i]
+            curr_layer = tf.keras.layers.Dense(size, activation="tanh", name="vf_hidden_layer_{}".format(i+1))(curr_layer)
         output_layer_vf = tf.keras.layers.Dense(1, activation=None, name="vf_output_layer")(curr_layer)
 
         ppo_model = tf.keras.Model(inputs=input, outputs=[output_layer_policy, output_layer_vf], name="ppo_model")

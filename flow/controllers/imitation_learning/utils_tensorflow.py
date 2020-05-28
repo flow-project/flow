@@ -30,6 +30,6 @@ def build_neural_net(input_placeholder, output_size, scope, n_layers, size, acti
     return output_placeholder
 
 def create_tf_session():
-    config = tf.ConfigProto(device_count={'GPU': 0})
-    sess = tf.Session(config=config)
+    config = tf.compat.v1.ConfigProto(device_count={'GPU': 0})
+    sess = tf.compat.v1.Session(config=config)
     return sess

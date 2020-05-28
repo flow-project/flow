@@ -215,3 +215,6 @@ class Trainer(object):
         """
         print("Saving tensorflow model to: ", self.params['save_path'])
         self.action_network.save_network(self.params['save_path'])
+
+    def save_controller_for_PPO(self):
+        self.action_network.save_network_PPO(self.params['save_path'])
