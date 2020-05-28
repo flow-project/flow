@@ -12,7 +12,13 @@ class Runner(object):
 
         # initialize trainer class instance and params
         self.params = params
-        self.trainer = Trainer(params)
+        if self.params['multiagent']:
+            module = __import__("examples.exp_configs.rl.multiagent", fromlist=[self.params['exp_config']])
+        else:
+            module = __import__("examples.exp_configs.rl.singleagent", fromlist=[self.params['exp_config']])
+
+        submodule = getattr(module, self.params['exp_config'])
+        self.trainer = Trainer(params, submodule)
 
     def run_training_loop(self):
         """
@@ -39,6 +45,13 @@ def main():
     """
     import argparse
     parser = argparse.ArgumentParser()
+
+    # required input parameters
+    parser.add_argument(
+        'exp_config', type=str,
+        help='Name of the experiment configuration file, as located in '
+             'exp_configs/rl/singleagent or exp_configs/rl/multiagent.')
+
     parser.add_argument('--ep_len', type=int, default=5000)
 
     parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1000)  # number of gradient steps for training policy
@@ -50,23 +63,23 @@ def main():
     parser.add_argument('--train_batch_size', type=int,
                         default=100)  # number of sampled data points to be used per gradient/train step
 
-    parser.add_argument('--num_layers', type=int, default=3)  # number of hidden layers, of policy to be learned
-    parser.add_argument('--size', type=int, default=64)  # width of each layer, of policy to be learned
-    parser.add_argument('--learning_rate', '-lr', type=float, default=5e-3)  # learning rate for supervised learning
+
     parser.add_argument('--replay_buffer_size', type=int, default=1000000)
     parser.add_argument('--save_path', type=str, default='')
     parser.add_argument('--save_model', type=int, default=0)
-    parser.add_argument('--num_eval_episodes', type=int, default=30)
+    parser.add_argument('--num_eval_episodes', type=int, default=0)
     parser.add_argument('--stochastic', type=bool, default=False)
-    parser.add_argument('--noise_variance',type=float, default=0.5)
-    parser.add_argument('--vehicle_id', type=str, default='rl_0')
     parser.add_argument('--multiagent', type=bool, default=False)
     parser.add_argument('--v_des', type=float, default=15)
-
+    parser.add_argument('--variance_regularizer', type=float, default=0.5)
     args = parser.parse_args()
 
     # convert args to dictionary
     params = vars(args)
+
+    # change this to determine number and size of hidden layers
+    params["fcnet_hiddens"] = [32, 32, 32]
+
     assert args.n_iter>1, ('DAgger needs >1 iteration')
 
 
@@ -77,7 +90,6 @@ def main():
     # save model after training
     if params['save_model'] == 1:
         train.save_controller_network()
-
 
     # evaluate
     train.evaluate()

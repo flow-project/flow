@@ -68,6 +68,7 @@ def sample_trajectory_singleagent(env, controllers, action_network, max_trajecto
         for i in range(action_dim):
             # if max number of RL vehicles is not reached, insert dummy values
             if i >= len(vehicle_ids):
+                # dummy value is -2 * max_decel
                 ignore_accel = -2 * max_decel
                 rl_actions.append(ignore_accel)
                 actions_expert.append(ignore_accel)
@@ -149,7 +150,9 @@ def sample_trajectory_multiagent(env, controllers, action_network, max_trajector
 
     while True:
 
-        vehicle_ids = env.k.vehicle.get_rl_ids()
+
+        # vehicle_ids = env.k.vehicle.get_rl_ids() **this doesn't work now due to control range restriction**
+        vehicle_ids = list(observation_dict.keys())
         # add nothing to replay buffer if no vehicles
         if len(vehicle_ids) == 0:
             observation_dict, reward, done, _ = env.step(None)
@@ -213,8 +216,8 @@ def sample_trajectory_multiagent(env, controllers, action_network, max_trajector
         terminate_rollout = done_dict['__all__'] or (traj_length == max_trajectory_length)
 
         for vehicle_id in vehicle_ids:
-            next_observations.append(observation_dict[vehicle_id])
-            rewards.append(reward_dict[vehicle_id])
+            next_observations.append(observation_dict.get(vehicle_id, None))
+            rewards.append(reward_dict.get(vehicle_id, 0))
             terminals.append(terminate_rollout)
 
         traj_length += 1
@@ -292,9 +295,9 @@ def traj_dict(observations, actions, expert_actions, rewards, next_observations,
     """
     Collects individual observation, action, expert_action, rewards, next observation, terminal arrays into a single rollout dictionary
     """
-    return {"observations" : np.array(observations, dtype=np.float32),
-            "actions" : np.array(actions, dtype=np.float32),
-            "expert_actions": np.array(expert_actions, dtype=np.float32),
-            "rewards" : np.array(rewards, dtype=np.float32),
-            "next_observations": np.array(next_observations, dtype=np.float32),
-            "terminals": np.array(terminals, dtype=np.float32)}
+    return {"observations" : np.array(observations),
+            "actions" : np.array(actions),
+            "expert_actions": np.array(expert_actions),
+            "rewards" : np.array(rewards),
+            "next_observations": np.array(next_observations),
+            "terminals": np.array(terminals)}

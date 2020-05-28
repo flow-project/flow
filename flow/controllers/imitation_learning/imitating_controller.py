@@ -9,7 +9,8 @@ class ImitatingController(BaseController):
     """
     Controller which uses a given neural net to imitate an expert. Subclasses BaseController
     """
-    # Implementation in Tensorflow
+
+    # Implementation in Tensorflow Keras
 
     def __init__(self, veh_id, action_network, multiagent, car_following_params=None, time_delay=0.0, noise=0, fail_safe=None):
         """

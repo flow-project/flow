@@ -188,7 +188,7 @@ def setup_exps_rllib(flow_params,
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
-        config["model"].update({"fcnet_hiddens": [12, 12]})
+        config["model"].update({"fcnet_hiddens": [32, 32, 32]})
         config["train_batch_size"] = horizon * n_rollouts
         config["gamma"] = 0.999  # discount rate
         config["use_gae"] = True

@@ -3,12 +3,14 @@ import json
 import h5py
 from ray.rllib.models.tf.misc import normc_initializer
 from ray.rllib.models.tf.tf_modelv2 import TFModelV2
-# from ray.rllib.utils.framework import get_activation_fn, try_import_tf
-# from flow.controllers.imitation_learning.keras_utils import *
 import tensorflow as tf
 
 
 class PPONetwork(TFModelV2):
+    """
+    Custom RLLib PPOModel (using tensorflow keras) to load weights from a pretained policy model (e.g. from imitation learning) and start RL training with loaded weights.
+    Subclass of TFModelV2
+    """
 
     def __init__(self, obs_space, action_space, num_outputs, model_config, name):
 
@@ -24,11 +26,18 @@ class PPONetwork(TFModelV2):
 
 
     def setup_model(self, obs_space, action_space, model_config, num_outputs, imitation_h5_path):
+        """
+        Loads/builds model for both policy and value function
+        Args:
+             obs_space: observation space of env
+             action_space: action space of env
+             model_config: configuration parameters for model
+             num_outputs: number of outputs expected for policy
+             imitation_h5_path: path to h5 file containing weights of a pretrained network (empty string if no such file)
+        """
 
         if imitation_h5_path:
-            # imitation_model = tf.keras.models.load_model(imitation_h5_path, custom_objects={"negative_log_likelihood_loss": negative_log_likelihood_loss})
-
-            # set up a model to load in weights from imitation network (without the training variables, e.g. adam variables)
+            # set base model to be loaded model
             self.base_model = tf.keras.models.load_model(imitation_h5_path)
 
         else:
@@ -63,15 +72,22 @@ class PPONetwork(TFModelV2):
 
             # build model from layers
             self.base_model = tf.keras.Model(inp_layer, [output_layer_policy, output_layer_vf])
-            
+
 
 
     def forward(self, input_dict, state, seq_lens):
+        """
+            Overrides parent class's method. Used to pass a input through model and get policy/vf output.
+        """
+
         policy_out, value_out = self.base_model(input_dict["obs_flat"])
         self.value_out = value_out
         return policy_out, state
 
     def value_function(self):
+        """
+            Overrides parent class's method. Get value function method.
+        """
         return tf.reshape(self.value_out, [-1])
 
     def import_from_h5(self, import_file):
