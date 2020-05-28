@@ -647,6 +647,7 @@ class BandoFTLController(BaseController):
 
     def get_accel(self, env):
         """See parent class."""
+        # without generating waves.
         lead_id = env.k.vehicle.get_leader(self.veh_id)
         if not lead_id:  # no car ahead
             if self.want_max_accel:
