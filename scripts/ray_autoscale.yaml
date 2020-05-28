@@ -1,4 +1,4 @@
-# cluster.yaml ========================================= 
+# cluster.yaml =========================================
 
 # An unique identifier for the head node and workers of this cluster.
 cluster_name: test #<YOUR NAME>
@@ -67,7 +67,7 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands:
-    - cd flow && git fetch && git checkout origin/i210_dev
+    - cd flow && git fetch && git checkout origin/akash-dagger
     - pip install ray==0.8.0
     - pip install tabulate
     - pip install boto3==1.10.45  # 1.4.8 adds InstanceMarketOptions
