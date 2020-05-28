@@ -323,6 +323,7 @@ class KernelVehicle(object):
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
+
         Returns
         -------
         float

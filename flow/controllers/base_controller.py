@@ -89,7 +89,7 @@ class BaseController:
 
         This method also augments the controller with the desired level of
         stochastic noise, and utlizes the "instantaneous", "safe_velocity",
-        "feasible_accel", or "obey_speed_limit" failsafes if requested.
+        "feasible_accel", and/or "obey_speed_limit" failsafes if requested.
 
         Parameters
         ----------
