@@ -62,7 +62,7 @@ class QueryStrings(Enum):
                 id,
                 time_step,
                 speed,
-                COALESCE (acceleration, realized_accel) AS acceleration,
+                COALESCE (target_accel_with_noise_with_failsafe, realized_accel) AS acceleration,
                 road_grade,
                 source_id
             FROM fact_vehicle_trace
@@ -80,7 +80,9 @@ class QueryStrings(Enum):
                 id,
                 time_step,
                 speed,
-                COALESCE (accel_without_noise, acceleration, realized_accel) AS acceleration,
+                COALESCE (target_accel_no_noise_with_failsafe,
+                          target_accel_no_noise_no_failsafe,
+                          realized_accel) AS acceleration,
                 road_grade,
                 source_id
             FROM fact_vehicle_trace
@@ -97,7 +99,9 @@ class QueryStrings(Enum):
             SELECT
                 id,
                 time_step,
-                COALESCE (accel_without_noise, acceleration, realized_accel) AS acceleration,
+                COALESCE (target_accel_no_noise_with_failsafe,
+                          target_accel_no_noise_no_failsafe,
+                          realized_accel) AS acceleration,
                 road_grade,
                 source_id,
                 speed AS cur_speed,
