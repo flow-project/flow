@@ -114,8 +114,6 @@ class BaseController:
         # time step
         if accel is None:
             return None
-        else:
-            accel = min(max(accel, -self.max_deaccel), self.max_accel)
 
         # store the acceleration without noise to each vehicle
         # run fail safe if requested
