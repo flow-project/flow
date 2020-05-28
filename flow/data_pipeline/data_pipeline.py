@@ -110,6 +110,15 @@ def get_extra_info(veh_kernel, extra_info, veh_ids):
         extra_info["road_grade"].append(veh_kernel.get_road_grade(vid))
 
 
+def delete_obsolete_data(s3, latest_key, table, bucket="circles.data.pipeline"):
+    """Delete the obsolete data on S3"""
+    response = s3.list_objects_v2(Bucket=bucket)
+    keys = [e["Key"] for e in response["Contents"] if e["Key"].find(table) == 0 and e["Key"][-4:] == ".csv"]
+    keys.remove(latest_key)
+    for key in keys:
+        s3.delete_object(Bucket=bucket, Key=key)
+
+
 class AthenaQuery:
     """
     Class used to run query.
