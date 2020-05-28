@@ -68,7 +68,8 @@ def parse_args(args):
         help='the RL trainer to use. either rllib or Stable-Baselines')
     parser.add_argument(
         '--algorithm', type=str, default="PPO",
-        help='RL algorithm to use. Options are PPO, TD3 right now.'
+        help='RL algorithm to use. Options are PPO, TD3, and CENTRALIZEDPPO (which uses a centralized value function)'
+             ' right now.'
     )
     parser.add_argument(
         '--num_cpus', type=int, default=1,
@@ -255,13 +256,13 @@ def setup_exps_rllib(flow_params,
         env = info["env"].get_unwrapped()[0]
         if isinstance(env, _GroupAgentsWrapper):
             env = env.env
-        if hasattr(env, 'invalid_control_edges'):
+        if hasattr(env, 'no_control_edges'):
             veh_ids = [veh_id for veh_id in env.k.vehicle.get_ids() if (env.k.vehicle.get_speed(veh_id) >= 0
                                                                         and env.k.vehicle.get_edge(veh_id)
-                                                                        not in env.invalid_control_edges)]
+                                                                        not in env.no_control_edges)]
             rl_ids = [veh_id for veh_id in env.k.vehicle.get_rl_ids() if (env.k.vehicle.get_speed(veh_id) >= 0
                                                                         and env.k.vehicle.get_edge(veh_id)
-                                                                        not in env.invalid_control_edges)]
+                                                                        not in env.no_control_edges)]
         else:
             veh_ids = [veh_id for veh_id in env.k.vehicle.get_ids() if env.k.vehicle.get_speed(veh_id) >= 0]
             rl_ids = [veh_id for veh_id in env.k.vehicle.get_rl_ids() if env.k.vehicle.get_speed(veh_id) >= 0]
@@ -356,7 +357,7 @@ def train_rllib(submodule, flags):
     }
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
-    s3_string = "s3://eugene.experiments/i210/" \
+    s3_string = "s3://i210.experiments/i210/" \
                 + date + '/' + flags.exp_title
     if flags.use_s3:
         exp_dict['upload_dir'] = s3_string

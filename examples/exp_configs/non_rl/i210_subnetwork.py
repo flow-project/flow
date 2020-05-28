@@ -19,15 +19,22 @@ from flow.envs import TestEnv
 
 # Instantiate which conditions we want to be true about the network
 
+# whether to include a ghost cell at the entrance
 WANT_GHOST_CELL = True
-# WANT_DOWNSTREAM_BOUNDARY = True
+# whether to include vehicles on the on-ramp
 ON_RAMP = False
+# fraction of vehicles that are follower-stoppers. 0.10 corresponds to 10%
 PENETRATION_RATE = 0.0
+# desired speed of the follower stopper vehicles
 V_DES = 5.0
+# horizon over which to run the env
 HORIZON = 1000
+# steps to run before follower-stopper is allowed to take control
 WARMUP_STEPS = 600
 
+# Number of vehicles/hour/lane
 inflow_rate = 2050
+# the speed of inflowing vehicles from the main edge (in m/s)
 inflow_speed = 25.5
 
 accel_data = (IDMController, {'a': 1.3, 'b': 2.0, 'noise': 0.3})

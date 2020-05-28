@@ -647,7 +647,6 @@ class BandoFTLController(BaseController):
 
     def get_accel(self, env):
         """See parent class."""
-        # TODO(@evinitsky) this is a hack to make rerouting works. This gets vehicles into the network
         # without generating waves.
         lead_id = env.k.vehicle.get_leader(self.veh_id)
         if not lead_id:  # no car ahead
