@@ -55,7 +55,7 @@ def get_table_disk(table_name="fact_vehicle_trace", bucket="circles.data.pipelin
     existing_results = os.listdir("./result/{}".format(table_name))
     if table_name == "leaderboard_chart_agg":
         for p in existing_results:
-            os.remove(p)
+            os.remove("./result/{}/{}".format(table_name, p))
     for index in range(len(keys)):
         if names[index] not in existing_results:
             s3.download_file(bucket, keys[index], "./result/{}/{}".format(table_name, names[index]))
