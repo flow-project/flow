@@ -35,6 +35,12 @@ def get_table_disk(table_name="fact_vehicle_trace", bucket="circles.data.pipelin
             fact_network_metrics_by_time_agg
             fact_network_fuel_efficiency_agg
             leaderboard_chart
+            leaderboard_chart_agg
+        Note that leaderboard_chart_agg is a combination of all previous
+        learderboard_chart entries in one CSV file. It's only used to
+        avoid burdening the web server with more calculation. The date
+        and source_id in its name is always going to reflect the latest
+        leaderboard_chart entry.
     bucket: str
         the S3 bucket that holds these tables
     """
