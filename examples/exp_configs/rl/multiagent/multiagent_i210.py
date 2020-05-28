@@ -268,7 +268,7 @@ flow_params = dict(
         sims_per_step=3,
         warmup_steps=WARMUP_STEPS,
         additional_params=additional_env_params,
-        done_at_exit=False
+        done_at_exit=not additional_env_params["reroute_on_exit"]
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
