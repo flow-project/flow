@@ -5,6 +5,20 @@ import pandas as pd
 from io import StringIO
 
 
+def key_to_name(key):
+    """Return the standard formatted file name from object key."""
+    k_list = key.split("/")
+    date = k_list[1].replace("date=", "")
+    name = k_list[2].replace("partition_name=", "")
+    index = name.find("_", 5)
+    source_id = name
+    query_name = ""
+    if index != -1:
+        source_id = name[0:index]
+        query_name = "_" + name[index+1:].replace("_", "-")
+    return "{}_{}{}.csv".format(date, source_id.replace("_", "-"), query_name)
+
+
 def get_table_disk(table_name="fact_vehicle_trace", bucket="circles.data.pipeline"):
     """Fetch tables from s3 and store in ./result directory.
 
@@ -31,8 +45,7 @@ def get_table_disk(table_name="fact_vehicle_trace", bucket="circles.data.pipelin
     s3 = boto3.client("s3")
     response = s3.list_objects_v2(Bucket=bucket)
     keys = [e["Key"] for e in response["Contents"] if e["Key"].find(table_name) == 0 and e["Key"][-4:] == ".csv"]
-    names = ["{}_{}.csv".format(e.split("/")[1].replace("date=", ""),
-                                e.split("/")[2].replace("partition_name=", ""))for e in keys]
+    names = [key_to_name(k) for k in keys]
     existing_results = os.listdir("./result/{}".format(table_name))
     for index in range(len(keys)):
         if names[index] not in existing_results:
@@ -63,8 +76,7 @@ def get_table_memory(table_name="fact_vehicle_trace", bucket="circles.data.pipel
     s3 = boto3.client("s3")
     response = s3.list_objects_v2(Bucket=bucket)
     keys = [e["Key"] for e in response["Contents"] if e["Key"].find(table_name) == 0 and e["Key"][-4:] == ".csv"]
-    names = ["{}_{}.csv".format(e.split("/")[1].replace("date=", ""),
-                                e.split("/")[2].replace("partition_name=", ""))for e in keys]
+    names = [key_to_name(k) for k in keys]
     results = dict()
     for index in range(len(keys)):
         if names[index] not in existing_results:
@@ -98,8 +110,7 @@ def get_table_url(table_name="fact_vehicle_trace", bucket="circles.data.pipeline
     s3 = boto3.client("s3")
     response = s3.list_objects_v2(Bucket=bucket)
     keys = [e["Key"] for e in response["Contents"] if e["Key"].find(table_name) == 0 and e["Key"][-4:] == ".csv"]
-    names = ["{}_{}.csv".format(e.split("/")[1].replace("date=", ""),
-                                e.split("/")[2].replace("partition_name=", "")) for e in keys]
+    names = [key_to_name(k) for k in keys]
     results = dict()
     for index in range(len(keys)):
         if names[index] not in existing_results:
