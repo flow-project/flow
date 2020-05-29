@@ -33,7 +33,6 @@ class PPONetwork(TFModelV2):
         super(PPONetwork, self).__init__(obs_space, action_space, num_outputs, model_config, name)
 
         h5_path = kwargs.get("h5_load_path", "")
-        # print("\n\nH5 PATH: ", h5_path + "\n\n")
 
         # setup model with weights loaded in from model in h5 path
         self.setup_model(obs_space, action_space, model_config, num_outputs, h5_path)
@@ -63,8 +62,6 @@ class PPONetwork(TFModelV2):
 
         if imitation_h5_path:
             # set base model to be loaded model
-            print("\n\nLOAAAADING IMMMMITATIONNNNN MODELLLLLL\n\n")
-
             self.base_model = tf.keras.models.load_model(imitation_h5_path)
 
         else:
