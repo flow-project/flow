@@ -12,26 +12,27 @@ import os
 
 class ToyotaModel(BaseEnergyModel):
 
-    def __init__(self,kernel):
+    def __init__(self, kernel, filename=None):
         self.k = kernel
 
         # download file from s3 bucket
         s3 = boto3.client('s3')
-        s3.download_file('toyota.restricted',filename,'file.pkl') #move to init
-        with open('file.pkl','rb')as file:
+        s3.download_file('toyota.restricted', filename,'file.pkl') #move to init
+        with open('file.pkl','rb') as file:
             self.toyota_energy = pickle.load(file) #self.prius_energy
         # delete pickle file
         os.remove(file.pkl)
 
-    def get_energy(self,veh_id,soc,grade):
+    def get_energy(self, veh_id, soc, grade):
         pass
 
 
-class prius_energy(ToyotaModel):
+class PriusEnergy(ToyotaModel):
+    
+    def __init__(self, kernel):
+        super(PriusEnergy, self).__init__(kernel, filename = 'prius_test.pkl')
 
-    super.__init__(kernel,filename = 'prius_test.pkl')
-
-    def get_energy(self,veh_id,soc,grade):
+    def get_instantaneous_power(self, veh_id, soc, grade):
 
         speed = self.k.get_speed(veh_id)
 
@@ -45,15 +46,16 @@ class prius_energy(ToyotaModel):
         old_soc = self.k.get_soc(veh_id)
         grade = 0 
 
-        socdot = self.toyota_energy(old_soc,speed,accel,grade)
+        socdot = self.toyota_energy(old_soc, speed, accel, grade)
 
         return socdot
             
-class tacoma_energy(ToyotaModel):
+class TacomaEnergy(ToyotaModel):
 
-    super.__init__(kernel,filename = 'tacoma_test.pkl')
+    def __init__(self, kernel):
+        super(PriusEnergy, self).__init__(kernel, filename = 'tacoma_test.pkl')
 
-    def get_energy(self,veh_id,grade, sim_step):
+    def get_instantaneous_power(self, veh_id, grade):
         
         speed = self.k.get_speed(veh_id)
 
@@ -65,7 +67,7 @@ class tacoma_energy(ToyotaModel):
         accel = (speed - old_speed)/self.sim_step
         grade = 0 
 
-        fc = tacoma_test(speed,accel,grade) # returns instantanoes fuel consumption
+        fc = self.toyota_energy(speed,accel,grade) # returns instantanoes fuel consumption
         return fc
 
 
