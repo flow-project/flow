@@ -294,6 +294,7 @@ def setup_exps_rllib(flow_params,
         episode.custom_metrics["avg_speed"] = avg_speed
         avg_speed_avs = np.mean(episode.user_data["avg_speed_avs"])
         episode.custom_metrics["avg_speed_avs"] = avg_speed_avs
+        episode.custom_metrics["avg_accel_avs"] = np.mean(episode.user_data["avg_accel_avs"])
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
         episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["avg_mpg"])
         episode.custom_metrics["avg_mpj_per_veh"] = np.mean(episode.user_data["avg_mpj"])
