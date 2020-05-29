@@ -11,7 +11,7 @@ class BaseEnergyModel(metaclass=ABCMeta):
     to be an averaged-size vehicle.
     """
 
-    def __init__(self,kernel):
+    def __init__(self, kernel):
         self.vehicle = vehicle
 
     @abstractmethod
