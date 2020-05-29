@@ -67,7 +67,7 @@ additional_env_params.update({
     # whether to use the MPJ reward. Otherwise, defaults to a target velocity reward
     "mpj_reward": False,
     # how many vehicles to look back for any reward
-    "look_back_length": 5,
+    "look_back_length": 3,
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": False,
     'target_velocity': 5.0,
@@ -92,11 +92,11 @@ additional_env_params.update({
     # weight of the headway reward
     "speed_reward_gain": 0.5,
     # penalize stopped vehicles
-    "penalize_stops": True,
+    "penalize_stops": False,
     "stop_penalty": 0.1,
 
     # penalize accels
-    "penalize_accel": True,
+    "penalize_accel": False,
     "accel_penalty": 0.1
 })
 
