@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 import random
 import traceback
-from gym.spaces import Box, Dict
+from gym.spaces import Box
 
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
@@ -48,6 +48,7 @@ class MultiEnv(MultiAgentEnv, Env):
         info : dict
             contains other diagnostic information from the previous action
         """
+        done = {}
         for _ in range(self.env_params.sims_per_step):
             if self.time_counter <= self.env_params.sims_per_step * self.env_params.warmup_steps:
                 self.observed_ids.update(self.k.vehicle.get_ids())
@@ -110,9 +111,11 @@ class MultiEnv(MultiAgentEnv, Env):
                 print('A CRASH! A CRASH!!!!!! AAAAAAAAAH!!!!!')
                 break
 
+            done.update({key: True for key in self.k.vehicle.get_arrived_ids()})
+
         states = self.get_state()
-        done = {key: key in self.k.vehicle.get_arrived_ids()
-                for key in states.keys()}
+        done.update({key: key in self.k.vehicle.get_arrived_ids()
+                for key in states.keys()})
         if crash or (self.time_counter >= self.env_params.sims_per_step *
                      (self.env_params.warmup_steps + self.env_params.horizon)):
             done['__all__'] = True
@@ -128,7 +131,9 @@ class MultiEnv(MultiAgentEnv, Env):
             reward = self.compute_reward(rl_actions, fail=crash)
 
         if self.env_params.done_at_exit:
-            for rl_id in self.k.vehicle.get_arrived_rl_ids():
+            # pull out the done keys that might not have corresponding states
+            valid_ids = [key for key, val in done.items() if val]
+            for rl_id in valid_ids:
                 done[rl_id] = True
                 reward[rl_id] = 0
                 states[rl_id] = -1 * np.ones(self.observation_space.shape[0])

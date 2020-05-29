@@ -169,10 +169,9 @@ def visualizer_rllib(args):
     else:
         env = gym.make(env_name)
 
+    # reroute on exit is a training hack, it should be turned off at test time. 
     if hasattr(env, "reroute_on_exit"):
         env.reroute_on_exit = False
-        # env.env_params.horizon += env.env_params.warmup_steps
-        # env.env_params.warmup_steps = 0
 
     if args.render_mode == 'sumo_gui':
         env.sim_params.render = True  # set to True after initializing agent and env

@@ -74,7 +74,7 @@ additional_env_params.update({
     # how many AVs there can be at once (this is only for centralized critics)
     "max_num_agents": 10,
     # which edges we shouldn't apply control on
-    "invalid_control_edges": ["ghost0", "119257908#3"],
+    "no_control_edges": ["ghost0", "119257908#3"],
 
     # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
     "headway_curriculum": False,
@@ -277,8 +277,8 @@ flow_params = dict(
         inflows=inflow,
         template=NET_TEMPLATE,
         additional_params={
-            "on_ramp": False,
-            "ghost_edge": False
+            "on_ramp": ON_RAMP,
+            "ghost_edge": WANT_GHOST_CELL
         }
     ),
 

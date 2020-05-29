@@ -1,11 +1,15 @@
 """Contains an experiment class for running simulations."""
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
+from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3, get_extra_info
+from collections import defaultdict
 import datetime
 import logging
 import time
+from datetime import date
 import os
 import numpy as np
+import uuid
 
 
 class Experiment:
@@ -85,7 +89,7 @@ class Experiment:
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, rl_actions=None, convert_to_csv=False):
+    def run(self, num_runs, rl_actions=None, convert_to_csv=False, partition_name=None, only_query=""):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -98,6 +102,14 @@ class Experiment:
         convert_to_csv : bool
             Specifies whether to convert the emission file created by sumo
             into a csv file
+        partition_name: str
+            Specifies the S3 partition you want to store the output file,
+            will be used to later for query. If NONE, won't upload output
+            to S3.
+        only_query: str
+            Specifies which queries should be automatically run when the
+            simulation data gets uploaded to S3. If an empty str is passed in,
+            then it implies no queries should be run on this.
 
         Returns
         -------
@@ -136,6 +148,8 @@ class Experiment:
         # time profiling information
         t = time.time()
         times = []
+        extra_info = defaultdict(lambda: [])
+        source_id = 'flow_{}'.format(uuid.uuid4().hex)
 
         for i in range(num_runs):
             ret = 0
@@ -152,6 +166,10 @@ class Experiment:
                 veh_ids = self.env.k.vehicle.get_ids()
                 vel.append(np.mean(self.env.k.vehicle.get_speed(veh_ids)))
                 ret += reward
+
+                # collect additional information for the data pipeline
+                get_extra_info(self.env.k.vehicle, extra_info, veh_ids)
+                extra_info["source_id"].extend(['{}_run_{}'.format(source_id, i)] * len(veh_ids))
 
                 # Compute the results for the custom callables.
                 for (key, lambda_func) in self.custom_callables.items():
@@ -194,5 +212,19 @@ class Experiment:
 
             # Delete the .xml version of the emission file.
             os.remove(emission_path)
+
+            trajectory_table_path = dir_path + source_id + ".csv"
+            upload_file_path = generate_trajectory_from_flow(trajectory_table_path, extra_info, partition_name)
+
+            if partition_name:
+                if partition_name == "default":
+                    partition_name = source_id[-3:]
+                cur_date = date.today().isoformat()
+                upload_to_s3('circles.data.pipeline', 'trajectory-output/date={}/partition_name={}/{}.csv'.format(
+                             cur_date, partition_name, upload_file_path.split('/')[-1].split('_upload')[0]),
+                             upload_file_path, str(only_query)[2:-2])
+
+            # delete the S3-only version of the trajectory file
+            os.remove(upload_file_path)
 
         return info_dict
