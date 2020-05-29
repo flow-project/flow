@@ -190,7 +190,7 @@ class ImitatingNetwork():
             path to h5 file containing model to load from
         """
         if self.stochastic:
-            self.model = tf.keras.models.load_model(load_path, custom_objects={'negative_log_likelihood_loss': negative_log_likelihood_loss})
+            self.model = tf.keras.models.load_model(load_path, custom_objects={'nll_loss': negative_log_likelihood_loss(self.variance_regularizer)})
         else:
             self.model = tf.keras.models.load_model(load_path)
 

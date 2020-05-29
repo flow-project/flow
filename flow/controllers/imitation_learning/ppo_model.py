@@ -4,6 +4,7 @@ import h5py
 from ray.rllib.models.tf.misc import normc_initializer
 from ray.rllib.models.tf.tf_modelv2 import TFModelV2
 import tensorflow as tf
+from flow.controllers.imitation_learning.keras_utils import *
 
 
 class PPONetwork(TFModelV2):
@@ -12,7 +13,7 @@ class PPONetwork(TFModelV2):
     Subclass of TFModelV2. See https://docs.ray.io/en/master/rllib-models.html.
     """
 
-    def __init__(self, obs_space, action_space, num_outputs, model_config, name):
+    def __init__(self, obs_space, action_space, num_outputs, model_config, name, **kwargs):
         """
         Parameters
         __________
@@ -31,13 +32,15 @@ class PPONetwork(TFModelV2):
 
         super(PPONetwork, self).__init__(obs_space, action_space, num_outputs, model_config, name)
 
-        h5_path = model_config.get("custom_options").get("h5_load_path", "")
+        h5_path = kwargs.get("h5_load_path", "")
+        # print("\n\nH5 PATH: ", h5_path + "\n\n")
 
         # setup model with weights loaded in from model in h5 path
         self.setup_model(obs_space, action_space, model_config, num_outputs, h5_path)
 
         # register variables for base model
         self.register_variables(self.base_model.variables)
+        # compare_weights(self.base_model, "/Users/akashvelu/Desktop/latest_run/imitation_model.h5")
 
 
     def setup_model(self, obs_space, action_space, model_config, num_outputs, imitation_h5_path):
@@ -60,6 +63,8 @@ class PPONetwork(TFModelV2):
 
         if imitation_h5_path:
             # set base model to be loaded model
+            print("\n\nLOAAAADING IMMMMITATIONNNNN MODELLLLLL\n\n")
+
             self.base_model = tf.keras.models.load_model(imitation_h5_path)
 
         else:
@@ -130,6 +135,7 @@ class PPONetwork(TFModelV2):
         """
         return tf.reshape(self.value_out, [-1])
 
+
     def import_from_h5(self, import_file):
         """
         Overrides parent class method. Import base_model from h5 import_file.
@@ -138,4 +144,4 @@ class PPONetwork(TFModelV2):
         import_file: str
             filepath to h5 file
         """
-        self.setup_model(self, self.obs_space, self.action_space, self.model_config, self.num_outputs, import_file)
+        self.setup_model(self.obs_space, self.action_space, self.model_config, self.num_outputs, import_file)

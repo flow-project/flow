@@ -70,10 +70,10 @@ def main():
     parser.add_argument('--ep_len', type=int, default=5000, help='Max length of episodes for rollouts. ')
 
     parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1000, help='Number of gradient steps for training policy.')  # number of gradient steps for training policy
-    parser.add_argument('--n_iter', type=int, default=5, help='Number of DAgger iterations to run (1st iteration is behavioral cloning')
+    parser.add_argument('--n_iter', type=int, default=3, help='Number of DAgger iterations to run (1st iteration is behavioral cloning')
 
-    parser.add_argument('--batch_size', type=int, default=3000, help='Number of environment steps to collect in iteration of DAgger')
-    parser.add_argument('--init_batch_size', type=int, default=4000, help='Number of environment steps to collect on 1st iteration of DAgger (behavioral cloning iteration)')
+    parser.add_argument('--batch_size', type=int, default=1000, help='Number of environment steps to collect in iteration of DAgger')
+    parser.add_argument('--init_batch_size', type=int, default=2000, help='Number of environment steps to collect on 1st iteration of DAgger (behavioral cloning iteration)')
 
     parser.add_argument('--train_batch_size', type=int, default=100, help='Batch size to train on')
 
@@ -104,6 +104,7 @@ def main():
     # save model after training
     if params['save_model'] == 1:
         train.save_controller_network()
+        train.save_controller_for_PPO()
 
     # evaluate controller on difference, compared to expert, in action taken and average reward accumulated per rollout
     train.evaluate()

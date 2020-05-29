@@ -63,7 +63,8 @@ class Trainer(object):
         # initialize neural network class and tf variables
         self.action_network = ImitatingNetwork(self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['fcnet_hiddens'], self.params['replay_buffer_size'], stochastic=self.params['stochastic'], variance_regularizer=self.params['variance_regularizer'])
 
-        # tf.global_variables_initializer().run(session=self.sess)
+        # tf.global_variab
+        # les_initializer().run(session=self.sess)
 
         # controllers setup
         v_des = self.params['v_des'] # for FollowerStopper
@@ -238,4 +239,4 @@ class Trainer(object):
         """
         Creates and saves a keras tensorflow model for training PPO with weights learned from imitation, to the specified path given in the command line params. Path must end with .h5.
         """
-        self.action_network.save_network_PPO(self.params['save_path'])
+        self.action_network.save_network_PPO(self.params['PPO_save_path'])

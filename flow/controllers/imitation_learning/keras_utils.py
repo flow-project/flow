@@ -95,15 +95,42 @@ def negative_log_likelihood_loss(variance_regularizer):
         action_dim = network_output.shape[1] // 2
 
         # first half of network_output is mean, second half is log_std
-        means, log_stds = network_output[:, :action_dim], network_output[:, action_dim:]
+        means, log_stds = tf.split(network_output, 2, axis=1)
         stds = tf.math.exp(log_stds)
-        variances = tf.math.square(stds)
+        # variances = tf.math.square(stds)
 
         # Multivariate Gaussian distribution
-        dist = tfp.distributions.MultivariateNormalDiag(loc=means, scale_diag=variances)
+        dist = tfp.distributions.MultivariateNormalDiag(loc=means, scale_diag=stds)
         loss = dist.log_prob(y)
         loss = tf.negative(loss)
-        loss = tf.reduce_mean(loss) + (variance_regularizer * tf.norm(variances))
+        loss = tf.reduce_mean(loss) + (variance_regularizer * tf.norm(stds))
         return loss
 
     return nll_loss
+
+def compare_weights(ppo_model, imitation_path):
+    imitation_model = tf.keras.models.load_model(imitation_path, custom_objects={'nll_loss': negative_log_likelihood_loss(0.5)})
+
+    for i in range(len(imitation_model.layers) - 2):
+        ppo_name = 'policy_hidden_layer_' + str(i + 1)
+        ppo_layer = ppo_model.get_layer(ppo_name)
+        im_layer = imitation_model.layers[i + 1]
+
+        ppo_weights = ppo_layer.get_weights()
+        im_weights = im_layer.get_weights()
+        for i in range(len(ppo_weights)):
+            print("\n\n")
+            print(type((ppo_weights[i] == im_weights[i])))
+            print("\n\n")
+            assert (ppo_weights[i] == im_weights[i]).all(), "Weights don't match!"
+
+    ppo_layer = ppo_model.get_layer('policy_output_layer')
+    im_layer = imitation_model.layers[-1]
+    ppo_weights = ppo_layer.get_weights()
+    im_weights = im_layer.get_weights()
+    for i in range(len(ppo_weights)):
+        assert (ppo_weights[i] == im_weights[i]).all(), "Weights don't match!"
+
+    print("\n\nWeights properly loaded\n\n")
+
+
