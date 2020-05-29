@@ -236,16 +236,20 @@ class I210MultiEnv(MultiEnv):
                             break
                 else:
                     follow_id = rl_id
-                    rewards[rl_id] = ((des_speed - np.abs(self.k.vehicle.get_speed(rl_id)
-                                                          - des_speed))) ** 2 / ((des_speed ** 2) * self.look_back_length)
 
                     for i in range(self.look_back_length):
-                        follow_id = self.k.vehicle.get_follower(follow_id)
                         if follow_id not in ["", None]:
 
                             follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(follow_id))
-                            rewards[rl_id] += ((des_speed - np.abs(follow_speed
-                                                          - des_speed))) ** 2 / ((des_speed ** 2) * self.look_back_length)
+                            rewards[rl_id] += ((des_speed - min(np.abs(follow_speed
+                                                          - des_speed), des_speed)) ** 2) /\
+                                              ((des_speed ** 2) * self.look_back_length)
+
+                            ((des_speed - min(np.abs(follow_speed - des_speed), des_speed)) ** 2) / ((des_speed ** 2) * self.look_back_length)
+                        else:
+                            break
+                        follow_id = self.k.vehicle.get_follower(follow_id)
+
 
 
         else:

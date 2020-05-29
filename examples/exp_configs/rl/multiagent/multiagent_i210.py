@@ -93,11 +93,11 @@ additional_env_params.update({
     "speed_reward_gain": 0.5,
     # penalize stopped vehicles
     "penalize_stops": True,
-    "stop_penalty": 0.05,
+    "stop_penalty": 0.1,
 
     # penalize accels
     "penalize_accel": True,
-    "accel_penalty": 0.05
+    "accel_penalty": 0.1
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
