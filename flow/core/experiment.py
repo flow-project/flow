@@ -152,8 +152,8 @@ class Experiment:
         # data pipeline
         extra_info = defaultdict(lambda: [])
         source_id = 'flow_{}'.format(uuid.uuid4().hex)
-        metadate = defaultdict(lambda: "")
-        metadate['network'] = self.env.network.name.split('_')[0]
+        metadata = defaultdict(lambda: "")
+        metadata['network'] = self.env.network.name.split('_')[0]
 
         for i in range(num_runs):
             ret = 0
@@ -225,7 +225,7 @@ class Experiment:
                 cur_date = date.today().isoformat()
                 upload_to_s3('circles.data.pipeline', 'fact_vehicle_trace/date={}/partition_name={}/{}.csv'.format(
                              cur_date, source_id, source_id),
-                             trajectory_table_path, metadate)
+                             trajectory_table_path, metadata)
 
             # delete the S3-only version of the trajectory file
             # os.remove(upload_file_path)

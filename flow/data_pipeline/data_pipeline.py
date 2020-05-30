@@ -108,6 +108,9 @@ def get_extra_info(veh_kernel, extra_info, veh_ids):
             veh_kernel.get_accel_no_noise_with_failsafe(vid))
         extra_info["realized_accel"].append(veh_kernel.get_realized_accel(vid))
         extra_info["road_grade"].append(veh_kernel.get_road_grade(vid))
+        extra_info["edge_id"].append(veh_kernel.get_edge(vid))
+        extra_info["lane_id"].append(veh_kernel.get_lane(vid))
+        extra_info["distance"].append(veh_kernel.get_distance(vid))
 
 
 def delete_obsolete_data(s3, latest_key, table, bucket="circles.data.pipeline"):
