@@ -5,6 +5,16 @@ import pandas as pd
 from io import StringIO
 
 
+network_name_map = {"highway": "Single-Lane Straight Road",
+                    "ring": "Single-Lane Ring Road"}
+
+def network_name_translate(network_name):
+    """Translate network name to a human friendly name for the leaderboard."""
+    if network_name in network_name_map:
+        return network_name_map[network_name]
+    return network_name
+
+
 def key_to_name(key):
     """Return the standard formatted file name from object key."""
     k_list = key.split("/")
