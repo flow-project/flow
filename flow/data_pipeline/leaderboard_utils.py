@@ -6,7 +6,9 @@ from io import StringIO
 
 
 network_name_map = {"highway": "Single-Lane Straight Road",
-                    "ring": "Single-Lane Ring Road"}
+                    "ring": "Single-Lane Ring Road",
+                    "I-210_subnetwork": "I-210 without Ramps"}
+
 
 def network_name_translate(network_name):
     """Translate network name to a human friendly name for the leaderboard."""
