@@ -219,9 +219,9 @@ class Experiment:
             # Delete the .xml version of the emission file.
             os.remove(emission_path)
 
-            trajectory_table_path = "{}/{}.csv".format(dir_path, source_id)
-            generate_trajectory_from_flow(trajectory_table_path, extra_info)
-
+            trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
+            generate_trajectory_from_flow(trajectory_table_path, extra_info, partition_name)
+            
             if to_aws:
                 cur_date = date.today().isoformat()
                 upload_to_s3('circles.data.pipeline', 'fact_vehicle_trace/date={}/partition_name={}/{}.csv'.format(

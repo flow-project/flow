@@ -12,6 +12,7 @@ from flow.envs.multiagent.highway import MultiAgentHighwayPOEnv
 from flow.envs.multiagent.merge import MultiAgentMergePOEnv
 from flow.envs.multiagent.i210 import I210MultiEnv, MultiStraightRoad
 
+
 __all__ = [
     'MultiEnv',
     'AdversarialAccelEnv',
