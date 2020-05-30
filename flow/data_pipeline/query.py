@@ -163,7 +163,7 @@ class QueryStrings(Enum):
                 v.id,
                 v.source_id,
                 e.energy_model_id,
-                MAX(x) - MIN(x) AS distance_meters,
+                MAX(distance) - MIN(distance) AS distance_meters,
                 (MAX(e.time_step) - MIN(e.time_step)) / (COUNT(DISTINCT e.time_step) - 1) AS time_step_size_seconds,
                 SUM(e.power) AS power_watts
             FROM fact_vehicle_trace v
@@ -177,11 +177,11 @@ class QueryStrings(Enum):
                 AND e.time_step >= 600
             WHERE 1 = 1
                 AND v.date = \'{date}\'
-                AND v.partition_name = \'{partition}'
+                AND v.partition_name = \'{partition}\'
                 AND v.x BETWEEN 500 AND 2300
             GROUP BY 1, 2, 3
             HAVING 1 = 1
-                AND MIN(x) - MIN(x) > 10
+                AND MIN(distance) - MIN(distance) > 10
                 AND COUNT(DISTINCT e.time_step) > 10
         )
         SELECT
@@ -211,7 +211,7 @@ class QueryStrings(Enum):
             AND date = \'{date}\'
             AND partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
             AND energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
-            AND ABS(SUM(energy_joules)) != 0
+            AND SUM(energy_joules) != 0
         GROUP BY 1, 2
         ;"""
 
@@ -245,7 +245,6 @@ class QueryStrings(Enum):
                 AND date = \'{date}\'
                 AND partition_name = \'{partition}\'
                 AND x BETWEEN 500 AND 2300
-                AND time_step >= 600
             GROUP BY 1, 2
         ), inflows AS (
             SELECT
@@ -253,6 +252,8 @@ class QueryStrings(Enum):
                 source_id,
                 60 * COUNT(DISTINCT id) AS inflow_rate
             FROM min_max_time_step
+            WHERE 1 = 1
+                AND min_time_step >= 600
             GROUP BY 1, 2
         ), outflows AS (
             SELECT
@@ -260,6 +261,8 @@ class QueryStrings(Enum):
                 source_id,
                 60 * COUNT(DISTINCT id) AS outflow_rate
             FROM min_max_time_step
+            WHERE 1 = 1
+                AND max_time_step < 1000
             GROUP BY 1, 2
         )
         SELECT
@@ -280,73 +283,66 @@ class QueryStrings(Enum):
                 vt.id,
                 vt.source_id,
                 vt.time_step,
-                vt.x,
+                vt.distance - FIRST_VALUE(vt.distance)
+                    OVER (PARITION BY vt.id, vt.source_id ORDER BY vt.time_step ASC) AS distance_meters,
                 energy_model_id,
+                et.speed,
+                et.acceleration,
                 vt.time_step - LAG(vt.time_step, 1)
-                    OVER (PARTITION BY vt.id ORDER BY vt.time_step ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) AS sim_step,
+                    OVER (PARTITION BY vt.id, vt.source_id ORDER BY vt.time_step ASC) AS sim_step,
                 SUM(power)
-                    OVER (PARTITION BY vt.id ORDER BY vt.time_step ASC ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS
-                     cumulative_power
+                    OVER (PARTITION BY vt.id, vt.source_id ORDER BY vt.time_step ASC
+                    ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS cumulative_power
             FROM fact_vehicle_trace vt 
             JOIN fact_energy_trace et ON 1 = 1
-                AND vt.date = \'{date}\'
-                AND vt.partition_name = \'{partition}\'
                 AND et.date = \'{date}\'
                 AND et.partition_name = \'{partition}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
                 AND vt.id = et.id
                 AND vt.source_id = et.source_id
                 AND vt.time_step = et.time_step
-                AND vt.x BETWEEN 500 AND 2300
-                AND vt.time_step >= 600
                 AND et.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
             WHERE 1 = 1
+                AND vt.date = \'{date}\'
+                AND vt.partition_name = \'{partition}\'
+                AND vt.x BETWEEN 500 AND 2300
+                AND vt.time_step >= 600
         ), cumulative_energy AS (
             SELECT
                 id,
                 source_id,
                 time_step,
-                x,
+                distance_meters,
                 energy_model_id,
+                speed,
+                acceleration,
                 cumulative_power * sim_step AS energy_joules
             FROM joined_trace
-            WHERE 1 = 1
-                AND energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
-                AND x BETWEEN 500 AND 2300
-                AND time_step >= 600
         ), binned_cumulative_energy AS (
             SELECT
                 source_id,
-                CAST(x/10 AS INTEGER) * 10 AS distance_meters_bin,
-                AVG(energy_joules) AS cumulative_energy_avg,
-                AVG(energy_joules) + STDDEV(energy_joules) AS cumulative_energy_upper_bound,
-                AVG(energy_joules) - STDDEV(energy_joules) AS cumulative_energy_lower_bound
-            FROM cumulative_energy
-            GROUP BY 1, 2
-            HAVING COUNT(DISTINCT time_step) > 1
-        ), binned_speed_accel AS (
-            SELECT
-                source_id,
-                CAST(x/10 AS INTEGER) * 10 AS distance_meters_bin,
+                CAST(distance_meters/10 AS INTEGER) * 10 AS distance_meters_bin,
                 AVG(speed) AS speed_avg,
                 AVG(speed) + STDDEV(speed) AS speed_upper_bound,
                 AVG(speed) - STDDEV(speed) AS speed_lower_bound,
                 AVG(target_accel_no_noise_with_failsafe) AS accel_avg,
                 AVG(target_accel_no_noise_with_failsafe) + STDDEV(target_accel_no_noise_with_failsafe) AS accel_upper_bound,
-                AVG(target_accel_no_noise_with_failsafe) - STDDEV(target_accel_no_noise_with_failsafe) AS accel_lower_bound
-            FROM fact_vehicle_trace
-            WHERE 1 = 1
-                AND date =  \'{date}\'
-                AND partition_name = \'{partition}\'
-                AND x BETWEEN 500 AND 2300
-                AND time_step >= 600
+                AVG(target_accel_no_noise_with_failsafe) - STDDEV(target_accel_no_noise_with_failsafe) AS accel_lower_bound,
+                AVG(energy_joules) AS cumulative_energy_avg,
+                AVG(energy_joules) + STDDEV(energy_joules) AS cumulative_energy_upper_bound,
+                AVG(energy_joules) - STDDEV(energy_joules) AS cumulative_energy_lower_bound
+            FROM cumulative_energy
             GROUP BY 1, 2
+            HAVING 1 = 1
+                AND COUNT(DISTINCT time_step) > 1
         ), binned_energy_start_end AS (
             SELECT DISTINCT
                 source_id,
                 id,
-                CAST(x/10 AS INTEGER) * 10 AS distance_meters_bin,
-                FIRST_VALUE(energy_joules) OVER (PARTITION BY id, CAST(x/10 AS INTEGER) * 10 ORDER BY x ASC) AS energy_start,
-                LAST_VALUE(energy_joules) OVER (PARTITION BY id, CAST(x/10 AS INTEGER) * 10 ORDER BY x ASC) AS energy_end
+                CAST(distance_meters/10 AS INTEGER) * 10 AS distance_meters_bin,
+                FIRST_VALUE(energy_joules)
+                    OVER (PARTITION BY id, CAST(distance_meters/10 AS INTEGER) * 10 ORDER BY x ASC) AS energy_start,
+                LAST_VALUE(energy_joules)
+                    OVER (PARTITION BY id, CAST(distance_meters/10 AS INTEGER) * 10 ORDER BY x ASC) AS energy_end
             FROM cumulative_energy
         ), binned_energy AS (
             SELECT
@@ -359,27 +355,24 @@ class QueryStrings(Enum):
             GROUP BY 1, 2
         )
         SELECT
-            COALESCE(bce.source_id, bsa.source_id, be.source_id) AS source_id,
-            COALESCE(bce.distance_meters_bin, bsa.distance_meters_bin, be.distance_meters_bin) AS distance_meters_bin,
+            COALESCE(bce.source_id, be.source_id) AS source_id,
+            COALESCE(bce.distance_meters_bin, be.distance_meters_bin) AS distance_meters_bin,
             bce.cumulative_energy_avg,
             bce.cumulative_energy_lower_bound,
             bce.cumulative_energy_upper_bound,
-            bsa.speed_avg,
-            bsa.speed_upper_bound,
-            bsa.speed_lower_bound,
-            bsa.accel_avg,
-            bsa.accel_upper_bound,
-            bsa.accel_lower_bound,
+            bce.speed_avg,
+            bce.speed_upper_bound,
+            bce.speed_lower_bound,
+            bce.accel_avg,
+            bce.accel_upper_bound,
+            bce.accel_lower_bound,
             be.instantaneous_energy_avg,
             be.instantaneous_energy_upper_bound,
             be.instantaneous_energy_lower_bound
         FROM binned_cumulative_energy bce 
-        FULL OUTER JOIN binned_speed_accel bsa ON 1 = 1
-            AND bce.source_id = bsa.source_id
-            AND bce.distance_meters_bin = bsa.distance_meters_bin
         FULL OUTER JOIN binned_energy be ON 1 = 1
-            AND COALESCE(bce.source_id, bsa.source_id) = be.source_id
-            AND COALESCE(bce.distance_meters_bin, bce.distance_meters_bin) = be.distance_meters_bin
+            AND bce.source_id = be.source_id
+            AND bce.distance_meters_bin = be.distance_meters_bin
         ORDER BY distance_meters_bin ASC
         ;"""
 
@@ -389,50 +382,38 @@ class QueryStrings(Enum):
                 vt.id,
                 vt.source_id,
                 vt.time_step,
-                vt.x,
                 energy_model_id,
+                et.speed,
+                et.acceleration,
                 vt.time_step - LAG(vt.time_step, 1)
-                    OVER (PARTITION BY vt.id ORDER BY vt.time_step ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) 
-                        AS sim_step,
+                    OVER (PARTITION BY vt.id, vt.source_id ORDER BY vt.time_step ASC) AS sim_step,
                 SUM(power)
-                    OVER (PARTITION BY vt.id ORDER BY vt.time_step ASC ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) 
-                        AS cumulative_power
+                    OVER (PARTITION BY vt.id, vt.source_id ORDER BY vt.time_step ASC
+                    ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS cumulative_power
             FROM fact_vehicle_trace vt 
             JOIN fact_energy_trace et ON 1 = 1
-                AND vt.date = \'{date}\'
-                AND vt.partition_name = \'{partition}\'
                 AND et.date = \'{date}\'
                 AND et.partition_name = \'{partition}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
                 AND vt.id = et.id
                 AND vt.source_id = et.source_id
                 AND vt.time_step = et.time_step
-                AND vt.x BETWEEN 500 AND 2300
-                AND vt.time_step >= 600
                 AND et.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
             WHERE 1 = 1
+                AND vt.date = \'{date}\'
+                AND vt.partition_name = \'{partition}\'
+                AND vt.x BETWEEN 500 AND 2300
+                AND vt.time_step >= 600
         ), cumulative_energy AS (
             SELECT
                 id,
                 source_id,
                 time_step,
-                x,
                 energy_model_id,
+                speed,
+                acceleration,
                 cumulative_power * sim_step AS energy_joules
             FROM joined_trace
-            WHERE 1 = 1
-                AND x BETWEEN 500 AND 2300
-                AND time_step >= 600
         ), binned_cumulative_energy AS (
-            SELECT
-                source_id,
-                CAST(time_step/60 AS INTEGER) * 60 AS time_seconds_bin,
-                AVG(energy_joules) AS cumulative_energy_avg,
-                AVG(energy_joules) + STDDEV(energy_joules) AS cumulative_energy_upper_bound,
-                AVG(energy_joules) - STDDEV(energy_joules) AS cumulative_energy_lower_bound
-            FROM cumulative_energy
-            GROUP BY 1, 2
-            HAVING COUNT(DISTINCT time_step) > 1
-        ), binned_speed_accel AS (
             SELECT
                 source_id,
                 CAST(time_step/60 AS INTEGER) * 60 AS time_seconds_bin,
@@ -440,26 +421,24 @@ class QueryStrings(Enum):
                 AVG(speed) + STDDEV(speed) AS speed_upper_bound,
                 AVG(speed) - STDDEV(speed) AS speed_lower_bound,
                 AVG(target_accel_no_noise_with_failsafe) AS accel_avg,
-                AVG(target_accel_no_noise_with_failsafe) + STDDEV(target_accel_no_noise_with_failsafe) 
-                    AS accel_upper_bound,
-                AVG(target_accel_no_noise_with_failsafe) - STDDEV(target_accel_no_noise_with_failsafe) 
-                    AS accel_lower_bound
-            FROM fact_vehicle_trace
-            WHERE 1 = 1
-                AND date =  \'{date}\'
-                AND partition_name = \'{partition}\'
-                AND x BETWEEN 500 AND 2300
-                AND time_step >= 600
+                AVG(target_accel_no_noise_with_failsafe) + STDDEV(target_accel_no_noise_with_failsafe) AS accel_upper_bound,
+                AVG(target_accel_no_noise_with_failsafe) - STDDEV(target_accel_no_noise_with_failsafe) AS accel_lower_bound,
+                AVG(energy_joules) AS cumulative_energy_avg,
+                AVG(energy_joules) + STDDEV(energy_joules) AS cumulative_energy_upper_bound,
+                AVG(energy_joules) - STDDEV(energy_joules) AS cumulative_energy_lower_bound
+            FROM cumulative_energy
             GROUP BY 1, 2
+            HAVING 1 = 1
+                AND COUNT(DISTINCT time_step) > 1
         ), binned_energy_start_end AS (
             SELECT DISTINCT
                 source_id,
                 id,
                 CAST(time_step/60 AS INTEGER) * 60 AS time_seconds_bin,
-                FIRST_VALUE(energy_joules) OVER (PARTITION BY id, CAST(x/10 AS INTEGER) * 10 ORDER BY x ASC) 
-                    AS energy_start,
-                LAST_VALUE(energy_joules) OVER (PARTITION BY id, CAST(x/10 AS INTEGER) * 10 ORDER BY x ASC) 
-                    AS energy_end
+                FIRST_VALUE(energy_joules)
+                    OVER (PARTITION BY id, CAST(time_step/60 AS INTEGER) * 60 ORDER BY x ASC) AS energy_start,
+                LAST_VALUE(energy_joules)
+                    OVER (PARTITION BY id, CAST(time_step/60 AS INTEGER) * 60 ORDER BY x ASC) AS energy_end
             FROM cumulative_energy
         ), binned_energy AS (
             SELECT
@@ -472,27 +451,24 @@ class QueryStrings(Enum):
             GROUP BY 1, 2
         )
         SELECT
-            COALESCE(bce.source_id, bsa.source_id, be.source_id) AS source_id,
-            COALESCE(bce.time_seconds_bin, bsa.time_seconds_bin, be.time_seconds_bin) AS time_seconds_bin,
+            COALESCE(bce.source_id, be.source_id) AS source_id,
+            COALESCE(bce.time_seconds_bin, be.time_seconds_bin) AS time_seconds_bin,
             bce.cumulative_energy_avg,
             bce.cumulative_energy_lower_bound,
             bce.cumulative_energy_upper_bound,
-            bsa.speed_avg,
-            bsa.speed_upper_bound,
-            bsa.speed_lower_bound,
-            bsa.accel_avg,
-            bsa.accel_upper_bound,
-            bsa.accel_lower_bound,
+            bce.speed_avg,
+            bce.speed_upper_bound,
+            bce.speed_lower_bound,
+            bce.accel_avg,
+            bce.accel_upper_bound,
+            bce.accel_lower_bound,
             be.instantaneous_energy_avg,
             be.instantaneous_energy_upper_bound,
             be.instantaneous_energy_lower_bound
         FROM binned_cumulative_energy bce 
-        FULL OUTER JOIN binned_speed_accel bsa ON 1 = 1
-            AND bce.source_id = bsa.source_id
-            AND bce.time_seconds_bin = bsa.time_seconds_bin
         FULL OUTER JOIN binned_energy be ON 1 = 1
-            AND COALESCE(bce.source_id, bsa.source_id) = be.source_id
-            AND COALESCE(bce.time_seconds_bin, bce.time_seconds_bin) = be.time_seconds_bin
+            AND bce.source_id = be.source_id
+            AND bce.time_seconds_bin = be.time_seconds_bin
         ORDER BY time_seconds_bin ASC
         ;"""
 
