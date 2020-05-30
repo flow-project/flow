@@ -11,6 +11,8 @@ tags = {"fact_vehicle_trace": {"fact_energy_trace": ["POWER_DEMAND_MODEL", "POWE
                                               "fact_network_metrics_by_distance_agg":
                                                   ["FACT_NETWORK_METRICS_BY_DISTANCE_AGG"],
                                               "fact_network_metrics_by_time_agg": ["FACT_NETWORK_METRICS_BY_TIME_AGG"]},
+        "POWER_DEMAND_MODEL": {},
+        "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL": {},
         "fact_vehicle_fuel_efficiency_agg": {"fact_network_fuel_efficiency_agg": ["FACT_NETWORK_FUEL_EFFICIENCY_AGG"]},
         "fact_network_fuel_efficiency_agg": {"leaderboard_chart": ["LEADERBOARD_CHART"]},
         "leaderboard_chart": {"leaderboard_chart_agg": ["LEADERBOARD_CHART_AGG"]}
@@ -211,8 +213,10 @@ class QueryStrings(Enum):
             AND date = \'{date}\'
             AND partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
             AND energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
-            AND ABS(SUM(energy_joules)) != 0
+            AND ABS(energy_joules) != 0
         GROUP BY 1, 2
+        HAVING 1=1
+            AND ABS(SUM(energy_joules)) != 0
         ;"""
 
     LEADERBOARD_CHART = """

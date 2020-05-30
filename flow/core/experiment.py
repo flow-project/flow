@@ -154,7 +154,7 @@ class Experiment:
         extra_info = defaultdict(lambda: [])
         source_id = 'flow_{}'.format(uuid.uuid4().hex)
         metadata = defaultdict(lambda: "")
-        metadata['network'] = network_name_translate(self.env.network.name.split('_')[0])
+        metadata['network'] = network_name_translate(self.env.network.name.split('_20')[0])
 
         for i in range(num_runs):
             ret = 0
