@@ -336,7 +336,8 @@ class TraCIVehicle(KernelVehicle):
             tc.VAR_POSITION,
             tc.VAR_ANGLE,
             tc.VAR_SPEED_WITHOUT_TRACI,
-            tc.VAR_FUELCONSUMPTION
+            tc.VAR_FUELCONSUMPTION,
+            tc.VAR_DISTANCE
         ])
         self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
 
@@ -1190,6 +1191,10 @@ class TraCIVehicle(KernelVehicle):
     def get_2d_position(self, veh_id, error=-1001):
         """See parent class."""
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_POSITION, error)
+
+    def get_distance(self, veh_id, error=-1001):
+        """See parent class."""
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_DISTANCE, error)
 
     def get_road_grade(self, veh_id):
         """See parent class."""

@@ -160,57 +160,41 @@ class QueryStrings(Enum):
     FACT_VEHICLE_FUEL_EFFICIENCY_AGG = """
         WITH sub_fact_vehicle_trace AS (
             SELECT 
-                id,
-                time_step,
-                x,
-                source_id
-            FROM fact_vehicle_trace
-            WHERE 1 = 1
-                AND date = \'{date}\'
-                AND partition_name = \'{partition}\'
-        ), distance AS (
-            SELECT
-                id,
-                source_id,
-                MAX(x)-MIN(x) AS distance_meters
-            FROM sub_fact_vehicle_trace
-            WHERE 1 = 1
-                AND x BETWEEN 500 AND 2300
-                AND time_step >= 600
-            GROUP BY 1, 2
-        ), energy AS (
-            SELECT
-                e.id,
-                e.source_id,
+                v.id,
+                v.source_id,
                 e.energy_model_id,
+                MAX(x) - MIN(x) AS distance_meters,
                 (MAX(e.time_step) - MIN(e.time_step)) / (COUNT(DISTINCT e.time_step) - 1) AS time_step_size_seconds,
                 SUM(e.power) AS power_watts
-            FROM fact_energy_trace AS e 
-            JOIN sub_fact_vehicle_trace AS v ON 1 = 1
+            FROM fact_vehicle_trace v
+            JOIN fact_energy_trace AS e ON  1 = 1
                 AND e.id = v.id
                 AND e.time_step = v.time_step
                 AND e.source_id = v.source_id
-            WHERE 1 = 1
                 AND e.date = \'{date}\'
                 AND e.partition_name = \'{partition}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
                 AND e.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
-                AND v.x BETWEEN 500 AND 2300
                 AND e.time_step >= 600
+            WHERE 1 = 1
+                AND v.date = \'{date}\'
+                AND v.partition_name = \'{partition}'
+                AND v.x BETWEEN 500 AND 2300
             GROUP BY 1, 2, 3
-            HAVING COUNT(DISTINCT e.time_step) > 1
+            HAVING 1 = 1
+                AND MIN(x) - MIN(x) > 10
+                AND COUNT(DISTINCT e.time_step) > 10
         )
         SELECT
-            d.id,
-            d.source_id,
-            e.energy_model_id,
+            id,
+            source_id,
+            energy_model_id,
             distance_meters,
             power_watts * time_step_size_seconds AS energy_joules,
             distance_meters / (power_watts * time_step_size_seconds) AS efficiency_meters_per_joules,
-            74564 * distance_meters / (power_watts * time_step_size_seconds) AS efficiency_miles_per_gallon
-        FROM distance d
-        JOIN energy e ON 1=1 
-            AND d.id = e.id 
-            AND d.source_id = e.source_id
+            19972 * distance_meters / (power_watts * time_step_size_seconds) AS efficiency_miles_per_gallon
+        FROM sub_fact_vehicle_trace
+        WHERE 1 = 1
+            AND ABS(power_watts * time_step_size_seconds) > 0
         ;
     """
 
@@ -221,12 +205,13 @@ class QueryStrings(Enum):
             SUM(distance_meters) AS distance_meters,
             SUM(energy_joules) AS energy_joules,
             SUM(distance_meters) / SUM(energy_joules) AS efficiency_meters_per_joules,
-            74564 * SUM(distance_meters) / SUM(energy_joules) AS efficiency_miles_per_gallon
+            19972 * SUM(distance_meters) / SUM(energy_joules) AS efficiency_miles_per_gallon
         FROM fact_vehicle_fuel_efficiency_agg
         WHERE 1 = 1
             AND date = \'{date}\'
             AND partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
             AND energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
+            AND ABS(SUM(energy_joules)) != 0
         GROUP BY 1, 2
         ;"""
 
@@ -235,7 +220,7 @@ class QueryStrings(Enum):
             t.source_id,
             e.energy_model_id,
             e.efficiency_meters_per_joules,
-            74564 * e.efficiency_meters_per_joules AS efficiency_miles_per_gallon,
+            19972 * e.efficiency_meters_per_joules AS efficiency_miles_per_gallon,
             t.throughput_per_hour
         FROM fact_network_throughput_agg AS t
         JOIN fact_network_fuel_efficiency_agg AS e ON 1 = 1
@@ -513,11 +498,12 @@ class QueryStrings(Enum):
 
     LEADERBOARD_CHART_AGG = """
         SELECT
+            date AS query_date,
             source_id,
             energy_model_id,
             efficiency_meters_per_joules,
             efficiency_miles_per_gallon,
             throughput_per_hour
         FROM  leaderboard_chart
-        ORDER BY date, source_id ASC
+        ORDER BY query_date, source_id ASC
         ;"""
