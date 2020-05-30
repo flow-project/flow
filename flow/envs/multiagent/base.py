@@ -322,3 +322,6 @@ class MultiEnv(MultiAgentEnv, Env):
         # clip according to the action space requirements
         clipped_actions = self.clip_actions(rl_actions)
         self._apply_rl_actions(clipped_actions)
+
+    def set_iteration_num(self):
+        self.num_training_iters += 1

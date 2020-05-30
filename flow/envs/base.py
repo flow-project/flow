@@ -148,6 +148,8 @@ class Env(gym.Env):
         self.state = None
         self.obs_var_labels = []
 
+        self.num_training_iters = 0
+
         # track IDs that have ever been observed in the system
         self.observed_ids = set()
         self.observed_rl_ids = set()

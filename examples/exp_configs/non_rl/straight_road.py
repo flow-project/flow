@@ -9,6 +9,7 @@ from flow.controllers import IDMController
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
                              VehicleParams, SumoParams, SumoLaneChangeParams
+from flow.core.rewards import miles_per_gallon
 from flow.networks import HighwayNetwork
 from flow.envs import TestEnv
 from flow.networks.highway import ADDITIONAL_NET_PARAMS
@@ -58,7 +59,7 @@ if PENETRATION_RATE > 0.0:
     vehicles.add(
         "av",
         num_vehicles=0,
-        acceleration_controller=(FollowerStopper, {"v_des": 18.0}),
+        acceleration_controller=(FollowerStopper, {"v_des": 12.0}),
     )
 
 # add human vehicles on the highway
@@ -98,7 +99,7 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        warmup_steps=0,
+        warmup_steps=400,
         sims_per_step=1,
     ),
 
@@ -128,4 +129,6 @@ flow_params = dict(
 custom_callables = {
     "avg_speed": lambda env: np.nan_to_num(np.mean(
         env.k.vehicle.get_speed(env.k.vehicle.get_ids_by_edge(['highway_0', 'highway_1'])))),
+    "mpg": lambda env: miles_per_gallon(env, env.k.vehicle.get_ids(), gain=1.0)
+
 }
