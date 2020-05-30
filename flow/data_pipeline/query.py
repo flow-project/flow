@@ -474,12 +474,12 @@ class QueryStrings(Enum):
 
     LEADERBOARD_CHART_AGG = """
         SELECT
-            date AS query_date,
+            date AS submission_date,
             source_id,
             energy_model_id,
             efficiency_meters_per_joules,
             efficiency_miles_per_gallon,
             throughput_per_hour
-        FROM  leaderboard_chart
+        FROM leaderboard_chart
         ORDER BY query_date, source_id ASC
         ;"""
