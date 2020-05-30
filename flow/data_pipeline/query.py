@@ -148,7 +148,7 @@ class QueryStrings(Enum):
                 MAX(enter_time) - MIN(enter_time) AS total_time_seconds
             FROM min_time
             WHERE 1 = 1
-                AND enter_time >= 600
+                AND enter_time >= 720
             GROUP BY 1
         )
         SELECT
@@ -174,7 +174,7 @@ class QueryStrings(Enum):
                 AND e.date = \'{date}\'
                 AND e.partition_name = \'{partition}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
                 AND e.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
-                AND e.time_step >= 600
+                AND e.time_step >= 720
             WHERE 1 = 1
                 AND v.date = \'{date}\'
                 AND v.partition_name = \'{partition}\'
@@ -253,7 +253,7 @@ class QueryStrings(Enum):
                 60 * COUNT(DISTINCT id) AS inflow_rate
             FROM min_max_time_step
             WHERE 1 = 1
-                AND min_time_step >= 600
+                AND min_time_step >= 720
             GROUP BY 1, 2
         ), outflows AS (
             SELECT
@@ -262,7 +262,7 @@ class QueryStrings(Enum):
                 60 * COUNT(DISTINCT id) AS outflow_rate
             FROM min_max_time_step
             WHERE 1 = 1
-                AND max_time_step < 1000
+                AND max_time_step < 1200
             GROUP BY 1, 2
         )
         SELECT
@@ -305,7 +305,7 @@ class QueryStrings(Enum):
                 AND vt.date = \'{date}\'
                 AND vt.partition_name = \'{partition}\'
                 AND vt.x BETWEEN 500 AND 2300
-                AND vt.time_step >= 600
+                AND vt.time_step >= 720
         ), cumulative_energy AS (
             SELECT
                 id,
@@ -402,7 +402,7 @@ class QueryStrings(Enum):
                 AND vt.date = \'{date}\'
                 AND vt.partition_name = \'{partition}\'
                 AND vt.x BETWEEN 500 AND 2300
-                AND vt.time_step >= 600
+                AND vt.time_step >= 720
         ), cumulative_energy AS (
             SELECT
                 id,
