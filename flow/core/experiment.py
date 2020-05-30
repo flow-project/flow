@@ -2,6 +2,7 @@
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3, get_extra_info
+from flow.data_pipeline.leaderboard_utils import network_name_translate
 from collections import defaultdict
 import datetime
 import logging
@@ -153,7 +154,7 @@ class Experiment:
         extra_info = defaultdict(lambda: [])
         source_id = 'flow_{}'.format(uuid.uuid4().hex)
         metadata = defaultdict(lambda: "")
-        metadata['network'] = self.env.network.name.split('_')[0]
+        metadata['network'] = network_name_translate(self.env.network.name.split('_')[0])
 
         for i in range(num_runs):
             ret = 0
