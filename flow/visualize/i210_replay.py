@@ -337,7 +337,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
                 cur_date = date.today().isoformat()
                 upload_to_s3('circles.data.pipeline', 'fact_vehicle_trace/date={}/partition_name={}/{}.csv'.format(
                     cur_date, source_id, upload_file_path.split('/')[-1].split('_upload')[0]),
-                             upload_file_path, str(args.only_query)[2:-2])
+                             upload_file_path)
 
             # print the location of the emission csv file
             print("\nGenerated emission file at " + output_path)

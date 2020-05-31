@@ -38,7 +38,7 @@ def generate_trajectory_table(data_path, extra_info, partition_name):
     return output_file_path
 
 
-def generate_trajectory_from_flow(data_path, extra_info, partition_name=None):
+def write_dict_to_csv(data_path, extra_info, partition_name=None):
     """Generate desired output for the trajectory_table based only on flow output.
 
     Parameters
@@ -65,7 +65,7 @@ def generate_trajectory_from_flow(data_path, extra_info, partition_name=None):
     return
 
 
-def upload_to_s3(bucket_name, bucket_key, file_path, metadata):
+def upload_to_s3(bucket_name, bucket_key, file_path, metadata={}):
     """Upload a file to S3 bucket.
 
     Parameters
@@ -247,7 +247,7 @@ class AthenaQuery:
             self.update_partition(table, query_date, partition)
 
     def run_query(self, query_name, result_location="s3://circles.data.pipeline/result/",
-                  query_date="today", partition="default"):
+                  query_date="today", partition="default", **kwargs):
         """Start the execution of a query, does not wait for it to finish.
 
         Parameters
@@ -277,7 +277,7 @@ class AthenaQuery:
         source_id = "flow_{}".format(partition.split('_')[1])
 
         response = self.client.start_query_execution(
-            QueryString=QueryStrings[query_name].value.format(date=query_date, partition=source_id),
+            QueryString=QueryStrings[query_name].value.format(date=query_date, partition=source_id, **kwargs),
             QueryExecutionContext={
                 'Database': 'circles'
             },

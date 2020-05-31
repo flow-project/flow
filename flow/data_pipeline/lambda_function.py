@@ -2,7 +2,7 @@
 import boto3
 from urllib.parse import unquote_plus
 from flow.data_pipeline.data_pipeline import AthenaQuery, delete_obsolete_data
-from flow.data_pipeline.query import tags, tables
+from flow.data_pipeline.query import tags, tables,  network_using_edge, X_CONSTRAINT, EDGE_CONSTRAINT
 
 s3 = boto3.client('s3')
 queryEngine = AthenaQuery()
@@ -40,8 +40,11 @@ def lambda_handler(event, context):
     # initialize the queries
     for bucket, key, table, query_date, partition in records:
         source_id = "flow_{}".format(partition.split('_')[1])
-        # response = s3.head_object(Bucket=bucket, Key=key)
-        # required_query = response["Metadata"]["run-query"]
+        response = s3.head_object(Bucket=bucket, Key=key)
+        network_constraint = X_CONSTRAINT
+        if 'network' in response["Metadata"]:
+            if response["Metadata"]['network'] in network_using_edge:
+                network_constraint = EDGE_CONSTRAINT
 
         query_dict = tags[table]
 
@@ -57,4 +60,4 @@ def lambda_handler(event, context):
                                                                                                       query_date,
                                                                                                       source_id,
                                                                                                       query_name)
-                queryEngine.run_query(query_name, result_location, query_date, partition)
+                queryEngine.run_query(query_name, result_location, query_date, partition, constraint=network_constraint)

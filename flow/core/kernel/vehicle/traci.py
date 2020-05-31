@@ -1186,6 +1186,8 @@ class TraCIVehicle(KernelVehicle):
 
     def get_realized_accel(self, veh_id):
         """See parent class."""
+        if self.get_distance(veh_id) == 0:
+            return 0
         return (self.get_speed(veh_id) - self.get_previous_speed(veh_id)) / self.sim_step
 
     def get_2d_position(self, veh_id, error=-1001):
