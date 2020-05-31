@@ -23,6 +23,12 @@ tables = ["fact_vehicle_trace", "fact_energy_trace", "fact_network_throughput_ag
           "fact_network_metrics_by_time_agg", "fact_network_fuel_efficiency_agg", "leaderboard_chart",
           "leaderboard_chart_agg"]
 
+network_using_edge = ["I-210 without Ramps"]
+
+X_CONSTRAINT = "x BETWEEN 500 AND 2300"
+
+EDGE_CONSTRAINT = "edge_id <> ANY (VALUES 'ghost0', '119257908#3')"
+
 VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT = """
     SELECT
         id,
@@ -141,7 +147,7 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND date = \'{date}\'
                 AND partition_name = \'{partition}\'
-                AND x BETWEEN 500 AND 2300
+                AND {constraint}
             GROUP BY 1, 2
         ), agg AS (
             SELECT
@@ -180,10 +186,10 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND v.date = \'{date}\'
                 AND v.partition_name = \'{partition}\'
-                AND v.x BETWEEN 500 AND 2300
+                AND v.{constraint}
             GROUP BY 1, 2, 3
             HAVING 1 = 1
-                AND MIN(distance) - MIN(distance) > 10
+                AND MAX(distance) - MIN(distance) > 10
                 AND COUNT(DISTINCT e.time_step) > 10
         )
         SELECT
@@ -247,7 +253,7 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND date = \'{date}\'
                 AND partition_name = \'{partition}\'
-                AND x BETWEEN 500 AND 2300
+                AND {constraint}
             GROUP BY 1, 2
         ), inflows AS (
             SELECT
@@ -287,7 +293,7 @@ class QueryStrings(Enum):
                 vt.source_id,
                 vt.time_step,
                 vt.distance - FIRST_VALUE(vt.distance)
-                    OVER (PARITION BY vt.id, vt.source_id ORDER BY vt.time_step ASC) AS distance_meters,
+                    OVER (PARTITION BY vt.id, vt.source_id ORDER BY vt.time_step ASC) AS distance_meters,
                 energy_model_id,
                 et.speed,
                 et.acceleration,
@@ -307,7 +313,7 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND vt.date = \'{date}\'
                 AND vt.partition_name = \'{partition}\'
-                AND vt.x BETWEEN 500 AND 2300
+                AND vt.{constraint}
                 AND vt.time_step >= 720
         ), cumulative_energy AS (
             SELECT
@@ -327,9 +333,9 @@ class QueryStrings(Enum):
                 AVG(speed) AS speed_avg,
                 AVG(speed) + STDDEV(speed) AS speed_upper_bound,
                 AVG(speed) - STDDEV(speed) AS speed_lower_bound,
-                AVG(target_accel_no_noise_with_failsafe) AS accel_avg,
-                AVG(target_accel_no_noise_with_failsafe) + STDDEV(target_accel_no_noise_with_failsafe) AS accel_upper_bound,
-                AVG(target_accel_no_noise_with_failsafe) - STDDEV(target_accel_no_noise_with_failsafe) AS accel_lower_bound,
+                AVG(acceleration) AS accel_avg,
+                AVG(acceleration) + STDDEV(acceleration) AS accel_upper_bound,
+                AVG(acceleration) - STDDEV(acceleration) AS accel_lower_bound,
                 AVG(energy_joules) AS cumulative_energy_avg,
                 AVG(energy_joules) + STDDEV(energy_joules) AS cumulative_energy_upper_bound,
                 AVG(energy_joules) - STDDEV(energy_joules) AS cumulative_energy_lower_bound
@@ -371,9 +377,9 @@ class QueryStrings(Enum):
             bce.accel_avg,
             bce.accel_upper_bound,
             bce.accel_lower_bound,
-            be.instantaneous_energy_avg,
-            be.instantaneous_energy_upper_bound,
-            be.instantaneous_energy_lower_bound
+            COALESCE(be.instantaneous_energy_avg, 0) AS instantaneous_energy_avg,
+            COALESCE(be.instantaneous_energy_upper_bound, 0) AS instantaneous_energy_upper_bound,
+            COALESCE(be.instantaneous_energy_lower_bound, 0) AS instantaneous_energy_lower_bound
         FROM binned_cumulative_energy bce 
         FULL OUTER JOIN binned_energy be ON 1 = 1
             AND bce.source_id = be.source_id
@@ -406,7 +412,7 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND vt.date = \'{date}\'
                 AND vt.partition_name = \'{partition}\'
-                AND vt.x BETWEEN 500 AND 2300
+                AND vt.{constraint}
                 AND vt.time_step >= 720
         ), cumulative_energy AS (
             SELECT
@@ -425,9 +431,9 @@ class QueryStrings(Enum):
                 AVG(speed) AS speed_avg,
                 AVG(speed) + STDDEV(speed) AS speed_upper_bound,
                 AVG(speed) - STDDEV(speed) AS speed_lower_bound,
-                AVG(target_accel_no_noise_with_failsafe) AS accel_avg,
-                AVG(target_accel_no_noise_with_failsafe) + STDDEV(target_accel_no_noise_with_failsafe) AS accel_upper_bound,
-                AVG(target_accel_no_noise_with_failsafe) - STDDEV(target_accel_no_noise_with_failsafe) AS accel_lower_bound,
+                AVG(acceleration) AS accel_avg,
+                AVG(acceleration) + STDDEV(acceleration) AS accel_upper_bound,
+                AVG(acceleration) - STDDEV(acceleration) AS accel_lower_bound,
                 AVG(energy_joules) AS cumulative_energy_avg,
                 AVG(energy_joules) + STDDEV(energy_joules) AS cumulative_energy_upper_bound,
                 AVG(energy_joules) - STDDEV(energy_joules) AS cumulative_energy_lower_bound
@@ -469,9 +475,9 @@ class QueryStrings(Enum):
             bce.accel_avg,
             bce.accel_upper_bound,
             bce.accel_lower_bound,
-            be.instantaneous_energy_avg,
-            be.instantaneous_energy_upper_bound,
-            be.instantaneous_energy_lower_bound
+            COALESCE(be.instantaneous_energy_avg, 0) AS instantaneous_energy_avg,
+            COALESCE(be.instantaneous_energy_upper_bound, 0) AS instantaneous_energy_upper_bound,
+            COALESCE(be.instantaneous_energy_lower_bound, 0) AS instantaneous_energy_lower_bound
         FROM binned_cumulative_energy bce 
         FULL OUTER JOIN binned_energy be ON 1 = 1
             AND bce.source_id = be.source_id
@@ -481,12 +487,16 @@ class QueryStrings(Enum):
 
     LEADERBOARD_CHART_AGG = """
         SELECT
-            date AS submission_date,
-            source_id,
-            energy_model_id,
-            efficiency_meters_per_joules,
-            efficiency_miles_per_gallon,
-            throughput_per_hour
-        FROM leaderboard_chart
-        ORDER BY query_date, source_id ASC
+            l.date AS submission_date,
+            l.source_id,
+            m.network,
+            m.is_baseline,
+            l.energy_model_id,
+            l.efficiency_meters_per_joules,
+            l.efficiency_miles_per_gallon,
+            l.throughput_per_hour
+        FROM leaderboard_chart AS l, metadata_table AS m
+        WHERE 1 = 1
+            AND l.source_id = m.source_id
+        ORDER BY l.date, source_id ASC
         ;"""

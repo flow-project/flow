@@ -1,7 +1,7 @@
 """Contains an experiment class for running simulations."""
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
-from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3, get_extra_info
+from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info
 from flow.data_pipeline.leaderboard_utils import network_name_translate
 from collections import defaultdict
 import datetime
@@ -90,7 +90,7 @@ class Experiment:
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, rl_actions=None, convert_to_csv=False, to_aws=None, only_query=""):
+    def run(self, num_runs, rl_actions=None, convert_to_csv=False, to_aws=None, only_query="", is_baseline=False):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -111,6 +111,8 @@ class Experiment:
             Specifies which queries should be automatically run when the
             simulation data gets uploaded to S3. If an empty str is passed in,
             then it implies no queries should be run on this.
+        is_baseline: bool
+            Specifies whether this is a baseline run.
 
         Returns
         -------
@@ -153,8 +155,10 @@ class Experiment:
         # data pipeline
         extra_info = defaultdict(lambda: [])
         source_id = 'flow_{}'.format(uuid.uuid4().hex)
-        metadata = defaultdict(lambda: "")
-        metadata['network'] = network_name_translate(self.env.network.name.split('_20')[0])
+        metadata = defaultdict(lambda: [])
+        metadata['source_id'].append(source_id)
+        metadata['network'].append(network_name_translate(self.env.network.name.split('_20')[0]))
+        metadata['is_baseline'].append(str(is_baseline))
 
         for i in range(num_runs):
             ret = 0
@@ -220,13 +224,18 @@ class Experiment:
             os.remove(emission_path)
 
             trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
-            generate_trajectory_from_flow(trajectory_table_path, extra_info, partition_name)
+            write_dict_to_csv(trajectory_table_path, extra_info)
+            metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
+            write_dict_to_csv(metadata_table_path, metadata)
             
             if to_aws:
                 cur_date = date.today().isoformat()
-                upload_to_s3('circles.data.pipeline', 'fact_vehicle_trace/date={}/partition_name={}/{}.csv'.format(
-                             cur_date, source_id, source_id),
-                             trajectory_table_path, metadata)
+                upload_to_s3('circles.data.pipeline', 'fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv'.format(
+                             cur_date, source_id),
+                             trajectory_table_path, {'network': metadata['network']})
+                upload_to_s3('circles.data.pipeline', 'metadata_table/date={0}/partition_name={1}_METADATA/'
+                                                      '{1}_METADATA.csv'.format(cur_date, source_id),
+                             metadata_table_path)
 
             # delete the S3-only version of the trajectory file
             # os.remove(upload_file_path)
