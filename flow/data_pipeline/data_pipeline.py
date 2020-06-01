@@ -203,20 +203,20 @@ class AthenaQuery:
                 return False
         return True
 
-    def update_partition(self, table, query_date, partition):
+    def update_partition(self, table, submission_date, partition):
         """Load the given partition to the trajectory_table on Athena.
 
         Parameters
         ----------
         table : str
             the name of the table to update
-        query_date : str
+        submission_date : str
             the new partition date that needs to be loaded
         partition : str
             the new partition that needs to be loaded
         """
         response = self.client.start_query_execution(
-            QueryString=QueryStrings['UPDATE_PARTITION'].value.format(table=table, date=query_date,
+            QueryString=QueryStrings['UPDATE_PARTITION'].value.format(table=table, date=submission_date,
                                                                       partition=partition),
             QueryExecutionContext={
                 'Database': 'circles'
@@ -225,19 +225,19 @@ class AthenaQuery:
         )
         if self.wait_for_execution(response['QueryExecutionId']):
             raise RuntimeError("update partition timed out")
-        self.existing_partitions[table].append("date={}/partition_name={}".format(query_date, partition))
+        self.existing_partitions[table].append("date={}/partition_name={}".format(submission_date, partition))
         return
 
-    def repair_partition(self, table, query_date, partition):
+    def repair_partition(self, table, submission_date, partition):
         """Load the missing partitions."""
         if table not in self.existing_partitions.keys():
             self.existing_partitions[table] = self.get_existing_partitions(table)
-        if "date={}/partition_name={}".format(query_date, partition) not in \
+        if "date={}/partition_name={}".format(submission_date, partition) not in \
                 self.existing_partitions[table]:
-            self.update_partition(table, query_date, partition)
+            self.update_partition(table, submission_date, partition)
 
     def run_query(self, query_name, result_location="s3://circles.data.pipeline/result/",
-                  query_date="today", partition="default", **kwargs):
+                  submission_date="today", partition="default", **kwargs):
         """Start the execution of a query, does not wait for it to finish.
 
         Parameters
@@ -246,7 +246,7 @@ class AthenaQuery:
             name of the query in QueryStrings enum that will be run
         result_location: str, optional
             location on the S3 bucket where the result will be stored
-        query_date : str
+        submission_date : str
             name of the partition date to run this query on
         partition: str, optional
             name of the partition to run this query on
@@ -261,13 +261,13 @@ class AthenaQuery:
         if query_name not in QueryStrings.__members__:
             raise ValueError("query not existed: please add it to query.py")
 
-        if query_date == "today":
-            query_date = date.today().isoformat()
+        if submission_date == "today":
+            submission_date = date.today().isoformat()
 
         source_id = "flow_{}".format(partition.split('_')[1])
 
         response = self.client.start_query_execution(
-            QueryString=QueryStrings[query_name].value.format(date=query_date, partition=source_id, **kwargs),
+            QueryString=QueryStrings[query_name].value.format(date=submission_date, partition=source_id, **kwargs),
             QueryExecutionContext={
                 'Database': 'circles'
             },
