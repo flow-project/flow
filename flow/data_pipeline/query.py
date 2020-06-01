@@ -370,8 +370,8 @@ class QueryStrings(Enum):
             GROUP BY 1, 2
         )
         SELECT
-            COALESCE(bce.source_id, be.source_id) AS source_id,
-            COALESCE(bce.distance_meters_bin, be.distance_meters_bin) AS distance_meters_bin,
+            bce.source_id AS source_id,
+            bce.distance_meters_bin AS distance_meters_bin,
             bce.cumulative_energy_avg,
             bce.cumulative_energy_lower_bound,
             bce.cumulative_energy_upper_bound,
@@ -385,7 +385,7 @@ class QueryStrings(Enum):
             COALESCE(be.instantaneous_energy_upper_bound, 0) AS instantaneous_energy_upper_bound,
             COALESCE(be.instantaneous_energy_lower_bound, 0) AS instantaneous_energy_lower_bound
         FROM binned_cumulative_energy bce 
-        FULL OUTER JOIN binned_energy be ON 1 = 1
+        JOIN binned_energy be ON 1 = 1
             AND bce.source_id = be.source_id
             AND bce.distance_meters_bin = be.distance_meters_bin
         ORDER BY distance_meters_bin ASC
@@ -468,8 +468,8 @@ class QueryStrings(Enum):
             GROUP BY 1, 2
         )
         SELECT
-            COALESCE(bce.source_id, be.source_id) AS source_id,
-            COALESCE(bce.time_seconds_bin, be.time_seconds_bin) AS time_seconds_bin,
+            bce.source_id AS source_id,
+            bce.time_seconds_bin AS time_seconds_bin,
             bce.cumulative_energy_avg,
             bce.cumulative_energy_lower_bound,
             bce.cumulative_energy_upper_bound,
@@ -483,7 +483,7 @@ class QueryStrings(Enum):
             COALESCE(be.instantaneous_energy_upper_bound, 0) AS instantaneous_energy_upper_bound,
             COALESCE(be.instantaneous_energy_lower_bound, 0) AS instantaneous_energy_lower_bound
         FROM binned_cumulative_energy bce 
-        FULL OUTER JOIN binned_energy be ON 1 = 1
+        JOIN binned_energy be ON 1 = 1
             AND bce.source_id = be.source_id
             AND bce.time_seconds_bin = be.time_seconds_bin
         ORDER BY time_seconds_bin ASC
