@@ -12,9 +12,7 @@ network_name_map = {"highway": "Single-Lane Straight Road",
 
 def network_name_translate(network_name):
     """Translate network name to a human friendly name for the leaderboard."""
-    if network_name in network_name_map:
-        return network_name_map[network_name]
-    return network_name
+    return network_name_map.get(network_name, network_name)
 
 
 def key_to_name(key):
