@@ -49,19 +49,9 @@ def write_dict_to_csv(data_path, extra_info, partition_name=None):
         extra information needed in the trajectory table, collected from flow
     partition_name: str
         the name of the partition to put this output to
-    Returns
-    -------
-    output_file_path: str
-        the local path of the outputted csv file that should be used for
-        upload to s3 only, it does not the human readable column names and
-        will be deleted after uploading to s3. A copy of this file with all
-        the column name will remain in the ./data folder
     """
     extra_info = pd.DataFrame.from_dict(extra_info)
-    # extra_info["partition"] = partition_name
     extra_info.to_csv(data_path, index=False)
-    # upload_only_file_path = data_path[:-4] + "_upload" + ".csv"
-    # extra_info.to_csv(upload_only_file_path, index=False, header=False)
     return
 
 
