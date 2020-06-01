@@ -206,7 +206,7 @@ class QueryStrings(Enum):
             19972 * distance_meters / (power_watts * time_step_size_seconds) AS efficiency_miles_per_gallon
         FROM sub_fact_vehicle_trace
         WHERE 1 = 1
-            AND ABS(power_watts * time_step_size_seconds) > 0
+            AND power_watts * time_step_size_seconds != 0
         ;
     """
 
@@ -225,7 +225,7 @@ class QueryStrings(Enum):
             AND energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
         GROUP BY 1, 2
         HAVING 1=1
-            AND ABS(SUM(energy_joules)) != 0
+            AND SUM(energy_joules) != 0
         ;"""
 
     LEADERBOARD_CHART = """
@@ -237,13 +237,13 @@ class QueryStrings(Enum):
             t.throughput_per_hour
         FROM fact_network_throughput_agg AS t
         JOIN fact_network_fuel_efficiency_agg AS e ON 1 = 1
-            AND t.date = \'{date}\'
-            AND t.partition_name = \'{partition}_FACT_NETWORK_THROUGHPUT_AGG\'
             AND e.date = \'{date}\'
             AND e.partition_name = \'{partition}_FACT_NETWORK_FUEL_EFFICIENCY_AGG\'
             AND t.source_id = e.source_id
             AND e.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
         WHERE 1 = 1
+            AND t.date = \'{date}\'
+            AND t.partition_name = \'{partition}_FACT_NETWORK_THROUGHPUT_AGG\'
         ;"""
 
     FACT_NETWORK_INFLOWS_OUTFLOWS = """
