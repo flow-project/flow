@@ -38,7 +38,7 @@ def generate_trajectory_table(data_path, extra_info, partition_name):
     return output_file_path
 
 
-def write_dict_to_csv(data_path, extra_info, partition_name=None):
+def write_dict_to_csv(data_path, extra_info, include_header=False):
     """Generate desired output for the trajectory_table based only on flow output.
 
     Parameters
@@ -59,7 +59,7 @@ def write_dict_to_csv(data_path, extra_info, partition_name=None):
     """
     extra_info = pd.DataFrame.from_dict(extra_info)
     # extra_info["partition"] = partition_name
-    extra_info.to_csv(data_path, index=False)
+    extra_info.to_csv(data_path, mode='a+', index=False, header=include_header)
     # upload_only_file_path = data_path[:-4] + "_upload" + ".csv"
     # extra_info.to_csv(upload_only_file_path, index=False, header=False)
     return

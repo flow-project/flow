@@ -1,6 +1,6 @@
 """Transfer and replay for i210 environment."""
 import argparse
-from datetime import datetime
+from datetime import datetime, timezone
 from collections import defaultdict
 from copy import deepcopy
 import numpy as np
@@ -32,7 +32,8 @@ from flow.visualize.plot_custom_callables import plot_trip_distribution
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 
-from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3, get_extra_info
+from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info
+from flow.data_pipeline.leaderboard_utils import network_name_translate
 import uuid
 
 EXAMPLE_USAGE = """
@@ -208,8 +209,18 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         key: [] for key in custom_callables.keys()
     })
 
+    # date pipeline
     extra_info = defaultdict(lambda: [])
     source_id = 'flow_{}'.format(uuid.uuid4().hex)
+    metadata = defaultdict(lambda: [])
+    # collect current time
+    cur_datetime = datetime.now(timezone.utc)
+    cur_date = cur_datetime.date().isoformat()
+    cur_time = cur_datetime.time().isoformat()
+    metadata['source_id'].append(source_id)
+    metadata['submission_time'].append(cur_time)
+    metadata['network'].append(network_name_translate(env.network.name.split('_20')[0]))
+    metadata['is_baseline'].append(str(is_baseline))
 
     i = 0
     while i < args.num_rollouts:
@@ -330,7 +341,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
 
             # generate the trajectory output file
             trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
-            upload_file_path = generate_trajectory_from_flow(trajectory_table_path, extra_info)
+            upload_file_path = write_dict_to_csv(trajectory_table_path, extra_info)
 
             # upload to s3 if asked
             if args.use_s3:
