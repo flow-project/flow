@@ -2,7 +2,8 @@
 import boto3
 from urllib.parse import unquote_plus
 from flow.data_pipeline.data_pipeline import AthenaQuery, delete_obsolete_data
-from flow.data_pipeline.query import tags, tables,  network_using_edge, X_CONSTRAINT, EDGE_CONSTRAINT
+from flow.data_pipeline.query import tags, tables,  network_using_edge
+from flow.data_pipeline.query import X_CONSTRAINT, EDGE_CONSTRAINT, WARMUP_STEPS, HORIZON_STEPS
 
 s3 = boto3.client('s3')
 queryEngine = AthenaQuery()
@@ -38,13 +39,15 @@ def lambda_handler(event, context):
             records.append((bucket, key, table, query_date, partition))
 
     # initialize the queries
+    start_constraint = WARMUP_STEPS
+    stop_constraint = WARMUP_STEPS + HORIZON_STEPS
     for bucket, key, table, query_date, partition in records:
         source_id = "flow_{}".format(partition.split('_')[1])
         response = s3.head_object(Bucket=bucket, Key=key)
-        network_constraint = X_CONSTRAINT
+        loc_constraint = X_CONSTRAINT
         if 'network' in response["Metadata"]:
             if response["Metadata"]['network'] in network_using_edge:
-                network_constraint = EDGE_CONSTRAINT
+                loc_constraint = EDGE_CONSTRAINT
 
         query_dict = tags[table]
 
@@ -60,4 +63,10 @@ def lambda_handler(event, context):
                                                                                                       query_date,
                                                                                                       source_id,
                                                                                                       query_name)
-                queryEngine.run_query(query_name, result_location, query_date, partition, constraint=network_constraint)
+                queryEngine.run_query(query_name,
+                                      result_location,
+                                      query_date,
+                                      partition,
+                                      loc_constraint=loc_constraint,
+                                      start_constraint=start_constraint,
+                                      stop_constraint=stop_constraint)
