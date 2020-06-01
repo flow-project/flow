@@ -39,7 +39,7 @@ def generate_trajectory_table(data_path, extra_info, partition_name):
 
 
 def write_dict_to_csv(data_path, extra_info, include_header=False):
-    """Generate desired output for the trajectory_table based only on flow output.
+    """Write extra to the CSV file at data_path, create one if not exist
 
     Parameters
     ----------
@@ -47,22 +47,11 @@ def write_dict_to_csv(data_path, extra_info, include_header=False):
         output file path
     extra_info: dict
         extra information needed in the trajectory table, collected from flow
-    partition_name: str
-        the name of the partition to put this output to
-    Returns
-    -------
-    output_file_path: str
-        the local path of the outputted csv file that should be used for
-        upload to s3 only, it does not the human readable column names and
-        will be deleted after uploading to s3. A copy of this file with all
-        the column name will remain in the ./data folder
+    include_header: bool
+        whether or not to include the header in the output
     """
     extra_info = pd.DataFrame.from_dict(extra_info)
-    # extra_info["partition"] = partition_name
     extra_info.to_csv(data_path, mode='a+', index=False, header=include_header)
-    # upload_only_file_path = data_path[:-4] + "_upload" + ".csv"
-    # extra_info.to_csv(upload_only_file_path, index=False, header=False)
-    return
 
 
 def upload_to_s3(bucket_name, bucket_key, file_path, metadata={}):
@@ -213,20 +202,20 @@ class AthenaQuery:
                 return False
         return True
 
-    def update_partition(self, table, query_date, partition):
+    def update_partition(self, table, submission_date, partition):
         """Load the given partition to the trajectory_table on Athena.
 
         Parameters
         ----------
         table : str
             the name of the table to update
-        query_date : str
+        submission_date : str
             the new partition date that needs to be loaded
         partition : str
             the new partition that needs to be loaded
         """
         response = self.client.start_query_execution(
-            QueryString=QueryStrings['UPDATE_PARTITION'].value.format(table=table, date=query_date,
+            QueryString=QueryStrings['UPDATE_PARTITION'].value.format(table=table, date=submission_date,
                                                                       partition=partition),
             QueryExecutionContext={
                 'Database': 'circles'
@@ -235,19 +224,19 @@ class AthenaQuery:
         )
         if self.wait_for_execution(response['QueryExecutionId']):
             raise RuntimeError("update partition timed out")
-        self.existing_partitions[table].append("date={}/partition_name={}".format(query_date, partition))
+        self.existing_partitions[table].append("date={}/partition_name={}".format(submission_date, partition))
         return
 
-    def repair_partition(self, table, query_date, partition):
+    def repair_partition(self, table, submission_date, partition):
         """Load the missing partitions."""
         if table not in self.existing_partitions.keys():
             self.existing_partitions[table] = self.get_existing_partitions(table)
-        if "date={}/partition_name={}".format(query_date, partition) not in \
+        if "date={}/partition_name={}".format(submission_date, partition) not in \
                 self.existing_partitions[table]:
-            self.update_partition(table, query_date, partition)
+            self.update_partition(table, submission_date, partition)
 
     def run_query(self, query_name, result_location="s3://circles.data.pipeline/result/",
-                  query_date="today", partition="default", **kwargs):
+                  submission_date="today", partition="default", **kwargs):
         """Start the execution of a query, does not wait for it to finish.
 
         Parameters
@@ -256,7 +245,7 @@ class AthenaQuery:
             name of the query in QueryStrings enum that will be run
         result_location: str, optional
             location on the S3 bucket where the result will be stored
-        query_date : str
+        submission_date : str
             name of the partition date to run this query on
         partition: str, optional
             name of the partition to run this query on
@@ -271,13 +260,13 @@ class AthenaQuery:
         if query_name not in QueryStrings.__members__:
             raise ValueError("query not existed: please add it to query.py")
 
-        if query_date == "today":
-            query_date = date.today().isoformat()
+        if submission_date == "today":
+            submission_date = date.today().isoformat()
 
         source_id = "flow_{}".format(partition.split('_')[1])
 
         response = self.client.start_query_execution(
-            QueryString=QueryStrings[query_name].value.format(date=query_date, partition=source_id, **kwargs),
+            QueryString=QueryStrings[query_name].value.format(date=submission_date, partition=source_id, **kwargs),
             QueryExecutionContext={
                 'Database': 'circles'
             },
