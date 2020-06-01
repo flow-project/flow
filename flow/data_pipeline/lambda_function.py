@@ -39,15 +39,15 @@ def lambda_handler(event, context):
             records.append((bucket, key, table, query_date, partition))
 
     # initialize the queries
-    start_constraint = WARMUP_STEPS
-    stop_constraint = WARMUP_STEPS + HORIZON_STEPS
+    start_filter = WARMUP_STEPS
+    stop_filter = WARMUP_STEPS + HORIZON_STEPS
     for bucket, key, table, query_date, partition in records:
         source_id = "flow_{}".format(partition.split('_')[1])
         response = s3.head_object(Bucket=bucket, Key=key)
-        loc_constraint = X_CONSTRAINT
+        loc_filter = X_FILTER
         if 'network' in response["Metadata"]:
             if response["Metadata"]['network'] in network_using_edge:
-                loc_constraint = EDGE_CONSTRAINT
+                loc_filter = EDGE_FILTER
 
         query_dict = tags[table]
 
@@ -67,6 +67,6 @@ def lambda_handler(event, context):
                                       result_location,
                                       query_date,
                                       partition,
-                                      loc_constraint=loc_constraint,
-                                      start_constraint=start_constraint,
-                                      stop_constraint=stop_constraint)
+                                      loc_filter=loc_filter,
+                                      start_filter=start_filter,
+                                      stop_filter=stop_filter)
