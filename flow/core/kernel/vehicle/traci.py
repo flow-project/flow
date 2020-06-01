@@ -87,6 +87,8 @@ class TraCIVehicle(KernelVehicle):
 
         # old speeds used to compute accelerations
         self.previous_speeds = {}
+        # The time that previous speed is recorded, used to calculate realized_accel
+        self.previous_time = 0
 
     def initialize(self, vehicles):
         """Initialize vehicle state information.
@@ -336,7 +338,8 @@ class TraCIVehicle(KernelVehicle):
             tc.VAR_POSITION,
             tc.VAR_ANGLE,
             tc.VAR_SPEED_WITHOUT_TRACI,
-            tc.VAR_FUELCONSUMPTION
+            tc.VAR_FUELCONSUMPTION,
+            tc.VAR_DISTANCE
         ])
         self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
 
@@ -1185,11 +1188,17 @@ class TraCIVehicle(KernelVehicle):
 
     def get_realized_accel(self, veh_id):
         """See parent class."""
+        if self.get_distance(veh_id) == 0:
+            return 0
         return (self.get_speed(veh_id) - self.get_previous_speed(veh_id)) / self.sim_step
 
     def get_2d_position(self, veh_id, error=-1001):
         """See parent class."""
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_POSITION, error)
+
+    def get_distance(self, veh_id, error=-1001):
+        """See parent class."""
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_DISTANCE, error)
 
     def get_road_grade(self, veh_id):
         """See parent class."""

@@ -60,6 +60,11 @@ def parse_args(args):
         help='specify which query should be run by lambda'
              'for detail, see upload_to_s3 in data_pipeline.py'
     )
+    parser.add_argument(
+        '--is_baseline',
+        action='store_true',
+        help='specifies whether this is a baseline run'
+    )
 
     return parser.parse_known_args(args)[0]
 
@@ -97,5 +102,5 @@ if __name__ == "__main__":
     exp = Experiment(flow_params, callables)
 
     # Run for the specified number of rollouts.
-    exp.run(flags.num_runs, convert_to_csv=flags.gen_emission, partition_name=flags.to_aws,
-            only_query=flags.only_query)
+    exp.run(flags.num_runs, convert_to_csv=flags.gen_emission, to_aws=flags.to_aws,
+            only_query=flags.only_query, is_baseline=flags.is_baseline)
