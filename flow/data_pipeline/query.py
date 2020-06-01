@@ -21,7 +21,7 @@ tags = {"fact_vehicle_trace": {"fact_energy_trace": ["POWER_DEMAND_MODEL", "POWE
 tables = ["fact_vehicle_trace", "fact_energy_trace", "fact_network_throughput_agg", "fact_network_inflows_outflows",
           "fact_vehicle_fuel_efficiency_agg", "fact_network_metrics_by_distance_agg",
           "fact_network_metrics_by_time_agg", "fact_network_fuel_efficiency_agg", "leaderboard_chart",
-          "leaderboard_chart_agg"]
+          "leaderboard_chart_agg", "metadata_table"]
 
 network_using_edge = ["I-210 without Ramps"]
 
