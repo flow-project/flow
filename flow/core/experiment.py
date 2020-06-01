@@ -230,7 +230,7 @@ class Experiment:
             emission_path = os.path.join(dir_path, emission_filename)
 
             # convert the emission file into a csv
-            # FIXME: Brent: produce seg fault with large CSV
+            # FIXME(@Brent): produce seg fault with large CSV
             # emission_to_csv(emission_path)
 
             # Delete the .xml version of the emission file.
