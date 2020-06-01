@@ -502,5 +502,5 @@ class QueryStrings(Enum):
         FROM leaderboard_chart AS l, metadata_table AS m
         WHERE 1 = 1
             AND l.source_id = m.source_id
-        ORDER BY l.date, source_id ASC
+        ORDER BY l.date, m.submission_time, l.source_id ASC
         ;"""

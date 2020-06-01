@@ -48,7 +48,9 @@ def write_dict_to_csv(data_path, extra_info, include_header=False):
     extra_info: dict
         extra information needed in the trajectory table, collected from flow
     include_header: bool
-        whether or not to include the header in the output
+        whether or not to include the header in the output, this should be set to
+        True for the first write to the a empty or newly created CSV, and set to
+        False for subsequent appends.
     """
     extra_info = pd.DataFrame.from_dict(extra_info)
     extra_info.to_csv(data_path, mode='a+', index=False, header=include_header)
