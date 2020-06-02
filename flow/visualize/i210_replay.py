@@ -262,7 +262,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
 
             # Collect information from flow for the trajectory output
             get_extra_info(env.k.vehicle, extra_info, veh_ids)
-            extra_info["source_id"].extend(['{}_run_{}'.format(source_id, i)] * len(veh_ids))
+            extra_info["source_id"].extend([source_id] * len(veh_ids))
+            extra_info["run_id"].extend(['run_{}'.format(i)] * len(veh_ids))
 
             # Compute the results for the custom callables.
             for (key, lambda_func) in custom_callables.items():
