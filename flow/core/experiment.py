@@ -1,7 +1,7 @@
 """Contains an experiment class for running simulations."""
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
-from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info
+from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
 from flow.data_pipeline.leaderboard_utils import network_name_translate
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -159,14 +159,19 @@ class Experiment:
         cur_datetime = datetime.now(timezone.utc)
         cur_date = cur_datetime.date().isoformat()
         cur_time = cur_datetime.time().isoformat()
+        # collecting information for metadata table
         metadata['source_id'].append(source_id)
         metadata['submission_time'].append(cur_time)
+        name, strategy = get_configuration()
+        metadata['submitter_name'].append(name)
+        metadata['strategy'].append(strategy)
         metadata['network'].append(network_name_translate(self.env.network.name.split('_20')[0]))
         metadata['is_baseline'].append(str(is_baseline))
 
-        dir_path = self.env.sim_params.emission_path
-        trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
-        metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
+        if convert_to_csv and self.env.simulator == "traci":
+            dir_path = self.env.sim_params.emission_path
+            trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
+            metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
 
         for i in range(num_runs):
             ret = 0

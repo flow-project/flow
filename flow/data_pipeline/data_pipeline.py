@@ -104,6 +104,29 @@ def get_extra_info(veh_kernel, extra_info, veh_ids):
         extra_info["distance"].append(veh_kernel.get_distance(vid))
 
 
+def get_configuration():
+    """Get configuration for the metadata table."""
+    try:
+        config_df = pd.read_csv('./config')
+    except FileNotFoundError:
+        config_df = pd.DataFrame(data={"submitter_name": [""], "strategy": [""]})
+
+    if not config_df['submitter_name'][0]:
+        name = input("Please enter your name:").strip()
+        while not name:
+            name = input("Please enter a non-empty name:").strip()
+        config_df['submitter_name'][0] = name
+
+    strategy = input(
+        "The current strategy is {}, you can enter a new one to change it:".format(config_df["strategy"][0])).strip()
+    if strategy:
+        config_df['strategy'][0] = strategy
+
+    config_df.to_csv('./config', index=False)
+
+    return config_df['submitter_name'][0], config_df['strategy'][0]
+
+
 def delete_obsolete_data(s3, latest_key, table, bucket="circles.data.pipeline"):
     """Delete the obsolete data on S3"""
     response = s3.list_objects_v2(Bucket=bucket)
