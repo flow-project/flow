@@ -490,17 +490,34 @@ class QueryStrings(Enum):
         ;"""
 
     LEADERBOARD_CHART_AGG = """
+        WITH agg AS (
+            SELECT
+                l.date AS submission_date,
+                l.submission_time,
+                l.source_id,
+                m.network,
+                m.is_baseline,
+                l.energy_model_id,
+                l.efficiency_meters_per_joules,
+                l.efficiency_miles_per_gallon,
+                l.throughput_per_hour
+            FROM leaderboard_chart AS l, metadata_table AS m
+            WHERE 1 = 1
+                AND l.source_id = m.source_id
+        )
         SELECT
-            l.date AS submission_date,
-            l.source_id,
-            m.network,
-            m.is_baseline,
-            l.energy_model_id,
-            l.efficiency_meters_per_joules,
-            l.efficiency_miles_per_gallon,
-            l.throughput_per_hour
-        FROM leaderboard_chart AS l, metadata_table AS m
-        WHERE 1 = 1
-            AND l.source_id = m.source_id
-        ORDER BY l.date, m.submission_time, l.source_id ASC
+            agg.submission_date,
+            agg.source_id,
+            agg.network,
+            agg.is_baseline,
+            agg.energy_model_id,
+            agg.efficiency_meters_per_joules,
+            agg.efficiency_miles_per_gallon,
+            100 * (1 - baseline.efficiency_miles_per_gallon / agg.efficiency_miles_per_gallon) AS percent_improvement,
+            agg.throughput_per_hour
+        FROM agg
+        JOIN agg baseline ON 1 = 1
+            AND agg.network = baseline.network
+            AND baseline.is_baseline = TRUE
+        ORDER BY agg.submission_date, agg.submission_time, agg.source_id ASC
         ;"""
