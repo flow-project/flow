@@ -167,7 +167,18 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         rllib_flow_params = get_flow_params(rllib_config)
         agent_create_env, agent_env_name = make_create_env(params=rllib_flow_params, version=0)
         register_env(agent_env_name, agent_create_env)
-        agent_cls = get_agent_class(config_run)
+        # agent_cls = get_agent_class(config_run)
+
+        if rllib_config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CCPPOTrainer'>":
+            from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
+            from ray.rllib.models import ModelCatalog
+            agent_cls = CCTrainer
+            ModelCatalog.register_custom_model("cc_model", CentralizedCriticModel)
+        elif rllib_config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CustomPPOTrainer'>":
+            from flow.algorithms.custom_ppo import CustomPPOTrainer
+            agent_cls = CustomPPOTrainer
+        elif config_run:
+            agent_cls = get_agent_class(config_run)
 
         # create the agent that will be used to compute the actions
         agent = agent_cls(env=agent_env_name, config=rllib_config)
@@ -208,6 +219,10 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     info_dict.update({
         key: [] for key in custom_callables.keys()
     })
+
+    # reroute on exit is a training hack, it should be turned off at test time.
+    if hasattr(env, "reroute_on_exit"):
+        env.reroute_on_exit = False
 
     # date pipeline
     extra_info = defaultdict(lambda: [])
