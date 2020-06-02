@@ -118,7 +118,7 @@ def get_configuration():
         config_df['submitter_name'][0] = name
 
     strategy = input(
-        "The current strategy is {}, you can enter a new one to change it:".format(config_df["strategy"][0])).strip()
+        "Please enter strategy name (current: \"{}\"):".format(config_df["strategy"][0])).strip()
     if strategy:
         config_df['strategy'][0] = strategy
 
