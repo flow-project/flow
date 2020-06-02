@@ -1,12 +1,12 @@
 """Contains an experiment class for running simulations."""
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
-from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3, get_extra_info
+from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info
+from flow.data_pipeline.leaderboard_utils import network_name_translate
 from collections import defaultdict
-import datetime
+from datetime import datetime, timezone
 import logging
 import time
-from datetime import date
 import os
 import numpy as np
 import uuid
@@ -85,11 +85,11 @@ class Experiment:
         self.env = create_env()
 
         logging.info(" Starting experiment {} at {}".format(
-            self.env.network.name, str(datetime.datetime.utcnow())))
+            self.env.network.name, str(datetime.utcnow())))
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, rl_actions=None, convert_to_csv=False, partition_name=None, only_query=""):
+    def run(self, num_runs, rl_actions=None, convert_to_csv=False, to_aws=None, only_query="", is_baseline=False):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -102,7 +102,7 @@ class Experiment:
         convert_to_csv : bool
             Specifies whether to convert the emission file created by sumo
             into a csv file
-        partition_name: str
+        to_aws: str
             Specifies the S3 partition you want to store the output file,
             will be used to later for query. If NONE, won't upload output
             to S3.
@@ -110,6 +110,8 @@ class Experiment:
             Specifies which queries should be automatically run when the
             simulation data gets uploaded to S3. If an empty str is passed in,
             then it implies no queries should be run on this.
+        is_baseline: bool
+            Specifies whether this is a baseline run.
 
         Returns
         -------
@@ -148,8 +150,23 @@ class Experiment:
         # time profiling information
         t = time.time()
         times = []
+
+        # data pipeline
         extra_info = defaultdict(lambda: [])
         source_id = 'flow_{}'.format(uuid.uuid4().hex)
+        metadata = defaultdict(lambda: [])
+        # collect current time
+        cur_datetime = datetime.now(timezone.utc)
+        cur_date = cur_datetime.date().isoformat()
+        cur_time = cur_datetime.time().isoformat()
+        metadata['source_id'].append(source_id)
+        metadata['submission_time'].append(cur_time)
+        metadata['network'].append(network_name_translate(self.env.network.name.split('_20')[0]))
+        metadata['is_baseline'].append(str(is_baseline))
+
+        dir_path = self.env.sim_params.emission_path
+        trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
+        metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
 
         for i in range(num_runs):
             ret = 0
@@ -169,7 +186,13 @@ class Experiment:
 
                 # collect additional information for the data pipeline
                 get_extra_info(self.env.k.vehicle, extra_info, veh_ids)
-                extra_info["source_id"].extend(['{}_run_{}'.format(source_id, i)] * len(veh_ids))
+                extra_info["source_id"].extend([source_id] * len(veh_ids))
+                extra_info["run_id"].extend(['run_{}'.format(i)] * len(veh_ids))
+
+                # write to disk every 100 steps
+                if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0:
+                    write_dict_to_csv(trajectory_table_path, extra_info, not j)
+                    extra_info.clear()
 
                 # Compute the results for the custom callables.
                 for (key, lambda_func) in self.custom_callables.items():
@@ -202,29 +225,28 @@ class Experiment:
             time.sleep(0.1)
 
             # collect the location of the emission file
-            dir_path = self.env.sim_params.emission_path
             emission_filename = \
                 "{0}-emission.xml".format(self.env.network.name)
             emission_path = os.path.join(dir_path, emission_filename)
 
             # convert the emission file into a csv
-            emission_to_csv(emission_path)
+            # FIXME(@Brent): produce seg fault with large CSV
+            # emission_to_csv(emission_path)
 
             # Delete the .xml version of the emission file.
             os.remove(emission_path)
 
-            trajectory_table_path = dir_path + source_id + ".csv"
-            upload_file_path = generate_trajectory_from_flow(trajectory_table_path, extra_info, partition_name)
-
-            if partition_name:
-                if partition_name == "default":
-                    partition_name = source_id[-3:]
-                cur_date = date.today().isoformat()
-                upload_to_s3('circles.data.pipeline', 'trajectory-output/date={}/partition_name={}/{}.csv'.format(
-                             cur_date, partition_name, upload_file_path.split('/')[-1].split('_upload')[0]),
-                             upload_file_path, str(only_query)[2:-2])
-
-            # delete the S3-only version of the trajectory file
-            os.remove(upload_file_path)
+            write_dict_to_csv(trajectory_table_path, extra_info)
+            write_dict_to_csv(metadata_table_path, metadata, True)
+            
+            if to_aws:
+                upload_to_s3('circles.data.pipeline',
+                             'metadata_table/date={0}/partition_name={1}_METADATA/'
+                             '{1}_METADATA.csv'.format(cur_date, source_id),
+                             metadata_table_path)
+                upload_to_s3('circles.data.pipeline',
+                             'fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv'.format(cur_date, source_id),
+                             trajectory_table_path,
+                             {'network': metadata['network'][0]})
 
         return info_dict
