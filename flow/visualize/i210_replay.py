@@ -32,7 +32,7 @@ from flow.visualize.plot_custom_callables import plot_trip_distribution
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 
-from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info
+from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
 from flow.data_pipeline.leaderboard_utils import network_name_translate
 import uuid
 
@@ -221,6 +221,9 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     metadata['submission_time'].append(cur_time)
     metadata['network'].append(network_name_translate(env.network.name.split('_20')[0]))
     metadata['is_baseline'].append(str(args.is_baseline))
+    name, strategy = get_configuration()
+    metadata['submitter_name'].append(name)
+    metadata['strategy'].append(strategy)
 
     i = 0
     while i < args.num_rollouts:
