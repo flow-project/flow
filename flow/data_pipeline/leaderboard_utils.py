@@ -8,6 +8,7 @@ from io import StringIO
 network_name_map = {"highway": "Single-Lane Straight Road",
                     "highway_single": "Single-Lane Straight Road",
                     "ring": "Single-Lane Ring Road",
+                    "I-210_subnetwork": "I-210 without Ramps",
                     "I_210_subnetwork": "I-210 without Ramps"}
 
 
