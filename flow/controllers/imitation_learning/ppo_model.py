@@ -36,9 +36,9 @@ class PPONetwork(TFModelV2):
 
         # setup model with weights loaded in from model in h5 path
         self.setup_model(obs_space, action_space, model_config, num_outputs, h5_path)
+        self.register_variables(self.base_model.variables)
 
         # register variables for base model
-        self.register_variables(self.base_model.variables)
         # compare_weights(self.base_model, "/Users/akashvelu/Desktop/latest_run/imitation_model.h5")
 
 
@@ -60,42 +60,38 @@ class PPONetwork(TFModelV2):
             path to h5 file containing weights of a pretrained network (empty string if no such file)
         """
 
-        if imitation_h5_path:
-            # set base model to be loaded model
-            self.base_model = tf.keras.models.load_model(imitation_h5_path)
+        activation = model_config.get("fcnet_activation")
+        hiddens = model_config.get("fcnet_hiddens", [])
+        vf_share_layers = model_config.get("vf_share_layers")
 
-        else:
-            activation = model_config.get("fcnet_activation")
-            hiddens = model_config.get("fcnet_hiddens", [])
-            vf_share_layers = model_config.get("vf_share_layers")
+        # set up model
+        inp_layer = tf.keras.layers.Input(shape=obs_space.shape, name="input_layer")
+        curr_layer = inp_layer
 
-            # set up model
-            inp_layer = tf.keras.layers.Input(shape=obs_space.shape, name="input_layer")
+        # hidden layers and output for policy
+        i = 1
+        for size in hiddens:
+            curr_layer = tf.keras.layers.Dense(size, name="policy_hidden_layer_{}".format(i),
+                                               activation=activation)(curr_layer)
+            i += 1
+
+        output_layer_policy = tf.keras.layers.Dense(num_outputs, name="policy_output_layer", activation=None)(
+            curr_layer)
+
+        # set up value function
+        if not vf_share_layers:
             curr_layer = inp_layer
-
-            # hidden layers and output for policy
             i = 1
             for size in hiddens:
-                curr_layer = tf.keras.layers.Dense(size, name="policy_hidden_layer_{}".format(i),
+                curr_layer = tf.keras.layers.Dense(size, name="vf_hidden_layer_{}".format(i),
                                                    activation=activation)(curr_layer)
                 i += 1
 
-            output_layer_policy = tf.keras.layers.Dense(num_outputs, name="policy_output_layer", activation=None)(
-                curr_layer)
+        output_layer_vf = tf.keras.layers.Dense(1, name="vf_output_layer", activation=None)(curr_layer)
 
-            # set up value function
-            if not vf_share_layers:
-                curr_layer = inp_layer
-                i = 1
-                for size in hiddens:
-                    curr_layer = tf.keras.layers.Dense(size, name="vf_hidden_layer_{}".format(i),
-                                                       activation=activation)(curr_layer)
-                    i += 1
+        # build model from layers
+        self.base_model = tf.keras.Model(inp_layer, [output_layer_policy, output_layer_vf])
 
-            output_layer_vf = tf.keras.layers.Dense(1, name="vf_output_layer", activation=None)(curr_layer)
-
-            # build model from layers
-            self.base_model = tf.keras.Model(inp_layer, [output_layer_policy, output_layer_vf])
 
 
 
@@ -116,7 +112,7 @@ class PPONetwork(TFModelV2):
         (outputs, state)
             Tuple, first element is policy output, second element state
         """
-
+        # print(self.base_model.get_weights())
         policy_out, value_out = self.base_model(input_dict["obs_flat"])
         self.value_out = value_out
         return policy_out, state
@@ -141,4 +137,5 @@ class PPONetwork(TFModelV2):
         import_file: str
             filepath to h5 file
         """
-        self.setup_model(self.obs_space, self.action_space, self.model_config, self.num_outputs, import_file)
+        print("LOADING WEIGHTS FROM H6")
+        self.base_model.load_weights(import_file)

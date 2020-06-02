@@ -185,32 +185,46 @@ def setup_exps_rllib(flow_params,
     alg_run = flags.algorithm.upper()
 
     if alg_run == "PPO":
-        from flow.algorithms.custom_ppo import CustomPPOTrainer
-        from ray.rllib.agents.ppo import DEFAULT_CONFIG
-        alg_run = CustomPPOTrainer
-        config = deepcopy(DEFAULT_CONFIG)
+        from ray import tune
+        from ray.tune.registry import register_env
+        try:
+            from ray.rllib.agents.agent import get_agent_class
+        except ImportError:
+            from ray.rllib.agents.registry import get_agent_class
+
+        horizon = flow_params['env'].horizon
+
+        alg_run = "PPO"
+
+        agent_cls = get_agent_class(alg_run)
+        config = deepcopy(agent_cls._default_config)
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
-        config["model"].update({"fcnet_hiddens": [32, 32]})
+        config["model"].update({"fcnet_hiddens": [32, 32, 32]})
         config["train_batch_size"] = horizon * n_rollouts
         config["gamma"] = 0.995  # discount rate
         config["use_gae"] = True
         config["lambda"] = 0.97
         config["kl_target"] = 0.02
-        config["num_sgd_iter"] = 10
+        # TODO: restore this to 10
+        config["num_sgd_iter"] = 1
+        # config["num_sgd_iter"] = 10
         if flags.grid_search:
             config["lambda"] = tune.grid_search([0.5, 0.9])
             config["lr"] = tune.grid_search([5e-4, 5e-5])
 
         if flags.load_weights_path:
             from flow.controllers.imitation_learning.ppo_model import PPONetwork
+            from flow.controllers.imitation_learning.imitation_trainer import Imitation_PPO_Trainable
             from ray.rllib.models import ModelCatalog
             # Register custom model
             ModelCatalog.register_custom_model("PPO_loaded_weights", PPONetwork)
             # set model to the custom model for run
             config['model']['custom_model'] = "PPO_loaded_weights"
             config['model']['custom_options'] = {"h5_load_path": flags.load_weights_path}
+            config['observation_filter'] = 'NoFilter'
+            alg_run = Imitation_PPO_Trainable
 
     elif alg_run == "CENTRALIZEDPPO":
         from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
@@ -402,6 +416,7 @@ def train_rllib(submodule, flags):
         return "{}_{}".format(trial.trainable_name, trial.experiment_tag)
 
     if flags.local_mode:
+        print("LOCAL MODE")
         ray.init(local_mode=True)
     else:
         ray.init()

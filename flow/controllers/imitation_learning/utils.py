@@ -205,6 +205,8 @@ def sample_trajectory_multiagent(env, controllers, action_network, max_trajector
                 print("Controller collecting trajectory: ", controller)
 
             action = controller.get_action(env)
+            if type(action) == tuple:
+                mean, log_std = action[1], action[2]
 
             # action should be a scalar acceleration
             if type(action) == np.ndarray:
@@ -235,7 +237,8 @@ def sample_trajectory_multiagent(env, controllers, action_network, max_trajector
         terminate_rollout = done_dict['__all__'] or (traj_length == max_trajectory_length)
 
         for vehicle_id in vehicle_ids:
-            next_observations.append(observation_dict.get(vehicle_id, None))
+            # default next observation to nans
+            next_observations.append(observation_dict.get(vehicle_id, np.empty((env.observation_space.shape[0], ))))
             rewards.append(reward_dict.get(vehicle_id, 0))
             terminals.append(terminate_rollout)
 

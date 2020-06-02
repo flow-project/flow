@@ -105,7 +105,7 @@ class ImitatingNetwork():
         Returns
         -------
         numpy array
-            one element numpy array containing accleeration
+            one element numpy array containing acceleration
         """
 
         # network expects an array of arrays (matrix); if single observation (no batch), convert to array of arrays
@@ -116,7 +116,8 @@ class ImitatingNetwork():
         if self.stochastic:
             mean, log_std = network_output[:, :self.action_dim], network_output[:, self.action_dim:]
             var = np.exp(2 * log_std)
-            action = np.random.multivariate_normal(mean[0], var)
+            cov_matrix = np.diag(var[0])
+            action = np.random.multivariate_normal(mean[0], cov_matrix)
             return action
         else:
             return network_output
