@@ -1,7 +1,7 @@
 import os
 import time
 import numpy as np
-from trainer import Trainer
+from flow.controllers.imitation_learning.trainer import Trainer
 from flow.controllers.car_following_models import IDMController
 
 
@@ -67,7 +67,7 @@ def main():
         help='Name of the experiment configuration file, as located in '
              'exp_configs/rl/singleagent or exp_configs/rl/multiagent.')
 
-    parser.add_argument('--ep_len', type=int, default=5000, help='Max length of episodes for rollouts. ')
+    parser.add_argument('--ep_len', type=int, default=5000, help='Max length of episodes for rollouts.')
 
     parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1000, help='Number of gradient steps for training policy.')  # number of gradient steps for training policy
     parser.add_argument('--n_iter', type=int, default=3, help='Number of DAgger iterations to run (1st iteration is behavioral cloning')
@@ -87,7 +87,7 @@ def main():
     parser.add_argument('--save_model', type=int, default=0, help='If true, save models in h5 format')
     parser.add_argument('--num_eval_episodes', type=int, default=0, help='Number of episodes on which to evaluate imitation model')
     parser.add_argument('--stochastic', type=bool, default=False, help='If true, learn a stochastic policy (MV Gaussian)')
-    parser.add_argument('--multiagent', type=bool, default=False, help='If true, env is multiagent. ')
+    parser.add_argument('--multiagent', type=bool, default=False, help='If true, env is multiagent.')
     parser.add_argument('--v_des', type=float, default=15, help='Desired velocity for follower-stopper')
     parser.add_argument('--variance_regularizer', type=float, default=0.5, help='Regularization hyperparameter to penalize variance in imitation learning loss, for stochastic policies.')
 
@@ -110,7 +110,8 @@ def main():
         runner.save_controller_for_PPO()
 
     # evaluate controller on difference, compared to expert, in action taken and average reward accumulated per rollout
-    runner.evaluate()
+    if params['num_eval_episodes']  > 0:
+        ßrunner.evaluate()
 
 if __name__ == "__main__":
     main()

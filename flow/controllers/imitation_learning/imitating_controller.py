@@ -2,8 +2,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
 from flow.controllers.base_controller import BaseController
-from replay_buffer import ReplayBuffer
-
+from flow.controllers.imitation_learning.replay_buffer import ReplayBuffer
 
 class ImitatingController(BaseController):
     """

@@ -1,12 +1,12 @@
 import numpy as np
 import tensorflow as tf
-from utils_tensorflow import *
-from keras_utils import *
-import tensorflow_probability as tfp
-from flow.controllers.base_controller import BaseController
-from replay_buffer import ReplayBuffer
 from time import time
 from tensorflow.python.keras.callbacks import TensorBoard
+import tensorflow_probability as tfp
+from flow.controllers.imitation_learning.utils_tensorflow import *
+from flow.controllers.imitation_learning.keras_utils import *
+from flow.controllers.base_controller import BaseController
+from flow.controllers.imitation_learning.replay_buffer import ReplayBuffer
 
 
 class ImitatingNetwork():
@@ -14,7 +14,7 @@ class ImitatingNetwork():
     Class containing neural network which learns to imitate a given expert controller.
     """
 
-    def __init__(self, sess, action_dim, obs_dim, fcnet_hiddens, replay_buffer_size, stochastic=False, variance_regularizer = 0, load_model=False, load_path=''):
+    def __init__(self, sess, action_dim, obs_dim, fcnet_hiddens, replay_buffer_size, stochastic=False, variance_regularizer = 0, load_model=False, load_path='', tensorboard_path=''):
 
         """Initializes and constructs neural network.
         Parameters
@@ -46,6 +46,9 @@ class ImitatingNetwork():
         self.fcnet_hiddens = fcnet_hiddens
         self.stochastic=stochastic
         self.variance_regularizer = variance_regularizer
+
+        self.train_steps = 0
+        self.writer = tf.summary.FileWriter(tensorboard_path, tf.get_default_graph())
 
         # load network if specified, or construct network
         if load_model:
@@ -91,7 +94,8 @@ class ImitatingNetwork():
         # reshape action_batch to ensure a shape (batch_size, action_dim)
         action_batch = action_batch.reshape(action_batch.shape[0], self.action_dim)
         # one gradient step on batch
-        self.model.train_on_batch(observation_batch, action_batch)
+        loss = self.model.train_on_batch(observation_batch, action_batch)
+        self.writer.add_summary()
 
     def get_accel_from_observation(self, observation):
         """

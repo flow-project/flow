@@ -4,16 +4,16 @@ import pickle
 import numpy as np
 import gym
 import os
+import tensorflow as tf
+from utils import *
 from flow.utils.registry import make_create_env
-from imitating_controller import ImitatingController
-from imitating_network import ImitatingNetwork
+from flow.controllers.imitation_learning.imitating_controller import ImitatingController
+from flow.controllers.imitation_learning.imitating_network import ImitatingNetwork
+from flow.controllers.imitation_learning.utils_tensorflow import *
+from flow.controllers.imitation_learning.keras_utils import *
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import SumoCarFollowingParams
-import tensorflow as tf
-from utils import *
-from utils_tensorflow import *
-from flow.controllers.imitation_learning.keras_utils import *
 
 class Trainer(object):
     """
@@ -62,10 +62,8 @@ class Trainer(object):
         self.params['obs_dim'] = obs_dim
 
         # initialize neural network class and tf variables
-        self.action_network = ImitatingNetwork(self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['fcnet_hiddens'], self.params['replay_buffer_size'], stochastic=self.params['stochastic'], variance_regularizer=self.params['variance_regularizer'])
+        self.action_network = ImitatingNetwork(self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['fcnet_hiddens'], self.params['replay_buffer_size'], stochastic=self.params['stochastic'], variance_regularizer=self.params['variance_regularizer'], load_model=self.params['load_imitation_model'], load_path=self.params['load_imitation_path'])
 
-        # tf.global_variab
-        # les_initializer().run(session=self.sess)
 
         # controllers setup
         v_des = self.params['v_des'] # for FollowerStopper
@@ -229,6 +227,18 @@ class Trainer(object):
         print("Total expert steps: ", total_expert_steps)
 
     def learn_value_function(self, num_samples, num_iterations, num_grad_steps):
+        """
+        Learn the value function under imitation policy.
+        Parameters
+        __________
+        num_samples: number of environment transition samples to collect to learn from
+        num_iterations: number of iterations to relabel data, and train
+        num_grad_steps: number of gradient steps per training iteration
+
+        Returns
+        _______
+        Value function neural net
+        """
         # init value function neural net
         vf_net = build_neural_net_deterministic(self.params['obs_dim'], 1, self.params['fcnet_hiddens'])
         vf_net.compile(loss='mean_squared_error', optimizer = 'adam')
@@ -239,15 +249,11 @@ class Trainer(object):
                                                                 num_samples, self.params['ep_len'], self.multiagent,
                                                                 use_expert=False, v_des=self.params['v_des'],
                                                                 max_decel=max_decel)
-        observations = np.array([])
-        rewards = np.array([])
-        next_observations = np.array([])
 
-        # accumulate trajectory data
-        for traj in trajectories:
-            observations = np.append(observations, traj['observations'])
-            rewards = np.append(rewards, traj['rewards'])
-            next_observations = np.append(next_observations, traj['next_observations'])
+        # combine trajectories into one
+        observations = np.concatenate([traj['observations'] for traj in trajectories])
+        rewards = np.concatenate([traj['rewards'] for traj in trajectories])
+        next_observations = np.concatenate([traj['next_observations'] for traj in trajectories])
 
         # iterate over data multiple times (labels change every iteration)
         for _ in range(num_iterations):
@@ -255,8 +261,7 @@ class Trainer(object):
             next_state_value_preds = vf_net.predict(next_observations).flatten()
             next_state_value_preds[np.isnan(next_state_value_preds)] = 0
             labels = rewards + next_state_value_preds
-            for i in range(num_grad_steps):
-                vf_net.train_on_batch(observations, labels)
+            vf_net.fit(observations, labels, verbose=0)
 
         return vf_net
 
@@ -266,10 +271,6 @@ class Trainer(object):
         """
         Build a model, with same policy architecture as imitation network, to run PPO, copy weights from imitation, and save this model.
 
-        Parameters
-        ----------
-        load_path : save_path
-            path to h5 file to save to
         """
 
         vf_net = self.learn_value_function(self.params['vf_batch_size'], self.params['num_vf_iters'], self.params['num_agent_train_steps_per_iter'])
@@ -290,7 +291,7 @@ class Trainer(object):
         # build layers for value function
         curr_layer = input
         for i in range(num_layers):
-            size = self.fcnet_hiddens[i]
+            size = self.params['fcnet_hiddens'][i]
             curr_layer = tf.keras.layers.Dense(size, activation="tanh", name="vf_hidden_layer_{}".format(i+1))(curr_layer)
         output_layer_vf = tf.keras.layers.Dense(1, activation=None, name="vf_output_layer")(curr_layer)
 
@@ -306,7 +307,7 @@ class Trainer(object):
         # set value function weights to those learned
         num_vf_layers = len(vf_net.layers) - 2
         for i in range(num_vf_layers):
-            vf_layer = ppo_model.get_layer(name-'vf_hidden_layer{}'.format(i + 1))
+            vf_layer = ppo_model.get_layer('vf_hidden_layer_{}'.format(i + 1))
             vf_layer.set_weights(vf_net.layers[i + 1].get_weights())
         vf_output = ppo_model.get_layer("vf_output_layer")
         vf_output.set_weights(vf_net.layers[-1].get_weights())
@@ -322,11 +323,3 @@ class Trainer(object):
         """
         print("Saving tensorflow model to: ", self.params['save_path'])
         self.action_network.save_network(self.params['save_path'])
-
-
-
-    # def save_controller_for_PPO(self):
-    #     """
-    #     Creates and saves a keras tensorflow model for training PPO with weights learned from imitation, to the specified path given in the command line params. Path must end with .h5.
-    #     """
-    #     self.action_network.save_network_PPO(self.params['PPO_save_path'])
