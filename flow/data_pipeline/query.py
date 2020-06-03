@@ -281,7 +281,9 @@ class QueryStrings(Enum):
             GROUP BY 1, 2
         )
         SELECT
-            COALESCE(i.time_step, o.time_step) AS time_step,
+            COALESCE(i.time_step, o.time_step) - MIN(COALESCE(i.time_step, o.time_step))
+                OVER (PARITION BY COALESCE(i.source_id, o.source_id)
+                ORDER BY COALESCE(i.time_step, o.time_step) ASC) AS time_step,
             COALESCE(i.source_id, o.source_id) AS source_id,
             COALESCE(i.inflow_rate, 0) AS inflow_rate,
             COALESCE(o.outflow_rate, 0) AS outflow_rate
