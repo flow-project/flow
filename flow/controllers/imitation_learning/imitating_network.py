@@ -48,6 +48,8 @@ class ImitatingNetwork():
         self.variance_regularizer = variance_regularizer
 
         self.train_steps = 0
+
+        tensorboard_path = tensorboard_path + 'imitation_tensorboard/'
         self.writer = tf.summary.FileWriter(tensorboard_path, tf.get_default_graph())
 
         # load network if specified, or construct network
@@ -95,7 +97,11 @@ class ImitatingNetwork():
         action_batch = action_batch.reshape(action_batch.shape[0], self.action_dim)
         # one gradient step on batch
         loss = self.model.train_on_batch(observation_batch, action_batch)
-        self.writer.add_summary()
+
+        # tensorboard
+        summary = tf.Summary(value=[tf.Summary.Value(tag="imitation training loss", simple_value=loss), ])
+        self.writer.add_summary(summary, global_step=self.train_steps)
+        self.train_steps += 1
 
     def get_accel_from_observation(self, observation):
         """

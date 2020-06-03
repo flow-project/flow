@@ -81,6 +81,7 @@ def main():
 
     parser.add_argument('--load_imitation_model', type=bool, default=False, help='Whether to load an existin imitation neural net')
     parser.add_argument('--load_imitation_path', type=str, default='', help='Path to h5 file from which to load existing imitation neural net')
+    parser.add_argument('--tensorboad_path', type=str, default='/tensorboard/', help='Path to which tensorboard events should be written.')
     parser.add_argument('--replay_buffer_size', type=int, default=1000000, help='Max size of replay buffer')
     parser.add_argument('--save_path', type=str, default='', help='Filepath to h5 file in which imitation model should be saved')
     parser.add_argument('--PPO_save_path', type=str, default='', help='Filepath to h5 file in which PPO model with copied weights should be saved')
