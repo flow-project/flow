@@ -3,8 +3,8 @@ import os
 import numpy as np
 import math
 from flow.core.params import SumoCarFollowingParams
-from imitating_controller import ImitatingController
-from imitating_network import ImitatingNetwork
+from flow.controllers.imitation_learning.imitating_controller import ImitatingController
+from flow.controllers.imitation_learning.imitating_network import ImitatingNetwork
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.rewards import *

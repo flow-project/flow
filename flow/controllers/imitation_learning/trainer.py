@@ -62,7 +62,7 @@ class Trainer(object):
         self.params['obs_dim'] = obs_dim
 
         # initialize neural network class and tf variables
-        self.action_network = ImitatingNetwork(self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['fcnet_hiddens'], self.params['replay_buffer_size'], stochastic=self.params['stochastic'], variance_regularizer=self.params['variance_regularizer'], load_model=self.params['load_imitation_model'], load_path=self.params['load_imitation_path'])
+        self.action_network = ImitatingNetwork(self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['fcnet_hiddens'], self.params['replay_buffer_size'], stochastic=self.params['stochastic'], variance_regularizer=self.params['variance_regularizer'], load_model=self.params['load_imitation_model'], load_path=self.params['load_imitation_path'], tensorboard_path=self.params['tensorboard_path'])
 
 
         # controllers setup
