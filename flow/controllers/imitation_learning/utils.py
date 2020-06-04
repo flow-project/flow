@@ -205,8 +205,7 @@ def sample_trajectory_multiagent(env, controllers, action_network, max_trajector
                 print("Controller collecting trajectory: ", controller)
 
             action = controller.get_action(env)
-            if type(action) == tuple:
-                mean, log_std = action[1], action[2]
+
 
             # action should be a scalar acceleration
             if type(action) == np.ndarray:

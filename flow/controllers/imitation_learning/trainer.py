@@ -239,6 +239,8 @@ class Trainer(object):
         _______
         Value function neural net
         """
+
+        print("\n\n********** Learning value function of imitation policy ************ \n")
         # init value function neural net
         vf_net = build_neural_net_deterministic(self.params['obs_dim'], 1, self.params['fcnet_hiddens'])
         vf_net.compile(loss='mean_squared_error', optimizer = 'adam')

@@ -108,7 +108,6 @@ def negative_log_likelihood_loss(variance_regularizer):
 
     return nll_loss
 
-
 def compare_weights(ppo_model, imitation_path):
     imitation_model = tf.keras.models.load_model(imitation_path, custom_objects={'nll_loss': negative_log_likelihood_loss(0.5)})
 

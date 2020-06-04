@@ -48,8 +48,8 @@ class ImitatingNetwork():
         self.variance_regularizer = variance_regularizer
 
         self.train_steps = 0
+        self.action_steps = 0
 
-        tensorboard_path = tensorboard_path + 'imitation_tensorboard/'
         self.writer = tf.summary.FileWriter(tensorboard_path, tf.get_default_graph())
 
         # load network if specified, or construct network
@@ -126,11 +126,20 @@ class ImitatingNetwork():
         if self.stochastic:
             mean, log_std = network_output[:, :self.action_dim], network_output[:, self.action_dim:]
             var = np.exp(2 * log_std)
+
+            variance_norm = np.linalg.norm(var)
+            summary = tf.Summary(value=[tf.Summary.Value(tag="Variance norm", simple_value=variance_norm), ])
+            self.writer.add_summary(summary, global_step=self.action_steps)
+
             cov_matrix = np.diag(var[0])
             action = np.random.multivariate_normal(mean[0], cov_matrix)
+
+            self.action_steps += 1
             return action
         else:
+            self.action_steps += 1
             return network_output
+
 
     def get_accel(self, env):
         """

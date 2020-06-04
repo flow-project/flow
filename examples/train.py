@@ -218,12 +218,14 @@ def setup_exps_rllib(flow_params,
             from flow.controllers.imitation_learning.ppo_model import PPONetwork
             from flow.controllers.imitation_learning.imitation_trainer import Imitation_PPO_Trainable
             from ray.rllib.models import ModelCatalog
+
             # Register custom model
             ModelCatalog.register_custom_model("PPO_loaded_weights", PPONetwork)
             # set model to the custom model for run
             config['model']['custom_model'] = "PPO_loaded_weights"
             config['model']['custom_options'] = {"h5_load_path": flags.load_weights_path}
             config['observation_filter'] = 'NoFilter'
+            # alg run is the Trainable class 
             alg_run = Imitation_PPO_Trainable
 
     elif alg_run == "CENTRALIZEDPPO":
