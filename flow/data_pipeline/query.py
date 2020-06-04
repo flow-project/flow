@@ -267,6 +267,7 @@ class QueryStrings(Enum):
             FROM min_max_time_step
             WHERE 1 = 1
                 AND min_time_step >= {start_filter}
+                AND min_time_step < {stop_filter}
             GROUP BY 1, 2
         ), outflows AS (
             SELECT
@@ -275,11 +276,14 @@ class QueryStrings(Enum):
                 60 * COUNT(DISTINCT id) AS outflow_rate
             FROM min_max_time_step
             WHERE 1 = 1
+                AND max_time_step >= {start_filter}
                 AND max_time_step < {stop_filter}
             GROUP BY 1, 2
         )
         SELECT
-            COALESCE(i.time_step, o.time_step) AS time_step,
+            COALESCE(i.time_step, o.time_step) - MIN(COALESCE(i.time_step, o.time_step))
+                OVER (PARITION BY COALESCE(i.source_id, o.source_id)
+                ORDER BY COALESCE(i.time_step, o.time_step) ASC) AS time_step,
             COALESCE(i.source_id, o.source_id) AS source_id,
             COALESCE(i.inflow_rate, 0) AS inflow_rate,
             COALESCE(o.outflow_rate, 0) AS outflow_rate
@@ -396,7 +400,8 @@ class QueryStrings(Enum):
             SELECT
                 vt.id,
                 vt.source_id,
-                vt.time_step,
+                vt.time_step - FIRST_VALUE(vt.time_step)
+                    OVER (PARTITION BY vt.id, vt.source_id ORDER BY vt.time_step ASC) AS time_step,
                 energy_model_id,
                 et.speed,
                 et.acceleration,
