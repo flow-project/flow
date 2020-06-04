@@ -33,6 +33,11 @@ from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
 from flow.utils.rllib import get_rllib_pkl
 
+from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
+from flow.data_pipeline.leaderboard_utils import network_name_translate
+from collections import defaultdict
+from datetime import datetime, timezone
+import uuid
 
 EXAMPLE_USAGE = """
 example usage:
@@ -207,6 +212,23 @@ def visualizer_rllib(args):
     if not sim_params.restart_instance:
         env.restart_simulation(sim_params=sim_params, render=sim_params.render)
 
+    # data pipeline
+    extra_info = defaultdict(lambda: [])
+    source_id = 'flow_{}'.format(uuid.uuid4().hex)
+    metadata = defaultdict(lambda: [])
+    # collect current time
+    cur_datetime = datetime.now(timezone.utc)
+    cur_date = cur_datetime.date().isoformat()
+    cur_time = cur_datetime.time().isoformat()
+    # collecting information for metadata table
+    metadata['source_id'].append(source_id)
+    metadata['submission_time'].append(cur_time)
+    metadata['network'].append(network_name_translate(env.network.name.split('_20')[0]))
+    metadata['is_baseline'].append(str(args.is_baseline))
+    name, strategy = get_configuration()
+    metadata['submitter_name'].append(name)
+    metadata['strategy'].append(strategy)
+
     # Simulate and collect metrics
     final_outflows = []
     final_inflows = []
@@ -216,7 +238,8 @@ def visualizer_rllib(args):
     std_speed = []
     for i in range(args.num_rollouts):
         vel = []
-        state = env.reset()
+        run_id = "run_{}".format(i)
+        state = env.reset(extra_info=extra_info, source_id=source_id, run_id=run_id)
         if multiagent:
             ret = {key: [0] for key in rets.keys()}
         else:
@@ -246,6 +269,10 @@ def visualizer_rllib(args):
             else:
                 action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
+
+            # collect data for data pipeline
+            get_extra_info(vehicles, extra_info, vehicles.get_ids(), source_id, run_id)
+
             if multiagent:
                 for actor, rew in reward.items():
                     ret[policy_map_fn(actor)][0] += rew
@@ -342,6 +369,22 @@ def visualizer_rllib(args):
         # delete the .xml version of the emission file
         os.remove(emission_path)
 
+        # generate datapipeline output
+        trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
+        metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
+        write_dict_to_csv(trajectory_table_path, extra_info, True)
+        write_dict_to_csv(metadata_table_path, metadata, True)
+
+        if args.to_aws:
+            upload_to_s3('circles.data.pipeline',
+                         'metadata_table/date={0}/partition_name={1}_METADATA/{1}_METADATA.csv'.format(cur_date,
+                                                                                                       source_id),
+                         metadata_table_path)
+            upload_to_s3('circles.data.pipeline',
+                         'fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv'.format(cur_date, source_id),
+                         trajectory_table_path,
+                         {'network': metadata['network'][0]})
+
 
 def create_parser():
     """Create the parser to capture CLI arguments."""
@@ -395,6 +438,18 @@ def create_parser():
         '--horizon',
         type=int,
         help='Specifies the horizon.')
+    parser.add_argument(
+        '--is_baseline',
+        action='store_true',
+        help='specifies whether this is a baseline run'
+    )
+    parser.add_argument(
+        '--to_aws',
+        type=str, nargs='?', default=None, const="default",
+        help='Specifies the name of the partition to store the output'
+             'file on S3. Putting not None value for this argument'
+             'automatically set gen_emission to True.'
+    )
     return parser
 
 

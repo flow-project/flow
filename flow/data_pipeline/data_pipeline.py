@@ -76,7 +76,7 @@ def upload_to_s3(bucket_name, bucket_key, file_path, metadata={}):
     return
 
 
-def get_extra_info(veh_kernel, extra_info, veh_ids):
+def get_extra_info(veh_kernel, extra_info, veh_ids, source_id, run_id):
     """Get all the necessary information for the trajectory output from flow."""
     for vid in veh_ids:
         extra_info["time_step"].append(veh_kernel.get_timestep(vid) / 1000)
@@ -102,12 +102,15 @@ def get_extra_info(veh_kernel, extra_info, veh_ids):
         extra_info["edge_id"].append(veh_kernel.get_edge(vid))
         extra_info["lane_id"].append(veh_kernel.get_lane(vid))
         extra_info["distance"].append(veh_kernel.get_distance(vid))
+        extra_info["relative_position"].append(veh_kernel.get_position(vid))
+        extra_info["source_id"].append(source_id)
+        extra_info["run_id"].append(run_id)
 
 
 def get_configuration():
     """Get configuration for the metadata table."""
     try:
-        config_df = pd.read_csv('./config')
+        config_df = pd.read_csv('./data_pipeline_config')
     except FileNotFoundError:
         config_df = pd.DataFrame(data={"submitter_name": [""], "strategy": [""]})
 

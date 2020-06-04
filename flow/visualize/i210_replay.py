@@ -234,6 +234,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         completed_vehicle_avg_energy = {}
         completed_vehicle_travel_time = {}
         custom_vals = {key: [] for key in custom_callables.keys()}
+        run_id = "run_{}".format(i)
         state = env.reset()
         initial_vehicles = set(env.k.vehicle.get_ids())
         for _ in range(env_params.horizon):
@@ -264,9 +265,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             vel.append(np.mean(env.k.vehicle.get_speed(veh_ids)))
 
             # collect additional information for the data pipeline
-            get_extra_info(env.k.vehicle, extra_info, veh_ids)
-            extra_info["source_id"].extend([source_id] * len(veh_ids))
-            extra_info["run_id"].extend(['run_{}'.format(i)] * len(veh_ids))
+            get_extra_info(env.k.vehicle, extra_info, veh_ids, source_id, run_id)
 
             # Compute the results for the custom callables.
             for (key, lambda_func) in custom_callables.items():

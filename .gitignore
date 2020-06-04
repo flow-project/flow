@@ -112,4 +112,4 @@ flow.ang
 *.sang
 
 # local configuration file for data pipeline
-examples/config
+**/data_pipeline_config

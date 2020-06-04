@@ -25,6 +25,8 @@ from flow.core.util import ensure_dir
 from flow.core.kernel import Kernel
 from flow.utils.exceptions import FatalFlowError
 
+from flow.data_pipeline.data_pipeline import get_extra_info
+
 
 class Env(gym.Env):
     """Base environment class.
@@ -431,7 +433,7 @@ class Env(gym.Env):
 
         return next_observation, reward, done, infos
 
-    def reset(self):
+    def reset(self, extra_info=None, source_id="", run_id=""):
         """Reset the environment.
 
         This method is performed in between rollouts. It resets the state of
@@ -577,6 +579,10 @@ class Env(gym.Env):
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
             observation, _, _, _ = self.step(rl_actions=None)
+            # collect data for pipeline during the warmup period
+            if extra_info:
+                veh_ids = self.k.vehicle.get_ids()
+                get_extra_info(self.k.vehicle, extra_info, veh_ids, source_id, run_id)
 
         # render a frame
         self.render(reset=True)

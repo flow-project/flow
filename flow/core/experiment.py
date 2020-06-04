@@ -177,7 +177,8 @@ class Experiment:
             ret = 0
             vel = []
             custom_vals = {key: [] for key in self.custom_callables.keys()}
-            state = self.env.reset()
+            run_id = "run_{}".format(i)
+            state = self.env.reset(extra_info=extra_info, source_id=source_id, run_id=run_id)
             for j in range(num_steps):
                 t0 = time.time()
                 state, reward, done, _ = self.env.step(rl_actions(state))
@@ -190,9 +191,7 @@ class Experiment:
                 ret += reward
 
                 # collect additional information for the data pipeline
-                get_extra_info(self.env.k.vehicle, extra_info, veh_ids)
-                extra_info["source_id"].extend([source_id] * len(veh_ids))
-                extra_info["run_id"].extend(['run_{}'.format(i)] * len(veh_ids))
+                get_extra_info(self.env.k.vehicle, extra_info, veh_ids, source_id, run_id)
 
                 # write to disk every 100 steps
                 if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0:
