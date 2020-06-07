@@ -12,10 +12,10 @@ class BaseEnergyModel(metaclass=ABCMeta):
     """
 
     def __init__(self, kernel):
-        self.vehicle = vehicle
+        self.k.env.vehicle = vehicle
 
     @abstractmethod
-    def get_instantaneous_power(self, veh_id, model_param, grade):
+    def get_instantaneous_power(self):
         """Calculate the instantaneous power consumption of a vehicle.
         
         Must be implemented by child classes.
