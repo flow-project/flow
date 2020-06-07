@@ -16,6 +16,7 @@ class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
 
     def __init__(self,kernel):
         self.k = kernel
+        self.k.env.vehicle = vehicle
         self.g = 9.81
         self.rho_air = 1.225
         self.mass = 1200
@@ -24,14 +25,14 @@ class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
         self.cross_area = 2.6
         self.gamma = 1
     
-    def calculate_power(self, veh_id, grade):
-        speed = self.k.get_speed(veh_id)
-        if veh_id in self.k.previous_speeds:
-            old_speed = self.k.previous_speeds[veh_id]
+    def calculate_power(self):
+        speed = self.k.env.get_speed(veh_id)
+        if veh_id in self.k.env.previous_speeds:
+            old_speed = self.k.env.previous_speeds[veh_id]
         else:
             old_speed = speed
 
-        accel = (speed - old_speed)/self.sim_step
+        accel = (speed - old_speed)/self.k.env.sim_step
         accel_slope_forces = self.mass * speed * (
                      (np.heaviside(accel, 0.5) * (1 - self.gamma) + self.gamma)) * accel
                      + self.g * math.sin(grade))
