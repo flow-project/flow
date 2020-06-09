@@ -917,15 +917,15 @@ class SumoLaneChangeParams:
     ----------
     lane_change_mode : str or int, optional
         may be one of the following:
-        * "no_lc_safe" (default): Disable all autonomous changing but still
+        * "no_lc_safe" (default): Disable all SUMO lane changing but still
           handle safety checks (collision avoidance and safety-gap enforcement)
           in the simulation. Binary is [001000000000]
         * "no_lc_aggressive": SUMO lane changes are not executed, collision
           avoidance and safety-gap enforcement are off.
           Binary is [000000000000]
 
-        * "sumo_default": Execute all changes unless in conflict with TraCI.
-          Binary is [011001010101].
+        * "sumo_default": Execute all changes requested by a custom controller
+          unless in conflict with TraCI. Binary is [011001010101].
 
         * "no_strategic_aggressive": Execute all changes except strategic
           (routing) lane changes unless in conflict with TraCI. Collision

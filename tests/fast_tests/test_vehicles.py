@@ -56,7 +56,7 @@ class TestVehiclesClass(unittest.TestCase):
         self.assertEqual(vehicles.type_parameters["typeB"][
                              "car_following_params"].speed_mode, 0)
         self.assertEqual(vehicles.type_parameters["typeB"][
-                             "lane_change_params"].lane_change_mode, 1621)
+                             "lane_change_params"].lane_change_mode, 512)
 
         vehicles.add(
             "typeC",
