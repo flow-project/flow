@@ -42,6 +42,7 @@ from examples.exp_configs.non_rl.merge import flow_params as non_rl_merge
 from examples.exp_configs.non_rl.minicity import flow_params as non_rl_minicity
 from examples.exp_configs.non_rl.ring import flow_params as non_rl_ring
 from examples.exp_configs.non_rl.i210_subnetwork import flow_params as non_rl_i210
+from examples.exp_configs.non_rl.highway_single import flow_params as non_rl_highway_single
 
 os.environ['TEST_FLAG'] = 'True'
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -109,6 +110,10 @@ class TestNonRLExamples(unittest.TestCase):
     def test_i210(self):
         """Verify that examples/exp_configs/non_rl/i210_subnetwork.py is working."""
         self.run_simulation(non_rl_i210)
+
+    def test_highway_single(self):
+        """Verify that examples/exp_configs/non_rl/highway_single.py is working."""
+        self.run_simulation(non_rl_highway_single)
 
     @staticmethod
     def run_simulation(flow_params):

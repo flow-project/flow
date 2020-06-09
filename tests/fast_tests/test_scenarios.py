@@ -5,6 +5,7 @@ from flow.core.params import NetParams
 from flow.networks import BottleneckNetwork, FigureEightNetwork, \
     TrafficLightGridNetwork, HighwayNetwork, RingNetwork, MergeNetwork, \
     MiniCityNetwork, MultiRingNetwork
+from tests.setup_scripts import highway_exp_setup
 
 __all__ = [
     "MultiRingNetwork", "MiniCityNetwork"
@@ -94,10 +95,68 @@ class TestHighwayNetwork(unittest.TestCase):
                     "length": 1000,
                     "lanes": 4,
                     "speed_limit": 30,
-                    "num_edges": 1
+                    "num_edges": 1,
+                    "use_ghost_edge": False,
+                    "ghost_speed_limit": 25
                 }
             )
         )
+
+    def test_ghost_edge(self):
+        """Validate the functionality of the ghost edge feature."""
+        # =================================================================== #
+        #                         Without a ghost edge                        #
+        # =================================================================== #
+
+        # create the network
+        env, _, _ = highway_exp_setup(
+            net_params=NetParams(additional_params={
+                "length": 1000,
+                "lanes": 4,
+                "speed_limit": 30,
+                "num_edges": 1,
+                "use_ghost_edge": False,
+                "ghost_speed_limit": 25
+            })
+        )
+        env.reset()
+
+        # check the network length
+        self.assertEqual(env.k.network.length(), 1000)
+
+        # check the edge list
+        self.assertEqual(env.k.network.get_edge_list(), ["highway_0"])
+
+        # check the speed limits of the edges
+        self.assertEqual(env.k.network.speed_limit("highway_0"), 30)
+
+        # =================================================================== #
+        #                          With a ghost edge                          #
+        # =================================================================== #
+
+        # create the network
+        env, _, _ = highway_exp_setup(
+            net_params=NetParams(additional_params={
+                "length": 1000,
+                "lanes": 4,
+                "speed_limit": 30,
+                "num_edges": 1,
+                "use_ghost_edge": True,
+                "ghost_speed_limit": 25
+            })
+        )
+        env.reset()
+
+        # check the network length
+        self.assertEqual(env.k.network.length(), 1500.1)
+
+        # check the edge list
+        self.assertEqual(env.k.network.get_edge_list(),
+                         ["highway_0", "highway_end"])
+
+        # check the speed limits of the edges
+        self.assertEqual(env.k.network.speed_limit("highway_0"), 30)
+        self.assertEqual(env.k.network.speed_limit("highway_end"), 25)
 
 
 class TestRingNetwork(unittest.TestCase):

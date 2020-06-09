@@ -21,7 +21,12 @@ from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210Sub
 
 import argparse
 import csv
-from matplotlib import pyplot as plt
+try:
+    from matplotlib import pyplot as plt
+except ImportError:
+    import matplotlib
+    matplotlib.use('TkAgg')
+    from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
 import matplotlib.colors as colors
 import numpy as np
