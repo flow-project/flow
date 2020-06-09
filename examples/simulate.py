@@ -66,12 +66,14 @@ if __name__ == "__main__":
     else:
         callables = None
 
-    # Update some variables based on inputs.
-    if flags.aimsun:
-        flow_params['sim'] = AimsunParams(render=True, sim_step=0.1)
-        flow_params['simulator'] = 'aimsun'
-
     flow_params['sim'].render = not flags.no_render
+    flow_params['simulator'] = 'aimsun' if flags.aimsun else 'traci'
+
+    # If Aimsun is being called, replace SumoParams with AimsunParams.
+    if flags.aimsun:
+        sim_params = AimsunParams()
+        sim_params.__dict__.update(flow_params['sim'].__dict__)
+        flow_params['sim'] = sim_params
 
     # Specify an emission path if they are meant to be generated.
     if flags.gen_emission:
