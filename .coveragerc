@@ -22,3 +22,4 @@ exclude_lines =
     @abstractmethod
     def policy_mapping_fn*
     def main(args)*
+    pragma: no cover

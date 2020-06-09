@@ -9,13 +9,13 @@ from flow.controllers.car_following_models import IDMController
 from flow.controllers import RLController
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.utils.exceptions import FatalFlowError
-from flow.envs import Env, TestEnv, TestFailGetStateEnv, \
-    TestFailRLActionsEnv
+from flow.envs import Env, TestEnv
 
 from tests.setup_scripts import ring_road_exp_setup, highway_exp_setup
 import os
-import numpy as np
 import gym.spaces as spaces
+from gym.spaces.box import Box
+import numpy as np
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -24,6 +24,41 @@ WHITE = (255, 255, 255)
 CYAN = (0, 255, 255)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
+
+
+class TestFailRLActionsEnv(Env):
+    """Test environment designed to fail _apply_rl_actions not-implemented test."""
+
+    @property
+    def action_space(self):
+        """See parent class."""
+        return Box(low=0, high=0, shape=(0,), dtype=np.float32)  # pragma: no cover
+
+    @property
+    def observation_space(self):
+        """See parent class."""
+        return Box(low=0, high=0, shape=(0,), dtype=np.float32)  # pragma: no cover
+
+    def get_state(self, **kwargs):
+        """See class definition."""
+        return np.array([])  # pragma: no cover
+
+
+class TestFailGetStateEnv(Env):
+    """Test environment designed to fail get_state not-implemented test."""
+
+    @property
+    def action_space(self):
+        """See parent class."""
+        return Box(low=0, high=0, shape=(0,), dtype=np.float32)  # pragma: no cover
+
+    @property
+    def observation_space(self):
+        """See parent class."""
+        return Box(low=0, high=0, shape=(0,), dtype=np.float32)  # pragma: no cover
+
+    def _apply_rl_actions(self, rl_actions):
+        return  # pragma: no cover
 
 
 class TestShuffle(unittest.TestCase):
