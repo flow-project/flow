@@ -169,7 +169,7 @@ def visualizer_rllib(args):
     else:
         env = gym.make(env_name)
 
-    # reroute on exit is a training hack, it should be turned off at test time. 
+    # reroute on exit is a training hack, it should be turned off at test time.
     if hasattr(env, "reroute_on_exit"):
         env.reroute_on_exit = False
 
@@ -301,7 +301,6 @@ def visualizer_rllib(args):
     print('Average, std miles per gallon: {}, {}'.format(np.mean(mpg), np.std(mpg)))
 
     print('Average, std miles per megajoule: {}, {}'.format(np.mean(mpj), np.std(mpj)))
-
 
     # Compute arrival rate of vehicles in the last 500 sec of the run
     print("\nOutflows (veh/hr):")

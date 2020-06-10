@@ -57,7 +57,7 @@ def get_table_disk(table_name="fact_vehicle_trace", bucket="circles.data.pipelin
     """
     try:
         os.makedirs("result/{}".format(table_name))
-    except FileExistsError as e:
+    except FileExistsError:
         pass
     s3 = boto3.client("s3")
     response = s3.list_objects_v2(Bucket=bucket)

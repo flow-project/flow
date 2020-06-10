@@ -5,9 +5,7 @@ from __future__ import print_function
 
 import logging
 
-import numpy as np
 import ray
-from ray.rllib.agents.ppo.ppo import PPOTrainer
 from ray.rllib.evaluation.postprocessing import compute_advantages, \
     Postprocessing
 from ray.rllib.policy.sample_batch import SampleBatch
@@ -17,6 +15,10 @@ from ray.rllib.policy.tf_policy_template import build_tf_policy
 from ray.rllib.utils.explained_variance import explained_variance
 from ray.rllib.utils.tf_ops import make_tf_callable
 from ray.rllib.utils import try_import_tf
+from ray.rllib.agents.trainer_template import build_trainer
+from ray.rllib.agents.ppo.ppo import choose_policy_optimizer, DEFAULT_CONFIG
+from ray.rllib.agents.ppo.ppo import warn_about_bad_reward_scales
+
 
 tf = try_import_tf()
 
@@ -78,7 +80,6 @@ class PPOLoss(object):
             model_config (dict): (Optional) model config for use in specifying
                 action distributions.
         """
-
         def reduce_mean_valid(t):
             return tf.reduce_mean(tf.boolean_mask(t, valid_mask))
 
@@ -109,7 +110,7 @@ class PPOLoss(object):
                 vf_loss_coeff * vf_loss - entropy_coeff * curr_entropy)
         else:
             self.mean_vf_loss = tf.constant(0.0)
-            loss = reduce_mean_valid(-surrogate_loss -entropy_coeff * curr_entropy)
+            loss = reduce_mean_valid(-surrogate_loss - entropy_coeff * curr_entropy)
         self.loss = loss
 
 
@@ -266,6 +267,7 @@ class KLCoeffMixin(object):
             shape=(),
             trainable=False,
             dtype=tf.float32)
+
     def update_kl(self, blah):
         pass
 
@@ -284,6 +286,7 @@ CustomPPOTFPolicy = build_tf_policy(
         LearningRateSchedule, EntropyCoeffSchedule,
         ValueNetworkMixin, KLCoeffMixin
     ])
+
 
 def validate_config(config):
     if config["entropy_coeff"] < 0:
@@ -306,9 +309,7 @@ def validate_config(config):
     elif tf and tf.executing_eagerly():
         config["simple_optimizer"] = True  # multi-gpu not supported
 
-from ray.rllib.agents.trainer_template import build_trainer
-from ray.rllib.agents.ppo.ppo import choose_policy_optimizer, DEFAULT_CONFIG, update_kl, \
-    warn_about_bad_reward_scales
+
 CustomPPOTrainer = build_trainer(
     name="CustomPPOTrainer",
     default_config=DEFAULT_CONFIG,

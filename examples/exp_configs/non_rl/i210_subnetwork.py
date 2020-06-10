@@ -241,8 +241,10 @@ flow_params = dict(
 
 edge_id = "119257908#1-AddedOnRampEdge"
 
+
 def valid_ids(env, veh_ids):
     return [veh_id for veh_id in veh_ids if env.k.vehicle.get_edge(veh_id) not in ["ghost0", "119257908#3"]]
+
 
 custom_callables = {
     "avg_merge_speed": lambda env: np.nan_to_num(np.mean(
