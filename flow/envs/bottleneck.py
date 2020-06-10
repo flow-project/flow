@@ -472,6 +472,13 @@ class BottleneckEnv(Env):
             shape=(1, ),
             dtype=np.float32)
 
+    def _apply_rl_actions(self, rl_actions):
+        """See parent class.
+
+        To be implemented by child classes.
+        """
+        pass
+
     def compute_reward(self, rl_actions, **kwargs):
         """Outflow rate over last ten seconds normalized to max of 1."""
         reward = self.k.vehicle.get_outflow_rate(10 * self.sim_step) / \
