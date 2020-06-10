@@ -99,7 +99,7 @@ def emission_to_csv(emission_path, output_path=None):
         dict_writer.writerows(out_data)
 
 
-def emission_to_csv_large(emission_path, output_path):
+def emission_to_csv_large(emission_path, output_path=None):
     """Do exact same thing as emission_to_csv but handles the memory insufficient issue with large emission file."""
     context = ElementTree.iterparse(emission_path)
     out_data = []
