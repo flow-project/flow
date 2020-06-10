@@ -133,7 +133,7 @@ class TestHighwayNetwork(unittest.TestCase):
         self.assertEqual(env.k.network.speed_limit("highway_0"), 30)
 
         # =================================================================== #
-        #                          With a ghost edge                          #
+        #                   With a ghost edge (300m, 25m/s)                   #
         # =================================================================== #
 
         # create the network
@@ -160,6 +160,35 @@ class TestHighwayNetwork(unittest.TestCase):
         # check the speed limits of the edges
         self.assertEqual(env.k.network.speed_limit("highway_0"), 30)
         self.assertEqual(env.k.network.speed_limit("highway_end"), 25)
+
+        # =================================================================== #
+        #                   With a ghost edge (500m, 10m/s)                   #
+        # =================================================================== #
+
+        # create the network
+        env, _, _ = highway_exp_setup(
+            net_params=NetParams(additional_params={
+                "length": 1000,
+                "lanes": 4,
+                "speed_limit": 30,
+                "num_edges": 1,
+                "use_ghost_edge": True,
+                "ghost_speed_limit": 10,
+                "boundary_cell_length": 500,
+            })
+        )
+        env.reset()
+
+        # check the network length
+        self.assertEqual(env.k.network.length(), 1500.1)
+
+        # check the edge list
+        self.assertEqual(env.k.network.get_edge_list(),
+                         ["highway_0", "highway_end"])
+
+        # check the speed limits of the edges
+        self.assertEqual(env.k.network.speed_limit("highway_0"), 30)
+        self.assertEqual(env.k.network.speed_limit("highway_end"), 10)
 
 
 class TestRingNetwork(unittest.TestCase):
