@@ -144,13 +144,14 @@ class TestHighwayNetwork(unittest.TestCase):
                 "speed_limit": 30,
                 "num_edges": 1,
                 "use_ghost_edge": True,
-                "ghost_speed_limit": 25
+                "ghost_speed_limit": 25,
+                "boundary_cell_length": 300,
             })
         )
         env.reset()
 
         # check the network length
-        self.assertEqual(env.k.network.length(), 1500.1)
+        self.assertEqual(env.k.network.length(), 1300.1)
 
         # check the edge list
         self.assertEqual(env.k.network.get_edge_list(),
