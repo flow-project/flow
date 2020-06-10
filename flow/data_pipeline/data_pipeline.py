@@ -39,7 +39,7 @@ def generate_trajectory_table(data_path, extra_info, partition_name):
 
 
 def write_dict_to_csv(data_path, extra_info, include_header=False):
-    """Write extra to the CSV file at data_path, create one if not exist
+    """Write extra to the CSV file at data_path, create one if not exist.
 
     Parameters
     ----------
@@ -131,7 +131,7 @@ def get_configuration():
 
 
 def delete_obsolete_data(s3, latest_key, table, bucket="circles.data.pipeline"):
-    """Delete the obsolete data on S3"""
+    """Delete the obsolete data on S3."""
     response = s3.list_objects_v2(Bucket=bucket)
     keys = [e["Key"] for e in response["Contents"] if e["Key"].find(table) == 0 and e["Key"][-4:] == ".csv"]
     keys.remove(latest_key)
