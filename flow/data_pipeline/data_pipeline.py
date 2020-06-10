@@ -125,7 +125,7 @@ def get_configuration():
     if strategy:
         config_df['strategy'][0] = strategy
 
-    config_df.to_csv('./config', index=False)
+    config_df.to_csv('./data_pipeline_config', index=False)
 
     return config_df['submitter_name'][0], config_df['strategy'][0]
 

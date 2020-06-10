@@ -27,7 +27,7 @@ network_using_edge = ["I-210 without Ramps"]
 
 X_FILTER = "x BETWEEN 500 AND 2300"
 
-EDGE_FILTER = "edge_id <> ANY (VALUES 'ghost0', '119257908#3')"
+EDGE_FILTER = "edge_id <> ALL (VALUES 'ghost0', '119257908#3')"
 
 WARMUP_STEPS = 600 * 3 * 0.4
 

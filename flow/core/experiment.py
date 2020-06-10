@@ -1,5 +1,5 @@
 """Contains an experiment class for running simulations."""
-from flow.core.util import emission_to_csv
+from flow.core.util import emission_to_csv_large
 from flow.utils.registry import make_create_env
 from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
 from flow.data_pipeline.leaderboard_utils import network_name_translate
@@ -178,7 +178,8 @@ class Experiment:
             vel = []
             custom_vals = {key: [] for key in self.custom_callables.keys()}
             run_id = "run_{}".format(i)
-            state = self.env.reset(extra_info=extra_info, source_id=source_id, run_id=run_id)
+            self.env.pipeline_params = (extra_info, source_id, run_id)
+            state = self.env.reset()
             for j in range(num_steps):
                 t0 = time.time()
                 state, reward, done, _ = self.env.step(rl_actions(state))
@@ -194,7 +195,7 @@ class Experiment:
                 get_extra_info(self.env.k.vehicle, extra_info, veh_ids, source_id, run_id)
 
                 # write to disk every 100 steps
-                if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0:
+                if convert_to_csv and self.env.simulator == "traci" and j % 200 == 0:
                     write_dict_to_csv(trajectory_table_path, extra_info, not j)
                     extra_info.clear()
 
@@ -234,8 +235,7 @@ class Experiment:
             emission_path = os.path.join(dir_path, emission_filename)
 
             # convert the emission file into a csv
-            # FIXME(@Brent): produce seg fault with large CSV
-            # emission_to_csv(emission_path)
+            emission_to_csv_large(emission_path)
 
             # Delete the .xml version of the emission file.
             os.remove(emission_path)
