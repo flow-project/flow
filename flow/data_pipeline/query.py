@@ -498,7 +498,7 @@ class QueryStrings(Enum):
         WITH agg AS (
             SELECT
                 l.date AS submission_date,
-                l.submission_time,
+                m.submission_time,
                 l.source_id,
                 m.submitter_name,
                 m.strategy,
@@ -527,6 +527,6 @@ class QueryStrings(Enum):
         FROM agg
         JOIN agg baseline ON 1 = 1
             AND agg.network = baseline.network
-            AND baseline.is_baseline = TRUE
-        ORDER BY agg.submission_date, agg.submission_time
+            AND baseline.is_baseline = 'TRUE'
+        ORDER BY agg.submission_date, agg.submission_time ASC
         ;"""
