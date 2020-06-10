@@ -433,7 +433,7 @@ class Env(gym.Env):
 
         return next_observation, reward, done, infos
 
-    def reset(self, extra_info=None, source_id="", run_id=""):
+    def reset(self):
         """Reset the environment.
 
         This method is performed in between rollouts. It resets the state of
@@ -580,9 +580,12 @@ class Env(gym.Env):
         for _ in range(self.env_params.warmup_steps):
             observation, _, _, _ = self.step(rl_actions=None)
             # collect data for pipeline during the warmup period
-            if extra_info:
+            try:
+                extra_info, source_id, run_id = self.pipeline_params
                 veh_ids = self.k.vehicle.get_ids()
                 get_extra_info(self.k.vehicle, extra_info, veh_ids, source_id, run_id)
+            except AttributeError as e:
+                pass
 
         # render a frame
         self.render(reset=True)
