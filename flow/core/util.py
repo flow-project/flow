@@ -148,3 +148,4 @@ def emission_to_csv_large(emission_path, output_path):
         dict_writer = csv.DictWriter(output_file, keys)
         dict_writer.writeheader()
         dict_writer.writerows(out_data)
+        
