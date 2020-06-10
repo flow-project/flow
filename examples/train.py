@@ -164,12 +164,11 @@ def setup_exps_rllib(flow_params,
     """
     from ray import tune
     from ray.tune.registry import register_env
+    from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
     try:
         from ray.rllib.agents.agent import get_agent_class
     except ImportError:
         from ray.rllib.agents.registry import get_agent_class
-
-    horizon = flow_params['env'].horizon
 
     horizon = flow_params['env'].horizon
 
@@ -244,19 +243,22 @@ def setup_exps_rllib(flow_params,
         episode.user_data["avg_mpg"] = []
         episode.user_data["avg_mpj"] = []
 
-
     def on_episode_step(info):
         episode = info["episode"]
         env = info["env"].get_unwrapped()[0]
         if isinstance(env, _GroupAgentsWrapper):
             env = env.env
         if hasattr(env, 'no_control_edges'):
-            veh_ids = [veh_id for veh_id in env.k.vehicle.get_ids() if (env.k.vehicle.get_speed(veh_id) >= 0
-                                                                        and env.k.vehicle.get_edge(veh_id)
-                                                                        not in env.no_control_edges)]
-            rl_ids = [veh_id for veh_id in env.k.vehicle.get_rl_ids() if (env.k.vehicle.get_speed(veh_id) >= 0
-                                                                        and env.k.vehicle.get_edge(veh_id)
-                                                                        not in env.no_control_edges)]
+            veh_ids = [
+                veh_id for veh_id in env.k.vehicle.get_ids()
+                if env.k.vehicle.get_speed(veh_id) >= 0
+                and env.k.vehicle.get_edge(veh_id) not in env.no_control_edges
+            ]
+            rl_ids = [
+                veh_id for veh_id in env.k.vehicle.get_rl_ids()
+                if env.k.vehicle.get_speed(veh_id) >= 0
+                and env.k.vehicle.get_edge(veh_id) not in env.no_control_edges
+            ]
         else:
             veh_ids = [veh_id for veh_id in env.k.vehicle.get_ids() if env.k.vehicle.get_speed(veh_id) >= 0]
             rl_ids = [veh_id for veh_id in env.k.vehicle.get_rl_ids() if env.k.vehicle.get_speed(veh_id) >= 0]
@@ -269,7 +271,6 @@ def setup_exps_rllib(flow_params,
             episode.user_data["avg_speed_avs"].append(av_speed)
         episode.user_data["avg_mpg"].append(miles_per_gallon(env, veh_ids, gain=1.0))
         episode.user_data["avg_mpj"].append(miles_per_megajoule(env, veh_ids, gain=1.0))
-
 
     def on_episode_end(info):
         episode = info["episode"]
@@ -316,7 +317,7 @@ def setup_exps_rllib(flow_params,
 def train_rllib(submodule, flags):
     """Train policies using the PPO algorithm in RLlib."""
     import ray
-    from ray.tune import run_experiments
+    from ray import tune
 
     flow_params = submodule.flow_params
     flow_params['sim'].render = flags.render

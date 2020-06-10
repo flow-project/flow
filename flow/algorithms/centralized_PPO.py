@@ -1,14 +1,12 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+
 """An example of customizing PPO to leverage a centralized critic."""
 
 import argparse
 import numpy as np
 
-from gym.spaces import Dict
-
-from ray import tune
 from ray.rllib.agents.ppo.ppo import PPOTrainer
 from flow.algorithms.custom_ppo import CustomPPOTFPolicy
 from ray.rllib.evaluation.postprocessing import compute_advantages, \
@@ -19,12 +17,10 @@ from ray.rllib.policy.tf_policy import LearningRateSchedule, \
 from ray.rllib.models.modelv2 import ModelV2
 from ray.rllib.models.tf.tf_modelv2 import TFModelV2
 from ray.rllib.models.tf.recurrent_tf_modelv2 import RecurrentTFModelV2
-from ray.rllib.models.model import restore_original_dimensions
 from ray.rllib.utils.annotations import override
 from ray.rllib.models.tf.fcnet_v2 import FullyConnectedNetwork
 from ray.rllib.utils.explained_variance import explained_variance
 from ray.rllib.utils import try_import_tf
-
 
 tf = try_import_tf()
 
@@ -37,10 +33,10 @@ OPPONENT_ACTION = "opponent_action"
 parser = argparse.ArgumentParser()
 parser.add_argument("--stop", type=int, default=100000)
 
-#TODOy
 
 class CentralizedCriticModel(TFModelV2):
     """Multi-agent model that implements a centralized VF."""
+
     # TODO(@evinitsky) make this work with more than boxes
 
     def __init__(self, obs_space, action_space, num_outputs, model_config,
@@ -56,9 +52,12 @@ class CentralizedCriticModel(TFModelV2):
         self.max_num_agents = model_config['custom_options']['max_num_agents']
         self.obs_space_shape = obs_space.shape[0]
         self.obs_space = obs_space
-        other_obs = tf.keras.layers.Input(shape=(obs_space.shape[0] * self.max_num_agents, ), name="central_obs")
+        other_obs = tf.keras.layers.Input(
+            shape=(obs_space.shape[0] * self.max_num_agents,),
+            name="central_obs")
         central_vf_dense = tf.keras.layers.Dense(
-            model_config['custom_options']['central_vf_size'], activation=tf.nn.tanh, name="c_vf_dense")(other_obs)
+            model_config['custom_options']['central_vf_size'],
+            activation=tf.nn.tanh, name="c_vf_dense")(other_obs)
         central_vf_out = tf.keras.layers.Dense(
             1, activation=None, name="c_vf_out")(central_vf_dense)
         self.central_vf = tf.keras.Model(
@@ -89,15 +88,15 @@ class CentralizedCriticModelRNN(RecurrentTFModelV2):
                  name,
                  hiddens_size=64,
                  cell_size=64):
-        super(CentralizedCriticModelRNN, self).__init__(obs_space, action_space, num_outputs,
-                                         model_config, name)
+        super(CentralizedCriticModelRNN, self).__init__(
+            obs_space, action_space, num_outputs, model_config, name)
         self.cell_size = cell_size
 
         # Define input layers
         input_layer = tf.keras.layers.Input(
             shape=(None, obs_space.shape[0]), name="inputs")
-        state_in_h = tf.keras.layers.Input(shape=(cell_size, ), name="h")
-        state_in_c = tf.keras.layers.Input(shape=(cell_size, ), name="c")
+        state_in_h = tf.keras.layers.Input(shape=(cell_size,), name="h")
+        state_in_c = tf.keras.layers.Input(shape=(cell_size,), name="c")
         seq_in = tf.keras.layers.Input(shape=(), name="seq_in")
 
         # Preprocess observation with a hidden layer and send to LSTM cell
@@ -105,9 +104,9 @@ class CentralizedCriticModelRNN(RecurrentTFModelV2):
             hiddens_size, activation=tf.nn.relu, name="dense1")(input_layer)
         lstm_out, state_h, state_c = tf.keras.layers.LSTM(
             cell_size, return_sequences=True, return_state=True, name="lstm")(
-                inputs=dense1,
-                mask=tf.sequence_mask(seq_in),
-                initial_state=[state_in_h, state_in_c])
+            inputs=dense1,
+            mask=tf.sequence_mask(seq_in),
+            initial_state=[state_in_h, state_in_c])
 
         # Postprocess LSTM output with another hidden layer and compute values
         logits = tf.keras.layers.Dense(
@@ -124,16 +123,20 @@ class CentralizedCriticModelRNN(RecurrentTFModelV2):
         self.register_variables(self.model.variables)
         self.model.summary()
 
-        #TODO(@evinitsky) add layer sharing to the VF
-        # Create the centralized VF
-        # Central VF maps (obs, opp_ops, opp_act) -> vf_pred
+        # TODO(@evinitsky) add layer sharing to the VF
+        #  Create the centralized VF
+        #  Central VF maps (obs, opp_ops, opp_act) -> vf_pred
         self.max_num_agents = model_config.get("max_num_agents", 120)
         self.obs_space_shape = obs_space.shape[0]
-        other_obs = tf.keras.layers.Input(shape=(obs_space.shape[0] * self.max_num_agents,), name="all_agent_obs")
+        other_obs = tf.keras.layers.Input(
+            shape=(obs_space.shape[0] * self.max_num_agents,),
+            name="all_agent_obs")
         central_vf_dense = tf.keras.layers.Dense(
-            model_config.get("central_vf_size", 64), activation=tf.nn.tanh, name="c_vf_dense")(other_obs)
+            model_config.get("central_vf_size", 64), activation=tf.nn.tanh,
+            name="c_vf_dense")(other_obs)
         central_vf_dense2 = tf.keras.layers.Dense(
-            model_config.get("central_vf_size", 64), activation=tf.nn.tanh, name="c_vf_dense")(central_vf_dense)
+            model_config.get("central_vf_size", 64), activation=tf.nn.tanh,
+            name="c_vf_dense")(central_vf_dense)
         central_vf_out = tf.keras.layers.Dense(
             1, activation=None, name="c_vf_out")(central_vf_dense2)
         self.central_vf = tf.keras.Model(
@@ -142,8 +145,8 @@ class CentralizedCriticModelRNN(RecurrentTFModelV2):
 
     @override(RecurrentTFModelV2)
     def forward_rnn(self, inputs, state, seq_lens):
-        model_out, self._value_out, h, c = self.model([inputs, seq_lens] +
-                                                          state)
+        model_out, self._value_out, h, c = self.model(
+            [inputs, seq_lens] + state)
         return model_out, [h, c]
 
     @override(ModelV2)
@@ -197,11 +200,13 @@ def centralized_critic_postprocessing(policy,
                              for agent_id in other_agent_batches.keys()}
         agent_time = sample_batch['t']
         # # find agents whose time overlaps with the current agent
-        rel_agents = {agent_id: other_agent_time for agent_id, other_agent_time in other_agent_times.items()}
+        rel_agents = {agent_id: other_agent_time for agent_id, other_agent_time
+                      in other_agent_times.items()}
         # if len(rel_agents) > 0:
-        other_obs = {agent_id:
-                         other_agent_batches[agent_id][1]["obs"].copy()
-                     for agent_id in other_agent_batches.keys()}
+        other_obs = {
+            agent_id: other_agent_batches[agent_id][1]["obs"].copy()
+            for agent_id in other_agent_batches.keys()
+        }
         # padded_agent_obs = {agent_id:
         #     overlap_and_pad_agent(
         #         time_span,
@@ -209,17 +214,20 @@ def centralized_critic_postprocessing(policy,
         #         other_obs[agent_id])
         #     for agent_id,
         #         rel_agent_time in rel_agents.items()}
-        padded_agent_obs = {agent_id:
-            fill_missing(
+        padded_agent_obs = {
+            agent_id: fill_missing(
                 agent_time,
                 other_agent_times[agent_id],
-                other_obs[agent_id])
-            for agent_id,
-                rel_agent_time in rel_agents.items()}
+                other_obs[agent_id]
+            )
+            for agent_id, rel_agent_time in rel_agents.items()
+        }
         # okay, now we need to stack and sort
-        central_obs_list = [padded_obs for padded_obs in padded_agent_obs.values()]
+        central_obs_list = [padded_obs for padded_obs in
+                            padded_agent_obs.values()]
         try:
-            central_obs_batch = np.hstack((sample_batch["obs"], np.hstack(central_obs_list)))
+            central_obs_batch = np.hstack(
+                (sample_batch["obs"], np.hstack(central_obs_list)))
         except:
             # TODO(@ev) this is a bug and needs to be fixed
             central_obs_batch = sample_batch["obs"]
@@ -238,17 +246,19 @@ def centralized_critic_postprocessing(policy,
         sample_batch[CENTRAL_OBS] = central_obs_batch
 
         # overwrite default VF prediction with the central VF
-        sample_batch[SampleBatch.VF_PREDS] = policy.compute_central_vf(sample_batch[CENTRAL_OBS])
+        sample_batch[SampleBatch.VF_PREDS] = policy.compute_central_vf(
+            sample_batch[CENTRAL_OBS])
     else:
         # policy hasn't initialized yet, use zeros
-        #TODO(evinitsky) put in the right shape
+        # TODO(evinitsky) put in the right shape
         obs_shape = sample_batch[SampleBatch.CUR_OBS].shape[1]
         obs_shape = (1, obs_shape * (policy.model.max_num_agents))
         sample_batch[CENTRAL_OBS] = np.zeros(obs_shape)
         # TODO(evinitsky) put in the right shape. Will break if actions aren't 1
         sample_batch[SampleBatch.VF_PREDS] = np.zeros(1, dtype=np.float32)
 
-    completed = sample_batch["dones"][-1]
+    # TODO (ak): this was not being used, so commented
+    # completed = sample_batch["dones"][-1]
 
     # if not completed and policy.loss_initialized():
     #     last_r = 0.0
@@ -265,7 +275,6 @@ def centralized_critic_postprocessing(policy,
         policy.config["lambda"],
         use_gae=policy.config["use_gae"])
     return batch
-
 
 
 def time_overlap(time_span, agent_time):
@@ -302,12 +311,14 @@ def overlap_and_pad_agent(time_span, agent_time, obs):
     print(time_span)
     print(agent_time)
     if time_span[0] == 7 or agent_time[0] == 7:
-        import ipdb; ipdb.set_trace()
+        import ipdb
+        ipdb.set_trace()
     # FIXME(ev) some of these conditions can be combined
     # no padding needed
     if agent_time[0] == time_span[0] and agent_time[1] == time_span[1]:
         if obs.shape[0] < 200:
-            import ipdb; ipdb.set_trace()
+            import ipdb
+            ipdb.set_trace()
         return obs
     # agent enters before time_span starts and exits before time_span end
     if agent_time[0] < time_span[0] and agent_time[1] < time_span[1]:
@@ -317,7 +328,8 @@ def overlap_and_pad_agent(time_span, agent_time, obs):
         padding = np.zeros((missing_time, obs.shape[1]))
         obs_concat = np.concatenate((overlap_obs, padding))
         if obs_concat.shape[0] < 200:
-            import ipdb; ipdb.set_trace()
+            import ipdb
+            ipdb.set_trace()
         return obs_concat
     # agent enters after time_span starts and exits after time_span ends
     elif agent_time[0] > time_span[0] and agent_time[1] > time_span[1]:
@@ -327,7 +339,8 @@ def overlap_and_pad_agent(time_span, agent_time, obs):
         padding = np.zeros((missing_time, obs.shape[1]))
         obs_concat = np.concatenate((padding, overlap_obs))
         if obs_concat.shape[0] < 200:
-            import ipdb; ipdb.set_trace()
+            import ipdb
+            ipdb.set_trace()
         return obs_concat
     # agent time is entirely contained in time_span
     elif agent_time[0] >= time_span[0] and agent_time[1] <= time_span[1]:
@@ -341,7 +354,8 @@ def overlap_and_pad_agent(time_span, agent_time, obs):
             padding = np.zeros((missing_right, obs.shape[1]))
             obs_concat = np.concatenate((obs_concat, padding))
         if obs_concat.shape[0] < 200:
-            import ipdb; ipdb.set_trace()
+            import ipdb
+            ipdb.set_trace()
         return obs_concat
     # agent time totally contains time_span
     elif agent_time[0] <= time_span[0] and agent_time[1] >= time_span[1]:
@@ -353,7 +367,8 @@ def overlap_and_pad_agent(time_span, agent_time, obs):
         if non_overlap_right > 0:
             overlap_obs = overlap_obs[:-non_overlap_right]
         if overlap_obs.shape[0] < 200:
-            import ipdb; ipdb.set_trace()
+            import ipdb
+            ipdb.set_trace()
         return overlap_obs
 
 
@@ -492,6 +507,7 @@ class KLCoeffMixin(object):
             shape=(),
             trainable=False,
             dtype=tf.float32)
+
     def update_kl(self, blah):
         pass
 
@@ -516,6 +532,7 @@ def central_vf_stats(policy, train_batch, grads):
             policy.central_value_function),
     }
 
+
 def kl_and_loss_stats(policy, train_batch):
     return {
         "cur_kl_coeff": tf.cast(policy.kl_coeff, tf.float64),
@@ -531,6 +548,7 @@ def kl_and_loss_stats(policy, train_batch):
         "entropy": policy.loss_obj.mean_entropy,
         "entropy_coeff": tf.cast(policy.entropy_coeff, tf.float64),
     }
+
 
 CCPPO = CustomPPOTFPolicy.with_updates(
     name="CCPPO",
