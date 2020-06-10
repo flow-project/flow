@@ -1,4 +1,4 @@
-"""PPO but we add in the outflow after the reward to the final reward"""
+"""PPO but we add in the outflow after the reward to the final reward."""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -49,36 +49,48 @@ class PPOLoss(object):
                  vf_loss_coeff=1.0,
                  use_gae=True,
                  model_config=None):
-        """Constructs the loss for Proximal Policy Objective.
+        """Construct the loss for Proximal Policy Objective.
 
-        Arguments:
-            action_space: Environment observation space specification.
-            dist_class: action distribution class for logits.
-            value_targets (Placeholder): Placeholder for target values; used
-                for GAE.
-            actions (Placeholder): Placeholder for actions taken
-                from previous model evaluation.
-            advantages (Placeholder): Placeholder for calculated advantages
-                from previous model evaluation.
-            prev_logits (Placeholder): Placeholder for logits output from
-                previous model evaluation.
-            prev_actions_logp (Placeholder): Placeholder for prob output from
-                previous model evaluation.
-            vf_preds (Placeholder): Placeholder for value function output
-                from previous model evaluation.
-            curr_action_dist (ActionDistribution): ActionDistribution
-                of the current model.
-            value_fn (Tensor): Current value function output Tensor.
-            cur_kl_coeff (Variable): Variable holding the current PPO KL
-                coefficient.
-            valid_mask (Tensor): A bool mask of valid input elements (#2992).
-            entropy_coeff (float): Coefficient of the entropy regularizer.
-            clip_param (float): Clip parameter
-            vf_clip_param (float): Clip parameter for the value function
-            vf_loss_coeff (float): Coefficient of the value function loss
-            use_gae (bool): If true, use the Generalized Advantage Estimator.
-            model_config (dict): (Optional) model config for use in specifying
-                action distributions.
+        Parameters
+        ----------
+        action_space : TODO
+            Environment observation space specification.
+        dist_class : TODO
+            action distribution class for logits.
+        value_targets : tf.placeholder
+            Placeholder for target values; used for GAE.
+        actions : tf.placeholder
+            Placeholder for actions taken from previous model evaluation.
+        advantages : tf.placeholder
+            Placeholder for calculated advantages from previous model
+            evaluation.
+        prev_logits : tf.placeholder
+            Placeholder for logits output from previous model evaluation.
+        prev_actions_logp : tf.placeholder
+            Placeholder for prob output from previous model evaluation.
+        vf_preds : tf.placeholder
+            Placeholder for value function output from previous model
+            evaluation.
+        curr_action_dist : ActionDistribution
+            ActionDistribution of the current model.
+        value_fn : tf.Tensor
+            Current value function output Tensor.
+        cur_kl_coeff : tf.Variable
+            Variable holding the current PPO KL coefficient.
+        valid_mask : tf.Tensor
+            A bool mask of valid input elements (#2992).
+        entropy_coeff : float
+            Coefficient of the entropy regularizer.
+        clip_param : float
+            Clip parameter
+        vf_clip_param : float
+            Clip parameter for the value function
+        vf_loss_coeff : float
+            Coefficient of the value function loss
+        use_gae : bool
+            If true, use the Generalized Advantage Estimator.
+        model_config : dict, optional
+            model config for use in specifying action distributions.
         """
         def reduce_mean_valid(t):
             return tf.reduce_mean(tf.boolean_mask(t, valid_mask))
@@ -170,7 +182,7 @@ def kl_and_loss_stats(policy, train_batch):
 
 
 def vf_preds_and_logits_fetches(policy):
-    """Adds value function and logits outputs to experience train_batches."""
+    """Add value function and logits outputs to experience train_batches."""
     return {
         SampleBatch.VF_PREDS: policy.model.value_function(),
         BEHAVIOUR_LOGITS: policy.model.last_output(),
@@ -181,8 +193,7 @@ def postprocess_ppo_gae(policy,
                         sample_batch,
                         other_agent_batches=None,
                         episode=None):
-    """Adds the policy logits, VF preds, and advantages to the trajectory."""
-
+    """Add the policy logits, VF preds, and advantages to the trajectory."""
     completed = sample_batch["dones"][-1]
     if completed:
         last_r = 0.0
