@@ -37,3 +37,7 @@ class RLController(BaseController):
             self,
             veh_id,
             car_following_params)
+
+    def get_accel(self, env):
+        """Pass, as this is never called; required to override abstractmethod."""
+        pass
