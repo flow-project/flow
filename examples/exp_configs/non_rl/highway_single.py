@@ -63,12 +63,13 @@ inflows.add(
     veh_type="human",
     edge="highway_0",
     vehs_per_hour=TRAFFIC_FLOW,
-    departLane="free",
-    departSpeed=TRAFFIC_SPEED)
+    depart_lane="free",
+    depart_speed=TRAFFIC_SPEED,
+    name="idm_highway_inflow")
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='highway',
+    exp_tag='highway-single',
 
     # name of the flow environment the experiment is running on
     env_name=TestEnv,
@@ -90,8 +91,8 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.4,
         render=False,
-        restart_instance=False,
-        use_ballistic=True
+        use_ballistic=True,
+        restart_instance=False
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
