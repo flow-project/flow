@@ -235,6 +235,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         completed_vehicle_travel_time = {}
         custom_vals = {key: [] for key in custom_callables.keys()}
         run_id = "run_{}".format(i)
+        env.pipeline_params = (extra_info, source_id, run_id)
         state = env.reset()
         initial_vehicles = set(env.k.vehicle.get_ids())
         for _ in range(env_params.horizon):

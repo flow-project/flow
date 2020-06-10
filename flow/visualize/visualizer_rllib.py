@@ -239,7 +239,8 @@ def visualizer_rllib(args):
     for i in range(args.num_rollouts):
         vel = []
         run_id = "run_{}".format(i)
-        state = env.reset(extra_info=extra_info, source_id=source_id, run_id=run_id)
+        env.pipeline_params = (extra_info, source_id, run_id)
+        state = env.reset()
         if multiagent:
             ret = {key: [0] for key in rets.keys()}
         else:
