@@ -1,6 +1,6 @@
 """Transfer and replay for i210 environment."""
 import argparse
-from datetime import datetime
+from datetime import datetime, timezone
 from collections import defaultdict
 from copy import deepcopy
 import numpy as np
@@ -19,7 +19,7 @@ except ImportError:
 from ray.tune.registry import register_env
 
 from flow.core.util import emission_to_csv, ensure_dir
-from flow.core.rewards import vehicle_energy_consumption
+from flow.core.rewards import veh_energy_consumption
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
@@ -32,7 +32,8 @@ from flow.visualize.plot_custom_callables import plot_trip_distribution
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 
-from flow.data_pipeline.data_pipeline import generate_trajectory_from_flow, upload_to_s3, get_extra_info
+from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info
+from flow.data_pipeline.leaderboard_utils import network_name_translate
 import uuid
 
 EXAMPLE_USAGE = """
@@ -208,8 +209,18 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         key: [] for key in custom_callables.keys()
     })
 
+    # date pipeline
     extra_info = defaultdict(lambda: [])
     source_id = 'flow_{}'.format(uuid.uuid4().hex)
+    metadata = defaultdict(lambda: [])
+    # collect current time
+    cur_datetime = datetime.now(timezone.utc)
+    cur_date = cur_datetime.date().isoformat()
+    cur_time = cur_datetime.time().isoformat()
+    metadata['source_id'].append(source_id)
+    metadata['submission_time'].append(cur_time)
+    metadata['network'].append(network_name_translate(env.network.name.split('_20')[0]))
+    metadata['is_baseline'].append(str(args.is_baseline))
 
     i = 0
     while i < args.num_rollouts:
@@ -251,7 +262,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
 
             # Collect information from flow for the trajectory output
             get_extra_info(env.k.vehicle, extra_info, veh_ids)
-            extra_info["source_id"].extend(['{}_run_{}'.format(source_id, i)] * len(veh_ids))
+            extra_info["source_id"].extend([source_id] * len(veh_ids))
+            extra_info["run_id"].extend(['run_{}'.format(i)] * len(veh_ids))
 
             # Compute the results for the custom callables.
             for (key, lambda_func) in custom_callables.items():
@@ -273,7 +285,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
                         per_vehicle_energy_trace[veh_id].append(0)
                         completed_veh_types[veh_id] = env.k.vehicle.get_type(veh_id)
                     else:
-                        per_vehicle_energy_trace[veh_id].append(-1 * vehicle_energy_consumption(env, veh_id))
+                        per_vehicle_energy_trace[veh_id].append(-1 * veh_energy_consumption(env, veh_id))
 
             if type(done) is dict and done['__all__']:
                 break
@@ -329,16 +341,19 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             emission_to_csv(emission_path, output_path=output_path)
 
             # generate the trajectory output file
-            trajectory_table_path = dir_path + source_id + ".csv"
-            upload_file_path = generate_trajectory_from_flow(trajectory_table_path, extra_info)
+            trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
+            write_dict_to_csv(trajectory_table_path, extra_info, True)
+            metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
+            write_dict_to_csv(metadata_table_path, metadata, True)
 
             # upload to s3 if asked
             if args.use_s3:
-                partition_name = source_id[-3:]
-                cur_date = date.today().isoformat()
-                upload_to_s3('circles.data.pipeline', 'trajectory-output/date={}/partition_name={}/{}.csv'.format(
-                    cur_date, partition_name, upload_file_path.split('/')[-1].split('_upload')[0]),
-                             upload_file_path, str(args.only_query)[2:-2])
+                upload_to_s3('circles.data.pipeline', 'metadata_table/date={0}/partition_name={1}_METADATA/'
+                                                      '{1}_METADATA.csv'.format(cur_date, source_id),
+                             metadata_table_path)
+                upload_to_s3('circles.data.pipeline', 'fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv'.format(
+                    cur_date, source_id),
+                             trajectory_table_path, {'network': metadata['network'][0]})
 
             # print the location of the emission csv file
             print("\nGenerated emission file at " + output_path)
@@ -454,6 +469,11 @@ def create_parser():
         nargs='*', default="[\'all\']",
         help='specify which query should be run by lambda'
              'for detail, see upload_to_s3 in data_pipeline.py'
+    )
+    parser.add_argument(
+        '--is_baseline',
+        action='store_true',
+        help='specifies whether this is a baseline run'
     )
     return parser
 

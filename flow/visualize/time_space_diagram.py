@@ -264,8 +264,7 @@ def _highway(data, params, all_time):
     edge_starts = {}
     # Add the main edges.
     edge_starts.update({
-        "highway_{}".format(i):
-         i * (length / num_edges + junction_length)
+        "highway_{}".format(i): i * (length / num_edges + junction_length)
         for i in range(num_edges)
     })
 
@@ -273,15 +272,13 @@ def _highway(data, params, all_time):
         edge_starts.update({"highway_end": length + num_edges * junction_length})
 
     edge_starts.update({
-        ":edge_{}".format(i + 1):
-         (i + 1) * length / num_edges + i * junction_length
+        ":edge_{}".format(i + 1): (i + 1) * length / num_edges + i * junction_length
         for i in range(num_edges - 1)
     })
 
     if params['net'].additional_params["use_ghost_edge"]:
         edge_starts.update({
-            ":edge_{}".format(num_edges):
-             length + (num_edges - 1) * junction_length
+            ":edge_{}".format(num_edges): length + (num_edges - 1) * junction_length
         })
 
     # compute the absolute position
@@ -301,8 +298,8 @@ def _highway(data, params, all_time):
                                                 data[veh_id]['time'],
                                                 data[veh_id]['edge'],
                                                 data[veh_id]['lane']):
-            # avoid vehicles not on the relevant edges. Also only check the second to
-            # last lane
+            # avoid vehicles not on the relevant edges. Also only check the
+            # second to last lane
             if edge not in edge_starts.keys() or ti not in all_time:
                 continue
             else:

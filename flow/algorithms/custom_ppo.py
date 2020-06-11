@@ -1,13 +1,11 @@
-"""PPO but we add in the outflow after the reward to the final reward"""
+"""PPO but without the adaptive KL term that RLlib added."""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
 import logging
 
-import numpy as np
 import ray
-from ray.rllib.agents.ppo.ppo import PPOTrainer
 from ray.rllib.evaluation.postprocessing import compute_advantages, \
     Postprocessing
 from ray.rllib.policy.sample_batch import SampleBatch
@@ -17,6 +15,10 @@ from ray.rllib.policy.tf_policy_template import build_tf_policy
 from ray.rllib.utils.explained_variance import explained_variance
 from ray.rllib.utils.tf_ops import make_tf_callable
 from ray.rllib.utils import try_import_tf
+
+from ray.rllib.agents.trainer_template import build_trainer
+from ray.rllib.agents.ppo.ppo import choose_policy_optimizer, DEFAULT_CONFIG
+from ray.rllib.agents.ppo.ppo import warn_about_bad_reward_scales
 
 tf = try_import_tf()
 
@@ -47,36 +49,48 @@ class PPOLoss(object):
                  vf_loss_coeff=1.0,
                  use_gae=True,
                  model_config=None):
-        """Constructs the loss for Proximal Policy Objective.
+        """Construct the loss for Proximal Policy Objective.
 
-        Arguments:
-            action_space: Environment observation space specification.
-            dist_class: action distribution class for logits.
-            value_targets (Placeholder): Placeholder for target values; used
-                for GAE.
-            actions (Placeholder): Placeholder for actions taken
-                from previous model evaluation.
-            advantages (Placeholder): Placeholder for calculated advantages
-                from previous model evaluation.
-            prev_logits (Placeholder): Placeholder for logits output from
-                previous model evaluation.
-            prev_actions_logp (Placeholder): Placeholder for prob output from
-                previous model evaluation.
-            vf_preds (Placeholder): Placeholder for value function output
-                from previous model evaluation.
-            curr_action_dist (ActionDistribution): ActionDistribution
-                of the current model.
-            value_fn (Tensor): Current value function output Tensor.
-            cur_kl_coeff (Variable): Variable holding the current PPO KL
-                coefficient.
-            valid_mask (Tensor): A bool mask of valid input elements (#2992).
-            entropy_coeff (float): Coefficient of the entropy regularizer.
-            clip_param (float): Clip parameter
-            vf_clip_param (float): Clip parameter for the value function
-            vf_loss_coeff (float): Coefficient of the value function loss
-            use_gae (bool): If true, use the Generalized Advantage Estimator.
-            model_config (dict): (Optional) model config for use in specifying
-                action distributions.
+        Parameters
+        ----------
+        action_space : TODO
+            Environment observation space specification.
+        dist_class : TODO
+            action distribution class for logits.
+        value_targets : tf.placeholder
+            Placeholder for target values; used for GAE.
+        actions : tf.placeholder
+            Placeholder for actions taken from previous model evaluation.
+        advantages : tf.placeholder
+            Placeholder for calculated advantages from previous model
+            evaluation.
+        prev_logits : tf.placeholder
+            Placeholder for logits output from previous model evaluation.
+        prev_actions_logp : tf.placeholder
+            Placeholder for prob output from previous model evaluation.
+        vf_preds : tf.placeholder
+            Placeholder for value function output from previous model
+            evaluation.
+        curr_action_dist : ActionDistribution
+            ActionDistribution of the current model.
+        value_fn : tf.Tensor
+            Current value function output Tensor.
+        cur_kl_coeff : tf.Variable
+            Variable holding the current PPO KL coefficient.
+        valid_mask : tf.Tensor
+            A bool mask of valid input elements (#2992).
+        entropy_coeff : float
+            Coefficient of the entropy regularizer.
+        clip_param : float
+            Clip parameter
+        vf_clip_param : float
+            Clip parameter for the value function
+        vf_loss_coeff : float
+            Coefficient of the value function loss
+        use_gae : bool
+            If true, use the Generalized Advantage Estimator.
+        model_config : dict, optional
+            model config for use in specifying action distributions.
         """
 
         def reduce_mean_valid(t):
@@ -109,7 +123,7 @@ class PPOLoss(object):
                 vf_loss_coeff * vf_loss - entropy_coeff * curr_entropy)
         else:
             self.mean_vf_loss = tf.constant(0.0)
-            loss = reduce_mean_valid(-surrogate_loss -entropy_coeff * curr_entropy)
+            loss = reduce_mean_valid(-surrogate_loss - entropy_coeff * curr_entropy)
         self.loss = loss
 
 
@@ -169,7 +183,7 @@ def kl_and_loss_stats(policy, train_batch):
 
 
 def vf_preds_and_logits_fetches(policy):
-    """Adds value function and logits outputs to experience train_batches."""
+    """Add value function and logits outputs to experience train_batches."""
     return {
         SampleBatch.VF_PREDS: policy.model.value_function(),
         BEHAVIOUR_LOGITS: policy.model.last_output(),
@@ -180,8 +194,7 @@ def postprocess_ppo_gae(policy,
                         sample_batch,
                         other_agent_batches=None,
                         episode=None):
-    """Adds the policy logits, VF preds, and advantages to the trajectory."""
-
+    """Add the policy logits, VF preds, and advantages to the trajectory."""
     completed = sample_batch["dones"][-1]
     if completed:
         last_r = 0.0
@@ -230,7 +243,7 @@ class ValueNetworkMixin(object):
                         [prev_reward]),
                     "is_training": tf.convert_to_tensor(False),
                 }, [tf.convert_to_tensor([s]) for s in state],
-                                          tf.convert_to_tensor([1]))
+                    tf.convert_to_tensor([1]))
                 return self.model.value_function()[0]
 
         else:
@@ -266,6 +279,7 @@ class KLCoeffMixin(object):
             shape=(),
             trainable=False,
             dtype=tf.float32)
+
     def update_kl(self, blah):
         pass
 
@@ -284,6 +298,7 @@ CustomPPOTFPolicy = build_tf_policy(
         LearningRateSchedule, EntropyCoeffSchedule,
         ValueNetworkMixin, KLCoeffMixin
     ])
+
 
 def validate_config(config):
     if config["entropy_coeff"] < 0:
@@ -306,9 +321,7 @@ def validate_config(config):
     elif tf and tf.executing_eagerly():
         config["simple_optimizer"] = True  # multi-gpu not supported
 
-from ray.rllib.agents.trainer_template import build_trainer
-from ray.rllib.agents.ppo.ppo import choose_policy_optimizer, DEFAULT_CONFIG, update_kl, \
-    warn_about_bad_reward_scales
+
 CustomPPOTrainer = build_trainer(
     name="CustomPPOTrainer",
     default_config=DEFAULT_CONFIG,
