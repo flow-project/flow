@@ -41,11 +41,9 @@ accel_data = (IDMController, {'a': 1.3, 'b': 2.0, 'noise': 0.3})
 
 if WANT_GHOST_CELL:
     from flow.networks.i210_subnetwork_ghost_cell import I210SubNetworkGhostCell, EDGES_DISTRIBUTION
-
     highway_start_edge = 'ghost0'
 else:
     from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
-
     highway_start_edge = "119257914"
 
 vehicles = VehicleParams()
@@ -255,11 +253,6 @@ custom_callables = {
         env.k.vehicle.get_speed(valid_ids(env, env.k.vehicle.get_ids())))),
     "avg_outflow": lambda env: np.nan_to_num(
         env.k.vehicle.get_outflow_rate(120)),
-    # # we multiply by 5 to account for the vehicle length and by 1000 to convert
-    # # into veh/km
-    # "avg_density": lambda env: 5 * 1000 * len(env.k.vehicle.get_ids_by_edge(
-    #     edge_id)) / (env.k.network.edge_length(edge_id)
-    #                  * env.k.network.num_lanes(edge_id)),
     "mpg": lambda env: miles_per_gallon(env,  valid_ids(env, env.k.vehicle.get_ids()), gain=1.0),
     "mpj": lambda env: miles_per_megajoule(env, valid_ids(env, env.k.vehicle.get_ids()), gain=1.0),
 }

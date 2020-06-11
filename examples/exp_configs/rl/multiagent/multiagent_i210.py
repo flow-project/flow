@@ -28,7 +28,7 @@ WANT_GHOST_CELL = True
 # WANT_DOWNSTREAM_BOUNDARY = True
 ON_RAMP = False
 PENETRATION_RATE = 0.10
-V_DES = 7.0
+V_DES = 5.0
 HORIZON = 1000
 WARMUP_STEPS = 600
 
@@ -64,11 +64,11 @@ additional_env_params.update({
     "mpg_reward": False,
     # whether to use the MPJ reward. Otherwise, defaults to a target velocity reward
     "mpj_reward": False,
-    # how many vehicles to look back for the MPG reward
-    "look_back_length": 1,
+    # how many vehicles to look back for any reward
+    "look_back_length": 10,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": True,
-    'target_velocity': 8.0,
+    "reroute_on_exit": False,
+    'target_velocity': 5.0,
     # how many AVs there can be at once (this is only for centralized critics)
     "max_num_agents": 10,
     # which edges we shouldn't apply control on
@@ -91,9 +91,10 @@ additional_env_params.update({
     "speed_reward_gain": 0.5,
     # penalize stopped vehicles
     "penalize_stops": True,
-
+    "stop_penalty": 0.05,
     # penalize accels
-    "penalize_accel": True
+    "penalize_accel": True,
+    "accel_penalty": 0.05
 })
 
 # CREATE VEHICLE TYPES AND INFLOWS
@@ -264,7 +265,7 @@ flow_params = dict(
         sims_per_step=3,
         warmup_steps=WARMUP_STEPS,
         additional_params=additional_env_params,
-        done_at_exit=False
+        done_at_exit=not additional_env_params["reroute_on_exit"]
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

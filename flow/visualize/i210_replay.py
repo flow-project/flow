@@ -19,7 +19,7 @@ except ImportError:
 from ray.tune.registry import register_env
 
 from flow.core.util import emission_to_csv, ensure_dir
-from flow.core.rewards import vehicle_energy_consumption
+from flow.core.rewards import veh_energy_consumption
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
@@ -285,7 +285,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
                         per_vehicle_energy_trace[veh_id].append(0)
                         completed_veh_types[veh_id] = env.k.vehicle.get_type(veh_id)
                     else:
-                        per_vehicle_energy_trace[veh_id].append(-1 * vehicle_energy_consumption(env, veh_id))
+                        per_vehicle_energy_trace[veh_id].append(-1 * veh_energy_consumption(env, veh_id))
 
             if type(done) is dict and done['__all__']:
                 break

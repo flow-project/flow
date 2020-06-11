@@ -113,7 +113,6 @@ def run_model_stablebaseline(flow_params,
     """
     from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
     from stable_baselines import PPO2
-
     if num_cpus == 1:
         constructor = env_constructor(params=flow_params, version=0)()
         # The algorithms require a vectorized environment to run
@@ -218,8 +217,8 @@ def setup_exps_rllib(flow_params,
             config["lr"] = tune.grid_search([5e-4, 5e-5])
 
     elif alg_run == "TD3":
-        agent_cls = get_agent_class(alg_run)
-        config = deepcopy(agent_cls._default_config)
+        alg_run = get_agent_class(alg_run)
+        config = deepcopy(alg_run._default_config)
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
@@ -242,6 +241,9 @@ def setup_exps_rllib(flow_params,
         episode.user_data["avg_energy"] = []
         episode.user_data["avg_mpg"] = []
         episode.user_data["avg_mpj"] = []
+        episode.user_data["num_cars"] = []
+        episode.user_data["avg_accel_human"] = []
+        episode.user_data["avg_accel_avs"] = []
 
     def on_episode_step(info):
         episode = info["episode"]
@@ -271,6 +273,15 @@ def setup_exps_rllib(flow_params,
             episode.user_data["avg_speed_avs"].append(av_speed)
         episode.user_data["avg_mpg"].append(miles_per_gallon(env, veh_ids, gain=1.0))
         episode.user_data["avg_mpj"].append(miles_per_megajoule(env, veh_ids, gain=1.0))
+        episode.user_data["num_cars"].append(len(env.k.vehicle.get_ids()))
+        episode.user_data["avg_accel_human"].append(np.nan_to_num(np.mean(
+            [np.abs((env.k.vehicle.get_speed(veh_id) - env.k.vehicle.get_previous_speed(veh_id))/env.sim_step) for
+             veh_id in veh_ids if veh_id in env.k.vehicle.previous_speeds.keys()]
+        )))
+        episode.user_data["avg_accel_avs"].append(np.nan_to_num(np.mean(
+            [np.abs((env.k.vehicle.get_speed(veh_id) - env.k.vehicle.get_previous_speed(veh_id))/env.sim_step) for
+             veh_id in rl_ids if veh_id in env.k.vehicle.previous_speeds.keys()]
+        )))
 
     def on_episode_end(info):
         episode = info["episode"]
@@ -281,9 +292,10 @@ def setup_exps_rllib(flow_params,
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
         episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["avg_mpg"])
         episode.custom_metrics["avg_mpj_per_veh"] = np.mean(episode.user_data["avg_mpj"])
+        episode.custom_metrics["num_cars"] = np.mean(episode.user_data["num_cars"])
 
     def on_train_result(info):
-        """Store the mean score of the episode, and adjust the number of adversaries."""
+        """Store the mean score of the episode, and increment or decrement the iteration number for curriculum."""
         trainer = info["trainer"]
         trainer.workers.foreach_worker(
             lambda ev: ev.foreach_env(
@@ -468,7 +480,6 @@ def train_stable_baselines(submodule, flags):
     """Train policies using the PPO algorithm in stable-baselines."""
     from stable_baselines.common.vec_env import DummyVecEnv
     from stable_baselines import PPO2
-
     flow_params = submodule.flow_params
     # Path to the saved files
     exp_tag = flow_params['exp_tag']
