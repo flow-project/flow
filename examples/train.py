@@ -149,12 +149,12 @@ def setup_exps_dqn(flow_params,
     config['clip_actions'] = False
     config["horizon"] = horizon
     config["timesteps_per_iteration"] = horizon * n_rollouts
-    config["hiddens"] = [512]
-    config["lr"] = 0.0000625  # TODO: hp tune
-    config["grad_norm_clipping"] = 40  # TODO: hp tune
-    config["schedule_max_timesteps"] = 2000000  # TODO: maybe try 5e5, 1e6
-    config["buffer_size"] = 1000000  # TODO: maybe try 1e5, 5e5
-    config["target_network_update_freq"] = 8000  # TODO: this is too small
+    #https://github.com/ray-project/ray/blob/master/rllib/tuned_examples/dqn/atari-dist-dqn.yaml
+    config["hiddens"] = [512]    
+    config["lr"] = 0.0000625
+    config["schedule_max_timesteps"] = 2000000
+    config["buffer_size"] = 1000000
+    config["target_network_update_freq"] = 8000
 
     # save the flow params for replay
     flow_json = json.dumps(
