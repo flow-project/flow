@@ -79,7 +79,7 @@ class MultiTrafficLightGridPOEnv(TrafficLightGridPOEnv, MultiEnv):
     def action_space(self):
         """See class definition."""
         if self.discrete:
-            return Discrete(3)
+            return Discrete(2)
         else:
             return Box(
                 low=-1,
