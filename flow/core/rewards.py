@@ -333,7 +333,8 @@ def energy_consumption(env, gain=.001):
 
     return -gain * power
 
-def vehicle_energy_consumption(env, veh_id, gain=.001):
+
+def veh_energy_consumption(env, veh_id, gain=.001):
     """Calculate power consumption of a vehicle.
 
     Assumes vehicle is an average sized vehicle.
@@ -388,7 +389,7 @@ def miles_per_megajoule(env, veh_ids=None, gain=.001):
     for veh_id in veh_ids:
         speed = env.k.vehicle.get_speed(veh_id)
         # convert to be positive since the function called is a penalty
-        power = -vehicle_energy_consumption(env, veh_id, gain=1.0)
+        power = -veh_energy_consumption(env, veh_id, gain=1.0)
         if power > 0 and speed >= 0.1:
             counter += 1
             # meters / joule is (v * \delta t) / (power * \delta t)

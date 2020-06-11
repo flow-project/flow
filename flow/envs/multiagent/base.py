@@ -115,7 +115,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
         states = self.get_state()
         done.update({key: key in self.k.vehicle.get_arrived_ids()
-                for key in states.keys()})
+                    for key in states.keys()})
         if crash or (self.time_counter >= self.env_params.sims_per_step *
                      (self.env_params.warmup_steps + self.env_params.horizon)):
             done['__all__'] = True
@@ -329,4 +329,5 @@ class MultiEnv(MultiAgentEnv, Env):
         self._apply_rl_actions(clipped_actions)
 
     def set_iteration_num(self):
+        """Increment the number of training iterations."""
         self.num_training_iters += 1
