@@ -527,10 +527,15 @@ class QueryStrings(Enum):
                 l.energy_model_id,
                 l.efficiency_meters_per_joules,
                 l.efficiency_miles_per_gallon,
-                l.throughput_per_hour
-            FROM leaderboard_chart AS l, metadata_table AS m
+                l.throughput_per_hour,
+                b.source_id AS baseline_source_id
+            FROM leaderboard_chart AS l, metadata_table AS m, baseline_table as b
             WHERE 1 = 1
                 AND l.source_id = m.source_id
+                AND m.network = b.network
+                AND (m.is_baseline='False' 
+                     OR (m.is_baseline='True' 
+                         AND m.source_id = b.source_id)) 
         )
         SELECT
             agg.submission_date,
@@ -548,8 +553,6 @@ class QueryStrings(Enum):
         JOIN agg AS baseline ON 1 = 1
             AND agg.network = baseline.network
             AND baseline.is_baseline = 'True'
-        JOIN baseline_table AS b ON 1 = 1
-            AND baseline.network = b.network
-            AND baseline.source_id = b.source_id
+            AND agg.baseline_source_id = baseline.source_id
         ORDER BY agg.submission_date, agg.submission_time ASC
         ;"""
