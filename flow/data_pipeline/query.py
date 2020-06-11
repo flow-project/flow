@@ -527,6 +527,6 @@ class QueryStrings(Enum):
         FROM agg
         JOIN agg baseline ON 1 = 1
             AND agg.network = baseline.network
-            AND baseline.is_baseline = 'TRUE'
+            AND baseline.is_baseline = 'True'
         ORDER BY agg.submission_date, agg.submission_time ASC
         ;"""
