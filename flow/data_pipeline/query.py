@@ -282,7 +282,7 @@ class QueryStrings(Enum):
         )
         SELECT
             COALESCE(i.time_step, o.time_step) - MIN(COALESCE(i.time_step, o.time_step))
-                OVER (PARITION BY COALESCE(i.source_id, o.source_id)
+                OVER (PARTITION BY COALESCE(i.source_id, o.source_id)
                 ORDER BY COALESCE(i.time_step, o.time_step) ASC) AS time_step,
             COALESCE(i.source_id, o.source_id) AS source_id,
             COALESCE(i.inflow_rate, 0) AS inflow_rate,
@@ -525,8 +525,11 @@ class QueryStrings(Enum):
             100 * (1 - baseline.efficiency_miles_per_gallon / agg.efficiency_miles_per_gallon) AS percent_improvement,
             agg.throughput_per_hour
         FROM agg
-        JOIN agg baseline ON 1 = 1
+        JOIN agg AS baseline ON 1 = 1
             AND agg.network = baseline.network
             AND baseline.is_baseline = 'True'
+        JOIN baseline_table AS b ON 1 = 1
+            AND baseline.network = b.network
+            AND baseline.source_id = b.source_id
         ORDER BY agg.submission_date, agg.submission_time ASC
         ;"""

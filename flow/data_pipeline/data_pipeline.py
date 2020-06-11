@@ -4,6 +4,8 @@ import boto3
 from flow.data_pipeline.query import QueryStrings
 from time import time
 from datetime import date
+import csv
+from io import StringIO
 
 
 def generate_trajectory_table(data_path, extra_info, partition_name):
@@ -137,6 +139,21 @@ def delete_obsolete_data(s3, latest_key, table, bucket="circles.data.pipeline"):
     keys.remove(latest_key)
     for key in keys:
         s3.delete_object(Bucket=bucket, Key=key)
+
+
+def update_baseline(s3, baseline_network, baseline_source_id):
+    obj = s3.get_object(Bucket='circles.data.pipeline', Key='baseline_table/baselines.csv')['Body']
+    original_str = obj.read().decode()
+    reader = csv.DictReader(StringIO(original_str))
+    new_str = StringIO()
+    writer = csv.DictWriter(new_str, fieldnames=['network', 'source_id'])
+    writer.writeheader()
+    writer.writerow({'network': baseline_network, 'source_id': baseline_source_id})
+    for row in reader:
+        if row['network'] != baseline_network:
+            writer.writerow(row)
+    s3.put_object(Bucket='circles.data.pipeline', Key='baseline_table/baselines.csv',
+                  Body=new_str.getvalue().replace('\r', '').encode())
 
 
 class AthenaQuery:
