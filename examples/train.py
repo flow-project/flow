@@ -146,7 +146,7 @@ def setup_exps_dqn(flow_params,
 
     config["num_workers"] = n_cpus
     config["train_batch_size"] = horizon * n_rollouts
-    config['clip_actions'] = False 
+    config['clip_actions'] = False
     config["horizon"] = horizon
     config["timesteps_per_iteration"] = horizon * n_rollouts
     config["hiddens"] = [512]
