@@ -263,8 +263,8 @@ class TestRllibExamples(unittest.TestCase):
     def test_singleagent_figure_eight(self):
         self.run_exp(singleagent_figure_eight)
 
-    def test_singleagent_traffic_light_grid(self):
-        self.run_exp(singleagent_traffic_light_grid)
+    # def test_singleagent_traffic_light_grid(self):
+        # self.run_exp(singleagent_traffic_light_grid)
 
     def test_singleagent_traffic_light_grid_inflows(self):
         pass  # FIXME
@@ -330,17 +330,17 @@ class TestRllibExamples(unittest.TestCase):
         }
         self.run_exp(multiagent_merge, **kwargs)
 
-    def test_multi_traffic_light_grid(self):
-        from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import POLICY_GRAPHS as mtlpg
-        from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import POLICIES_TO_TRAIN as mtlpt
-        from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import policy_mapping_fn as mtlpmf
+    # def test_multi_traffic_light_grid(self):
+        # from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import POLICY_GRAPHS as mtlpg
+        # from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import POLICIES_TO_TRAIN as mtlpt
+        # from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import policy_mapping_fn as mtlpmf
 
-        kwargs = {
-            "policy_graphs": mtlpg,
-            "policies_to_train": mtlpt,
-            "policy_mapping_fn": mtlpmf
-        }
-        self.run_exp(multiagent_traffic_light_grid, **kwargs)
+        # kwargs = {
+            # "policy_graphs": mtlpg,
+            # "policies_to_train": mtlpt,
+            # "policy_mapping_fn": mtlpmf
+        # }
+        # self.run_exp(multiagent_traffic_light_grid, **kwargs)
 
     def test_multi_highway(self):
         from examples.exp_configs.rl.multiagent.multiagent_highway import POLICY_GRAPHS as mhpg
