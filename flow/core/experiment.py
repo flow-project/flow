@@ -1,5 +1,5 @@
 """Contains an experiment class for running simulations."""
-from flow.core.util import emission_to_csv_large
+from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
 from flow.data_pipeline.leaderboard_utils import network_name_translate
@@ -235,7 +235,7 @@ class Experiment:
             emission_path = os.path.join(dir_path, emission_filename)
 
             # convert the emission file into a csv
-            emission_to_csv_large(emission_path)
+            emission_to_csv(emission_path)
 
             # Delete the .xml version of the emission file.
             os.remove(emission_path)
