@@ -79,7 +79,7 @@ class MultiTrafficLightGridPOEnv(TrafficLightGridPOEnv, MultiEnv):
     def action_space(self):
         """See class definition."""
         if self.discrete:
-            return Discrete(2)
+            return Discrete(3)
         else:
             return Box(
                 low=-1,
@@ -208,7 +208,7 @@ class MultiTrafficLightGridPOEnv(TrafficLightGridPOEnv, MultiEnv):
         for rl_id, rl_action in rl_actions.items():
             i = int(rl_id.split("center")[ID_IDX])
             if self.discrete:
-                raise NotImplementedError
+                action = rl_action
             else:
                 # convert values less than 0.0 to zero and above to 1. 0's
                 # indicate that we should not switch the direction

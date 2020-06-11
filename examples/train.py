@@ -40,8 +40,8 @@ def parse_args(args):
 
     # optional input parameters
     parser.add_argument(
-        '--rl_trainer', type=str, default="rllib",
-        help='the RL trainer to use. either rllib or Stable-Baselines')
+        '--rl_trainer', type=str, default="DQN",
+        help='the RL trainer to use. DQN')
 
     parser.add_argument(
         '--num_cpus', type=int, default=1,
@@ -98,13 +98,13 @@ def run_model_stablebaseline(flow_params,
     return train_model
 
 
-def setup_exps_rllib(flow_params,
+def setup_exps_dqn(flow_params,
                      n_cpus,
                      n_rollouts,
                      policy_graphs=None,
                      policy_mapping_fn=None,
                      policies_to_train=None):
-    """Return the relevant components of an RLlib experiment.
+    """Return the relevant components of an DQN experiment.
 
     Parameters
     ----------
@@ -139,20 +139,22 @@ def setup_exps_rllib(flow_params,
 
     horizon = flow_params['env'].horizon
 
-    alg_run = "PPO"
+    alg_run = "DQN"
 
     agent_cls = get_agent_class(alg_run)
     config = deepcopy(agent_cls._default_config)
 
     config["num_workers"] = n_cpus
     config["train_batch_size"] = horizon * n_rollouts
-    config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [32, 32, 32]})
-    config["use_gae"] = True
-    config["lambda"] = 0.97
-    config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 10
+    config['clip_actions'] = False 
     config["horizon"] = horizon
+    config["timesteps_per_iteration"] = horizon * n_rollouts
+    config["hiddens"] = [512]
+    config["lr"] = 0.0000625  # TODO: hp tune
+    config["grad_norm_clipping"] = 40  # TODO: hp tune
+    config["schedule_max_timesteps"] = 2000000  # TODO: maybe try 5e5, 1e6
+    config["buffer_size"] = 1000000  # TODO: maybe try 1e5, 5e5
+    config["target_network_update_freq"] = 8000  # TODO: this is too small
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -177,8 +179,8 @@ def setup_exps_rllib(flow_params,
     return alg_run, gym_name, config
 
 
-def train_rllib(submodule, flags):
-    """Train policies using the PPO algorithm in RLlib."""
+def train_DQN(submodule, flags):
+    """Train policies using the DQN algorithm in DQN."""
     import ray
     from ray.tune import run_experiments
 
@@ -189,7 +191,7 @@ def train_rllib(submodule, flags):
     policy_mapping_fn = getattr(submodule, "policy_mapping_fn", None)
     policies_to_train = getattr(submodule, "policies_to_train", None)
 
-    alg_run, gym_name, config = setup_exps_rllib(
+    alg_run, gym_name, config = setup_exps_dqn(
         flow_params, n_cpus, n_rollouts,
         policy_graphs, policy_mapping_fn, policies_to_train)
 
@@ -379,24 +381,24 @@ def main(args):
         multiagent = False
     elif hasattr(module_ma, flags.exp_config):
         submodule = getattr(module_ma, flags.exp_config)
-        assert flags.rl_trainer.lower() in ["rllib", "h-baselines"], \
+        assert flags.rl_trainer.lower() in ["dqn", "h-baselines"], \
             "Currently, multiagent experiments are only supported through "\
-            "RLlib. Try running this experiment using RLlib: " \
+            "DQN. Try running this experiment using DQN: " \
             "'python train.py EXP_CONFIG'"
         multiagent = True
     else:
         raise ValueError("Unable to find experiment config.")
 
     # Perform the training operation.
-    if flags.rl_trainer.lower() == "rllib":
-        train_rllib(submodule, flags)
+    if flags.rl_trainer.lower() == "dqn":
+        train_dqn(submodule, flags)
     elif flags.rl_trainer.lower() == "stable-baselines":
         train_stable_baselines(submodule, flags)
     elif flags.rl_trainer.lower() == "h-baselines":
         flow_params = submodule.flow_params
         train_h_baselines(flow_params, args, multiagent)
     else:
-        raise ValueError("rl_trainer should be either 'rllib', 'h-baselines', "
+        raise ValueError("rl_trainer should be either 'dqn', 'h-baselines', "
                          "or 'stable-baselines'.")
 
 
