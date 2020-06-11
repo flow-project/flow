@@ -179,7 +179,7 @@ def setup_exps_dqn(flow_params,
     return alg_run, gym_name, config
 
 
-def train_DQN(submodule, flags):
+def train_dqn(submodule, flags):
     """Train policies using the DQN algorithm in DQN."""
     import ray
     from ray.tune import run_experiments
