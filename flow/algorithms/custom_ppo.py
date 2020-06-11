@@ -29,6 +29,8 @@ BEHAVIOUR_LOGITS = "behaviour_logits"
 
 
 class PPOLoss(object):
+    """PPO Loss object."""
+
     def __init__(self,
                  action_space,
                  dist_class,
@@ -128,6 +130,7 @@ class PPOLoss(object):
 
 
 def ppo_surrogate_loss(policy, model, dist_class, train_batch):
+    """Construct and return the PPO loss."""
     logits, state = model.from_batch(train_batch)
     action_dist = dist_class(logits, model)
 
@@ -164,6 +167,7 @@ def ppo_surrogate_loss(policy, model, dist_class, train_batch):
 
 
 def kl_and_loss_stats(policy, train_batch):
+    """Return statistics for the tensorboard."""
     return {
         "cur_kl_coeff": tf.cast(policy.kl_coeff, tf.float64),
         "cur_lr": tf.cast(policy.cur_lr, tf.float64),
@@ -217,6 +221,7 @@ def postprocess_ppo_gae(policy,
 
 
 def clip_gradients(policy, optimizer, loss):
+    """If grad_clip is not None, clip the gradients."""
     variables = policy.model.trainable_variables()
     if policy.config["grad_clip"] is not None:
         grads_and_vars = optimizer.compute_gradients(loss, variables)
@@ -230,6 +235,8 @@ def clip_gradients(policy, optimizer, loss):
 
 
 class ValueNetworkMixin(object):
+    """Construct the value function."""
+
     def __init__(self, obs_space, action_space, config):
         if config["use_gae"]:
 
@@ -256,11 +263,13 @@ class ValueNetworkMixin(object):
 
 
 def setup_config(policy, obs_space, action_space, config):
+    """Add additional custom options from the config."""
     # auto set the model option for layer sharing
     config["model"]["vf_share_layers"] = config["vf_share_layers"]
 
 
 def setup_mixins(policy, obs_space, action_space, config):
+    """Construct additional classes that add on to PPO."""
     KLCoeffMixin.__init__(policy, config)
     ValueNetworkMixin.__init__(policy, obs_space, action_space, config)
     EntropyCoeffSchedule.__init__(policy, config["entropy_coeff"],
@@ -269,6 +278,8 @@ def setup_mixins(policy, obs_space, action_space, config):
 
 
 class KLCoeffMixin(object):
+    """Update the KL Coefficient. This is intentionally disabled to match the PPO paper better."""
+
     def __init__(self, config):
         # KL Coefficient
         self.kl_coeff_val = config["kl_coeff"]
@@ -281,6 +292,7 @@ class KLCoeffMixin(object):
             dtype=tf.float32)
 
     def update_kl(self, blah):
+        """Disabled to match the PPO paper better."""
         pass
 
 
@@ -301,6 +313,7 @@ CustomPPOTFPolicy = build_tf_policy(
 
 
 def validate_config(config):
+    """Check that the config is set up properly."""
     if config["entropy_coeff"] < 0:
         raise DeprecationWarning("entropy_coeff must be >= 0")
     if isinstance(config["entropy_coeff"], int):

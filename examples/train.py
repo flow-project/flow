@@ -295,7 +295,7 @@ def setup_exps_rllib(flow_params,
         episode.custom_metrics["num_cars"] = np.mean(episode.user_data["num_cars"])
 
     def on_train_result(info):
-        """Store the mean score of the episode, and increment or decrement how many adversaries are on"""
+        """Store the mean score of the episode, and increment or decrement the iteration number for curriculum."""
         trainer = info["trainer"]
         trainer.workers.foreach_worker(
             lambda ev: ev.foreach_env(
