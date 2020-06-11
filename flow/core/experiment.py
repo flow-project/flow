@@ -251,6 +251,6 @@ class Experiment:
                 upload_to_s3('circles.data.pipeline',
                              'fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv'.format(cur_date, source_id),
                              trajectory_table_path,
-                             {'network': metadata['network'][0]})
+                             {'network': metadata['network'][0], 'is_baseline': metadata['is_baseline'][0]})
 
         return info_dict
