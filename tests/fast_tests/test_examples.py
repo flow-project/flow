@@ -435,6 +435,63 @@ class TestRllibExamples(unittest.TestCase):
         })
 
 
+class TestDQNExamples(unittest.TestCase):
+    """Tests the example traffic light scripts in examples/exp_configs/rl/singleagent and
+    examples/exp_configs/rl/multiagent for DQN.
+
+    This is done by running each experiment in that folder for five time-steps
+    and confirming that it completes one rollout with two workers.
+    # FIXME(ev) this test adds several minutes to the testing scheme
+    """
+    def setUp(self):
+        if not ray.is_initialized():
+            ray.init(num_cpus=1)
+
+    def test_singleagent_traffic_light_grid(self):
+        self.run_exp(singleagent_traffic_light_grid)
+
+    def test_multi_traffic_light_grid(self):
+        from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import POLICY_GRAPHS as mtlpg
+        from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import POLICIES_TO_TRAIN as mtlpt
+        from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import policy_mapping_fn as mtlpmf
+
+        kwargs = {
+            "policy_graphs": mtlpg,
+            "policies_to_train": mtlpt,
+            "policy_mapping_fn": mtlpmf
+        }
+        self.run_exp(multiagent_traffic_light_grid, **kwargs)
+
+    @staticmethod
+    def run_exp(flow_params, **kwargs):
+        alg_run, env_name, config = setup_dqn_exps(flow_params, 1, 1, **kwargs)
+
+        try:
+            ray.init(num_cpus=1)
+        except Exception as e:
+            print("ERROR", e)
+        config['train_batch_size'] = 50
+        config['horizon'] = 50
+        config['sample_batch_size'] = 50
+        config['num_workers'] = 0
+        config['sgd_minibatch_size'] = 32
+
+        run_experiments({
+            'test': {
+                'run': alg_run,
+                'env': env_name,
+                'config': {
+                    **config
+                },
+
+                'checkpoint_freq': 1,
+                'stop': {
+                    'training_iteration': 1,
+                },
+            }
+        })
+
+
 if __name__ == '__main__':
     try:
         ray.init(num_cpus=1)
