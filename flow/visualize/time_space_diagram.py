@@ -17,7 +17,8 @@ Usage
     python time_space_diagram.py </path/to/emission>.csv </path/to/params>.json
 """
 from flow.utils.rllib import get_flow_params
-from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork, HighwayNetwork, I210SubNetworkGhostCell
+from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork, \
+    HighwayNetwork, I210SubNetworkGhostCell
 
 import argparse
 import csv
