@@ -33,20 +33,40 @@ WARMUP_STEPS = 600 * 3 * 0.4
 
 HORIZON_STEPS = 1000 * 3 * 0.4
 
-VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT = """
+VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT = """
     SELECT
         id,
         time_step,
         speed,
         acceleration,
         road_grade,
-        GREATEST(0, 1200 * speed * ((
+        GREATEST(0, 2041 * speed * ((
             CASE
                 WHEN acceleration > 0 THEN 1
                 WHEN acceleration < 0 THEN 0
                 ELSE 0.5
-            END * (1 - {0}) + {0}) * acceleration + 9.81 * SIN(road_grade)
-            ) + 1200 * 9.81 * 0.005 * speed + 0.5 * 1.225 * 2.6 * 0.3 * POW(speed,3)) AS power,
+            END * (1 - {0}) + {0}) * acceleration + 9.807 * SIN(road_grade)
+            ) + 2041 * 9.807 * 0.0027 * speed + 0.5 * 1.225 * 3.2 * 0.4 * POW(speed,3)) AS power,
+        \'{1}\' AS energy_model_id,
+        source_id
+    FROM {2}
+    ORDER BY id, time_step
+    """
+
+VEHICLE_POWER_DEMAND_PRIUS_FINAL_SELECT = """
+    SELECT
+        id,
+        time_step,
+        speed,
+        acceleration,
+        road_grade,
+        1663 * speed * ((
+            CASE
+                WHEN acceleration > 0 THEN 1
+                WHEN acceleration < 0 THEN 0
+                ELSE 0.5
+            END * (1 - {0}) + {0}) * acceleration + 9.807 * SIN(road_grade)
+            ) + 1663 * 9.807 * 0.007 * speed + 0.5 * 1.225 * 2.4 * 0.24 * POW(speed,3) AS power,
         \'{1}\' AS energy_model_id,
         source_id
     FROM {2}
@@ -84,9 +104,9 @@ class QueryStrings(Enum):
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
         )
-        {}""".format(VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT.format(1,
-                                                                         'POWER_DEMAND_MODEL',
-                                                                         'regular_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT.format(1,
+                                                                     'POWER_DEMAND_MODEL',
+                                                                     'regular_cte'))
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL = """
         WITH denoised_accel_cte AS (
@@ -104,9 +124,9 @@ class QueryStrings(Enum):
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
         )
-        {}""".format(VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT.format(1,
-                                                                         'POWER_DEMAND_MODEL_DENOISED_ACCEL',
-                                                                         'denoised_accel_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT.format(1,
+                                                                     'POWER_DEMAND_MODEL_DENOISED_ACCEL',
+                                                                     'denoised_accel_cte'))
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL = """
         WITH lagged_timestep AS (
@@ -137,9 +157,9 @@ class QueryStrings(Enum):
                 source_id
             FROM lagged_timestep
         )
-        {}""".format(VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT.format(1,
-                                                                         'POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL',
-                                                                         'denoised_speed_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT.format(1,
+                                                                     'POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL',
+                                                                     'denoised_speed_cte'))
 
     FACT_NETWORK_THROUGHPUT_AGG = """
         WITH min_time AS (
