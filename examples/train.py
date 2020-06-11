@@ -150,7 +150,7 @@ def setup_exps_dqn(flow_params,
     config["horizon"] = horizon
     config["timesteps_per_iteration"] = horizon * n_rollouts
     #https://github.com/ray-project/ray/blob/master/rllib/tuned_examples/dqn/atari-dist-dqn.yaml
-    config["hiddens"] = [512]    
+    config["hiddens"] = [512]
     config["lr"] = 0.0000625
     config["schedule_max_timesteps"] = 2000000
     config["buffer_size"] = 1000000
