@@ -30,6 +30,7 @@ from examples.simulate import parse_args as parse_simulate_args
 from examples.train import parse_args as parse_train_args
 from examples.train import run_model_stablebaseline as run_stable_baselines_model
 from examples.train import setup_exps_rllib as setup_rllib_exps
+from examples.train import setup_exps_dqn as setup_dqn_exps
 from examples.train import train_h_baselines
 
 from examples.exp_configs.non_rl.bay_bridge import flow_params as non_rl_bay_bridge
@@ -168,7 +169,7 @@ class TestTrain(unittest.TestCase):
 
         self.assertDictEqual(vars(args), {
             'exp_config': 'exp_config',
-            'rl_trainer': 'rllib',
+            'rl_trainer': 'dqn',
             'num_cpus': 1,
             'num_steps': 5000,
             'rollout_size': 1000,
