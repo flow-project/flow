@@ -118,12 +118,12 @@ def get_configuration():
         name = input("Please enter your name:").strip()
         while not name:
             name = input("Please enter a non-empty name:").strip()
-        config_df['submitter_name'][0] = name
+        config_df['submitter_name'] = [name]
 
     strategy = input(
         "Please enter strategy name (current: \"{}\"):".format(config_df["strategy"][0])).strip()
     if strategy:
-        config_df['strategy'][0] = strategy
+        config_df['strategy'] = [strategy]
 
     config_df.to_csv('./data_pipeline_config', index=False)
 
