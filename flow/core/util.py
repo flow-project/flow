@@ -47,7 +47,7 @@ def emission_to_csv(emission_path, output_path=None):
         path to the csv file that will be generated, default is the same
         directory as the emission file, with the same name
     """
-    context = ElementTree.iterparse(emission_path)
+    context = etree.iterparse(emission_path, recover=True)
     out_data = []
     for event, elem in context:
         if elem.tag == "timestep":
