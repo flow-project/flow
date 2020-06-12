@@ -1,19 +1,40 @@
-"""Example of an open multi-lane network with human-driven vehicles."""
-
+"""
+To Do:
+    make idm variables user determined
+        make carfollowing model parameters user determined
+    make env, net and sumo params user determined
+    run sim -> micro data
+    make code for micro to radar data 
+    make code for radar data to macro quantity
+    plotting of info and various graphs
+Plan:
+    have multiple run automated sim-analysis program ready
+    various IDM params sim
+        <velocity and other driver behaviour params from distribution (probabilities, randomness and statistics)> -> think about later
+    inflow resembling some realistic distribution
+    * closed road (FD) sim for all above cases to get FD
+"""
 from flow.controllers import IDMController,OV_FTL_Controller,LinearOVM,BandoFTL_Controller
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, SumoLaneChangeParams
 from flow.core.params import VehicleParams, InFlows
 from flow.envs.ring.lane_change_accel import ADDITIONAL_ENV_PARAMS
 from flow.networks.highway import HighwayNetwork, ADDITIONAL_NET_PARAMS
 from flow.envs import LaneChangeAccelEnv
+from flow.core.experiment import Experiment
+import numpy as np
+import pandas as pd
+import os
 
+
+"""
 accel_data = (BandoFTL_Controller,{'alpha':.5,'beta':20.0,'h_st':12.0,'h_go':50.0,'v_max':30.0,'noise':1.0})
 traffic_speed = 18.1
 traffic_flow = 2056
+"""
 
-# accel_data = (IDMController,{'a':.6,'b':6.0,'noise':1.0})
-# traffic_speed = 25.8
-# traffic_flow = 1720
+accel_data = (IDMController, {'a':.6,'b':6.0,'noise':1.0, 'v0':30, 'T': 1, 'delta':4, 's0':2})
+traffic_speed = 25.8
+traffic_flow = 1720
 
 vehicles = VehicleParams()
 vehicles.add(
@@ -24,16 +45,6 @@ vehicles.add(
         lc_sublane=2.0,
     ),
 )
-
-#Does this break the sim?
-vehicles.add(
-    veh_id="human2",
-    acceleration_controller=(LinearOVM,{'v_max':traffic_speed}),
-    lane_change_params=SumoLaneChangeParams(
-        model="SL2015",
-        lc_sublane=2.0,
-    ),
-    num_vehicles=1)
 
 env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
@@ -77,6 +88,8 @@ flow_params = dict(
     sim=SumoParams(
         render=True,
         lateral_resolution=1.0,
+        emission_path='data',
+        restart_instance=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -103,3 +116,15 @@ flow_params = dict(
         shuffle=True,
     ),
 )
+
+
+#create experiment obj using flow params
+exp = Experiment(flow_params)
+
+# run the sumo simulation
+_ = exp.run(1, convert_to_csv=True)
+
+# to get data file as csv
+emission_location = os.path.join(exp.env.sim_params.emission_path, exp.env.network.name)
+print(emission_location + '-emission.xml')
+pd.read_csv(emission_location + '-emission.csv')

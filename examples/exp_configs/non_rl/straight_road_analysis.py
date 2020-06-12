@@ -1,6 +1,6 @@
 """Example of an open multi-lane network with human-driven vehicles."""
 
-from flow.controllers import IDMController,OV_FTL,LinearOVM
+from flow.controllers import IDMController,OV_FTL_Controller,LinearOVM
 from flow.controllers import StaticLaneChanger
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, SumoLaneChangeParams
 from flow.core.params import VehicleParams, InFlows
@@ -20,7 +20,7 @@ vehicles = VehicleParams()
 vehicles.add(
     veh_id="human",
     lane_change_controller=(StaticLaneChanger,{}),
-    acceleration_controller=(OV_FTL, {'alpha':.5,'beta':20.0,'s0':12.0,'s_star':2.0,'vM':30.0,'nosie':.5}),
+    acceleration_controller=(OV_FTL_Controller, {'alpha':.5,'beta':20.0,'s0':12.0,'s_star':2.0,'vM':30.0,'nosie':.5}),
     )
 
 # vehicles.add(
