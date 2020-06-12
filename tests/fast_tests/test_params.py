@@ -87,6 +87,7 @@ class TestSumoParams(unittest.TestCase):
              sim_step=0.125,
              emission_path=None,
              lateral_resolution=None,
+             emergencydecel_warning_threshold=1,
              no_step_log=False,
              render=True,
              save_render=True,
@@ -104,6 +105,7 @@ class TestSumoParams(unittest.TestCase):
         self.assertEqual(params.sim_step, 0.125)
         self.assertEqual(params.emission_path, None)
         self.assertEqual(params.lateral_resolution, None)
+        self.assertEqual(params.emergencydecel_warning_threshold, 1)
         self.assertEqual(params.no_step_log, False)
         self.assertEqual(params.render, True)
         self.assertEqual(params.save_render, True)
