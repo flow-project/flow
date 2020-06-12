@@ -193,6 +193,7 @@ def train_rllib(submodule, flags):
         flow_params, n_cpus, n_rollouts,
         policy_graphs, policy_mapping_fn, policies_to_train)
 
+    ray.shutdown()
     ray.init(num_cpus=n_cpus + 1, ignore_reinit_error=True, object_store_memory=200 * 1024 * 1024)
     exp_config = {
         "run": alg_run,
@@ -310,6 +311,7 @@ def train_dqn(submodule, flags):
         flow_params, n_cpus, n_rollouts,
         policy_graphs, policy_mapping_fn, policies_to_train)
 
+    ray.shutdown()
     ray.init(num_cpus=n_cpus + 1, ignore_reinit_error=True, object_store_memory=200 * 1024 * 1024)
     exp_config = {
         "run": alg_run,
