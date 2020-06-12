@@ -109,6 +109,11 @@ class TraCISimulation(KernelSimulation):
                     sumo_call.append("--lateral-resolution")
                     sumo_call.append(str(sim_params.lateral_resolution))
 
+                # disable emergencydecel warning (if requested)
+                if sim_params.emergencydecel_warning_threshold is not None:
+                    sumo_call.append("--emergencydecel.warning-threshold")
+                    sumo_call.append(str(sim_params.emergencydecel_warning_threshold))
+
                 # add the emission path to the sumo command (if requested)
                 if sim_params.emission_path is not None:
                     ensure_dir(sim_params.emission_path)
