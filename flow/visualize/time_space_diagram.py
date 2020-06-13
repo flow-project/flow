@@ -42,7 +42,7 @@ ACCEPTABLE_NETWORKS = [
 ]
 
 
-def import_data_from_trajectory(fp, params=None):
+def import_data_from_trajectory(fp, params=dict()):
     r"""Import and preprocess data from the Flow trajectory (.csv) file.
 
     Parameters

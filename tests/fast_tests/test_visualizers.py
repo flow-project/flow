@@ -92,14 +92,12 @@ class TestPlotters(unittest.TestCase):
 
     def test_time_space_diagram_figure_eight(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        emission_data = tsd.import_data_from_trajectory(
-            os.path.join(dir_path, 'test_files/fig8_emission.csv'))
-
-        # test get_time_space_data for figure eight networks
         flow_params = tsd.get_flow_params(
             os.path.join(dir_path, 'test_files/fig8.json'))
-        pos, speed, _ = tsd.get_time_space_data(
-            emission_data, flow_params)
+        emission_data = tsd.import_data_from_trajectory(
+            os.path.join(dir_path, 'test_files/fig8_emission.csv'), flow_params)
+
+        segs = tsd.get_time_space_data(emission_data, flow_params)
 
         expected_segs = np.array([
           [[1., 60.], [2., 59.]],
@@ -146,16 +144,16 @@ class TestPlotters(unittest.TestCase):
           [[3., 208.64166941], [4., 205.69166941]]]
         )
 
-        np.testing.assert_array_almost_equal(pos[:-1, :], expected_segs)
+        np.testing.assert_array_almost_equal(segs, expected_segs)
 
     def test_time_space_diagram_merge(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        emission_data = tsd.import_data_from_trajectory(
-            os.path.join(dir_path, 'test_files/merge_emission.csv'))
-
         flow_params = tsd.get_flow_params(
             os.path.join(dir_path, 'test_files/merge.json'))
-        pos, speed, _ = tsd.get_time_space_data(emission_data, flow_params)
+        emission_data = tsd.import_data_from_trajectory(
+            os.path.join(dir_path, 'test_files/merge_emission.csv'), flow_params)
+
+        segs = tsd.get_time_space_data(emission_data, flow_params)
 
         expected_segs = np.array([
           [[2.0000e-01, 7.2949e+02], [4.0000e-01, 7.2953e+02]],
@@ -164,15 +162,15 @@ class TestPlotters(unittest.TestCase):
           [[8.0000e-01, 7.2973e+02], [1.0000e+00, 7.2988e+02]]]
         )
 
-        np.testing.assert_array_almost_equal(pos, expected_segs)
+        np.testing.assert_array_almost_equal(segs, expected_segs)
 
     def test_time_space_diagram_I210(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        emission_data = tsd.import_data_from_trajectory(
-            os.path.join(dir_path, 'test_files/i210_emission.csv'))
-
         module = __import__("examples.exp_configs.non_rl", fromlist=["i210_subnetwork"])
         flow_params = getattr(module, "i210_subnetwork").flow_params
+        emission_data = tsd.import_data_from_trajectory(
+            os.path.join(dir_path, 'test_files/i210_emission.csv'), flow_params)
+
         segs = tsd.get_time_space_data(emission_data, flow_params)
 
         expected_segs = {
@@ -203,16 +201,16 @@ class TestPlotters(unittest.TestCase):
             [[3.2, 23.6], [4., 42.46]]]
           )}
 
-        np.testing.assert_array_almost_equal(segs, expected_segs)
+        self.assertDictEqual(segs, expected_segs)
 
     def test_time_space_diagram_ring_road(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        emission_data = tsd.import_data_from_trajectory(
-            os.path.join(dir_path, 'test_files/ring_230_emission.csv'))
-
         flow_params = tsd.get_flow_params(
             os.path.join(dir_path, 'test_files/ring_230.json'))
-        pos, speed, _ = tsd.get_time_space_data(emission_data, flow_params)
+        emission_data = tsd.import_data_from_trajectory(
+            os.path.join(dir_path, 'test_files/ring_230_emission.csv'), flow_params)
+
+        segs = tsd.get_time_space_data(emission_data, flow_params)
 
         expected_segs = np.array([
           [[1.0000e-01, 0.0000e+00], [2.0000e-01, 1.0000e-02]],
@@ -311,7 +309,7 @@ class TestPlotters(unittest.TestCase):
           [[4.0000e-01, 8.6060e+01], [5.0000e-01, 8.6090e+01]]]
         )
 
-        np.testing.assert_array_almost_equal(pos, expected_segs)
+        np.testing.assert_array_almost_equal(segs, expected_segs)
 
     def test_plot_ray_results(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
