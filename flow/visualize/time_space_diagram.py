@@ -544,12 +544,6 @@ if __name__ == '__main__':
         module = __import__("examples.exp_configs.non_rl", fromlist=[args.flow_params])
         flow_params = getattr(module, args.flow_params).flow_params
 
-    # import data from the emission.csv file
-    emission_data = import_data_from_emission(args.emission_path)
-
-    # compute the position and speed for all vehicles at all times
-    pos, speed, time = get_time_space_data(emission_data, flow_params)
-
     # some plotting parameters
     cdict = {
         'red': ((0, 0, 0), (0.2, 1, 1), (0.6, 1, 1), (1, 0, 0)),
@@ -558,29 +552,73 @@ if __name__ == '__main__':
     }
     my_cmap = colors.LinearSegmentedColormap('my_colormap', cdict, 1024)
 
-    # perform plotting operation
-    fig = plt.figure(figsize=(16, 9))
-    ax = plt.axes()
-    norm = plt.Normalize(args.min_speed, args.max_speed)
-    cols = []
+    if flow_params['network'] == I210SubNetwork:
+        emission_data = pd.read_csv(args.emission_path)
+        omit_edges = {'ghost0', '119257908#3'}
+        emission_data = emission_data[~emission_data['edge_id'].isin(omit_edges)]
+        offset_edges = set(emission_data[emission_data['lane_id'] == 5]['edge_id'].unique())
+        emission_data.loc[emission_data['edge_id'].isin(offset_edges), 'lane_id'] -= 1
 
-    xmin = max(time[0], args.start)
-    xmax = min(time[-1], args.stop)
-    xbuffer = (xmax - xmin) * 0.025  # 2.5% of range
-    ymin, ymax = np.amin(pos), np.amax(pos)
-    ybuffer = (ymax - ymin) * 0.025  # 2.5% of range
 
-    ax.set_xlim(xmin - xbuffer, xmax + xbuffer)
-    ax.set_ylim(ymin - ybuffer, ymax + ybuffer)
+        emission_data[['next_pos', 'next_time']] = emission_data.groupby('id')[['distance',
+                                                                                'time_step']].shift(-1)
 
-    for indx_car in range(pos.shape[1]):
-        unique_car_pos = pos[:, indx_car]
+        nlanes = emission_data['lane_id'].nunique()
+        fig = plt.figure(figsize=(16, 9*nlanes))
+        norm = plt.Normalize(args.min_speed, args.max_speed)
 
-        if flow_params['network'] == I210SubNetwork:
-            indices = np.where(pos[:, indx_car] != 0)[0]
-            unique_car_speed = speed[indices, indx_car]
-            points = np.array([time[indices], pos[indices, indx_car]]).T.reshape(-1, 1, 2)
-        else:
+        for lane, df in emission_data.groupby('lane_id'):
+            ax = plt.subplot(nlanes, 1, lane+1)
+
+            xmin = max(df['time_step'].min(), args.start)
+            xmax = min(df['time_step'].max(), args.stop)
+            xbuffer = (xmax - xmin) * 0.025  # 2.5% of range
+            ymin, ymax = df['distance'].min(), df['distance'].max()
+            ybuffer = (ymax - ymin) * 0.025  # 2.5% of range
+
+            ax.set_xlim(xmin - xbuffer, xmax + xbuffer)
+            ax.set_ylim(ymin - ybuffer, ymax + ybuffer)
+
+            segs = df[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(df),2,2))
+            lc = LineCollection(segs, cmap=my_cmap, norm=norm)
+            lc.set_array(df['speed'].values)
+            lc.set_linewidth(1)
+            ax.add_collection(lc)
+            ax.autoscale()
+            ax.set_title('Time-Space Diagram: Lane {}'.format(lane), fontsize=25)
+            ax.set_ylabel('Position (m)', fontsize=20)
+            ax.set_xlabel('Time (s)', fontsize=20)
+
+            cbar = plt.colorbar(lc, ax=ax, norm=norm)
+            cbar.set_label('Velocity (m/s)', fontsize=20)
+            cbar.ax.tick_params(labelsize=18)
+
+            plt.xticks(fontsize=18)
+            plt.yticks(fontsize=18)
+    else:
+        # perform plotting operation
+        fig = plt.figure(figsize=(16, 9))
+        ax = plt.axes()
+        norm = plt.Normalize(args.min_speed, args.max_speed)
+        cols = []
+
+        # import data from the emission.csv file
+        emission_data = import_data_from_emission(args.emission_path)
+
+        # compute the position and speed for all vehicles at all times
+        pos, speed, time = get_time_space_data(emission_data, flow_params)
+
+        xmin = max(time[0], args.start)
+        xmax = min(time[-1], args.stop)
+        xbuffer = (xmax - xmin) * 0.025  # 2.5% of range
+        ymin, ymax = np.amin(pos), np.amax(pos)
+        ybuffer = (ymax - ymin) * 0.025  # 2.5% of range
+
+        ax.set_xlim(xmin - xbuffer, xmax + xbuffer)
+        ax.set_ylim(ymin - ybuffer, ymax + ybuffer)
+
+        for indx_car in range(pos.shape[1]):
+            unique_car_pos = pos[:, indx_car]
 
             # discontinuity from wraparound
             disc = np.where(np.abs(np.diff(unique_car_pos)) >= 10)[0] + 1
@@ -590,26 +628,27 @@ if __name__ == '__main__':
             #
             points = np.array(
                 [unique_car_time, unique_car_pos]).T.reshape(-1, 1, 2)
-        segments = np.concatenate([points[:-1], points[1:]], axis=1)
-        lc = LineCollection(segments, cmap=my_cmap, norm=norm)
 
-        # Set the values used for color mapping
-        lc.set_array(unique_car_speed)
-        lc.set_linewidth(1.75)
-        cols.append(lc)
+            segments = np.concatenate([points[:-1], points[1:]], axis=1)
+            lc = LineCollection(segments, cmap=my_cmap, norm=norm)
 
-    plt.title(args.title, fontsize=25)
-    plt.ylabel('Position (m)', fontsize=20)
-    plt.xlabel('Time (s)', fontsize=20)
+            # Set the values used for color mapping
+            lc.set_array(unique_car_speed)
+            lc.set_linewidth(1.75)
+            cols.append(lc)
 
-    for col in cols:
-        line = ax.add_collection(col)
-    cbar = plt.colorbar(line, ax=ax, norm=norm)
-    cbar.set_label('Velocity (m/s)', fontsize=20)
-    cbar.ax.tick_params(labelsize=18)
+        plt.title(args.title, fontsize=25)
+        plt.ylabel('Position (m)', fontsize=20)
+        plt.xlabel('Time (s)', fontsize=20)
 
-    plt.xticks(fontsize=18)
-    plt.yticks(fontsize=18)
+        for col in cols:
+            line = ax.add_collection(col)
+        cbar = plt.colorbar(line, ax=ax, norm=norm)
+        cbar.set_label('Velocity (m/s)', fontsize=20)
+        cbar.ax.tick_params(labelsize=18)
+
+        plt.xticks(fontsize=18)
+        plt.yticks(fontsize=18)
 
     ###########################################################################
     #                       Note: For MergeNetwork only                       #
