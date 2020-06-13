@@ -44,7 +44,7 @@ ACCEPTABLE_NETWORKS = [
 
 def import_data_from_trajectory(fp, params=None):
     r"""Import and preprocess data from the Flow trajectory (.csv) file.
-    
+
     Parameters
     ----------
     fp : str
@@ -105,9 +105,9 @@ def get_time_space_data(data, params):
     -------
     ndarray (or dict of ndarray)
         3d array (n_segments x 2 x 2) containing segments to be plotted.
-        every inner 2d array is comprised of two 1d arrays representing 
+        every inner 2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
-        
+
         in the case of I210, the nested arrays are wrapped into a dict,
         keyed on the lane number, so that each lane can be plotted
         separately.
@@ -153,7 +153,7 @@ def _merge(data):
     -------
     ndarray
         3d array (n_segments x 2 x 2) containing segments to be plotted.
-        every inner 2d array is comprised of two 1d arrays representing 
+        every inner 2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
     """
     # Omit ghost edges
@@ -180,7 +180,7 @@ def _ring_road(data):
     -------
     ndarray
         3d array (n_segments x 2 x 2) containing segments to be plotted.
-        every inner 2d array is comprised of two 1d arrays representing 
+        every inner 2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
     """
     segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
@@ -216,7 +216,6 @@ def _i210_subnetwork(data):
     offset_edges = set(data[data['lane_id'] == 5]['edge_id'].unique())
     data.loc[data['edge_id'].isin(offset_edges), 'lane_id'] -= 1
 
-    nlanes = data['lane_id'].nunique()
     segs = dict()
     for lane, df in data.groupby('lane_id'):
         segs[lane] = df[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(df), 2, 2))
