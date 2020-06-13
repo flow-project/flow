@@ -30,6 +30,7 @@ except ImportError:
 from matplotlib.collections import LineCollection
 import matplotlib.colors as colors
 import numpy as np
+import pandas as pd
 
 
 # networks that can be plotted by this method
@@ -59,29 +60,19 @@ def import_data_from_emission(fp):
         * "pos": relative position at every sample
         * "vel": speed at every sample
     """
-    # initialize all output variables
-    veh_id, t, edge, rel_pos, vel, lane = [], [], [], [], [], []
+    column_mapping = {
+        'time': 'time',
+        'edge': 'edge',
+        'pos': 'relative_position',
+        'vel': 'speed',
+    }
+    df = pd.read_csv(fp)
+    if 'time' not in df.columns:
+        column_mapping['time'] = 'time_step'
+    if 'edge' not in df.columns:
+        column_mapping['edge'] = 'edge_id'
 
-    # import relevant data from emission file
-    for record in csv.DictReader(open(fp)):
-        veh_id.append(record['id'])
-        t.append(record['time'])
-        edge.append(record['edge_id'])
-        rel_pos.append(record['relative_position'])
-        vel.append(record['speed'])
-        lane.append(record['lane_number'])
-
-    # we now want to separate data by vehicle ID
-    ret = {key: {'time': [], 'edge': [], 'pos': [], 'vel': [], 'lane': []}
-           for key in np.unique(veh_id)}
-    for i in range(len(veh_id)):
-        ret[veh_id[i]]['time'].append(float(t[i]))
-        ret[veh_id[i]]['edge'].append(edge[i])
-        ret[veh_id[i]]['pos'].append(float(rel_pos[i]))
-        ret[veh_id[i]]['vel'].append(float(vel[i]))
-        ret[veh_id[i]]['lane'].append(float(lane[i]))
-
-    return ret
+    return df.groupby('id').apply(lambda x: {k: x[v].values for k, v in column_mapping.iteritems()})
 
 
 def get_time_space_data(data, params):
