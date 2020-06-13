@@ -133,9 +133,9 @@ def get_time_space_data(data, params):
     func = switcher[params['network']]
 
     # Execute the function
-    segs = func(data)
+    segs, data = func(data)
 
-    return segs
+    return segs, data
 
 
 def _merge(data):
@@ -155,6 +155,8 @@ def _merge(data):
         3d array (n_segments x 2 x 2) containing segments to be plotted.
         every inner 2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
+    pd.DataFrame
+        modified trajectory dataframe
     """
     # Omit ghost edges
     keep_edges = {'inflow_merge', 'bottom', ':bottom_0'}
@@ -162,7 +164,7 @@ def _merge(data):
 
     segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
 
-    return segs
+    return segs, data
 
 
 def _ring_road(data):
@@ -182,10 +184,12 @@ def _ring_road(data):
         3d array (n_segments x 2 x 2) containing segments to be plotted.
         every inner 2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
+    pd.DataFrame
+        unmodified trajectory dataframe
     """
     segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
 
-    return segs
+    return segs, data
 
 
 def _i210_subnetwork(data):
@@ -207,10 +211,12 @@ def _i210_subnetwork(data):
         values being the 3d array representing the segments. every inner
         2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
+    pd.DataFrame
+        modified trajectory dataframe
     """
     # Omit ghost edges
     omit_edges = {'ghost0', '119257908#3'}
-    data = data[~data['edge_id'].isin(omit_edges)]
+    data.loc[:, :] = data[~data['edge_id'].isin(omit_edges)]
 
     # Reset lane numbers that are offset by ramp lanes
     offset_edges = set(data[data['lane_id'] == 5]['edge_id'].unique())
@@ -220,7 +226,7 @@ def _i210_subnetwork(data):
     for lane, df in data.groupby('lane_id'):
         segs[lane] = df[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(df), 2, 2))
 
-    return segs
+    return segs, data
 
 
 def _figure_eight(data):
@@ -241,10 +247,12 @@ def _figure_eight(data):
         3d array (n_segments x 2 x 2) containing segments to be plotted.
         every inner 2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
+    pd.DataFrame
+        unmodified trajectory dataframe
     """
     segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
 
-    return segs
+    return segs, data
 
 
 def _get_abs_pos(df, params):
@@ -338,7 +346,7 @@ def _get_abs_pos(df, params):
     return ret
 
 
-def plot_tsd(ax, df, segs, args):
+def plot_tsd(ax, df, segs, args, lane=None):
     """Plot the time-space diagram.
 
     Take the pre-processed segments and other meta-data, then plot all the line segments.
@@ -353,6 +361,8 @@ def plot_tsd(ax, df, segs, args):
         line segments to be plotted, where each segment is a list of two [x,y] pairs
     args : dict
         parsed arguments
+    lane : int, optional
+        lane number to be shown in plot title
 
     Returns
     -------
@@ -375,7 +385,10 @@ def plot_tsd(ax, df, segs, args):
     ax.add_collection(lc)
     ax.autoscale()
 
-    ax.set_title('Time-Space Diagram: Lane {}'.format(lane), fontsize=25)
+    if lane:
+        ax.set_title('Time-Space Diagram: Lane {}'.format(lane), fontsize=25)
+    else:
+        ax.set_title('Time-Space Diagram', fontsize=25)
     ax.set_ylabel('Position (m)', fontsize=20)
     ax.set_xlabel('Time (s)', fontsize=20)
     plt.xticks(fontsize=18)
@@ -435,7 +448,7 @@ if __name__ == '__main__':
     traj_df = import_data_from_trajectory(args.trajectory_path, flow_params)
 
     # Convert df data into segments for plotting
-    segs = get_time_space_data(traj_df, flow_params)
+    segs, traj_df = get_time_space_data(traj_df, flow_params)
 
     if flow_params['network'] == I210SubNetwork:
         nlanes = traj_df['lane_id'].nunique()
@@ -444,7 +457,7 @@ if __name__ == '__main__':
         for lane, df in traj_df.groupby('lane_id'):
             ax = plt.subplot(nlanes, 1, lane+1)
 
-            plot_tsd(ax, df, segs[lane], args)
+            plot_tsd(ax, df, segs[lane], args, lane)
     else:
         # perform plotting operation
         fig = plt.figure(figsize=(16, 9))
