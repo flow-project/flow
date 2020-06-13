@@ -103,12 +103,12 @@ def get_time_space_data(data, params):
 
     Returns
     -------
-    list of lists of lists (or dict of list of lists of lists)
-        segments to be plotted. the outer list is n_segments long. every
-        inner list is comprised of two lists representing 
+    ndarray (or dict of ndarray)
+        3d array (n_segments x 2 x 2) containing segments to be plotted.
+        every inner 2d array is comprised of two 1d arrays representing 
         [start time, start distance] and [end time, end distance] pairs.
         
-        in the case of I210, these nested lists are wrapped into a dict,
+        in the case of I210, the nested arrays are wrapped into a dict,
         keyed on the lane number, so that each lane can be plotted
         separately.
 
@@ -151,9 +151,9 @@ def _merge(data):
 
     Returns
     -------
-    list of lists of lists
-        segments to be plotted. the outer list is n_segments long. every
-        inner list is comprised of two lists representing 
+    ndarray
+        3d array (n_segments x 2 x 2) containing segments to be plotted.
+        every inner 2d array is comprised of two 1d arrays representing 
         [start time, start distance] and [end time, end distance] pairs.
     """
     # Omit ghost edges
@@ -178,9 +178,9 @@ def _ring_road(data):
 
     Returns
     -------
-    list of lists of lists
-        segments to be plotted. the outer list is n_segments long. every
-        inner list is comprised of two lists representing 
+    ndarray
+        3d array (n_segments x 2 x 2) containing segments to be plotted.
+        every inner 2d array is comprised of two 1d arrays representing 
         [start time, start distance] and [end time, end distance] pairs.
     """
     segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
@@ -201,12 +201,12 @@ def _i210_subnetwork(data):
 
     Returns
     -------
-    dict of list of lists of lists
-        segments to be plotted. the dictionary is keyed on lane numbers,
-        with the values being the list of lists of lists representing the 
-        segments. the outer list is n_segments long. every inner list is
-        comprised of two lists representing [start time, start distance]
-        and [end time, end distance] pairs.
+    dict of ndarray
+        dictionary of 3d array (n_segments x 2 x 2) containing segments
+        to be plotted. the dictionary is keyed on lane numbers, with the
+        values being the 3d array representing the segments. every inner
+        2d array is comprised of two 1d arrays representing
+        [start time, start distance] and [end time, end distance] pairs.
     """
     # Omit ghost edges
     omit_edges = {'ghost0', '119257908#3'}
@@ -238,9 +238,9 @@ def _figure_eight(data):
 
     Returns
     -------
-    list of lists of lists
-        segments to be plotted. the outer list is n_segments long. every
-        inner list is comprised of two lists representing 
+    ndarray
+        3d array (n_segments x 2 x 2) containing segments to be plotted.
+        every inner 2d array is comprised of two 1d arrays representing 
         [start time, start distance] and [end time, end distance] pairs.
     """
     segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
