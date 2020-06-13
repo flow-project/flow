@@ -20,7 +20,6 @@ from flow.utils.rllib import get_flow_params
 from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork
 
 import argparse
-import csv
 try:
     from matplotlib import pyplot as plt
 except ImportError:
@@ -553,13 +552,18 @@ if __name__ == '__main__':
     my_cmap = colors.LinearSegmentedColormap('my_colormap', cdict, 1024)
 
     if flow_params['network'] == I210SubNetwork:
+        # Read emissions csv into pandas dataframe
         emission_data = pd.read_csv(args.emission_path)
+
+        # Omit ghost edges
         omit_edges = {'ghost0', '119257908#3'}
         emission_data = emission_data[~emission_data['edge_id'].isin(omit_edges)]
+
+        # Reset lane numbers that are offset by ramp lanes
         offset_edges = set(emission_data[emission_data['lane_id'] == 5]['edge_id'].unique())
         emission_data.loc[emission_data['edge_id'].isin(offset_edges), 'lane_id'] -= 1
 
-
+        # Compute line segment ends by shifting dataframe by 1 row
         emission_data[['next_pos', 'next_time']] = emission_data.groupby('id')[['distance',
                                                                                 'time_step']].shift(-1)
 
@@ -579,22 +583,22 @@ if __name__ == '__main__':
             ax.set_xlim(xmin - xbuffer, xmax + xbuffer)
             ax.set_ylim(ymin - ybuffer, ymax + ybuffer)
 
-            segs = df[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(df),2,2))
+            segs = df[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(df), 2, 2))
             lc = LineCollection(segs, cmap=my_cmap, norm=norm)
             lc.set_array(df['speed'].values)
             lc.set_linewidth(1)
             ax.add_collection(lc)
             ax.autoscale()
+
             ax.set_title('Time-Space Diagram: Lane {}'.format(lane), fontsize=25)
             ax.set_ylabel('Position (m)', fontsize=20)
             ax.set_xlabel('Time (s)', fontsize=20)
+            plt.xticks(fontsize=18)
+            plt.yticks(fontsize=18)
 
             cbar = plt.colorbar(lc, ax=ax, norm=norm)
             cbar.set_label('Velocity (m/s)', fontsize=20)
             cbar.ax.tick_params(labelsize=18)
-
-            plt.xticks(fontsize=18)
-            plt.yticks(fontsize=18)
     else:
         # perform plotting operation
         fig = plt.figure(figsize=(16, 9))
