@@ -71,7 +71,7 @@ def import_data_from_emission(fp):
     if 'edge' not in df.columns:
         column_mapping['edge'] = 'edge_id'
 
-    return df.groupby('id').apply(lambda x: {k: x[v].values for k, v in column_mapping.items()})
+    return df.groupby('id').apply(lambda x: {k: x[v].to_list() for k, v in column_mapping.items()}).to_dict()
 
 
 def get_time_space_data(data, params):
@@ -346,7 +346,7 @@ def _i210_subnetwork(data, params, all_time):
                                                 data[veh_id]['abs_pos'],
                                                 data[veh_id]['time'],
                                                 data[veh_id]['edge'],
-                                                data[veh_id]['lane']):
+                                                data[veh_id]['lane_number']):
             # avoid vehicles not on the relevant edges. Also only check the second to
             # last lane
             if edge not in edge_starts.keys() or ti not in all_time or lane != desired_lane:
