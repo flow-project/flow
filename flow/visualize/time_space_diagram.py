@@ -239,7 +239,7 @@ def _figure_eight(data):
     -------
     ndarray
         3d array (n_segments x 2 x 2) containing segments to be plotted.
-        every inner 2d array is comprised of two 1d arrays representing 
+        every inner 2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
     """
     segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
