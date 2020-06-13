@@ -450,14 +450,16 @@ if __name__ == '__main__':
         # perform plotting operation
         fig = plt.figure(figsize=(16, 9))
         ax = plt.axes()
-        
+
         plot_tsd(ax, traj_df, segs, args)
 
     ###########################################################################
     #                       Note: For MergeNetwork only                       #
     if flow_params['network'] == 'MergeNetwork':                              #
-        plt.plot(time, [0] * pos.shape[0], linewidth=3, color="white")        #
-        plt.plot(time, [-0.1] * pos.shape[0], linewidth=3, color="white")     #
+        plt.plot([df['time_step'].min(), df['time_step'].max()],
+                 [0, 0], linewidth=3, color="white")        #
+        plt.plot([df['time_step'].min(), df['time_step'].max()],
+                 [-0.1, -0.1], linewidth=3, color="white")     #
     ###########################################################################
 
     plt.show()
