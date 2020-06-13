@@ -72,7 +72,7 @@ def import_data_from_emission(fp):
     if 'edge' not in df.columns:
         column_mapping['edge'] = 'edge_id'
 
-    return df.groupby('id').apply(lambda x: {k: x[v].values for k, v in column_mapping.iteritems()})
+    return df.groupby('id').apply(lambda x: {k: x[v].values for k, v in column_mapping.items()})
 
 
 def get_time_space_data(data, params):
@@ -118,7 +118,7 @@ def get_time_space_data(data, params):
     """
     # check that the network is appropriate
     assert params['network'] in ACCEPTABLE_NETWORKS, \
-        'Network must be one of: ' + ', '.join(ACCEPTABLE_NETWORKS)
+        'Network must be one of: ' + ', '.join([network.__name__ for network in ACCEPTABLE_NETWORKS])
 
     # switcher used to compute the positions based on the type of network
     switcher = {
