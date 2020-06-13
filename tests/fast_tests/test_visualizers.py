@@ -202,7 +202,7 @@ class TestPlotters(unittest.TestCase):
           )}
 
         for lane, expected_seg in expected_segs.items():
-          np.testing.assert_array_almost_equal(segs[lane], expected_seg)
+            np.testing.assert_array_almost_equal(segs[lane], expected_seg)
 
     def test_time_space_diagram_ring_road(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
