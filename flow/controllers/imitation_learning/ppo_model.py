@@ -38,8 +38,6 @@ class PPONetwork(TFModelV2):
         self.setup_model(obs_space, action_space, model_config, num_outputs, h5_path)
         self.register_variables(self.base_model.variables)
 
-        # register variables for base model
-        # compare_weights(self.base_model, "/Users/akashvelu/Desktop/latest_run/imitation_model.h5")
 
 
     def setup_model(self, obs_space, action_space, model_config, num_outputs, imitation_h5_path):
@@ -137,5 +135,4 @@ class PPONetwork(TFModelV2):
         import_file: str
             filepath to h5 file
         """
-        print("LOADING WEIGHTS FROM H6")
         self.base_model.load_weights(import_file)
