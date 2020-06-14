@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from flow.core.params import VehicleParams
 
 
 class BaseEnergyModel(metaclass=ABCMeta):
@@ -11,8 +12,8 @@ class BaseEnergyModel(metaclass=ABCMeta):
     to be an averaged-size vehicle.
     """
 
-    def __init__(self, kernel):
-        self.k.env.vehicle = vehicle
+    def __init__(self):
+        vehicle = VehicleParams()
 
     @abstractmethod
     def get_instantaneous_power(self):
