@@ -7,7 +7,7 @@ import statistics
 import numpy as np
 from scipy.interpolate import interp1d
 from collections import namedtuple
-from flow.energy.base_energy import BaseEnergyModel
+from flow.core.kernel.base_energy import BaseEnergyModel
 import os
 from abc import ABCMeta, abstractmethod
 
@@ -15,7 +15,6 @@ class ToyotaModel(BaseEnergyModel):
 
     def __init__(self, kernel, filename=None):
         self.k = kernel
-        self.k.env.vehicle = vehicle
 
         # download file from s3 bucket
         s3 = boto3.client('s3')
@@ -35,42 +34,18 @@ class PriusEnergy(ToyotaModel):
     def __init__(self, kernel):
         super(PriusEnergy, self).__init__(kernel, filename = 'prius_test.pkl')
 
-    def get_instantaneous_power(self:
+    def get_instantaneous_power(self, parameter, accel, speed, grade):
 
-        speed = self.k.env.get_speed(veh_id)
-
-        if veh_id in self.k.env.previous_speeds:
-            old_speed = self.k.env.previous_speeds[veh_id]
-        else:
-            old_speed = speed
-
-        accel = (speed - old_speed)/self.k.env.sim_step
-
-        old_soc = self.k.env.get_soc(veh_id)
-        grade = 0 
-
-        socdot = self.toyota_energy(old_soc, speed, accel, grade)
+        socdot = self.toyota_energy(parameter, accel, speed, grade)
 
         return socdot
             
 class TacomaEnergy(ToyotaModel):
 
     def __init__(self, kernel):
-        super(PriusEnergy, self).__init__(kernel, filename = 'tacoma_test.pkl')
+        super(TacomaEnergy, self).__init__(kernel, filename = 'tacoma_test.pkl')
 
-    def get_instantaneous_power(self):
+    def get_instantaneous_power(self, parameter, accel, speed, grade):
         
-        speed = self.k.env.get_speed(veh_id)
-
-        if veh_id in self.k.env.previous_speeds:
-            old_speed = self.k.env.previous_speeds[veh_id]
-        else:
-            old_speed = speed
-
-        accel = (speed - old_speed)/self.k.env.sim_step
-        grade = 0 
-
-        fc = self.toyota_energy(speed,accel,grade) # returns instantanoes fuel consumption
+        fc = self.toyota_energy(accel, speed, grade) # returns instantaneous fuel consumption
         return fc
-
-
