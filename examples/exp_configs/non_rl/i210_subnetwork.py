@@ -28,7 +28,7 @@ WANT_GHOST_CELL = True
 # whether to include the downstream slow-down edge in the network
 WANT_DOWNSTREAM_BOUNDARY = True
 # whether to include vehicles on the on-ramp
-ON_RAMP = True
+ON_RAMP = False
 # the inflow rate of vehicles (in veh/hr)
 INFLOW_RATE = 2050
 # the speed of inflowing vehicles from the main edge (in m/s)
@@ -41,59 +41,6 @@ V_DES = 5.0
 HORIZON = 1000
 # steps to run before follower-stopper is allowed to take control
 WARMUP_STEPS = 600
-
-highway_start_edge = "ghost0" if WANT_GHOST_CELL else "119257914"
-accel_data = (IDMController, {'a': 1.3, 'b': 2.0, 'noise': 0.3})
-
-vehicles = VehicleParams()
-
-inflow = InFlows()
-
-if ON_RAMP:
-    vehicles.add(
-        "human",
-        num_vehicles=0,
-        color="white",
-        lane_change_params=SumoLaneChangeParams(
-            lane_change_mode="strategic",
-        ),
-        acceleration_controller=accel_data,
-        routing_controller=(I210Router, {})
-    )
-    if PENETRATION_RATE > 0.0:
-        vehicles.add(
-            "av",
-            num_vehicles=0,
-            color="red",
-            acceleration_controller=(FollowerStopper, {
-                "v_des": V_DES,
-                "no_control_edges": ["ghost0", "119257908#3"]
-            }),
-            routing_controller=(I210Router, {})
-        )
-
-    # inflow.add(
-    #     veh_type="human",
-    #     edge=highway_start_edge,
-    #     vehs_per_hour=inflow_rate,
-    #     departLane="best",
-    #     departSpeed=inflow_speed)
-
-    lane_list = ['0', '1', '2', '3', '4']
-
-    for lane in lane_list:
-        inflow.add(
-            veh_type="human",
-            edge=highway_start_edge,
-            vehs_per_hour=int(INFLOW_RATE * (1 - PENETRATION_RATE)),
-            departLane=lane,
-            departSpeed=INFLOW_SPEED)
-
-    inflow.add(
-        veh_type="human",
-        edge="27414345",
-        vehs_per_hour=int(500 * (1 - PENETRATION_RATE))
-    )
 
 # =========================================================================== #
 # Specify the path to the network template.                                   #
@@ -124,6 +71,7 @@ if not WANT_GHOST_CELL:
 # =========================================================================== #
 
 vehicles = VehicleParams()
+
 vehicles.add(
     "human",
     num_vehicles=0,
@@ -138,96 +86,54 @@ vehicles.add(
     routing_controller=(I210Router, {}) if ON_RAMP else None,
 )
 
+vehicles.add(
+    "av",
+    num_vehicles=0,
+    color="red",
+    acceleration_controller=(FollowerStopper, {
+        "v_des": V_DES,
+        "no_control_edges": ["ghost0", "119257908#3"]
+    }),
+    routing_controller=(I210Router, {})
+)
+
 inflow = InFlows()
+
 # main highway
-inflow.add(
-    veh_type="human",
-    edge="ghost0" if WANT_GHOST_CELL else "119257914",
-    vehs_per_hour=INFLOW_RATE,
-    departLane="best",
-    departSpeed=INFLOW_SPEED)
+highway_start_edge = "ghost0" if WANT_GHOST_CELL else "119257914"
+
+for lane in [0, 1, 2, 3, 4]:
+    inflow.add(
+        veh_type="human",
+        edge=highway_start_edge,
+        vehs_per_hour=INFLOW_RATE * (1 - PENETRATION_RATE),
+        departLane=lane,
+        departSpeed=INFLOW_SPEED)
+
+    if PENETRATION_RATE > 0.0:
+        inflow.add(
+            veh_type="av",
+            edge=highway_start_edge,
+            vehs_per_hour=INFLOW_RATE * PENETRATION_RATE,
+            departLane=lane,
+            departSpeed=INFLOW_SPEED)
+
 # on ramp
 if ON_RAMP:
     inflow.add(
         veh_type="human",
         edge="27414345",
-        vehs_per_hour=500,
-        departLane="random",
-        departSpeed=10)
+        vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
+        departSpeed=10,
+    )
 
     if PENETRATION_RATE > 0.0:
-        for lane in [0, 1, 2, 3, 4]:
-            inflow.add(
-                veh_type="av",
-                edge=highway_start_edge,
-                vehs_per_hour=int(INFLOW_RATE * PENETRATION_RATE),
-                departLane=lane,
-                departSpeed=INFLOW_SPEED)
-
         inflow.add(
             veh_type="av",
             edge="27414345",
             vehs_per_hour=int(500 * PENETRATION_RATE),
             departLane="random",
             departSpeed=10)
-        inflow.add(
-            veh_type="av",
-            edge="27414342#0",
-            vehs_per_hour=int(500 * PENETRATION_RATE),
-            departLane="random",
-            departSpeed=10)
-
-else:
-    # create the base vehicle type that will be used for inflows
-    vehicles.add(
-        "human",
-        num_vehicles=0,
-        lane_change_params=SumoLaneChangeParams(
-            lane_change_mode="strategic",
-        ),
-        acceleration_controller=accel_data,
-    )
-    if PENETRATION_RATE > 0.0:
-        vehicles.add(
-            "av",
-            color="red",
-            num_vehicles=0,
-            acceleration_controller=(FollowerStopper, {
-                "v_des": V_DES,
-                "no_control_edges": ["ghost0", "119257908#3"]
-            }),
-        )
-
-    # If you want to turn off the fail safes uncomment this:
-
-    # vehicles.add(
-    #     'human',
-    #     num_vehicles=0,
-    #     lane_change_params=SumoLaneChangeParams(
-    #         lane_change_mode='strategic',
-    #     ),
-    #     acceleration_controller=accel_data,
-    #     car_following_params=SumoCarFollowingParams(speed_mode='19')
-    # )
-
-    lane_list = ['0', '1', '2', '3', '4']
-
-    for lane in lane_list:
-        inflow.add(
-            veh_type="human",
-            edge=highway_start_edge,
-            vehs_per_hour=int(INFLOW_RATE * (1 - PENETRATION_RATE)),
-            departLane=lane,
-            departSpeed=INFLOW_SPEED)
-
-    if PENETRATION_RATE > 0.0:
-        for lane in lane_list:
-            inflow.add(
-                veh_type="av",
-                edge=highway_start_edge,
-                vehs_per_hour=int(INFLOW_RATE * PENETRATION_RATE),
-                departLane=lane,
-                departSpeed=INFLOW_SPEED)
 
 # =========================================================================== #
 # Generate the flow_params dict with all relevant simulation information.     #
