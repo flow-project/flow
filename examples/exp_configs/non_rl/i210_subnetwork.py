@@ -12,17 +12,27 @@ from flow.core.params import SumoLaneChangeParams
 from flow.core.params import VehicleParams
 from flow.core.params import InitialConfig
 from flow.core.params import InFlows
-from flow.core.rewards import miles_per_gallon, miles_per_megajoule
-
-import flow.config as config
+from flow.core.rewards import miles_per_gallon
+from flow.core.rewards import miles_per_megajoule
+from flow.networks import I210SubNetwork
+from flow.networks.i210_subnetwork import EDGES_DISTRIBUTION
 from flow.envs import TestEnv
+import flow.config as config
 
-# Instantiate which conditions we want to be true about the network
+# =========================================================================== #
+# Specify some configurable constants.                                        #
+# =========================================================================== #
 
-# whether to include a ghost cell at the entrance
+# whether to include the upstream ghost edge in the network
 WANT_GHOST_CELL = True
+# whether to include the downstream slow-down edge in the network
+WANT_DOWNSTREAM_BOUNDARY = True
 # whether to include vehicles on the on-ramp
-ON_RAMP = False
+ON_RAMP = True
+# the inflow rate of vehicles (in veh/hr)
+INFLOW_RATE = 2050
+# the speed of inflowing vehicles from the main edge (in m/s)
+INFLOW_SPEED = 25.5
 # fraction of vehicles that are follower-stoppers. 0.10 corresponds to 10%
 PENETRATION_RATE = 0.0
 # desired speed of the follower stopper vehicles
@@ -32,21 +42,8 @@ HORIZON = 1000
 # steps to run before follower-stopper is allowed to take control
 WARMUP_STEPS = 600
 
-# Number of vehicles/hour/lane
-inflow_rate = 2050
-# the speed of inflowing vehicles from the main edge (in m/s)
-inflow_speed = 25.5
-
+highway_start_edge = "ghost0" if WANT_GHOST_CELL else "119257914"
 accel_data = (IDMController, {'a': 1.3, 'b': 2.0, 'noise': 0.3})
-
-if WANT_GHOST_CELL:
-    from flow.networks.i210_subnetwork_ghost_cell import I210SubNetworkGhostCell, EDGES_DISTRIBUTION
-
-    highway_start_edge = 'ghost0'
-else:
-    from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
-
-    highway_start_edge = "119257914"
 
 vehicles = VehicleParams()
 
@@ -68,9 +65,10 @@ if ON_RAMP:
             "av",
             num_vehicles=0,
             color="red",
-            acceleration_controller=(FollowerStopper, {"v_des": V_DES,
-                                                       "no_control_edges": ["ghost0", "119257908#3"]
-                                                       }),
+            acceleration_controller=(FollowerStopper, {
+                "v_des": V_DES,
+                "no_control_edges": ["ghost0", "119257908#3"]
+            }),
             routing_controller=(I210Router, {})
         )
 
@@ -87,31 +85,84 @@ if ON_RAMP:
         inflow.add(
             veh_type="human",
             edge=highway_start_edge,
-            vehs_per_hour=int(inflow_rate * (1 - PENETRATION_RATE)),
+            vehs_per_hour=int(INFLOW_RATE * (1 - PENETRATION_RATE)),
             departLane=lane,
-            departSpeed=inflow_speed)
+            departSpeed=INFLOW_SPEED)
 
     inflow.add(
         veh_type="human",
         edge="27414345",
-        vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
-        departLane="random",
-        departSpeed=10)
+        vehs_per_hour=int(500 * (1 - PENETRATION_RATE))
+    )
+
+# =========================================================================== #
+# Specify the path to the network template.                                   #
+# =========================================================================== #
+
+if WANT_DOWNSTREAM_BOUNDARY:
+    NET_TEMPLATE = os.path.join(
+        config.PROJECT_PATH,
+        "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_"
+        "downstream.xml")
+elif WANT_GHOST_CELL:
+    NET_TEMPLATE = os.path.join(
+        config.PROJECT_PATH,
+        "examples/exp_configs/templates/sumo/i210_with_ghost_cell.xml")
+else:
+    NET_TEMPLATE = os.path.join(
+        config.PROJECT_PATH,
+        "examples/exp_configs/templates/sumo/test2.net.xml")
+
+# If the ghost cell is not being used, remove it from the initial edges that
+# vehicles can be placed on.
+edges_distribution = EDGES_DISTRIBUTION.copy()
+if not WANT_GHOST_CELL:
+    edges_distribution.remove("ghost0")
+
+# =========================================================================== #
+# Specify vehicle-specific information and inflows.                           #
+# =========================================================================== #
+
+vehicles = VehicleParams()
+vehicles.add(
+    "human",
+    num_vehicles=0,
+    lane_change_params=SumoLaneChangeParams(
+        lane_change_mode="strategic",
+    ),
+    acceleration_controller=(IDMController, {
+        "a": 1.3,
+        "b": 2.0,
+        "noise": 0.3,
+    }),
+    routing_controller=(I210Router, {}) if ON_RAMP else None,
+)
+
+inflow = InFlows()
+# main highway
+inflow.add(
+    veh_type="human",
+    edge="ghost0" if WANT_GHOST_CELL else "119257914",
+    vehs_per_hour=INFLOW_RATE,
+    departLane="best",
+    departSpeed=INFLOW_SPEED)
+# on ramp
+if ON_RAMP:
     inflow.add(
         veh_type="human",
-        edge="27414342#0",
-        vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
+        edge="27414345",
+        vehs_per_hour=500,
         departLane="random",
         departSpeed=10)
 
     if PENETRATION_RATE > 0.0:
-        for lane in lane_list:
+        for lane in [0, 1, 2, 3, 4]:
             inflow.add(
                 veh_type="av",
                 edge=highway_start_edge,
-                vehs_per_hour=int(inflow_rate * PENETRATION_RATE),
+                vehs_per_hour=int(INFLOW_RATE * PENETRATION_RATE),
                 departLane=lane,
-                departSpeed=inflow_speed)
+                departSpeed=INFLOW_SPEED)
 
         inflow.add(
             veh_type="av",
@@ -141,9 +192,10 @@ else:
             "av",
             color="red",
             num_vehicles=0,
-            acceleration_controller=(FollowerStopper, {"v_des": V_DES,
-                                                       "no_control_edges": ["ghost0", "119257908#3"]
-                                                       }),
+            acceleration_controller=(FollowerStopper, {
+                "v_des": V_DES,
+                "no_control_edges": ["ghost0", "119257908#3"]
+            }),
         )
 
     # If you want to turn off the fail safes uncomment this:
@@ -164,29 +216,22 @@ else:
         inflow.add(
             veh_type="human",
             edge=highway_start_edge,
-            vehs_per_hour=int(inflow_rate * (1 - PENETRATION_RATE)),
+            vehs_per_hour=int(INFLOW_RATE * (1 - PENETRATION_RATE)),
             departLane=lane,
-            departSpeed=inflow_speed)
+            departSpeed=INFLOW_SPEED)
 
     if PENETRATION_RATE > 0.0:
         for lane in lane_list:
             inflow.add(
                 veh_type="av",
                 edge=highway_start_edge,
-                vehs_per_hour=int(inflow_rate * PENETRATION_RATE),
+                vehs_per_hour=int(INFLOW_RATE * PENETRATION_RATE),
                 departLane=lane,
-                departSpeed=inflow_speed)
+                departSpeed=INFLOW_SPEED)
 
-network_xml_file = "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_downstream_test.xml"
-
-# network_xml_file = "examples/exp_configs/templates/sumo/i210_with_congestion.xml"
-
-NET_TEMPLATE = os.path.join(config.PROJECT_PATH, network_xml_file)
-
-if WANT_GHOST_CELL:
-    network = I210SubNetworkGhostCell
-else:
-    network = I210SubNetwork
+# =========================================================================== #
+# Generate the flow_params dict with all relevant simulation information.     #
+# =========================================================================== #
 
 flow_params = dict(
     # name of the experiment
@@ -196,7 +241,7 @@ flow_params = dict(
     env_name=TestEnv,
 
     # name of the network class the experiment is running on
-    network=network,
+    network=I210SubNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -221,7 +266,10 @@ flow_params = dict(
     net=NetParams(
         inflows=inflow,
         template=NET_TEMPLATE,
-        additional_params={"on_ramp": ON_RAMP, "ghost_edge": WANT_GHOST_CELL}
+        additional_params={
+            "on_ramp": ON_RAMP,
+            "ghost_edge": WANT_GHOST_CELL,
+        }
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
@@ -231,7 +279,7 @@ flow_params = dict(
     # parameters specifying the positioning of vehicles upon initialization/
     # reset (see flow.core.params.InitialConfig)
     initial=InitialConfig(
-        edges_distribution=EDGES_DISTRIBUTION,
+        edges_distribution=edges_distribution,
     ),
 )
 
@@ -255,11 +303,13 @@ custom_callables = {
         env.k.vehicle.get_speed(valid_ids(env, env.k.vehicle.get_ids())))),
     "avg_outflow": lambda env: np.nan_to_num(
         env.k.vehicle.get_outflow_rate(120)),
-    # # we multiply by 5 to account for the vehicle length and by 1000 to convert
-    # # into veh/km
+    # # we multiply by 5 to account for the vehicle length and by 1000 to
+    # # convert into veh/km
     # "avg_density": lambda env: 5 * 1000 * len(env.k.vehicle.get_ids_by_edge(
     #     edge_id)) / (env.k.network.edge_length(edge_id)
     #                  * env.k.network.num_lanes(edge_id)),
-    "mpg": lambda env: miles_per_gallon(env,  valid_ids(env, env.k.vehicle.get_ids()), gain=1.0),
-    "mpj": lambda env: miles_per_megajoule(env, valid_ids(env, env.k.vehicle.get_ids()), gain=1.0),
+    "mpg": lambda env: miles_per_gallon(
+        env,  valid_ids(env, env.k.vehicle.get_ids()), gain=1.0),
+    "mpj": lambda env: miles_per_megajoule(
+        env, valid_ids(env, env.k.vehicle.get_ids()), gain=1.0),
 }
