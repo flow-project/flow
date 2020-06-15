@@ -24,7 +24,7 @@ from flow.envs.multiagent.i210 import I210MultiEnv, ADDITIONAL_ENV_PARAMS
 from flow.utils.registry import make_create_env
 
 # SET UP PARAMETERS FOR THE SIMULATION
-WANT_GHOST_CELL = True
+WANT_GHOST_CELL = False
 # WANT_DOWNSTREAM_BOUNDARY = True
 ON_RAMP = False
 PENETRATION_RATE = 0.10
@@ -50,6 +50,10 @@ else:
     from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
     edges_distribution = EDGES_DISTRIBUTION
     highway_start_edge = "119257914"
+
+# TODO: temporary fix
+edges_distribution = EDGES_DISTRIBUTION.copy()
+edges_distribution.remove("ghost0")
 
 # SET UP PARAMETERS FOR THE ENVIRONMENT
 additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
