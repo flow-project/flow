@@ -19,7 +19,7 @@ ADDITIONAL_NET_PARAMS = {
     "use_ghost_edge": False,
     # speed limit for the ghost edge
     "ghost_speed_limit": 25,
-    # length of the cell imposing a boundary
+    # length of the downstream ghost edge with the reduced speed limit
     "boundary_cell_length": 500
 }
 
@@ -39,7 +39,8 @@ class HighwayNetwork(Network):
     * **use_ghost_edge** : whether to include a ghost edge. This edge is
       provided a different speed limit.
     * **ghost_speed_limit** : speed limit for the ghost edge
-    * **boundary_cell_length** : length of the cell imposing a boundary
+    * **boundary_cell_length** : length of the downstream ghost edge with the
+      reduced speed limit
 
     Usage
     -----

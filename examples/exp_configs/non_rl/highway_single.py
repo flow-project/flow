@@ -33,11 +33,12 @@ additional_net_params.update({
     "speed_limit": 30,
     # number of edges to divide the highway into
     "num_edges": 2,
-    # whether to include a ghost edge
+    # whether to include a ghost edge. This edge is provided a different speed
+    # limit.
     "use_ghost_edge": True,
     # speed limit for the ghost edge
     "ghost_speed_limit": END_SPEED,
-    # length of the cell imposing a boundary
+    # length of the downstream ghost edge with the reduced speed limit
     "boundary_cell_length": 300,
 })
 

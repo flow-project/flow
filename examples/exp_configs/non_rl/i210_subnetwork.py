@@ -35,16 +35,16 @@ INFLOW_SPEED = 24.1
 # =========================================================================== #
 
 if WANT_DOWNSTREAM_BOUNDARY:
-    net_template = os.path.join(
+    NET_TEMPLATE = os.path.join(
         config.PROJECT_PATH,
         "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_"
         "downstream.xml")
 elif WANT_GHOST_CELL:
-    net_template = os.path.join(
+    NET_TEMPLATE = os.path.join(
         config.PROJECT_PATH,
         "examples/exp_configs/templates/sumo/i210_with_ghost_cell.xml")
 else:
-    net_template = os.path.join(
+    NET_TEMPLATE = os.path.join(
         config.PROJECT_PATH,
         "examples/exp_configs/templates/sumo/test2.net.xml")
 
@@ -130,7 +130,7 @@ flow_params = dict(
     # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-        template=net_template,
+        template=NET_TEMPLATE,
         additional_params={
             "on_ramp": ON_RAMP,
             "ghost_edge": WANT_GHOST_CELL,
