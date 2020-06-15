@@ -30,7 +30,7 @@ INFLOW_RATE = 2050
 # the speed of inflowing vehicles from the main edge (in m/s)
 INFLOW_SPEED = 25.5
 # horizon over which to run the env
-HORIZON = 1000
+HORIZON = 1500
 # steps to run before follower-stopper is allowed to take control
 WARMUP_STEPS = 600
 
