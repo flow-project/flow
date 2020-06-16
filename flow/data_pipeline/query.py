@@ -336,7 +336,7 @@ class QueryStrings(Enum):
             AND t.source_id = e.source_id
             AND e.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
         JOIN fact_safety_metrics_agg AS s ON 1 = 1
-            AND s.dat = \'{date}\'
+            AND s.date = \'{date}\'
             AND s.partition_name = \'{partition}_FACT_SAFETY_METRICS_AGG\'
             AND t.source_id = s.source_id
         WHERE 1 = 1
