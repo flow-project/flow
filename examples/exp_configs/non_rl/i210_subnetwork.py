@@ -24,11 +24,15 @@ WANT_GHOST_CELL = True
 # whether to include the downstream slow-down edge in the network
 WANT_DOWNSTREAM_BOUNDARY = True
 # whether to include vehicles on the on-ramp
-ON_RAMP = True
+ON_RAMP = False
 # the inflow rate of vehicles (in veh/hr)
-INFLOW_RATE = 5 * 2215
+INFLOW_RATE = 2050
 # the speed of inflowing vehicles from the main edge (in m/s)
-INFLOW_SPEED = 24.1
+INFLOW_SPEED = 25.5
+# horizon over which to run the env
+HORIZON = 1500
+# steps to run before follower-stopper is allowed to take control
+WARMUP_STEPS = 600
 
 # =========================================================================== #
 # Specify the path to the network template.                                   #
@@ -75,12 +79,13 @@ vehicles.add(
 
 inflow = InFlows()
 # main highway
-inflow.add(
-    veh_type="human",
-    edge="ghost0" if WANT_GHOST_CELL else "119257914",
-    vehs_per_hour=INFLOW_RATE,
-    departLane="best",
-    departSpeed=INFLOW_SPEED)
+for lane in [0, 1, 2, 3, 4]:
+    inflow.add(
+        veh_type="human",
+        edge="ghost0" if WANT_GHOST_CELL else "119257914",
+        vehs_per_hour=INFLOW_RATE,
+        departLane=lane,
+        departSpeed=INFLOW_SPEED)
 # on ramp
 if ON_RAMP:
     inflow.add(
@@ -123,7 +128,9 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=10000,
+        horizon=HORIZON,
+        warmup_steps=WARMUP_STEPS,
+        sims_per_step=3
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
