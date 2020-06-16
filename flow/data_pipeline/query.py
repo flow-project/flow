@@ -218,6 +218,8 @@ class QueryStrings(Enum):
         WHERE 1 = 1
             AND vt.date = \'{{date}}\'
             AND vt.partition_name = \'{{partition}}\'
+            AND vt.time_step >= {start_filter}
+            AND vt.{loc_filter}
         ;
     """
 
