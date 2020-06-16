@@ -226,7 +226,7 @@ class QueryStrings(Enum):
     FACT_SAFETY_METRICS_AGG = """
         SELECT
             source_id,
-            SUM(CASE WHEN safety_value > 0 THEN 1 ELSE 0) * 100 / COUNT() safety_rate,
+            SUM(CASE WHEN safety_value < 0 THEN 1 ELSE 0) * 100 / COUNT() safety_rate,
             MAX(safety_value) AS safety_value_max
         FROM fact_safety_metrics
         WHERE 1 = 1
