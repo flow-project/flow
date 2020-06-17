@@ -60,13 +60,13 @@ VEHICLE_POWER_DEMAND_PRIUS_FINAL_SELECT = """
         speed,
         acceleration,
         road_grade,
-        1663 * speed * ((
+        GREATEST(-2.8 * speed, 1663 * speed * ((
             CASE
                 WHEN acceleration > 0 THEN 1
                 WHEN acceleration < 0 THEN 0
                 ELSE 0.5
             END * (1 - {0}) + {0}) * acceleration + 9.807 * SIN(road_grade)
-            ) + 1663 * 9.807 * 0.007 * speed + 0.5 * 1.225 * 2.4 * 0.24 * POW(speed,3) AS power,
+            ) + 1663 * 9.807 * 0.007 * speed + 0.5 * 1.225 * 2.4 * 0.24 * POW(speed,3)) AS power,
         \'{1}\' AS energy_model_id,
         source_id
     FROM {2}
