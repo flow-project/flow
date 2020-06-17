@@ -13,24 +13,8 @@ import os
 import sys
 from time import strftime
 from copy import deepcopy
-
 import numpy as np
 import pytz
-
-try:
-    from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
-    from stable_baselines import PPO2
-except ImportError:
-    print("Stable-baselines not installed. Please install it if you need it.")
-
-import ray
-from ray import tune
-from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
-try:
-    from ray.rllib.agents.agent import get_agent_class
-except ImportError:
-    from ray.rllib.agents.registry import get_agent_class
-from ray.tune.registry import register_env
 
 from flow.core.util import ensure_dir
 from flow.core.rewards import miles_per_gallon, miles_per_megajoule
@@ -127,6 +111,9 @@ def run_model_stablebaseline(flow_params,
     stable_baselines.*
         the trained model
     """
+    from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
+    from stable_baselines import PPO2
+
     if num_cpus == 1:
         constructor = env_constructor(params=flow_params, version=0)()
         # The algorithms require a vectorized environment to run
@@ -175,6 +162,13 @@ def setup_exps_rllib(flow_params,
     dict
         training configuration parameters
     """
+    from ray import tune
+    from ray.tune.registry import register_env
+    from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
+    try:
+        from ray.rllib.agents.agent import get_agent_class
+    except ImportError:
+        from ray.rllib.agents.registry import get_agent_class
 
     horizon = flow_params['env'].horizon
 
@@ -249,19 +243,22 @@ def setup_exps_rllib(flow_params,
         episode.user_data["avg_mpg"] = []
         episode.user_data["avg_mpj"] = []
 
-
     def on_episode_step(info):
         episode = info["episode"]
         env = info["env"].get_unwrapped()[0]
         if isinstance(env, _GroupAgentsWrapper):
             env = env.env
         if hasattr(env, 'no_control_edges'):
-            veh_ids = [veh_id for veh_id in env.k.vehicle.get_ids() if (env.k.vehicle.get_speed(veh_id) >= 0
-                                                                        and env.k.vehicle.get_edge(veh_id)
-                                                                        not in env.no_control_edges)]
-            rl_ids = [veh_id for veh_id in env.k.vehicle.get_rl_ids() if (env.k.vehicle.get_speed(veh_id) >= 0
-                                                                        and env.k.vehicle.get_edge(veh_id)
-                                                                        not in env.no_control_edges)]
+            veh_ids = [
+                veh_id for veh_id in env.k.vehicle.get_ids()
+                if env.k.vehicle.get_speed(veh_id) >= 0
+                and env.k.vehicle.get_edge(veh_id) not in env.no_control_edges
+            ]
+            rl_ids = [
+                veh_id for veh_id in env.k.vehicle.get_rl_ids()
+                if env.k.vehicle.get_speed(veh_id) >= 0
+                and env.k.vehicle.get_edge(veh_id) not in env.no_control_edges
+            ]
         else:
             veh_ids = [veh_id for veh_id in env.k.vehicle.get_ids() if env.k.vehicle.get_speed(veh_id) >= 0]
             rl_ids = [veh_id for veh_id in env.k.vehicle.get_rl_ids() if env.k.vehicle.get_speed(veh_id) >= 0]
@@ -275,7 +272,6 @@ def setup_exps_rllib(flow_params,
         episode.user_data["avg_mpg"].append(miles_per_gallon(env, veh_ids, gain=1.0))
         episode.user_data["avg_mpj"].append(miles_per_megajoule(env, veh_ids, gain=1.0))
 
-
     def on_episode_end(info):
         episode = info["episode"]
         avg_speed = np.mean(episode.user_data["avg_speed"])
@@ -287,7 +283,7 @@ def setup_exps_rllib(flow_params,
         episode.custom_metrics["avg_mpj_per_veh"] = np.mean(episode.user_data["avg_mpj"])
 
     def on_train_result(info):
-        """Store the mean score of the episode, and increment or decrement how many adversaries are on"""
+        """Store the mean score of the episode, and adjust the number of adversaries."""
         trainer = info["trainer"]
         trainer.workers.foreach_worker(
             lambda ev: ev.foreach_env(
@@ -320,6 +316,8 @@ def setup_exps_rllib(flow_params,
 
 def train_rllib(submodule, flags):
     """Train policies using the PPO algorithm in RLlib."""
+    import ray
+    from ray import tune
 
     flow_params = submodule.flow_params
     flow_params['sim'].render = flags.render
@@ -456,7 +454,7 @@ def train_h_baselines(flow_params, args, multiagent):
 
         # Perform training.
         alg.learn(
-            total_timesteps=args.total_steps,
+            total_steps=args.total_steps,
             log_dir=dir_name,
             log_interval=args.log_interval,
             eval_interval=args.eval_interval,
@@ -468,6 +466,9 @@ def train_h_baselines(flow_params, args, multiagent):
 
 def train_stable_baselines(submodule, flags):
     """Train policies using the PPO algorithm in stable-baselines."""
+    from stable_baselines.common.vec_env import DummyVecEnv
+    from stable_baselines import PPO2
+
     flow_params = submodule.flow_params
     # Path to the saved files
     exp_tag = flow_params['exp_tag']

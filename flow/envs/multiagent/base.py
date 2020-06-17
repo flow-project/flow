@@ -324,4 +324,5 @@ class MultiEnv(MultiAgentEnv, Env):
         self._apply_rl_actions(clipped_actions)
 
     def set_iteration_num(self):
+        """Increment the number of training iterations."""
         self.num_training_iters += 1

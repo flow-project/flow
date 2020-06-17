@@ -1,10 +1,5 @@
 """Environment for training vehicles to reduce congestion in the I210."""
-
-from collections import OrderedDict
-from copy import deepcopy
-from time import time
-
-from gym.spaces import Box, Discrete, Dict
+from gym.spaces import Box
 import numpy as np
 
 from flow.core.rewards import miles_per_gallon, miles_per_megajoule
@@ -20,9 +15,11 @@ ADDITIONAL_ENV_PARAMS = {
     "max_accel": 1,
     # maximum deceleration for autonomous vehicles, in m/s^2
     "max_decel": 1,
-    # whether we use an obs space that contains adjacent lane info or just the lead obs
+    # whether we use an obs space that contains adjacent lane info or just the
+    # lead obs
     "lead_obs": True,
-    # whether the reward should come from local vehicles instead of global rewards
+    # whether the reward should come from local vehicles instead of global
+    # rewards
     "local_reward": True,
     # desired velocity
     "target_velocity": 25
@@ -161,10 +158,10 @@ class I210MultiEnv(MultiEnv):
 
         If control range is defined it uses control range, otherwise it searches over a set of edges
         """
-        return (self.control_range and self.k.vehicle.get_x_by_id(veh_id) < self.control_range[1] \
-                 and self.k.vehicle.get_x_by_id(veh_id) > self.control_range[0]) or \
-                (len(self.no_control_edges) > 0 and self.k.vehicle.get_edge(veh_id) not in
-                 self.no_control_edges)
+        return (self.control_range and self.control_range[1] >
+                self.k.vehicle.get_x_by_id(veh_id) > self.control_range[0]) or \
+               (len(self.no_control_edges) > 0 and self.k.vehicle.get_edge(veh_id) not in
+                self.no_control_edges)
 
     def get_state(self):
         """See class definition."""
@@ -357,7 +354,6 @@ class I210MultiEnv(MultiEnv):
                 for veh_id in departed_ids:
                     if veh_id not in self.observed_ids:
                         self.k.vehicle.remove(veh_id)
-
 
     def state_util(self, rl_id):
         """Return an array of headway, tailway, leader speed, follower speed.
