@@ -12,7 +12,7 @@ def parse_args(args):
         dictionary version of the argparse
     """
 
-    # train.py args
+    # **** TRAIN.PY ARGS ****
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -35,10 +35,6 @@ def parse_args(args):
     parser.add_argument(
         '--rl_trainer', type=str, default="rllib",
         help='the RL trainer to use. either rllib or Stable-Baselines')
-    parser.add_argument(
-        '--load_weights_path', type=str, default=None,
-        help='Path to h5 file containing a pretrained model. Relevent for PPO with RLLib'
-    )
     parser.add_argument(
         '--algorithm', type=str, default="PPO",
         help='RL algorithm to use. Options are PPO, TD3, MATD3 (MADDPG w/ TD3) right now.'
@@ -73,26 +69,31 @@ def parse_args(args):
         '--checkpoint_path', type=str, default=None,
         help='Directory with checkpoint to restore training from.')
 
+
+    parser.add_argument(
+        '--load_weights_path', type=str, default=None,
+        help='Path to h5 file containing a pretrained model. Relevent for PPO with RLLib'
+    )
     # Imitation Learning args
 
     parser.add_argument('--ep_len', type=int, default=5000, help='Max length of episodes for rollouts.')
 
-    parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1000, help='Number of gradient steps for training policy.')  # number of gradient steps for training policy
+    parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1000, help='Number of gradient steps for training imitation policy.')
     parser.add_argument('--n_iter', type=int, default=3, help='Number of DAgger iterations to run (1st iteration is behavioral cloning')
 
     parser.add_argument('--batch_size', type=int, default=1000, help='Number of environment steps to collect in iteration of DAgger')
     parser.add_argument('--init_batch_size', type=int, default=2000, help='Number of environment steps to collect on 1st iteration of DAgger (behavioral cloning iteration)')
     parser.add_argument('--vf_batch_size', type=int, default=2000, help='Number of environment steps to collect to learn value function for a policy')
-    parser.add_argument('--num_vf_iters', type=int, default=100, help='Number of iterations to run vf training') # TODO: better help description for this
+    parser.add_argument('--num_vf_iters', type=int, default=100, help='Number of iterations to run value function learning, after imitation')
 
-    parser.add_argument('--train_batch_size', type=int, default=100, help='Batch size to train on')
+    parser.add_argument('--train_batch_size', type=int, default=100, help='Batch size to run SGD on during imitation learning.')
 
     parser.add_argument('--load_imitation_model', type=bool, default=False, help='Whether to load an existing imitation neural net')
-    parser.add_argument('--load_imitation_path', type=str, default='', help='Path to h5 file from which to load existing imitation neural net')
+    parser.add_argument('--load_imitation_path', type=str, default='', help='Path to h5 file from which to load existing imitation neural net. load_imitation_model must be True')
     parser.add_argument('--tensorboard_path', type=str, default='/tensorboard/', help='Path to which tensorboard events should be written.')
     parser.add_argument('--replay_buffer_size', type=int, default=1000000, help='Max size of replay buffer')
-    parser.add_argument('--save_path', type=str, default='', help='Filepath to h5 file in which imitation model should be saved')
-    parser.add_argument('--save_model', type=int, default=0, help='If true, save models in h5 format')
+    parser.add_argument('--imitation_save_path', type=str, default='', help='Filepath to h5 file in which imitation model should be saved')
+    parser.add_argument('--PPO_save_path', type=str, default='', help="Filepath to h5 file in which the ppo model should be saved")
     parser.add_argument('--num_eval_episodes', type=int, default=0, help='Number of episodes on which to evaluate imitation model')
     parser.add_argument('--stochastic', type=bool, default=False, help='If true, learn a stochastic policy (MV Gaussian)')
     parser.add_argument('--multiagent', type=bool, default=False, help='If true, env is multiagent.')
@@ -103,8 +104,6 @@ def parse_args(args):
 
     parsed_args = parser.parse_known_args(args)[0]
     dict_args = vars(parsed_args)
-    dict_args['save_model'] = 1
-    dict_args['save_path'] = dict_args['load_weights_path']
 
     return parsed_args, dict_args
 
@@ -116,7 +115,7 @@ def main(args):
 
     flags, params = parse_args(args)
     params["fcnet_hiddens"] = [32, 32, 32]
-    params['PPO_save_path'] = params['load_weights_path']
+    params['load_weights_path'] = params["PPO_save_path"]
 
 
     print("\n\n********** IMITATION LEARNING ************ \n")

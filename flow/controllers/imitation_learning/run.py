@@ -48,7 +48,7 @@ class Runner(object):
 
     def save_controller_for_PPO(self):
         """
-        Creates and saves (in h5 file format) new tensorflow keras model to run PPO with weighs loaded from imitation learning
+        Creates and saves (in h5 file format) new tensorflow keras model to run PPO with weighs loaded from imitation learning. This model encapsulates both a policy network and a value function network.
         """
         self.trainer.save_controller_for_PPO()
 
@@ -83,7 +83,7 @@ def main():
     parser.add_argument('--load_imitation_path', type=str, default='', help='Path to h5 file from which to load existing imitation neural net')
     parser.add_argument('--tensorboard_path', type=str, default='/tensorboard/', help='Path to which tensorboard events should be written.')
     parser.add_argument('--replay_buffer_size', type=int, default=1000000, help='Max size of replay buffer')
-    parser.add_argument('--save_path', type=str, default='', help='Filepath to h5 file in which imitation model should be saved')
+    parser.add_argument('--imitation_save_path', type=str, default='', help='Filepath to h5 file in which imitation model should be saved')
     parser.add_argument('--PPO_save_path', type=str, default='', help='Filepath to h5 file in which PPO model with copied weights should be saved')
     parser.add_argument('--save_model', type=int, default=0, help='If true, save models in h5 format')
     parser.add_argument('--num_eval_episodes', type=int, default=0, help='Number of episodes on which to evaluate imitation model')

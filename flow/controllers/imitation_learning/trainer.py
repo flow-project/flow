@@ -323,5 +323,5 @@ class Trainer(object):
         """
         Saves a keras tensorflow model to the specified path given in the command line params. Path must end with .h5.
         """
-        print("Saving tensorflow model to: ", self.params['save_path'])
-        self.action_network.save_network(self.params['save_path'])
+        print("Saving tensorflow model to: ", self.params['imitation_save_path'])
+        self.action_network.save_network(self.params['imitation_save_path'])
