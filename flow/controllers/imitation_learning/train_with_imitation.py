@@ -70,11 +70,6 @@ def parse_args(args):
         help='Directory with checkpoint to restore training from.')
 
 
-    parser.add_argument(
-        '--load_weights_path', type=str, default=None,
-        help='Path to h5 file containing a pretrained model. Relevent for PPO with RLLib'
-    )
-
     # *** IMITATION LEARNING ARGS ***
 
     # rollout collection params:
@@ -116,7 +111,11 @@ def main(args):
     # Parse args, train imitation learning
 
     flags, params = parse_args(args)
+
+    # depth and size of MLP layers
     params["fcnet_hiddens"] = [32, 32, 32]
+
+    # load_weights_path for PPO must be set to same path as PPO_save_path (a result from imitation)
     params['load_weights_path'] = params["PPO_save_path"]
 
 
@@ -125,7 +124,10 @@ def main(args):
     imitation_runner = Runner(params)
     imitation_runner.run_training_loop()
 
-    # convert model to work for PPO and save for training
+    # save imitation network
+    imitation_runner.save_controller_network()
+
+    # save PPO network (contains policy and value function)
     imitation_runner.save_controller_for_PPO()
 
     # Imitation Done, start RL

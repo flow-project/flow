@@ -269,7 +269,7 @@ class Trainer(object):
 
 
 
-    def save_controller_for_PPO(self):
+    def save_controller_for_PPO(self, PPO_save_path):
         """
         Build a model, with same policy architecture as imitation network, to run PPO, copy weights from imitation, and save this model.
 
@@ -316,12 +316,12 @@ class Trainer(object):
 
 
         # save the model (as a h5 file)
-        ppo_model.save(self.params['PPO_save_path'])
+        ppo_model.save(PPO_save_path)
 
 
-    def save_controller_network(self):
+    def save_controller_network(self, imitation_save_path):
         """
         Saves a keras tensorflow model to the specified path given in the command line params. Path must end with .h5.
         """
-        print("Saving tensorflow model to: ", self.params['imitation_save_path'])
-        self.action_network.save_network(self.params['imitation_save_path'])
+        print("Saving tensorflow model to: ", imitation_save_path)
+        self.action_network.save_network(imitation_save_path)

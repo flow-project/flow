@@ -44,13 +44,13 @@ class Runner(object):
         """
         Saves the tensorflow keras model of the imitation policy to a h5 file, whose path is specified in params
         """
-        self.trainer.save_controller_network()
+        self.trainer.save_controller_network(imitation_save_path=self.params['imitation_save_path'])
 
     def save_controller_for_PPO(self):
         """
         Creates and saves (in h5 file format) new tensorflow keras model to run PPO with weighs loaded from imitation learning. This model encapsulates both a policy network and a value function network.
         """
-        self.trainer.save_controller_for_PPO()
+        self.trainer.save_controller_for_PPO(PPO_save_path=self.params['PPO_save_path'])
 
 
 def main():
