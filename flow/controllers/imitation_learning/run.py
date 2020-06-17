@@ -2,7 +2,6 @@ import os
 import time
 import numpy as np
 from flow.controllers.imitation_learning.trainer import Trainer
-from flow.controllers.car_following_models import IDMController
 
 
 class Runner(object):
@@ -32,25 +31,25 @@ class Runner(object):
         """
         Runs training for imitation learning for number of iterations specified in params.
         """
-        self.trainer.run_training_loop(n_iter=self.params['n_iter'])
+        self.trainer.run_training_loop()
 
     def evaluate(self):
         """
         Evaluates a trained controller over a specified number trajectories; compares average action per step and average reward per trajectory between imitator and expert
         """
-        self.trainer.evaluate_controller(num_trajs=self.params['num_eval_episodes'])
+        self.trainer.evaluate_controller()
 
     def save_controller_network(self):
         """
         Saves the tensorflow keras model of the imitation policy to a h5 file, whose path is specified in params
         """
-        self.trainer.save_controller_network(imitation_save_path=self.params['imitation_save_path'])
+        self.trainer.save_controller_network()
 
     def save_controller_for_PPO(self):
         """
         Creates and saves (in h5 file format) new tensorflow keras model to run PPO with weighs loaded from imitation learning. This model encapsulates both a policy network and a value function network.
         """
-        self.trainer.save_controller_for_PPO(PPO_save_path=self.params['PPO_save_path'])
+        self.trainer.save_controller_for_PPO()
 
 
 def main():

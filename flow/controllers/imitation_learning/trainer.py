@@ -76,18 +76,16 @@ class Trainer(object):
             self.controllers[vehicle_id] = (imitator, expert)
 
 
-    def run_training_loop(self, n_iter):
+    def run_training_loop(self):
         """
-        Trains imitator for n_iter iterations (each iteration collects new trajectories to put in replay buffer)
-
-        Parameters
-        __________
-        n_iter :
-            intnumber of iterations to execute training
+        Trains imitator for self.params['n_iter'] iterations (each iteration collects new trajectories to put in replay buffer)
         """
 
+        # number of imitation learning iterations (1st iteration is behavioral cloning
+        n_iter = self.params['n_iter']
         # init vars at beginning of training
         # number of environment steps taken throughout training
+
         self.total_envsteps = 0
 
         for itr in range(n_iter):
@@ -146,18 +144,16 @@ class Trainer(object):
             # train network on sampled data
             self.action_network.train(ob_batch, expert_ac_batch)
 
-    def evaluate_controller(self, num_trajs = 10):
+    def evaluate_controller(self):
         """
         Evaluates a trained imitation controller on similarity with expert with respect to action taken and total reward per rollout.
-
-        Parameters
-        __________
-        num_trajs: int
-            number of trajectories to evaluate performance on
         """
 
         print("\n\n********** Evaluation ************ \n")
 
+
+        # number of trajectories to evaluate performance on
+        num_trajs = self.params['num_eval_episodes']
 
         # collect imitator driven trajectories (along with corresponding expert actions)
         trajectories = sample_n_trajectories(self.env, self.controllers, self.action_network, num_trajs, self.params['ep_len'], self.multiagent, False, v_des=self.params['v_des'])
@@ -269,11 +265,14 @@ class Trainer(object):
 
 
 
-    def save_controller_for_PPO(self, PPO_save_path):
+    def save_controller_for_PPO(self):
         """
         Build a model, with same policy architecture as imitation network, to run PPO, copy weights from imitation, and save this model.
 
         """
+
+        # filepath to h5 file in which keras model will be saved
+        PPO_save_path = self.params['PPO_save_path']
 
         vf_net = self.learn_value_function(self.params['vf_batch_size'], self.params['num_vf_iters'], self.params['num_agent_train_steps_per_iter'])
 
@@ -319,9 +318,11 @@ class Trainer(object):
         ppo_model.save(PPO_save_path)
 
 
-    def save_controller_network(self, imitation_save_path):
+    def save_controller_network(self):
         """
         Saves a keras tensorflow model to the specified path given in the command line params. Path must end with .h5.
         """
+        
+        imitation_save_path = self.params['imitation_save_path']
         print("Saving tensorflow model to: ", imitation_save_path)
         self.action_network.save_network(imitation_save_path)
