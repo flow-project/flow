@@ -306,7 +306,7 @@ def train_h_baselines(flow_params, args, multiagent):
 
         # Perform training.
         alg.learn(
-            total_timesteps=args.total_steps,
+            total_steps=args.total_steps,
             log_dir=dir_name,
             log_interval=args.log_interval,
             eval_interval=args.eval_interval,

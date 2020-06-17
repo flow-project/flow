@@ -48,7 +48,7 @@ vehicles.add(
         lc_pushy=0.8,
         lc_speed_gain=4.0,
         model="LC2013",
-        lane_change_mode="no_lat_collide",
+        lane_change_mode="no_lc_safe",
         # lcKeepRight=0.8
     ),
     num_vehicles=1400)
