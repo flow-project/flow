@@ -19,9 +19,7 @@ from flow.core.params import InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
-from flow.core.params import SumoCarFollowingParams
 from flow.core.rewards import energy_consumption
-from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 from flow.envs.multiagent.i210 import I210MultiEnv, ADDITIONAL_ENV_PARAMS
 from flow.utils.registry import make_create_env
 
@@ -226,7 +224,7 @@ else:
                 departSpeed=inflow_speed)
 
 
-network_xml_file = "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_downstream_test.xml"
+network_xml_file = "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_downstream.xml"
 
 # network_xml_file = "examples/exp_configs/templates/sumo/i210_with_congestion.xml"
 
