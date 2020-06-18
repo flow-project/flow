@@ -29,10 +29,8 @@ from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 # Specify some configurable constants.                                        #
 # =========================================================================== #
 
-# whether to include the upstream ghost edge in the network
-WANT_GHOST_CELL = True
-# whether to include the downstream slow-down edge in the network
-WANT_DOWNSTREAM_BOUNDARY = True
+# whether to include the downstream slow-down edge in the network as well as a ghost cell at the upstream edge
+WANT_BOUNDARY_CONDITIONS = True
 # whether to include vehicles on the on-ramp
 ON_RAMP = False
 # the inflow rate of vehicles (in veh/hr)
@@ -54,25 +52,16 @@ ALLOW_COLLISIONS = False
 # Specify the path to the network template.                                   #
 # =========================================================================== #
 
-if WANT_DOWNSTREAM_BOUNDARY:
+if WANT_BOUNDARY_CONDITIONS:
     NET_TEMPLATE = os.path.join(
         config.PROJECT_PATH,
         "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_"
         "downstream.xml")
-elif WANT_GHOST_CELL:
-    NET_TEMPLATE = os.path.join(
-        config.PROJECT_PATH,
-        "examples/exp_configs/templates/sumo/i210_with_ghost_cell.xml")
 else:
     NET_TEMPLATE = os.path.join(
         config.PROJECT_PATH,
         "examples/exp_configs/templates/sumo/test2.net.xml")
-
-# If the ghost cell is not being used, remove it from the initial edges that
-# vehicles can be placed on.
 edges_distribution = EDGES_DISTRIBUTION.copy()
-if not WANT_GHOST_CELL:
-    edges_distribution.remove("ghost0")
 
 # =========================================================================== #
 # Set up parameters for the environment.                                      #
@@ -246,7 +235,7 @@ flow_params = dict(
         template=NET_TEMPLATE,
         additional_params={
             "on_ramp": ON_RAMP,
-            "ghost_edge": WANT_GHOST_CELL
+            "ghost_edge": WANT_BOUNDARY_CONDITIONS
         }
     ),
 
