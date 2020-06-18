@@ -25,7 +25,7 @@ class ToyotaModel(BaseEnergyModel):
         os.remove(file.pkl)
     
     @abstractmethod
-    def get_instantaneous_power(self):
+    def get_instantaneous_power(self, accel, speed, grade):
         pass
 
 
@@ -33,10 +33,11 @@ class PriusEnergy(ToyotaModel):
     
     def __init__(self, kernel):
         super(PriusEnergy, self).__init__(kernel, filename = 'prius_test.pkl')
+        self.soc = # how to pass here the parameter vargument from the rewards.py
 
-    def get_instantaneous_power(self, parameter, accel, speed, grade):
-
+    def get_instantaneous_power(self, accel, speed, grade):
         socdot = self.toyota_energy(parameter, accel, speed, grade)
+        self.soc = self.soc - socdot * env.sim_step
 
         return socdot
             
@@ -45,7 +46,7 @@ class TacomaEnergy(ToyotaModel):
     def __init__(self, kernel):
         super(TacomaEnergy, self).__init__(kernel, filename = 'tacoma_test.pkl')
 
-    def get_instantaneous_power(self, parameter, accel, speed, grade):
+    def get_instantaneous_power(self, accel, speed, grade):
         
         fc = self.toyota_energy(accel, speed, grade) # returns instantaneous fuel consumption
         return fc
