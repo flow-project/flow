@@ -25,14 +25,15 @@ class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
         self.gamma = 1
     
     def calculate_power(self, accel, speed, grade):
-        accel_slope_forces = self.mass * speed * ((np.heaviside(accel, 0.5) * (1 - self.gamma) + self.gamma)) * accel + self.g * math.sin(grade)
+        accel_slope_forces = self.mass * speed * ((np.heaviside(accel, 0.5) * (1 - self.gamma) + self.gamma)) * accel
+        accel_slope_forces = accel_slope_forces + self.g * math.sin(grade)
         rolling_friction = self.mass * self.g * self.rolling_res_coeff * speed
         air_drag = 0.5 * self.rho_air * self.cross_area * self.aerodynamic_drag_coeff * speed**3
         power = accel_slope_forces + rolling_friction + air_drag
         return power
     
     @abstractmethod
-    def get_instantaneous_power(self, parameter, accel, speed, grade):
+    def get_instantaneous_power(self, accel, speed, grade):
         pass
     
 
@@ -40,7 +41,7 @@ class PDMCombustionEngine(PowerDemandModel):
     
     # Power Demand Model for a combustion engine vehicle
 
-    def get_instantaneous_power(self, parameter, accel, speed, grade):
+    def get_instantaneous_power(self, accel, speed, grade):
         power = self.calculate_power(accel, speed, grade)
         return power
 
@@ -48,6 +49,6 @@ class PDMElectric(PowerDemandModel):
     
     # Power Demand Model for an electric vehicle
 
-    def get_instantaneous_power(self, parameter, accel, speed, grade):
+    def get_instantaneous_power(self, accel, speed, grade):
         power = max(0,self.calculate_power(accel, speed, grade))
         return power
