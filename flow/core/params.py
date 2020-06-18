@@ -8,6 +8,14 @@ from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
 
+# To add these after creating the forlder for energy models # (1)
+"""
+from flow.enermod.toyota_energy import PriusEnergy
+from flow.enermod.toyota_energy import TacomaEnergy
+from flow.enermod.power_demand import PDMCombustionEngine
+from flow.enermod.power_demand import PDMElectric
+"""
+
 
 SPEED_MODES = {
     "aggressive": 0,
@@ -270,6 +278,19 @@ class VehicleParams:
         lane_change_params : flow.core.params.SumoLaneChangeParams
             Params object specifying attributes for Sumo lane changing model.
         """
+
+        # determine which energy model to use
+        if "prius" in veh_id:
+            energy_model = env.k.PriusEnergy.get_instantaneous_power()
+        elif "tacoma" in veh_id:
+            energy_model = env.k.TacomaEnergy.get_instantaneous_power()
+        elif "ev" in veh_id:
+            energy_model = env.k.PDMElectric.get_instantaneous_power()
+        else:
+            energy_model = env.k.PDMCombustionEngine.get_instantaneous_power()
+   
+    
+
         if car_following_params is None:
             # FIXME: depends on simulator
             car_following_params = SumoCarFollowingParams()
