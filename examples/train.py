@@ -187,17 +187,14 @@ def setup_exps_rllib(flow_params,
     if alg_run == "PPO":
         from ray import tune
         from ray.tune.registry import register_env
-        try:
-            from ray.rllib.agents.agent import get_agent_class
-        except ImportError:
-            from ray.rllib.agents.registry import get_agent_class
+        from custom_ppo import CustomPPOTrainer
+        from ray.rllib.agents.ppo import DEFAULT_CONFIG
+        config = deepcopy(DEFAULT_CONFIG)
+
+
+        alg_run = CustomPPOTrainer
 
         horizon = flow_params['env'].horizon
-
-        alg_run = "PPO"
-
-        agent_cls = get_agent_class(alg_run)
-        config = deepcopy(agent_cls._default_config)
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
