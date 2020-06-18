@@ -36,7 +36,7 @@ def get_table_disk(table_name="fact_vehicle_trace", bucket="circles.data.pipelin
 
     Parameters
     ----------
-    table_name: str
+    table_name : str
         The name of table to retrieve from S3, the current available tables are:
             fact_vehicle_trace
             fact_energy_trace
@@ -53,12 +53,12 @@ def get_table_disk(table_name="fact_vehicle_trace", bucket="circles.data.pipelin
         avoid burdening the web server with more calculation. The date
         and source_id in its name is always going to reflect the latest
         leaderboard_chart entry.
-    bucket: str
+    bucket : str
         the S3 bucket that holds these tables
     """
     try:
         os.makedirs("result/{}".format(table_name))
-    except FileExistsError as e:
+    except FileExistsError:
         pass
     s3 = boto3.client("s3")
     response = s3.list_objects_v2(Bucket=bucket)

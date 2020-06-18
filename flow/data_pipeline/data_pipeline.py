@@ -15,13 +15,14 @@ def generate_trajectory_table(data_path, extra_info, partition_name):
     ----------
     data_path : str
         path to the standard SUMO emission
-    extra_info: dict
+    extra_info : dict
         extra information needed in the trajectory table, collected from flow
-    partition_name: str
+    partition_name : str
         the name of the partition to put this output to
+
     Returns
     -------
-    output_file_path: str
+    output_file_path : str
         the local path of the outputted csv file
     """
     raw_output = pd.read_csv(data_path, index_col=["time", "id"])
@@ -157,18 +158,17 @@ def update_baseline(s3, baseline_network, baseline_source_id):
 
 
 class AthenaQuery:
-    """
-    Class used to run query.
+    """Class used to run queries.
 
     Act as a query engine, maintains an open session with AWS Athena.
 
     Attributes
     ----------
-    MAX_WAIT: int
+    MAX_WAIT : int
         maximum number of seconds to wait before declares time-out
-    client: boto3.client
+    client : boto3.client
         the athena client that is used to run the query
-    existing_partitions: list
+    existing_partitions : list
         a list of partitions that is already recorded in Athena's datalog,
         this is obtained through query at the initialization of this class
         instance.

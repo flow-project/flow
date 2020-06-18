@@ -2,26 +2,64 @@
 from enum import Enum
 
 # tags for different queries
-tags = {"fact_vehicle_trace": {"fact_energy_trace": ["POWER_DEMAND_MODEL", "POWER_DEMAND_MODEL_DENOISED_ACCEL",
-                               "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"],
-                               "fact_network_throughput_agg": ["FACT_NETWORK_THROUGHPUT_AGG"],
-                               "fact_network_inflows_outflows": ["FACT_NETWORK_INFLOWS_OUTFLOWS"]},
-        "fact_energy_trace": {},
-        "POWER_DEMAND_MODEL_DENOISED_ACCEL": {"fact_vehicle_fuel_efficiency_agg": ["FACT_VEHICLE_FUEL_EFFICIENCY_AGG"],
-                                              "fact_network_metrics_by_distance_agg":
-                                                  ["FACT_NETWORK_METRICS_BY_DISTANCE_AGG"],
-                                              "fact_network_metrics_by_time_agg": ["FACT_NETWORK_METRICS_BY_TIME_AGG"]},
-        "POWER_DEMAND_MODEL": {},
-        "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL": {},
-        "fact_vehicle_fuel_efficiency_agg": {"fact_network_fuel_efficiency_agg": ["FACT_NETWORK_FUEL_EFFICIENCY_AGG"]},
-        "fact_network_fuel_efficiency_agg": {"leaderboard_chart": ["LEADERBOARD_CHART"]},
-        "leaderboard_chart": {"leaderboard_chart_agg": ["LEADERBOARD_CHART_AGG"]}
-        }
+tags = {
+    "fact_vehicle_trace": {
+        "fact_energy_trace": [
+            "POWER_DEMAND_MODEL",
+            "POWER_DEMAND_MODEL_DENOISED_ACCEL",
+            "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"
+        ],
+        "fact_network_throughput_agg": [
+            "FACT_NETWORK_THROUGHPUT_AGG"
+        ],
+        "fact_network_inflows_outflows": [
+            "FACT_NETWORK_INFLOWS_OUTFLOWS"
+        ]
+    },
+    "fact_energy_trace": {},
+    "POWER_DEMAND_MODEL_DENOISED_ACCEL": {
+        "fact_vehicle_fuel_efficiency_agg": [
+            "FACT_VEHICLE_FUEL_EFFICIENCY_AGG"
+        ],
+        "fact_network_metrics_by_distance_agg": [
+            "FACT_NETWORK_METRICS_BY_DISTANCE_AGG"
+        ],
+        "fact_network_metrics_by_time_agg": [
+            "FACT_NETWORK_METRICS_BY_TIME_AGG"
+        ]
+    },
+    "POWER_DEMAND_MODEL": {},
+    "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL": {},
+    "fact_vehicle_fuel_efficiency_agg": {
+        "fact_network_fuel_efficiency_agg": [
+            "FACT_NETWORK_FUEL_EFFICIENCY_AGG"
+        ]
+    },
+    "fact_network_fuel_efficiency_agg": {
+        "leaderboard_chart": [
+            "LEADERBOARD_CHART"
+        ]
+    },
+    "leaderboard_chart": {
+        "leaderboard_chart_agg": [
+            "LEADERBOARD_CHART_AGG"
+        ]
+    }
+}
 
-tables = ["fact_vehicle_trace", "fact_energy_trace", "fact_network_throughput_agg", "fact_network_inflows_outflows",
-          "fact_vehicle_fuel_efficiency_agg", "fact_network_metrics_by_distance_agg",
-          "fact_network_metrics_by_time_agg", "fact_network_fuel_efficiency_agg", "leaderboard_chart",
-          "leaderboard_chart_agg", "metadata_table"]
+tables = [
+    "fact_vehicle_trace",
+    "fact_energy_trace",
+    "fact_network_throughput_agg",
+    "fact_network_inflows_outflows",
+    "fact_vehicle_fuel_efficiency_agg",
+    "fact_network_metrics_by_distance_agg",
+    "fact_network_metrics_by_time_agg",
+    "fact_network_fuel_efficiency_agg",
+    "leaderboard_chart",
+    "leaderboard_chart_agg",
+    "metadata_table"
+]
 
 network_using_edge = ["I-210 without Ramps"]
 
@@ -191,7 +229,7 @@ class QueryStrings(Enum):
 
     FACT_VEHICLE_FUEL_EFFICIENCY_AGG = """
         WITH sub_fact_vehicle_trace AS (
-            SELECT 
+            SELECT
                 v.id,
                 v.source_id,
                 e.energy_model_id,
@@ -268,7 +306,7 @@ class QueryStrings(Enum):
 
     FACT_NETWORK_INFLOWS_OUTFLOWS = """
         WITH min_max_time_step AS (
-            SELECT 
+            SELECT
                 id,
                 source_id,
                 MIN(time_step) AS min_time_step,
@@ -307,10 +345,10 @@ class QueryStrings(Enum):
             COALESCE(i.source_id, o.source_id) AS source_id,
             COALESCE(i.inflow_rate, 0) AS inflow_rate,
             COALESCE(o.outflow_rate, 0) AS outflow_rate
-        FROM inflows i 
+        FROM inflows i
         FULL OUTER JOIN outflows o ON 1 = 1
-            AND i.time_step = o.time_step 
-            AND i.source_id = o.source_id 
+            AND i.time_step = o.time_step
+            AND i.source_id = o.source_id
         ORDER BY time_step
         ;"""
 
@@ -330,7 +368,7 @@ class QueryStrings(Enum):
                 SUM(power)
                     OVER (PARTITION BY vt.id, vt.source_id ORDER BY vt.time_step ASC
                     ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS cumulative_power
-            FROM fact_vehicle_trace vt 
+            FROM fact_vehicle_trace vt
             JOIN fact_energy_trace et ON 1 = 1
                 AND et.date = \'{date}\'
                 AND et.partition_name = \'{partition}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
@@ -408,7 +446,7 @@ class QueryStrings(Enum):
             COALESCE(be.instantaneous_energy_avg, 0) AS instantaneous_energy_avg,
             COALESCE(be.instantaneous_energy_upper_bound, 0) AS instantaneous_energy_upper_bound,
             COALESCE(be.instantaneous_energy_lower_bound, 0) AS instantaneous_energy_lower_bound
-        FROM binned_cumulative_energy bce 
+        FROM binned_cumulative_energy bce
         JOIN binned_energy be ON 1 = 1
             AND bce.source_id = be.source_id
             AND bce.distance_meters_bin = be.distance_meters_bin
@@ -430,7 +468,7 @@ class QueryStrings(Enum):
                 SUM(power)
                     OVER (PARTITION BY vt.id, vt.source_id ORDER BY vt.time_step ASC
                     ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS cumulative_power
-            FROM fact_vehicle_trace vt 
+            FROM fact_vehicle_trace vt
             JOIN fact_energy_trace et ON 1 = 1
                 AND et.date = \'{date}\'
                 AND et.partition_name = \'{partition}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
@@ -507,7 +545,7 @@ class QueryStrings(Enum):
             COALESCE(be.instantaneous_energy_avg, 0) AS instantaneous_energy_avg,
             COALESCE(be.instantaneous_energy_upper_bound, 0) AS instantaneous_energy_upper_bound,
             COALESCE(be.instantaneous_energy_lower_bound, 0) AS instantaneous_energy_lower_bound
-        FROM binned_cumulative_energy bce 
+        FROM binned_cumulative_energy bce
         JOIN binned_energy be ON 1 = 1
             AND bce.source_id = be.source_id
             AND bce.time_seconds_bin = be.time_seconds_bin

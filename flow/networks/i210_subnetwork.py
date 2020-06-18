@@ -65,6 +65,26 @@ class I210SubNetwork(Network):
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
 
+        # The length of each edge and junction is a fixed term that can be
+        # found in the xml file.
+        self.length_with_ghost_edge = [
+            ("ghost0", 573.08),
+            (":300944378_0", 0.30),
+            ("119257914", 61.28),
+            (":300944379_0", 0.31),
+            ("119257908#0", 696.97),
+            (":300944436_0", 2.87),
+            ("119257908#1-AddedOnRampEdge", 97.20),
+            (":119257908#1-AddedOnRampNode_0", 3.24),
+            ("119257908#1", 239.68),
+            (":119257908#1-AddedOffRampNode_0", 3.24),
+            ("119257908#1-AddedOffRampEdge", 98.50),
+            (":1686591010_1", 5.46),
+            ("119257908#2", 576.61),
+            (":1842086610_1", 4.53),
+            ("119257908#3", 17.49),
+        ]
+
         super(I210SubNetwork, self).__init__(
             name=name,
             vehicles=vehicles,
@@ -196,3 +216,71 @@ class I210SubNetwork(Network):
             })
 
         return rts
+
+    def specify_edge_starts(self):
+        """See parent class."""
+        if self.net_params.additional_params["ghost_edge"]:
+            # Collect the names of all the edges.
+            edge_names = [
+                e[0] for e in self.length_with_ghost_edge
+                if not e[0].startswith(":")
+            ]
+
+            edge_starts = []
+            for edge in edge_names:
+                # Find the position of the edge in the list of tuples.
+                edge_pos = next(
+                    i for i in range(len(self.length_with_ghost_edge))
+                    if self.length_with_ghost_edge[i][0] == edge
+                )
+
+                # Sum of lengths until the edge is reached to compute the
+                # starting position of the edge.
+                edge_starts.append((
+                    edge,
+                    sum(e[1] for e in self.length_with_ghost_edge[:edge_pos])
+                ))
+
+        elif self.net_params.additional_params["on_ramp"]:
+            # TODO: this will incorporated in the future, if needed.
+            edge_starts = []
+
+        else:
+            # TODO: this will incorporated in the future, if needed.
+            edge_starts = []
+
+        return edge_starts
+
+    def specify_internal_edge_starts(self):
+        """See parent class."""
+        if self.net_params.additional_params["ghost_edge"]:
+            # Collect the names of all the junctions.
+            edge_names = [
+                e[0] for e in self.length_with_ghost_edge
+                if e[0].startswith(":")
+            ]
+
+            edge_starts = []
+            for edge in edge_names:
+                # Find the position of the edge in the list of tuples.
+                edge_pos = next(
+                    i for i in range(len(self.length_with_ghost_edge))
+                    if self.length_with_ghost_edge[i][0] == edge
+                )
+
+                # Sum of lengths until the edge is reached to compute the
+                # starting position of the edge.
+                edge_starts.append((
+                    edge,
+                    sum(e[1] for e in self.length_with_ghost_edge[:edge_pos])
+                ))
+
+        elif self.net_params.additional_params["on_ramp"]:
+            # TODO: this will incorporated in the future, if needed.
+            edge_starts = []
+
+        else:
+            # TODO: this will incorporated in the future, if needed.
+            edge_starts = []
+
+        return edge_starts

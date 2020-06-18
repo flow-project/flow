@@ -1,9 +1,10 @@
 """Contains the base acceleration controller class."""
 
+from abc import ABCMeta, abstractmethod
 import numpy as np
 
 
-class BaseController:
+class BaseController(metaclass=ABCMeta):
     """Base class for flow-controlled acceleration behavior.
 
     Instantiates a controller and forces the user to pass a
@@ -76,9 +77,10 @@ class BaseController:
 
         self.car_following_params = car_following_params
 
+    @abstractmethod
     def get_accel(self, env):
         """Return the acceleration of the controller."""
-        raise NotImplementedError
+        pass
 
     def get_action(self, env):
         """Convert the get_accel() acceleration into an action.
@@ -132,15 +134,20 @@ class BaseController:
         if self.fail_safe is not None:
             for check in self.fail_safe:
                 if check == 'instantaneous':
-                    accel_no_noise_with_failsafe = self.get_safe_action_instantaneous(env, accel_no_noise_with_failsafe)
+                    accel_no_noise_with_failsafe = self.get_safe_action_instantaneous(
+                        env, accel_no_noise_with_failsafe)
                 elif check == 'safe_velocity':
-                    accel_no_noise_with_failsafe = self.get_safe_velocity_action(env, accel_no_noise_with_failsafe)
+                    accel_no_noise_with_failsafe = self.get_safe_velocity_action(
+                        env, accel_no_noise_with_failsafe)
                 elif check == 'feasible_accel':
-                    accel_no_noise_with_failsafe = self.get_feasible_action(accel_no_noise_with_failsafe)
+                    accel_no_noise_with_failsafe = self.get_feasible_action(
+                        accel_no_noise_with_failsafe)
                 elif check == 'obey_speed_limit':
-                    accel_no_noise_with_failsafe = self.get_obey_speed_limit_action(env, accel_no_noise_with_failsafe)
+                    accel_no_noise_with_failsafe = self.get_obey_speed_limit_action(
+                        env, accel_no_noise_with_failsafe)
 
-        env.k.vehicle.update_accel_no_noise_with_failsafe(self.veh_id, accel_no_noise_with_failsafe)
+        env.k.vehicle.update_accel_no_noise_with_failsafe(
+            self.veh_id, accel_no_noise_with_failsafe)
 
         # add noise to the accelerations, if requested
         if self.accel_noise > 0:
@@ -284,9 +291,9 @@ class BaseController:
 
         v_safe = 2 * h / env.sim_step + dv - this_vel * (2 * self.delay)
 
-        # check for speed limit
-        this_edge = env.k.vehicle.get_edge(self.veh_id)
-        edge_speed_limit = env.k.network.speed_limit(this_edge)
+        # check for speed limit  FIXME: this is not called
+        # this_edge = env.k.vehicle.get_edge(self.veh_id)
+        # edge_speed_limit = env.k.network.speed_limit(this_edge)
 
         if this_vel > v_safe:
             print(

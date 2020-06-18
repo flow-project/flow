@@ -1,5 +1,4 @@
 """Contains an experiment class for running simulations."""
-from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
 from flow.data_pipeline.leaderboard_utils import network_name_translate
@@ -170,6 +169,8 @@ class Experiment:
 
         if convert_to_csv and self.env.simulator == "traci":
             dir_path = self.env.sim_params.emission_path
+
+        if not dir_path is None:
             trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
             metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
 
@@ -195,7 +196,7 @@ class Experiment:
                 get_extra_info(self.env.k.vehicle, extra_info, veh_ids, source_id, run_id)
 
                 # write to disk every 100 steps
-                if convert_to_csv and self.env.simulator == "traci" and j % 200 == 0:
+                if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0 and not dir_path is None:
                     write_dict_to_csv(trajectory_table_path, extra_info, not j)
                     extra_info.clear()
 
@@ -242,7 +243,7 @@ class Experiment:
 
             write_dict_to_csv(trajectory_table_path, extra_info)
             write_dict_to_csv(metadata_table_path, metadata, True)
-            
+
             if to_aws:
                 upload_to_s3('circles.data.pipeline',
                              'metadata_table/date={0}/partition_name={1}_METADATA/{1}_METADATA.csv'.format(cur_date,
