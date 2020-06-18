@@ -66,30 +66,33 @@ def main():
         help='Name of the experiment configuration file, as located in '
              'exp_configs/rl/singleagent or exp_configs/rl/multiagent.')
 
-    parser.add_argument('--ep_len', type=int, default=5000, help='Max length of episodes for rollouts.')
 
+    # rollout collection params
+    parser.add_argument('--ep_len', type=int, default=5000, help='Max length of episodes for rollouts.')
     parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1000, help='Number of gradient steps for training policy.')  # number of gradient steps for training policy
     parser.add_argument('--n_iter', type=int, default=3, help='Number of DAgger iterations to run (1st iteration is behavioral cloning')
+    parser.add_argument('--multiagent', type=bool, default=False, help='If true, env is multiagent.')
+    parser.add_argument('--v_des', type=float, default=15, help='Desired velocity for follower-stopper')
+    parser.add_argument('--num_eval_episodes', type=int, default=0, help='Number of episodes on which to evaluate imitation model')
 
+    # imitation training params
     parser.add_argument('--batch_size', type=int, default=1000, help='Number of environment steps to collect in iteration of DAgger')
     parser.add_argument('--init_batch_size', type=int, default=2000, help='Number of environment steps to collect on 1st iteration of DAgger (behavioral cloning iteration)')
     parser.add_argument('--vf_batch_size', type=int, default=2000, help='Number of environment steps to collect to learn value function for a policy')
     parser.add_argument('--num_vf_iters', type=int, default=100, help='Number of iterations to run vf training') # TODO: better help description for this
-
-    parser.add_argument('--train_batch_size', type=int, default=100, help='Batch size to train on')
+    parser.add_argument('--train_batch_size', type=int, default=100, help='Batch size for SGD')
+    parser.add_argument('--stochastic', type=bool, default=False, help='If true, learn a stochastic policy (MV Gaussian)')
+    parser.add_argument('--variance_regularizer', type=float, default=0.5, help='Regularization hyperparameter to penalize variance in imitation learning loss, for stochastic policies.')
+    parser.add_argument('--replay_buffer_size', type=int, default=1000000, help='Max size of replay buffer')
 
     parser.add_argument('--load_imitation_model', type=bool, default=False, help='Whether to load an existin imitation neural net')
     parser.add_argument('--load_imitation_path', type=str, default='', help='Path to h5 file from which to load existing imitation neural net')
-    parser.add_argument('--tensorboard_path', type=str, default='/tensorboard/', help='Path to which tensorboard events should be written.')
-    parser.add_argument('--replay_buffer_size', type=int, default=1000000, help='Max size of replay buffer')
+    parser.add_argument('--save_model', type=int, default=0, help='If true, save both imitation model and PPO model in h5 format')
     parser.add_argument('--imitation_save_path', type=str, default='', help='Filepath to h5 file in which imitation model should be saved')
     parser.add_argument('--PPO_save_path', type=str, default='', help='Filepath to h5 file in which PPO model with copied weights should be saved')
-    parser.add_argument('--save_model', type=int, default=0, help='If true, save models in h5 format')
-    parser.add_argument('--num_eval_episodes', type=int, default=0, help='Number of episodes on which to evaluate imitation model')
-    parser.add_argument('--stochastic', type=bool, default=False, help='If true, learn a stochastic policy (MV Gaussian)')
-    parser.add_argument('--multiagent', type=bool, default=False, help='If true, env is multiagent.')
-    parser.add_argument('--v_des', type=float, default=15, help='Desired velocity for follower-stopper')
-    parser.add_argument('--variance_regularizer', type=float, default=0.5, help='Regularization hyperparameter to penalize variance in imitation learning loss, for stochastic policies.')
+
+    # misc params
+    parser.add_argument('--tensorboard_path', type=str, default='/tensorboard/', help='Path to which tensorboard events should be written.')
 
     args = parser.parse_args()
 
