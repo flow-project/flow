@@ -442,8 +442,7 @@ def miles_per_gallon(env, veh_ids=None, gain=.001):
 
     return mpg * gain
 
-
-def instantaneous_power(env, veh_ids=None, gain=.001):
+def instantaneous_power(env, veh_ids=None, parameter=None, gain=.001):
     """Calculate the instantaneous power for every simulation step specific to the vehicle type.
 
     The energy model used is based on the vehicle type:
@@ -469,24 +468,10 @@ def instantaneous_power(env, veh_ids=None, gain=.001):
         veh_ids = [veh_ids]
     for veh_id in veh_ids:
         speed = env.k.vehicle.get_speed(veh_id)
-        prev_speed = env.k.vehicle.get_previous_speed(veh_id)
-        # negative acceleration indicates regenerative breaking for some energy models
-        accel = (speed - prev_speed) / env.sim_step
+        accel = env.k.vehicle.get_accel_no_noise_with_failsafe(veh_id)
         grade = 0
+        # need to pass the parameter value to the init of the energy models ?????
+        inst_power = energy_model(accel, speed, grade)
+        
 
-        parameter = None
-        # determine which energy model to use
-        if veh_id is "Prius":
-            energy_model = env.k.PriusEnergy
-            initial_soc = 0.9
-            parameter = initial_soc
-        elif veh_id is "Tacoma":
-            energy_model = env.k.TacomaEnergy
-        elif veh_id is "EV":
-            energy_model = env.k.PDMElectric
-        else:
-            energy_model = env.k.PDMCombustionEngine
-        
-        inst_power = energy_model.get_instantaneous_power(parameter, accel, speed, grade)
-        
     return inst_power
