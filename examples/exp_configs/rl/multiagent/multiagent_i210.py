@@ -18,51 +18,70 @@ from flow.core.params import InitialConfig
 from flow.core.params import InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
+from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoLaneChangeParams
 from flow.core.rewards import energy_consumption
 from flow.envs.multiagent.i210 import I210MultiEnv, ADDITIONAL_ENV_PARAMS
 from flow.utils.registry import make_create_env
+from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 
-# SET UP PARAMETERS FOR THE SIMULATION
-WANT_GHOST_CELL = True
-# WANT_DOWNSTREAM_BOUNDARY = True
+# =========================================================================== #
+# Specify some configurable constants.                                        #
+# =========================================================================== #
+
+# whether to include the downstream slow-down edge in the network as well as a ghost cell at the upstream edge
+WANT_BOUNDARY_CONDITIONS = True
+# whether to include vehicles on the on-ramp
 ON_RAMP = False
+# the inflow rate of vehicles (in veh/hr)
+INFLOW_RATE = 2050
+# the speed of inflowing vehicles from the main edge (in m/s)
+INFLOW_SPEED = 25.5
+# fraction of vehicles that are RL vehicles. 0.10 corresponds to 10%
 PENETRATION_RATE = 0.10
+# desired speed of the vehicles in the network
 V_DES = 5.0
-HORIZON = 1000
+# horizon over which to run the env
+HORIZON = 1500
+# steps to run before follower-stopper is allowed to take control
 WARMUP_STEPS = 600
+# whether to turn off the fail safes for the human-driven vehicles
+ALLOW_COLLISIONS = False
 
-inflow_rate = 2050
-inflow_speed = 25.5
+# =========================================================================== #
+# Specify the path to the network template.                                   #
+# =========================================================================== #
 
-accel_data = (IDMController, {'a': 1.3, 'b': 2.0, 'noise': 0.3})
-
-VEH_PER_HOUR_BASE_119257914 = 10800
-VEH_PER_HOUR_BASE_27414345 = 321
-VEH_PER_HOUR_BASE_27414342 = 421
-
-if WANT_GHOST_CELL:
-    from flow.networks.i210_subnetwork_ghost_cell import I210SubNetworkGhostCell, EDGES_DISTRIBUTION
-
-    edges_distribution = EDGES_DISTRIBUTION
-    highway_start_edge = 'ghost0'
+if WANT_BOUNDARY_CONDITIONS:
+    NET_TEMPLATE = os.path.join(
+        config.PROJECT_PATH,
+        "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_"
+        "downstream.xml")
 else:
-    from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
-    edges_distribution = EDGES_DISTRIBUTION
-    highway_start_edge = "119257914"
+    NET_TEMPLATE = os.path.join(
+        config.PROJECT_PATH,
+        "examples/exp_configs/templates/sumo/test2.net.xml")
+edges_distribution = EDGES_DISTRIBUTION.copy()
 
-# SET UP PARAMETERS FOR THE ENVIRONMENT
+# =========================================================================== #
+# Set up parameters for the environment.                                      #
+# =========================================================================== #
+
 additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
 additional_env_params.update({
     'max_accel': 2.6,
     'max_decel': 4.5,
-    # configure the observation space. Look at the I210MultiEnv class for more info.
+
+    # configure the observation space. Look at the I210MultiEnv class for more
+    # info.
     'lead_obs': True,
     # whether to add in a reward for the speed of nearby vehicles
     "local_reward": True,
-    # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
+    # whether to use the MPG reward. Otherwise, defaults to a target velocity
+    # reward
     "mpg_reward": False,
-    # whether to use the MPJ reward. Otherwise, defaults to a target velocity reward
+    # whether to use the MPJ reward. Otherwise, defaults to a target velocity
+    # reward
     "mpj_reward": False,
     # how many vehicles to look back for any reward
     "look_back_length": 3,
@@ -74,7 +93,8 @@ additional_env_params.update({
     # which edges we shouldn't apply control on
     "no_control_edges": ["ghost0", "119257908#3"],
 
-    # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
+    # whether to add a slight reward for opening up a gap that will be annealed
+    # out N iterations in
     "headway_curriculum": False,
     # how many timesteps to anneal the headway curriculum over
     "headway_curriculum_iters": 100,
@@ -98,144 +118,85 @@ additional_env_params.update({
     "accel_penalty": 0.1
 })
 
-# CREATE VEHICLE TYPES AND INFLOWS
-# no vehicles in the network
+# =========================================================================== #
+# Specify vehicle-specific information and inflows.                           #
+# =========================================================================== #
+
+# create the base vehicle types that will be used for inflows
 vehicles = VehicleParams()
-
-inflow = InFlows()
-
 if ON_RAMP:
     vehicles.add(
         "human",
         num_vehicles=0,
-        color="white",
+        routing_controller=(I210Router, {}),
+        acceleration_controller=(IDMController, {
+            'a': 1.3,
+            'b': 2.0,
+            'noise': 0.3
+        }),
+        car_following_params=SumoCarFollowingParams(
+            speed_mode=19 if ALLOW_COLLISIONS else 'right_of_way'
+        ),
         lane_change_params=SumoLaneChangeParams(
             lane_change_mode="strategic",
         ),
-        acceleration_controller=accel_data,
-        routing_controller=(I210Router, {})
     )
-    if PENETRATION_RATE > 0.0:
-        vehicles.add(
-            "av",
-            num_vehicles=0,
-            color="red",
-            acceleration_controller=(RLController, {}),
-            routing_controller=(I210Router, {})
-        )
-
-    # inflow.add(
-    #     veh_type="human",
-    #     edge=highway_start_edge,
-    #     vehs_per_hour=inflow_rate,
-    #     departLane="best",
-    #     departSpeed=inflow_speed)
-
-    lane_list = ['0', '1', '2', '3', '4']
-
-    for lane in lane_list:
-        inflow.add(
-            veh_type="human",
-            edge=highway_start_edge,
-            vehs_per_hour=int(inflow_rate * (1 - PENETRATION_RATE)),
-            departLane=lane,
-            departSpeed=inflow_speed)
-
-    inflow.add(
-        veh_type="human",
-        edge="27414345",
-        vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
-        departLane="random",
-        departSpeed=10)
-    inflow.add(
-        veh_type="human",
-        edge="27414342#0",
-        vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
-        departLane="random",
-        departSpeed=10)
-
-    if PENETRATION_RATE > 0.0:
-        for lane in lane_list:
-            inflow.add(
-                veh_type="av",
-                edge=highway_start_edge,
-                vehs_per_hour=int(inflow_rate * PENETRATION_RATE),
-                departLane=lane,
-                departSpeed=inflow_speed)
-
-        inflow.add(
-            veh_type="av",
-            edge="27414345",
-            vehs_per_hour=int(500 * PENETRATION_RATE),
-            departLane="random",
-            departSpeed=10)
-        inflow.add(
-            veh_type="av",
-            edge="27414342#0",
-            vehs_per_hour=int(500 * PENETRATION_RATE),
-            departLane="random",
-            departSpeed=10)
-
 else:
-    # create the base vehicle type that will be used for inflows
     vehicles.add(
         "human",
         num_vehicles=0,
+        acceleration_controller=(IDMController, {
+            'a': 1.3,
+            'b': 2.0,
+            'noise': 0.3
+        }),
+        car_following_params=SumoCarFollowingParams(
+            speed_mode=19 if ALLOW_COLLISIONS else 'right_of_way'
+        ),
         lane_change_params=SumoLaneChangeParams(
             lane_change_mode="strategic",
         ),
-        acceleration_controller=accel_data,
     )
-    if PENETRATION_RATE > 0.0:
-        vehicles.add(
-            "av",
-            color="red",
-            num_vehicles=0,
-            acceleration_controller=(RLController, {}),
-        )
+vehicles.add(
+    "av",
+    num_vehicles=0,
+    acceleration_controller=(RLController, {}),
+)
 
-    # If you want to turn off the fail safes uncomment this:
+inflow = InFlows()
+for lane in [0, 1, 2, 3, 4]:
+    # Add the inflows from the main highway.
+    inflow.add(
+        veh_type="human",
+        edge="119257914",
+        vehs_per_hour=int(INFLOW_RATE * (1 - PENETRATION_RATE)),
+        departLane=lane,
+        departSpeed=INFLOW_SPEED)
+    inflow.add(
+        veh_type="av",
+        edge="119257914",
+        vehs_per_hour=int(INFLOW_RATE * PENETRATION_RATE),
+        departLane=lane,
+        departSpeed=INFLOW_SPEED)
 
-    # vehicles.add(
-    #     'human',
-    #     num_vehicles=0,
-    #     lane_change_params=SumoLaneChangeParams(
-    #         lane_change_mode='strategic',
-    #     ),
-    #     acceleration_controller=accel_data,
-    #     car_following_params=SumoCarFollowingParams(speed_mode='19')
-    # )
-
-    lane_list = ['0', '1', '2', '3', '4']
-
-    for lane in lane_list:
+    # Add the inflows from the on-ramps.
+    if ON_RAMP:
         inflow.add(
             veh_type="human",
-            edge=highway_start_edge,
-            vehs_per_hour=int(inflow_rate * (1 - PENETRATION_RATE)),
-            departLane=lane,
-            departSpeed=inflow_speed)
+            edge="27414345",
+            vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
+            departLane="random",
+            departSpeed=10)
+        inflow.add(
+            veh_type="human",
+            edge="27414342#0",
+            vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
+            departLane="random",
+            departSpeed=10)
 
-    if PENETRATION_RATE > 0.0:
-        for lane in lane_list:
-            inflow.add(
-                veh_type="av",
-                edge=highway_start_edge,
-                vehs_per_hour=int(inflow_rate * PENETRATION_RATE),
-                departLane=lane,
-                departSpeed=inflow_speed)
-
-
-network_xml_file = "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_downstream_test.xml"
-
-# network_xml_file = "examples/exp_configs/templates/sumo/i210_with_congestion.xml"
-
-NET_TEMPLATE = os.path.join(config.PROJECT_PATH, network_xml_file)
-
-if WANT_GHOST_CELL:
-    network = I210SubNetworkGhostCell
-else:
-    network = I210SubNetwork
+# =========================================================================== #
+# Generate the flow_params dict with all relevant simulation information.     #
+# =========================================================================== #
 
 flow_params = dict(
     # name of the experiment
@@ -245,7 +206,7 @@ flow_params = dict(
     env_name=I210MultiEnv,
 
     # name of the network class the experiment is running on
-    network=network,
+    network=I210SubNetwork,
 
     # simulator that is used by the experiment
     simulator='traci',
@@ -276,7 +237,7 @@ flow_params = dict(
         template=NET_TEMPLATE,
         additional_params={
             "on_ramp": ON_RAMP,
-            "ghost_edge": WANT_GHOST_CELL
+            "ghost_edge": WANT_BOUNDARY_CONDITIONS
         }
     ),
 
@@ -291,14 +252,16 @@ flow_params = dict(
     ),
 )
 
-# SET UP RLLIB MULTI-AGENT FEATURES
+# =========================================================================== #
+# Set up rllib multi-agent features.                                          #
+# =========================================================================== #
 
 create_env, env_name = make_create_env(params=flow_params, version=0)
 
 # register as rllib env
 register_env(env_name, create_env)
 
-# multiagent configuration
+# multi-agent configuration
 test_env = create_env()
 obs_space = test_env.observation_space
 act_space = test_env.action_space
@@ -314,9 +277,12 @@ def policy_mapping_fn(_):
 
 
 custom_callables = {
-    "avg_speed": lambda env: np.mean([speed for speed in
-                                      env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
-    "avg_outflow": lambda env: np.nan_to_num(env.k.vehicle.get_outflow_rate(120)),
-    "avg_energy": lambda env: -1*energy_consumption(env, 0.1),
-    "avg_per_step_energy": lambda env: -1*energy_consumption(env, 0.1) / env.k.vehicle.num_vehicles,
+    "avg_speed": lambda env: np.mean([
+        speed for speed in
+        env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
+    "avg_outflow": lambda env: np.nan_to_num(
+        env.k.vehicle.get_outflow_rate(120)),
+    "avg_energy": lambda env: -1 * energy_consumption(env, 0.1),
+    "avg_per_step_energy": lambda env: -1 * energy_consumption(
+        env, 0.1) / env.k.vehicle.num_vehicles,
 }

@@ -164,7 +164,7 @@ class Experiment:
         metadata['is_baseline'].append(str(is_baseline))
 
         dir_path = self.env.sim_params.emission_path
-        if dir_path:
+        if not dir_path is None:
             trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
             metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
 
@@ -190,7 +190,7 @@ class Experiment:
                 extra_info["run_id"].extend(['run_{}'.format(i)] * len(veh_ids))
 
                 # write to disk every 100 steps
-                if self.env.sim_params.emission_path and convert_to_csv and self.env.simulator == "traci" and j % 100 == 0:
+                if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0 and not dir_path is None:
                     write_dict_to_csv(trajectory_table_path, extra_info, not j)
                     extra_info.clear()
 
