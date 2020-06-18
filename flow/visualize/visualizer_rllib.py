@@ -314,7 +314,6 @@ def visualizer_rllib(args):
 
     print('Average, std miles per megajoule: {}, {}'.format(np.mean(mpj), np.std(mpj)))
 
-
     # Compute arrival rate of vehicles in the last 500 sec of the run
     print("\nOutflows (veh/hr):")
     print(final_outflows)

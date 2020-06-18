@@ -24,10 +24,10 @@ END_SPEED = 6.0
 # the inflow rate of vehicles
 TRAFFIC_FLOW = 2215
 # the simulation time horizon (in steps)
-HORIZON = 1000
+HORIZON = 1500
 # whether to include noise in the car-following models
 INCLUDE_NOISE = True
-
+# penetration rate of the follower-stopper vehicles
 PENETRATION_RATE = 10.0
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
@@ -40,11 +40,12 @@ additional_net_params.update({
     "speed_limit": 30,
     # number of edges to divide the highway into
     "num_edges": 2,
-    # whether to include a ghost edge
+    # whether to include a ghost edge. This edge is provided a different speed
+    # limit.
     "use_ghost_edge": True,
     # speed limit for the ghost edge
     "ghost_speed_limit": END_SPEED,
-    # length of the cell imposing a boundary
+    # length of the downstream ghost edge with the reduced speed limit
     "boundary_cell_length": 300,
 })
 
@@ -65,13 +66,15 @@ vehicles.add(
     ),
 )
 
-
 if PENETRATION_RATE > 0.0:
     vehicles.add(
         "av",
         color='red',
         num_vehicles=0,
-        acceleration_controller=(FollowerStopper, {"v_des": 5.0, "control_length": [500, 2300]}),
+        acceleration_controller=(FollowerStopper, {
+            "v_des": 5.0,
+            "control_length": [500, 2300]
+        }),
     )
 
 inflows = InFlows()
@@ -119,8 +122,8 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.4,
         render=False,
-        restart_instance=False,
-        use_ballistic=True
+        use_ballistic=True,
+        restart_instance=False
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the

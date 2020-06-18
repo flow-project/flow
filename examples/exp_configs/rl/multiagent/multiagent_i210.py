@@ -19,9 +19,7 @@ from flow.core.params import InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
-from flow.core.params import SumoCarFollowingParams
 from flow.core.rewards import energy_consumption
-from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 from flow.envs.multiagent.i210 import I210MultiEnv, ADDITIONAL_ENV_PARAMS
 from flow.utils.registry import make_create_env
 
@@ -226,7 +224,7 @@ else:
                 departSpeed=inflow_speed)
 
 
-network_xml_file = "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_downstream_test.xml"
+network_xml_file = "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_downstream.xml"
 
 # network_xml_file = "examples/exp_configs/templates/sumo/i210_with_congestion.xml"
 
@@ -314,9 +312,12 @@ def policy_mapping_fn(_):
 
 
 custom_callables = {
-    "avg_speed": lambda env: np.mean([speed for speed in
-                                      env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
-    "avg_outflow": lambda env: np.nan_to_num(env.k.vehicle.get_outflow_rate(120)),
-    "avg_energy": lambda env: -1*energy_consumption(env, 0.1),
-    "avg_per_step_energy": lambda env: -1*energy_consumption(env, 0.1) / env.k.vehicle.num_vehicles,
+    "avg_speed": lambda env: np.mean([
+        speed for speed in
+        env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
+    "avg_outflow": lambda env: np.nan_to_num(
+        env.k.vehicle.get_outflow_rate(120)),
+    "avg_energy": lambda env: -1 * energy_consumption(env, 0.1),
+    "avg_per_step_energy": lambda env: -1 * energy_consumption(
+        env, 0.1) / env.k.vehicle.num_vehicles,
 }
