@@ -133,22 +133,39 @@ additional_env_params.update({
 
 # create the base vehicle types that will be used for inflows
 vehicles = VehicleParams()
-vehicles.add(
-    "human",
-    num_vehicles=0,
-    routing_controller=(I210Router, {}),
-    acceleration_controller=(IDMController, {
-        'a': 1.3,
-        'b': 2.0,
-        'noise': 0.3
-    }),
-    car_following_params=SumoCarFollowingParams(
-        speed_mode=19 if ALLOW_COLLISIONS else 'right_of_way'
-    ),
-    lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="strategic",
-    ),
-)
+if ON_RAMP:
+    vehicles.add(
+        "human",
+        num_vehicles=0,
+        routing_controller=(I210Router, {}),
+        acceleration_controller=(IDMController, {
+            'a': 1.3,
+            'b': 2.0,
+            'noise': 0.3
+        }),
+        car_following_params=SumoCarFollowingParams(
+            speed_mode=19 if ALLOW_COLLISIONS else 'right_of_way'
+        ),
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode="strategic",
+        ),
+    )
+else:
+    vehicles.add(
+        "human",
+        num_vehicles=0,
+        acceleration_controller=(IDMController, {
+            'a': 1.3,
+            'b': 2.0,
+            'noise': 0.3
+        }),
+        car_following_params=SumoCarFollowingParams(
+            speed_mode=19 if ALLOW_COLLISIONS else 'right_of_way'
+        ),
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode="strategic",
+        ),
+    )
 vehicles.add(
     "av",
     num_vehicles=0,
@@ -183,20 +200,6 @@ for lane in [0, 1, 2, 3, 4]:
             veh_type="human",
             edge="27414342#0",
             vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
-            departLane="random",
-            departSpeed=10)
-
-        # TODO: we may just want AVs from the main edge
-        inflow.add(
-            veh_type="av",
-            edge="27414345",
-            vehs_per_hour=int(500 * PENETRATION_RATE),
-            departLane="random",
-            departSpeed=10)
-        inflow.add(
-            veh_type="av",
-            edge="27414342#0",
-            vehs_per_hour=int(500 * PENETRATION_RATE),
             departLane="random",
             departSpeed=10)
 
