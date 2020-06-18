@@ -35,6 +35,8 @@ WANT_BOUNDARY_CONDITIONS = True
 ON_RAMP = False
 # the inflow rate of vehicles (in veh/hr)
 INFLOW_RATE = 2050
+# the inflow rate on the on-ramp (in veh/hr)
+ON_RAMP_INFLOW_RATE = 500
 # the speed of inflowing vehicles from the main edge (in m/s)
 INFLOW_SPEED = 25.5
 # fraction of vehicles that are RL vehicles. 0.10 corresponds to 10%
@@ -184,13 +186,13 @@ for lane in [0, 1, 2, 3, 4]:
         inflow.add(
             veh_type="human",
             edge="27414345",
-            vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
+            vehs_per_hour=int(ON_RAMP_INFLOW_RATE * (1 - PENETRATION_RATE)),
             departLane="random",
             departSpeed=10)
         inflow.add(
             veh_type="human",
             edge="27414342#0",
-            vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
+            vehs_per_hour=int(ON_RAMP_INFLOW_RATE * (1 - PENETRATION_RATE)),
             departLane="random",
             departSpeed=10)
 
