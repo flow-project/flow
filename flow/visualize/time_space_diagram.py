@@ -1,24 +1,19 @@
 """Generate a time space diagram for some networks.
-
 This method accepts as input a csv file containing the sumo-formatted emission
 file, and then uses this data to generate a time-space diagram, with the x-axis
 being the time (in seconds), the y-axis being the position of a vehicle, and
 color representing the speed of te vehicles.
-
 If the number of simulation steps is too dense, you can plot every nth step in
 the plot by setting the input `--steps=n`.
-
 Note: This script assumes that the provided network has only one lane on the
 each edge, or one lane on the main highway in the case of MergeNetwork.
-
 Usage
 -----
 ::
     python time_space_diagram.py </path/to/emission>.csv </path/to/params>.json
 """
 from flow.utils.rllib import get_flow_params
-from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork, \
-    HighwayNetwork, I210SubNetworkGhostCell
+from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork
 
 import argparse
 from collections import defaultdict
@@ -39,29 +34,24 @@ ACCEPTABLE_NETWORKS = [
     RingNetwork,
     FigureEightNetwork,
     MergeNetwork,
-    I210SubNetwork,
-    I210SubNetworkGhostCell,
-    HighwayNetwork
+    I210SubNetwork
 ]
 
 
 def import_data_from_trajectory(fp, params=dict()):
     r"""Import and preprocess data from the Flow trajectory (.csv) file.
-
     Parameters
     ----------
     fp : str
         file path (for the .csv formatted file)
     params : dict
         flow-specific parameters, including:
-
         * "network" (str): name of the network that was used when generating
           the emission file. Must be one of the network names mentioned in
           ACCEPTABLE_NETWORKS,
         * "net_params" (flow.core.params.NetParams): network-specific
           parameters. This is used to collect the lengths of various network
           links.
-
     Returns
     -------
     pd.DataFrame
@@ -89,32 +79,27 @@ def import_data_from_trajectory(fp, params=dict()):
 
 def get_time_space_data(data, params):
     r"""Compute the unique inflows and subsequent outflow statistics.
-
     Parameters
     ----------
     data : pd.DataFrame
         cleaned dataframe of the trajectory data
     params : dict
         flow-specific parameters, including:
-
         * "network" (str): name of the network that was used when generating
           the emission file. Must be one of the network names mentioned in
           ACCEPTABLE_NETWORKS,
         * "net_params" (flow.core.params.NetParams): network-specific
           parameters. This is used to collect the lengths of various network
           links.
-
     Returns
     -------
     ndarray (or dict of ndarray)
         3d array (n_segments x 2 x 2) containing segments to be plotted.
         every inner 2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
-
         in the case of I210, the nested arrays are wrapped into a dict,
         keyed on the lane number, so that each lane can be plotted
         separately.
-
     Raises
     ------
     AssertionError
@@ -125,14 +110,11 @@ def get_time_space_data(data, params):
         'Network must be one of: ' + ', '.join([network.__name__ for network in ACCEPTABLE_NETWORKS])
 
     # switcher used to compute the positions based on the type of network
-    # switcher used to compute the positions based on the type of network
     switcher = {
         RingNetwork: _ring_road,
         MergeNetwork: _merge,
         FigureEightNetwork: _figure_eight,
-        I210SubNetwork: _i210_subnetwork,
-        I210SubNetworkGhostCell: _i210_subnetwork,
-        HighwayNetwork: _highway,
+        I210SubNetwork: _i210_subnetwork
     }
 
     # Get the function from switcher dictionary
@@ -146,15 +128,12 @@ def get_time_space_data(data, params):
 
 def _merge(data):
     r"""Generate position and speed data for the merge.
-
     This only include vehicles on the main highway, and not on the adjacent
     on-ramp.
-
     Parameters
     ----------
     data : pd.DataFrame
         cleaned dataframe of the trajectory data
-
     Returns
     -------
     ndarray
@@ -172,125 +151,15 @@ def _merge(data):
 
     return segs, data
 
-    # compute the absolute position
-    for veh_id in data.keys():
-        data[veh_id]['abs_pos'] = _get_abs_pos(data[veh_id]['edge'],
-                                               data[veh_id]['pos'], edgestarts)
 
-    # prepare the speed and absolute position in a way that is compatible with
-    # the space-time diagram, and compute the number of vehicles at each step
-    pos = np.zeros((all_time.shape[0], len(data.keys())))
-    speed = np.zeros((all_time.shape[0], len(data.keys())))
-    for i, veh_id in enumerate(sorted(data.keys())):
-        for spd, abs_pos, ti, edge in zip(data[veh_id]['vel'],
-                                          data[veh_id]['abs_pos'],
-                                          data[veh_id]['time'],
-                                          data[veh_id]['edge']):
-            # avoid vehicles outside the main highway
-            if edge in ['inflow_merge', 'bottom', ':bottom_0']:
-                continue
-            ind = np.where(ti == all_time)[0]
-            pos[ind, i] = abs_pos
-            speed[ind, i] = spd
-
-    return pos, speed, all_time
-
-
-def _highway(data, params, all_time):
-    r"""Generate position and speed data for the highway subnetwork.
-
-    Parameters
-    ----------
-    data : dict of dict
-        Key = "veh_id": name of the vehicle \n Elements:
-        * "time": time step at every sample
-        * "edge": edge ID at every sample
-        * "pos": relative position at every sample
-        * "vel": speed at every sample
-    params : dict
-        flow-specific parameters
-    all_time : array_like
-        a (n_steps,) vector representing the unique time steps in the
-        simulation
-    Returns
-    -------
-    as_array
-        n_steps x n_veh matrix specifying the absolute position of every
-        vehicle at every time step. Set to zero if the vehicle is not present
-        in the network at that time step.
-    as_array
-        n_steps x n_veh matrix specifying the speed of every vehicle at every
-        time step. Set to zero if the vehicle is not present in the network at
-        that time step.
-    """
-    junction_length = 0.1
-    length = params['net'].additional_params["length"]
-    num_edges = params['net'].additional_params.get("num_edges", 1)
-    edge_starts = {}
-    # Add the main edges.
-    edge_starts.update({
-        "highway_{}".format(i): i * (length / num_edges + junction_length)
-        for i in range(num_edges)
-    })
-
-    if params['net'].additional_params["use_ghost_edge"]:
-        edge_starts.update({"highway_end": length + num_edges * junction_length})
-
-    edge_starts.update({
-        ":edge_{}".format(i + 1): (i + 1) * length / num_edges + i * junction_length
-        for i in range(num_edges - 1)
-    })
-
-    if params['net'].additional_params["use_ghost_edge"]:
-        edge_starts.update({
-            ":edge_{}".format(num_edges): length + (num_edges - 1) * junction_length
-        })
-
-    # compute the absolute position
-    for veh_id in data.keys():
-        data[veh_id]['abs_pos'] = _get_abs_pos_1_edge(data[veh_id]['edge'],
-                                                      data[veh_id]['pos'],
-                                                      edge_starts)
-
-    # track only vehicles that were around during this time period
-    # create the output variables
-    pos = np.zeros((all_time.shape[0], len(data.keys())))
-    speed = np.zeros((all_time.shape[0], len(data.keys())))
-    observed_row_list = []
-    for i, veh_id in enumerate(sorted(data.keys())):
-        for spd, abs_pos, ti, edge, lane in zip(data[veh_id]['vel'],
-                                                data[veh_id]['abs_pos'],
-                                                data[veh_id]['time'],
-                                                data[veh_id]['edge'],
-                                                data[veh_id]['lane']):
-            # avoid vehicles not on the relevant edges. Also only check the
-            # second to last lane
-            if edge not in edge_starts.keys() or ti not in all_time:
-                continue
-            else:
-                if i not in observed_row_list:
-                    observed_row_list.append(i)
-            ind = np.where(ti == all_time)[0]
-            pos[ind, i] = abs_pos
-            speed[ind, i] = spd
-
-    pos = pos[:, observed_row_list]
-    speed = speed[:, observed_row_list]
-
-    return pos, speed, all_time
-
-
-def _ring_road(data, params, all_time):
+def _ring_road(data):
     r"""Generate position and speed data for the ring road.
-
     Vehicles that reach the top of the plot simply return to the bottom and
     continue.
-
     Parameters
     ----------
     data : pd.DataFrame
         cleaned dataframe of the trajectory data
-
     Returns
     -------
     ndarray
@@ -307,15 +176,12 @@ def _ring_road(data, params, all_time):
 
 def _i210_subnetwork(data):
     r"""Generate time and position data for the i210 subnetwork.
-
     We generate plots for all lanes, so the segments are wrapped in
     a dictionary.
-
     Parameters
     ----------
     data : pd.DataFrame
         cleaned dataframe of the trajectory data
-
     Returns
     -------
     dict of ndarray
@@ -344,16 +210,13 @@ def _i210_subnetwork(data):
 
 def _figure_eight(data):
     r"""Generate position and speed data for the figure eight.
-
     The vehicles traveling towards the intersection from one side will be
     plotted from the top downward, while the vehicles from the other side will
     be plotted from the bottom upward.
-
     Parameters
     ----------
     data : pd.DataFrame
         cleaned dataframe of the trajectory data
-
     Returns
     -------
     ndarray
@@ -370,16 +233,13 @@ def _figure_eight(data):
 
 def _get_abs_pos(df, params):
     """Compute the absolute positions from edges and relative positions.
-
     This is the variable we will ultimately use to plot individual vehicles.
-
     Parameters
     ----------
     df : pd.DataFrame
         dataframe of trajectory data
     params : dict
         flow-specific parameters
-
     Returns
     -------
     pd.Series
@@ -461,9 +321,7 @@ def _get_abs_pos(df, params):
 
 def plot_tsd(ax, df, segs, args, lane=None):
     """Plot the time-space diagram.
-
     Take the pre-processed segments and other meta-data, then plot all the line segments.
-
     Parameters
     ----------
     ax : matplotlib.axes.Axes
@@ -476,7 +334,6 @@ def plot_tsd(ax, df, segs, args, lane=None):
         parsed arguments
     lane : int, optional
         lane number to be shown in plot title
-
     Returns
     -------
     None
@@ -569,6 +426,7 @@ if __name__ == '__main__':
 
         for lane, df in traj_df.groupby('lane_id'):
             ax = plt.subplot(nlanes, 1, lane+1)
+
             plot_tsd(ax, df, segs[lane], args, lane)
     else:
         # perform plotting operation
@@ -576,41 +434,6 @@ if __name__ == '__main__':
         ax = plt.axes()
 
         plot_tsd(ax, traj_df, segs, args)
-
-    for indx_car in range(pos.shape[1]):
-        unique_car_pos = pos[:, indx_car]
-
-        if flow_params['network'] == I210SubNetwork or flow_params['network'] == HighwayNetwork:
-            indices = np.where(pos[:, indx_car] != 0)[0]
-            unique_car_speed = speed[indices, indx_car]
-            points = np.array([time[indices], pos[indices, indx_car]]).T.reshape(-1, 1, 2)
-        else:
-
-            # discontinuity from wraparound
-            disc = np.where(np.abs(np.diff(unique_car_pos)) >= 10)[0] + 1
-            unique_car_time = np.insert(time, disc, np.nan)
-            unique_car_pos = np.insert(unique_car_pos, disc, np.nan)
-            unique_car_speed = np.insert(speed[:, indx_car], disc, np.nan)
-            #
-            points = np.array(
-                [unique_car_time, unique_car_pos]).T.reshape(-1, 1, 2)
-        segments = np.concatenate([points[:-1], points[1:]], axis=1)
-        lc = LineCollection(segments, cmap=my_cmap, norm=norm)
-
-        # Set the values used for color mapping
-        lc.set_array(unique_car_speed)
-        lc.set_linewidth(1.75)
-        cols.append(lc)
-
-    plt.title(args.title, fontsize=25)
-    plt.ylabel('Position (m)', fontsize=20)
-    plt.xlabel('Time (s)', fontsize=20)
-
-    for col in cols:
-        line = ax.add_collection(col)
-    cbar = plt.colorbar(line, ax=ax, norm=norm)
-    cbar.set_label('Velocity (m/s)', fontsize=20)
-    cbar.ax.tick_params(labelsize=18)
 
     ###########################################################################
     #                       Note: For MergeNetwork only                       #

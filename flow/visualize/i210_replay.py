@@ -142,6 +142,10 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     if not sim_params.restart_instance:
         env.restart_simulation(sim_params=sim_params, render=sim_params.render)
 
+    # reroute on exit is a training hack, it should be turned off at test time.
+    if hasattr(env, "reroute_on_exit"):
+        env.reroute_on_exit = False
+
     if rllib_config:
         # check if we have a multiagent environment but in a
         # backwards compatible way

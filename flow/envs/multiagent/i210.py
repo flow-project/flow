@@ -404,7 +404,7 @@ class I210MultiEnv(MultiEnv):
             # recieved a done when the env terminates
             if done['__all__']:
                 on_exit_edge = [rl_id for rl_id in self.k.vehicle.get_rl_ids()
-                                if self.on_exit_edge(rl_id)]
+                                if self.k.vehicle.get_edge(rl_id) == self.exit_edge]
                 for rl_id in on_exit_edge:
                     done[rl_id] = True
                     reward[rl_id] = 0
