@@ -176,7 +176,7 @@ def setup_exps_rllib(flow_params,
     alg_run = flags.algorithm.upper()
 
     if alg_run == "PPO":
-        from custom_ppo import CustomPPOTrainer
+        from flow.controllers.imitation_learning.custom_ppo import CustomPPOTrainer
         from ray.rllib.agents.ppo import DEFAULT_CONFIG
         config = deepcopy(DEFAULT_CONFIG)
 

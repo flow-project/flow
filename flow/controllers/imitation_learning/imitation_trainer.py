@@ -5,7 +5,7 @@ try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
-import flow.controllers.imitation_learning.custom_ppo
+import flow.controllers.imitation_learning.custom_ppo as custom_ppo
 
 class Imitation_PPO_Trainable(tune.Trainable):
     """
