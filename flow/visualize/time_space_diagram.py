@@ -170,31 +170,26 @@ def _merge(data):
     return segs, data
 
 def _highway(data):
-    r"""Generate position and speed data for the highway subnetwork.
+    r"""Generate time and position data for the highway.
+
+    We generate plots for all lanes, so the segments are wrapped in
+    a dictionary.
 
     Parameters
     ----------
-    data : dict of dict
-        Key = "veh_id": name of the vehicle \n Elements:
-        * "time": time step at every sample
-        * "edge": edge ID at every sample
-        * "pos": relative position at every sample
-        * "vel": speed at every sample
-    params : dict
-        flow-specific parameters
-    all_time : array_like
-        a (n_steps,) vector representing the unique time steps in the
-        simulation
+    data : pd.DataFrame
+        cleaned dataframe of the trajectory data
+
     Returns
     -------
-    as_array
-        n_steps x n_veh matrix specifying the absolute position of every
-        vehicle at every time step. Set to zero if the vehicle is not present
-        in the network at that time step.
-    as_array
-        n_steps x n_veh matrix specifying the speed of every vehicle at every
-        time step. Set to zero if the vehicle is not present in the network at
-        that time step.
+    dict of ndarray
+        dictionary of 3d array (n_segments x 2 x 2) containing segments
+        to be plotted. the dictionary is keyed on lane numbers, with the
+        values being the 3d array representing the segments. every inner
+        2d array is comprised of two 1d arrays representing
+        [start time, start distance] and [end time, end distance] pairs.
+    pd.DataFrame
+        modified trajectory dataframe
     """
     data.loc[:, :] = data[(data['distance'] > 500)]
     data.loc[:, :] = data[(data['distance'] < 2300)]
