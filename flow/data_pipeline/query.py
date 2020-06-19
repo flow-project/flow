@@ -494,7 +494,7 @@ class QueryStrings(Enum):
         ), binned_cumulative_energy AS (
             SELECT
                 source_id,
-                CAST(time_step/60 AS INTEGER) * 60 AS time_seconds_bin,
+                CAST(time_step/10 AS INTEGER) * 10 AS time_seconds_bin,
                 AVG(speed) AS speed_avg,
                 AVG(speed) + STDDEV(speed) AS speed_upper_bound,
                 AVG(speed) - STDDEV(speed) AS speed_lower_bound,
@@ -512,7 +512,7 @@ class QueryStrings(Enum):
             SELECT DISTINCT
                 source_id,
                 id,
-                CAST(time_step/60 AS INTEGER) * 60 AS time_seconds_bin,
+                CAST(time_step/10 AS INTEGER) * 10 AS time_seconds_bin,
                 FIRST_VALUE(energy_joules)
                     OVER (PARTITION BY id, CAST(time_step/60 AS INTEGER) * 60
                     ORDER BY time_step ASC) AS energy_start,
