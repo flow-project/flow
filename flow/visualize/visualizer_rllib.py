@@ -172,7 +172,7 @@ def visualizer_rllib(args):
     checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
-    # agent.import_model('/Users/akashvelu/Desktop/latest_run3/ppo.h5', 'av')
+    agent.import_model('/Users/akashvelu/Desktop/combined_test3/ppo_model.h5', 'av')
 
 
     if hasattr(agent, "local_evaluator") and \
