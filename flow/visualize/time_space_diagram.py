@@ -169,6 +169,7 @@ def _merge(data):
 
     return segs, data
 
+
 def _highway(data):
     r"""Generate time and position data for the highway.
 
