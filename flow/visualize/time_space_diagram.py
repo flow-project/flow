@@ -17,7 +17,7 @@ Usage
     python time_space_diagram.py </path/to/emission>.csv </path/to/params>.json
 """
 from flow.utils.rllib import get_flow_params
-from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork
+from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork, HighwayNetwork
 
 import argparse
 from collections import defaultdict
@@ -38,7 +38,8 @@ ACCEPTABLE_NETWORKS = [
     RingNetwork,
     FigureEightNetwork,
     MergeNetwork,
-    I210SubNetwork
+    I210SubNetwork,
+    HighwayNetwork
 ]
 
 
@@ -103,7 +104,7 @@ def get_time_space_data(data, params):
 
     Returns
     -------
-    ndarray (or dict of ndarray)
+    ndarray (or dict < str, np.ndarray >)
         3d array (n_segments x 2 x 2) containing segments to be plotted.
         every inner 2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
@@ -126,7 +127,8 @@ def get_time_space_data(data, params):
         RingNetwork: _ring_road,
         MergeNetwork: _merge,
         FigureEightNetwork: _figure_eight,
-        I210SubNetwork: _i210_subnetwork
+        I210SubNetwork: _i210_subnetwork,
+        HighwayNetwork: _highway,
     }
 
     # Get the function from switcher dictionary
@@ -162,6 +164,33 @@ def _merge(data):
     keep_edges = {'inflow_merge', 'bottom', ':bottom_0'}
     data = data[data['edge_id'].isin(keep_edges)]
 
+    segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
+
+    return segs, data
+
+
+def _highway(data):
+    r"""Generate time and position data for the highway.
+
+    We generate plots for all lanes, so the segments are wrapped in
+    a dictionary.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        cleaned dataframe of the trajectory data
+
+    Returns
+    -------
+    ndarray
+        3d array (n_segments x 2 x 2) containing segments to be plotted.
+        every inner 2d array is comprised of two 1d arrays representing
+        [start time, start distance] and [end time, end distance] pairs.
+    pd.DataFrame
+        modified trajectory dataframe
+    """
+    data.loc[:, :] = data[(data['distance'] > 500)]
+    data.loc[:, :] = data[(data['distance'] < 2300)]
     segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
 
     return segs, data
@@ -205,7 +234,7 @@ def _i210_subnetwork(data):
 
     Returns
     -------
-    dict of ndarray
+    dict < str, np.ndarray >
         dictionary of 3d array (n_segments x 2 x 2) containing segments
         to be plotted. the dictionary is keyed on lane numbers, with the
         values being the 3d array representing the segments. every inner
@@ -329,6 +358,8 @@ def _get_abs_pos(df, params):
             'bottom_to_top': intersection / 2 + inner,
             'right_to_left': junction + 3 * inner,
         }
+    elif params['network'] == HighwayNetwork:
+        return df['x']
     else:
         edgestarts = defaultdict(float)
 
