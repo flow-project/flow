@@ -169,112 +169,33 @@ def _merge(data):
 
     return segs, data
 
-    # compute the absolute position
-    for veh_id in data.keys():
-        data[veh_id]['abs_pos'] = _get_abs_pos(data[veh_id]['edge'],
-                                               data[veh_id]['pos'], edgestarts)
+def _highway(data):
+    r"""Generate time and position data for the highway.
 
-    # prepare the speed and absolute position in a way that is compatible with
-    # the space-time diagram, and compute the number of vehicles at each step
-    pos = np.zeros((all_time.shape[0], len(data.keys())))
-    speed = np.zeros((all_time.shape[0], len(data.keys())))
-    for i, veh_id in enumerate(sorted(data.keys())):
-        for spd, abs_pos, ti, edge in zip(data[veh_id]['vel'],
-                                          data[veh_id]['abs_pos'],
-                                          data[veh_id]['time'],
-                                          data[veh_id]['edge']):
-            # avoid vehicles outside the main highway
-            if edge in ['inflow_merge', 'bottom', ':bottom_0']:
-                continue
-            ind = np.where(ti == all_time)[0]
-            pos[ind, i] = abs_pos
-            speed[ind, i] = spd
-
-    return pos, speed, all_time
-
-
-def _highway(data, params, all_time):
-    r"""Generate position and speed data for the highway subnetwork.
+    We generate plots for all lanes, so the segments are wrapped in
+    a dictionary.
 
     Parameters
     ----------
-    data : dict of dict
-        Key = "veh_id": name of the vehicle \n Elements:
-        * "time": time step at every sample
-        * "edge": edge ID at every sample
-        * "pos": relative position at every sample
-        * "vel": speed at every sample
-    params : dict
-        flow-specific parameters
-    all_time : array_like
-        a (n_steps,) vector representing the unique time steps in the
-        simulation
+    data : pd.DataFrame
+        cleaned dataframe of the trajectory data
+
     Returns
     -------
-    as_array
-        n_steps x n_veh matrix specifying the absolute position of every
-        vehicle at every time step. Set to zero if the vehicle is not present
-        in the network at that time step.
-    as_array
-        n_steps x n_veh matrix specifying the speed of every vehicle at every
-        time step. Set to zero if the vehicle is not present in the network at
-        that time step.
+    dict of ndarray
+        dictionary of 3d array (n_segments x 2 x 2) containing segments
+        to be plotted. the dictionary is keyed on lane numbers, with the
+        values being the 3d array representing the segments. every inner
+        2d array is comprised of two 1d arrays representing
+        [start time, start distance] and [end time, end distance] pairs.
+    pd.DataFrame
+        modified trajectory dataframe
     """
-    junction_length = 0.1
-    length = params['net'].additional_params["length"]
-    num_edges = params['net'].additional_params.get("num_edges", 1)
-    edge_starts = {}
-    # Add the main edges.
-    edge_starts.update({
-        "highway_{}".format(i): i * (length / num_edges + junction_length)
-        for i in range(num_edges)
-    })
+    data.loc[:, :] = data[(data['distance'] > 500)]
+    data.loc[:, :] = data[(data['distance'] < 2300)]
+    segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
 
-    if params['net'].additional_params["use_ghost_edge"]:
-        edge_starts.update({"highway_end": length + num_edges * junction_length})
-
-    edge_starts.update({
-        ":edge_{}".format(i + 1): (i + 1) * length / num_edges + i * junction_length
-        for i in range(num_edges - 1)
-    })
-
-    if params['net'].additional_params["use_ghost_edge"]:
-        edge_starts.update({
-            ":edge_{}".format(num_edges): length + (num_edges - 1) * junction_length
-        })
-
-    # compute the absolute position
-    for veh_id in data.keys():
-        data[veh_id]['abs_pos'] = _get_abs_pos_1_edge(data[veh_id]['edge'],
-                                                      data[veh_id]['pos'],
-                                                      edge_starts)
-
-    # track only vehicles that were around during this time period
-    # create the output variables
-    pos = np.zeros((all_time.shape[0], len(data.keys())))
-    speed = np.zeros((all_time.shape[0], len(data.keys())))
-    observed_row_list = []
-    for i, veh_id in enumerate(sorted(data.keys())):
-        for spd, abs_pos, ti, edge, lane in zip(data[veh_id]['vel'],
-                                                data[veh_id]['abs_pos'],
-                                                data[veh_id]['time'],
-                                                data[veh_id]['edge'],
-                                                data[veh_id]['lane']):
-            # avoid vehicles not on the relevant edges. Also only check the
-            # second to last lane
-            if edge not in edge_starts.keys() or ti not in all_time:
-                continue
-            else:
-                if i not in observed_row_list:
-                    observed_row_list.append(i)
-            ind = np.where(ti == all_time)[0]
-            pos[ind, i] = abs_pos
-            speed[ind, i] = spd
-
-    pos = pos[:, observed_row_list]
-    speed = speed[:, observed_row_list]
-
-    return pos, speed, all_time
+    return segs, data
 
 
 def _ring_road(data, params, all_time):
@@ -566,6 +487,7 @@ if __name__ == '__main__':
 
         for lane, df in traj_df.groupby('lane_id'):
             ax = plt.subplot(nlanes, 1, lane+1)
+
             plot_tsd(ax, df, segs[lane], args, lane)
     else:
         # perform plotting operation
@@ -573,41 +495,6 @@ if __name__ == '__main__':
         ax = plt.axes()
 
         plot_tsd(ax, traj_df, segs, args)
-
-    for indx_car in range(pos.shape[1]):
-        unique_car_pos = pos[:, indx_car]
-
-        if flow_params['network'] == I210SubNetwork or flow_params['network'] == HighwayNetwork:
-            indices = np.where(pos[:, indx_car] != 0)[0]
-            unique_car_speed = speed[indices, indx_car]
-            points = np.array([time[indices], pos[indices, indx_car]]).T.reshape(-1, 1, 2)
-        else:
-
-            # discontinuity from wraparound
-            disc = np.where(np.abs(np.diff(unique_car_pos)) >= 10)[0] + 1
-            unique_car_time = np.insert(time, disc, np.nan)
-            unique_car_pos = np.insert(unique_car_pos, disc, np.nan)
-            unique_car_speed = np.insert(speed[:, indx_car], disc, np.nan)
-            #
-            points = np.array(
-                [unique_car_time, unique_car_pos]).T.reshape(-1, 1, 2)
-        segments = np.concatenate([points[:-1], points[1:]], axis=1)
-        lc = LineCollection(segments, cmap=my_cmap, norm=norm)
-
-        # Set the values used for color mapping
-        lc.set_array(unique_car_speed)
-        lc.set_linewidth(1.75)
-        cols.append(lc)
-
-    plt.title(args.title, fontsize=25)
-    plt.ylabel('Position (m)', fontsize=20)
-    plt.xlabel('Time (s)', fontsize=20)
-
-    for col in cols:
-        line = ax.add_collection(col)
-    cbar = plt.colorbar(line, ax=ax, norm=norm)
-    cbar.set_label('Velocity (m/s)', fontsize=20)
-    cbar.ax.tick_params(labelsize=18)
 
     ###########################################################################
     #                       Note: For MergeNetwork only                       #
