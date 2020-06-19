@@ -26,7 +26,7 @@ def make_inflows(pr=0.1, fr_coef=1.0, departSpeed=20, on_ramp=False):
     all_inflows = []
 
     inflow_119257914 = dict(veh_type="human",
-                            edge="119257914",
+                            edge="ghost0",
                             vehs_per_hour=INFLOW_RATE * (1 - (pr)) * fr_coef,
                             # probability=1.0,
                             departLane="random",
@@ -35,7 +35,7 @@ def make_inflows(pr=0.1, fr_coef=1.0, departSpeed=20, on_ramp=False):
 
     if pr > 0.0:
         inflow_119257914_av = dict(veh_type="av",
-                                   edge="119257914",
+                                   edge="ghost0",
                                    vehs_per_hour=int(INFLOW_RATE * pr * fr_coef),
                                    # probability=1.0,
                                    departLane="random",
