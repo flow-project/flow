@@ -123,7 +123,6 @@ def get_time_space_data(data, params):
         'Network must be one of: ' + ', '.join([network.__name__ for network in ACCEPTABLE_NETWORKS])
 
     # switcher used to compute the positions based on the type of network
-    # switcher used to compute the positions based on the type of network
     switcher = {
         RingNetwork: _ring_road,
         MergeNetwork: _merge,
@@ -183,7 +182,7 @@ def _highway(data):
 
     Returns
     -------
-    dict of ndarray
+    dict < str, np.ndarray >
         dictionary of 3d array (n_segments x 2 x 2) containing segments
         to be plotted. the dictionary is keyed on lane numbers, with the
         values being the 3d array representing the segments. every inner
