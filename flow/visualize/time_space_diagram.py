@@ -104,7 +104,7 @@ def get_time_space_data(data, params):
 
     Returns
     -------
-    ndarray (or dict of ndarray)
+    ndarray (or dict < str, np.ndarray >)
         3d array (n_segments x 2 x 2) containing segments to be plotted.
         every inner 2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
@@ -182,11 +182,9 @@ def _highway(data):
 
     Returns
     -------
-    dict < str, np.ndarray >
-        dictionary of 3d array (n_segments x 2 x 2) containing segments
-        to be plotted. the dictionary is keyed on lane numbers, with the
-        values being the 3d array representing the segments. every inner
-        2d array is comprised of two 1d arrays representing
+    ndarray
+        3d array (n_segments x 2 x 2) containing segments to be plotted.
+        every inner 2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
     pd.DataFrame
         modified trajectory dataframe
@@ -236,7 +234,7 @@ def _i210_subnetwork(data):
 
     Returns
     -------
-    dict of ndarray
+    dict < str, np.ndarray >
         dictionary of 3d array (n_segments x 2 x 2) containing segments
         to be plotted. the dictionary is keyed on lane numbers, with the
         values being the 3d array representing the segments. every inner
