@@ -560,7 +560,7 @@ class QueryStrings(Enum):
         SELECT
             vt.source_id,
             vt.time_step - FIRST_VALUE(vt.time_step)
-                OVER (PARTITION BY vt.id, vt.source_id ORDER BY vt.time_step ASC) AS time_step,
+                OVER (PARTITION BY vt.source_id ORDER BY vt.time_step ASC) AS time_step,
             COUNT(DISTINCT vt.id) AS vehicle_counts
         FROM fact_vehicle_trace vt
         WHERE 1 = 1
