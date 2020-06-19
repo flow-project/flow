@@ -142,7 +142,7 @@ def get_time_space_data(data, params):
 
 
 def _merge(data):
-    r"""Generate position and speed data for the merge.
+    r"""Generate time and position data for the merge.
 
     This only include vehicles on the main highway, and not on the adjacent
     on-ramp.
@@ -173,9 +173,6 @@ def _merge(data):
 def _highway(data):
     r"""Generate time and position data for the highway.
 
-    We generate plots for all lanes, so the segments are wrapped in
-    a dictionary.
-
     Parameters
     ----------
     data : pd.DataFrame
@@ -183,11 +180,9 @@ def _highway(data):
 
     Returns
     -------
-    dict of ndarray
-        dictionary of 3d array (n_segments x 2 x 2) containing segments
-        to be plotted. the dictionary is keyed on lane numbers, with the
-        values being the 3d array representing the segments. every inner
-        2d array is comprised of two 1d arrays representing
+    ndarray
+        3d array (n_segments x 2 x 2) containing segments to be plotted.
+        every inner 2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
     pd.DataFrame
         modified trajectory dataframe
@@ -199,8 +194,8 @@ def _highway(data):
     return segs, data
 
 
-def _ring_road(data, params, all_time):
-    r"""Generate position and speed data for the ring road.
+def _ring_road(data):
+    r"""Generate time and position data for the ring road.
 
     Vehicles that reach the top of the plot simply return to the bottom and
     continue.
@@ -237,7 +232,7 @@ def _i210_subnetwork(data):
 
     Returns
     -------
-    dict of ndarray
+    dict < str, np.ndarray >
         dictionary of 3d array (n_segments x 2 x 2) containing segments
         to be plotted. the dictionary is keyed on lane numbers, with the
         values being the 3d array representing the segments. every inner
@@ -262,7 +257,7 @@ def _i210_subnetwork(data):
 
 
 def _figure_eight(data):
-    r"""Generate position and speed data for the figure eight.
+    r"""Generate time and position data for the figure eight.
 
     The vehicles traveling towards the intersection from one side will be
     plotted from the top downward, while the vehicles from the other side will
