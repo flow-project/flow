@@ -12,7 +12,6 @@ import logging
 import subprocess
 import signal
 
-
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
 
@@ -95,6 +94,11 @@ class TraCISimulation(KernelSimulation):
                     "--num-clients", str(sim_params.num_clients),
                     "--step-length", str(sim_params.sim_step)
                 ]
+
+                # disable all collisions and teleporting in the simulation.
+                if sim_params.disable_collisions:
+                    sumo_call.extend(["--collision.mingap-factor", str(0),
+                                      "--collision.action", str("none")])
 
                 # use a ballistic integration step (if request)
                 if sim_params.use_ballistic:

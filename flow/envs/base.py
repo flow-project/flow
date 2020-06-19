@@ -26,6 +26,8 @@ from flow.core.util import ensure_dir
 from flow.core.kernel import Kernel
 from flow.utils.exceptions import FatalFlowError
 
+from flow.data_pipeline.data_pipeline import get_extra_info
+
 
 class Env(gym.Env, metaclass=ABCMeta):
     """Base environment class.
@@ -148,6 +150,12 @@ class Env(gym.Env, metaclass=ABCMeta):
         self.initial_state = {}
         self.state = None
         self.obs_var_labels = []
+
+        self.num_training_iters = 0
+
+        # track IDs that have ever been observed in the system
+        self.observed_ids = set()
+        self.observed_rl_ids = set()
 
         # simulation step size
         self.sim_step = sim_params.sim_step
@@ -323,6 +331,11 @@ class Env(gym.Env, metaclass=ABCMeta):
             contains other diagnostic information from the previous action
         """
         for _ in range(self.env_params.sims_per_step):
+            # This tracks vehicles that have appeared during warmup steps
+            if self.time_counter <= self.env_params.sims_per_step * self.env_params.warmup_steps:
+                self.observed_ids.update(self.k.vehicle.get_ids())
+                self.observed_rl_ids.update(self.k.vehicle.get_rl_ids())
+
             self.time_counter += 1
             self.step_counter += 1
 
@@ -377,7 +390,7 @@ class Env(gym.Env, metaclass=ABCMeta):
 
             # crash encodes whether the simulator experienced a collision
             crash = self.k.simulation.check_collision()
-
+            self.crash = crash
             # stop collecting new simulation steps if there is a collision
             if crash:
                 break
@@ -397,8 +410,17 @@ class Env(gym.Env, metaclass=ABCMeta):
         # test if the environment should terminate due to a collision or the
         # time horizon being met
         done = (self.time_counter >= self.env_params.sims_per_step *
-                (self.env_params.warmup_steps + self.env_params.horizon)
-                or crash)
+                (self.env_params.warmup_steps + self.env_params.horizon))
+        if crash:
+            print(
+                "**********************************************************\n"
+                "**********************************************************\n"
+                "**********************************************************\n"
+                "WARNING: There was a crash. \n"
+                "**********************************************************\n"
+                "**********************************************************\n"
+                "**********************************************************"
+            )
 
         # compute the info for each agent
         infos = {}
@@ -430,6 +452,10 @@ class Env(gym.Env, metaclass=ABCMeta):
         """
         # reset the time counter
         self.time_counter = 0
+
+        # reset the observed ids
+        self.observed_ids = set()
+        self.observed_rl_ids = set()
 
         # Now that we've passed the possibly fake init steps some rl libraries
         # do, we can feel free to actually render things
@@ -554,6 +580,14 @@ class Env(gym.Env, metaclass=ABCMeta):
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
             observation, _, _, _ = self.step(rl_actions=None)
+            # collect data for pipeline during the warmup period
+            try:
+                extra_info, source_id, run_id = self.pipeline_params
+                veh_ids = self.k.vehicle.get_ids()
+                get_extra_info(self.k.vehicle, extra_info, veh_ids, source_id, run_id)
+            # In case the attribute `pipeline_params` if not added to this instance
+            except AttributeError as e:
+                pass
 
         # render a frame
         self.render(reset=True)
