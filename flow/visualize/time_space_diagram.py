@@ -360,6 +360,8 @@ def _get_abs_pos(df, params):
             'bottom_to_top': intersection / 2 + inner,
             'right_to_left': junction + 3 * inner,
         }
+    elif params['network'] == HighwayNetwork:
+        return df['x']
     else:
         edgestarts = defaultdict(float)
 
