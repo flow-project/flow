@@ -571,9 +571,9 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND l.source_id = m.source_id
                 AND m.network = b.network
-                AND (m.is_baseline='False' 
-                     OR (m.is_baseline='True' 
-                         AND m.source_id = b.source_id)) 
+                AND (m.is_baseline='False'
+                     OR (m.is_baseline='True'
+                         AND m.source_id = b.source_id))
         )
         SELECT
             agg.submission_date,
