@@ -565,10 +565,10 @@ class QueryStrings(Enum):
                 id,
                 CAST(time_step/10 AS INTEGER) * 10 AS time_seconds_bin,
                 FIRST_VALUE(energy_joules)
-                    OVER (PARTITION BY id, CAST(time_step/60 AS INTEGER) * 60
+                    OVER (PARTITION BY id, CAST(time_step/10 AS INTEGER) * 10
                     ORDER BY time_step ASC) AS energy_start,
                 LAST_VALUE(energy_joules)
-                    OVER (PARTITION BY id, CAST(time_step/60 AS INTEGER) * 60
+                    OVER (PARTITION BY id, CAST(time_step/10 AS INTEGER) * 10
                     ORDER BY time_step ASC) AS energy_end
             FROM cumulative_energy
         ), binned_energy AS (
