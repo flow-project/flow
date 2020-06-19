@@ -586,7 +586,7 @@ class Env(gym.Env, metaclass=ABCMeta):
                 veh_ids = self.k.vehicle.get_ids()
                 get_extra_info(self.k.vehicle, extra_info, veh_ids, source_id, run_id)
             # In case the attribute `pipeline_params` if not added to this instance
-            except AttributeError as e:
+            except AttributeError:
                 pass
 
         # render a frame
