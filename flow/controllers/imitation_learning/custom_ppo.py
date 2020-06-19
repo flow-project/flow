@@ -1,301 +1,162 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import logging
 
-import ray
-from ray.rllib.evaluation.postprocessing import compute_advantages, \
-    Postprocessing
-from ray.rllib.policy.sample_batch import SampleBatch
-from ray.rllib.policy.tf_policy import LearningRateSchedule, \
-    EntropyCoeffSchedule, ACTION_LOGP
-from ray.rllib.policy.tf_policy_template import build_tf_policy
-from ray.rllib.utils.explained_variance import explained_variance
-from ray.rllib.utils.tf_ops import make_tf_callable
-from ray.rllib.utils import try_import_tf
-
+from ray.rllib.agents import with_common_config
+from flow.controllers.imitation_learning.custom_ppo_tf_policy import CustomPPOTFPolicy
 from ray.rllib.agents.trainer_template import build_trainer
-from ray.rllib.agents.ppo.ppo import choose_policy_optimizer, DEFAULT_CONFIG
-from ray.rllib.agents.ppo.ppo import warn_about_bad_reward_scales
-from ray.rllib.agents.impala.vtrace_policy import BEHAVIOUR_LOGITS
+from ray.rllib.optimizers import SyncSamplesOptimizer, LocalMultiGPUOptimizer
+from ray.rllib.utils import try_import_tf
 
 tf = try_import_tf()
 
 logger = logging.getLogger(__name__)
 
-
-class PPOLoss:
-    def __init__(self,
-                 dist_class,
-                 model,
-                 value_targets,
-                 advantages,
-                 actions,
-                 prev_logits,
-                 prev_actions_logp,
-                 vf_preds,
-                 curr_action_dist,
-                 value_fn,
-                 cur_kl_coeff,
-                 valid_mask,
-                 entropy_coeff=0,
-                 clip_param=0.1,
-                 vf_clip_param=0.1,
-                 vf_loss_coeff=1.0,
-                 use_gae=True):
-        """Constructs the loss for Proximal Policy Objective.
-
-        Arguments:
-            dist_class: action distribution class for logits.
-            value_targets (Placeholder): Placeholder for target values; used
-                for GAE.
-            actions (Placeholder): Placeholder for actions taken
-                from previous model evaluation.
-            advantages (Placeholder): Placeholder for calculated advantages
-                from previous model evaluation.
-            prev_logits (Placeholder): Placeholder for logits output from
-                previous model evaluation.
-            prev_actions_logp (Placeholder): Placeholder for action prob output
-                from the previous (before update) Model evaluation.
-            vf_preds (Placeholder): Placeholder for value function output
-                from the previous (before update) Model evaluation.
-            curr_action_dist (ActionDistribution): ActionDistribution
-                of the current model.
-            value_fn (Tensor): Current value function output Tensor.
-            cur_kl_coeff (Variable): Variable holding the current PPO KL
-                coefficient.
-            valid_mask (Optional[tf.Tensor]): An optional bool mask of valid
-                input elements (for max-len padded sequences (RNNs)).
-            entropy_coeff (float): Coefficient of the entropy regularizer.
-            clip_param (float): Clip parameter
-            vf_clip_param (float): Clip parameter for the value function
-            vf_loss_coeff (float): Coefficient of the value function loss
-            use_gae (bool): If true, use the Generalized Advantage Estimator.
-        """
-        if valid_mask is not None:
-
-            def reduce_mean_valid(t):
-                return tf.reduce_mean(tf.boolean_mask(t, valid_mask))
-
-        else:
-
-            def reduce_mean_valid(t):
-                return tf.reduce_mean(t)
-
-        prev_dist = dist_class(prev_logits, model)
-        # Make loss functions.
-        logp_ratio = tf.exp(curr_action_dist.logp(actions) - prev_actions_logp)
-        action_kl = prev_dist.kl(curr_action_dist)
-        self.mean_kl = reduce_mean_valid(action_kl)
-
-        curr_entropy = curr_action_dist.entropy()
-        self.mean_entropy = reduce_mean_valid(curr_entropy)
-
-        surrogate_loss = tf.minimum(
-            advantages * logp_ratio,
-            advantages * tf.clip_by_value(logp_ratio, 1 - clip_param,
-                                          1 + clip_param))
-        self.mean_policy_loss = reduce_mean_valid(-surrogate_loss)
-
-        if use_gae:
-            vf_loss1 = tf.square(value_fn - value_targets)
-            vf_clipped = vf_preds + tf.clip_by_value(
-                value_fn - vf_preds, -vf_clip_param, vf_clip_param)
-            vf_loss2 = tf.square(vf_clipped - value_targets)
-            vf_loss = tf.maximum(vf_loss1, vf_loss2)
-            self.mean_vf_loss = reduce_mean_valid(vf_loss)
-            loss = reduce_mean_valid(
-                -surrogate_loss + cur_kl_coeff * action_kl +
-                vf_loss_coeff * vf_loss - entropy_coeff * curr_entropy)
-        else:
-            self.mean_vf_loss = tf.constant(0.0)
-            loss = reduce_mean_valid(-surrogate_loss +
-                                     cur_kl_coeff * action_kl -
-                                     entropy_coeff * curr_entropy)
-        self.loss = loss
+# yapf: disable
+# __sphinx_doc_begin__
+DEFAULT_CONFIG = with_common_config({
+    # Should use a critic as a baseline (otherwise don't use value baseline;
+    # required for using GAE).
+    "use_critic": True,
+    # If true, use the Generalized Advantage Estimator (GAE)
+    # with a value function, see https://arxiv.org/pdf/1506.02438.pdf.
+    "use_gae": True,
+    # The GAE(lambda) parameter.
+    "lambda": 1.0,
+    # Initial coefficient for KL divergence.
+    "kl_coeff": 0.2,
+    # Size of batches collected from each worker.
+    "rollout_fragment_length": 200,
+    # Number of timesteps collected for each SGD round. This defines the size
+    # of each SGD epoch.
+    "train_batch_size": 4000,
+    # Total SGD batch size across all devices for SGD. This defines the
+    # minibatch size within each epoch.
+    "sgd_minibatch_size": 128,
+    # Whether to shuffle sequences in the batch when training (recommended).
+    "shuffle_sequences": True,
+    # Number of SGD iterations in each outer loop (i.e., number of epochs to
+    # execute per train batch).
+    "num_sgd_iter": 30,
+    # Stepsize of SGD.
+    "lr": 5e-5,
+    # Learning rate schedule.
+    "lr_schedule": None,
+    # Share layers for value function. If you set this to True, it's important
+    # to tune vf_loss_coeff.
+    "vf_share_layers": False,
+    # Coefficient of the value function loss. IMPORTANT: you must tune this if
+    # you set vf_share_layers: True.
+    "vf_loss_coeff": 1.0,
+    # Coefficient of the entropy regularizer.
+    "entropy_coeff": 0.0,
+    # Decay schedule for the entropy regularizer.
+    "entropy_coeff_schedule": None,
+    # PPO clip parameter.
+    "clip_param": 0.3,
+    # Clip param for the value function. Note that this is sensitive to the
+    # scale of the rewards. If your expected V is large, increase this.
+    "vf_clip_param": 10.0,
+    # If specified, clip the global norm of gradients by this amount.
+    "grad_clip": None,
+    # Target value for KL divergence.
+    "kl_target": 0.01,
+    # Whether to rollout "complete_episodes" or "truncate_episodes".
+    "batch_mode": "truncate_episodes",
+    # Which observation filter to apply to the observation.
+    "observation_filter": "NoFilter",
+    # Uses the sync samples optimizer instead of the multi-gpu one. This is
+    # usually slower, but you might want to try it if you run into issues with
+    # the default optimizer.
+    "simple_optimizer": False,
+    # Use PyTorch as framework?
+    "use_pytorch": False
+})
+# __sphinx_doc_end__
+# yapf: enable
 
 
-def ppo_surrogate_loss(policy, model, dist_class, train_batch):
-    logits, state = model.from_batch(train_batch)
-    action_dist = dist_class(logits, model)
+def choose_policy_optimizer(workers, config):
+    if config["simple_optimizer"]:
+        return SyncSamplesOptimizer(
+            workers,
+            num_sgd_iter=config["num_sgd_iter"],
+            train_batch_size=config["train_batch_size"],
+            sgd_minibatch_size=config["sgd_minibatch_size"],
+            standardize_fields=["advantages"])
 
-    mask = None
-    if state:
-        max_seq_len = tf.reduce_max(train_batch["seq_lens"])
-        mask = tf.sequence_mask(train_batch["seq_lens"], max_seq_len)
-        mask = tf.reshape(mask, [-1])
-
-    policy.loss_obj = PPOLoss(
-        dist_class,
-        model,
-        train_batch[Postprocessing.VALUE_TARGETS],
-        train_batch[Postprocessing.ADVANTAGES],
-        train_batch[SampleBatch.ACTIONS],
-        train_batch[BEHAVIOUR_LOGITS],
-        train_batch[ACTION_LOGP],
-        train_batch[SampleBatch.VF_PREDS],
-        action_dist,
-        model.value_function(),
-        policy.kl_coeff,
-        mask,
-        entropy_coeff=policy.entropy_coeff,
-        clip_param=policy.config["clip_param"],
-        vf_clip_param=policy.config["vf_clip_param"],
-        vf_loss_coeff=policy.config["vf_loss_coeff"],
-        use_gae=policy.config["use_gae"],
-    )
-
-    return policy.loss_obj.loss
+    return LocalMultiGPUOptimizer(
+        workers,
+        sgd_batch_size=config["sgd_minibatch_size"],
+        num_sgd_iter=config["num_sgd_iter"],
+        num_gpus=config["num_gpus"],
+        rollout_fragment_length=config["rollout_fragment_length"],
+        num_envs_per_worker=config["num_envs_per_worker"],
+        train_batch_size=config["train_batch_size"],
+        standardize_fields=["advantages"],
+        shuffle_sequences=config["shuffle_sequences"])
 
 
-def kl_and_loss_stats(policy, train_batch):
-    return {
-        "cur_kl_coeff": tf.cast(policy.kl_coeff, tf.float64),
-        "cur_lr": tf.cast(policy.cur_lr, tf.float64),
-        "total_loss": policy.loss_obj.loss,
-        "policy_loss": policy.loss_obj.mean_policy_loss,
-        "vf_loss": policy.loss_obj.mean_vf_loss,
-        "vf_explained_var": explained_variance(
-            train_batch[Postprocessing.VALUE_TARGETS],
-            policy.model.value_function()),
-        "vf_preds": policy.model.value_function(),
-        "kl": policy.loss_obj.mean_kl,
-        "entropy": policy.loss_obj.mean_entropy,
-        "entropy_coeff": tf.cast(policy.entropy_coeff, tf.float64),
-    }
+def update_kl(trainer, fetches):
+    # Single-agent.
+    if "kl" in fetches:
+        trainer.workers.local_worker().for_policy(
+            lambda pi: pi.update_kl(fetches["kl"]))
 
-
-def vf_preds_and_logits_fetches(policy):
-    """Adds value function and logits outputs to experience train_batches."""
-    return {
-        SampleBatch.VF_PREDS: policy.model.value_function(),
-        BEHAVIOUR_LOGITS: policy.model.last_output(),
-    }
-
-
-
-def postprocess_ppo_gae(policy,
-                        sample_batch,
-                        other_agent_batches=None,
-                        episode=None):
-    """Adds the policy logits, VF preds, and advantages to the trajectory."""
-
-    completed = sample_batch["dones"][-1]
-    if completed:
-        last_r = 0.0
+    # Multi-agent.
     else:
-        next_state = []
-        for i in range(policy.num_state_tensors()):
-            next_state.append([sample_batch["state_out_{}".format(i)][-1]])
-        last_r = policy._value(sample_batch[SampleBatch.NEXT_OBS][-1],
-                               sample_batch[SampleBatch.ACTIONS][-1],
-                               sample_batch[SampleBatch.REWARDS][-1],
-                               *next_state)
-    batch = compute_advantages(
-        sample_batch,
-        last_r,
-        policy.config["gamma"],
-        policy.config["lambda"],
-        use_gae=policy.config["use_gae"])
-    return batch
+
+        def update(pi, pi_id):
+            if pi_id in fetches:
+                pi.update_kl(fetches[pi_id]["kl"])
+            else:
+                logger.debug("No data for {}, not updating kl".format(pi_id))
+
+        trainer.workers.local_worker().foreach_trainable_policy(update)
 
 
-def clip_gradients(policy, optimizer, loss):
-    variables = policy.model.trainable_variables()
-    if policy.config["grad_clip"] is not None:
-        grads_and_vars = optimizer.compute_gradients(loss, variables)
-        grads = [g for (g, v) in grads_and_vars]
-        policy.grads, _ = tf.clip_by_global_norm(grads,
-                                                 policy.config["grad_clip"])
-        clipped_grads = list(zip(policy.grads, variables))
-        return clipped_grads
+def warn_about_bad_reward_scales(trainer, result):
+    if result["policy_reward_mean"]:
+        return  # Punt on handling multiagent case.
+
+    # Warn about excessively high VF loss.
+    learner_stats = result["info"]["learner"]
+    if "default_policy" in learner_stats:
+        scaled_vf_loss = (trainer.config["vf_loss_coeff"] *
+                          learner_stats["default_policy"]["vf_loss"])
+        policy_loss = learner_stats["default_policy"]["policy_loss"]
+        if trainer.config["vf_share_layers"] and scaled_vf_loss > 100:
+            logger.warning(
+                "The magnitude of your value function loss is extremely large "
+                "({}) compared to the policy loss ({}). This can prevent the "
+                "policy from learning. Consider scaling down the VF loss by "
+                "reducing vf_loss_coeff, or disabling vf_share_layers.".format(
+                    scaled_vf_loss, policy_loss))
+
+    # Warn about bad clipping configs
+    if trainer.config["vf_clip_param"] <= 0:
+        rew_scale = float("inf")
     else:
-        return optimizer.compute_gradients(loss, variables)
-
-
-class KLCoeffMixin:
-    def __init__(self, config):
-        # KL Coefficient
-        self.kl_coeff_val = config["kl_coeff"]
-        self.kl_target = config["kl_target"]
-        self.kl_coeff = tf.get_variable(
-            initializer=tf.constant_initializer(self.kl_coeff_val),
-            name="kl_coeff",
-            shape=(),
-            trainable=False,
-            dtype=tf.float32)
-
-    def update_kl(self, sampled_kl):
-        if sampled_kl > 2.0 * self.kl_target:
-            self.kl_coeff_val *= 1.5
-        elif sampled_kl < 0.5 * self.kl_target:
-            self.kl_coeff_val *= 0.5
-        self.kl_coeff.load(self.kl_coeff_val, session=self.get_session())
-        return self.kl_coeff_val
-
-
-class ValueNetworkMixin:
-    def __init__(self, obs_space, action_space, config):
-        if config["use_gae"]:
-
-            @make_tf_callable(self.get_session())
-            def value(ob, prev_action, prev_reward, *state):
-                model_out, _ = self.model({
-                    SampleBatch.CUR_OBS: tf.convert_to_tensor([ob]),
-                    SampleBatch.PREV_ACTIONS: tf.convert_to_tensor(
-                        [prev_action]),
-                    SampleBatch.PREV_REWARDS: tf.convert_to_tensor(
-                        [prev_reward]),
-                    "is_training": tf.convert_to_tensor(False),
-                }, [tf.convert_to_tensor([s]) for s in state],
-                                          tf.convert_to_tensor([1]))
-                return self.model.value_function()[0]
-
-        else:
-
-            @make_tf_callable(self.get_session())
-            def value(ob, prev_action, prev_reward, *state):
-                return tf.constant(0.0)
-
-        self._value = value
-
-
-def setup_config(policy, obs_space, action_space, config):
-    # auto set the model option for layer sharing
-    config["model"]["vf_share_layers"] = config["vf_share_layers"]
-
-
-def setup_mixins(policy, obs_space, action_space, config):
-    ValueNetworkMixin.__init__(policy, obs_space, action_space, config)
-    KLCoeffMixin.__init__(policy, config)
-    EntropyCoeffSchedule.__init__(policy, config["entropy_coeff"],
-                                  config["entropy_coeff_schedule"])
-    LearningRateSchedule.__init__(policy, config["lr"], config["lr_schedule"])
-
-
-CustomPPOTFPolicy = build_tf_policy(
-    name="PPOTFPolicy",
-    get_default_config=lambda: ray.rllib.agents.ppo.ppo.DEFAULT_CONFIG,
-    loss_fn=ppo_surrogate_loss,
-    stats_fn=kl_and_loss_stats,
-    extra_action_fetches_fn=vf_preds_and_logits_fetches,
-    postprocess_fn=postprocess_ppo_gae,
-    gradients_fn=clip_gradients,
-    before_init=setup_config,
-    before_loss_init=setup_mixins,
-    mixins=[
-        LearningRateSchedule, EntropyCoeffSchedule, KLCoeffMixin,
-        ValueNetworkMixin
-    ])
+        rew_scale = round(
+            abs(result["episode_reward_mean"]) /
+            trainer.config["vf_clip_param"], 0)
+    if rew_scale > 200:
+        logger.warning(
+            "The magnitude of your environment rewards are more than "
+            "{}x the scale of `vf_clip_param`. ".format(rew_scale) +
+            "This means that it will take more than "
+            "{} iterations for your value ".format(rew_scale) +
+            "function to converge. If this is not intended, consider "
+            "increasing `vf_clip_param`.")
 
 
 def validate_config(config):
-    """Check that the config is set up properly."""
     if config["entropy_coeff"] < 0:
         raise DeprecationWarning("entropy_coeff must be >= 0")
     if isinstance(config["entropy_coeff"], int):
         config["entropy_coeff"] = float(config["entropy_coeff"])
+    if config["sgd_minibatch_size"] > config["train_batch_size"]:
+        raise ValueError(
+            "Minibatch size {} must be <= train batch size {}.".format(
+                config["sgd_minibatch_size"], config["train_batch_size"]))
     if config["batch_mode"] == "truncate_episodes" and not config["use_gae"]:
         raise ValueError(
             "Episode truncation is not supported without a value "
@@ -309,13 +170,24 @@ def validate_config(config):
         logger.warning(
             "Using the simple minibatch optimizer. This will significantly "
             "reduce performance, consider simple_optimizer=False.")
-    elif tf and tf.executing_eagerly():
+    elif config["use_pytorch"] or (tf and tf.executing_eagerly()):
         config["simple_optimizer"] = True  # multi-gpu not supported
 
+
+def get_policy_class(config):
+    if config.get("use_pytorch") is True:
+        from ray.rllib.agents.ppo.ppo_torch_policy import PPOTorchPolicy
+        return PPOTorchPolicy
+    else:
+        return CustomPPOTFPolicy
+
+
 CustomPPOTrainer = build_trainer(
-    name="CustomPPOTrainer",
+    name="PPO",
     default_config=DEFAULT_CONFIG,
     default_policy=CustomPPOTFPolicy,
+    get_policy_class=get_policy_class,
     make_policy_optimizer=choose_policy_optimizer,
     validate_config=validate_config,
+    after_optimizer_step=update_kl,
     after_train_result=warn_about_bad_reward_scales)
