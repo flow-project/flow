@@ -49,23 +49,6 @@ def parse_args(args):
         action='store_true',
         help='Specifies whether to generate an emission file from the '
              'simulation.')
-    parser.add_argument(
-        '--to_aws',
-        type=str, nargs='?', default=None, const="default",
-        help='Specifies the name of the partition to store the output'
-             'file on S3. Putting not None value for this argument'
-             'automatically set gen_emission to True.')
-    parser.add_argument(
-        '--only_query',
-        nargs='*', default="[\'all\']",
-        help='specify which query should be run by lambda'
-             'for detail, see upload_to_s3 in data_pipeline.py'
-    )
-    parser.add_argument(
-        '--is_baseline',
-        action='store_true',
-        help='specifies whether this is a baseline run'
-    )
 
     return parser.parse_known_args(args)[0]
 
