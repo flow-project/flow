@@ -13,7 +13,8 @@ Usage
     python time_space_diagram.py </path/to/emission>.csv </path/to/params>.json
 """
 from flow.utils.rllib import get_flow_params
-from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork
+from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork, HighwayNetwork
+
 import argparse
 from collections import defaultdict
 try:
@@ -33,7 +34,8 @@ ACCEPTABLE_NETWORKS = [
     RingNetwork,
     FigureEightNetwork,
     MergeNetwork,
-    I210SubNetwork
+    I210SubNetwork,
+    HighwayNetwork
 ]
 
 
@@ -92,7 +94,7 @@ def get_time_space_data(data, params):
           links.
     Returns
     -------
-    ndarray (or dict of ndarray)
+    ndarray (or dict < str, np.ndarray >)
         3d array (n_segments x 2 x 2) containing segments to be plotted.
         every inner 2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
@@ -113,7 +115,8 @@ def get_time_space_data(data, params):
         RingNetwork: _ring_road,
         MergeNetwork: _merge,
         FigureEightNetwork: _figure_eight,
-        I210SubNetwork: _i210_subnetwork
+        I210SubNetwork: _i210_subnetwork,
+        HighwayNetwork: _highway,
     }
 
     # Get the function from switcher dictionary
@@ -154,6 +157,9 @@ def _merge(data):
 
 def _highway(data):
     r"""Generate time and position data for the highway.
+
+    We generate plots for all lanes, so the segments are wrapped in
+    a dictionary.
 
     Parameters
     ----------
