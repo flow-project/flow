@@ -112,11 +112,11 @@ additional_env_params.update({
     # weight of the headway reward
     "speed_reward_gain": 0.5,
     # penalize stopped vehicles
-    "penalize_stops": False,
+    "penalize_stops": True,
     "stop_penalty": 0.1,
 
     # penalize accels
-    "penalize_accel": False,
+    "penalize_accel": True,
     "accel_penalty": 0.1
 })
 
