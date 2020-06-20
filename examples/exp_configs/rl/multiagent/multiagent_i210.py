@@ -46,7 +46,7 @@ V_DES = 5.0
 # horizon over which to run the env
 HORIZON = 1000
 # steps to run before follower-stopper is allowed to take control
-WARMUP_STEPS = 600
+WARMUP_STEPS = 800
 # whether to turn off the fail safes for the human-driven vehicles
 ALLOW_COLLISIONS = False
 
@@ -88,7 +88,7 @@ additional_env_params.update({
     # how many vehicles to look back for any reward
     "look_back_length": 3,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": False,
+    "reroute_on_exit": True,
     'target_velocity': 5.0,
     # how many AVs there can be at once (this is only for centralized critics)
     "max_num_agents": 10,

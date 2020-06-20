@@ -190,7 +190,7 @@ class I210MultiEnv(MultiEnv):
 
         rewards = {}
         valid_ids = [rl_id for rl_id in self.k.vehicle.get_rl_ids() if self.in_control_range(rl_id)]
-        valid_human_ids = [rl_id for rl_id in self.k.vehicle.get_ids() if self.in_control_range(rl_id)]
+        valid_human_ids = [veh_id for veh_id in self.k.vehicle.get_ids() if self.in_control_range(rl_id)]
 
         if self.env_params.additional_params["local_reward"]:
             des_speed = self.env_params.additional_params["target_velocity"]
