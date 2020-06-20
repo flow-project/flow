@@ -56,8 +56,6 @@ def parse_args(args):
 if __name__ == "__main__":
     flags = parse_args(sys.argv[1:])
 
-    flags.gen_emission = flags.gen_emission or flags.to_aws
-
     # Get the flow_params object.
     module = __import__("exp_configs.non_rl", fromlist=[flags.exp_config])
     flow_params = getattr(module, flags.exp_config).flow_params
