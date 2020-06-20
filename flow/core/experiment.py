@@ -1,11 +1,13 @@
 """Contains an experiment class for running simulations."""
-from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
-import datetime
+from flow.data_pipeline.data_pipeline import write_dict_to_csv, get_extra_info
+from collections import defaultdict
+from datetime import datetime, timezone
 import logging
 import time
 import os
 import numpy as np
+import uuid
 
 
 class Experiment:
@@ -81,11 +83,11 @@ class Experiment:
         self.env = create_env()
 
         logging.info(" Starting experiment {} at {}".format(
-            self.env.network.name, str(datetime.datetime.utcnow())))
+            self.env.network.name, str(datetime.utcnow())))
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, rl_actions=None, convert_to_csv=False):
+    def run(self, num_runs, rl_actions=None, convert_to_csv=False, to_aws=None, only_query="", is_baseline=False):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -98,6 +100,16 @@ class Experiment:
         convert_to_csv : bool
             Specifies whether to convert the emission file created by sumo
             into a csv file
+        to_aws: str
+            Specifies the S3 partition you want to store the output file,
+            will be used to later for query. If NONE, won't upload output
+            to S3.
+        only_query: str
+            Specifies which queries should be automatically run when the
+            simulation data gets uploaded to S3. If an empty str is passed in,
+            then it implies no queries should be run on this.
+        is_baseline: bool
+            Specifies whether this is a baseline run.
 
         Returns
         -------
@@ -137,10 +149,26 @@ class Experiment:
         t = time.time()
         times = []
 
+        # data pipeline
+        extra_info = defaultdict(lambda: [])
+        source_id = 'flow_{}'.format(uuid.uuid4().hex)
+        # collect current time
+        cur_datetime = datetime.now(timezone.utc)
+        cur_date = cur_datetime.date().isoformat()
+        cur_time = cur_datetime.time().isoformat()
+
+        if convert_to_csv and self.env.simulator == "traci":
+            dir_path = self.env.sim_params.emission_path
+
+        if dir_path:
+            trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
+
         for i in range(num_runs):
             ret = 0
             vel = []
             custom_vals = {key: [] for key in self.custom_callables.keys()}
+            run_id = "run_{}".format(i)
+            self.env.pipeline_params = (extra_info, source_id, run_id)
             state = self.env.reset()
             for j in range(num_steps):
                 t0 = time.time()
@@ -153,11 +181,19 @@ class Experiment:
                 vel.append(np.mean(self.env.k.vehicle.get_speed(veh_ids)))
                 ret += reward
 
+                # collect additional information for the data pipeline
+                get_extra_info(self.env.k.vehicle, extra_info, veh_ids, source_id, run_id)
+
+                # write to disk every 100 steps
+                if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0 and dir_path:
+                    write_dict_to_csv(trajectory_table_path, extra_info, not j)
+                    extra_info.clear()
+
                 # Compute the results for the custom callables.
                 for (key, lambda_func) in self.custom_callables.items():
                     custom_vals[key].append(lambda_func(self.env))
 
-                if done:
+                if type(done) is dict and done['__all__'] or type(done) is not dict and done:
                     break
 
             # Store the information from the run in info_dict.
@@ -183,16 +219,6 @@ class Experiment:
             # wait a short period of time to ensure the xml file is readable
             time.sleep(0.1)
 
-            # collect the location of the emission file
-            dir_path = self.env.sim_params.emission_path
-            emission_filename = \
-                "{0}-emission.xml".format(self.env.network.name)
-            emission_path = os.path.join(dir_path, emission_filename)
-
-            # convert the emission file into a csv
-            emission_to_csv(emission_path)
-
-            # Delete the .xml version of the emission file.
-            os.remove(emission_path)
+            write_dict_to_csv(trajectory_table_path, extra_info)
 
         return info_dict
