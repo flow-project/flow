@@ -14,7 +14,6 @@ Usage
 """
 from flow.utils.rllib import get_flow_params
 from flow.networks import RingNetwork, FigureEightNetwork, MergeNetwork, I210SubNetwork
-
 import argparse
 from collections import defaultdict
 try:
@@ -127,7 +126,8 @@ def get_time_space_data(data, params):
 
 
 def _merge(data):
-    r"""Generate position and speed data for the merge.
+    r"""Generate time and position data for the merge.
+
     This only include vehicles on the main highway, and not on the adjacent
     on-ramp.
     Parameters
@@ -152,8 +152,33 @@ def _merge(data):
     return segs, data
 
 
+def _highway(data):
+    r"""Generate time and position data for the highway.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        cleaned dataframe of the trajectory data
+
+    Returns
+    -------
+    ndarray
+        3d array (n_segments x 2 x 2) containing segments to be plotted.
+        every inner 2d array is comprised of two 1d arrays representing
+        [start time, start distance] and [end time, end distance] pairs.
+    pd.DataFrame
+        modified trajectory dataframe
+    """
+    data.loc[:, :] = data[(data['distance'] > 500)]
+    data.loc[:, :] = data[(data['distance'] < 2300)]
+    segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
+
+    return segs, data
+
+
 def _ring_road(data):
-    r"""Generate position and speed data for the ring road.
+    r"""Generate time and position data for the ring road.
+
     Vehicles that reach the top of the plot simply return to the bottom and
     continue.
     Parameters
@@ -184,7 +209,7 @@ def _i210_subnetwork(data):
         cleaned dataframe of the trajectory data
     Returns
     -------
-    dict of ndarray
+    dict < str, np.ndarray >
         dictionary of 3d array (n_segments x 2 x 2) containing segments
         to be plotted. the dictionary is keyed on lane numbers, with the
         values being the 3d array representing the segments. every inner
@@ -209,7 +234,8 @@ def _i210_subnetwork(data):
 
 
 def _figure_eight(data):
-    r"""Generate position and speed data for the figure eight.
+    r"""Generate time and position data for the figure eight.
+
     The vehicles traveling towards the intersection from one side will be
     plotted from the top downward, while the vehicles from the other side will
     be plotted from the bottom upward.
@@ -302,6 +328,8 @@ def _get_abs_pos(df, params):
             'bottom_to_top': intersection / 2 + inner,
             'right_to_left': junction + 3 * inner,
         }
+    elif params['network'] == HighwayNetwork:
+        return df['x']
     else:
         edgestarts = defaultdict(float)
 
