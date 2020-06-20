@@ -87,7 +87,7 @@ class Experiment:
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, rl_actions=None, convert_to_csv=False, to_aws=None, only_query="", is_baseline=False):
+    def run(self, num_runs, rl_actions=None, convert_to_csv=False):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -100,16 +100,6 @@ class Experiment:
         convert_to_csv : bool
             Specifies whether to convert the emission file created by sumo
             into a csv file
-        to_aws: str
-            Specifies the S3 partition you want to store the output file,
-            will be used to later for query. If NONE, won't upload output
-            to S3.
-        only_query: str
-            Specifies which queries should be automatically run when the
-            simulation data gets uploaded to S3. If an empty str is passed in,
-            then it implies no queries should be run on this.
-        is_baseline: bool
-            Specifies whether this is a baseline run.
 
         Returns
         -------
