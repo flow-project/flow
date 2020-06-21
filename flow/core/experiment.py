@@ -1,4 +1,5 @@
 """Contains an experiment class for running simulations."""
+from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.data_pipeline.data_pipeline import write_dict_to_csv, get_extra_info
 from collections import defaultdict
@@ -213,7 +214,6 @@ class Experiment:
 
             # Delete the .xml version of the emission file.
             os.remove(emission_path)
-
             write_dict_to_csv(trajectory_table_path, extra_info)
 
         return info_dict
