@@ -40,7 +40,7 @@ ON_RAMP_INFLOW_RATE = 500
 # the speed of inflowing vehicles from the main edge (in m/s)
 INFLOW_SPEED = 25.5
 # fraction of vehicles that are RL vehicles. 0.10 corresponds to 10%
-PENETRATION_RATE = 0.05
+PENETRATION_RATE = 0.1
 # desired speed of the vehicles in the network
 V_DES = 5.0
 # horizon over which to run the env
@@ -88,7 +88,7 @@ additional_env_params.update({
     # how many vehicles to look back for any reward
     "look_back_length": 3,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": True,
+    "reroute_on_exit": False,
     'target_velocity': 5.0,
     # how many AVs there can be at once (this is only for centralized critics)
     "max_num_agents": 10,
@@ -113,11 +113,11 @@ additional_env_params.update({
     "speed_reward_gain": 0.5,
     # penalize stopped vehicles
     "penalize_stops": True,
-    "stop_penalty": 0.1,
+    "stop_penalty": 0.01,
 
     # penalize accels
     "penalize_accel": True,
-    "accel_penalty": 0.1
+    "accel_penalty": (1 / 400.0)
 })
 
 # =========================================================================== #
