@@ -3,7 +3,7 @@ from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.data_pipeline.data_pipeline import write_dict_to_csv, get_extra_info
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime
 import logging
 import time
 import os
