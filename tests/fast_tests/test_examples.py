@@ -229,11 +229,11 @@ class TestHBaselineExamples(unittest.TestCase):
     confirming that it runs.
     """
     @staticmethod
-    def run_exp(flow_params, multiagent):
+    def run_exp(env_name, multiagent):
         train_h_baselines(
-            flow_params=flow_params,
+            env_name=env_name,
             args=[
-                flow_params["env_name"].__name__,
+                env_name,
                 "--initial_exploration_steps", "1",
                 "--total_steps", "10"
             ],
@@ -241,10 +241,10 @@ class TestHBaselineExamples(unittest.TestCase):
         )
 
     def test_singleagent_ring(self):
-        self.run_exp(singleagent_ring.copy(), multiagent=False)
+        self.run_exp("singleagent_ring", multiagent=False)
 
     def test_multiagent_ring(self):
-        self.run_exp(multiagent_ring.copy(), multiagent=True)
+        self.run_exp("multiagent_ring", multiagent=True)
 
 
 class TestRllibExamples(unittest.TestCase):
