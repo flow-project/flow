@@ -1,4 +1,5 @@
 """Contains an experiment class for running simulations."""
+from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.data_pipeline.data_pipeline import write_dict_to_csv, get_extra_info
 from collections import defaultdict
@@ -209,6 +210,18 @@ class Experiment:
             # wait a short period of time to ensure the xml file is readable
             time.sleep(0.1)
 
+            # collect the location of the emission file
+            dir_path = self.env.sim_params.emission_path
+            emission_filename = \
+                "{0}-emission.xml".format(self.env.network.name)
+            emission_path = os.path.join(dir_path, emission_filename)
+
+            # convert the emission file into a csv
+            emission_to_csv(emission_path)
+
+            # Delete the .xml version of the emission file.
+            os.remove(emission_path)
+            
             write_dict_to_csv(trajectory_table_path, extra_info)
 
         return info_dict
