@@ -143,10 +143,6 @@ class Experiment:
         # data pipeline
         extra_info = defaultdict(lambda: [])
         source_id = 'flow_{}'.format(uuid.uuid4().hex)
-        # collect current time
-        cur_datetime = datetime.now(timezone.utc)
-        cur_date = cur_datetime.date().isoformat()
-        cur_time = cur_datetime.time().isoformat()
 
         if convert_to_csv and self.env.simulator == "traci":
             dir_path = self.env.sim_params.emission_path
@@ -221,7 +217,7 @@ class Experiment:
 
             # Delete the .xml version of the emission file.
             os.remove(emission_path)
-            
+
             write_dict_to_csv(trajectory_table_path, extra_info)
 
         return info_dict
