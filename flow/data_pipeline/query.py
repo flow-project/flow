@@ -65,26 +65,46 @@ network_using_edge = ["I-210 without Ramps"]
 
 X_FILTER = "x BETWEEN 500 AND 2300"
 
-EDGE_FILTER = "edge_id <> ANY (VALUES 'ghost0', '119257908#3')"
+EDGE_FILTER = "edge_id <> ALL (VALUES 'ghost0', '119257908#3')"
 
 WARMUP_STEPS = 600 * 3 * 0.4
 
 HORIZON_STEPS = 1000 * 3 * 0.4
 
-VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT = """
+VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT = """
     SELECT
         id,
         time_step,
         speed,
         acceleration,
         road_grade,
-        GREATEST(0, 1200 * speed * ((
+        GREATEST(0, 2041 * speed * ((
             CASE
                 WHEN acceleration > 0 THEN 1
                 WHEN acceleration < 0 THEN 0
                 ELSE 0.5
-            END * (1 - {0}) + {0}) * acceleration + 9.81 * SIN(road_grade)
-            ) + 1200 * 9.81 * 0.005 * speed + 0.5 * 1.225 * 2.6 * 0.3 * POW(speed,3)) AS power,
+            END * (1 - {0}) + {0}) * acceleration + 9.807 * SIN(road_grade)
+            ) + 2041 * 9.807 * 0.0027 * speed + 0.5 * 1.225 * 3.2 * 0.4 * POW(speed,3)) AS power,
+        \'{1}\' AS energy_model_id,
+        source_id
+    FROM {2}
+    ORDER BY id, time_step
+    """
+
+VEHICLE_POWER_DEMAND_PRIUS_FINAL_SELECT = """
+    SELECT
+        id,
+        time_step,
+        speed,
+        acceleration,
+        road_grade,
+        GREATEST(-2.8 * speed, 1663 * speed * ((
+            CASE
+                WHEN acceleration > 0 THEN 1
+                WHEN acceleration < 0 THEN 0
+                ELSE 0.5
+            END * (1 - {0}) + {0}) * acceleration + 9.807 * SIN(road_grade)
+            ) + 1663 * 9.807 * 0.007 * speed + 0.5 * 1.225 * 2.4 * 0.24 * POW(speed,3)) AS power,
         \'{1}\' AS energy_model_id,
         source_id
     FROM {2}
@@ -122,9 +142,9 @@ class QueryStrings(Enum):
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
         )
-        {}""".format(VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT.format(1,
-                                                                         'POWER_DEMAND_MODEL',
-                                                                         'regular_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT.format(1,
+                                                                     'POWER_DEMAND_MODEL',
+                                                                     'regular_cte'))
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL = """
         WITH denoised_accel_cte AS (
@@ -142,9 +162,9 @@ class QueryStrings(Enum):
                 AND date = \'{{date}}\'
                 AND partition_name=\'{{partition}}\'
         )
-        {}""".format(VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT.format(1,
-                                                                         'POWER_DEMAND_MODEL_DENOISED_ACCEL',
-                                                                         'denoised_accel_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT.format(1,
+                                                                     'POWER_DEMAND_MODEL_DENOISED_ACCEL',
+                                                                     'denoised_accel_cte'))
 
     POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL = """
         WITH lagged_timestep AS (
@@ -175,9 +195,9 @@ class QueryStrings(Enum):
                 source_id
             FROM lagged_timestep
         )
-        {}""".format(VEHICLE_POWER_DEMAND_COMBUSTION_FINAL_SELECT.format(1,
-                                                                         'POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL',
-                                                                         'denoised_speed_cte'))
+        {}""".format(VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT.format(1,
+                                                                     'POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL',
+                                                                     'denoised_speed_cte'))
 
     FACT_NETWORK_THROUGHPUT_AGG = """
         WITH min_time AS (
@@ -305,6 +325,7 @@ class QueryStrings(Enum):
             FROM min_max_time_step
             WHERE 1 = 1
                 AND min_time_step >= {start_filter}
+                AND min_time_step < {stop_filter}
             GROUP BY 1, 2
         ), outflows AS (
             SELECT
@@ -313,11 +334,14 @@ class QueryStrings(Enum):
                 60 * COUNT(DISTINCT id) AS outflow_rate
             FROM min_max_time_step
             WHERE 1 = 1
+                AND max_time_step >= {start_filter}
                 AND max_time_step < {stop_filter}
             GROUP BY 1, 2
         )
         SELECT
-            COALESCE(i.time_step, o.time_step) AS time_step,
+            COALESCE(i.time_step, o.time_step) - MIN(COALESCE(i.time_step, o.time_step))
+                OVER (PARTITION BY COALESCE(i.source_id, o.source_id)
+                ORDER BY COALESCE(i.time_step, o.time_step) ASC) AS time_step,
             COALESCE(i.source_id, o.source_id) AS source_id,
             COALESCE(i.inflow_rate, 0) AS inflow_rate,
             COALESCE(o.outflow_rate, 0) AS outflow_rate
@@ -434,7 +458,8 @@ class QueryStrings(Enum):
             SELECT
                 vt.id,
                 vt.source_id,
-                vt.time_step,
+                vt.time_step - FIRST_VALUE(vt.time_step)
+                    OVER (PARTITION BY vt.id, vt.source_id ORDER BY vt.time_step ASC) AS time_step,
                 energy_model_id,
                 et.speed,
                 et.acceleration,
@@ -528,17 +553,44 @@ class QueryStrings(Enum):
         ;"""
 
     LEADERBOARD_CHART_AGG = """
+        WITH agg AS (
+            SELECT
+                l.date AS submission_date,
+                m.submission_time,
+                l.source_id,
+                m.submitter_name,
+                m.strategy,
+                m.network,
+                m.is_baseline,
+                l.energy_model_id,
+                l.efficiency_meters_per_joules,
+                l.efficiency_miles_per_gallon,
+                l.throughput_per_hour,
+                b.source_id AS baseline_source_id
+            FROM leaderboard_chart AS l, metadata_table AS m, baseline_table as b
+            WHERE 1 = 1
+                AND l.source_id = m.source_id
+                AND m.network = b.network
+                AND (m.is_baseline='False'
+                     OR (m.is_baseline='True'
+                         AND m.source_id = b.source_id))
+        )
         SELECT
-            l.date AS submission_date,
-            l.source_id,
-            m.network,
-            m.is_baseline,
-            l.energy_model_id,
-            l.efficiency_meters_per_joules,
-            l.efficiency_miles_per_gallon,
-            l.throughput_per_hour
-        FROM leaderboard_chart AS l, metadata_table AS m
-        WHERE 1 = 1
-            AND l.source_id = m.source_id
-        ORDER BY l.date, m.submission_time, l.source_id ASC
+            agg.submission_date,
+            agg.source_id,
+            agg.submitter_name,
+            agg.strategy,
+            agg.network,
+            agg.is_baseline,
+            agg.energy_model_id,
+            agg.efficiency_meters_per_joules,
+            agg.efficiency_miles_per_gallon,
+            100 * (1 - baseline.efficiency_miles_per_gallon / agg.efficiency_miles_per_gallon) AS percent_improvement,
+            agg.throughput_per_hour
+        FROM agg
+        JOIN agg AS baseline ON 1 = 1
+            AND agg.network = baseline.network
+            AND baseline.is_baseline = 'True'
+            AND agg.baseline_source_id = baseline.source_id
+        ORDER BY agg.submission_date, agg.submission_time ASC
         ;"""
