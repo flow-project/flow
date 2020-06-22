@@ -33,22 +33,22 @@ class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
         return power
       
     @abstractmethod
-    def get_regen_cap(self, accel, speed, grade)
+    def get_regen_cap(self, accel, speed, grade):
         pass
 
     def get_instantaneous_power(self, accel, speed, grade):
-        power = max(get_regen_cap(), self.calculate_power(accel, speed, grade))
+        power = max(self.get_regen_cap(), self.calculate_power(accel, speed, grade))
         return power
 
 
 class PDMCombustionEngine(PowerDemandModel):
     
     # Power Demand Model for a combustion engine vehicle
-    def get_regen_cap(self, accel, speed, grade)
+    def get_regen_cap(self, accel, speed, grade):
         return 0
 
 class PDMElectric(PowerDemandModel):
     
     # Power Demand Model for an electric vehicle
-    def get_regen_cap(self, accel, speed, grade)
+    def get_regen_cap(self, accel, speed, grade):
         return -2.8 * speed
