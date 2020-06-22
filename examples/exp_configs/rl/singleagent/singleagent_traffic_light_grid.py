@@ -144,7 +144,7 @@ additional_env_params = {
         'target_velocity': 50,
         'switch_time': 3.0,
         'num_observed': 2,
-        'discrete': False, # set True for DQN
+        'discrete': False,  # set True for DQN
         'tl_type': 'actuated'
     }
 
