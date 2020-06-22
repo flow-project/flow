@@ -178,7 +178,7 @@ class Experiment:
                 for (key, lambda_func) in self.custom_callables.items():
                     custom_vals[key].append(lambda_func(self.env))
 
-                if type(done) is dict and done['__all__'] or type(done) is not dict and done:
+                if done:
                     break
 
             # Store the information from the run in info_dict.
