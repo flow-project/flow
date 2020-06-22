@@ -32,7 +32,7 @@ from flow.visualize.plot_custom_callables import plot_trip_distribution
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 
-from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info
+from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
 from flow.data_pipeline.leaderboard_utils import network_name_translate
 import uuid
 
@@ -236,6 +236,9 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     metadata['submission_time'].append(cur_time)
     metadata['network'].append(network_name_translate(env.network.name.split('_20')[0]))
     metadata['is_baseline'].append(str(args.is_baseline))
+    name, strategy = get_configuration()
+    metadata['submitter_name'].append(name)
+    metadata['strategy'].append(strategy)
 
     i = 0
     while i < args.num_rollouts:
@@ -246,6 +249,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         completed_vehicle_avg_energy = {}
         completed_vehicle_travel_time = {}
         custom_vals = {key: [] for key in custom_callables.keys()}
+        run_id = "run_{}".format(i)
+        env.pipeline_params = (extra_info, source_id, run_id)
         state = env.reset()
         initial_vehicles = set(env.k.vehicle.get_ids())
         for _ in range(env_params.horizon):
@@ -275,10 +280,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             veh_ids = env.k.vehicle.get_ids()
             vel.append(np.mean(env.k.vehicle.get_speed(veh_ids)))
 
-            # Collect information from flow for the trajectory output
-            get_extra_info(env.k.vehicle, extra_info, veh_ids)
-            extra_info["source_id"].extend([source_id] * len(veh_ids))
-            extra_info["run_id"].extend(['run_{}'.format(i)] * len(veh_ids))
+            # collect additional information for the data pipeline
+            get_extra_info(env.k.vehicle, extra_info, veh_ids, source_id, run_id)
 
             # Compute the results for the custom callables.
             for (key, lambda_func) in custom_callables.items():

@@ -26,6 +26,8 @@ from flow.core.util import ensure_dir
 from flow.core.kernel import Kernel
 from flow.utils.exceptions import FatalFlowError
 
+from flow.data_pipeline.data_pipeline import get_extra_info
+
 
 class Env(gym.Env, metaclass=ABCMeta):
     """Base environment class.
@@ -578,6 +580,14 @@ class Env(gym.Env, metaclass=ABCMeta):
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
             observation, _, _, _ = self.step(rl_actions=None)
+            # collect data for pipeline during the warmup period
+            try:
+                extra_info, source_id, run_id = self.pipeline_params
+                veh_ids = self.k.vehicle.get_ids()
+                get_extra_info(self.k.vehicle, extra_info, veh_ids, source_id, run_id)
+            # In case the attribute `pipeline_params` if not added to this instance
+            except AttributeError:
+                pass
 
         # render a frame
         self.render(reset=True)
