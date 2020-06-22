@@ -93,8 +93,8 @@ class TraCIVehicle(KernelVehicle):
         # old speeds used to compute accelerations
         self.previous_speeds = {}
 
-        self.energy = Energy(self)
-        self.energy.calc_energy_level(self)
+        """ self.energy = Energy(self)
+        self.energy.calc_energy_level(self) """
 
         # # store speeds of all vehicles at last iteration
         self.old_speeds = {}
@@ -311,6 +311,9 @@ class TraCIVehicle(KernelVehicle):
 
         # specify the type
         self.__vehicles[veh_id]["type"] = veh_type
+
+        # specify energy model
+        self.__vehicles[veh_id]["energy_model"] = veh_type.energy_model
 
         car_following_params = \
             self.type_parameters[veh_type]["car_following_params"]
@@ -1231,3 +1234,4 @@ class TraCIVehicle(KernelVehicle):
     def set_fuel(self, veh_id, fuel):
         """Set the lane headways of the specified vehicle."""
         self.__vehicles[veh_id]['fuel'] = fuel
+    
