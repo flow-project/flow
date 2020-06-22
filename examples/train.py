@@ -44,9 +44,7 @@ def parse_args(args):
         help='the RL trainer to use. either rllib or Stable-Baselines')
     parser.add_argument(
         '--algorithm', type=str, default="PPO",
-        help='RL algorithm to use. Options are PPO and DQN '
-             ' right now.'
-    )
+        help='RL algorithm to use. Options are PPO and DQN right now.')
     parser.add_argument(
         '--num_cpus', type=int, default=1,
         help='How many CPUs to use')
