@@ -63,12 +63,7 @@ class BaseController(metaclass=ABCMeta):
         elif isinstance(fail_safe, list) or fail_safe is None:
             self.fail_safe = fail_safe
         else:
-            print(
-                "==========================================================\n"
-                "WARNING: fail_safe should be string or list of strings. \n"
-                "Set fal_safe to None\n"
-                "==========================================================\n"
-            )
+            raise ValueError("fail_safe should be string or list of strings.\nSet fal_safe to None\n")
             self.fail_safe = None
 
         self.max_accel = car_following_params.controller_params['accel']
