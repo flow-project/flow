@@ -136,7 +136,7 @@ if ON_RAMP:
             speed_mode=19 if ALLOW_COLLISIONS else 'right_of_way'
         ),
         lane_change_params=SumoLaneChangeParams(
-            lane_change_mode="strategic",
+            lane_change_mode="sumo_default",
         ),
     )
 else:
@@ -152,7 +152,7 @@ else:
             speed_mode=19 if ALLOW_COLLISIONS else 'right_of_way'
         ),
         lane_change_params=SumoLaneChangeParams(
-            lane_change_mode="strategic",
+            lane_change_mode="sumo_default",
         ),
     )
 vehicles.add(
