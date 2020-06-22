@@ -89,7 +89,7 @@ flow_params = dict(
             "target_velocity": 50,
             "switch_time": 3,
             "num_observed": 2,
-            "discrete": False,  # set True for DQN
+            "discrete": True,  # set True for DQN
             "tl_type": "actuated",
             "num_local_edges": 4,
             "num_local_lights": 4,
@@ -142,7 +142,8 @@ act_space = test_env.action_space
 
 def gen_policy():
     """Generate a policy in RLlib."""
-    return PPOTFPolicy, obs_space, act_space, {}
+    #return PPOTFPolicy, obs_space, act_space, {}
+    return DQNTFPolicy, obs_space, act_space, {}
 
 
 # Setup PG with a single policy graph for all agents

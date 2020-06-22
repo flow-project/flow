@@ -138,6 +138,7 @@ def setup_exps_rllib(flow_params,
     """
     from ray import tune
     from ray.tune.registry import register_env
+    from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
     try:
         from ray.rllib.agents.agent import get_agent_class
     except ImportError:
@@ -147,14 +148,9 @@ def setup_exps_rllib(flow_params,
 
     alg_run = flags.algorithm.upper()
 
-    agent_cls = get_agent_class(alg_run)
-    config = deepcopy(agent_cls._default_config)
-    config["num_workers"] = n_cpus
-    config["train_batch_size"] = horizon * n_rollouts
-    config["horizon"] = horizon
-
     if alg_run == "PPO":
-
+        agent_cls = get_agent_class(alg_run)
+        config = deepcopy(agent_cls._default_config)
         config["gamma"] = 0.999  # discount rate
         config["model"].update({"fcnet_hiddens": [32, 32, 32]})
         config["use_gae"] = True
@@ -162,6 +158,8 @@ def setup_exps_rllib(flow_params,
         config["kl_target"] = 0.02
         config["num_sgd_iter"] = 10
     elif alg_run == "DQN":
+        agent_cls = get_agent_class(alg_run)
+        config = deepcopy(agent_cls._default_config)
         config['clip_actions'] = False
         config["timesteps_per_iteration"] = horizon * n_rollouts
         # https://github.com/ray-project/ray/blob/master/rllib/tuned_examples/dqn/atari-dist-dqn.yaml
@@ -170,6 +168,10 @@ def setup_exps_rllib(flow_params,
         config["schedule_max_timesteps"] = 2000000
         config["buffer_size"] = 1000000
         config["target_network_update_freq"] = 8000
+
+    config["num_workers"] = n_cpus
+    config["train_batch_size"] = horizon * n_rollouts
+    config["horizon"] = horizon
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -207,7 +209,7 @@ def train_rllib(submodule, flags):
     policies_to_train = getattr(submodule, "policies_to_train", None)
 
     alg_run, gym_name, config = setup_exps_rllib(
-        flow_params, n_cpus, n_rollouts,
+        flow_params, n_cpus, n_rollouts, flags,
         policy_graphs, policy_mapping_fn, policies_to_train)
 
     ray.init(num_cpus=n_cpus + 1, ignore_reinit_error=True, object_store_memory=200 * 1024 * 1024)
