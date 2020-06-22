@@ -7,14 +7,11 @@ from flow.utils.flow_warnings import deprecated_attribute
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
+from flow.energy_models.toyota_energy import PriusEnergy
+from flow.energy_models.toyota_energy import TacomaEnergy
+from flow.energy_models.power_demand import PDMCombustionEngine
+from flow.energy_models.power_demand import PDMElectric
 
-# To add these after creating the forlder for energy models # (1)
-"""
-from flow.enermod.toyota_energy import PriusEnergy
-from flow.enermod.toyota_energy import TacomaEnergy
-from flow.enermod.power_demand import PDMCombustionEngine
-from flow.enermod.power_demand import PDMElectric
-"""
 
 
 SPEED_MODES = {
@@ -250,7 +247,8 @@ class VehicleParams:
             num_vehicles=0,
             car_following_params=None,
             lane_change_params=None,
-            color=None):
+            color=None,
+            energy_model = None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
@@ -279,18 +277,26 @@ class VehicleParams:
             Params object specifying attributes for Sumo lane changing model.
         """
 
-        # determine which energy model to use
+        """# determine which energy model to use
         if "prius" in veh_id:
-            energy_model = env.k.PriusEnergy.get_instantaneous_power()
+            self.energy_model = PriusEnergy()
         elif "tacoma" in veh_id:
-            energy_model = env.k.TacomaEnergy.get_instantaneous_power()
+            self.energy_model = TacomaEnergy
         elif "ev" in veh_id:
-            energy_model = env.k.PDMElectric.get_instantaneous_power()
+            self.energy_model = PDMElectric()
         else:
-            energy_model = env.k.PDMCombustionEngine.get_instantaneous_power()
-   
-    
+            self.energy_model = PDMCombustionEngine()
+            """
 
+        if energy_model is "prius":
+            self.energy_model = PriusEnergy(kernel, 0.9)
+        elif energy_model is "tacoma":
+            self.energy_model = TacomaEnergy()
+        elif energy_model is "ev":
+            self.energy_model = PDMElectric()
+        else:
+            self.energy_model = PDMCombustionEngine()
+   
         if car_following_params is None:
             # FIXME: depends on simulator
             car_following_params = SumoCarFollowingParams()
