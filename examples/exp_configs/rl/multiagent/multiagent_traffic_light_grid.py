@@ -8,7 +8,7 @@ from flow.core.params import InFlows, SumoCarFollowingParams, VehicleParams
 from flow.controllers import SimCarFollowingController, GridRouter
 from ray.tune.registry import register_env
 from flow.utils.registry import make_create_env
-
+from flow.core.params import TrafficLightParams
 # Experiment parameters
 N_ROLLOUTS = 63  # number of rollouts per training iteration
 N_CPUS = 63  # number of parallel workers
