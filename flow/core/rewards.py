@@ -442,7 +442,7 @@ def miles_per_gallon(env, veh_ids=None, gain=.001):
 
     return mpg * gain
 
-def instantaneous_power(env, veh_ids=None, parameter=None, gain=.001):
+def instantaneous_power(env, veh_ids=None, gain=.001):
     """Calculate the instantaneous power for every simulation step specific to the vehicle type.
 
     The energy model used is based on the vehicle type:
@@ -469,9 +469,7 @@ def instantaneous_power(env, veh_ids=None, parameter=None, gain=.001):
     for veh_id in veh_ids:
         speed = env.k.vehicle.get_speed(veh_id)
         accel = env.k.vehicle.get_accel_no_noise_with_failsafe(veh_id)
-        grade = 0
-        # need to pass the parameter value to the init of the energy models ?????
-        inst_power = energy_model(accel, speed, grade)
+        grade = env.k.vehicle.get_road_grade(veh_id)
+        inst_power = energy_model[veh_id].get_instantaneous_power(accel, speed, grade)
         
-
     return inst_power
