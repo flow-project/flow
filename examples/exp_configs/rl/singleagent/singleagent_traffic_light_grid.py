@@ -145,7 +145,6 @@ additional_env_params = {
         'switch_time': 3.0,
         'num_observed': 2,
         'discrete': False,
-        #'tl_type': 'controlled'
         'tl_type': 'actuated'
     }
 
