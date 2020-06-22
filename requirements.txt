@@ -15,7 +15,6 @@ matplotlib==3.1.0
 imutils==0.5.1
 numpydoc
 ray==0.7.3
-opencv-python
 dill
 lz4
 setproctitle
