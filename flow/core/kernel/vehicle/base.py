@@ -128,7 +128,7 @@ class KernelVehicle(object, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def apply_acceleration(self, veh_id, acc):
+    def apply_acceleration(self, veh_id, acc, smooth=False):
         """Apply the acceleration requested by a vehicle in the simulator.
 
         In SUMO, this function applies slowDown method which applies smoothing.
@@ -139,23 +139,10 @@ class KernelVehicle(object, metaclass=ABCMeta):
             list of vehicle identifiers
         acc : float or array_like
             requested accelerations from the vehicles
+        smooth : bool
+            whether to apply acceleration smoothly or not, default: False
         """
         raise NotImplementedError
-
-    def apply_acceleration_not_smooth(self, veh_id, acc):
-        """Apply the acceleration requested by a vehicle in the simulator.
-
-        In SUMO, this function applies setSpeed method which doesn't apply
-        smoothing.
-
-        Parameters
-        ----------
-        veh_id : str or list of str
-            list of vehicle identifiers
-        acc : float or array_like
-            requested accelerations from the vehicles
-        """
-        pass
 
     @abstractmethod
     def apply_lane_change(self, veh_id, direction):
@@ -764,53 +751,18 @@ class KernelVehicle(object, metaclass=ABCMeta):
     ###########################################################################
 
     @abstractmethod
-    def get_accel(self, veh_id):
+    def get_accel(self, veh_id, noise=True, failsafe=True):
         """Return the acceleration of vehicle with veh_id."""
         pass
 
     @abstractmethod
-    def update_accel_no_noise_no_failsafe(self, veh_id, accel_no_noise_no_failsafe):
-        """Update stored acceleration without noise without failsafe of vehicle with veh_id."""
-        pass
-
-    @abstractmethod
-    def update_accel_no_noise_with_failsafe(self, veh_id, accel_no_noise_with_failsafe):
-        """Update stored acceleration without noise with failsafe of vehicle with veh_id."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def update_accel_with_noise_no_failsafe(self, veh_id, accel_with_noise_no_failsafe):
-        """Update stored acceleration with noise without failsafe of vehicle with veh_id."""
-        pass
-
-    @abstractmethod
-    def update_accel_with_noise_with_failsafe(self, veh_id, accel_with_noise_with_failsafe):
-        """Update stored acceleration with noise with failsafe of vehicle with veh_id."""
+    def update_accel(self, veh_id, accel, noise=True, failsafe=True):
+        """Update stored acceleration of vehicle with veh_id."""
         pass
 
     @abstractmethod
     def get_2d_position(self, veh_id, error=-1001):
         """Return (x, y) position of vehicle with veh_id."""
-        pass
-
-    @abstractmethod
-    def get_accel_no_noise_no_failsafe(self, veh_id):
-        """Return the acceleration without noise without failsafe of vehicle with veh_id."""
-        pass
-
-    @abstractmethod
-    def get_accel_no_noise_with_failsafe(self, veh_id):
-        """Return the acceleration without noise with failsafe of vehicle with veh_id."""
-        pass
-
-    @abstractmethod
-    def get_accel_with_noise_no_failsafe(self, veh_id):
-        """Return the acceleration with noise without failsafe of vehicle with veh_id."""
-        pass
-
-    @abstractmethod
-    def get_accel_with_noise_with_failsafe(self, veh_id):
-        """Return the acceleration with noise with failsafe of vehicle with veh_id."""
         pass
 
     @abstractmethod
