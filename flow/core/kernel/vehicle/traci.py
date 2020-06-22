@@ -13,7 +13,10 @@ import statistics
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
-from flow.core.kernel.base_energy import BaseEnergyModel
+from flow.energy_models.toyota_energy import PriusEnergy
+from flow.energy_models.toyota_energy import TacomaEnergy
+from flow.energy_models.power_demand import PDMCombustionEngine
+from flow.energy_models.power_demand import PDMElectric
 from bisect import bisect_left
 import itertools
 from copy import deepcopy
@@ -127,11 +130,11 @@ class TraCIVehicle(KernelVehicle):
 
                 # self.energy.initialize(veh_id)
                 # energy.intialize(veh_id)
-                self.__vehicles[veh_id]['SOC'] = float(random.randrange(8, 92))/100 #move to experiment code
+                # self.__vehicles[veh_id]['SOC'] = float(random.randrange(8, 92))/100 #move to experiment code
                 # # Assume level of fuel is 10-100% of capacity
                 # # Tacoma has 21.1 gallon capacity = 79.87219 L
                 # # Use density of gasoline = 748.9 g/L (needs to convert b/c fc is in g/s)
-                self.__vehicles[veh_id]['fuel'] = float(random.randrange(598163, 5981628))/100
+                # self.__vehicles[veh_id]['fuel'] = float(random.randrange(598163, 5981628))/100
 
                 self.num_vehicles += 1
                 if typ['acceleration_controller'][0] == RLController:
@@ -1221,7 +1224,7 @@ class TraCIVehicle(KernelVehicle):
         # TODO : Brent
         return 0
 
-    def get_soc(self, veh_id):
+    """ def get_soc(self, veh_id):
         return self.__vehicles[veh_id]['SOC']
 
     def set_soc(self, veh_id, soc):
@@ -1234,4 +1237,5 @@ class TraCIVehicle(KernelVehicle):
     def set_fuel(self, veh_id, fuel):
         """Set the lane headways of the specified vehicle."""
         self.__vehicles[veh_id]['fuel'] = fuel
+    """
     
