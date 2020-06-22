@@ -31,7 +31,7 @@ class ToyotaModel(BaseEnergyModel):
 
 class PriusEnergy(ToyotaModel):
     
-    def __init__(self, kernel, soc):
+    def __init__(self, kernel, soc=0.9):
         super(PriusEnergy, self).__init__(kernel, filename = 'prius_test.pkl')
         self.soc = soc 
 
@@ -48,5 +48,3 @@ class TacomaEnergy(ToyotaModel):
     def get_instantaneous_power(self, accel, speed, grade):
         fc = self.toyota_energy(accel, speed, grade)
         return fc
-
-
