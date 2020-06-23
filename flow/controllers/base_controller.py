@@ -340,7 +340,7 @@ class BaseController(metaclass=ABCMeta):
         else:
             return action
 
-    def get_feasible_action(self, env, action):
+    def get_feasible_action(self, action):
         """Perform the "feasible_accel" failsafe action.
 
         Checks if the computed acceleration would put us above maximum
@@ -349,9 +349,6 @@ class BaseController(metaclass=ABCMeta):
 
         Parameters
         ----------
-        env : flow.envs.Env
-            current environment, which contains information of the state of the
-            network at the current time step
         action : float
             requested acceleration action
 
