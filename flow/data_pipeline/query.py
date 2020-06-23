@@ -617,7 +617,7 @@ class QueryStrings(Enum):
             SELECT
                 vt.source_id,
                 vt.time_step,
-                COUNT(DISTINCT vt.id) AS vehicle_counts
+                COUNT(DISTINCT vt.id) AS vehicle_count
             FROM fact_vehicle_trace vt
             WHERE 1 = 1
                 AND vt.date = \'{date}\'
@@ -630,7 +630,7 @@ class QueryStrings(Enum):
             source_id,
             time_step - FIRST_VALUE(time_step)
                 OVER (PARTITION BY source_id ORDER BY time_step ASC) AS time_step,
-            vehicle_counts
+            vehicle_count
         FROM counts
     ;
     """
