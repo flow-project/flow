@@ -228,7 +228,8 @@ def centralized_critic_postprocessing(policy,
         try:
             central_obs_batch = np.hstack(
                 (sample_batch["obs"], np.hstack(central_obs_list)))
-        except:
+        except Exception as e:
+            print(‘Error in centralized PPO: ’, e)
             # TODO(@ev) this is a bug and needs to be fixed
             central_obs_batch = sample_batch["obs"]
         max_vf_agents = policy.model.max_num_agents

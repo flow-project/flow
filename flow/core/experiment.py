@@ -170,7 +170,7 @@ class Experiment:
         if convert_to_csv and self.env.simulator == "traci":
             dir_path = self.env.sim_params.emission_path
 
-        if not dir_path is None:
+        if dir_path:
             trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
             metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
 
@@ -196,7 +196,7 @@ class Experiment:
                 get_extra_info(self.env.k.vehicle, extra_info, veh_ids, source_id, run_id)
 
                 # write to disk every 100 steps
-                if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0 and not dir_path is None:
+                if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0 and dir_path:
                     write_dict_to_csv(trajectory_table_path, extra_info, not j)
                     extra_info.clear()
 
@@ -229,17 +229,6 @@ class Experiment:
         if convert_to_csv and self.env.simulator == "traci":
             # wait a short period of time to ensure the xml file is readable
             time.sleep(0.1)
-
-            # collect the location of the emission file
-            emission_filename = \
-                "{0}-emission.xml".format(self.env.network.name)
-            emission_path = os.path.join(dir_path, emission_filename)
-
-            # convert the emission file into a csv
-            emission_to_csv(emission_path)
-
-            # Delete the .xml version of the emission file.
-            os.remove(emission_path)
 
             write_dict_to_csv(trajectory_table_path, extra_info)
             write_dict_to_csv(metadata_table_path, metadata, True)
