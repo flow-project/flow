@@ -1,7 +1,7 @@
 """Multi-agent traffic light example (single shared policy)."""
 
 from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
-from ray.rllib.agents.dqn.dqn_policy import DQNTFPolicy
+# from ray.rllib.agents.dqn.dqn_policy import DQNTFPolicy
 from flow.envs.multiagent import MultiTrafficLightGridPOEnv
 from flow.networks import TrafficLightGridNetwork
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -89,7 +89,7 @@ flow_params = dict(
             "target_velocity": 50,
             "switch_time": 3,
             "num_observed": 2,
-            "discrete": True,  # set True for DQN
+            "discrete": False,  # set True for DQN
             "tl_type": "actuated",
             "num_local_edges": 4,
             "num_local_lights": 4,
@@ -142,8 +142,8 @@ act_space = test_env.action_space
 
 def gen_policy():
     """Generate a policy in RLlib."""
-    # return PPOTFPolicy, obs_space, act_space, {}
-    return DQNTFPolicy, obs_space, act_space, {}
+    return PPOTFPolicy, obs_space, act_space, {}
+    # return DQNTFPolicy, obs_space, act_space, {}
 
 
 # Setup PG with a single policy graph for all agents
