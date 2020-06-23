@@ -216,4 +216,6 @@ class Experiment:
             os.remove(emission_path)
             write_dict_to_csv(trajectory_table_path, extra_info)
 
+            write_dict_to_csv(trajectory_table_path, extra_info)
+
         return info_dict
