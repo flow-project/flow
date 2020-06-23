@@ -141,7 +141,7 @@ class Experiment:
         times = []
 
         # data pipeline
-        extra_info = defaultdict(lambda: [])
+        extra_info = defaultdict(list)
         source_id = 'flow_{}'.format(uuid.uuid4().hex)
 
         if convert_to_csv and self.env.simulator == "traci":

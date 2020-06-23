@@ -59,12 +59,27 @@ class BaseController(metaclass=ABCMeta):
 
         # longitudinal failsafe used by the vehicle
         if isinstance(fail_safe, str):
-            self.fail_safe = [fail_safe]
+            failsafe_list = [fail_safe]
         elif isinstance(fail_safe, list) or fail_safe is None:
-            self.fail_safe = fail_safe
+            failsafe_list = fail_safe
         else:
-            raise ValueError("fail_safe should be string or list of strings.\nSet fal_safe to None\n")
-            self.fail_safe = None
+            raise ValueError("fail_safe should be string or list of strings.\nSetting fail_safe to None\n")
+            failsafe_list = None
+
+        failsafe_map = {
+            'instantaneous': self.get_safe_action_instantaneous, 
+            'safe_velocity': self.get_safe_velocity_action,
+            'feasible_accel': self.get_feasible_action,
+            'obey_speed_limit': self.get_obey_speed_limit_action
+        }
+        self.failsafes = []
+        if failsafe_list:
+            for check in failsafe_list:
+                try:
+                    self.failsafes.append(failsafe_map.get(check))
+                except ValueError:
+                    print(f'{check} is not a valid failsafe')
+                    raise
 
         self.max_accel = car_following_params.controller_params['accel']
         # max deaccel should always be a positive
@@ -98,7 +113,7 @@ class BaseController(metaclass=ABCMeta):
         float
             the modified form of the acceleration
         """
-        # clear the current stored accel_no_noise_no_failsafe of this vehicle None
+        # clear the current stored accels of this vehicle to None
         env.k.vehicle.update_accel(self.veh_id, None, noise=False, failsafe=False)
         env.k.vehicle.update_accel(self.veh_id, None, noise=False, failsafe=True)
         env.k.vehicle.update_accel(self.veh_id, None, noise=True, failsafe=False)
@@ -114,7 +129,7 @@ class BaseController(metaclass=ABCMeta):
         if env.k.vehicle.get_edge(self.veh_id)[0] == ":":
             return None
 
-        accel = self.get_accel(env)
+        accel = self.get_accel(env, noise=False, failsafe=False)
 
         # if no acceleration is specified, let sumo take over for the current
         # time step
@@ -126,20 +141,8 @@ class BaseController(metaclass=ABCMeta):
         env.k.vehicle.update_accel(self.veh_id, accel, noise=False, failsafe=False)
         accel_no_noise_with_failsafe = accel
 
-        if self.fail_safe is not None:
-            for check in self.fail_safe:
-                if check == 'instantaneous':
-                    accel_no_noise_with_failsafe = self.get_safe_action_instantaneous(
-                        env, accel_no_noise_with_failsafe)
-                elif check == 'safe_velocity':
-                    accel_no_noise_with_failsafe = self.get_safe_velocity_action(
-                        env, accel_no_noise_with_failsafe)
-                elif check == 'feasible_accel':
-                    accel_no_noise_with_failsafe = self.get_feasible_action(
-                        accel_no_noise_with_failsafe)
-                elif check == 'obey_speed_limit':
-                    accel_no_noise_with_failsafe = self.get_obey_speed_limit_action(
-                        env, accel_no_noise_with_failsafe)
+        for failsafe in self.failsafes:
+            accel_no_noise_with_failsafe = failsafe(env, accel_no_noise_with_failsafe)
 
         env.k.vehicle.update_accel(self.veh_id, accel_no_noise_with_failsafe, noise=False, failsafe=True)
 
@@ -149,16 +152,8 @@ class BaseController(metaclass=ABCMeta):
         env.k.vehicle.update_accel(self.veh_id, accel, noise=True, failsafe=False)
 
         # run the fail-safes, if requested
-        if self.fail_safe is not None:
-            for check in self.fail_safe:
-                if check == 'instantaneous':
-                    accel = self.get_safe_action_instantaneous(env, accel)
-                elif check == 'safe_velocity':
-                    accel = self.get_safe_velocity_action(env, accel)
-                elif check == 'feasible_accel':
-                    accel = self.get_feasible_action(accel)
-                elif check == 'obey_speed_limit':
-                    accel = self.get_obey_speed_limit_action(env, accel)
+        for failsafe in self.failsafes:
+            accel = failsafe(env, accel)
 
         env.k.vehicle.update_accel(self.veh_id, accel, noise=True, failsafe=True)
         return accel
