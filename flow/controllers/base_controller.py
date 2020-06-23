@@ -70,7 +70,7 @@ class BaseController(metaclass=ABCMeta):
             failsafe_list = None
 
         failsafe_map = {
-            'instantaneous': self.get_safe_action_instantaneous, 
+            'instantaneous': self.get_safe_action_instantaneous,
             'safe_velocity': self.get_safe_velocity_action,
             'feasible_accel': self.get_feasible_action,
             'obey_speed_limit': self.get_obey_speed_limit_action
@@ -192,7 +192,9 @@ class BaseController(metaclass=ABCMeta):
         if lead_id is None:
             return action
 
-        next_vel = env.k.vehicle.get_next_speed(self.veh_id, action)
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
+        sim_step = env.sim_step
+        next_vel = this_vel + action * sim_step
         h = env.k.vehicle.get_headway(self.veh_id)
 
         if next_vel > 0:
@@ -244,7 +246,10 @@ class BaseController(metaclass=ABCMeta):
         else:
             safe_velocity = self.safe_velocity(env)
 
-            if env.k.vehicle.get_next_speed(self.veh_id, action) > safe_velocity:
+            this_vel = env.k.vehicle.get_speed(self.veh_id)
+            sim_step = env.sim_step
+
+            if this_vel + action * sim_step > safe_velocity:
                 if safe_velocity > 0:
                     return (safe_velocity - this_vel) / sim_step
                 else:
@@ -318,7 +323,10 @@ class BaseController(metaclass=ABCMeta):
         this_edge = env.k.vehicle.get_edge(self.veh_id)
         edge_speed_limit = env.k.network.speed_limit(this_edge)
 
-        if env.k.vehicle.get_next_speed(self.veh_id, action) > edge_speed_limit:
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
+        sim_step = env.sim_step
+
+        if this_vel + action * sim_step > edge_speed_limit:
             if edge_speed_limit > 0:
                 if self.display_warnings:
                     print(
