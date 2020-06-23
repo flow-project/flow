@@ -99,10 +99,10 @@ class BaseController(metaclass=ABCMeta):
             the modified form of the acceleration
         """
         # clear the current stored accel_no_noise_no_failsafe of this vehicle None
-        env.k.vehicle.update_accel_no_noise_no_failsafe(self.veh_id, None)
-        env.k.vehicle.update_accel_no_noise_with_failsafe(self.veh_id, None)
-        env.k.vehicle.update_accel_with_noise_no_failsafe(self.veh_id, None)
-        env.k.vehicle.update_accel_with_noise_with_failsafe(self.veh_id, None)
+        env.k.vehicle.update_accel(self.veh_id, None, noise=False, failsafe=False)
+        env.k.vehicle.update_accel(self.veh_id, None, noise=False, failsafe=True)
+        env.k.vehicle.update_accel(self.veh_id, None, noise=True, failsafe=False)
+        env.k.vehicle.update_accel(self.veh_id, None, noise=True, failsafe=True)
 
         # this is to avoid abrupt decelerations when a vehicle has just entered
         # a network and it's data is still not subscribed
@@ -123,7 +123,7 @@ class BaseController(metaclass=ABCMeta):
 
         # store the acceleration without noise to each vehicle
         # run fail safe if requested
-        env.k.vehicle.update_accel_no_noise_no_failsafe(self.veh_id, accel)
+        env.k.vehicle.update_accel(self.veh_id, accel, noise=False, failsafe=False)
         accel_no_noise_with_failsafe = accel
 
         if self.fail_safe is not None:
@@ -141,13 +141,12 @@ class BaseController(metaclass=ABCMeta):
                     accel_no_noise_with_failsafe = self.get_obey_speed_limit_action(
                         env, accel_no_noise_with_failsafe)
 
-        env.k.vehicle.update_accel_no_noise_with_failsafe(
-            self.veh_id, accel_no_noise_with_failsafe)
+        env.k.vehicle.update_accel(self.veh_id, accel_no_noise_with_failsafe, noise=False, failsafe=True)
 
         # add noise to the accelerations, if requested
         if self.accel_noise > 0:
             accel += np.sqrt(env.sim_step) * np.random.normal(0, self.accel_noise)
-        env.k.vehicle.update_accel_with_noise_no_failsafe(self.veh_id, accel)
+        env.k.vehicle.update_accel(self.veh_id, accel, noise=True, failsafe=False)
 
         # run the fail-safes, if requested
         if self.fail_safe is not None:
@@ -161,7 +160,7 @@ class BaseController(metaclass=ABCMeta):
                 elif check == 'obey_speed_limit':
                     accel = self.get_obey_speed_limit_action(env, accel)
 
-        env.k.vehicle.update_accel_with_noise_with_failsafe(self.veh_id, accel)
+        env.k.vehicle.update_accel(self.veh_id, accel, noise=True, failsafe=True)
         return accel
 
     def get_safe_action_instantaneous(self, env, action):
