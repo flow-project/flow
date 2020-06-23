@@ -25,17 +25,6 @@ tags = {
             "FACT_SAFETY_METRICS_AGG"
         ]
     },
-    # @brent: are these needed? Is there a race condition here that may break things?
-    # "fact_safety_metrics_agg": {
-    #     "leaderboard_chart": [
-    #         "LEADERBOARD_CHART"
-    #     ]
-    # },
-    # "fact_network_throughput_agg": {
-    #     "leaderboard_chart": [
-    #         "LEADERBOARD_CHART"
-    #     ]
-    # }
     "POWER_DEMAND_MODEL_DENOISED_ACCEL": {
         "fact_vehicle_fuel_efficiency_agg": [
             "FACT_VEHICLE_FUEL_EFFICIENCY_AGG"
@@ -246,7 +235,7 @@ class QueryStrings(Enum):
     FACT_SAFETY_METRICS_AGG = """
         SELECT
             source_id,
-            SUM(CASE WHEN safety_value < 0 THEN 1 ELSE 0) * 100 / COUNT() safety_rate,
+            SUM(CASE WHEN safety_value < 0 THEN 1 ELSE 0 END) * 100 / COUNT() safety_rate,
             MAX(safety_value) AS safety_value_max
         FROM fact_safety_metrics
         WHERE 1 = 1
