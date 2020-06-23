@@ -17,9 +17,13 @@ tags = {
         ],
         "fact_network_inflows_outflows": [
             "FACT_NETWORK_INFLOWS_OUTFLOWS"
+        ],
+        "fact_vehicle_counts_by_time": [
+            "FACT_VEHICLE_COUNTS_BY_TIME"
         ]
     },
     "fact_energy_trace": {},
+    "fact_vehicle_counts_by_time": {},
     "fact_safety_metrics": {
         "fact_safety_metrics_agg": [
             "FACT_SAFETY_METRICS_AGG"
@@ -602,6 +606,29 @@ class QueryStrings(Enum):
             AND bce.time_seconds_bin = be.time_seconds_bin
         ORDER BY time_seconds_bin ASC
         ;"""
+
+    FACT_VEHICLE_COUNTS_BY_TIME = """
+        WITH counts AS (
+            SELECT
+                vt.source_id,
+                vt.time_step,
+                COUNT(DISTINCT vt.id) AS vehicle_counts
+            FROM fact_vehicle_trace vt
+            WHERE 1 = 1
+                AND vt.date = \'{date}\'
+                AND vt.partition_name = \'{partition}\'
+                AND vt.{loc_filter}
+                AND vt.time_step >= {start_filter}
+            GROUP BY 1, 2
+        )
+        SELECT
+            source_id,
+            time_step - FIRST_VALUE(time_step)
+                OVER (PARTITION BY source_id ORDER BY time_step ASC) AS time_step,
+            vehicle_counts
+        FROM counts
+    ;
+    """
 
     LEADERBOARD_CHART_AGG = """
         WITH agg AS (
