@@ -608,18 +608,25 @@ class QueryStrings(Enum):
         ;"""
 
     FACT_VEHICLE_COUNTS_BY_TIME = """
+        WITH counts AS (
+            SELECT
+                vt.source_id,
+                vt.time_step,
+                COUNT(DISTINCT vt.id) AS vehicle_counts
+            FROM fact_vehicle_trace vt
+            WHERE 1 = 1
+                AND vt.date = \'{date}\'
+                AND vt.partition_name = \'{partition}\'
+                AND vt.{loc_filter}
+                AND vt.time_step >= {start_filter}
+            GROUP BY 1, 2
+        )
         SELECT
-            vt.source_id,
-            vt.time_step - FIRST_VALUE(vt.time_step)
-                OVER (PARTITION BY vt.source_id ORDER BY vt.time_step ASC) AS time_step,
-            COUNT(DISTINCT vt.id) AS vehicle_counts
-        FROM fact_vehicle_trace vt
-        WHERE 1 = 1
-            AND vt.date = \'{date}\'
-            AND vt.partition_name = \'{partition}\'
-            AND vt.{loc_filter}
-            AND vt.time_step >= {start_filter}
-        GROUP BY 1, 2
+            source_id,
+            time_step - FIRST_VALUE(time_step)
+                OVER (PARTITION BY source_id ORDER BY time_step ASC) AS time_step,
+            vehicle_counts
+        FROM counts
     ;
     """
 
