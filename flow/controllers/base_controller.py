@@ -81,7 +81,7 @@ class BaseController(metaclass=ABCMeta):
                 try:
                     self.failsafes.append(failsafe_map.get(check))
                 except ValueError:
-                    print(f'{check} is not a valid failsafe')
+                    print('{} is not a valid failsafe'.format(check))
                     raise
         self.display_warnings = display_warnings
 
