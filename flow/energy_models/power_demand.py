@@ -4,7 +4,7 @@ import statistics
 import numpy as np
 from scipy.interpolate import interp1d
 from collections import namedtuple
-from flow.core.kernel.base_energy import BaseEnergyModel
+from flow.energy_models.base_energy import BaseEnergyModel
 from abc import ABCMeta, abstractmethod
 
 class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
@@ -14,14 +14,14 @@ class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
     actual power consumed by the vehicle
     """
 
-    def __init__(self,kernel):
+    def __init__(self, kernel, mass=2041, area=3.2, Cr=0.0027, Ca=0.4):
         self.k = kernel
-        self.g = 9.81
+        self.g = 9.807
         self.rho_air = 1.225
-        self.mass = 1200
-        self.rolling_res_coeff = 0.005
-        self.aerodynamic_drag_coeff = 0.3
-        self.cross_area = 2.6
+        self.mass = mass
+        self.rolling_res_coeff = Cr
+        self.aerodynamic_drag_coeff = Ca
+        self.cross_area = area
         self.gamma = 1
     
     def calculate_power(self, accel, speed, grade):
@@ -50,5 +50,8 @@ class PDMCombustionEngine(PowerDemandModel):
 class PDMElectric(PowerDemandModel):
     
     # Power Demand Model for an electric vehicle
+    def __init__(self,kernel):
+        super(PDMElectric, self).__init__(kernel, mass=1663, area=2.4, Cr=0.007, Ca=0.24)
+        
     def get_regen_cap(self, accel, speed, grade):
         return -2.8 * speed
