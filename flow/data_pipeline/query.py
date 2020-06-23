@@ -9,6 +9,9 @@ tags = {
             "POWER_DEMAND_MODEL_DENOISED_ACCEL",
             "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"
         ],
+        "fact_safety_metrics": [
+            "FACT_SAFETY_METRICS"
+        ],
         "fact_network_throughput_agg": [
             "FACT_NETWORK_THROUGHPUT_AGG"
         ],
@@ -17,6 +20,11 @@ tags = {
         ]
     },
     "fact_energy_trace": {},
+    "fact_safety_metrics": {
+        "fact_safety_metrics_agg": [
+            "FACT_SAFETY_METRICS_AGG"
+        ]
+    },
     "POWER_DEMAND_MODEL_DENOISED_ACCEL": {
         "fact_vehicle_fuel_efficiency_agg": [
             "FACT_VEHICLE_FUEL_EFFICIENCY_AGG"
@@ -50,6 +58,8 @@ tags = {
 tables = [
     "fact_vehicle_trace",
     "fact_energy_trace",
+    "fact_safety_metrics",
+    "fact_safety_metrics_agg",
     "fact_network_throughput_agg",
     "fact_network_inflows_outflows",
     "fact_vehicle_fuel_efficiency_agg",
@@ -199,6 +209,41 @@ class QueryStrings(Enum):
                                                                      'POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL',
                                                                      'denoised_speed_cte'))
 
+    FACT_SAFETY_METRICS = """
+        SELECT
+            vt.id,
+            vt.time_step,
+            COALESCE((
+                value_lower_left*(headway_upper-headway)*(rel_speed_upper-leader_rel_speed) +
+                value_lower_right*(headway-headway_lower)*(rel_speed_upper-leader_rel_speed) +
+                value_upper_left*(headway_upper-headway)*(leader_rel_speed-rel_speed_lower) +
+                value_upper_right*(headway-headway_lower)*(leader_rel_speed-rel_speed_lower)
+            ) / ((headway_upper-headway_lower)*(rel_speed_upper-rel_speed_lower)), 200) AS safety_value,
+            vt.source_id
+        FROM fact_vehicle_trace vt
+        LEFT OUTER JOIN fact_safety_matrix sm ON 1 = 1
+            AND vt.leader_rel_speed BETWEEN sm.rel_speed_lower AND sm.rel_speed_upper
+            AND vt.headway BETWEEN sm.headway_lower AND sm.headway_upper
+        WHERE 1 = 1
+            AND vt.date = \'{{date}}\'
+            AND vt.partition_name = \'{{partition}}\'
+            AND vt.time_step >= {start_filter}
+            AND vt.{loc_filter}
+        ;
+    """
+
+    FACT_SAFETY_METRICS_AGG = """
+        SELECT
+            source_id,
+            SUM(CASE WHEN safety_value < 0 THEN 1 ELSE 0 END) * 100 / COUNT() safety_rate,
+            MAX(safety_value) AS safety_value_max
+        FROM fact_safety_metrics
+        WHERE 1 = 1
+            AND date = \'{{date}}\'
+            AND partition_name = \'{{partition}}\'
+        GROUP BY 1
+    """
+
     FACT_NETWORK_THROUGHPUT_AGG = """
         WITH min_time AS (
             SELECT
@@ -292,13 +337,19 @@ class QueryStrings(Enum):
             e.energy_model_id,
             e.efficiency_meters_per_joules,
             19972 * e.efficiency_meters_per_joules AS efficiency_miles_per_gallon,
-            t.throughput_per_hour
+            t.throughput_per_hour,
+            s.safety_rate,
+            s.safety_value_max
         FROM fact_network_throughput_agg AS t
         JOIN fact_network_fuel_efficiency_agg AS e ON 1 = 1
             AND e.date = \'{date}\'
             AND e.partition_name = \'{partition}_FACT_NETWORK_FUEL_EFFICIENCY_AGG\'
             AND t.source_id = e.source_id
             AND e.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
+        JOIN fact_safety_metrics_agg AS s ON 1 = 1
+            AND s.date = \'{date}\'
+            AND s.partition_name = \'{partition}_FACT_SAFETY_METRICS_AGG\'
+            AND t.source_id = s.source_id
         WHERE 1 = 1
             AND t.date = \'{date}\'
             AND t.partition_name = \'{partition}_FACT_NETWORK_THROUGHPUT_AGG\'
@@ -586,7 +637,9 @@ class QueryStrings(Enum):
             agg.efficiency_meters_per_joules,
             agg.efficiency_miles_per_gallon,
             100 * (1 - baseline.efficiency_miles_per_gallon / agg.efficiency_miles_per_gallon) AS percent_improvement,
-            agg.throughput_per_hour
+            agg.throughput_per_hour,
+            agg.safety_rate,
+            agg.safety_value_max
         FROM agg
         JOIN agg AS baseline ON 1 = 1
             AND agg.network = baseline.network
