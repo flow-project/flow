@@ -136,7 +136,7 @@ if ON_RAMP:
             speed_mode=19 if ALLOW_COLLISIONS else 'right_of_way'
         ),
         lane_change_params=SumoLaneChangeParams(
-            lane_change_mode="strategic",
+            lane_change_mode="sumo_default",
         ),
     )
 else:
@@ -152,7 +152,7 @@ else:
             speed_mode=19 if ALLOW_COLLISIONS else 'right_of_way'
         ),
         lane_change_params=SumoLaneChangeParams(
-            lane_change_mode="strategic",
+            lane_change_mode="sumo_default",
         ),
     )
 vehicles.add(
@@ -275,12 +275,11 @@ def policy_mapping_fn(_):
 
 
 custom_callables = {
-    "avg_speed": lambda env: np.mean([
-        speed for speed in
-        env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
-    "avg_outflow": lambda env: np.nan_to_num(
-        env.k.vehicle.get_outflow_rate(120)),
-    "avg_energy": lambda env: -1 * energy_consumption(env, 0.1),
-    "avg_per_step_energy": lambda env: -1 * energy_consumption(
-        env, 0.1) / env.k.vehicle.num_vehicles,
+    "avg_speed": lambda env: np.mean([speed for speed in
+                                      env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
+    "avg_outflow": lambda env: np.nan_to_num(env.k.vehicle.get_outflow_rate(120)),
+    "avg_energy": lambda env: -1*energy_consumption(env, 0.1),
+    "avg_per_step_energy": lambda env: -1*energy_consumption(env, 0.1) / env.k.vehicle.num_vehicles
+                                        if env.k.vehicle.num_vehicles > 0
+                                        else 0,
 }
