@@ -7,7 +7,7 @@ import statistics
 import numpy as np
 from scipy.interpolate import interp1d
 from collections import namedtuple
-from flow.core.kernel.base_energy import BaseEnergyModel
+from flow.energy_models.base_energy import BaseEnergyModel
 import os
 from abc import ABCMeta, abstractmethod
 
