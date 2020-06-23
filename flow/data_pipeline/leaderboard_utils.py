@@ -5,7 +5,8 @@ import pandas as pd
 from io import StringIO
 
 
-network_name_map = {"highway-single": "Single-Lane Straight Road",
+network_name_map = {"highway": "Single-Lane Straight Road",
+                    "highway_single": "Single-Lane Straight Road",
                     "ring": "Single-Lane Ring Road",
                     "I-210_subnetwork": "I-210 without Ramps",
                     "I_210_subnetwork": "I-210 without Ramps"}
@@ -64,10 +65,12 @@ def get_table_disk(table_name="fact_vehicle_trace", bucket="circles.data.pipelin
     keys = [e["Key"] for e in response["Contents"] if e["Key"].find(table_name) == 0 and e["Key"][-4:] == ".csv"]
     names = [key_to_name(k) for k in keys]
     existing_results = os.listdir("./result/{}".format(table_name))
+    updated = False
     for index in range(len(keys)):
         if names[index] not in existing_results:
+            updated = True
             s3.download_file(bucket, keys[index], "./result/{}/{}".format(table_name, names[index]))
-    if table_name == "leaderboard_chart_agg":
+    if table_name == "leaderboard_chart_agg" and updated:
         for p in existing_results:
             os.remove("./result/{}/{}".format(table_name, p))
 

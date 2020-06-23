@@ -32,7 +32,7 @@ from flow.visualize.plot_custom_callables import plot_trip_distribution
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 
-from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info
+from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
 from flow.data_pipeline.leaderboard_utils import network_name_translate
 import uuid
 
@@ -167,7 +167,18 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         rllib_flow_params = get_flow_params(rllib_config)
         agent_create_env, agent_env_name = make_create_env(params=rllib_flow_params, version=0)
         register_env(agent_env_name, agent_create_env)
-        agent_cls = get_agent_class(config_run)
+        # agent_cls = get_agent_class(config_run)
+
+        if rllib_config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CCPPOTrainer'>":
+            from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
+            from ray.rllib.models import ModelCatalog
+            agent_cls = CCTrainer
+            ModelCatalog.register_custom_model("cc_model", CentralizedCriticModel)
+        elif rllib_config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CustomPPOTrainer'>":
+            from flow.algorithms.custom_ppo import CustomPPOTrainer
+            agent_cls = CustomPPOTrainer
+        elif config_run:
+            agent_cls = get_agent_class(config_run)
 
         # create the agent that will be used to compute the actions
         agent = agent_cls(env=agent_env_name, config=rllib_config)
@@ -209,6 +220,10 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         key: [] for key in custom_callables.keys()
     })
 
+    # reroute on exit is a training hack, it should be turned off at test time.
+    if hasattr(env, "reroute_on_exit"):
+        env.reroute_on_exit = False
+
     # date pipeline
     extra_info = defaultdict(lambda: [])
     source_id = 'flow_{}'.format(uuid.uuid4().hex)
@@ -221,6 +236,9 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     metadata['submission_time'].append(cur_time)
     metadata['network'].append(network_name_translate(env.network.name.split('_20')[0]))
     metadata['is_baseline'].append(str(args.is_baseline))
+    name, strategy = get_configuration()
+    metadata['submitter_name'].append(name)
+    metadata['strategy'].append(strategy)
 
     i = 0
     while i < args.num_rollouts:
@@ -231,6 +249,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         completed_vehicle_avg_energy = {}
         completed_vehicle_travel_time = {}
         custom_vals = {key: [] for key in custom_callables.keys()}
+        run_id = "run_{}".format(i)
+        env.pipeline_params = (extra_info, source_id, run_id)
         state = env.reset()
         initial_vehicles = set(env.k.vehicle.get_ids())
         for _ in range(env_params.horizon):
@@ -260,10 +280,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             veh_ids = env.k.vehicle.get_ids()
             vel.append(np.mean(env.k.vehicle.get_speed(veh_ids)))
 
-            # Collect information from flow for the trajectory output
-            get_extra_info(env.k.vehicle, extra_info, veh_ids)
-            extra_info["source_id"].extend([source_id] * len(veh_ids))
-            extra_info["run_id"].extend(['run_{}'.format(i)] * len(veh_ids))
+            # collect additional information for the data pipeline
+            get_extra_info(env.k.vehicle, extra_info, veh_ids, source_id, run_id)
 
             # Compute the results for the custom callables.
             for (key, lambda_func) in custom_callables.items():
