@@ -746,6 +746,31 @@ class KernelVehicle(object, metaclass=ABCMeta):
         """
         pass
 
+    def get_next_speed(self, veh_id, accel):
+        """Return the next projected speed of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str
+            vehicle id
+        accel : float
+            prescribed acceleration
+
+        Returns
+        -------
+        float
+        """
+        if isinstance(veh_id, list) or isinstance(accel, list):
+            raise ValueError("get_next_speed() can only handle individual vehicles.\n"
+                "Taking first value in list.")
+            if isinstance(veh_id, list):
+                veh_id = veh_id[0]
+            if isinstance(accel, list):
+                accel = accel[0]
+
+        this_vel = self.get_speed(veh_id)
+        return this_vel + accel * self.sim_step
+
     ###########################################################################
     #                        Methods for Datapipeline                         #
     ###########################################################################
