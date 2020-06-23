@@ -72,7 +72,7 @@ class BaseController(metaclass=ABCMeta):
         failsafe_map = {
             'instantaneous': self.get_safe_action_instantaneous,
             'safe_velocity': self.get_safe_velocity_action,
-            'feasible_accel': self.get_feasible_action,
+            'feasible_accel': lambda _, accel: self.get_feasible_action(accel),
             'obey_speed_limit': self.get_obey_speed_limit_action
         }
         self.failsafes = []
