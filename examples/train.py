@@ -138,7 +138,6 @@ def setup_exps_rllib(flow_params,
     """
     from ray import tune
     from ray.tune.registry import register_env
-    from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
     try:
         from ray.rllib.agents.agent import get_agent_class
     except ImportError:
