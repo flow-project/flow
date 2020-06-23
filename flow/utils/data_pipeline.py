@@ -2,39 +2,6 @@
 import pandas as pd
 
 
-def generate_trajectory_table(data_path, extra_info, partition_name):
-    """Generate desired output for the trajectory_table based on standard SUMO emission.
-
-    Parameters
-    ----------
-    data_path : str
-        path to the standard SUMO emission
-    extra_info : dict
-        extra information needed in the trajectory table, collected from flow
-    partition_name : str
-        the name of the partition to put this output to
-
-    Returns
-    -------
-    output_file_path : str
-        the local path of the outputted csv file
-    """
-    raw_output = pd.read_csv(data_path, index_col=["time", "id"])
-    required_cols = {"time", "id", "speed", "x", "y"}
-    raw_output = raw_output.drop(set(raw_output.columns) - required_cols, axis=1)
-
-    extra_info = pd.DataFrame.from_dict(extra_info)
-    extra_info.set_index(["time", "id"])
-    raw_output = raw_output.merge(extra_info, how="left", left_on=["time", "id"], right_on=["time", "id"])
-
-    # add the partition column
-    # raw_output['partition'] = partition_name
-    raw_output = raw_output.sort_values(by=["time", "id"])
-    output_file_path = data_path[:-4]+"_trajectory.csv"
-    raw_output.to_csv(output_file_path, index=False)
-    return output_file_path
-
-
 def write_dict_to_csv(data_path, extra_info, include_header=False):
     """Write extra to the CSV file at data_path, create one if not exist.
 

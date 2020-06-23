@@ -87,8 +87,6 @@ class TraCIVehicle(KernelVehicle):
 
         # old speeds used to compute accelerations
         self.previous_speeds = {}
-        # The time that previous speed is recorded, used to calculate realized_accel
-        self.previous_time = 0
 
     def initialize(self, vehicles):
         """Initialize vehicle state information.
