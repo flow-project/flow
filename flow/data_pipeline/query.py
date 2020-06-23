@@ -610,7 +610,7 @@ class QueryStrings(Enum):
                     ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS max_score
             FROM leaderboard_chart_agg
             WHERE 1 = 1
-                AND is_baseline = FALSE
+                AND is_baseline = 'False'
         ), prev_max AS (
             SELECT
                 network,
