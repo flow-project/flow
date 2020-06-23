@@ -133,7 +133,7 @@ class BaseController(metaclass=ABCMeta):
         if env.k.vehicle.get_edge(self.veh_id)[0] == ":":
             return None
 
-        accel = self.get_accel(env, noise=False, failsafe=False)
+        accel = self.get_accel(env)
 
         # if no acceleration is specified, let sumo take over for the current
         # time step
@@ -340,7 +340,7 @@ class BaseController(metaclass=ABCMeta):
         else:
             return action
 
-    def get_feasible_action(self, action):
+    def get_feasible_action(self, env, action):
         """Perform the "feasible_accel" failsafe action.
 
         Checks if the computed acceleration would put us above maximum
@@ -349,6 +349,9 @@ class BaseController(metaclass=ABCMeta):
 
         Parameters
         ----------
+        env : flow.envs.Env
+            current environment, which contains information of the state of the
+            network at the current time step
         action : float
             requested acceleration action
 
