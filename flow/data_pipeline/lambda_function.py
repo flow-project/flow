@@ -1,7 +1,7 @@
 """lambda function on AWS Lambda."""
 import boto3
 from urllib.parse import unquote_plus
-from flow.data_pipeline.data_pipeline import AthenaQuery, delete_obsolete_data
+from flow.data_pipeline.data_pipeline import AthenaQuery, delete_obsolete_data, update_baseline
 from flow.data_pipeline.query import tags, tables,  network_using_edge
 from flow.data_pipeline.query import X_FILTER, EDGE_FILTER, WARMUP_STEPS, HORIZON_STEPS
 
@@ -48,6 +48,8 @@ def lambda_handler(event, context):
         if 'network' in response["Metadata"]:
             if response["Metadata"]['network'] in network_using_edge:
                 loc_filter = EDGE_FILTER
+            if 'is_baseline' in response['Metadata'] and response['Metadata']['is_baseline'] == 'True':
+                update_baseline(s3, response["Metadata"]['network'], source_id)
 
         query_dict = tags[table]
 
