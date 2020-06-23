@@ -171,7 +171,7 @@ class Experiment:
 
                 # write to disk every 100 steps
                 if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0:
-                    write_dict_to_csv(trajectory_table_path, extra_info, not j)
+                    write_dict_to_csv(trajectory_table_path, extra_info, not j and not i)
                     extra_info.clear()
 
                 # Compute the results for the custom callables.
