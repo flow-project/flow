@@ -56,6 +56,11 @@ tags = {
         "leaderboard_chart_agg": [
             "LEADERBOARD_CHART_AGG"
         ]
+    },
+    "leaderboard_chart_agg": {
+        "fact_top_scores": [
+            "FACT_TOP_SCORES"
+        ]
     }
 }
 
@@ -673,4 +678,31 @@ class QueryStrings(Enum):
             AND baseline.is_baseline = 'True'
             AND agg.baseline_source_id = baseline.source_id
         ORDER BY agg.submission_date, agg.submission_time ASC
+        ;"""
+
+    FACT_TOP_SCORES = """
+        WITH curr_max AS (
+            SELECT
+                network,
+                submission_date,
+                1000 * MAX(efficiency_meters_per_joules)
+                    OVER (PARTITION BY network ORDER BY submission_date ASC
+                    ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS max_score
+            FROM leaderboard_chart_agg
+            WHERE 1 = 1
+                AND is_baseline = 'False'
+        ), prev_max AS (
+            SELECT
+                network,
+                submission_date,
+                LAG(max_score, 1) OVER (PARTITION BY network ORDER BY submission_date ASC) AS max_score
+            FROM curr_max
+        ), unioned AS (
+            SELECT * FROM curr_max
+            UNION ALL
+            SELECT * FROM prev_max
+        )
+        SELECT DISTINCT *
+        FROM unioned
+        ORDER BY 1, 2, 3
         ;"""
