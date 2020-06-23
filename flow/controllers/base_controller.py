@@ -38,6 +38,8 @@ class BaseController(metaclass=ABCMeta):
         List of failsafes which can be "instantaneous", "safe_velocity",
         "feasible_accel", or "obey_speed_limit". The order of applying the
         falsafes will be based on the order in the list.
+    display_warnings : bool
+        Flag for toggling on/off printing failsafe warnings to screen.
     noise : double
         variance of the gaussian from which to sample a noisy acceleration
     """
@@ -47,6 +49,7 @@ class BaseController(metaclass=ABCMeta):
                  car_following_params,
                  delay=0,
                  fail_safe=None,
+                 display_warnings=True,
                  noise=0):
         """Instantiate the base class for acceleration behavior."""
         self.veh_id = veh_id
@@ -80,6 +83,7 @@ class BaseController(metaclass=ABCMeta):
                 except ValueError:
                     print(f'{check} is not a valid failsafe')
                     raise
+        self.display_warnings = display_warnings
 
         self.max_accel = car_following_params.controller_params['accel']
         # max deaccel should always be a positive
@@ -201,11 +205,12 @@ class BaseController(metaclass=ABCMeta):
                 # if the vehicle will crash into the vehicle ahead of it in the
                 # next time step (assuming the vehicle ahead of it is not
                 # moving), then stop immediately
-                print(
-                    "=====================================\n"
-                    "Vehicle {} is about to crash. Instantaneous acceleration "
-                    "clipping applied.\n"
-                    "=====================================".format(self.veh_id))
+                if self.display_warnings:
+                    print(
+                        "=====================================\n"
+                        "Vehicle {} is about to crash. Instantaneous acceleration "
+                        "clipping applied.\n"
+                        "=====================================".format(self.veh_id))
 
                 return -this_vel / sim_step
             else:
@@ -285,11 +290,12 @@ class BaseController(metaclass=ABCMeta):
         # edge_speed_limit = env.k.network.speed_limit(this_edge)
 
         if this_vel > v_safe:
-            print(
-                "=====================================\n"
-                "Speed of vehicle {} is greater than safe speed. Safe velocity "
-                "clipping applied.\n"
-                "=====================================".format(self.veh_id))
+            if self.display_warnings:
+                print(
+                    "=====================================\n"
+                    "Speed of vehicle {} is greater than safe speed. Safe velocity "
+                    "clipping applied.\n"
+                    "=====================================".format(self.veh_id))
 
         return v_safe
 
@@ -322,11 +328,12 @@ class BaseController(metaclass=ABCMeta):
 
         if this_vel + action * sim_step > edge_speed_limit:
             if edge_speed_limit > 0:
-                print(
-                    "=====================================\n"
-                    "Speed of vehicle {} is greater than speed limit. Obey "
-                    "speed limit clipping applied.\n"
-                    "=====================================".format(self.veh_id))
+                if self.display_warnings:
+                    print(
+                        "=====================================\n"
+                        "Speed of vehicle {} is greater than speed limit. Obey "
+                        "speed limit clipping applied.\n"
+                        "=====================================".format(self.veh_id))
                 return (edge_speed_limit - this_vel) / sim_step
             else:
                 return -this_vel / sim_step
@@ -354,19 +361,21 @@ class BaseController(metaclass=ABCMeta):
         if action > self.max_accel:
             action = self.max_accel
 
-            print(
-                "=====================================\n"
-                "Acceleration of vehicle {} is greater than the max "
-                "acceleration. Feasible acceleration clipping applied.\n"
-                "=====================================".format(self.veh_id))
+            if self.display_warnings:
+                print(
+                    "=====================================\n"
+                    "Acceleration of vehicle {} is greater than the max "
+                    "acceleration. Feasible acceleration clipping applied.\n"
+                    "=====================================".format(self.veh_id))
 
         if action < -self.max_deaccel:
             action = -self.max_deaccel
 
-            print(
-                "=====================================\n"
-                "Deceleration of vehicle {} is greater than the max "
-                "deceleration. Feasible acceleration clipping applied.\n"
-                "=====================================".format(self.veh_id))
+            if self.display_warnings:
+                print(
+                    "=====================================\n"
+                    "Deceleration of vehicle {} is greater than the max "
+                    "deceleration. Feasible acceleration clipping applied.\n"
+                    "=====================================".format(self.veh_id))
 
         return action
