@@ -41,13 +41,13 @@ before_install:
   - source activate flow
 
   # [sumo] dependencies and binaries
-  - pushd $HOME/build/flow-project
+  - pushd $HOME/build
   -     ./flow/scripts/setup_sumo_ubuntu1604.sh
   - popd
   - source ~/.bashrc
 
   # [aimsun] install the conda env and update the path to the env
-  - pushd $HOME/build/flow-project
+  - pushd $HOME/build
   -     ./flow/scripts/setup_aimsun.sh
   - popd
   - source ~/.bashrc
