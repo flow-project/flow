@@ -225,9 +225,9 @@ class QueryStrings(Enum):
             vt.id,
             vt.time_step,
             COALESCE((
-                value_lower_left*(headway_upper-headway)*(rel_speed_upper-leader_rel_speed) + 
-                value_lower_right*(headway-headway_lower)*(rel_speed_upper-leader_rel_speed) + 
-                value_upper_left*(headway_upper-headway)*(leader_rel_speed-rel_speed_lower) + 
+                value_lower_left*(headway_upper-headway)*(rel_speed_upper-leader_rel_speed) +
+                value_lower_right*(headway-headway_lower)*(rel_speed_upper-leader_rel_speed) +
+                value_upper_left*(headway_upper-headway)*(leader_rel_speed-rel_speed_lower) +
                 value_upper_right*(headway-headway_lower)*(leader_rel_speed-rel_speed_lower)
             ) / ((headway_upper-headway_lower)*(rel_speed_upper-rel_speed_lower)), 200) AS safety_value,
             vt.source_id
