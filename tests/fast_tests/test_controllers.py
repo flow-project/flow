@@ -526,10 +526,8 @@ class TestBrokenFailsafe(TestInstantaneousFailsafe):
             num_vehicles=10,
         )
 
-        self.setUp_failsafe(vehicles=vehicles)
-
-        # run the experiment, see if it fails
-        self.assertRaises(ValueError, self.exp.run(1))
+        # set up the experiment, see that it fails
+        self.assertRaises(ValueError, self.setUp_failsafe(vehicles=vehicles))
 
         self.tearDown_failsafe()
 

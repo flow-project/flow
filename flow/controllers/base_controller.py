@@ -66,7 +66,7 @@ class BaseController(metaclass=ABCMeta):
         elif isinstance(fail_safe, list) or fail_safe is None:
             failsafe_list = fail_safe
         else:
-            raise ValueError("fail_safe should be string or list of strings.\nSetting fail_safe to None\n")
+            raise ValueError("fail_safe should be string or list of strings. Setting fail_safe to None\n")
             failsafe_list = None
 
         failsafe_map = {
@@ -78,11 +78,11 @@ class BaseController(metaclass=ABCMeta):
         self.failsafes = []
         if failsafe_list:
             for check in failsafe_list:
-                try:
+                if check in failsafe_map:
                     self.failsafes.append(failsafe_map.get(check))
-                except ValueError:
-                    print('{} is not a valid failsafe'.format(check))
-                    raise
+                else:
+                    raise ValueError('Skipping {}, as it is not a valid failsafe.'.format(check))
+
         self.display_warnings = display_warnings
 
         self.max_accel = car_following_params.controller_params['accel']
