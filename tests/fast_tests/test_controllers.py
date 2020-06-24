@@ -508,10 +508,30 @@ class TestBrokenFailsafe(TestInstantaneousFailsafe):
             num_vehicles=10,
         )
 
-        self.setUp_failsafe(vehicles=vehicles)
+        additional_env_params = {
+            "target_velocity": 8,
+            "max_accel": 3,
+            "max_decel": 3,
+            "sort_vehicles": False
+        }
+        env_params = EnvParams(additional_params=additional_env_params)
 
-        # run the experiment, see if it fails
-        self.assertRaises(ValueError, self.exp.run(1))
+        additional_net_params = {
+            "length": 100,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40
+        }
+        net_params = NetParams(additional_params=additional_net_params)
+
+        initial_config = InitialConfig(bunching=10)
+
+        # create the environment and network classes, see that it raises ValueError
+        self.assertRaises(ValueError, ring_road_exp_setup(
+            vehicles=vehicles,
+            env_params=env_params,
+            net_params=net_params,
+            initial_config=initial_config))
 
         self.tearDown_failsafe()
 
@@ -526,8 +546,30 @@ class TestBrokenFailsafe(TestInstantaneousFailsafe):
             num_vehicles=10,
         )
 
-        # set up the experiment, see that it fails
-        self.assertRaises(ValueError, self.setUp_failsafe(vehicles=vehicles))
+        additional_env_params = {
+            "target_velocity": 8,
+            "max_accel": 3,
+            "max_decel": 3,
+            "sort_vehicles": False
+        }
+        env_params = EnvParams(additional_params=additional_env_params)
+
+        additional_net_params = {
+            "length": 100,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40
+        }
+        net_params = NetParams(additional_params=additional_net_params)
+
+        initial_config = InitialConfig(bunching=10)
+
+        # create the environment and network classes, see that it raises ValueError
+        self.assertRaises(ValueError, ring_road_exp_setup(
+            vehicles=vehicles,
+            env_params=env_params,
+            net_params=net_params,
+            initial_config=initial_config))
 
         self.tearDown_failsafe()
 
