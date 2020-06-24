@@ -543,6 +543,9 @@ class SumoParams(SimParams):
         width of the divided sublanes within a lane, defaults to None (i.e.
         no sublanes). If this value is specified, the vehicle in the
         network cannot use the "LC2013" lane change model.
+    emergencydecel_warning_threshold: float, optional
+        Sets the fraction of emergency decel capability that must be used
+        to trigger a warning.; default: 1
     no_step_log : bool, optional
         specifies whether to add sumo's step logs to the log file, and
         print them into the terminal during runtime, defaults to True
@@ -595,6 +598,7 @@ class SumoParams(SimParams):
                  sim_step=0.1,
                  emission_path=None,
                  lateral_resolution=None,
+                 emergencydecel_warning_threshold=1,
                  no_step_log=True,
                  render=False,
                  save_render=False,
@@ -616,6 +620,7 @@ class SumoParams(SimParams):
             sight_radius, show_radius, pxpm, force_color_update)
         self.port = port
         self.lateral_resolution = lateral_resolution
+        self.emergencydecel_warning_threshold = emergencydecel_warning_threshold
         self.no_step_log = no_step_log
         self.seed = seed
         self.overtake_right = overtake_right
