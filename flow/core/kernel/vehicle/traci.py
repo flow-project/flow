@@ -316,7 +316,10 @@ class TraCIVehicle(KernelVehicle):
         self.__vehicles[veh_id]["type"] = veh_type
 
         # specify energy model
-        self.__vehicles[veh_id]["energy_model"] = energy_model
+        energy_model = \
+            self.type_parameters[veh_type]["energy_model"]
+        self.__vehicles[veh_id]["energy_model"] = \
+            energy_model[0](veh_id, **energy_model[1])
 
         car_following_params = \
             self.type_parameters[veh_type]["car_following_params"]
@@ -582,6 +585,12 @@ class TraCIVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
+    
+    def get_power(self, veh_id, error=-1001):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_power(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("energy_model", error)
 
     def get_default_speed(self, veh_id, error=-1001):
         """See parent class."""
@@ -1223,19 +1232,3 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         # TODO : Brent
         return 0
-
-    """ def get_soc(self, veh_id):
-        return self.__vehicles[veh_id]['SOC']
-
-    def set_soc(self, veh_id, soc):
-        """Set the lane headways of the specified vehicle."""
-        self.__vehicles[veh_id]['SOC'] = soc
-
-    def get_fuel(self, veh_id):
-        return self.__vehicles[veh_id]['fuel']
-
-    def set_fuel(self, veh_id, fuel):
-        """Set the lane headways of the specified vehicle."""
-        self.__vehicles[veh_id]['fuel'] = fuel
-    """
-    

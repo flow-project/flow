@@ -248,7 +248,7 @@ class VehicleParams:
             car_following_params=None,
             lane_change_params=None,
             color=None,
-            energy_model = None):
+            energy_model = (PDMCombustionEngine, {})):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
@@ -276,27 +276,6 @@ class VehicleParams:
         lane_change_params : flow.core.params.SumoLaneChangeParams
             Params object specifying attributes for Sumo lane changing model.
         """
-
-        """# determine which energy model to use
-        if "prius" in veh_id:
-            self.energy_model = PriusEnergy()
-        elif "tacoma" in veh_id:
-            self.energy_model = TacomaEnergy
-        elif "ev" in veh_id:
-            self.energy_model = PDMElectric()
-        else:
-            self.energy_model = PDMCombustionEngine()
-            """
-
-        if energy_model is "prius":
-            self.energy_model = PriusEnergy(kernel, 0.9)
-        elif energy_model is "tacoma":
-            self.energy_model = TacomaEnergy()
-        elif energy_model is "ev":
-            self.energy_model = PDMElectric()
-        else:
-            self.energy_model = PDMCombustionEngine()
-   
         if car_following_params is None:
             # FIXME: depends on simulator
             car_following_params = SumoCarFollowingParams()
@@ -318,7 +297,8 @@ class VehicleParams:
              "routing_controller": routing_controller,
              "initial_speed": initial_speed,
              "car_following_params": car_following_params,
-             "lane_change_params": lane_change_params}
+             "lane_change_params": lane_change_params,
+             "energy_model": energy_model}
 
         if color:
             type_params['color'] = color
@@ -341,7 +321,9 @@ class VehicleParams:
             "car_following_params":
                 car_following_params,
             "lane_change_params":
-                lane_change_params
+                lane_change_params,
+            "energy_model":
+                energy_model
         })
 
         # This is used to return the actual headways from the vehicles class.

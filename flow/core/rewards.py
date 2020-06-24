@@ -470,6 +470,6 @@ def instantaneous_power(env, veh_ids=None, gain=.001):
         speed = env.k.vehicle.get_speed(veh_id)
         accel = env.k.vehicle.get_accel_no_noise_with_failsafe(veh_id)
         grade = env.k.vehicle.get_road_grade(veh_id)
-        inst_power = energy_model[veh_id].get_instantaneous_power(accel, speed, grade)
+        inst_power = env.k.vehicle.get_power(veh_id).get_instantaneous_power(accel, speed, grade)
         
     return inst_power

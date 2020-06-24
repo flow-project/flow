@@ -37,7 +37,7 @@ class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
         pass
 
     def get_instantaneous_power(self, accel, speed, grade):
-        power = max(self.get_regen_cap(), self.calculate_power(accel, speed, grade))
+        power = max(self.get_regen_cap(accel, speed, grade), self.calculate_power(accel, speed, grade))
         return power
 
 
