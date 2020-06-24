@@ -405,6 +405,135 @@ class TestSafeVelocityFailsafe(TestInstantaneousFailsafe):
         self.tearDown_failsafe()
 
 
+class TestFeasibleAccelFailsafe(TestInstantaneousFailsafe):
+    """
+    Tests that the feasible accel failsafe of the base acceleration controller
+    does not fail under extreme conditions.
+    """
+
+    def test_no_crash_OVM(self):
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(OVMController, {
+                "fail_safe": "feasible_accel"
+            }),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=10,
+        )
+
+        self.setUp_failsafe(vehicles=vehicles)
+
+        # run the experiment, see if it fails
+        self.exp.run(1)
+
+        self.tearDown_failsafe()
+
+    def test_no_crash_LinearOVM(self):
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(LinearOVM, {
+                "fail_safe": "feasible_accel"
+            }),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=10,
+        )
+
+        self.setUp_failsafe(vehicles=vehicles)
+
+        # run the experiment, see if it fails
+        self.exp.run(1)
+
+        self.tearDown_failsafe()
+
+
+class TestObeySpeedLimitFailsafe(TestInstantaneousFailsafe):
+    """
+    Tests that the obey speed limit failsafe of the base acceleration controller
+    does not fail under extreme conditions.
+    """
+
+    def test_no_crash_OVM(self):
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(OVMController, {
+                "fail_safe": "obey_speed_limit"
+            }),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=10,
+        )
+
+        self.setUp_failsafe(vehicles=vehicles)
+
+        # run the experiment, see if it fails
+        self.exp.run(1)
+
+        self.tearDown_failsafe()
+
+    def test_no_crash_LinearOVM(self):
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(LinearOVM, {
+                "fail_safe": "obey_speed_limit"
+            }),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=10,
+        )
+
+        self.setUp_failsafe(vehicles=vehicles)
+
+        # run the experiment, see if it fails
+        self.exp.run(1)
+
+        self.tearDown_failsafe()
+
+
+class TestBrokenFailsafe(TestInstantaneousFailsafe):
+    """
+    Tests that the failsafe logic triggers exceptions when instantiated
+    incorrectly.
+    """
+
+    def test_invalid_failsafe_string(self):
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(OVMController, {
+                "fail_safe": "default"
+            }),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=10,
+        )
+
+        self.setUp_failsafe(vehicles=vehicles)
+
+        # run the experiment, see if it fails
+        self.assertRaises(ValueError, self.exp.run(1))
+
+        self.tearDown_failsafe()
+
+    def test_invalid_failsafe_type(self):
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(LinearOVM, {
+                "fail_safe": True
+            }),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=10,
+        )
+
+        self.setUp_failsafe(vehicles=vehicles)
+
+        # run the experiment, see if it fails
+        self.assertRaises(ValueError, self.exp.run(1))
+
+        self.tearDown_failsafe()
+
+
 class TestStaticLaneChanger(unittest.TestCase):
     """
     Makes sure that vehicles with a static lane-changing controller do not
