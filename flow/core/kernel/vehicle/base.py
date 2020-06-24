@@ -128,7 +128,7 @@ class KernelVehicle(object, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def apply_acceleration(self, veh_id, acc, smooth=False):
+    def apply_acceleration(self, veh_id, acc, smooth=True):
         """Apply the acceleration requested by a vehicle in the simulator.
 
         In SUMO, this function applies slowDown method which applies smoothing.
@@ -140,7 +140,7 @@ class KernelVehicle(object, metaclass=ABCMeta):
         acc : float or array_like
             requested accelerations from the vehicles
         smooth : bool
-            whether to apply acceleration smoothly or not, default: False
+            whether to apply acceleration smoothly or not, default: True
         """
         raise NotImplementedError
 

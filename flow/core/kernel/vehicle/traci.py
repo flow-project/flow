@@ -953,7 +953,7 @@ class TraCIVehicle(KernelVehicle):
 
         return tailway, follower
 
-    def apply_acceleration(self, veh_ids, acc, smooth=False):
+    def apply_acceleration(self, veh_ids, acc, smooth=True):
         """See parent class."""
         # to handle the case of a single vehicle
         if type(veh_ids) == str:
