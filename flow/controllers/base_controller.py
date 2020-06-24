@@ -66,8 +66,8 @@ class BaseController(metaclass=ABCMeta):
         elif isinstance(fail_safe, list) or fail_safe is None:
             failsafe_list = fail_safe
         else:
-            raise ValueError("fail_safe should be string or list of strings. Setting fail_safe to None\n")
             failsafe_list = None
+            raise ValueError("fail_safe should be string or list of strings. Setting fail_safe to None\n")
 
         failsafe_map = {
             'instantaneous': self.get_safe_action_instantaneous,
