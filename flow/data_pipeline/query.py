@@ -67,6 +67,7 @@ tags = {
 tables = [
     "fact_vehicle_trace",
     "fact_energy_trace",
+    "fact_vehicle_counts_by_time",
     "fact_safety_metrics",
     "fact_safety_metrics_agg",
     "fact_network_throughput_agg",
@@ -77,8 +78,11 @@ tables = [
     "fact_network_fuel_efficiency_agg",
     "leaderboard_chart",
     "leaderboard_chart_agg",
+    "fact_top_scores",
     "metadata_table"
 ]
+
+summary_tables = ["leaderboard_chart_agg", "fact_top_scores"]
 
 network_using_edge = ["I-210 without Ramps"]
 
@@ -234,8 +238,8 @@ class QueryStrings(Enum):
             AND vt.leader_rel_speed BETWEEN sm.rel_speed_lower AND sm.rel_speed_upper
             AND vt.headway BETWEEN sm.headway_lower AND sm.headway_upper
         WHERE 1 = 1
-            AND vt.date = \'{{date}}\'
-            AND vt.partition_name = \'{{partition}}\'
+            AND vt.date = \'{date}\'
+            AND vt.partition_name = \'{partition}\'
             AND vt.time_step >= {start_filter}
             AND vt.{loc_filter}
         ;
@@ -248,8 +252,8 @@ class QueryStrings(Enum):
             MAX(safety_value) AS safety_value_max
         FROM fact_safety_metrics
         WHERE 1 = 1
-            AND date = \'{{date}}\'
-            AND partition_name = \'{{partition}}\'
+            AND date = \'{date}\'
+            AND partition_name = \'{partition}_FACT_SAFETY_METRICS\'
         GROUP BY 1
     """
 
@@ -649,6 +653,8 @@ class QueryStrings(Enum):
                 l.efficiency_meters_per_joules,
                 l.efficiency_miles_per_gallon,
                 l.throughput_per_hour,
+                l.safety_rate,
+                l.safety_value_max,
                 b.source_id AS baseline_source_id
             FROM leaderboard_chart AS l, metadata_table AS m, baseline_table as b
             WHERE 1 = 1
