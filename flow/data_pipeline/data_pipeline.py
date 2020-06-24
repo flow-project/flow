@@ -1,7 +1,7 @@
 """contains class and helper functions for the data pipeline."""
 import pandas as pd
 import boto3
-from flow.data_pipeline.query import QueryStrings
+from flow.data_pipeline.query import QueryStrings, prerequisites
 from time import time
 from datetime import date
 import csv
@@ -155,6 +155,8 @@ def update_baseline(s3, baseline_network, baseline_source_id):
             writer.writerow(row)
     s3.put_object(Bucket='circles.data.pipeline', Key='baseline_table/baselines.csv',
                   Body=new_str.getvalue().replace('\r', '').encode())
+
+
 
 
 class AthenaQuery:

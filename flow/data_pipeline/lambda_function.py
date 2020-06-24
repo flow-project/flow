@@ -1,8 +1,9 @@
 """lambda function on AWS Lambda."""
 import boto3
+from botocore.exceptions import ClientError
 from urllib.parse import unquote_plus
 from flow.data_pipeline.data_pipeline import AthenaQuery, delete_obsolete_data, update_baseline
-from flow.data_pipeline.query import tags, tables,  network_using_edge, summary_tables
+from flow.data_pipeline.query import prerequisites, tables,  network_using_edge, summary_tables
 from flow.data_pipeline.query import X_FILTER, EDGE_FILTER, WARMUP_STEPS, HORIZON_STEPS
 
 s3 = boto3.client('s3')
@@ -11,6 +12,10 @@ queryEngine = AthenaQuery()
 
 def lambda_handler(event, context):
     """Handle S3 put event on AWS Lambda."""
+
+    # stores all lists of completed query for each source_id
+    completed = {}
+
     records = []
     # do a pre-sweep to handle tasks other than initalizing a query
     for record in event['Records']:
@@ -21,13 +26,18 @@ def lambda_handler(event, context):
             continue
 
         # delete unwanted metadata files
-        if (key[-9:] == '.metadata'):
+        if key[-9:] == '.metadata':
             s3.delete_object(Bucket=bucket, Key=key)
             continue
 
         # load the partition for newly added table
         query_date = key.split('/')[-3].split('=')[-1]
         partition = key.split('/')[-2].split('=')[-1]
+        source_id = "flow_{}".format(partition.split('_')[1])
+        if table == "fact_vehicle_trace":
+            query_name = "FACT_VEHICLE_TRACE"
+        else:
+            query_name = partition.replace(source_id, "")[1:]
         queryEngine.repair_partition(table, query_date, partition)
 
         # delete obsolete data
@@ -35,14 +45,24 @@ def lambda_handler(event, context):
             delete_obsolete_data(s3, key, table)
 
         # add table that need to start a query to list
-        if table in tags.keys():
-            records.append((bucket, key, table, query_date, partition))
+        if query_name in prerequisites.keys():
+            records.append((bucket, key, table, query_name, query_date, partition, source_id))
 
     # initialize the queries
     start_filter = WARMUP_STEPS
     stop_filter = WARMUP_STEPS + HORIZON_STEPS
-    for bucket, key, table, query_date, partition in records:
-        source_id = "flow_{}".format(partition.split('_')[1])
+    for bucket, key, table, query_name, query_date, partition, source_id in records:
+        if source_id not in completed.keys():
+            try:
+                completed[source_id] = s3.get_object(Bucket='circles.data.pipeline', Key='lambda_temp/{}'
+                                                     .format(source_id))
+            except ClientError as e:
+                if e.response['Error']['Code'] == 'NoSuchKey':
+                    completed[source_id] = []
+                else:
+                    raise
+        completed[source_id].append(query_name)
+
         metadata_key = "fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv".format(query_date, source_id)
         response = s3.head_object(Bucket=bucket, Key=metadata_key)
         loc_filter = X_FILTER
@@ -52,6 +72,12 @@ def lambda_handler(event, context):
             if table == 'fact_vehicle_trace' \
                     and 'is_baseline' in response['Metadata'] and response['Metadata']['is_baseline'] == 'True':
                 update_baseline(s3, response["Metadata"]['network'], source_id)
+
+
+
+
+
+
 
         query_dict = tags[table]
 
