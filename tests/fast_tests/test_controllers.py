@@ -527,11 +527,11 @@ class TestBrokenFailsafe(TestInstantaneousFailsafe):
         initial_config = InitialConfig(bunching=10)
 
         # create the environment and network classes, see that it raises ValueError
-        self.assertRaises(ValueError, ring_road_exp_setup(
-            vehicles=vehicles,
-            env_params=env_params,
-            net_params=net_params,
-            initial_config=initial_config))
+        with self.assertRaises(ValueError):
+            ring_road_exp_setup(vehicles=vehicles,
+                                env_params=env_params,
+                                net_params=net_params,
+                                initial_config=initial_config))
 
         self.tearDown_failsafe()
 
@@ -565,11 +565,11 @@ class TestBrokenFailsafe(TestInstantaneousFailsafe):
         initial_config = InitialConfig(bunching=10)
 
         # create the environment and network classes, see that it raises ValueError
-        self.assertRaises(ValueError, ring_road_exp_setup(
-            vehicles=vehicles,
-            env_params=env_params,
-            net_params=net_params,
-            initial_config=initial_config))
+        with self.assertRaises(ValueError):
+            ring_road_exp_setup(vehicles=vehicles,
+                                env_params=env_params,
+                                net_params=net_params,
+                                initial_config=initial_config))
 
         self.tearDown_failsafe()
 
