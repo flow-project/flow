@@ -46,7 +46,7 @@ V_DES = 5.0
 # horizon over which to run the env
 HORIZON = 1000
 # steps to run before follower-stopper is allowed to take control
-WARMUP_STEPS = 800
+WARMUP_STEPS = 600
 # whether to turn off the fail safes for the human-driven vehicles
 ALLOW_COLLISIONS = False
 
