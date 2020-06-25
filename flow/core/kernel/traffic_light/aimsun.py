@@ -105,7 +105,7 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         """
         return self.kernel_api.change_intersection_offset(node_id, offset)
 
-    def get_total_green(self, node_id):  # cj
+    def get_cycle_length(self, node_id, control_id):  # cj
         """
         Gets the intersection's offset
 
@@ -119,7 +119,7 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         int
             the offset of the intersection
         """
-        return self.kernel_api.get_total_green(node_id)
+        return self.kernel_api.get_cycle_length(node_id, control_id)
 
     def get_duration_phase(self, node_id, phase):
         """
@@ -171,7 +171,7 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         """
         return self.kernel_api.get_green_phases(node_id, ring_id)
 
-    def change_phase_duration(self, node_id, phase, duration):
+    def change_phase_duration(self, node_id, phase, duration, maxout):
         """
         Changes an intersection's phase to the next
 
@@ -187,7 +187,23 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         int
             change phase duration
         """
-        return self.kernel_api.change_phase_duration(node_id, phase, duration)
+        return self.kernel_api.change_phase_duration(node_id, phase, duration, maxout)
+
+    def get_detector_lanes(self, edge_id):
+        """
+        Gets the detector ids on an edge
+
+        Parameters
+        ----------
+        edge_id : int
+            the id of the edge
+
+        Returns
+        -------
+        list
+            list of detector ids as ints
+        """
+        return self.kernel_api.get_detector_lanes(edge_id)
 
     def get_incoming_edges(self, node_id):
         """

@@ -771,7 +771,7 @@ class FlowAimsunAPI(object):
 
         return [int(green_phase) for green_phase in green_phases.split(',')]
 
-    def get_total_green(self, node_id):  # cj
+    def get_cycle_length(self, node_id, control_id):  # cj
         """
         Gets the intersection's total green time per ring
 
@@ -785,14 +785,14 @@ class FlowAimsunAPI(object):
         int
             the total green time of the intersection
         """
-        total_green, = self._send_command(ac.INT_GET_TOTAL_GREEN,
-                                          in_format='i',
-                                          values=(node_id,),
+        control_cycle, = self._send_command(ac.INT_GET_CYCLE_LENGTH,
+                                          in_format='i i',
+                                          values=(node_id, control_id,),
                                           out_format='f')
 
-        return total_green
+        return control_cycle
 
-    def change_phase_duration(self, node_id, phase, duration):
+    def change_phase_duration(self, node_id, phase, duration, maxout):
         """
         Changes the phase timing
 
@@ -809,9 +809,29 @@ class FlowAimsunAPI(object):
             change of phase timing
         """
         self._send_command(ac.INT_CHANGE_PHASE_DURATION,
-                           in_format='i i f',
-                           values=(node_id, phase, duration,),
+                           in_format='i i f f',
+                           values=(node_id, phase, duration,maxout,),
                            out_format=None)
+
+    def get_detector_lanes(self, edge_id): #cj
+        """
+        Gets the detector ids on an edge
+
+        Parameters
+        ----------
+        edge_id : int
+            the id of the edge
+
+        Returns
+        -------
+        dict
+            dict of detector ids with keys 'stopbar' and 'advanced'
+        """
+        output = self._send_command(ac.DET_GET_DETECTOR_LANES,
+                                    in_format='i',
+                                    values=(edge_id,),
+                                    out_format='str')
+        return json.loads(output)
 
     def get_incoming_edges(self, node_id):
         """

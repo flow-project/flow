@@ -98,27 +98,15 @@ def change_offset(node_id, offset, time, timeSta, acycle):
             remaining_time += phase_time
         aapi.ECIChangeDirectPhase(node_id, target_phase, timeSta, time, acycle, phase_time - remaining_time)
 
-
-def set_max_green(control_id, node_id, phase_id, new_duration):
-    aapi.ECISetActuatedParamsMaxGreen(control_id, node_id, phase_id, new_duration)
-
-
-def get_total_green(node_id, timeSta):  # cj
-    # Format is set current control plan
-    ring_id = 0
-    sum_interphase = 0
-    control_id = aapi.ECIGetNumberCurrentControl(node_id)
-    control_cycle = aapi.ECIGetControlCycleofJunction(control_id, node_id)
-    num_phases = aapi.ECIGetNumberPhasesInRing(node_id, ring_id)
-    for phase in (range(1, num_phases + 1)):
-        if aapi.ECIIsAnInterPhase(node_id, phase, timeSta) == 0:
-            continue
-        else:
-            duration, _, _ = get_duration_phase(node_id, phase, timeSta)
-            sum_interphase += duration
-
-    total_green = control_cycle - sum_interphase
-    return total_green
+def get_cycle_length(node_id, control_id):
+    node_id = node_id
+    rep_name = str(aapi.ANGConnGetReplicationId())
+    rep_nums = [8050297, 8050315, 8050322]
+    control_dict = {'8050297': [110, 90, 120, 90], '8050315': [90, 105], '8050322': [105, 120, 120, 105, 90]}
+    for i in range(len(rep_nums)):
+        if rep_name == str(rep_nums[i]):
+            control_index = control_dict[(rep_name)]
+    return control_index[control_id]
 
 
 def get_control_ids(node_id):
@@ -138,12 +126,12 @@ def get_green_phases(node_id, ring_id, timeSta):
     return [phase for phase in range(a, num_phases+1) if aapi.ECIIsAnInterPhase(node_id, phase, timeSta) == 0]
 
 
-def change_phase_duration(node_id, phase, duration, time, timeSta, acycle):
+def change_phase_duration(node_id, phase, duration, maxout, time, timeSta, acycle):
     control_id, _ = get_control_ids(node_id)
     aapi.ECIChangeTimingPhase(node_id, phase, duration, timeSta)
-    phase_duration, maxd, mind = get_duration_phase(node_id, phase, timeSta)
-    if duration > maxd:
-        set_max_green(control_id, node_id, phase, duration)
+    aapi.ECISetActuatedParamsMaxGreen(control_id, node_id, phase, maxout)
+    #phase_duration, maxd, mind = get_duration_phase(node_id, phase, timeSta)
+    
 
 
 def phase_converter(phase_timings):
@@ -174,17 +162,41 @@ def get_incoming_edges(node_id):
 
     return [edge.getId() for edge in in_edges]
 
+def get_detector_lanes(edge_id):
+    catalog = model.getCatalog()
+    detector_lanes = {}
+    for i in range(aapi.AKIDetGetNumberDetectors()):
+        detector = aapi.AKIDetGetPropertiesDetector(i)
+        if detector.IdSection == edge_id:
+            if detector.IdLastLane - detector.IdFirstLane != 0:
+                num_lane = 2
+            else: 
+                num_lane = 1
+            detector_obj = catalog.find(detector.Id)
+            try:
+                # only those with numerical exernalIds are real
+                int(detector_obj.getExternalId())
+                detector_lanes[detector.Id] = num_lane
+            except ValueError:
+                pass
+    return detector_lanes
+
+
 
 def get_detector_ids(edge_id):
     catalog = model.getCatalog()
-    detector_list = {"stopbar": [], "advanced": []}
+    detector_list = {"left": [], "right":[], "through":[],"advanced": []}
     for i in range(aapi.AKIDetGetNumberDetectors()):
         detector = aapi.AKIDetGetPropertiesDetector(i)
         if detector.IdSection == edge_id:
             edge_aimsun = catalog.find(detector.IdSection)
 
-            if (edge_aimsun.length2D() - detector.FinalPosition) < 5:
-                kind = "stopbar"
+            if (edge_aimsun.length2D() - detector.FinalPosition) < 6 and detector.IdFirstLane == 4:
+                kind = "left"
+            elif (edge_aimsun.length2D() - detector.FinalPosition) < 6 and detector.IdFirstLane == 1:
+                kind = "right"
+            elif (edge_aimsun.length2D() - detector.FinalPosition) < 6:
+                kind = "through"
             else:
                 kind = "advanced"
 

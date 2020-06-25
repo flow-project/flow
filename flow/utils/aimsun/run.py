@@ -497,13 +497,13 @@ def threaded_client(conn, **kwargs):
 
                 send_message(conn, in_format='f f f', values=(normalDuration, maxDuration, minDuration,))
 
-            elif data == ac.INT_GET_TOTAL_GREEN:  # cj
+            elif data == ac.INT_GET_CYCLE_LENGTH:  # cj
                 send_message(conn, in_format='i', values=(0,))
-                node_id, = retrieve_message(conn, 'i')
+                node_id, control_id = retrieve_message(conn, 'i i')
 
-                total_green = cp.get_total_green(node_id, timeSta)
+                control_cycle = cp.get_cycle_length(node_id, control_id)
 
-                send_message(conn, in_format='f', values=(total_green,))
+                send_message(conn, in_format='f', values=(control_cycle,))
 
             elif data == ac.INT_GET_CONTROL_IDS:
                 send_message(conn, in_format='i', values=(0,))
@@ -524,12 +524,12 @@ def threaded_client(conn, **kwargs):
 
             elif data == ac.INT_CHANGE_PHASE_DURATION:
                 send_message(conn, in_format='i', values=(0,))
-                node_id, phase, duration = retrieve_message(conn, 'i i f')
+                node_id, phase, duration, maxout = retrieve_message(conn, 'i i f f')
 
                 time = kwargs.get('time')
                 timeSta = kwargs.get('timeSta')
                 acycle = kwargs.get('acycle')
-                cp.change_phase_duration(node_id, phase, duration, time, timeSta, acycle)
+                cp.change_phase_duration(node_id, phase, duration, maxout, time, timeSta, acycle)
 
             elif data == ac.INT_GET_IN_EDGES:
                 send_message(conn, in_format='i', values=(0,))
@@ -554,6 +554,15 @@ def threaded_client(conn, **kwargs):
 
                 detector_list = cp.get_detector_ids(edge_id)
                 output = json.dumps(detector_list)
+
+                send_message(conn, in_format='str', values=(output,))
+            
+            elif data == ac.DET_GET_DETECTOR_LANES: #cj
+                send_message(conn, in_format='i', values=(0,))
+                edge_id, = retrieve_message(conn, 'i')
+
+                detector_lanes = cp.get_detector_lanes(edge_id)
+                output = json.dumps(detector_lanes)
 
                 send_message(conn, in_format='str', values=(output,))
 

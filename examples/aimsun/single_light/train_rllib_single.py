@@ -25,9 +25,9 @@ TIME_HORIZON = 3600*4 - DETECTOR_STEP  # 14280
 HORIZON = int(TIME_HORIZON//SIM_STEP)  # 18000
 
 RLLIB_N_CPUS = 2
-RLLIB_HORIZON = int(TIME_HORIZON//DETECTOR_STEP)  # 150 # 47 #K: down to 15
+RLLIB_HORIZON = int(TIME_HORIZON//DETECTOR_STEP)  #  15
 
-RLLIB_N_ROLLOUTS = 3  # copy to coordinated_lights.py
+RLLIB_N_ROLLOUTS = 12  # copy to coordinated_lights.py
 RLLIB_TRAINING_ITERATIONS = 1000000
 
 net_params = NetParams(template=os.path.abspath("scenario_one_hour.ang"))
@@ -75,7 +75,7 @@ def setup_exps(version=0):
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = RLLIB_N_CPUS
-    config["sgd_minibatch_size"] = 16
+    config["sgd_minibatch_size"] = 128
     config["train_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS
     config["sample_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS
     config["model"].update({"fcnet_hiddens": [64, 64, 64]})
@@ -87,7 +87,7 @@ def setup_exps(version=0):
     config["horizon"] = RLLIB_HORIZON  # not same as env horizon.
     config["vf_loss_coeff"] = 1e-8
     config["vf_clip_param"] = 600
-    config["lr"] = 5e-4
+    config["lr"] = 5e-4 #vary
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -119,8 +119,9 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": RLLIB_TRAINING_ITERATIONS,
             },
-            # "restore": '/home/cjrsantos/ray_results/single_light/PPO_SingleLightEnv-v0_59cf54b8_2020-03-03_18-03-33k7e5nlvt/checkpoint_719/checkpoint-719',
+            "restore": '/home/cjrsantos/ray_results/single_light/PPO_SingleLightEnv-v0_c4e0b454_2020-06-25_08-06-50zikh0a6r/checkpoint_970/checkpoint-970',
             # "local_dir": os.path.abspath("./ray_results"),
-            "keep_checkpoints_num": 3
+            "keep_checkpoints_num": 7
         }
-    }, resume=False)
+    },
+        resume=False)

@@ -128,10 +128,10 @@ INT_GET_CONTROL_IDS = 0x27
 INT_GET_GREEN_PHASES = 0x28
 
 #: get total green phase timing in a ring
-INT_GET_TOTAL_GREEN = 0x29
+INT_GET_CYCLE_LENGTH = 0x2A
 
 #: set intersection phase
-INT_CHANGE_PHASE_DURATION = 0x2A
+INT_CHANGE_PHASE_DURATION = 0x29
 
 #: get duration phase
 INT_GET_DURATION_PHASE = 0x2B
@@ -151,6 +151,9 @@ DET_SET_STAT_INTERVAL = 0x24
 
 #: set detection interval for the scenairo
 DET_SET_DETECTION_INTERVAL = 0x25
+
+#: get number detector lanes
+DET_GET_DETECTOR_LANES = 0x2C
 
 ###############################################################################
 #                               Network Commands                              #

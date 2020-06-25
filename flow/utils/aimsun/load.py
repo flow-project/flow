@@ -9,9 +9,9 @@ sys.path.append('/home/cjrsantos/anaconda3/envs/aimsun_flow/lib/python2.7/site-p
 import numpy as np
 
 
-RLLIB_HORIZON = 3  # copy from train_rllib.py
+RLLIB_HORIZON = 6  # copy from train_rllib.py
 RLLIB_TRAINING_ITERATIONS = 1000000  # copy from train_rllib.py
-REPLICATION_LIST = ['Replication 8050297',  # 5-11
+REPLICATION_LIST = ['Replication 8050297', # 5-11
                     'Replication 8050315',  # 10-14
                     'Replication 8050322'  # 14-21
                     ]
