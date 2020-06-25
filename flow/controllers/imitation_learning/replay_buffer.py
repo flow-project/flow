@@ -7,6 +7,12 @@ class ReplayBuffer(object):
     """ Replay buffer class to store state, action, expert_action, reward, next_state, terminal tuples"""
 
     def __init__(self, max_size=100000):
+        """
+        Parameters
+        __________
+        max_size: int
+            maximum size of replay buffer
+        """
 
         # max size of buffer
         self.max_size = max_size

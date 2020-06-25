@@ -75,7 +75,7 @@ def parse_args(args):
         '--checkpoint_freq', type=int, default=20,
         help='How often to checkpoint.')
     parser.add_argument(
-        '--num_rollouts', type=int, default=1,
+        '--num_rollouts', type=int, default=20,
         help='How many rollouts are in a training batch')
     parser.add_argument(
         '--rollout_size', type=int, default=1000,
@@ -115,6 +115,9 @@ def run_model_stablebaseline(flow_params,
     stable_baselines.*
         the trained model
     """
+    from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
+    from stable_baselines import PPO2
+
     if num_cpus == 1:
         constructor = env_constructor(params=flow_params, version=0)()
         # The algorithms require a vectorized environment to run
@@ -200,7 +203,7 @@ def setup_exps_rllib(flow_params,
 
         if flags.load_weights_path:
             from flow.controllers.imitation_learning.ppo_model import PPONetwork
-            from flow.controllers.imitation_learning.imitation_trainer import Imitation_PPO_Trainable
+            from flow.controllers.imitation_learning.custom_trainable import Imitation_PPO_Trainable
             from ray.rllib.models import ModelCatalog
 
             # Register custom model
@@ -356,7 +359,6 @@ def train_rllib(submodule, flags):
         return "{}_{}".format(trial.trainable_name, trial.experiment_tag)
 
     if flags.local_mode:
-        print("LOCAL MODE")
         ray.init(local_mode=True)
     else:
         ray.init()

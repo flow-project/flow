@@ -1,9 +1,5 @@
-import numpy as np
-import json
-import h5py
-from ray.rllib.models.tf.misc import normc_initializer
+
 from ray.rllib.models.tf.tf_modelv2 import TFModelV2
-import tensorflow as tf
 from flow.controllers.imitation_learning.keras_utils import *
 
 
@@ -90,9 +86,6 @@ class PPONetwork(TFModelV2):
         # build model from layers
         self.base_model = tf.keras.Model(inp_layer, [output_layer_policy, output_layer_vf])
 
-
-
-
     def forward(self, input_dict, state, seq_lens):
         """
         Overrides parent class's method. Used to pass a input through model and get policy/vf output.
@@ -110,7 +103,6 @@ class PPONetwork(TFModelV2):
         (outputs, state)
             Tuple, first element is policy output, second element state
         """
-        # print(self.base_model.get_weights())
         policy_out, value_out = self.base_model(input_dict["obs_flat"])
         self.value_out = value_out
         return policy_out, state

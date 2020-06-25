@@ -119,9 +119,6 @@ def compare_weights(ppo_model, imitation_path):
         ppo_weights = ppo_layer.get_weights()
         im_weights = im_layer.get_weights()
         for i in range(len(ppo_weights)):
-            print("\n\n")
-            print(type((ppo_weights[i] == im_weights[i])))
-            print("\n\n")
             assert (ppo_weights[i] == im_weights[i]).all(), "Weights don't match!"
 
     ppo_layer = ppo_model.get_layer('policy_output_layer')

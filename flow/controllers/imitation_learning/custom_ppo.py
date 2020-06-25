@@ -1,3 +1,7 @@
+"""
+Copied from RLLib's PPO, but uses CustomPPOTFPolicy, which tracks value function predictions in Tensorboard. 
+"""
+
 import logging
 
 from ray.rllib.agents import with_common_config

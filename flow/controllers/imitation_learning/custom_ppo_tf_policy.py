@@ -1,3 +1,8 @@
+"""
+Copied from RLLIb's ppo_tf_policy, but additionally tracks value function predictions in kl_and_loss_stats. Used
+to evaluate the value function learned after imitation.
+"""
+
 import logging
 
 import ray

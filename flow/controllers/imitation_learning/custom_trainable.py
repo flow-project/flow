@@ -1,6 +1,4 @@
 from ray import tune
-from flow.controllers.imitation_learning.ppo_model import *
-from ray.rllib.agents import ppo
 try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
@@ -18,7 +16,6 @@ class Imitation_PPO_Trainable(tune.Trainable):
         """
 
         env_name = config['env']
-        # agent_cls = get_agent_class(config['env_config']['run'])
         self.trainer = custom_ppo.CustomPPOTrainer(env=env_name, config=config)
         policy_id = list(self.trainer.get_weights().keys())[0]
         self.trainer.import_model(config['model']['custom_options']['h5_load_path'], policy_id=policy_id)

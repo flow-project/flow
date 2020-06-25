@@ -1,11 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from time import time
-from tensorflow.python.keras.callbacks import TensorBoard
-import tensorflow_probability as tfp
-from flow.controllers.imitation_learning.utils_tensorflow import *
-from flow.controllers.imitation_learning.keras_utils import *
-from flow.controllers.base_controller import BaseController
+from flow.controllers.imitation_learning.keras_utils import build_neural_net_deterministic, build_neural_net_stochastic, get_loss, negative_log_likelihood_loss
 from flow.controllers.imitation_learning.replay_buffer import ReplayBuffer
 
 
@@ -55,7 +50,6 @@ class ImitatingNetwork():
         # load network if specified, or construct network
         if load_model:
             self.load_network(load_path)
-
         else:
             self.build_network()
             self.compile_network()
@@ -127,10 +121,12 @@ class ImitatingNetwork():
             mean, log_std = network_output[:, :self.action_dim], network_output[:, self.action_dim:]
             var = np.exp(2 * log_std)
 
+            # track variance norm on tensorboard
             variance_norm = np.linalg.norm(var)
             summary = tf.Summary(value=[tf.Summary.Value(tag="Variance norm", simple_value=variance_norm), ])
             self.writer.add_summary(summary, global_step=self.action_steps)
 
+            # var is a 1 x d numpy array, where d is the dimension of the action space, so get the first element and form cov matrix
             cov_matrix = np.diag(var[0])
             action = np.random.multivariate_normal(mean[0], cov_matrix)
 
@@ -256,12 +252,3 @@ class ImitatingNetwork():
 
         # save the model (as a h5 file)
         ppo_model.save(save_path)
-
-
-
-
-
-
-
-
-

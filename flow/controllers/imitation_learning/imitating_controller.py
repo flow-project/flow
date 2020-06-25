@@ -24,9 +24,9 @@ class ImitatingController(BaseController):
         """
 
         BaseController.__init__(self, veh_id, car_following_params, delay=time_delay, fail_safe=fail_safe, noise=noise)
-        self.action_network = action_network  # neural network which specifies action to take
-        self.multiagent = multiagent # whether env is multiagent or singleagent
-        self.veh_id = veh_id # vehicle id that controller is controlling
+        self.action_network = action_network
+        self.multiagent = multiagent
+        self.veh_id = veh_id
 
 
     def get_accel(self, env):
@@ -51,11 +51,10 @@ class ImitatingController(BaseController):
         if not self.multiagent and self.action_network.action_dim > 1:
 
             # get_sorted_rl_ids used for singleagent_straight_road; use get_rl_ids if method does not exist
-            try:
+            if hasattr(env, 'get_sorted_rl_ids'):
                 rl_ids = env.get_sorted_rl_ids()
-            except:
-                print("Error caught: no get_sorted_rl_ids function, using get_rl_ids instead")
-                rl_ids = env.k.vehicle.get_rl_ids()
+            else:
+                rl_ids = env.get_rl_ids()
 
             assert self.veh_id in rl_ids, "Vehicle corresponding to controller not in env!"
 

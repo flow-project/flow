@@ -254,7 +254,8 @@ class Trainer(object):
         next_observations = np.concatenate([traj['next_observations'] for traj in trajectories])
 
         # iterate over data multiple times (labels change every iteration)
-        for _ in range(num_iterations):
+        for i in range(num_iterations):
+            print("Iteration: ", i)
             # form labels
             next_state_value_preds = vf_net.predict(next_observations).flatten()
             next_state_value_preds[np.isnan(next_state_value_preds)] = 0

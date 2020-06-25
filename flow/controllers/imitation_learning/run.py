@@ -1,6 +1,10 @@
-import os
-import time
-import numpy as np
+"""
+Runner file for imitation learning. This script performs imitation learning using DAgger and also configures the trained
+model to conduct further training with Reinforcement Learning (see train_with_imitation.py).
+
+Usage:
+    python run.py EXP_CONFIG
+"""
 from flow.controllers.imitation_learning.trainer import Trainer
 
 
