@@ -65,6 +65,7 @@ class AimsunKernelVehicle(KernelVehicle):
         # number of vehicles to exit the network for every time-step
         self._num_arrived = []
         self._arrived_ids = []
+        self._arrived_rl_ids = []
 
         # contains conversion from Flow-ID to Aimsun-ID
         self._id_aimsun2flow = {}
@@ -174,11 +175,17 @@ class AimsunKernelVehicle(KernelVehicle):
         added_vehicles = self.kernel_api.get_entered_ids()
         exited_vehicles = self.kernel_api.get_exited_ids()
 
+        # keep track of arrived rl vehicles
+        arrived_rl_ids = []
+
         # add the new vehicles if they should be tracked
         for aimsun_id in added_vehicles:
             veh_type = self.kernel_api.get_vehicle_type_name(aimsun_id)
             if veh_type in self.tracked_vehicle_types:
                 self._add_departed(aimsun_id)
+            if aimsun_id in self.get_rl_ids():
+                arrived_rl_ids.append(aimsun_id)
+        self._arrived_rl_ids.append(arrived_rl_ids)
 
         # remove the exited vehicles if they were tracked
         if not reset:
@@ -638,6 +645,16 @@ class AimsunKernelVehicle(KernelVehicle):
     def get_arrived_ids(self):
         """See parent class."""
         raise NotImplementedError
+
+    def get_arrived_rl_ids(self, k=1):
+        """See parent class."""
+        if len(self._arrived_rl_ids) > 0:
+            arrived = []
+            for arr in self._arrived_rl_ids[-k:]:
+                arrived.extend(arr)
+            return arrived
+        else:
+            return 0
 
     def get_departed_ids(self):
         """See parent class."""
