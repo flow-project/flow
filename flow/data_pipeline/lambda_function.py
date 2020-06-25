@@ -2,7 +2,7 @@
 import boto3
 from urllib.parse import unquote_plus
 from flow.data_pipeline.data_pipeline import AthenaQuery, delete_obsolete_data, update_baseline
-from flow.data_pipeline.query import tags, tables,  network_using_edge
+from flow.data_pipeline.query import tags, tables,  network_using_edge, summary_tables
 from flow.data_pipeline.query import X_FILTER, EDGE_FILTER, WARMUP_STEPS, HORIZON_STEPS
 
 s3 = boto3.client('s3')
@@ -31,7 +31,7 @@ def lambda_handler(event, context):
         queryEngine.repair_partition(table, query_date, partition)
 
         # delete obsolete data
-        if table == "leaderboard_chart_agg":
+        if table in summary_tables:
             delete_obsolete_data(s3, key, table)
 
         # add table that need to start a query to list
@@ -43,12 +43,14 @@ def lambda_handler(event, context):
     stop_filter = WARMUP_STEPS + HORIZON_STEPS
     for bucket, key, table, query_date, partition in records:
         source_id = "flow_{}".format(partition.split('_')[1])
-        response = s3.head_object(Bucket=bucket, Key=key)
+        metadata_key = "fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv".format(query_date, source_id)
+        response = s3.head_object(Bucket=bucket, Key=metadata_key)
         loc_filter = X_FILTER
         if 'network' in response["Metadata"]:
             if response["Metadata"]['network'] in network_using_edge:
                 loc_filter = EDGE_FILTER
-            if 'is_baseline' in response['Metadata'] and response['Metadata']['is_baseline'] == 'True':
+            if table == 'fact_vehicle_trace' \
+                    and 'is_baseline' in response['Metadata'] and response['Metadata']['is_baseline'] == 'True':
                 update_baseline(s3, response["Metadata"]['network'], source_id)
 
         query_dict = tags[table]

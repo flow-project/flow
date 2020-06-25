@@ -9,14 +9,26 @@ tags = {
             "POWER_DEMAND_MODEL_DENOISED_ACCEL",
             "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"
         ],
+        "fact_safety_metrics": [
+            "FACT_SAFETY_METRICS"
+        ],
         "fact_network_throughput_agg": [
             "FACT_NETWORK_THROUGHPUT_AGG"
         ],
         "fact_network_inflows_outflows": [
             "FACT_NETWORK_INFLOWS_OUTFLOWS"
+        ],
+        "fact_vehicle_counts_by_time": [
+            "FACT_VEHICLE_COUNTS_BY_TIME"
         ]
     },
     "fact_energy_trace": {},
+    "fact_vehicle_counts_by_time": {},
+    "fact_safety_metrics": {
+        "fact_safety_metrics_agg": [
+            "FACT_SAFETY_METRICS_AGG"
+        ]
+    },
     "POWER_DEMAND_MODEL_DENOISED_ACCEL": {
         "fact_vehicle_fuel_efficiency_agg": [
             "FACT_VEHICLE_FUEL_EFFICIENCY_AGG"
@@ -44,12 +56,20 @@ tags = {
         "leaderboard_chart_agg": [
             "LEADERBOARD_CHART_AGG"
         ]
+    },
+    "leaderboard_chart_agg": {
+        "fact_top_scores": [
+            "FACT_TOP_SCORES"
+        ]
     }
 }
 
 tables = [
     "fact_vehicle_trace",
     "fact_energy_trace",
+    "fact_vehicle_counts_by_time",
+    "fact_safety_metrics",
+    "fact_safety_metrics_agg",
     "fact_network_throughput_agg",
     "fact_network_inflows_outflows",
     "fact_vehicle_fuel_efficiency_agg",
@@ -58,8 +78,11 @@ tables = [
     "fact_network_fuel_efficiency_agg",
     "leaderboard_chart",
     "leaderboard_chart_agg",
+    "fact_top_scores",
     "metadata_table"
 ]
+
+summary_tables = ["leaderboard_chart_agg", "fact_top_scores"]
 
 network_using_edge = ["I-210 without Ramps"]
 
@@ -199,6 +222,41 @@ class QueryStrings(Enum):
                                                                      'POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL',
                                                                      'denoised_speed_cte'))
 
+    FACT_SAFETY_METRICS = """
+        SELECT
+            vt.id,
+            vt.time_step,
+            COALESCE((
+                value_lower_left*(headway_upper-headway)*(rel_speed_upper-leader_rel_speed) +
+                value_lower_right*(headway-headway_lower)*(rel_speed_upper-leader_rel_speed) +
+                value_upper_left*(headway_upper-headway)*(leader_rel_speed-rel_speed_lower) +
+                value_upper_right*(headway-headway_lower)*(leader_rel_speed-rel_speed_lower)
+            ) / ((headway_upper-headway_lower)*(rel_speed_upper-rel_speed_lower)), 200) AS safety_value,
+            vt.source_id
+        FROM fact_vehicle_trace vt
+        LEFT OUTER JOIN fact_safety_matrix sm ON 1 = 1
+            AND vt.leader_rel_speed BETWEEN sm.rel_speed_lower AND sm.rel_speed_upper
+            AND vt.headway BETWEEN sm.headway_lower AND sm.headway_upper
+        WHERE 1 = 1
+            AND vt.date = \'{date}\'
+            AND vt.partition_name = \'{partition}\'
+            AND vt.time_step >= {start_filter}
+            AND vt.{loc_filter}
+        ;
+    """
+
+    FACT_SAFETY_METRICS_AGG = """
+        SELECT
+            source_id,
+            SUM(CASE WHEN safety_value < 0 THEN 1 ELSE 0 END) * 100 / COUNT() safety_rate,
+            MAX(safety_value) AS safety_value_max
+        FROM fact_safety_metrics
+        WHERE 1 = 1
+            AND date = \'{date}\'
+            AND partition_name = \'{partition}_FACT_SAFETY_METRICS\'
+        GROUP BY 1
+    """
+
     FACT_NETWORK_THROUGHPUT_AGG = """
         WITH min_time AS (
             SELECT
@@ -292,13 +350,19 @@ class QueryStrings(Enum):
             e.energy_model_id,
             e.efficiency_meters_per_joules,
             19972 * e.efficiency_meters_per_joules AS efficiency_miles_per_gallon,
-            t.throughput_per_hour
+            t.throughput_per_hour,
+            s.safety_rate,
+            s.safety_value_max
         FROM fact_network_throughput_agg AS t
         JOIN fact_network_fuel_efficiency_agg AS e ON 1 = 1
             AND e.date = \'{date}\'
             AND e.partition_name = \'{partition}_FACT_NETWORK_FUEL_EFFICIENCY_AGG\'
             AND t.source_id = e.source_id
             AND e.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
+        JOIN fact_safety_metrics_agg AS s ON 1 = 1
+            AND s.date = \'{date}\'
+            AND s.partition_name = \'{partition}_FACT_SAFETY_METRICS_AGG\'
+            AND t.source_id = s.source_id
         WHERE 1 = 1
             AND t.date = \'{date}\'
             AND t.partition_name = \'{partition}_FACT_NETWORK_THROUGHPUT_AGG\'
@@ -494,7 +558,7 @@ class QueryStrings(Enum):
         ), binned_cumulative_energy AS (
             SELECT
                 source_id,
-                CAST(time_step/60 AS INTEGER) * 60 AS time_seconds_bin,
+                CAST(time_step/10 AS INTEGER) * 10 AS time_seconds_bin,
                 AVG(speed) AS speed_avg,
                 AVG(speed) + STDDEV(speed) AS speed_upper_bound,
                 AVG(speed) - STDDEV(speed) AS speed_lower_bound,
@@ -512,12 +576,12 @@ class QueryStrings(Enum):
             SELECT DISTINCT
                 source_id,
                 id,
-                CAST(time_step/60 AS INTEGER) * 60 AS time_seconds_bin,
+                CAST(time_step/10 AS INTEGER) * 10 AS time_seconds_bin,
                 FIRST_VALUE(energy_joules)
-                    OVER (PARTITION BY id, CAST(time_step/60 AS INTEGER) * 60
+                    OVER (PARTITION BY id, CAST(time_step/10 AS INTEGER) * 10
                     ORDER BY time_step ASC) AS energy_start,
                 LAST_VALUE(energy_joules)
-                    OVER (PARTITION BY id, CAST(time_step/60 AS INTEGER) * 60
+                    OVER (PARTITION BY id, CAST(time_step/10 AS INTEGER) * 10
                     ORDER BY time_step ASC) AS energy_end
             FROM cumulative_energy
         ), binned_energy AS (
@@ -552,6 +616,29 @@ class QueryStrings(Enum):
         ORDER BY time_seconds_bin ASC
         ;"""
 
+    FACT_VEHICLE_COUNTS_BY_TIME = """
+        WITH counts AS (
+            SELECT
+                vt.source_id,
+                vt.time_step,
+                COUNT(DISTINCT vt.id) AS vehicle_count
+            FROM fact_vehicle_trace vt
+            WHERE 1 = 1
+                AND vt.date = \'{date}\'
+                AND vt.partition_name = \'{partition}\'
+                AND vt.{loc_filter}
+                AND vt.time_step >= {start_filter}
+            GROUP BY 1, 2
+        )
+        SELECT
+            source_id,
+            time_step - FIRST_VALUE(time_step)
+                OVER (PARTITION BY source_id ORDER BY time_step ASC) AS time_step,
+            vehicle_count
+        FROM counts
+    ;
+    """
+
     LEADERBOARD_CHART_AGG = """
         WITH agg AS (
             SELECT
@@ -566,6 +653,8 @@ class QueryStrings(Enum):
                 l.efficiency_meters_per_joules,
                 l.efficiency_miles_per_gallon,
                 l.throughput_per_hour,
+                l.safety_rate,
+                l.safety_value_max,
                 b.source_id AS baseline_source_id
             FROM leaderboard_chart AS l, metadata_table AS m, baseline_table as b
             WHERE 1 = 1
@@ -586,11 +675,40 @@ class QueryStrings(Enum):
             agg.efficiency_meters_per_joules,
             agg.efficiency_miles_per_gallon,
             100 * (1 - baseline.efficiency_miles_per_gallon / agg.efficiency_miles_per_gallon) AS percent_improvement,
-            agg.throughput_per_hour
+            agg.throughput_per_hour,
+            agg.safety_rate,
+            agg.safety_value_max
         FROM agg
         JOIN agg AS baseline ON 1 = 1
             AND agg.network = baseline.network
             AND baseline.is_baseline = 'True'
             AND agg.baseline_source_id = baseline.source_id
         ORDER BY agg.submission_date, agg.submission_time ASC
+        ;"""
+
+    FACT_TOP_SCORES = """
+        WITH curr_max AS (
+            SELECT
+                network,
+                submission_date,
+                1000 * MAX(efficiency_meters_per_joules)
+                    OVER (PARTITION BY network ORDER BY submission_date ASC
+                    ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS max_score
+            FROM leaderboard_chart_agg
+            WHERE 1 = 1
+                AND is_baseline = 'False'
+        ), prev_max AS (
+            SELECT
+                network,
+                submission_date,
+                LAG(max_score, 1) OVER (PARTITION BY network ORDER BY submission_date ASC) AS max_score
+            FROM curr_max
+        ), unioned AS (
+            SELECT * FROM curr_max
+            UNION ALL
+            SELECT * FROM prev_max
+        )
+        SELECT DISTINCT *
+        FROM unioned
+        ORDER BY 1, 2, 3
         ;"""
