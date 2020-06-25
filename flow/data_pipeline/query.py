@@ -55,6 +55,18 @@ prerequisites = {
     ),
 }
 
+triggers = [
+    "FACT_VEHICLE_TRACE",
+    "POWER_DEMAND_MODEL_DENOISED_ACCEL",
+    "FACT_VEHICLE_FUEL_EFFICIENCY_AGG",
+    "FACT_SAFETY_METRICS",
+    "FACT_NETWORK_THROUGHPUT_AGG",
+    "FACT_NETWORK_FUEL_EFFICIENCY_AGG",
+    "FACT_SAFETY_METRICS_AGG",
+    "LEADERBOARD_CHART",
+    "LEADERBOARD_CHART_AGG"
+]
+
 tables = [
     "fact_vehicle_trace",
     "fact_energy_trace",

@@ -163,7 +163,8 @@ def update_baseline(s3, baseline_network, baseline_source_id):
 def get_completed_queries(s3, source_id):
     """Return the deserialized list of completed queries from S3."""
     try:
-        completed_queries_obj = s3.get_object(Bucket='circles.data.pipeline', Key='lambda_temp/{}'.format(source_id))
+        completed_queries_obj = \
+            s3.get_object(Bucket='circles.data.pipeline', Key='lambda_temp/{}'.format(source_id))['Body']
         completed_queries = json.loads(completed_queries_obj.read().decode('utf-8'))
     except ClientError as e:
         if e.response['Error']['Code'] == 'NoSuchKey':
@@ -181,13 +182,14 @@ def put_completed_queries(s3, completed_queries):
                       Body=completed_queries_json.encode('utf-8'))
 
 
-def get_ready_queries(completed_queries):
+def get_ready_queries(completed_queries, new_query):
     """Return queries whose prerequisite queries are completed."""
     readied_queries = []
     unfinished_queries = set(prerequisites.keys()) - set(completed_queries)
     for query_name in unfinished_queries:
-        if set(prerequisites[query_name][1]).issubset(completed_queries):
-            readied_queries.append((query_name, prerequisites[query_name][0]))
+        if not set(prerequisites[query_name][1]).issubset(completed_queries):
+            if set(prerequisites[query_name][1]).issubset(completed_queries + [new_query]):
+                readied_queries.append((query_name, prerequisites[query_name][0]))
     return readied_queries
 
 

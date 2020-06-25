@@ -3,7 +3,7 @@ import boto3
 from urllib.parse import unquote_plus
 from flow.data_pipeline.data_pipeline import AthenaQuery, delete_obsolete_data, update_baseline, \
     get_ready_queries, get_completed_queries, put_completed_queries
-from flow.data_pipeline.query import prerequisites, tables,  network_using_edge, summary_tables
+from flow.data_pipeline.query import prerequisites, tables,  network_using_edge, summary_tables, triggers
 from flow.data_pipeline.query import X_FILTER, EDGE_FILTER, WARMUP_STEPS, HORIZON_STEPS
 
 s3 = boto3.client('s3')
@@ -23,9 +23,7 @@ def lambda_handler(event, context):
         if table not in tables:
             continue
         # delete unwanted metadata files
-        if key[-9:] == '.metadata':
-            s3.delete_object(Bucket=bucket, Key=key)
-            continue
+        s3.delete_object(Bucket=bucket, Key=(key + '.metadata'))
         # load the partition for newly added table
         query_date = key.split('/')[-3].split('=')[-1]
         partition = key.split('/')[-2].split('=')[-1]
@@ -39,7 +37,7 @@ def lambda_handler(event, context):
         if table in summary_tables:
             delete_obsolete_data(s3, key, table)
         # add table that need to start a query to list
-        if query_name in prerequisites.keys():
+        if query_name in triggers:
             records.append((bucket, key, table, query_name, query_date, partition, source_id))
 
     # initialize the queries
@@ -49,7 +47,8 @@ def lambda_handler(event, context):
         # add this query to the list of completed queries for this source_id
         if source_id not in completed.keys():
             completed[source_id] = get_completed_queries(s3, source_id)
-        completed[source_id].append(query_name)
+        if query_name in completed[source_id]:
+            continue
         # retrieve metadata and use it to determine the right loc_filter
         metadata_key = "fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv".format(query_date, source_id)
         response = s3.head_object(Bucket=bucket, Key=metadata_key)
@@ -62,7 +61,8 @@ def lambda_handler(event, context):
                     and 'is_baseline' in response['Metadata'] and response['Metadata']['is_baseline'] == 'True':
                 update_baseline(s3, response["Metadata"]['network'], source_id)
 
-        readied_queries = get_ready_queries(completed[source_id])
+        readied_queries = get_ready_queries(completed[source_id], query_name)
+        completed[source_id].append(query_name)
         # initialize queries and store them at appropriate locations
         for readied_query_name, table_name in readied_queries:
             result_location = 's3://circles.data.pipeline/{}/date={}/partition_name={}_{}'.format(table_name,
