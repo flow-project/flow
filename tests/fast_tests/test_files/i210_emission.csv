@@ -1,4 +1,4 @@
-x,time,edge_id,eclass,type,PMx,speed,angle,CO,CO2,electricity,noise,lane_number,NOx,distance,route,y,id,fuel,HC,waiting
+x,time,edge_id,eclass,type,PMx,speed,angle,CO,CO2,electricity,noise,lane_number,NOx,relative_position,route,y,id,fuel,HC,waiting
 485.04,0.8,119257914,HBEFA3/PC_G_EU4,human,0.05,23.0,119.74,3.32,3793.12,0.0,70.29,1,1.17,5.1,route119257914_0,1068.18,flow_00.0,1.63,0.11,0.0
 500.91,1.6,119257914,HBEFA3/PC_G_EU4,human,0.0,22.84,119.74,0.0,0.0,0.0,69.9,1,0.0,23.37,route119257914_0,1059.12,flow_00.0,0.0,0.0,0.0
 517.1,2.4,119257914,HBEFA3/PC_G_EU4,human,0.15,23.31,119.74,78.83,7435.5,0.0,71.61,1,2.88,42.02,route119257914_0,1049.87,flow_00.0,3.2,0.54,0.0

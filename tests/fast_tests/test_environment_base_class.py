@@ -13,9 +13,8 @@ from flow.envs import Env, TestEnv
 
 from tests.setup_scripts import ring_road_exp_setup, highway_exp_setup
 import os
-import gym.spaces as spaces
-from gym.spaces.box import Box
 import numpy as np
+import gym.spaces as spaces
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -24,41 +23,6 @@ WHITE = (255, 255, 255)
 CYAN = (0, 255, 255)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
-
-
-class TestFailRLActionsEnv(Env):
-    """Test environment designed to fail _apply_rl_actions not-implemented test."""
-
-    @property
-    def action_space(self):
-        """See parent class."""
-        return Box(low=0, high=0, shape=(0,), dtype=np.float32)  # pragma: no cover
-
-    @property
-    def observation_space(self):
-        """See parent class."""
-        return Box(low=0, high=0, shape=(0,), dtype=np.float32)  # pragma: no cover
-
-    def get_state(self, **kwargs):
-        """See class definition."""
-        return np.array([])  # pragma: no cover
-
-
-class TestFailGetStateEnv(Env):
-    """Test environment designed to fail get_state not-implemented test."""
-
-    @property
-    def action_space(self):
-        """See parent class."""
-        return Box(low=0, high=0, shape=(0,), dtype=np.float32)  # pragma: no cover
-
-    @property
-    def observation_space(self):
-        """See parent class."""
-        return Box(low=0, high=0, shape=(0,), dtype=np.float32)  # pragma: no cover
-
-    def _apply_rl_actions(self, rl_actions):
-        return  # pragma: no cover
 
 
 class TestShuffle(unittest.TestCase):
@@ -347,34 +311,28 @@ class TestAbstractMethods(unittest.TestCase):
     """
 
     def setUp(self):
-        self.env, self.network, _ = ring_road_exp_setup()
-        self.sim_params = SumoParams()  # FIXME: make ambiguous
-        self.env_params = EnvParams()
+        env, network, _ = ring_road_exp_setup()
+        sim_params = SumoParams()  # FIXME: make ambiguous
+        env_params = EnvParams()
+        self.env = Env(sim_params=sim_params,
+                       env_params=env_params,
+                       network=network)
 
-    def test_abstract_base_class(self):
-        """Checks that instantiating abstract base class raises an error."""
-        with self.assertRaises(TypeError):
-            Env(sim_params=self.sim_params,
-                env_params=self.env_params,
-                network=self.network)
+    def tearDown(self):
+        self.env.terminate()
+        self.env = None
 
     def test_get_state(self):
-        """Checks that instantiating without get_state implemented
-        raises an error.
-        """
-        with self.assertRaises(TypeError):
-            TestFailGetStateEnv(sim_params=self.sim_params,
-                                env_params=self.env_params,
-                                network=self.network)
+        """Checks that get_state raises an error."""
+        self.assertRaises(NotImplementedError, self.env.get_state)
+
+    def test_compute_reward(self):
+        """Checks that compute_reward returns 0."""
+        self.assertEqual(self.env.compute_reward([]), 0)
 
     def test__apply_rl_actions(self):
-        """Checks that instantiating without _apply_rl_actions
-        implemented raises an error.
-        """
-        with self.assertRaises(TypeError):
-            TestFailRLActionsEnv(sim_params=self.sim_params,
-                                 env_params=self.env_params,
-                                 network=self.network)
+        self.assertRaises(NotImplementedError, self.env._apply_rl_actions,
+                          rl_actions=None)
 
 
 class TestVehicleColoring(unittest.TestCase):
