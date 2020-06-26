@@ -38,7 +38,11 @@ class ImitatingController(BaseController):
             instance of environment being used
         """
         # observation is a dictionary for multiagent envs, list for singleagent envs
+
         if self.multiagent:
+            # if vehicle is in non-control edge, it will not be in observation, so return None to default control to Sumo
+            if self.veh_id not in env.get_state().keys():
+                return None
             observation = env.get_state()[self.veh_id]
         else:
             observation = env.get_state()
@@ -56,7 +60,9 @@ class ImitatingController(BaseController):
             else:
                 rl_ids = env.get_rl_ids()
 
-            assert self.veh_id in rl_ids, "Vehicle corresponding to controller not in env!"
+            if not (self.veh_id in rl_ids):
+                # vehicle in non-control edge, so return None to default control to Sumo
+                return None 
 
             # return the action taken by the vehicle
             ind = rl_ids.index(self.veh_id)
