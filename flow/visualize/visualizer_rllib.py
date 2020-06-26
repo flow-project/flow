@@ -85,8 +85,6 @@ def visualizer_rllib(args):
         sim_params.use_ballistic = False
 
     # Determine agent and checkpoint
-    # TODO(akashvelu): remove this 
-    # print("NEW CONFIGGG: ", config['env_config']['run'])
     config_run = config['env_config']['run'] if 'run' in config['env_config'] \
         else None
     if args.run and config_run:
@@ -177,7 +175,6 @@ def visualizer_rllib(args):
     checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
-    agent.import_model('/Users/akashvelu/Desktop/combined_test3/ppo_model.h5', 'av')
 
 
     if hasattr(agent, "local_evaluator") and \
