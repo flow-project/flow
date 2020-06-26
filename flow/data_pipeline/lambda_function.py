@@ -3,7 +3,7 @@ import boto3
 from urllib.parse import unquote_plus
 from flow.data_pipeline.data_pipeline import AthenaQuery, delete_obsolete_data, update_baseline, \
     get_ready_queries, get_completed_queries, put_completed_queries
-from flow.data_pipeline.query import prerequisites, tables,  network_filters, summary_tables, triggers
+from flow.data_pipeline.query import prerequisites, tables, network_filters, summary_tables, triggers
 
 s3 = boto3.client('s3')
 queryEngine = AthenaQuery()
@@ -51,9 +51,9 @@ def lambda_handler(event, context):
         response = s3.head_object(Bucket=bucket, Key=metadata_key)
         if 'network' in response["Metadata"]:
             network = response["Metadata"]['network']
-            loc_filter = network_filter[network]['loc_filter']
-            start_filter = network_filter[network]['warmup_steps']
-            stop_filter = network_filter[network]['horizon_steps']
+            loc_filter = network_filters[network]['loc_filter']
+            start_filter = network_filters[network]['warmup_steps']
+            stop_filter = network_filters[network]['horizon_steps']
 
             # update baseline if needed
             if table == 'fact_vehicle_trace' \
