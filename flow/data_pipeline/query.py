@@ -706,7 +706,7 @@ class QueryStrings(Enum):
             SELECT
                 network,
                 submission_date,
-                LAG(max_score, 1) OVER (PARTITION BY network ORDER BY submission_date ASC) AS max_score
+                LAG(max_score IGNORE NULLS, 1) OVER (PARTITION BY network ORDER BY submission_date ASC) AS max_score
             FROM curr_max
         ), unioned AS (
             SELECT * FROM curr_max
