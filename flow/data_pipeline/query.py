@@ -236,7 +236,7 @@ class QueryStrings(Enum):
                 value_lower_right*(headway-headway_lower)*(rel_speed_upper-leader_rel_speed) +
                 value_upper_left*(headway_upper-headway)*(leader_rel_speed-rel_speed_lower) +
                 value_upper_right*(headway-headway_lower)*(leader_rel_speed-rel_speed_lower)
-            ) / ((headway_upper-headway_lower)*(rel_speed_upper-rel_speed_lower)), 200) AS safety_value,
+            ) / ((headway_upper-headway_lower)*(rel_speed_upper-rel_speed_lower)), 200.0) AS safety_value,
             vt.source_id
         FROM fact_vehicle_trace vt
         LEFT OUTER JOIN fact_safety_matrix sm ON 1 = 1
@@ -253,7 +253,7 @@ class QueryStrings(Enum):
     FACT_SAFETY_METRICS_AGG = """
         SELECT
             source_id,
-            SUM(CASE WHEN safety_value < 0 THEN 1 ELSE 0 END) * 100 / COUNT() safety_rate,
+            SUM(CASE WHEN safety_value < 0 THEN 1.0 ELSE 0.0 END) * 100.0 / COUNT() safety_rate,
             MAX(safety_value) AS safety_value_max
         FROM fact_safety_metrics
         WHERE 1 = 1
