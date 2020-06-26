@@ -1,4 +1,5 @@
 """stores all the pre-defined query strings."""
+from collections import defaultdict
 from enum import Enum
 
 # tags for different queries
@@ -87,15 +88,16 @@ tables = [
 
 summary_tables = ["leaderboard_chart_agg", "fact_top_scores"]
 
-network_using_edge = ["I-210 without Ramps"]
-
-X_FILTER = "x BETWEEN 500 AND 2300"
-
-EDGE_FILTER = "edge_id <> ALL (VALUES 'ghost0', '119257908#3')"
-
-WARMUP_STEPS = 600 * 3 * 0.4
-
-HORIZON_STEPS = 1000 * 3 * 0.4
+network_filters = defaultdict(lambda: {
+        'loc_filter': "x BETWEEN 500 AND 2300",
+        'warmup_steps': 500 * 3 * 0.4,
+        'horizon_steps': 1000 * 3 * 0.4
+    })
+network_filters['I-210 without Ramps'] = {
+        'loc_filter': "edge_id <> ALL (VALUES 'ghost0', '119257908#3')",
+        'warmup_steps': 600 * 3 * 0.4,
+        'horizon_steps': 1000 * 3 * 0.4
+    }
 
 VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT = """
     SELECT
