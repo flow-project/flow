@@ -3,7 +3,7 @@ import boto3
 from urllib.parse import unquote_plus
 from flow.data_pipeline.data_pipeline import AthenaQuery, delete_obsolete_data, update_baseline, \
     get_ready_queries, get_completed_queries, put_completed_queries
-from flow.data_pipeline.query import prerequisites, tables, network_filters, summary_tables, triggers
+from flow.data_pipeline.query import tables, network_filters, summary_tables, triggers
 
 s3 = boto3.client('s3')
 queryEngine = AthenaQuery()
