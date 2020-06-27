@@ -168,7 +168,7 @@ def get_completed_queries(s3, source_id):
         completed_queries = json.loads(completed_queries_obj.read().decode('utf-8'))
     except ClientError as e:
         if e.response['Error']['Code'] == 'NoSuchKey':
-            completed_queries = []
+            completed_queries = set()
         else:
             raise
     return completed_queries
@@ -185,10 +185,10 @@ def put_completed_queries(s3, completed_queries):
 def get_ready_queries(completed_queries, new_query):
     """Return queries whose prerequisite queries are completed."""
     readied_queries = []
-    unfinished_queries = set(prerequisites.keys()) - set(completed_queries)
+    unfinished_queries = prerequisites.keys() - completed_queries
     for query_name in unfinished_queries:
-        if not set(prerequisites[query_name][1]).issubset(completed_queries):
-            if set(prerequisites[query_name][1]).issubset(completed_queries + [new_query]):
+        if not prerequisites[query_name][1].issubset(completed_queries):
+            if prerequisites[query_name][1].issubset(completed_queries + [new_query]):
                 readied_queries.append((query_name, prerequisites[query_name][0]))
     return readied_queries
 

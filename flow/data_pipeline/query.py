@@ -5,54 +5,54 @@ from enum import Enum
 # tags for different queries
 prerequisites = {
     "POWER_DEMAND_MODEL": (
-        "fact_energy_trace", ["FACT_VEHICLE_TRACE"]
+        "fact_energy_trace", {"FACT_VEHICLE_TRACE"}
     ),
     "POWER_DEMAND_MODEL_DENOISED_ACCEL": (
-        "fact_energy_trace", ["FACT_VEHICLE_TRACE"]
+        "fact_energy_trace", {"FACT_VEHICLE_TRACE"}
     ),
     "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL": (
-        "fact_energy_trace", ["FACT_VEHICLE_TRACE"]
+        "fact_energy_trace", {"FACT_VEHICLE_TRACE"}
     ),
     "FACT_SAFETY_METRICS": (
-        "fact_safety_metrics", ["FACT_VEHICLE_TRACE"]
+        "fact_safety_metrics", {"FACT_VEHICLE_TRACE"}
     ),
     "FACT_NETWORK_THROUGHPUT_AGG": (
-        "fact_network_throughput_agg", ["FACT_VEHICLE_TRACE"]
+        "fact_network_throughput_agg", {"FACT_VEHICLE_TRACE"}
     ),
     "FACT_NETWORK_INFLOWS_OUTFLOWS": (
-        "fact_network_inflows_outflows", ["FACT_VEHICLE_TRACE"]
+        "fact_network_inflows_outflows", {"FACT_VEHICLE_TRACE"}
     ),
     "FACT_VEHICLE_COUNTS_BY_TIME": (
-        "fact_vehicle_counts_by_time", ["FACT_VEHICLE_TRACE"]
+        "fact_vehicle_counts_by_time", {"FACT_VEHICLE_TRACE"}
     ),
     "FACT_VEHICLE_FUEL_EFFICIENCY_AGG": (
-        "fact_vehicle_fuel_efficiency_agg", ["FACT_VEHICLE_TRACE",
-                                             "POWER_DEMAND_MODEL_DENOISED_ACCEL"]
+        "fact_vehicle_fuel_efficiency_agg", {"FACT_VEHICLE_TRACE",
+                                             "POWER_DEMAND_MODEL_DENOISED_ACCEL"}
     ),
     "FACT_NETWORK_METRICS_BY_DISTANCE_AGG": (
-         "fact_network_metrics_by_distance_agg", ["FACT_VEHICLE_TRACE",
-                                                  "POWER_DEMAND_MODEL_DENOISED_ACCEL"]
+         "fact_network_metrics_by_distance_agg", {"FACT_VEHICLE_TRACE",
+                                                  "POWER_DEMAND_MODEL_DENOISED_ACCEL"}
     ),
     "FACT_NETWORK_METRICS_BY_TIME_AGG": (
-         "fact_network_metrics_by_time_agg", ["FACT_VEHICLE_TRACE",
-                                              "POWER_DEMAND_MODEL_DENOISED_ACCEL"]
+         "fact_network_metrics_by_time_agg", {"FACT_VEHICLE_TRACE",
+                                              "POWER_DEMAND_MODEL_DENOISED_ACCEL"}
     ),
     "FACT_NETWORK_FUEL_EFFICIENCY_AGG": (
-        "fact_network_fuel_efficiency_agg", ["FACT_VEHICLE_FUEL_EFFICIENCY_AGG"]
+        "fact_network_fuel_efficiency_agg", {"FACT_VEHICLE_FUEL_EFFICIENCY_AGG"}
     ),
     "FACT_SAFETY_METRICS_AGG": (
-        "fact_safety_metrics_agg", ["FACT_SAFETY_METRICS"]
+        "fact_safety_metrics_agg", {"FACT_SAFETY_METRICS"}
     ),
     "LEADERBOARD_CHART": (
-        "leaderboard_chart", ["FACT_NETWORK_THROUGHPUT_AGG",
+        "leaderboard_chart", {"FACT_NETWORK_THROUGHPUT_AGG",
                               "FACT_NETWORK_FUEL_EFFICIENCY_AGG",
-                              "FACT_SAFETY_METRICS_AGG"]
+                              "FACT_SAFETY_METRICS_AGG"}
     ),
     "LEADERBOARD_CHART_AGG": (
-        "leaderboard_chart_agg", ["LEADERBOARD_CHART"]
+        "leaderboard_chart_agg", {"LEADERBOARD_CHART"}
     ),
     "FACT_TOP_SCORES": (
-        "fact_top_scores", ["LEADERBOARD_CHART_AGG"]
+        "fact_top_scores", {"LEADERBOARD_CHART_AGG"}
     ),
 }
 

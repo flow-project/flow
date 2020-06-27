@@ -41,9 +41,10 @@ def lambda_handler(event, context):
 
     # initialize the queries
     for bucket, key, table, query_name, query_date, partition, source_id in records:
-        # add this query to the list of completed queries for this source_id
+        # retrieve the set of completed query for this source_id if not already available
         if source_id not in completed.keys():
             completed[source_id] = get_completed_queries(s3, source_id)
+        # if query already recorded before, skip it. This is to tolerate repetitive execution by Lambda
         if query_name in completed[source_id]:
             continue
         # retrieve metadata and use it to determine the right loc_filter
@@ -61,7 +62,7 @@ def lambda_handler(event, context):
                 update_baseline(s3, network, source_id)
 
         readied_queries = get_ready_queries(completed[source_id], query_name)
-        completed[source_id].append(query_name)
+        completed[source_id].add(query_name)
         # initialize queries and store them at appropriate locations
         for readied_query_name, table_name in readied_queries:
             result_location = 's3://circles.data.pipeline/{}/date={}/partition_name={}_{}'.format(table_name,
