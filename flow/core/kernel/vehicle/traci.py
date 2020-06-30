@@ -563,6 +563,13 @@ class TraCIVehicle(KernelVehicle):
             return [self.get_speed(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
 
+    def get_default_speed(self, veh_id, error=-1001):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_default_speed(vehID, error) for vehID in veh_id]
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED_WITHOUT_TRACI,
+                                                   error)
+
     def get_position(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
@@ -1089,9 +1096,8 @@ class TraCIVehicle(KernelVehicle):
 
         The last term for sumo (transparency) is set to 255.
         """
-        if self._color_vehicles:
-            r, g, b = color
-            self.kernel_api.vehicle.setColor(veh_id, (r, g, b, 255))
+        r, g, b = color
+        self.kernel_api.vehicle.setColor(veh_id, (r, g, b, 255))
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
