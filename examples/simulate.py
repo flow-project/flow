@@ -5,7 +5,12 @@ Usage
 """
 import argparse
 import sys
+import json
+import os
 from flow.core.experiment import Experiment
+
+from flow.core.params import AimsunParams
+from flow.utils.rllib import FlowParamsEncoder
 
 
 def parse_args(args):
@@ -17,7 +22,6 @@ def parse_args(args):
         the output parser object
     """
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         description="Parse argument used when running a Flow simulation.",
         epilog="python simulate.py EXP_CONFIG --num_runs INT --no_render")
 
@@ -62,13 +66,25 @@ if __name__ == "__main__":
     else:
         callables = None
 
-    # Update some variables based on inputs.
     flow_params['sim'].render = not flags.no_render
     flow_params['simulator'] = 'aimsun' if flags.aimsun else 'traci'
+
+    # If Aimsun is being called, replace SumoParams with AimsunParams.
+    if flags.aimsun:
+        sim_params = AimsunParams()
+        sim_params.__dict__.update(flow_params['sim'].__dict__)
+        flow_params['sim'] = sim_params
 
     # Specify an emission path if they are meant to be generated.
     if flags.gen_emission:
         flow_params['sim'].emission_path = "./data"
+
+        # Create the flow_params object
+        fp_ = flow_params['exp_tag']
+        dir_ = flow_params['sim'].emission_path
+        with open(os.path.join(dir_, "{}.json".format(fp_)), 'w') as outfile:
+            json.dump(flow_params, outfile,
+                      cls=FlowParamsEncoder, sort_keys=True, indent=4)
 
     # Create the experiment object.
     exp = Experiment(flow_params, callables)

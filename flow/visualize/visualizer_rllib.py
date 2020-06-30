@@ -74,6 +74,10 @@ def visualizer_rllib(args):
     sim_params = flow_params['sim']
     setattr(sim_params, 'num_clients', 1)
 
+    # for hacks for old pkl files TODO: remove eventually
+    if not hasattr(sim_params, 'use_ballistic'):
+        sim_params.use_ballistic = False
+
     # Determine agent and checkpoint
     config_run = config['env_config']['run'] if 'run' in config['env_config'] \
         else None

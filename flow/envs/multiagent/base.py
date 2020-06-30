@@ -122,7 +122,7 @@ class MultiEnv(MultiAgentEnv, Env):
         else:
             reward = self.compute_reward(rl_actions, fail=crash)
 
-        for rl_id in self.k.vehicle.get_arrived_rl_ids():
+        for rl_id in self.k.vehicle.get_arrived_rl_ids(self.env_params.sims_per_step):
             done[rl_id] = True
             reward[rl_id] = 0
             states[rl_id] = np.zeros(self.observation_space.shape[0])
@@ -204,6 +204,9 @@ class MultiEnv(MultiAgentEnv, Env):
                 self.k.vehicle.remove(veh_id)
             except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
+
+        # do any additional resetting of the vehicle class needed
+        self.k.vehicle.reset()
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:

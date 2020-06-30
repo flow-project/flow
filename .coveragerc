@@ -19,4 +19,7 @@ exclude_lines =
     if __name__ == .__main__.:
     raise NotImplementedError
     @ray.remote
+    @abstractmethod
     def policy_mapping_fn*
+    def main(args)*
+    pragma: no cover

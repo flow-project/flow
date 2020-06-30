@@ -68,11 +68,13 @@ worker_nodes:
 
 setup_commands:
     - cd flow && git fetch && git checkout origin/master
-
-head_setup_commands:
     - pip install boto3==1.10.45  # 1.4.8 adds InstanceMarketOptions
     - pip install awscli==1.16.309
     - pip install pytz
+    - pip install numpy==1.18.4
+    - ./flow/scripts/setup_sumo_ubuntu1604.sh
+
+head_setup_commands: []
 
 # Custom commands that will be run on worker nodes after common setup.
 worker_setup_commands: []

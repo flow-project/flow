@@ -7,6 +7,7 @@ dependencies:
     - six==1.11.0
     - path.py
     - python-dateutil==2.7.3
+    - pip>=18.0
     - tensorflow==1.9.0
     - cloudpickle==1.2.1
     - setuptools==41.0.0

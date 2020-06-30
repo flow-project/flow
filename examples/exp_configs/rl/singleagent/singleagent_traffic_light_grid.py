@@ -9,12 +9,12 @@ from flow.networks import TrafficLightGridNetwork
 # time horizon of a single rollout
 HORIZON = 200
 # number of rollouts per training iteration
-N_ROLLOUTS = 20
+N_ROLLOUTS = 30
 # number of parallel workers
 N_CPUS = 2
 # set to True if you would like to run the experiment with inflows of vehicles
 # from the edges, and False otherwise
-USE_INFLOWS = False
+USE_INFLOWS = True
 
 
 def gen_edges(col_num, row_num):

@@ -33,7 +33,7 @@ class TestVehiclesClass(unittest.TestCase):
                 speed_mode='obey_safe_speed',
             ),
             lane_change_params=SumoLaneChangeParams(
-                lane_change_mode="no_lat_collide",
+                lane_change_mode="no_lc_safe",
             )
         )
 
@@ -56,7 +56,7 @@ class TestVehiclesClass(unittest.TestCase):
         self.assertEqual(vehicles.type_parameters["typeB"][
                              "car_following_params"].speed_mode, 0)
         self.assertEqual(vehicles.type_parameters["typeB"][
-                             "lane_change_params"].lane_change_mode, 1621)
+                             "lane_change_params"].lane_change_mode, 512)
 
         vehicles.add(
             "typeC",
@@ -89,7 +89,7 @@ class TestVehiclesClass(unittest.TestCase):
                 speed_mode="obey_safe_speed",
             ),
             lane_change_params=SumoLaneChangeParams(
-                lane_change_mode="no_lat_collide",
+                lane_change_mode="no_lc_safe",
             ))
         default_mingap = SumoCarFollowingParams().controller_params["minGap"]
         self.assertEqual(vehicles.types[0]["type_params"]["minGap"],
@@ -258,7 +258,10 @@ class TestMultiLaneData(unittest.TestCase):
             "lanes": 3,
             "speed_limit": 30,
             "resolution": 40,
-            "num_edges": 1
+            "num_edges": 1,
+            "use_ghost_edge": False,
+            "ghost_speed_limit": 25,
+            "boundary_cell_length": 300,
         }
         net_params = NetParams(additional_params=additional_net_params)
         vehicles = VehicleParams()
@@ -330,7 +333,10 @@ class TestMultiLaneData(unittest.TestCase):
             "lanes": 4,
             "speed_limit": 30,
             "resolution": 40,
-            "num_edges": 1
+            "num_edges": 1,
+            "use_ghost_edge": False,
+            "ghost_speed_limit": 25,
+            "boundary_cell_length": 300,
         }
         net_params = NetParams(additional_params=additional_net_params)
         vehicles = VehicleParams()
@@ -398,7 +404,10 @@ class TestMultiLaneData(unittest.TestCase):
             "lanes": 3,
             "speed_limit": 30,
             "resolution": 40,
-            "num_edges": 3
+            "num_edges": 3,
+            "use_ghost_edge": False,
+            "ghost_speed_limit": 25,
+            "boundary_cell_length": 300,
         }
         net_params = NetParams(additional_params=additional_net_params)
         vehicles = VehicleParams()
@@ -465,7 +474,10 @@ class TestMultiLaneData(unittest.TestCase):
             "lanes": 3,
             "speed_limit": 30,
             "resolution": 40,
-            "num_edges": 3
+            "num_edges": 3,
+            "use_ghost_edge": False,
+            "ghost_speed_limit": 25,
+            "boundary_cell_length": 300,
         }
         net_params = NetParams(additional_params=additional_net_params)
         vehicles = VehicleParams()

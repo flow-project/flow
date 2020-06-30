@@ -54,6 +54,17 @@ before_install:
   - export AIMSUN_SITEPACKAGES="/home/travis/miniconda/envs/aimsun_flow"
   - export AIMSUN_NEXT_PATH="/home/user/Aimsun_Next_XXX"
 
+  # Install stable-baselines
+  - pip install stable_baselines==2.7.0
+
+  # Install h-baselines
+  - pushd $HOME
+  - git clone https://github.com/AboudyKreidieh/h-baselines.git
+  - pushd h-baselines
+  - pip install -e .
+  - popd
+  - popd
+
   - ls ../
 
 install:
@@ -62,7 +73,6 @@ install:
   - pip install -e .
   - pip install coveralls
   - pip install jupyter
-  - pip install stable_baselines==2.7.0
 
 script:
   - nose2 --with-coverage

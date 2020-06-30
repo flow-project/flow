@@ -7,6 +7,7 @@ from flow.core.params import VehicleParams
 from flow.core.rewards import average_velocity, min_delay
 from flow.core.rewards import desired_velocity, boolean_action_penalty
 from flow.core.rewards import penalize_near_standstill, penalize_standstill
+from flow.core.rewards import energy_consumption
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -150,6 +151,31 @@ class TestRewards(unittest.TestCase):
         # check the penalty with good and bad thresholds
         self.assertEqual(penalize_near_standstill(env, thresh=2), -10)
         self.assertEqual(penalize_near_standstill(env, thresh=0.5), -9)
+
+    def test_energy_consumption(self):
+        """Test the energy consumption method."""
+        vehicles = VehicleParams()
+        vehicles.add("test", num_vehicles=10)
+
+        env_params = EnvParams(additional_params={
+            "target_velocity": 10, "max_accel": 1, "max_decel": 1,
+            "sort_vehicles": False})
+
+        env, _, _ = ring_road_exp_setup(vehicles=vehicles,
+                                        env_params=env_params)
+
+        # check the penalty is zero at speed zero
+        self.assertEqual(energy_consumption(env, gain=1), 0)
+
+        # change the speed of one vehicle
+        env.k.vehicle.test_set_speed("test_0", 1)
+        self.assertEqual(energy_consumption(env), -12.059337750000001)
+
+        # check that stepping change the previous speeds and increases the energy consumption
+        env.step(rl_actions=None)
+        env.step(rl_actions=None)
+        self.assertGreater(env.k.vehicle.get_previous_speed("test_0"), 0.0)
+        self.assertLess(energy_consumption(env), -12.059337750000001)
 
     def test_boolean_action_penalty(self):
         """Test the boolean_action_penalty method."""
