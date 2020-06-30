@@ -78,7 +78,11 @@ class Experiment:
         self.custom_callables = custom_callables or {}
 
         # Get the env name and a creator for the environment.
-        create_env, _ = make_create_env(flow_params)
+        create_env, env_name = make_create_env(flow_params)
+
+        # record env_name and create_env, need it to register for ray
+        self.env_name = env_name
+        self.create_env = create_env
 
         # Create the environment.
         self.env = create_env()
