@@ -37,11 +37,17 @@ prerequisites = {
          "fact_network_metrics_by_time_agg", {"FACT_VEHICLE_TRACE",
                                               "POWER_DEMAND_MODEL_DENOISED_ACCEL"}
     ),
+    "FACT_VEHICLE_FUEL_EFFICIENCY_BINNED": (
+        "fact_vehicle_fuel_efficiency_binned", {"FACT_VEHICLE_FUEL_EFFICIENCY_AGG"}
+    ),
     "FACT_NETWORK_FUEL_EFFICIENCY_AGG": (
         "fact_network_fuel_efficiency_agg", {"FACT_VEHICLE_FUEL_EFFICIENCY_AGG"}
     ),
     "FACT_SAFETY_METRICS_AGG": (
         "fact_safety_metrics_agg", {"FACT_SAFETY_METRICS"}
+    ),
+    "FACT_SAFETY_METRICS_BINNED": (
+        "fact_safety_metrics_binned", {"FACT_SAFETY_METRICS"}
     ),
     "LEADERBOARD_CHART": (
         "leaderboard_chart", {"FACT_NETWORK_THROUGHPUT_AGG",
@@ -74,9 +80,11 @@ tables = [
     "fact_vehicle_counts_by_time",
     "fact_safety_metrics",
     "fact_safety_metrics_agg",
+    "fact_safety_metrics_binned",
     "fact_network_throughput_agg",
     "fact_network_inflows_outflows",
     "fact_vehicle_fuel_efficiency_agg",
+    "fact_vehicle_fuel_efficiency_binned",
     "fact_network_metrics_by_distance_agg",
     "fact_network_metrics_by_time_agg",
     "fact_network_fuel_efficiency_agg",
@@ -260,6 +268,30 @@ class QueryStrings(Enum):
             AND date = \'{date}\'
             AND partition_name = \'{partition}_FACT_SAFETY_METRICS\'
         GROUP BY 1
+        ;
+    """
+
+    FACT_SAFETY_METRICS_BINNED = """
+        WITH bins AS (
+            SELECT
+                ROW_NUMBER() - 51 AS lb,
+                ROW_NUMBER() - 50 AS ub
+            FROM fact_safety_metrics
+            HAVING 1 = 1
+                AND lb >= -10
+                AND ub <= 10
+        )
+        SELECT
+            CONCAT('[', bins.lb, ', ', bins.ub, ')') AS safety_value_bin,
+            COUNT() AS count
+        FROM bins, fact_safety_metrics fsm
+        WHERE 1 = 1
+            AND fsm.date = \'{date}\'
+            AND fsm.partition_name = \'{partition}_FACT_SAFETY_METRICS\'
+            AND fsm.safety_value >= bins.lb
+            AND fsm.safety_value < bins.ub
+        GROUP BY 1
+        ;
     """
 
     FACT_NETWORK_THROUGHPUT_AGG = """
@@ -328,6 +360,30 @@ class QueryStrings(Enum):
         FROM sub_fact_vehicle_trace
         WHERE 1 = 1
             AND power_watts * time_step_size_seconds != 0
+        ;
+    """
+
+    FACT_VEHICLE_FUEL_EFFICIENCY_BINNED = """
+        WITH bins AS (
+            SELECT
+                ROW_NUMBER() - 1 AS lb,
+                ROW_NUMBER() AS ub
+            FROM fact_safety_metrics
+            HAVING 1 = 1
+                AND lb >= 0
+                AND ub <= 20
+        )
+        SELECT
+            CONCAT('[', bins.lb, ', ', bins.ub, ')') AS fuel_efficiency_bin,
+            COUNT() AS count
+        FROM bins, fact_vehicle_fuel_efficiency_agg agg
+        WHERE 1 = 1
+            AND agg.date = \'{date}\'
+            AND agg.partition_name = \'{partition}_FACT_FUEL_EFFICIENCY_AGG\'
+            AND agg.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
+            AND 1000 * agg.efficiency_meters_per_joules >= bins.lb
+            AND 1000 * agg.efficiency_meters_per_joules < bins.ub
+        GROUP BY 1
         ;
     """
 
