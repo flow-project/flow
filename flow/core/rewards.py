@@ -442,14 +442,8 @@ def miles_per_gallon(env, veh_ids=None, gain=.001):
 
     return mpg * gain
 
-def instantaneous_power(env, veh_ids=None, gain=.001):
+def instantaneous_power(env, veh_id=None, gain=.001):
     """Calculate the instantaneous power for every simulation step specific to the vehicle type.
-
-    The energy model used is based on the vehicle type:
-    veh_id = "Prius"  --> energy model is PriusEnergy in flow.core.kernel.toyata_energy
-    veh_id = "Tacoma" --> energy model is TacomaEnergy in flow.core.kernel.toyata_energy
-    veh_id = "EV"     --> energy model is PDMElectric in flow.core.kernel.power_demand
-    veh_id = "human"  --> energy model is PDMCombustionEngine in flow.core.kernel.power_demand
 
     Parameters
     ----------
