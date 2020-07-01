@@ -14,13 +14,13 @@ class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
     actual power consumed by the vehicle
     """
 
-    def __init__(self, kernel, mass=2041, area=3.2, Cr=0.0027, Ca=0.4):
+    def __init__(self, kernel, mass=2041, area=3.2, rolling_res_coeff=0.0027, aerodynamic_drag_coeff=0.4):
         self.k = kernel
         self.g = 9.807
         self.rho_air = 1.225
         self.mass = mass
-        self.rolling_res_coeff = Cr
-        self.aerodynamic_drag_coeff = Ca
+        self.rolling_res_coeff = rolling_res_coeff
+        self.aerodynamic_drag_coeff = aerodynamic_drag_coeff
         self.cross_area = area
         self.gamma = 1
     
@@ -51,7 +51,7 @@ class PDMElectric(PowerDemandModel):
     
     # Power Demand Model for an electric vehicle
     def __init__(self,kernel):
-        super(PDMElectric, self).__init__(kernel, mass=1663, area=2.4, Cr=0.007, Ca=0.24)
+        super(PDMElectric, self).__init__(kernel, mass=1663, area=2.4, rolling_res_coeff=0.007, aerodynamic_drag_coeff=0.24)
         
     def get_regen_cap(self, accel, speed, grade):
         return -2.8 * speed
