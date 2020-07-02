@@ -434,11 +434,11 @@ def plot_tsd(ax, df, segs, args, lane=None, ghost_edges=None, ghost_bounds=None)
         y_domain_max = df[~df['edge_id'].isin(ghost_edges)]['distance'].max()
         rects.append(Rectangle((xmin, y_domain_min), args.start - xmin, y_domain_max - y_domain_min))
         rects.append(Rectangle((xmin, ymin), xmax - xmin, y_domain_min - ymin))
-        rects.append(Rectangle((xmin, y_domain_min + y_domain_max), xmax - xmin, ymax - (y_domain_min + y_domain_max)))
+        rects.append(Rectangle((xmin, y_domain_max), xmax - xmin, ymax - y_domain_max))
     elif ghost_bounds:
         rects.append(Rectangle((xmin, ghost_bounds[0]), args.start - xmin, ghost_bounds[1] - ghost_bounds[0]))
         rects.append(Rectangle((xmin, ymin), xmax - xmin, ghost_bounds[0] - ymin))
-        rects.append(Rectangle((xmin, ghost_bounds[0] + ghost_bounds[1]), xmax - xmin, ymax - (ghost_bounds[0] + ghost_bounds[1])))
+        rects.append(Rectangle((xmin, ghost_bounds[1]), xmax - xmin, ymax - ghost_bounds[1]))
     else:
         rects.append(Rectangle((xmin, ymin), args.start - xmin, ymax - ymin))
 
