@@ -7,7 +7,6 @@ PYTHON_COMMAND = "python"
 SUMO_SLEEP = 1.0  # Delay between initializing SUMO and connecting with TraCI
 
 PROJECT_PATH = osp.abspath(osp.join(osp.dirname(__file__), '..'))
-print("\n\nPROJECT PATH=", PROJECT_PATH, "\n\n")
 
 LOG_DIR = PROJECT_PATH + "/data"
 
