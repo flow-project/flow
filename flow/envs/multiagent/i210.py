@@ -1,4 +1,5 @@
 """Environment for training vehicles to reduce congestion in the I210."""
+
 from gym.spaces import Box
 import numpy as np
 
@@ -94,9 +95,11 @@ class I210MultiEnv(MultiEnv):
 
         # penalize stops
         self.penalize_stops = env_params.additional_params["penalize_stops"]
+        self.stop_penalty = env_params.additional_params["stop_penalty"]
 
         # penalize accel
         self.penalize_accel = env_params.additional_params.get("penalize_accel", False)
+        self.accel_penalty = env_params.additional_params["accel_penalty"]
 
     @property
     def observation_space(self):
@@ -142,16 +145,9 @@ class I210MultiEnv(MultiEnv):
         if rl_actions:
             for rl_id, actions in rl_actions.items():
                 accel = actions[0]
-
-                # lane_change_softmax = np.exp(actions[1:4])
-                # lane_change_softmax /= np.sum(lane_change_softmax)
-                # lane_change_action = np.random.choice([-1, 0, 1],
-                #                                       p=lane_change_softmax)
                 id_list.append(rl_id)
                 accel_list.append(accel)
             self.k.vehicle.apply_acceleration(id_list, accel_list)
-            # self.k.vehicle.apply_lane_change(rl_id, lane_change_action)
-            # print('time to apply actions is ', time() - t)
 
     def in_control_range(self, veh_id):
         """Return if a veh_id is on an edge that is allowed to be controlled.
@@ -194,6 +190,7 @@ class I210MultiEnv(MultiEnv):
 
         rewards = {}
         valid_ids = [rl_id for rl_id in self.k.vehicle.get_rl_ids() if self.in_control_range(rl_id)]
+        valid_human_ids = [veh_id for veh_id in self.k.vehicle.get_ids() if self.in_control_range(veh_id)]
 
         if self.env_params.additional_params["local_reward"]:
             des_speed = self.env_params.additional_params["target_velocity"]
@@ -220,26 +217,27 @@ class I210MultiEnv(MultiEnv):
                         else:
                             break
                 else:
-                    speeds = []
-                    follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
-                    if follow_speed >= 0:
-                        speeds.append(follow_speed)
-                    if self.k.vehicle.get_speed(rl_id) >= 0:
-                        speeds.append(self.k.vehicle.get_speed(rl_id))
-                    if len(speeds) > 0:
-                        # rescale so the critic can estimate it quickly
-                        rewards[rl_id] = np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
-                                                  for speed in speeds]) / (des_speed ** 2)
+                    follow_id = rl_id
+                    for i in range(self.look_back_length + 1):
+                        if follow_id not in ["", None]:
+                            follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(follow_id))
+                            reward = (des_speed - min(np.abs(follow_speed - des_speed), des_speed)) ** 2
+                            reward /= ((des_speed ** 2) * self.look_back_length)
+                            rewards[rl_id] += reward
+                        else:
+                            break
+                        follow_id = self.k.vehicle.get_follower(follow_id)
+
         else:
             if self.mpg_reward:
-                reward = np.nan_to_num(miles_per_gallon(self, self.k.vehicle.get_ids(), gain=1.0)) / 100.0
+                reward = np.nan_to_num(miles_per_gallon(self, valid_human_ids, gain=1.0)) / 100.0
             else:
-                speeds = self.k.vehicle.get_speed(self.k.vehicle.get_ids())
+                speeds = self.k.vehicle.get_speed(valid_human_ids)
                 des_speed = self.env_params.additional_params["target_velocity"]
                 # rescale so the critic can estimate it quickly
                 if self.reroute_on_exit:
                     reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed))
-                                                    for speed in speeds]) / (des_speed))
+                                                    for speed in speeds]) / des_speed)
                 else:
                     reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
                                                     for speed in speeds]) / (des_speed ** 2))
@@ -256,10 +254,8 @@ class I210MultiEnv(MultiEnv):
                     t_headway = max(
                         self.k.vehicle.get_headway(veh_id) /
                         self.k.vehicle.get_speed(veh_id), 0)
-                    # print('time headway is {}, headway is {}'.format(t_headway, self.k.vehicle.get_headway(veh_id)))
                     scaling_factor = max(0, 1 - self.num_training_iters / self.headway_curriculum_iters)
                     penalty += scaling_factor * self.headway_reward_gain * min((t_headway - t_min) / t_min, 0)
-                    # print('penalty is ', penalty)
 
                 rewards[veh_id] += penalty
 
@@ -274,7 +270,7 @@ class I210MultiEnv(MultiEnv):
                     follow_id = self.k.vehicle.get_follower(follow_id)
                     if follow_id not in ["", None]:
                         if self.reroute_on_exit:
-                            speed_reward += ((des_speed - np.abs(speed - des_speed))) / (des_speed)
+                            speed_reward += (des_speed - np.abs(speed - des_speed)) / des_speed
                         else:
                             speed_reward += ((des_speed - np.abs(speed - des_speed)) ** 2) / (des_speed ** 2)
                     else:
@@ -287,11 +283,11 @@ class I210MultiEnv(MultiEnv):
             speed = self.k.vehicle.get_speed(veh_id)
             if self.penalize_stops:
                 if speed < 1.0:
-                    rewards[veh_id] -= .01
+                    rewards[veh_id] -= self.stop_penalty
             if self.penalize_accel and veh_id in self.k.vehicle.previous_speeds:
                 prev_speed = self.k.vehicle.get_previous_speed(veh_id)
                 abs_accel = abs(speed - prev_speed) / self.sim_step
-                rewards[veh_id] -= abs_accel / 400.0
+                rewards[veh_id] -= abs_accel * self.accel_penalty
 
         # print('time to get reward is ', time() - t)
         return rewards
@@ -324,8 +320,6 @@ class I210MultiEnv(MultiEnv):
                 if edge == self.exit_edge and \
                         (self.k.vehicle.get_position(veh_id) > self.k.network.edge_length(self.exit_edge) - 100) \
                         and self.k.vehicle.get_leader(veh_id) is None:
-                    # if self.step_counter > 6000:
-                    #     import ipdb; ipdb.set_trace()
                     type_id = self.k.vehicle.get_type(veh_id)
                     # remove the vehicle
                     self.k.vehicle.remove(veh_id)
@@ -333,8 +327,7 @@ class I210MultiEnv(MultiEnv):
                     lane = valid_lanes[index]
                     del valid_lanes[index]
                     # reintroduce it at the start of the network
-                    # TODO(@evinitsky) select the lane and speed a bit more cleanly
-                    # Note, the position is 10 so you are not overlapping with the inflow car that is being removed.
+                    # Note, the position is 20 so you are not overlapping with the inflow car that is being removed.
                     # this allows the vehicle to be immediately inserted.
                     try:
                         self.k.vehicle.add(
@@ -405,6 +398,17 @@ class I210MultiEnv(MultiEnv):
                     done[rl_id] = True
                     reward[rl_id] = 0
                     state[rl_id] = -1 * np.ones(self.observation_space.shape[0])
+        else:
+            # you have to catch the vehicles on the exit edge, they have not yet
+            # recieved a done when the env terminates
+            if done['__all__']:
+                on_exit_edge = [rl_id for rl_id in self.k.vehicle.get_rl_ids()
+                                if self.k.vehicle.get_edge(rl_id) == self.exit_edge]
+                for rl_id in on_exit_edge:
+                    done[rl_id] = True
+                    reward[rl_id] = 0
+                    state[rl_id] = -1 * np.ones(self.observation_space.shape[0])
+
         return state, reward, done, info
 
 

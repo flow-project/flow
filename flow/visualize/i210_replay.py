@@ -19,7 +19,7 @@ except ImportError:
 from ray.tune.registry import register_env
 
 from flow.core.util import emission_to_csv, ensure_dir
-from flow.core.rewards import vehicle_energy_consumption
+from flow.core.rewards import veh_energy_consumption
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
@@ -142,6 +142,10 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     if not sim_params.restart_instance:
         env.restart_simulation(sim_params=sim_params, render=sim_params.render)
 
+    # reroute on exit is a training hack, it should be turned off at test time.
+    if hasattr(env, "reroute_on_exit"):
+        env.reroute_on_exit = False
+
     if rllib_config:
         # check if we have a multiagent environment but in a
         # backwards compatible way
@@ -167,7 +171,6 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         rllib_flow_params = get_flow_params(rllib_config)
         agent_create_env, agent_env_name = make_create_env(params=rllib_flow_params, version=0)
         register_env(agent_env_name, agent_create_env)
-        # agent_cls = get_agent_class(config_run)
 
         if rllib_config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CCPPOTrainer'>":
             from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
@@ -179,6 +182,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             agent_cls = CustomPPOTrainer
         elif config_run:
             agent_cls = get_agent_class(config_run)
+        else:
+            raise Exception('You forgot to store the algorithm type')
 
         # create the agent that will be used to compute the actions
         agent = agent_cls(env=agent_env_name, config=rllib_config)
@@ -303,7 +308,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
                         per_vehicle_energy_trace[veh_id].append(0)
                         completed_veh_types[veh_id] = env.k.vehicle.get_type(veh_id)
                     else:
-                        per_vehicle_energy_trace[veh_id].append(-1 * vehicle_energy_consumption(env, veh_id))
+                        per_vehicle_energy_trace[veh_id].append(-1 * veh_energy_consumption(env, veh_id))
 
             if type(done) is dict and done['__all__']:
                 break

@@ -169,8 +169,6 @@ class Experiment:
 
         if convert_to_csv and self.env.simulator == "traci":
             dir_path = self.env.sim_params.emission_path
-
-        if dir_path:
             trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
             metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
 
@@ -196,7 +194,7 @@ class Experiment:
                 get_extra_info(self.env.k.vehicle, extra_info, veh_ids, source_id, run_id)
 
                 # write to disk every 100 steps
-                if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0 and dir_path:
+                if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0:
                     write_dict_to_csv(trajectory_table_path, extra_info, not j)
                     extra_info.clear()
 
