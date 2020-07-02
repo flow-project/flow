@@ -53,7 +53,6 @@ if WANT_DOWNSTREAM_BOUNDARY:
         config.PROJECT_PATH,
         "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_"
         "downstream.xml")
-    print('1', NET_TEMPLATE, config.PROJECT_PATH)
 elif WANT_GHOST_CELL:
     NET_TEMPLATE = os.path.join(
         config.PROJECT_PATH,

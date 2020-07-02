@@ -59,7 +59,6 @@ if WANT_BOUNDARY_CONDITIONS:
         config.PROJECT_PATH,
         "examples/exp_configs/templates/sumo/i210_with_ghost_cell_with_"
         "downstream.xml")
-    print('2', NET_TEMPLATE, config.PROJECT_PATH)
 else:
     NET_TEMPLATE = os.path.join(
         config.PROJECT_PATH,
