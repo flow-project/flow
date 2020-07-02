@@ -110,8 +110,6 @@ class MultiEnv(MultiAgentEnv, Env):
                 print('A CRASH! A CRASH!!!!!! AAAAAAAAAH!!!!!')
                 break
 
-            done.update({key: True for key in self.k.vehicle.get_arrived_ids()})
-
         states = self.get_state()
         done = {key: key in self.k.vehicle.get_arrived_ids()
                 for key in states.keys()}

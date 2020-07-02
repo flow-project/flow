@@ -185,7 +185,6 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         else:
             raise Exception('You forgot to store the algorithm type')
 
-
         # create the agent that will be used to compute the actions
         agent = agent_cls(env=agent_env_name, config=rllib_config)
         checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
