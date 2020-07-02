@@ -183,7 +183,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         elif config_run:
             agent_cls = get_agent_class(config_run)
         else:
-            print('You forgot to store the algorithm type')
+            raise Exception('You forgot to store the algorithm type')
 
 
         # create the agent that will be used to compute the actions

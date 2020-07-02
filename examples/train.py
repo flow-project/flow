@@ -185,8 +185,7 @@ def setup_exps_rllib(flow_params,
         config["train_batch_size"] = horizon * n_rollouts
         config["gamma"] = 0.995  # discount rate
         config["use_gae"] = True
-        # TODO(@evinitsky) remove
-        config["no_done_at_end"] = True
+        config["no_done_at_end"] = False
         config["lambda"] = 0.97
         config["kl_target"] = 0.02
         config["num_sgd_iter"] = 10

@@ -327,7 +327,6 @@ class I210MultiEnv(MultiEnv):
                     lane = valid_lanes[index]
                     del valid_lanes[index]
                     # reintroduce it at the start of the network
-                    # TODO(@evinitsky) select the lane and speed a bit more cleanly
                     # Note, the position is 20 so you are not overlapping with the inflow car that is being removed.
                     # this allows the vehicle to be immediately inserted.
                     try:
