@@ -31,6 +31,8 @@ WANT_DOWNSTREAM_BOUNDARY = True
 ON_RAMP = False
 # the inflow rate of vehicles (in veh/hr)
 INFLOW_RATE = 2050
+# on-ramp inflow_rate
+ON_RAMP_INFLOW_RATE = 500
 # the speed of inflowing vehicles from the main edge (in m/s)
 INFLOW_SPEED = 25.5
 # fraction of vehicles that are follower-stoppers. 0.10 corresponds to 10%
@@ -123,7 +125,7 @@ if ON_RAMP:
     inflow.add(
         veh_type="human",
         edge="27414345",
-        vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
+        vehs_per_hour=int(ON_RAMP_INFLOW_RATE * (1 - PENETRATION_RATE)),
         departSpeed=10,
     )
 
@@ -131,7 +133,7 @@ if ON_RAMP:
         inflow.add(
             veh_type="av",
             edge="27414345",
-            vehs_per_hour=int(500 * PENETRATION_RATE),
+            vehs_per_hour=int(ON_RAMP_INFLOW_RATE * PENETRATION_RATE),
             departLane="random",
             departSpeed=10)
 
@@ -209,11 +211,6 @@ custom_callables = {
         env.k.vehicle.get_speed(valid_ids(env, env.k.vehicle.get_ids())))),
     "avg_outflow": lambda env: np.nan_to_num(
         env.k.vehicle.get_outflow_rate(120)),
-    # # we multiply by 5 to account for the vehicle length and by 1000 to
-    # # convert into veh/km
-    # "avg_density": lambda env: 5 * 1000 * len(env.k.vehicle.get_ids_by_edge(
-    #     edge_id)) / (env.k.network.edge_length(edge_id)
-    #                  * env.k.network.num_lanes(edge_id)),
     "mpg": lambda env: miles_per_gallon(
         env,  valid_ids(env, env.k.vehicle.get_ids()), gain=1.0),
     "mpj": lambda env: miles_per_megajoule(
