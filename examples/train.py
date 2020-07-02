@@ -84,6 +84,7 @@ def parse_args(args):
     parser.add_argument(
         '--checkpoint_path', type=str, default=None,
         help='Directory with checkpoint to restore training from.')
+    parser.add_argument('--create_inflow_graph', action='store_true', default=False)
 
     return parser.parse_known_args(args)[0]
 
@@ -367,13 +368,21 @@ def train_rllib(submodule, flags):
             "training_iteration": flags.num_iterations,
         },
     }
+
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
     s3_string = "s3://i210.experiments/i210/" \
                 + date + '/' + flags.exp_title
     if flags.use_s3:
         exp_dict['upload_dir'] = s3_string
+
     tune.run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
+
+
+    # Now we add code to loop through the results and create scores of the results
+    if flags.create_inflow_graph:
+        pass
+
 
 
 def train_h_baselines(env_name, args, multiagent):

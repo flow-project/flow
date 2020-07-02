@@ -48,6 +48,7 @@ class MultiEnv(MultiAgentEnv, Env):
         info : dict
             contains other diagnostic information from the previous action
         """
+        done = {}
         for _ in range(self.env_params.sims_per_step):
             if self.time_counter <= self.env_params.sims_per_step * self.env_params.warmup_steps:
                 self.observed_ids.update(self.k.vehicle.get_ids())
@@ -153,6 +154,10 @@ class MultiEnv(MultiAgentEnv, Env):
             the initial observation of the space. The initial reward is assumed
             to be zero.
         """
+
+        print(f'RESET')
+
+
         # reset the time counter
         self.time_counter = 0
 
