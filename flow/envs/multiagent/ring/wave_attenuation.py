@@ -218,7 +218,7 @@ class MultiAgentWaveAttenuationPOEnv(MultiEnv):
         """Split the accelerations by ring."""
         if rl_actions:
             rl_ids = list(rl_actions.keys())
-            accel = list(rl_actions.values())
+            accel = [x[0] for x in list(rl_actions.values())]
             self.k.vehicle.apply_acceleration(rl_ids, accel)
 
     def compute_reward(self, rl_actions, **kwargs):

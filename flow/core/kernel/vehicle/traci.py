@@ -138,15 +138,10 @@ class TraCIVehicle(KernelVehicle):
             specifies whether the simulator was reset in the last simulation
             step
         """
-        vehicle_obs = {}
-        if self.render:
-            for veh_id in self.__ids:
-                vehicle_obs[veh_id] = \
-                    self.kernel_api.vehicle.getSubscriptionResults(veh_id)
-        else:
-            for veh_id in self.__ids:
-                vehicle_obs[veh_id] = self._get_libsumo_subscription_results(
-                    veh_id)
+        vehicle_obs = {
+            veh_id: self.kernel_api.vehicle.getSubscriptionResults(veh_id)
+            for veh_id in self.__ids
+        }
 
         # copy over the previous speeds
         for veh_id in self.__ids:
@@ -242,7 +237,6 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id]["headway"] = 1e+3
                 self.__vehicles[veh_id]["follower_headway"] = 1e+3
             else:
-
                 min_gap = self.minGap[self.get_type(veh_id)]
                 self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                 self.__vehicles[veh_id]["leader"] = headway[0]
@@ -329,22 +323,19 @@ class TraCIVehicle(KernelVehicle):
                     self.__controlled_lc_ids.append(veh_id)
 
         # subscribe the new vehicle and get its subscription results
-        if self.render:
-            self.kernel_api.vehicle.subscribe(veh_id, [
-                tc.VAR_LANE_INDEX,
-                tc.VAR_LANEPOSITION,
-                tc.VAR_ROAD_ID,
-                tc.VAR_SPEED,
-                tc.VAR_EDGES,
-                tc.VAR_POSITION,
-                tc.VAR_ANGLE,
-                tc.VAR_SPEED_WITHOUT_TRACI,
-                tc.VAR_FUELCONSUMPTION
-            ])
-            self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
-            new_obs = self.kernel_api.vehicle.getSubscriptionResults(veh_id)
-        else:
-            new_obs = self._get_libsumo_subscription_results(veh_id)
+        self.kernel_api.vehicle.subscribe(veh_id, [
+            tc.VAR_LANE_INDEX,
+            tc.VAR_LANEPOSITION,
+            tc.VAR_ROAD_ID,
+            tc.VAR_SPEED,
+            tc.VAR_EDGES,
+            tc.VAR_POSITION,
+            tc.VAR_ANGLE,
+            tc.VAR_SPEED_WITHOUT_TRACI,
+            tc.VAR_FUELCONSUMPTION
+        ])
+        self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
+        new_obs = self.kernel_api.vehicle.getSubscriptionResults(veh_id)
 
         # some constant vehicle parameters to the vehicles class
         self.__vehicles[veh_id]["length"] = self.kernel_api.vehicle.getLength(
@@ -1128,29 +1119,3 @@ class TraCIVehicle(KernelVehicle):
     def set_max_speed(self, veh_id, max_speed):
         """See parent class."""
         self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
-
-    def _get_libsumo_subscription_results(self, veh_id):
-        """Create a traci-style subscription result in the case of libsumo."""
-        try:
-            res = {
-                tc.VAR_LANE_INDEX:
-                    self.kernel_api.vehicle.getLaneIndex(veh_id),
-                tc.VAR_LANEPOSITION:
-                    self.kernel_api.vehicle.getLanePosition(veh_id),
-                tc.VAR_ROAD_ID: self.kernel_api.vehicle.getRoadID(veh_id),
-                tc.VAR_SPEED: self.kernel_api.vehicle.getSpeed(veh_id),
-                tc.VAR_EDGES: self.kernel_api.vehicle.getRoute(veh_id),
-                tc.VAR_LEADER:
-                    self.kernel_api.vehicle.getLeader(veh_id, dist=2000),
-                tc.VAR_POSITION: None,  # TODO
-                tc.VAR_ANGLE: None,  # TODO
-                tc.VAR_SPEED_WITHOUT_TRACI: None,  # TODO
-                tc.VAR_FUELCONSUMPTION: None,  # TODO
-
-            }
-        except (TraCIException, FatalTraCIError):
-            # This is in case a vehicle exited the network and has not been
-            # unscubscribed yet.
-            res = None
-
-        return res

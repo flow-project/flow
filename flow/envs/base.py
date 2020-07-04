@@ -327,38 +327,33 @@ class Env(gym.Env, metaclass=ABCMeta):
             self.step_counter += 1
 
             # perform acceleration actions for controlled human-driven vehicles
-            if len(self.k.vehicle.get_controlled_ids()) > 0:
-                accel = []
-                for veh_id in self.k.vehicle.get_controlled_ids():
-                    action = self.k.vehicle.get_acc_controller(
-                        veh_id).get_action(self)
-                    accel.append(action)
-                self.k.vehicle.apply_acceleration(
-                    self.k.vehicle.get_controlled_ids(), accel)
+            accel = [
+                self.k.vehicle.get_acc_controller(veh_id).get_action(self)
+                for veh_id in self.k.vehicle.get_controlled_ids()
+            ]
+            self.k.vehicle.apply_acceleration(
+                self.k.vehicle.get_controlled_ids(), accel)
 
             # perform lane change actions for controlled human-driven vehicles
-            if len(self.k.vehicle.get_controlled_lc_ids()) > 0:
-                direction = []
-                for veh_id in self.k.vehicle.get_controlled_lc_ids():
-                    target_lane = self.k.vehicle.get_lane_changing_controller(
-                        veh_id).get_action(self)
-                    direction.append(target_lane)
-                self.k.vehicle.apply_lane_change(
-                    self.k.vehicle.get_controlled_lc_ids(),
-                    direction=direction)
+            direction = [
+                self.k.vehicle.get_lane_changing_controller(
+                    veh_id).get_action(self)
+                for veh_id in self.k.vehicle.get_controlled_lc_ids()
+            ]
+            self.k.vehicle.apply_lane_change(
+                self.k.vehicle.get_controlled_lc_ids(), direction)
 
             # perform (optionally) routing actions for all vehicles in the
             # network, including RL and SUMO-controlled vehicles
-            routing_ids = []
-            routing_actions = []
-            for veh_id in self.k.vehicle.get_ids():
-                if self.k.vehicle.get_routing_controller(veh_id) \
-                        is not None:
-                    routing_ids.append(veh_id)
-                    route_contr = self.k.vehicle.get_routing_controller(
-                        veh_id)
-                    routing_actions.append(route_contr.choose_route(self))
-
+            routing_ids = [
+                veh_id for veh_id in self.k.vehicle.get_ids()
+                if self.k.vehicle.get_routing_controller(veh_id) is not None
+            ]
+            routing_actions = [
+                self.k.vehicle.get_routing_controller(veh_id).choose_route(
+                    self)
+                for veh_id in routing_ids
+            ]
             self.k.vehicle.choose_routes(routing_ids, routing_actions)
 
             self.apply_rl_actions(rl_actions)

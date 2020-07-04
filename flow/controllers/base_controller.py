@@ -2,6 +2,7 @@
 
 from abc import ABCMeta, abstractmethod
 import numpy as np
+import time
 
 
 class BaseController(metaclass=ABCMeta):
@@ -90,14 +91,16 @@ class BaseController(metaclass=ABCMeta):
         float
             the modified form of the acceleration
         """
+        edge = env.k.vehicle.get_edge(self.veh_id)
+
         # this is to avoid abrupt decelerations when a vehicle has just entered
         # a network and it's data is still not subscribed
-        if len(env.k.vehicle.get_edge(self.veh_id)) == 0:
+        if len(edge) == 0:
             return None
 
         # this allows the acceleration behavior of vehicles in a junction be
         # described by sumo instead of an explicit model
-        if env.k.vehicle.get_edge(self.veh_id)[0] == ":":
+        if edge[0] == ":":
             return None
 
         accel = self.get_accel(env)
