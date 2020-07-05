@@ -8,6 +8,7 @@ from copy import deepcopy
 import os
 import sys
 
+import flow.config
 import flow.envs
 from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
     SumoParams, InitialConfig, EnvParams, NetParams, InFlows
@@ -148,15 +149,15 @@ def get_flow_params(config):
         net.inflows.__dict__ = flow_params["net"]["inflows"].copy()
 
     if net.template is not None and len(net.template) > 0:
-        dirname = os.getcwd()
-        filename = os.path.join(dirname, '../../examples')
+        filename = os.path.join(flow.config.PROJECT_PATH, 'examples')
         split = net.template.split('examples')[1][1:]
         path = os.path.abspath(os.path.join(filename, split))
-        print(dirname)
         print(filename)
         print(split)
         print(path)
+        
         net.template = path
+        net.template = "OOFEOFKSE"
 
     env = EnvParams()
     env.__dict__ = flow_params["env"].copy()
