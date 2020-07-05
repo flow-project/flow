@@ -152,12 +152,7 @@ def get_flow_params(config):
         filename = os.path.join(flow.config.PROJECT_PATH, 'examples')
         split = net.template.split('examples')[1][1:]
         path = os.path.abspath(os.path.join(filename, split))
-        print(filename)
-        print(split)
-        print(path)
-        
         net.template = path
-        net.template = "OOFEOFKSE"
 
     env = EnvParams()
     env.__dict__ = flow_params["env"].copy()
