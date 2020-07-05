@@ -241,7 +241,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     metadata['submission_time'].append(cur_time)
     metadata['network'].append(network_name_translate(env.network.name.split('_20')[0]))
     metadata['is_baseline'].append(str(args.is_baseline))
-    name, strategy = get_configuration()
+    name, strategy = get_configuration(args.submitter_name, args.strategy_name)
     metadata['submitter_name'].append(name)
     metadata['strategy'].append(strategy)
 
@@ -498,6 +498,12 @@ def create_parser():
         action='store_true',
         help='specifies whether this is a baseline run'
     )
+    parser.add_argument('--submitter_name', type=str, required=False, default=None,
+                        help='Name of the submitter (replaces the prompt asking for '
+                             'the name) (stored locally so only necessary once)')
+    parser.add_argument('--strategy_name', type=str, required=False, default=None,
+                        help='Name of the training strategy (replaces the prompt '
+                        'asking for the strategy)')
     return parser
 
 
