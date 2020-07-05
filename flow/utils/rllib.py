@@ -152,6 +152,10 @@ def get_flow_params(config):
         filename = os.path.join(dirname, '../../examples')
         split = net.template.split('examples')[1][1:]
         path = os.path.abspath(os.path.join(filename, split))
+        print(dirname)
+        print(filename)
+        print(split)
+        print(path)
         net.template = path
 
     env = EnvParams()
