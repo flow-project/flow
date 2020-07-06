@@ -390,7 +390,7 @@ class Env(gym.Env, metaclass=ABCMeta):
 
             # crash encodes whether the simulator experienced a collision
             crash = self.k.simulation.check_collision()
-            self.crash = crash
+
             # stop collecting new simulation steps if there is a collision
             if crash:
                 break

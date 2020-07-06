@@ -246,6 +246,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     metadata['strategy'].append(strategy)
 
     i = 0
+    t = 0
     while i < args.num_rollouts:
         print("Rollout iter", i)
         vel = []
@@ -258,7 +259,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         env.pipeline_params = (extra_info, source_id, run_id)
         state = env.reset()
         initial_vehicles = set(env.k.vehicle.get_ids())
-        for _ in range(env_params.horizon):
+        for t in range(env_params.horizon):
             if rllib_config:
                 if multiagent:
                     action = {}
@@ -310,13 +311,13 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
                     else:
                         per_vehicle_energy_trace[veh_id].append(-1 * veh_energy_consumption(env, veh_id))
 
-            if type(done) is dict and done['__all__']:
-                break
-            elif type(done) is not dict and done:
+            if type(done) is dict and done['__all__'] or done is True:
                 break
             elif max_completed_trips is not None and len(completed_vehicle_avg_energy) > max_completed_trips:
                 break
-        if env.crash:
+
+        if t < env_params.horizon - 1:
+            # Early terminations signify a collision.
             print("Crash on iter", i)
         else:
             # Store the information from the run in info_dict.
