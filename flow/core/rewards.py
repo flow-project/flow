@@ -442,7 +442,8 @@ def miles_per_gallon(env, veh_ids=None, gain=.001):
 
     return mpg * gain
 
-def instantaneous_power(env, veh_id=None, gain=.001):
+
+def instantaneous_power(env, veh_id):
     """Calculate the instantaneous power for every simulation step specific to the vehicle type.
 
     Parameters
@@ -450,20 +451,12 @@ def instantaneous_power(env, veh_id=None, gain=.001):
     env : flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
-    veh_ids : [list]
-        list of veh_ids to compute the reward over
-    gain : float
-        scaling factor for the reward
+    veh_id : str
+        veh_id to compute the reward for
     """
+    speed = env.k.vehicle.get_speed(veh_id)
+    accel = env.k.vehicle.get_accel_no_noise_with_failsafe(veh_id)
+    grade = env.k.vehicle.get_road_grade(veh_id)
+    inst_power = env.k.vehicle.get_energy_model(veh_id).get_instantaneous_power(accel, speed, grade)
 
-    if veh_ids is None:
-        veh_ids = env.k.vehicle.get_ids()
-    elif not isinstance(veh_ids, list):
-        veh_ids = [veh_ids]
-    for veh_id in veh_ids:
-        speed = env.k.vehicle.get_speed(veh_id)
-        accel = env.k.vehicle.get_accel_no_noise_with_failsafe(veh_id)
-        grade = env.k.vehicle.get_road_grade(veh_id)
-        inst_power = env.k.vehicle.get_power(veh_id).get_instantaneous_power(accel, speed, grade)
-        
     return inst_power

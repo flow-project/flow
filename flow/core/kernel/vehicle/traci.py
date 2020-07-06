@@ -5,22 +5,14 @@ from flow.core.kernel.vehicle import KernelVehicle
 import traci.constants as tc
 from traci.exceptions import FatalTraCIError, TraCIException
 import numpy as np
-import math
 import collections
 import warnings
-import random
-import statistics
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
-from flow.energy_models.toyota_energy import PriusEnergy
-from flow.energy_models.toyota_energy import TacomaEnergy
-from flow.energy_models.power_demand import PDMCombustionEngine
-from flow.energy_models.power_demand import PDMElectric
 from bisect import bisect_left
 import itertools
 from copy import deepcopy
-
 
 # colors for vehicles
 WHITE = (255, 255, 255)
@@ -96,12 +88,6 @@ class TraCIVehicle(KernelVehicle):
         # old speeds used to compute accelerations
         self.previous_speeds = {}
 
-        """ self.energy = Energy(self)
-        self.energy.calc_energy_level(self) """
-
-        # # store speeds of all vehicles at last iteration
-        self.old_speeds = {}
-
     def initialize(self, vehicles):
         """Initialize vehicle state information.
 
@@ -127,14 +113,6 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id] = dict()
                 self.__vehicles[veh_id]['type'] = typ['veh_id']
                 self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
-
-                # self.energy.initialize(veh_id)
-                # energy.intialize(veh_id)
-                # self.__vehicles[veh_id]['SOC'] = float(random.randrange(8, 92))/100 #move to experiment code
-                # # Assume level of fuel is 10-100% of capacity
-                # # Tacoma has 21.1 gallon capacity = 79.87219 L
-                # # Use density of gasoline = 748.9 g/L (needs to convert b/c fc is in g/s)
-                # self.__vehicles[veh_id]['fuel'] = float(random.randrange(598163, 5981628))/100
 
                 self.num_vehicles += 1
                 if typ['acceleration_controller'][0] == RLController:
@@ -285,8 +263,6 @@ class TraCIVehicle(KernelVehicle):
 
         # make sure the rl vehicle list is still sorted
         self.__rl_ids.sort()
-
-        #self.base_energy.get_energy(self)
 
     def _add_departed(self, veh_id, veh_type):
         """Add a vehicle that entered the network from an inflow or reset.
@@ -574,6 +550,16 @@ class TraCIVehicle(KernelVehicle):
             return [self.get_fuel_consumption(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_FUELCONSUMPTION, error) * ml_to_gallons
 
+    def get_energy_model(self, veh_id):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_energy_model(vehID) for vehID in veh_id]
+
+        if "energy_model" in self.__vehicles.get(veh_id, {}):
+            return self.__vehicles.get(veh_id, {})["energy_model"]
+        else:
+            raise KeyError("Energy model not set for {}".format(veh_id))
+
     def get_previous_speed(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
@@ -585,12 +571,6 @@ class TraCIVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
-    
-    def get_power(self, veh_id, error=-1001):
-        """See parent class."""
-        if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_power(vehID, error) for vehID in veh_id]
-        return self.__vehicles.get(veh_id, {}).get("energy_model", error)
 
     def get_default_speed(self, veh_id, error=-1001):
         """See parent class."""

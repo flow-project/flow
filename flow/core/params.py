@@ -13,7 +13,6 @@ from flow.energy_models.power_demand import PDMCombustionEngine
 from flow.energy_models.power_demand import PDMElectric
 
 
-
 SPEED_MODES = {
     "aggressive": 0,
     "obey_safe_speed": 1,
@@ -23,6 +22,8 @@ SPEED_MODES = {
 }
 
 LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 1621}
+
+ENERGY_MODELS = {PriusEnergy, TacomaEnergy, PDMCombustionEngine, PDMElectric}
 
 # Traffic light defaults
 PROGRAM_ID = 1
@@ -249,7 +250,6 @@ class VehicleParams:
             lane_change_params=None,
             energy_model=(PDMCombustionEngine, {}),
             color=None):
-
         """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
@@ -284,6 +284,9 @@ class VehicleParams:
         if lane_change_params is None:
             # FIXME: depends on simulator
             lane_change_params = SumoLaneChangeParams()
+
+        if energy_model not in ENERGY_MODELS:
+            energy_model = PDMCombustionEngine
 
         type_params = {}
         type_params.update(car_following_params.controller_params)
