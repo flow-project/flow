@@ -521,12 +521,13 @@ def generate_graphs(args):
 
     flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
 
-    if args.multi_node:
-        ray.init(redis_address='localhost:6379')
-    elif args.local:
-        ray.init(local_mode=True, object_store_memory=200 * 1024 * 1024)
-    else:
-        ray.init(num_cpus=args.num_cpus + 1, object_store_memory=200 * 1024 * 1024)
+    if not ray.is_initialized():
+        if args.multi_node:
+            ray.init(redis_address='localhost:6379')
+        elif args.local:
+            ray.init(local_mode=True, object_store_memory=200 * 1024 * 1024)
+        else:
+            ray.init(num_cpus=args.num_cpus + 1, object_store_memory=200 * 1024 * 1024)
 
     if args.exp_title:
         output_dir = os.path.join(args.output_dir, args.exp_title)
