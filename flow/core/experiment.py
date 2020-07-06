@@ -62,7 +62,7 @@ class Experiment:
         the environment object the simulator will run
     """
 
-    def __init__(self, flow_params, custom_callables=None, use_ray=False):
+    def __init__(self, flow_params, custom_callables=None, register_with_ray=False):
         """Instantiate the Experiment class.
 
         Parameters
@@ -85,7 +85,7 @@ class Experiment:
         self.create_env = create_env
 
         # Create the environment.
-        if not use_ray:
+        if not register_with_ray:
             self.env = create_env()
 
             logging.info(" Starting experiment {} at {}".format(
@@ -198,10 +198,10 @@ class Experiment:
                 # Compute the velocity speeds and cumulative returns.
                 veh_ids = self.env.k.vehicle.get_ids()
                 vel.append(np.mean(self.env.k.vehicle.get_speed(veh_ids)))
-                if multiagent:
+                if rets and multiagent:
                     for actor, rew in reward.items():
                         ret[policy_map_fn(actor)][0] += rew
-                else:
+                elif not multiagent:
                     ret += reward
 
                 # collect additional information for the data pipeline
@@ -221,10 +221,10 @@ class Experiment:
                 if type(done) is dict and done['__all__'] or type(done) is not dict and done:
                     break
 
-            if multiagent:
+            if rets and multiagent:
                 for key in rets.keys():
                     rets[key].append(ret[key])
-            else:
+            elif not multiagent:
                 rets.append(ret)
 
             # Store the information from the run in info_dict.
@@ -236,11 +236,11 @@ class Experiment:
             for key in custom_vals.keys():
                 info_dict[key].append(np.mean(custom_vals[key]))
 
-            if multiagent:
+            if rets and multiagent:
                 for agent_id, rew in rets.items():
                     print('Round {}, Return: {} for agent {}'.format(
                             i, ret, agent_id))
-            else:
+            elif not multiagent:
                 print('Round {}, Return: {}'.format(i, ret))
 
         # Print the averages/std for all variables in the info_dict.
