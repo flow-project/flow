@@ -193,6 +193,7 @@ def visualizer_rllib(args):
     else:
         rets = []
 
+    policy_map_fn = None
     if config['model']['use_lstm']:
         use_lstm = True
         if multiagent:
@@ -247,7 +248,8 @@ def visualizer_rllib(args):
         else:
             action = agent.compute_action(state)
         return action
-    exp.run(num_runs=args.num_rollouts, rl_actions=rl_action)
+    exp.run(num_runs=args.num_rollouts, rl_actions=rl_action, multiagent=multiagent, rets=rets,
+            policy_map_fn=policy_map_fn)
     # Simulate and collect metrics
     # final_outflows = []
     # final_inflows = []

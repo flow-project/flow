@@ -88,10 +88,10 @@ class Experiment:
         if not use_ray:
             self.env = create_env()
 
-        logging.info(" Starting experiment {} at {}".format(
-            self.env.network.name, str(datetime.utcnow())))
+            logging.info(" Starting experiment {} at {}".format(
+                self.env.network.name, str(datetime.utcnow())))
 
-        logging.info("Initializing environment.")
+            logging.info("Initializing environment.")
 
     def run(self, num_runs, rl_actions=None, convert_to_csv=False, to_aws=None, only_query="", is_baseline=False,
             multiagent=False, rets=None, policy_map_fn=None):
@@ -140,7 +140,6 @@ class Experiment:
 
         # used to store
         info_dict = {
-            "returns": [],
             "velocities": [],
             "outflows": [],
         }
@@ -230,7 +229,8 @@ class Experiment:
 
             # Store the information from the run in info_dict.
             outflow = self.env.k.vehicle.get_outflow_rate(int(500))
-            info_dict["returns"].append(ret)
+            if not multiagent:
+                info_dict["returns"] = rets
             info_dict["velocities"].append(np.mean(vel))
             info_dict["outflows"].append(outflow)
             for key in custom_vals.keys():
