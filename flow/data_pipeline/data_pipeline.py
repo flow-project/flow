@@ -171,12 +171,13 @@ def get_completed_queries(s3, source_id):
             completed_queries = set()
         else:
             raise
-    return completed_queries
+    return set(completed_queries)
 
 
 def put_completed_queries(s3, completed_queries):
     """Put all the completed queries lists into S3 as in a serialized json format."""
-    for source_id, completed_queries_list in completed_queries.items():
+    for source_id, completed_queries_set in completed_queries.items():
+        completed_queries_list = list(completed_queries_set)
         completed_queries_json = json.dumps(completed_queries_list)
         s3.put_object(Bucket='circles.data.pipeline', Key='lambda_temp/{}'.format(source_id),
                       Body=completed_queries_json.encode('utf-8'))
@@ -186,9 +187,11 @@ def get_ready_queries(completed_queries, new_query):
     """Return queries whose prerequisite queries are completed."""
     readied_queries = []
     unfinished_queries = prerequisites.keys() - completed_queries
+    upadted_completed_queries = completed_queries.copy()
+    upadted_completed_queries.add(new_query)
     for query_name in unfinished_queries:
         if not prerequisites[query_name][1].issubset(completed_queries):
-            if prerequisites[query_name][1].issubset(completed_queries + [new_query]):
+            if prerequisites[query_name][1].issubset(upadted_completed_queries):
                 readied_queries.append((query_name, prerequisites[query_name][0]))
     return readied_queries
 
