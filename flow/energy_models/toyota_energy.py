@@ -31,13 +31,14 @@ class PriusEnergy(ToyotaModel):
     """Toyota Prius (EV) energy model class."""
 
     def __init__(self, kernel, soc=0.9):
-        super(PriusEnergy, self).__init__(kernel, filename='prius_test.pkl')
+        super(PriusEnergy, self).__init__(kernel, filename='prius_ev.pkl')
         self.soc = soc
 
     def get_instantaneous_power(self, accel, speed, grade):
         """See parent class."""
         socdot = self.toyota_energy(self.soc, accel, speed, grade)
         self.soc -= socdot * self.k.env.sim_step
+        # FIXME (Joy): convert socdot to power
         return socdot
 
 
@@ -45,7 +46,7 @@ class TacomaEnergy(ToyotaModel):
     """Toyota Tacoma energy model class."""
 
     def __init__(self, kernel):
-        super(TacomaEnergy, self).__init__(kernel, filename='tacoma_test.pkl')
+        super(TacomaEnergy, self).__init__(kernel, filename='tacoma.pkl')
 
     def get_instantaneous_power(self, accel, speed, grade):
         """See parent class."""
