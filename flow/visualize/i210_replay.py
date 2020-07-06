@@ -36,6 +36,8 @@ from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, ge
 from flow.data_pipeline.leaderboard_utils import network_name_translate
 import uuid
 
+from flow.core.experiment import Experiment
+
 EXAMPLE_USAGE = """
 example usage:
     python i210_replay.py -r /ray_results/experiment_dir/result_dir -c 1
@@ -132,15 +134,14 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         env_params.horizon = args.horizon
 
     # Create and register a gym+rllib env
-    create_env, env_name = make_create_env(params=flow_params, version=0)
-    env = create_env(env_name)
+    exp = Experiment(flow_params)
 
     if args.render_mode == 'sumo_gui':
-        env.sim_params.render = True  # set to True after initializing agent and env
+        exp.env.sim_params.render = True  # set to True after initializing agent and env
 
     # if restart_instance, don't restart here because env.reset will restart later
     if not sim_params.restart_instance:
-        env.restart_simulation(sim_params=sim_params, render=sim_params.render)
+        exp.env.restart_simulation(sim_params=sim_params, render=sim_params.render)
 
     if rllib_config:
         # check if we have a multiagent environment but in a
@@ -221,176 +222,166 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     })
 
     # reroute on exit is a training hack, it should be turned off at test time.
-    if hasattr(env, "reroute_on_exit"):
-        env.reroute_on_exit = False
+    if hasattr(exp.env, "reroute_on_exit"):
+        exp.env.reroute_on_exit = False
 
-    # date pipeline
-    extra_info = defaultdict(lambda: [])
-    source_id = 'flow_{}'.format(uuid.uuid4().hex)
-    metadata = defaultdict(lambda: [])
-    # collect current time
-    cur_datetime = datetime.now(timezone.utc)
-    cur_date = cur_datetime.date().isoformat()
-    cur_time = cur_datetime.time().isoformat()
-    metadata['source_id'].append(source_id)
-    metadata['submission_time'].append(cur_time)
-    metadata['network'].append(network_name_translate(env.network.name.split('_20')[0]))
-    metadata['is_baseline'].append(str(args.is_baseline))
-    name, strategy = get_configuration()
-    metadata['submitter_name'].append(name)
-    metadata['strategy'].append(strategy)
-
-    i = 0
-    while i < args.num_rollouts:
-        print("Rollout iter", i)
-        vel = []
-        per_vehicle_energy_trace = defaultdict(lambda: [])
-        completed_veh_types = {}
-        completed_vehicle_avg_energy = {}
-        completed_vehicle_travel_time = {}
-        custom_vals = {key: [] for key in custom_callables.keys()}
-        run_id = "run_{}".format(i)
-        env.pipeline_params = (extra_info, source_id, run_id)
-        state = env.reset()
-        initial_vehicles = set(env.k.vehicle.get_ids())
-        for _ in range(env_params.horizon):
-            if rllib_config:
-                if multiagent:
-                    action = {}
-                    for agent_id in state.keys():
-                        if use_lstm:
-                            action[agent_id], lstm_state[agent_id], _ = \
-                                agent.compute_action(
-                                    state[agent_id], state=lstm_state[agent_id],
-                                    policy_id=policy_map_fn(agent_id))
-                        else:
-                            action[agent_id] = agent.compute_action(
-                                state[agent_id], policy_id=policy_map_fn(agent_id))
-                else:
+    def rl_action(state):
+        if rllib_config:
+            if multiagent:
+                action = {}
+                for agent_id in state.keys():
                     if use_lstm:
-                        raise NotImplementedError
+                        action[agent_id], lstm_state[agent_id], _ = \
+                            agent.compute_action(
+                                state[agent_id], state=lstm_state[agent_id],
+                                policy_id=policy_map_fn(agent_id))
                     else:
-                        action = agent.compute_action(state)
+                        action[agent_id] = agent.compute_action(
+                            state[agent_id], policy_id=policy_map_fn(agent_id))
             else:
-                action = None
-
-            state, reward, done, _ = env.step(action)
-
-            # Compute the velocity speeds and cumulative returns.
-            veh_ids = env.k.vehicle.get_ids()
-            vel.append(np.mean(env.k.vehicle.get_speed(veh_ids)))
-
-            # collect additional information for the data pipeline
-            get_extra_info(env.k.vehicle, extra_info, veh_ids, source_id, run_id)
-
-            # Compute the results for the custom callables.
-            for (key, lambda_func) in custom_callables.items():
-                custom_vals[key].append(lambda_func(env))
-
-            for past_veh_id in per_vehicle_energy_trace.keys():
-                if past_veh_id not in veh_ids and past_veh_id not in completed_vehicle_avg_energy:
-                    all_trip_energy_distribution[completed_veh_types[past_veh_id]].append(
-                        np.sum(per_vehicle_energy_trace[past_veh_id]))
-                    all_trip_time_distribution[completed_veh_types[past_veh_id]].append(
-                        len(per_vehicle_energy_trace[past_veh_id]))
-                    completed_vehicle_avg_energy[past_veh_id] = np.sum(per_vehicle_energy_trace[past_veh_id])
-                    completed_vehicle_travel_time[past_veh_id] = len(per_vehicle_energy_trace[past_veh_id])
-
-            for veh_id in veh_ids:
-                if veh_id not in initial_vehicles:
-                    if veh_id not in per_vehicle_energy_trace:
-                        # we have to skip the first step's energy calculation
-                        per_vehicle_energy_trace[veh_id].append(0)
-                        completed_veh_types[veh_id] = env.k.vehicle.get_type(veh_id)
-                    else:
-                        per_vehicle_energy_trace[veh_id].append(-1 * vehicle_energy_consumption(env, veh_id))
-
-            if type(done) is dict and done['__all__']:
-                break
-            elif type(done) is not dict and done:
-                break
-            elif max_completed_trips is not None and len(completed_vehicle_avg_energy) > max_completed_trips:
-                break
-        if env.crash:
-            print("Crash on iter", i)
+                if use_lstm:
+                    raise NotImplementedError
+                else:
+                    action = agent.compute_action(state)
         else:
-            # Store the information from the run in info_dict.
-            outflow = env.k.vehicle.get_outflow_rate(int(500))
-            info_dict["velocities"].append(np.mean(vel))
-            info_dict["outflows"].append(outflow)
-            info_dict["avg_trip_energy"].append(np.mean(list(completed_vehicle_avg_energy.values())))
-            info_dict["avg_trip_time"].append(np.mean(list(completed_vehicle_travel_time.values())))
-            info_dict["total_completed_trips"].append(len(list(completed_vehicle_avg_energy.values())))
-            for key in custom_vals.keys():
-                info_dict[key].append(np.mean(custom_vals[key]))
-            i += 1
+            action = None
 
-    print('======== Summary of results ========')
-    if args.run_transfer:
-        print("Transfer test: {}".format(transfer_test.transfer_str))
-    print("====================================")
+    info_dict = exp.run(num_runs=args.num_rollouts, convert_to_csv=args.gen_emission, to_aws=args.use_s3,
+                        rl_actions=rl_action, multiagent=rllib_config and multiagent)
 
-    # Print the averages/std for all variables in the info_dict.
-    for key in info_dict.keys():
-        print("Average, std {}: {}, {}".format(
-            key, np.mean(info_dict[key]), np.std(info_dict[key])))
-
-    # terminate the environment
-    env.unwrapped.terminate()
-
-    if output_dir:
-        ensure_dir(output_dir)
-        if args.run_transfer:
-            exp_name = "{}-replay".format(transfer_test.transfer_str)
-        else:
-            exp_name = "i210_replay"
-        replay_out = os.path.join(output_dir, '{}-info.npy'.format(exp_name))
-        np.save(replay_out, info_dict)
-        # if prompted, convert the emission file into a csv file
-        if args.gen_emission:
-            emission_filename = '{0}-emission.xml'.format(env.network.name)
-            time.sleep(0.1)
-
-            emission_path = \
-                '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
-
-            output_path = os.path.join(output_dir, '{}-emission.csv'.format(exp_name))
-            # convert the emission file into a csv file
-            emission_to_csv(emission_path, output_path=output_path)
-
-            # generate the trajectory output file
-            trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
-            write_dict_to_csv(trajectory_table_path, extra_info, True)
-            metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
-            write_dict_to_csv(metadata_table_path, metadata, True)
-
-            # upload to s3 if asked
-            if args.use_s3:
-                upload_to_s3('circles.data.pipeline', 'metadata_table/date={0}/partition_name={1}_METADATA/'
-                                                      '{1}_METADATA.csv'.format(cur_date, source_id),
-                             metadata_table_path)
-                upload_to_s3('circles.data.pipeline', 'fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv'.format(
-                    cur_date, source_id),
-                             trajectory_table_path, {'network': metadata['network'][0]})
-
-            # print the location of the emission csv file
-            print("\nGenerated emission file at " + output_path)
-
-            # delete the .xml version of the emission file
-            os.remove(emission_path)
-
-        all_trip_energies = os.path.join(output_dir, '{}-all_trip_energies.npy'.format(exp_name))
-        np.save(all_trip_energies, dict(all_trip_energy_distribution))
-        fig_names, figs = plot_trip_distribution(all_trip_energy_distribution)
-
-        for fig_name, fig in zip(fig_names, figs):
-            edist_out = os.path.join(output_dir, '{}_energy_distribution.png'.format(fig_name))
-            fig.savefig(edist_out)
-
-        # Create the flow_params object
-        with open(os.path.join(output_dir, exp_name) + '.json', 'w') as outfile:
-            json.dump(flow_params, outfile,
-                      cls=FlowParamsEncoder, sort_keys=True, indent=4)
+    # i = 0
+    # while i < args.num_rollouts:
+    #     print("Rollout iter", i)
+    #     vel = []
+    #     per_vehicle_energy_trace = defaultdict(lambda: [])
+    #     completed_veh_types = {}
+    #     completed_vehicle_avg_energy = {}
+    #     completed_vehicle_travel_time = {}
+    #     custom_vals = {key: [] for key in custom_callables.keys()}
+    #     run_id = "run_{}".format(i)
+    #     env.pipeline_params = (extra_info, source_id, run_id)
+    #     state = env.reset()
+    #     initial_vehicles = set(env.k.vehicle.get_ids())
+    #     for _ in range(env_params.horizon):
+    #
+    #
+    #         state, reward, done, _ = env.step(action)
+    #
+    #         # Compute the velocity speeds and cumulative returns.
+    #         veh_ids = env.k.vehicle.get_ids()
+    #         vel.append(np.mean(env.k.vehicle.get_speed(veh_ids)))
+    #
+    #         # collect additional information for the data pipeline
+    #         get_extra_info(env.k.vehicle, extra_info, veh_ids, source_id, run_id)
+    #
+    #         # Compute the results for the custom callables.
+    #         for (key, lambda_func) in custom_callables.items():
+    #             custom_vals[key].append(lambda_func(env))
+    #
+    #         for past_veh_id in per_vehicle_energy_trace.keys():
+    #             if past_veh_id not in veh_ids and past_veh_id not in completed_vehicle_avg_energy:
+    #                 all_trip_energy_distribution[completed_veh_types[past_veh_id]].append(
+    #                     np.sum(per_vehicle_energy_trace[past_veh_id]))
+    #                 all_trip_time_distribution[completed_veh_types[past_veh_id]].append(
+    #                     len(per_vehicle_energy_trace[past_veh_id]))
+    #                 completed_vehicle_avg_energy[past_veh_id] = np.sum(per_vehicle_energy_trace[past_veh_id])
+    #                 completed_vehicle_travel_time[past_veh_id] = len(per_vehicle_energy_trace[past_veh_id])
+    #
+    #         for veh_id in veh_ids:
+    #             if veh_id not in initial_vehicles:
+    #                 if veh_id not in per_vehicle_energy_trace:
+    #                     # we have to skip the first step's energy calculation
+    #                     per_vehicle_energy_trace[veh_id].append(0)
+    #                     completed_veh_types[veh_id] = env.k.vehicle.get_type(veh_id)
+    #                 else:
+    #                     per_vehicle_energy_trace[veh_id].append(-1 * vehicle_energy_consumption(env, veh_id))
+    #
+    #         if type(done) is dict and done['__all__']:
+    #             break
+    #         elif type(done) is not dict and done:
+    #             break
+    #         elif max_completed_trips is not None and len(completed_vehicle_avg_energy) > max_completed_trips:
+    #             break
+    #     if env.crash:
+    #         print("Crash on iter", i)
+    #     else:
+    #         # Store the information from the run in info_dict.
+    #         outflow = env.k.vehicle.get_outflow_rate(int(500))
+    #         info_dict["velocities"].append(np.mean(vel))
+    #         info_dict["outflows"].append(outflow)
+    #         info_dict["avg_trip_energy"].append(np.mean(list(completed_vehicle_avg_energy.values())))
+    #         info_dict["avg_trip_time"].append(np.mean(list(completed_vehicle_travel_time.values())))
+    #         info_dict["total_completed_trips"].append(len(list(completed_vehicle_avg_energy.values())))
+    #         for key in custom_vals.keys():
+    #             info_dict[key].append(np.mean(custom_vals[key]))
+    #         i += 1
+    #
+    # print('======== Summary of results ========')
+    # if args.run_transfer:
+    #     print("Transfer test: {}".format(transfer_test.transfer_str))
+    # print("====================================")
+    #
+    # # Print the averages/std for all variables in the info_dict.
+    # for key in info_dict.keys():
+    #     print("Average, std {}: {}, {}".format(
+    #         key, np.mean(info_dict[key]), np.std(info_dict[key])))
+    #
+    # # terminate the environment
+    # env.unwrapped.terminate()
+    #
+    # if output_dir:
+    #     ensure_dir(output_dir)
+    #     if args.run_transfer:
+    #         exp_name = "{}-replay".format(transfer_test.transfer_str)
+    #     else:
+    #         exp_name = "i210_replay"
+    #     replay_out = os.path.join(output_dir, '{}-info.npy'.format(exp_name))
+    #     np.save(replay_out, info_dict)
+    #     # if prompted, convert the emission file into a csv file
+    #     if args.gen_emission:
+    #         emission_filename = '{0}-emission.xml'.format(env.network.name)
+    #         time.sleep(0.1)
+    #
+    #         emission_path = \
+    #             '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
+    #
+    #         output_path = os.path.join(output_dir, '{}-emission.csv'.format(exp_name))
+    #         # convert the emission file into a csv file
+    #         emission_to_csv(emission_path, output_path=output_path)
+    #
+    #         # generate the trajectory output file
+    #         trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
+    #         write_dict_to_csv(trajectory_table_path, extra_info, True)
+    #         metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
+    #         write_dict_to_csv(metadata_table_path, metadata, True)
+    #
+    #         # upload to s3 if asked
+    #         if args.use_s3:
+    #             upload_to_s3('circles.data.pipeline', 'metadata_table/date={0}/partition_name={1}_METADATA/'
+    #                                                   '{1}_METADATA.csv'.format(cur_date, source_id),
+    #                          metadata_table_path)
+    #             upload_to_s3('circles.data.pipeline', 'fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv'.format(
+    #                 cur_date, source_id),
+    #                          trajectory_table_path, {'network': metadata['network'][0]})
+    #
+    #         # print the location of the emission csv file
+    #         print("\nGenerated emission file at " + output_path)
+    #
+    #         # delete the .xml version of the emission file
+    #         os.remove(emission_path)
+    #
+    #     all_trip_energies = os.path.join(output_dir, '{}-all_trip_energies.npy'.format(exp_name))
+    #     np.save(all_trip_energies, dict(all_trip_energy_distribution))
+    #     fig_names, figs = plot_trip_distribution(all_trip_energy_distribution)
+    #
+    #     for fig_name, fig in zip(fig_names, figs):
+    #         edist_out = os.path.join(output_dir, '{}_energy_distribution.png'.format(fig_name))
+    #         fig.savefig(edist_out)
+    #
+    #     # Create the flow_params object
+    #     with open(os.path.join(output_dir, exp_name) + '.json', 'w') as outfile:
+    #         json.dump(flow_params, outfile,
+    #                   cls=FlowParamsEncoder, sort_keys=True, indent=4)
 
     return info_dict
 

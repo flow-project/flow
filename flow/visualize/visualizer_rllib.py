@@ -33,12 +33,6 @@ from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
 from flow.utils.rllib import get_rllib_pkl
 
-from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
-from flow.data_pipeline.leaderboard_utils import network_name_translate
-from collections import defaultdict
-from datetime import datetime, timezone
-import uuid
-
 from flow.core.experiment import Experiment
 
 EXAMPLE_USAGE = """
@@ -139,7 +133,7 @@ def visualizer_rllib(args):
         sim_params.save_render = True
 
     # Create and register a gym+rllib env
-    exp = Experiment(flow_params, use_ray=True)
+    exp = Experiment(flow_params, register_with_ray=True)
     register_env(exp.env_name, exp.create_env)
 
     # check if the environment is a single or multiagent environment, and
@@ -230,8 +224,9 @@ def visualizer_rllib(args):
         else:
             action = agent.compute_action(state)
         return action
-    exp.run(num_runs=args.num_rollouts, rl_actions=rl_action, multiagent=multiagent, rets=rets,
-            policy_map_fn=policy_map_fn)
+
+    exp.run(num_runs=args.num_rollouts, convert_to_csv=args.gen_emission, to_aws=args.to_aws,
+            rl_actions=rl_action, multiagent=multiagent, rets=rets, policy_map_fn=policy_map_fn)
 
 
 def create_parser():
