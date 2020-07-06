@@ -274,8 +274,8 @@ class QueryStrings(Enum):
     FACT_SAFETY_METRICS_BINNED = """
         WITH bins AS (
             SELECT
-                ROW_NUMBER() - 51 OVER (PARTITION BY id, time_step) AS lb,
-                ROW_NUMBER() - 50 AS ub
+                ROW_NUMBER() OVER() - 51 AS lb,
+                ROW_NUMBER() OVER() - 50 AS ub
             FROM fact_safety_metrics
             HAVING 1 = 1
                 AND lb >= -10
