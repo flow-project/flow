@@ -20,5 +20,17 @@ class BaseEnergyModel(metaclass=ABCMeta):
         """Calculate the instantaneous power consumption of a vehicle.
 
         Must be implemented by child classes.
+
+        Parameters
+        ----------
+        accel : float
+            Instantaneous acceleration of the vehicle
+        speed : float
+            Instantaneous speed of the vehicle
+        grade : float
+            Instantaneous road grade of the vehicle
+        Returns
+        -------
+        float
         """
         pass
