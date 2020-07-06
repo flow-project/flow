@@ -212,16 +212,17 @@ class Experiment:
                 vel.append(np.mean(self.env.k.vehicle.get_speed(veh_ids)))
                 ret += reward
 
-                # collect additional information for the data pipeline
-                get_extra_info(
-                    self.env.k.vehicle, extra_info, veh_ids, source_id, run_id)
+                if convert_to_csv:
+                    # collect additional information for the data pipeline
+                    get_extra_info(
+                        self.env.k.vehicle, extra_info, veh_ids, source_id,
+                        run_id)
 
-                # write to disk every 100 steps
-                if convert_to_csv \
-                        and self.env.simulator == "traci" \
-                        and j % 100 == 0:
-                    write_dict_to_csv(trajectory_table_path, extra_info, not j)
-                    extra_info.clear()
+                    # write to disk every 100 steps
+                    if self.env.simulator == "traci" and j % 100 == 0:
+                        write_dict_to_csv(
+                            trajectory_table_path, extra_info, not j)
+                        extra_info.clear()
 
                 # Compute the results for the custom callables.
                 for (key, lambda_func) in self.custom_callables.items():
