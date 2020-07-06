@@ -139,7 +139,6 @@ def visualizer_rllib(args):
         sim_params.save_render = True
 
     # Create and register a gym+rllib env
-    # create_env, env_name = make_create_env(params=flow_params, version=0)
     exp = Experiment(flow_params, use_ray=True)
     register_env(exp.env_name, exp.create_env)
 
@@ -216,23 +215,6 @@ def visualizer_rllib(args):
     if not sim_params.restart_instance:
         exp.env.restart_simulation(sim_params=sim_params, render=sim_params.render)
 
-    # data pipeline
-    # extra_info = defaultdict(lambda: [])
-    # source_id = 'flow_{}'.format(uuid.uuid4().hex)
-    # metadata = defaultdict(lambda: [])
-    # # collect current time
-    # cur_datetime = datetime.now(timezone.utc)
-    # cur_date = cur_datetime.date().isoformat()
-    # cur_time = cur_datetime.time().isoformat()
-    # # collecting information for metadata table
-    # metadata['source_id'].append(source_id)
-    # metadata['submission_time'].append(cur_time)
-    # metadata['network'].append(network_name_translate(exp.env.network.name.split('_20')[0]))
-    # metadata['is_baseline'].append(str(args.is_baseline))
-    # name, strategy = get_configuration()
-    # metadata['submitter_name'].append(name)
-    # metadata['strategy'].append(strategy)
-
     def rl_action(state):
         if multiagent:
             action = {}
@@ -250,161 +232,6 @@ def visualizer_rllib(args):
         return action
     exp.run(num_runs=args.num_rollouts, rl_actions=rl_action, multiagent=multiagent, rets=rets,
             policy_map_fn=policy_map_fn)
-    # Simulate and collect metrics
-    # final_outflows = []
-    # final_inflows = []
-    # mpg = []
-    # mpj = []
-    # mean_speed = []
-    # std_speed = []
-    # for i in range(args.num_rollouts):
-    #     vel = []
-    #     run_id = "run_{}".format(i)
-    #     env.pipeline_params = (extra_info, source_id, run_id)
-    #     state = env.reset()
-    #     if multiagent:
-    #         ret = {key: [0] for key in rets.keys()}
-    #     else:
-    #         ret = 0
-    #     for _ in range(env_params.horizon):
-    #         vehicles = env.unwrapped.k.vehicle
-    #         speeds = vehicles.get_speed(vehicles.get_ids())
-    #
-    #         # only include non-empty speeds
-    #         if speeds:
-    #             vel.append(np.mean(speeds))
-    #
-    #         mpg.append(miles_per_gallon(env.unwrapped, vehicles.get_ids(), gain=1.0))
-    #         mpj.append(miles_per_megajoule(env.unwrapped, vehicles.get_ids(), gain=1.0))
-    #
-    #         if multiagent:
-    #             action = {}
-    #             for agent_id in state.keys():
-    #                 if use_lstm:
-    #                     action[agent_id], state_init[agent_id], logits = \
-    #                         agent.compute_action(
-    #                         state[agent_id], state=state_init[agent_id],
-    #                         policy_id=policy_map_fn(agent_id))
-    #                 else:
-    #                     action[agent_id] = agent.compute_action(
-    #                         state[agent_id], policy_id=policy_map_fn(agent_id))
-    #         else:
-    #             action = agent.compute_action(state)
-    #         state, reward, done, _ = env.step(action)
-    #
-    #         # collect data for data pipeline
-    #         get_extra_info(vehicles, extra_info, vehicles.get_ids(), source_id, run_id)
-    #
-    #         if multiagent:
-    #             for actor, rew in reward.items():
-    #                 ret[policy_map_fn(actor)][0] += rew
-    #         else:
-    #             ret += reward
-    #         if multiagent and done['__all__']:
-    #             break
-    #         if not multiagent and done:
-    #             break
-    #
-    #     if multiagent:
-    #         for key in rets.keys():
-    #             rets[key].append(ret[key])
-    #     else:
-    #         rets.append(ret)
-    #     outflow = vehicles.get_outflow_rate(500)
-    #     final_outflows.append(outflow)
-    #     inflow = vehicles.get_inflow_rate(500)
-    #     final_inflows.append(inflow)
-    #     if np.all(np.array(final_inflows) > 1e-5):
-    #         throughput_efficiency = [x / y for x, y in
-    #                                  zip(final_outflows, final_inflows)]
-    #     else:
-    #         throughput_efficiency = [0] * len(final_inflows)
-    #     mean_speed.append(np.mean(vel))
-    #     std_speed.append(np.std(vel))
-    #     if multiagent:
-    #         for agent_id, rew in rets.items():
-    #             print('Round {}, Return: {} for agent {}'.format(
-    #                 i, ret, agent_id))
-    #     else:
-    #         print('Round {}, Return: {}'.format(i, ret))
-
-    # print('==== Summary of results ====')
-    # print("Return:")
-    # print(mean_speed)
-    # if multiagent:
-    #     for agent_id, rew in rets.items():
-    #         print('For agent', agent_id)
-    #         print(rew)
-    #         print('Average, std return: {}, {} for agent {}'.format(
-    #             np.mean(rew), np.std(rew), agent_id))
-    # else:
-    #     print(rets)
-    #     print('Average, std: {}, {}'.format(
-    #         np.mean(rets), np.std(rets)))
-    #
-    # print("\nSpeed, mean (m/s):")
-    # print(mean_speed)
-    # print('Average, std: {}, {}'.format(np.mean(mean_speed), np.std(
-    #     mean_speed)))
-    #
-    # print('Average, std miles per gallon: {}, {}'.format(np.mean(mpg), np.std(mpg)))
-    #
-    # print('Average, std miles per megajoule: {}, {}'.format(np.mean(mpj), np.std(mpj)))
-    #
-    # # Compute arrival rate of vehicles in the last 500 sec of the run
-    # print("\nOutflows (veh/hr):")
-    # print(final_outflows)
-    # print('Average, std: {}, {}'.format(np.mean(final_outflows),
-    #                                     np.std(final_outflows)))
-    # # Compute departure rate of vehicles in the last 500 sec of the run
-    # print("Inflows (veh/hr):")
-    # print(final_inflows)
-    # print('Average, std: {}, {}'.format(np.mean(final_inflows),
-    #                                     np.std(final_inflows)))
-    # # Compute throughput efficiency in the last 500 sec of the
-    # print("Throughput efficiency (veh/hr):")
-    # print(throughput_efficiency)
-    # print('Average, std: {}, {}'.format(np.mean(throughput_efficiency),
-    #                                     np.std(throughput_efficiency)))
-
-    # terminate the environment
-    # env.unwrapped.terminate()
-
-    # if prompted, convert the emission file into a csv file
-    # if args.gen_emission:
-    #     time.sleep(0.1)
-    #
-    #     dir_path = os.path.dirname(os.path.realpath(__file__))
-    #     emission_filename = '{0}-emission.xml'.format(env.network.name)
-    #
-    #     emission_path = \
-    #         '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
-    #
-    #     # convert the emission file into a csv file
-    #     emission_to_csv(emission_path)
-    #
-    #     # print the location of the emission csv file
-    #     emission_path_csv = emission_path[:-4] + ".csv"
-    #     print("\nGenerated emission file at " + emission_path_csv)
-    #
-    #     # delete the .xml version of the emission file
-    #     os.remove(emission_path)
-    #
-    #     # generate datapipeline output
-    #     trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
-    #     metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
-    #     write_dict_to_csv(trajectory_table_path, extra_info, True)
-    #     write_dict_to_csv(metadata_table_path, metadata, True)
-    #
-    #     if args.to_aws:
-    #         upload_to_s3('circles.data.pipeline',
-    #                      'metadata_table/date={0}/partition_name={1}_METADATA/{1}_METADATA.csv'.format(cur_date,
-    #                                                                                                    source_id),
-    #                      metadata_table_path)
-    #         upload_to_s3('circles.data.pipeline',
-    #                      'fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv'.format(cur_date, source_id),
-    #                      trajectory_table_path,
-    #                      {'network': metadata['network'][0]})
 
 
 def create_parser():
