@@ -1,4 +1,5 @@
 """Generate a time space diagram for some networks.
+
 This method accepts as input a csv file containing the sumo-formatted emission
 file, and then uses this data to generate a time-space diagram, with the x-axis
 being the time (in seconds), the y-axis being the position of a vehicle, and
@@ -42,6 +43,7 @@ ACCEPTABLE_NETWORKS = [
 
 def import_data_from_trajectory(fp, params=dict()):
     r"""Import and preprocess data from the Flow trajectory (.csv) file.
+
     Parameters
     ----------
     fp : str
@@ -54,6 +56,7 @@ def import_data_from_trajectory(fp, params=dict()):
         * "net_params" (flow.core.params.NetParams): network-specific
           parameters. This is used to collect the lengths of various network
           links.
+
     Returns
     -------
     pd.DataFrame
@@ -81,6 +84,7 @@ def import_data_from_trajectory(fp, params=dict()):
 
 def get_time_space_data(data, params):
     r"""Compute the unique inflows and subsequent outflow statistics.
+
     Parameters
     ----------
     data : pd.DataFrame
@@ -93,6 +97,7 @@ def get_time_space_data(data, params):
         * "net_params" (flow.core.params.NetParams): network-specific
           parameters. This is used to collect the lengths of various network
           links.
+
     Returns
     -------
     ndarray (or dict < str, np.ndarray >)
@@ -102,6 +107,7 @@ def get_time_space_data(data, params):
         in the case of I210, the nested arrays are wrapped into a dict,
         keyed on the lane number, so that each lane can be plotted
         separately.
+
     Raises
     ------
     AssertionError
@@ -134,10 +140,12 @@ def _merge(data):
 
     This only include vehicles on the main highway, and not on the adjacent
     on-ramp.
+
     Parameters
     ----------
     data : pd.DataFrame
         cleaned dataframe of the trajectory data
+
     Returns
     -------
     ndarray
@@ -186,10 +194,12 @@ def _ring_road(data):
 
     Vehicles that reach the top of the plot simply return to the bottom and
     continue.
+
     Parameters
     ----------
     data : pd.DataFrame
         cleaned dataframe of the trajectory data
+
     Returns
     -------
     ndarray
@@ -206,12 +216,15 @@ def _ring_road(data):
 
 def _i210_subnetwork(data):
     r"""Generate time and position data for the i210 subnetwork.
+
     We generate plots for all lanes, so the segments are wrapped in
     a dictionary.
+
     Parameters
     ----------
     data : pd.DataFrame
         cleaned dataframe of the trajectory data
+
     Returns
     -------
     dict < str, np.ndarray >
@@ -240,10 +253,12 @@ def _figure_eight(data):
     The vehicles traveling towards the intersection from one side will be
     plotted from the top downward, while the vehicles from the other side will
     be plotted from the bottom upward.
+
     Parameters
     ----------
     data : pd.DataFrame
         cleaned dataframe of the trajectory data
+
     Returns
     -------
     ndarray
@@ -260,13 +275,16 @@ def _figure_eight(data):
 
 def _get_abs_pos(df, params):
     """Compute the absolute positions from edges and relative positions.
+
     This is the variable we will ultimately use to plot individual vehicles.
+
     Parameters
     ----------
     df : pd.DataFrame
         dataframe of trajectory data
     params : dict
         flow-specific parameters
+
     Returns
     -------
     pd.Series
@@ -366,7 +384,9 @@ def _get_abs_pos(df, params):
 
 def plot_tsd(ax, df, segs, args, lane=None, ghost_edges=None, ghost_bounds=None):
     """Plot the time-space diagram.
+
     Take the pre-processed segments and other meta-data, then plot all the line segments.
+    
     Parameters
     ----------
     ax : matplotlib.axes.Axes
@@ -379,14 +399,11 @@ def plot_tsd(ax, df, segs, args, lane=None, ghost_edges=None, ghost_bounds=None)
         parsed arguments
     lane : int, optional
         lane number to be shown in plot title
-<<<<<<< HEAD
-=======
     ghost_edges : list or set of str
         ghost edge names to be greyed out, default None
     ghost_bounds : tuple
         lower and upper bounds of domain, excluding ghost edges, default None
 
->>>>>>> 06ff2d970176c51dee5a5be092b85d44e84e6d82
     Returns
     -------
     None
