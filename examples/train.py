@@ -404,8 +404,8 @@ def train_rllib(submodule, flags):
         # run graph generation script
         parser = create_parser()
         args = parser.parse_args([
-            '-r', checkpoint_path, '-c', checkpoint_number,
-            '--gen_emission', '--use_s3', '--num_cpus', flags.num_cpus,
+            '-r', checkpoint_path, '-c', str(checkpoint_number),
+            '--gen_emission', '--use_s3', '--num_cpus', str(flags.num_cpus),
             '--output_dir', output_dir,
             '--submitter_name', submitter_name, '--strategy_name', strategy_name
         ])
