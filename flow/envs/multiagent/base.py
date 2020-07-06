@@ -128,7 +128,7 @@ class MultiEnv(MultiAgentEnv, Env):
             reward = self.compute_reward(rl_actions, fail=crash)
 
         if self.env_params.done_at_exit:
-            for rl_id in self.k.vehicle.get_arrived_rl_ids():
+            for rl_id in self.k.vehicle.get_arrived_rl_ids(self.env_params.sims_per_step):
                 done[rl_id] = True
                 reward[rl_id] = 0
                 states[rl_id] = -1 * np.ones(self.observation_space.shape[0])
@@ -322,3 +322,7 @@ class MultiEnv(MultiAgentEnv, Env):
         # clip according to the action space requirements
         clipped_actions = self.clip_actions(rl_actions)
         self._apply_rl_actions(clipped_actions)
+
+    def set_iteration_num(self):
+        """Increment the number of training iterations."""
+        self.num_training_iters += 1

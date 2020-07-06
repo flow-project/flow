@@ -3,6 +3,7 @@
 from gym.spaces import Box
 import numpy as np
 
+from flow.core.rewards import miles_per_gallon, miles_per_megajoule
 from flow.envs.multiagent.base import MultiEnv
 
 # largest number of lanes on any given edge in the network
@@ -15,10 +16,13 @@ ADDITIONAL_ENV_PARAMS = {
     "max_accel": 1,
     # maximum deceleration for autonomous vehicles, in m/s^2
     "max_decel": 1,
-    # whether we use an obs space that contains adjacent lane info or just the lead obs
+    # whether we use an obs space that contains adjacent lane info or just the
+    # lead obs
     "lead_obs": True,
-    # whether the reward should come from local vehicles instead of global rewards
+    # whether the reward should come from local vehicles instead of global
+    # rewards
     "local_reward": True,
+    # desired velocity
     "target_velocity": 25
 }
 
@@ -66,9 +70,36 @@ class I210MultiEnv(MultiEnv):
         self.reroute_on_exit = env_params.additional_params.get("reroute_on_exit")
         self.max_lanes = MAX_LANES
         self.num_enter_lanes = 5
-        self.entrance_edge = "119257914"
-        self.exit_edge = "119257908#3"
+        self.entrance_edge = "ghost0"
+        self.exit_edge = "119257908#2"
+        self.control_range = env_params.additional_params.get('control_range', None)
+        self.no_control_edges = env_params.additional_params.get('no_control_edges', [])
+        self.mpg_reward = env_params.additional_params["mpg_reward"]
+        self.mpj_reward = env_params.additional_params["mpj_reward"]
+        self.look_back_length = env_params.additional_params["look_back_length"]
+
+        # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
+        self.headway_curriculum = env_params.additional_params["headway_curriculum"]
+        # how many timesteps to anneal the headway curriculum over
+        self.headway_curriculum_iters = env_params.additional_params["headway_curriculum_iters"]
+        self.headway_reward_gain = env_params.additional_params["headway_reward_gain"]
+        self.min_time_headway = env_params.additional_params["min_time_headway"]
+
+        # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
+        self.speed_curriculum = env_params.additional_params["speed_curriculum"]
+        # how many timesteps to anneal the headway curriculum over
+        self.speed_curriculum_iters = env_params.additional_params["speed_curriculum_iters"]
+        self.speed_reward_gain = env_params.additional_params["speed_reward_gain"]
+        self.num_training_iters = 0
         self.leader = []
+
+        # penalize stops
+        self.penalize_stops = env_params.additional_params["penalize_stops"]
+        self.stop_penalty = env_params.additional_params["stop_penalty"]
+
+        # penalize accel
+        self.penalize_accel = env_params.additional_params.get("penalize_accel", False)
+        self.accel_penalty = env_params.additional_params["accel_penalty"]
 
     @property
     def observation_space(self):
@@ -109,23 +140,31 @@ class I210MultiEnv(MultiEnv):
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         # in the warmup steps, rl_actions is None
+        id_list = []
+        accel_list = []
         if rl_actions:
             for rl_id, actions in rl_actions.items():
                 accel = actions[0]
+                id_list.append(rl_id)
+                accel_list.append(accel)
+            self.k.vehicle.apply_acceleration(id_list, accel_list)
 
-                # lane_change_softmax = np.exp(actions[1:4])
-                # lane_change_softmax /= np.sum(lane_change_softmax)
-                # lane_change_action = np.random.choice([-1, 0, 1],
-                #                                       p=lane_change_softmax)
+    def in_control_range(self, veh_id):
+        """Return if a veh_id is on an edge that is allowed to be controlled.
 
-                self.k.vehicle.apply_acceleration(rl_id, accel)
-                # self.k.vehicle.apply_lane_change(rl_id, lane_change_action)
+        If control range is defined it uses control range, otherwise it searches over a set of edges
+        """
+        return (self.control_range and self.control_range[1] >
+                self.k.vehicle.get_x_by_id(veh_id) > self.control_range[0]) or \
+               (len(self.no_control_edges) > 0 and self.k.vehicle.get_edge(veh_id) not in
+                self.no_control_edges)
 
     def get_state(self):
         """See class definition."""
+        valid_ids = [rl_id for rl_id in self.k.vehicle.get_rl_ids() if self.in_control_range(rl_id)]
         if self.lead_obs:
             veh_info = {}
-            for rl_id in self.k.vehicle.get_rl_ids():
+            for rl_id in valid_ids:
                 speed = self.k.vehicle.get_speed(rl_id)
                 lead_id = self.k.vehicle.get_leader(rl_id)
                 if lead_id in ["", None]:
@@ -140,7 +179,7 @@ class I210MultiEnv(MultiEnv):
         else:
             veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
                                                self.veh_statistics(rl_id)))
-                        for rl_id in self.k.vehicle.get_rl_ids()}
+                        for rl_id in valid_ids}
         return veh_info
 
     def compute_reward(self, rl_actions, **kwargs):
@@ -150,27 +189,107 @@ class I210MultiEnv(MultiEnv):
             return {}
 
         rewards = {}
+        valid_ids = [rl_id for rl_id in self.k.vehicle.get_rl_ids() if self.in_control_range(rl_id)]
+        valid_human_ids = [veh_id for veh_id in self.k.vehicle.get_ids() if self.in_control_range(veh_id)]
+
         if self.env_params.additional_params["local_reward"]:
             des_speed = self.env_params.additional_params["target_velocity"]
-            for rl_id in self.k.vehicle.get_rl_ids():
+            for rl_id in valid_ids:
                 rewards[rl_id] = 0
-                speeds = []
-                follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(rl_id))
-                if follow_speed >= 0:
-                    speeds.append(follow_speed)
-                if self.k.vehicle.get_speed(rl_id) >= 0:
-                    speeds.append(self.k.vehicle.get_speed(rl_id))
-                if len(speeds) > 0:
-                    # rescale so the critic can estimate it quickly
-                    rewards[rl_id] = np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
-                                              for speed in speeds]) / (des_speed ** 2)
+                if self.mpg_reward:
+                    rewards[rl_id] = miles_per_gallon(self, rl_id, gain=1.0) / 100.0
+                    follow_id = rl_id
+                    for i in range(self.look_back_length):
+                        follow_id = self.k.vehicle.get_follower(follow_id)
+                        if follow_id not in ["", None]:
+                            rewards[rl_id] += miles_per_gallon(self, follow_id, gain=1.0) / 100.0
+                        else:
+                            break
+                elif self.mpj_reward:
+                    rewards[rl_id] = miles_per_megajoule(self, rl_id, gain=1.0) / 100.0
+                    follow_id = rl_id
+                    for i in range(self.look_back_length):
+                        follow_id = self.k.vehicle.get_follower(follow_id)
+                        if follow_id not in ["", None]:
+                            # if self.time_counter > 700 and miles_per_megajoule(self, follow_id, gain=1.0) > 1.0:
+                            #     import ipdb; ipdb.set_trace()
+                            rewards[rl_id] += miles_per_megajoule(self, follow_id, gain=1.0) / 100.0
+                        else:
+                            break
+                else:
+                    follow_id = rl_id
+                    for i in range(self.look_back_length + 1):
+                        if follow_id not in ["", None]:
+                            follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(follow_id))
+                            reward = (des_speed - min(np.abs(follow_speed - des_speed), des_speed)) ** 2
+                            reward /= ((des_speed ** 2) * self.look_back_length)
+                            rewards[rl_id] += reward
+                        else:
+                            break
+                        follow_id = self.k.vehicle.get_follower(follow_id)
+
         else:
-            speeds = self.k.vehicle.get_speed(self.k.vehicle.get_ids())
+            if self.mpg_reward:
+                reward = np.nan_to_num(miles_per_gallon(self, valid_human_ids, gain=1.0)) / 100.0
+            else:
+                speeds = self.k.vehicle.get_speed(valid_human_ids)
+                des_speed = self.env_params.additional_params["target_velocity"]
+                # rescale so the critic can estimate it quickly
+                if self.reroute_on_exit:
+                    reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed))
+                                                    for speed in speeds]) / des_speed)
+                else:
+                    reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
+                                                    for speed in speeds]) / (des_speed ** 2))
+            rewards = {rl_id: reward for rl_id in valid_ids}
+
+        # curriculum over time-gaps
+        if self.headway_curriculum and self.num_training_iters <= self.headway_curriculum_iters:
+            t_min = self.min_time_headway  # smallest acceptable time headway
+            for veh_id, rew in rewards.items():
+                lead_id = self.k.vehicle.get_leader(veh_id)
+                penalty = 0
+                if lead_id not in ["", None] \
+                        and self.k.vehicle.get_speed(veh_id) > 0:
+                    t_headway = max(
+                        self.k.vehicle.get_headway(veh_id) /
+                        self.k.vehicle.get_speed(veh_id), 0)
+                    scaling_factor = max(0, 1 - self.num_training_iters / self.headway_curriculum_iters)
+                    penalty += scaling_factor * self.headway_reward_gain * min((t_headway - t_min) / t_min, 0)
+
+                rewards[veh_id] += penalty
+
+        if self.speed_curriculum and self.num_training_iters <= self.speed_curriculum_iters:
             des_speed = self.env_params.additional_params["target_velocity"]
-            # rescale so the critic can estimate it quickly
-            reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
-                                            for speed in speeds]) / (des_speed ** 2))
-            rewards = {rl_id: reward for rl_id in self.k.vehicle.get_rl_ids()}
+
+            for veh_id, rew in rewards.items():
+                speed = self.k.vehicle.get_speed(veh_id)
+                speed_reward = 0.0
+                follow_id = veh_id
+                for i in range(self.look_back_length):
+                    follow_id = self.k.vehicle.get_follower(follow_id)
+                    if follow_id not in ["", None]:
+                        if self.reroute_on_exit:
+                            speed_reward += (des_speed - np.abs(speed - des_speed)) / des_speed
+                        else:
+                            speed_reward += ((des_speed - np.abs(speed - des_speed)) ** 2) / (des_speed ** 2)
+                    else:
+                        break
+                scaling_factor = max(0, 1 - self.num_training_iters / self.speed_curriculum_iters)
+
+                rewards[veh_id] += speed_reward * scaling_factor * self.speed_reward_gain
+
+        for veh_id in rewards.keys():
+            speed = self.k.vehicle.get_speed(veh_id)
+            if self.penalize_stops:
+                if speed < 1.0:
+                    rewards[veh_id] -= self.stop_penalty
+            if self.penalize_accel and veh_id in self.k.vehicle.previous_speeds:
+                prev_speed = self.k.vehicle.get_previous_speed(veh_id)
+                abs_accel = abs(speed - prev_speed) / self.sim_step
+                rewards[veh_id] -= abs_accel * self.accel_penalty
+
+        # print('time to get reward is ', time() - t)
         return rewards
 
     def additional_command(self):
@@ -191,6 +310,7 @@ class I210MultiEnv(MultiEnv):
                 and not self.env_params.evaluate:
             veh_ids = self.k.vehicle.get_ids()
             edges = self.k.vehicle.get_edge(veh_ids)
+            valid_lanes = list(range(self.num_enter_lanes))
             for veh_id, edge in zip(veh_ids, edges):
                 if edge == "":
                     continue
@@ -203,21 +323,27 @@ class I210MultiEnv(MultiEnv):
                     type_id = self.k.vehicle.get_type(veh_id)
                     # remove the vehicle
                     self.k.vehicle.remove(veh_id)
-                    lane = np.random.randint(low=0, high=self.num_enter_lanes)
+                    index = np.random.randint(low=0, high=len(valid_lanes))
+                    lane = valid_lanes[index]
+                    del valid_lanes[index]
                     # reintroduce it at the start of the network
-                    # TODO(@evinitsky) select the lane and speed a bit more cleanly
-                    # Note, the position is 10 so you are not overlapping with the inflow car that is being removed.
+                    # Note, the position is 20 so you are not overlapping with the inflow car that is being removed.
                     # this allows the vehicle to be immediately inserted.
-                    self.k.vehicle.add(
-                        veh_id=veh_id,
-                        edge=self.entrance_edge,
-                        type_id=str(type_id),
-                        lane=str(lane),
-                        pos="10.0",
-                        speed="23.0")
+                    try:
+                        self.k.vehicle.add(
+                            veh_id=veh_id,
+                            edge=self.entrance_edge,
+                            type_id=str(type_id),
+                            lane=str(lane),
+                            pos="20.0",
+                            speed="23.0")
+                    except Exception as e:
+                        print(e)
+                    if len(valid_lanes) == 0:
+                        break
 
             departed_ids = self.k.vehicle.get_departed_ids()
-            if len(departed_ids) > 0:
+            if isinstance(departed_ids, tuple) and len(departed_ids) > 0:
                 for veh_id in departed_ids:
                     if veh_id not in self.observed_ids:
                         self.k.vehicle.remove(veh_id)
@@ -272,6 +398,17 @@ class I210MultiEnv(MultiEnv):
                     done[rl_id] = True
                     reward[rl_id] = 0
                     state[rl_id] = -1 * np.ones(self.observation_space.shape[0])
+        else:
+            # you have to catch the vehicles on the exit edge, they have not yet
+            # recieved a done when the env terminates
+            if done['__all__']:
+                on_exit_edge = [rl_id for rl_id in self.k.vehicle.get_rl_ids()
+                                if self.k.vehicle.get_edge(rl_id) == self.exit_edge]
+                for rl_id in on_exit_edge:
+                    done[rl_id] = True
+                    reward[rl_id] = 0
+                    state[rl_id] = -1 * np.ones(self.observation_space.shape[0])
+
         return state, reward, done, info
 
 

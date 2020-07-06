@@ -322,7 +322,7 @@ def energy_consumption(env, gain=.001):
     rho = 1.225  # air density (kg/m^3)
     A = 2.6  # vehicle cross sectional area (m^2)
     for veh_id in env.k.vehicle.get_ids():
-        if veh_id not in env.k.vehicle.previous_speeds:
+        if veh_id not in env.k.vehicle.previous_speeds.keys():
             continue
         speed = env.k.vehicle.get_speed(veh_id)
         prev_speed = env.k.vehicle.get_previous_speed(veh_id)
@@ -334,7 +334,7 @@ def energy_consumption(env, gain=.001):
     return -gain * power
 
 
-def vehicle_energy_consumption(env, veh_id, gain=.001):
+def veh_energy_consumption(env, veh_id, gain=.001):
     """Calculate power consumption of a vehicle.
 
     Assumes vehicle is an average sized vehicle.
@@ -352,6 +352,7 @@ def vehicle_energy_consumption(env, veh_id, gain=.001):
 
     if veh_id not in env.k.vehicle.previous_speeds:
         return 0
+
     speed = env.k.vehicle.get_speed(veh_id)
     prev_speed = env.k.vehicle.get_previous_speed(veh_id)
 
@@ -388,8 +389,8 @@ def miles_per_megajoule(env, veh_ids=None, gain=.001):
     for veh_id in veh_ids:
         speed = env.k.vehicle.get_speed(veh_id)
         # convert to be positive since the function called is a penalty
-        power = -vehicle_energy_consumption(env, veh_id, gain=1.0)
-        if power > 0 and speed >= 0.0:
+        power = -veh_energy_consumption(env, veh_id, gain=1.0)
+        if power > 0 and speed >= 0.1:
             counter += 1
             # meters / joule is (v * \delta t) / (power * \delta t)
             mpj += speed / power

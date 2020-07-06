@@ -13,25 +13,11 @@ import os
 import sys
 from time import strftime
 from copy import deepcopy
-
 import numpy as np
 import pytz
 
-try:
-    from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
-    from stable_baselines import PPO2
-except ImportError:
-    print("Stable-baselines not installed")
-
-from ray import tune
-from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
-try:
-    from ray.rllib.agents.agent import get_agent_class
-except ImportError:
-    from ray.rllib.agents.registry import get_agent_class
-
 from flow.core.util import ensure_dir
-from flow.core.rewards import energy_consumption
+from flow.core.rewards import miles_per_gallon, miles_per_megajoule
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 from flow.utils.registry import make_create_env
@@ -58,7 +44,7 @@ def parse_args(args):
 
     parser.add_argument(
         'exp_title', type=str,
-        help='Title to give the run.')
+        help='Name of experiment that results will be stored in')
 
     # optional input parameters
     parser.add_argument(
@@ -66,7 +52,8 @@ def parse_args(args):
         help='the RL trainer to use. either rllib or Stable-Baselines')
     parser.add_argument(
         '--algorithm', type=str, default="PPO",
-        help='RL algorithm to use. Options are PPO, TD3, MATD3 (MADDPG w/ TD3) right now.'
+        help='RL algorithm to use. Options are PPO, TD3, and CENTRALIZEDPPO (which uses a centralized value function)'
+             ' right now.'
     )
     parser.add_argument(
         '--num_cpus', type=int, default=1,
@@ -124,6 +111,8 @@ def run_model_stablebaseline(flow_params,
     stable_baselines.*
         the trained model
     """
+    from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
+    from stable_baselines import PPO2
     if num_cpus == 1:
         constructor = env_constructor(params=flow_params, version=0)()
         # The algorithms require a vectorized environment to run
@@ -172,37 +161,76 @@ def setup_exps_rllib(flow_params,
     dict
         training configuration parameters
     """
+    from ray import tune
     from ray.tune.registry import register_env
+    from ray.rllib.env.group_agents_wrapper import _GroupAgentsWrapper
+    try:
+        from ray.rllib.agents.agent import get_agent_class
+    except ImportError:
+        from ray.rllib.agents.registry import get_agent_class
 
     horizon = flow_params['env'].horizon
 
     alg_run = flags.algorithm.upper()
 
     if alg_run == "PPO":
-        agent_cls = get_agent_class(alg_run)
-        config = deepcopy(agent_cls._default_config)
+        from flow.algorithms.custom_ppo import CustomPPOTrainer
+        from ray.rllib.agents.ppo import DEFAULT_CONFIG
+        alg_run = CustomPPOTrainer
+        config = deepcopy(DEFAULT_CONFIG)
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
-        config["model"].update({"fcnet_hiddens": [32, 32, 32]})
+        config["model"].update({"fcnet_hiddens": [32, 32]})
         config["train_batch_size"] = horizon * n_rollouts
-        config["gamma"] = 0.999  # discount rate
+        config["gamma"] = 0.995  # discount rate
+        config["use_gae"] = True
+        config["no_done_at_end"] = False
+        config["lambda"] = 0.97
+        config["kl_target"] = 0.02
+        config["num_sgd_iter"] = 10
+        if flags.grid_search:
+            config["lambda"] = tune.grid_search([0.5, 0.9])
+            config["lr"] = tune.grid_search([5e-4, 5e-5])
+    elif alg_run == "CENTRALIZEDPPO":
+        from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
+        from ray.rllib.agents.ppo import DEFAULT_CONFIG
+        from ray.rllib.models import ModelCatalog
+        alg_run = CCTrainer
+        config = deepcopy(DEFAULT_CONFIG)
+        config['model']['custom_model'] = "cc_model"
+        config["model"]["custom_options"]["max_num_agents"] = flow_params['env'].additional_params['max_num_agents']
+        config["model"]["custom_options"]["central_vf_size"] = 100
+
+        ModelCatalog.register_custom_model("cc_model", CentralizedCriticModel)
+
+        config["num_workers"] = n_cpus
+        config["horizon"] = horizon
+        config["model"].update({"fcnet_hiddens": [32, 32]})
+        config["train_batch_size"] = horizon * n_rollouts
+        config["gamma"] = 0.995  # discount rate
         config["use_gae"] = True
         config["lambda"] = 0.97
         config["kl_target"] = 0.02
         config["num_sgd_iter"] = 10
+        if flags.grid_search:
+            config["lambda"] = tune.grid_search([0.5, 0.9])
+            config["lr"] = tune.grid_search([5e-4, 5e-5])
+
     elif alg_run == "TD3":
-        agent_cls = get_agent_class(alg_run)
-        config = deepcopy(agent_cls._default_config)
+        alg_run = get_agent_class(alg_run)
+        config = deepcopy(alg_run._default_config)
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
+        config["learning_starts"] = 10000
         config["buffer_size"] = 20000  # reduced to test if this is the source of memory problems
         if flags.grid_search:
             config["prioritized_replay"] = tune.grid_search(['True', 'False'])
             config["actor_lr"] = tune.grid_search([1e-3, 1e-4])
             config["critic_lr"] = tune.grid_search([1e-3, 1e-4])
             config["n_step"] = tune.grid_search([1, 10])
+
     else:
         sys.exit("We only support PPO, TD3, right now.")
 
@@ -210,27 +238,75 @@ def setup_exps_rllib(flow_params,
     def on_episode_start(info):
         episode = info["episode"]
         episode.user_data["avg_speed"] = []
+        episode.user_data["avg_speed_avs"] = []
         episode.user_data["avg_energy"] = []
+        episode.user_data["avg_mpg"] = []
+        episode.user_data["avg_mpj"] = []
+        episode.user_data["num_cars"] = []
+        episode.user_data["avg_accel_human"] = []
+        episode.user_data["avg_accel_avs"] = []
 
     def on_episode_step(info):
         episode = info["episode"]
         env = info["env"].get_unwrapped()[0]
         if isinstance(env, _GroupAgentsWrapper):
             env = env.env
-        speed = np.mean([speed for speed in env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0])
+        if hasattr(env, 'no_control_edges'):
+            veh_ids = [
+                veh_id for veh_id in env.k.vehicle.get_ids()
+                if env.k.vehicle.get_speed(veh_id) >= 0
+                and env.k.vehicle.get_edge(veh_id) not in env.no_control_edges
+            ]
+            rl_ids = [
+                veh_id for veh_id in env.k.vehicle.get_rl_ids()
+                if env.k.vehicle.get_speed(veh_id) >= 0
+                and env.k.vehicle.get_edge(veh_id) not in env.no_control_edges
+            ]
+        else:
+            veh_ids = [veh_id for veh_id in env.k.vehicle.get_ids() if env.k.vehicle.get_speed(veh_id) >= 0]
+            rl_ids = [veh_id for veh_id in env.k.vehicle.get_rl_ids() if env.k.vehicle.get_speed(veh_id) >= 0]
+
+        speed = np.mean([speed for speed in env.k.vehicle.get_speed(veh_ids)])
         if not np.isnan(speed):
             episode.user_data["avg_speed"].append(speed)
-        episode.user_data["avg_energy"].append(energy_consumption(env))
+        av_speed = np.mean([speed for speed in env.k.vehicle.get_speed(rl_ids) if speed >= 0])
+        if not np.isnan(av_speed):
+            episode.user_data["avg_speed_avs"].append(av_speed)
+        episode.user_data["avg_mpg"].append(miles_per_gallon(env, veh_ids, gain=1.0))
+        episode.user_data["avg_mpj"].append(miles_per_megajoule(env, veh_ids, gain=1.0))
+        episode.user_data["num_cars"].append(len(env.k.vehicle.get_ids()))
+        episode.user_data["avg_accel_human"].append(np.nan_to_num(np.mean(
+            [np.abs((env.k.vehicle.get_speed(veh_id) - env.k.vehicle.get_previous_speed(veh_id))/env.sim_step) for
+             veh_id in veh_ids if veh_id in env.k.vehicle.previous_speeds.keys()]
+        )))
+        episode.user_data["avg_accel_avs"].append(np.nan_to_num(np.mean(
+            [np.abs((env.k.vehicle.get_speed(veh_id) - env.k.vehicle.get_previous_speed(veh_id))/env.sim_step) for
+             veh_id in rl_ids if veh_id in env.k.vehicle.previous_speeds.keys()]
+        )))
 
     def on_episode_end(info):
         episode = info["episode"]
         avg_speed = np.mean(episode.user_data["avg_speed"])
         episode.custom_metrics["avg_speed"] = avg_speed
+        avg_speed_avs = np.mean(episode.user_data["avg_speed_avs"])
+        episode.custom_metrics["avg_speed_avs"] = avg_speed_avs
+        episode.custom_metrics["avg_accel_avs"] = np.mean(episode.user_data["avg_accel_avs"])
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
+        episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["avg_mpg"])
+        episode.custom_metrics["avg_mpj_per_veh"] = np.mean(episode.user_data["avg_mpj"])
+        episode.custom_metrics["num_cars"] = np.mean(episode.user_data["num_cars"])
+
+    def on_train_result(info):
+        """Store the mean score of the episode, and increment or decrement the iteration number for curriculum."""
+        trainer = info["trainer"]
+        trainer.workers.foreach_worker(
+            lambda ev: ev.foreach_env(
+                lambda env: env.set_iteration_num()))
 
     config["callbacks"] = {"on_episode_start": tune.function(on_episode_start),
                            "on_episode_step": tune.function(on_episode_step),
-                           "on_episode_end": tune.function(on_episode_end)}
+                           "on_episode_end": tune.function(on_episode_end),
+                           "on_train_result": tune.function(on_train_result)}
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -240,7 +316,6 @@ def setup_exps_rllib(flow_params,
 
     # multiagent configuration
     if policy_graphs is not None:
-        print("policy_graphs", policy_graphs)
         config['multiagent'].update({'policies': policy_graphs})
     if policy_mapping_fn is not None:
         config['multiagent'].update({'policy_mapping_fn': tune.function(policy_mapping_fn)})
@@ -256,6 +331,7 @@ def setup_exps_rllib(flow_params,
 def train_rllib(submodule, flags):
     """Train policies using the PPO algorithm in RLlib."""
     import ray
+    from ray import tune
 
     flow_params = submodule.flow_params
     flow_params['sim'].render = flags.render
@@ -280,7 +356,7 @@ def train_rllib(submodule, flags):
         ray.init()
     exp_dict = {
         "run_or_experiment": alg_run,
-        "name": gym_name,
+        "name": flags.exp_title,
         "config": config,
         "checkpoint_freq": flags.checkpoint_freq,
         "checkpoint_at_end": True,
@@ -299,44 +375,16 @@ def train_rllib(submodule, flags):
     tune.run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
 
 
-def train_h_baselines(flow_params, args, multiagent):
+def train_h_baselines(env_name, args, multiagent):
     """Train policies using SAC and TD3 with h-baselines."""
     from hbaselines.algorithms import OffPolicyRLAlgorithm
     from hbaselines.utils.train import parse_options, get_hyperparameters
-    from hbaselines.envs.mixed_autonomy import FlowEnv
-
-    flow_params = deepcopy(flow_params)
 
     # Get the command-line arguments that are relevant here
     args = parse_options(description="", example_usage="", args=args)
 
     # the base directory that the logged data will be stored in
     base_dir = "training_data"
-
-    # Create the training environment.
-    env = FlowEnv(
-        flow_params,
-        multiagent=multiagent,
-        shared=args.shared,
-        maddpg=args.maddpg,
-        render=args.render,
-        version=0
-    )
-
-    # Create the evaluation environment.
-    if args.evaluate:
-        eval_flow_params = deepcopy(flow_params)
-        eval_flow_params['env'].evaluate = True
-        eval_env = FlowEnv(
-            eval_flow_params,
-            multiagent=multiagent,
-            shared=args.shared,
-            maddpg=args.maddpg,
-            render=args.render_eval,
-            version=1
-        )
-    else:
-        eval_env = None
 
     for i in range(args.n_training):
         # value of the next seed
@@ -385,14 +433,14 @@ def train_h_baselines(flow_params, args, multiagent):
         # Create the algorithm object.
         alg = OffPolicyRLAlgorithm(
             policy=policy,
-            env=env,
-            eval_env=eval_env,
+            env="flow:{}".format(env_name),
+            eval_env="flow:{}".format(env_name) if args.evaluate else None,
             **hp
         )
 
         # Perform training.
         alg.learn(
-            total_timesteps=args.total_steps,
+            total_steps=args.total_steps,
             log_dir=dir_name,
             log_interval=args.log_interval,
             eval_interval=args.eval_interval,
@@ -404,6 +452,8 @@ def train_h_baselines(flow_params, args, multiagent):
 
 def train_stable_baselines(submodule, flags):
     """Train policies using the PPO algorithm in stable-baselines."""
+    from stable_baselines.common.vec_env import DummyVecEnv
+    from stable_baselines import PPO2
     flow_params = submodule.flow_params
     # Path to the saved files
     exp_tag = flow_params['exp_tag']
@@ -476,8 +526,7 @@ def main(args):
     elif flags.rl_trainer.lower() == "stable-baselines":
         train_stable_baselines(submodule, flags)
     elif flags.rl_trainer.lower() == "h-baselines":
-        flow_params = submodule.flow_params
-        train_h_baselines(flow_params, args, multiagent)
+        train_h_baselines(flags.exp_config, args, multiagent)
     else:
         raise ValueError("rl_trainer should be either 'rllib', 'h-baselines', "
                          "or 'stable-baselines'.")

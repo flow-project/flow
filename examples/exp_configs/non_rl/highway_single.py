@@ -1,4 +1,5 @@
 """Example of an open network with human-driven vehicles and a wave."""
+
 import numpy as np
 
 from flow.controllers import IDMController
@@ -10,8 +11,8 @@ from flow.core.params import InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
+from flow.core.rewards import miles_per_gallon, miles_per_megajoule
 from flow.core.params import SumoCarFollowingParams
-from flow.core.rewards import miles_per_megajoule
 from flow.networks import HighwayNetwork
 from flow.envs import TestEnv
 from flow.networks.highway import ADDITIONAL_NET_PARAMS
@@ -26,7 +27,7 @@ TRAFFIC_FLOW = 2215
 HORIZON = 1500
 # whether to include noise in the car-following models
 INCLUDE_NOISE = True
-
+# penetration rate of the follower-stopper vehicles
 PENETRATION_RATE = 10.0
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
@@ -39,11 +40,12 @@ additional_net_params.update({
     "speed_limit": 30,
     # number of edges to divide the highway into
     "num_edges": 2,
-    # whether to include a ghost edge
+    # whether to include a ghost edge. This edge is provided a different speed
+    # limit.
     "use_ghost_edge": True,
     # speed limit for the ghost edge
     "ghost_speed_limit": END_SPEED,
-    # length of the cell imposing a boundary
+    # length of the downstream ghost edge with the reduced speed limit
     "boundary_cell_length": 300,
 })
 
@@ -64,13 +66,15 @@ vehicles.add(
     ),
 )
 
-inflows = InFlows()
-
 if PENETRATION_RATE > 0.0:
     vehicles.add(
         "av",
+        color='red',
         num_vehicles=0,
-        acceleration_controller=(FollowerStopper, {"v_des": 6.0}),
+        acceleration_controller=(FollowerStopper, {
+            "v_des": 5.0,
+            "control_length": [500, 2300]
+        }),
     )
 
 inflows = InFlows()
@@ -118,8 +122,8 @@ flow_params = dict(
     sim=SumoParams(
         sim_step=0.4,
         render=False,
-        restart_instance=False,
-        use_ballistic=True
+        use_ballistic=True,
+        restart_instance=False
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
@@ -145,5 +149,8 @@ custom_callables = {
         env.k.vehicle.get_outflow_rate(120)),
     "miles_per_megajoule": lambda env: np.nan_to_num(
         miles_per_megajoule(env, env.k.vehicle.get_ids(), gain=1.0)
+    ),
+    "miles_per_gallon": lambda env: np.nan_to_num(
+        miles_per_gallon(env, env.k.vehicle.get_ids(), gain=1.0)
     )
 }

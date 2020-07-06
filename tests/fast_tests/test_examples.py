@@ -26,6 +26,7 @@ from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import \
     flow_params as multiagent_traffic_light_grid
 from examples.exp_configs.rl.multiagent.multiagent_highway import flow_params as multiagent_highway
 
+from examples.simulate import parse_args as parse_simulate_args
 from examples.train import parse_args as parse_train_args
 from examples.train import run_model_stablebaseline as run_stable_baselines_model
 from examples.train import setup_exps_rllib as setup_rllib_exps
@@ -58,6 +59,36 @@ class TestNonRLExamples(unittest.TestCase):
     few time steps. Note that, this does not test for any refactoring changes
     done to the functions within the experiment class.
     """
+
+    def test_parse_args(self):
+        """Validate the functionality of the parse_args method in simulate.py."""
+        # test the default case
+        args = parse_simulate_args(["exp_config"])
+
+        self.assertDictEqual(vars(args), {
+            'aimsun': False,
+            'exp_config': 'exp_config',
+            'gen_emission': False,
+            'no_render': False,
+            'num_runs': 1
+        })
+
+        # test the case when optional args are specified
+        args = parse_simulate_args([
+            "exp_config",
+            '--aimsun',
+            '--gen_emission',
+            '--no_render',
+            '--num_runs', '2'
+        ])
+
+        self.assertDictEqual(vars(args), {
+            'aimsun': True,
+            'exp_config': 'exp_config',
+            'gen_emission': True,
+            'no_render': True,
+            'num_runs': 2
+        })
 
     def test_bottleneck(self):
         """Verify that examples/exp_configs/non_rl/bottleneck.py is working."""
@@ -198,11 +229,11 @@ class TestHBaselineExamples(unittest.TestCase):
     confirming that it runs.
     """
     @staticmethod
-    def run_exp(flow_params, multiagent):
+    def run_exp(env_name, multiagent):
         train_h_baselines(
-            flow_params=flow_params,
+            env_name=env_name,
             args=[
-                flow_params["env_name"].__name__,
+                env_name,
                 "--initial_exploration_steps", "1",
                 "--total_steps", "10"
             ],
@@ -210,10 +241,10 @@ class TestHBaselineExamples(unittest.TestCase):
         )
 
     def test_singleagent_ring(self):
-        self.run_exp(singleagent_ring.copy(), multiagent=False)
+        self.run_exp("singleagent_ring", multiagent=False)
 
     def test_multiagent_ring(self):
-        self.run_exp(multiagent_ring.copy(), multiagent=True)
+        self.run_exp("multiagent_ring", multiagent=True)
 
 
 class TestRllibExamples(unittest.TestCase):
