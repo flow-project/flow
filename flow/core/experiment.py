@@ -62,7 +62,7 @@ class Experiment:
         the environment object the simulator will run
     """
 
-    def __init__(self, flow_params, custom_callables=None):
+    def __init__(self, flow_params, custom_callables=None, use_ray=False):
         """Instantiate the Experiment class.
 
         Parameters
@@ -85,14 +85,16 @@ class Experiment:
         self.create_env = create_env
 
         # Create the environment.
-        self.env = create_env()
+        if not use_ray:
+            self.env = create_env()
 
         logging.info(" Starting experiment {} at {}".format(
             self.env.network.name, str(datetime.utcnow())))
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, rl_actions=None, convert_to_csv=False, to_aws=None, only_query="", is_baseline=False):
+    def run(self, num_runs, rl_actions=None, convert_to_csv=False, to_aws=None, only_query="", is_baseline=False,
+            multiagent=False, rets=None, policy_map_fn=None):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -179,7 +181,10 @@ class Experiment:
             metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
 
         for i in range(num_runs):
-            ret = 0
+            if rets and multiagent:
+                ret = {key: [0] for key in rets.keys()}
+            else:
+                ret = 0
             vel = []
             custom_vals = {key: [] for key in self.custom_callables.keys()}
             run_id = "run_{}".format(i)
@@ -194,7 +199,11 @@ class Experiment:
                 # Compute the velocity speeds and cumulative returns.
                 veh_ids = self.env.k.vehicle.get_ids()
                 vel.append(np.mean(self.env.k.vehicle.get_speed(veh_ids)))
-                ret += reward
+                if multiagent:
+                    for actor, rew in reward.items():
+                        ret[policy_map_fn(actor)][0] += rew
+                else:
+                    ret += reward
 
                 # collect additional information for the data pipeline
                 get_extra_info(self.env.k.vehicle, extra_info, veh_ids, source_id, run_id)
@@ -208,8 +217,16 @@ class Experiment:
                 for (key, lambda_func) in self.custom_callables.items():
                     custom_vals[key].append(lambda_func(self.env))
 
+                if multiagent and done['__all__']:
+                    break
                 if type(done) is dict and done['__all__'] or type(done) is not dict and done:
                     break
+
+            if multiagent:
+                for key in rets.keys():
+                    rets[key].append(ret[key])
+            else:
+                rets.append(ret)
 
             # Store the information from the run in info_dict.
             outflow = self.env.k.vehicle.get_outflow_rate(int(500))
@@ -219,7 +236,12 @@ class Experiment:
             for key in custom_vals.keys():
                 info_dict[key].append(np.mean(custom_vals[key]))
 
-            print("Round {0}, return: {1}".format(i, ret))
+            if multiagent:
+                for agent_id, rew in rets.items():
+                    print('Round {}, Return: {} for agent {}'.format(
+                            i, ret, agent_id))
+            else:
+                print('Round {}, Return: {}'.format(i, ret))
 
         # Print the averages/std for all variables in the info_dict.
         for key in info_dict.keys():

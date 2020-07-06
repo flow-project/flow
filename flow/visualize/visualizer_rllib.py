@@ -140,7 +140,7 @@ def visualizer_rllib(args):
 
     # Create and register a gym+rllib env
     # create_env, env_name = make_create_env(params=flow_params, version=0)
-    exp = Experiment(flow_params)
+    exp = Experiment(flow_params, use_ray=True)
     register_env(exp.env_name, exp.create_env)
 
     # check if the environment is a single or multiagent environment, and
@@ -175,8 +175,7 @@ def visualizer_rllib(args):
             os.environ.get("TEST_FLAG") != 'True':
         exp.env = agent.local_evaluator.env
     else:
-        pass
-        # env = gym.make(env_name)
+        exp.env = gym.make(exp.env_name)
 
     # reroute on exit is a training hack, it should be turned off at test time.
     if hasattr(exp.env, "reroute_on_exit"):
