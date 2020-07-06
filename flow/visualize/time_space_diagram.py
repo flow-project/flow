@@ -176,6 +176,8 @@ def _highway(data):
     pd.DataFrame
         modified trajectory dataframe
     """
+    data.loc[:, :] = data[(data['distance'] > 500)]
+    data.loc[:, :] = data[(data['distance'] < 2300)]
     segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
 
     return segs, data
@@ -379,14 +381,11 @@ def plot_tsd(ax, df, segs, args, lane=None, ghost_edges=None, ghost_bounds=None)
         parsed arguments
     lane : int, optional
         lane number to be shown in plot title
-<<<<<<< HEAD
-=======
     ghost_edges : list or set of str
         ghost edge names to be greyed out, default None
     ghost_bounds : tuple
         lower and upper bounds of domain, excluding ghost edges, default None
 
->>>>>>> 06ff2d970176c51dee5a5be092b85d44e84e6d82
     Returns
     -------
     None
