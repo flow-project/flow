@@ -386,7 +386,7 @@ def plot_tsd(ax, df, segs, args, lane=None, ghost_edges=None, ghost_bounds=None)
     """Plot the time-space diagram.
 
     Take the pre-processed segments and other meta-data, then plot all the line segments.
-    
+
     Parameters
     ----------
     ax : matplotlib.axes.Axes
