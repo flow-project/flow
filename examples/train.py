@@ -21,6 +21,7 @@ from flow.core.rewards import miles_per_gallon, miles_per_megajoule
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 from flow.utils.registry import make_create_env
+from flow.visualize.i210_replay import create_parser, generate_graphs
 
 
 def parse_args(args):
@@ -84,6 +85,11 @@ def parse_args(args):
     parser.add_argument(
         '--checkpoint_path', type=str, default=None,
         help='Directory with checkpoint to restore training from.')
+    parser.add_argument(
+        '--upload_graphs', type=str, nargs=2,
+        help='Whether to generate and upload graphs to leaderboard at the end of training.'
+             'Arguments are name of the submitter and name of the strategy.'
+             'Only relevant for i210 training on rllib')
 
     return parser.parse_known_args(args)[0]
 
@@ -373,6 +379,37 @@ def train_rllib(submodule, flags):
     if flags.use_s3:
         exp_dict['upload_dir'] = s3_string
     tune.run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
+
+    if flags.upload_graphs:
+        print('Generating experiment graphs and uploading them to leaderboard')
+        submitter_name, strategy_name = flags.upload_graphs
+
+        # grab checkpoint path
+        for (dirpath, _, _) in os.walk(os.path.expanduser("~/ray_results")):
+            if "checkpoint_{}".format(flags.checkpoint_freq) in dirpath \
+                and dirpath.split('/')[-3] == flags.exp_title:
+                checkpoint_path = os.path.dirname(dirpath)
+                checkpoint_number = -1
+                for name in os.listdir(checkpoint_path):
+                    if name.startswith('checkpoint'):
+                        cp = int(name.split('_')[1])
+                        checkpoint_number = max(checkpoint_number, cp)
+                break
+
+        # create dir for graphs output
+        output_dir = os.path.join(checkpoint_path, 'output_graphs')
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+        
+        # run graph generation script
+        parser = create_parser()
+        args = parser.parse_args([
+            '-r', checkpoint_path, '-c', checkpoint_number,
+            '--gen_emission', '--use_s3', '--num_cpus', flags.num_cpus,
+            '--output_dir', output_dir,
+            '--submitter_name', submitter_name, '--strategy_name', strategy_name
+        ])
+        generate_graphs(args)
 
 
 def train_h_baselines(env_name, args, multiagent):

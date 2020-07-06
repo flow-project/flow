@@ -507,12 +507,9 @@ def create_parser():
     return parser
 
 
-if __name__ == '__main__':
+def generate_graphs(args):
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
-
-    parser = create_parser()
-    args = parser.parse_args()
 
     rllib_config = None
     rllib_result_dir = None
@@ -577,3 +574,10 @@ if __name__ == '__main__':
                 p1.wait(50)
             except Exception as e:
                 print('This is the error ', e)
+
+
+if __name__ == '__main__':
+    parser = create_parser()
+    args = parser.parse_args()
+
+    generate_graphs(args)
