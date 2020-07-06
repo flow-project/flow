@@ -1,6 +1,9 @@
 """Contains an experiment class for running simulations."""
 from flow.utils.registry import make_create_env
-from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
+from flow.data_pipeline.data_pipeline import write_dict_to_csv
+from flow.data_pipeline.data_pipeline import upload_to_s3
+from flow.data_pipeline.data_pipeline import get_extra_info
+from flow.data_pipeline.data_pipeline import get_configuration
 from flow.data_pipeline.leaderboard_utils import network_name_translate
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -88,7 +91,13 @@ class Experiment:
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, rl_actions=None, convert_to_csv=False, to_aws=None, only_query="", is_baseline=False):
+    def run(self,
+            num_runs,
+            rl_actions=None,
+            convert_to_csv=False,
+            to_aws=None,
+            only_query="",
+            is_baseline=False):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -150,27 +159,40 @@ class Experiment:
         t = time.time()
         times = []
 
-        # data pipeline
-        extra_info = defaultdict(lambda: [])
-        source_id = 'flow_{}'.format(uuid.uuid4().hex)
-        metadata = defaultdict(lambda: [])
-        # collect current time
-        cur_datetime = datetime.now(timezone.utc)
-        cur_date = cur_datetime.date().isoformat()
-        cur_time = cur_datetime.time().isoformat()
-        # collecting information for metadata table
-        metadata['source_id'].append(source_id)
-        metadata['submission_time'].append(cur_time)
-        metadata['network'].append(network_name_translate(self.env.network.name.split('_20')[0]))
-        metadata['is_baseline'].append(str(is_baseline))
-        name, strategy = get_configuration()
-        metadata['submitter_name'].append(name)
-        metadata['strategy'].append(strategy)
-
         if convert_to_csv and self.env.simulator == "traci":
+            # data pipeline
+            extra_info = defaultdict(lambda: [])
+            source_id = 'flow_{}'.format(uuid.uuid4().hex)
+            metadata = defaultdict(lambda: [])
+
+            # collect current time
+            cur_datetime = datetime.now(timezone.utc)
+            cur_date = cur_datetime.date().isoformat()
+            cur_time = cur_datetime.time().isoformat()
+
+            # collecting information for metadata table
+            metadata['source_id'].append(source_id)
+            metadata['submission_time'].append(cur_time)
+            metadata['network'].append(
+                network_name_translate(self.env.network.name.split('_20')[0]))
+            metadata['is_baseline'].append(str(is_baseline))
+            name, strategy = get_configuration()
+            metadata['submitter_name'].append(name)
+            metadata['strategy'].append(strategy)
+
+            # emission-specific parameters
             dir_path = self.env.sim_params.emission_path
-            trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
-            metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
+            trajectory_table_path = os.path.join(
+                dir_path, '{}.csv'.format(source_id))
+            metadata_table_path = os.path.join(
+                dir_path, '{}_METADATA.csv'.format(source_id))
+        else:
+            source_id = None
+            extra_info = None
+            trajectory_table_path = None
+            metadata_table_path = None
+            metadata = None
+            cur_date = None
 
         for i in range(num_runs):
             ret = 0
@@ -191,10 +213,13 @@ class Experiment:
                 ret += reward
 
                 # collect additional information for the data pipeline
-                get_extra_info(self.env.k.vehicle, extra_info, veh_ids, source_id, run_id)
+                get_extra_info(
+                    self.env.k.vehicle, extra_info, veh_ids, source_id, run_id)
 
                 # write to disk every 100 steps
-                if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0:
+                if convert_to_csv \
+                        and self.env.simulator == "traci" \
+                        and j % 100 == 0:
                     write_dict_to_csv(trajectory_table_path, extra_info, not j)
                     extra_info.clear()
 
@@ -202,7 +227,7 @@ class Experiment:
                 for (key, lambda_func) in self.custom_callables.items():
                     custom_vals[key].append(lambda_func(self.env))
 
-                if type(done) is dict and done['__all__'] or type(done) is not dict and done:
+                if type(done) is dict and done['__all__'] or done is True:
                     break
 
             # Store the information from the run in info_dict.
@@ -232,13 +257,20 @@ class Experiment:
             write_dict_to_csv(metadata_table_path, metadata, True)
 
             if to_aws:
-                upload_to_s3('circles.data.pipeline',
-                             'metadata_table/date={0}/partition_name={1}_METADATA/{1}_METADATA.csv'.format(cur_date,
-                                                                                                           source_id),
-                             metadata_table_path)
-                upload_to_s3('circles.data.pipeline',
-                             'fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv'.format(cur_date, source_id),
-                             trajectory_table_path,
-                             {'network': metadata['network'][0], 'is_baseline': metadata['is_baseline'][0]})
+                upload_to_s3(
+                    'circles.data.pipeline',
+                    'metadata_table/date={0}/partition_name={1}_METADATA/'
+                    '{1}_METADATA.csv'.format(cur_date, source_id),
+                    metadata_table_path)
+                upload_to_s3(
+                    'circles.data.pipeline',
+                    'fact_vehicle_trace/date={0}/partition_name={1}/'
+                    '{1}.csv'.format(cur_date, source_id),
+                    trajectory_table_path,
+                    {
+                        'network': metadata['network'][0],
+                        'is_baseline': metadata['is_baseline'][0],
+                    }
+                )
 
         return info_dict
