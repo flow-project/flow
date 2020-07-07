@@ -7,8 +7,6 @@ from flow.utils.flow_warnings import deprecated_attribute
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
-from flow.energy_models.toyota_energy import PriusEnergy
-from flow.energy_models.toyota_energy import TacomaEnergy
 from flow.energy_models.power_demand import PDMCombustionEngine
 from flow.energy_models.power_demand import PDMElectric
 
@@ -43,7 +41,7 @@ LC_MODES = {
     "only_right_drive_safe": 576
 }
 
-ENERGY_MODELS = set([PriusEnergy, TacomaEnergy, PDMCombustionEngine, PDMElectric])
+ENERGY_MODELS = set([PDMCombustionEngine, PDMElectric])
 
 # Traffic light defaults
 PROGRAM_ID = 1
@@ -601,8 +599,6 @@ class SumoParams(SimParams):
         current time step
     use_ballistic: bool, optional
         If true, use a ballistic integration step instead of an euler step
-    disable_collisions: bool, optional
-        If true, disables explicit collision checking and teleporting in SUMO
     """
 
     def __init__(self,
@@ -624,8 +620,7 @@ class SumoParams(SimParams):
                  teleport_time=-1,
                  num_clients=1,
                  color_by_speed=False,
-                 use_ballistic=False,
-                 disable_collisions=False):
+                 use_ballistic=False):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
@@ -640,7 +635,6 @@ class SumoParams(SimParams):
         self.num_clients = num_clients
         self.color_by_speed = color_by_speed
         self.use_ballistic = use_ballistic
-        self.disable_collisions = disable_collisions
 
 
 class EnvParams:
@@ -674,9 +668,6 @@ class EnvParams:
         specifies whether to clip actions from the policy by their range when
         they are inputted to the reward function. Note that the actions are
         still clipped before they are provided to `apply_rl_actions`.
-    done_at_exit : bool, optional
-        If true, done is returned as True when the vehicle exits. This is only
-        applied to multi-agent environments.
     """
 
     def __init__(self,
@@ -685,8 +676,7 @@ class EnvParams:
                  warmup_steps=0,
                  sims_per_step=1,
                  evaluate=False,
-                 clip_actions=True,
-                 done_at_exit=True):
+                 clip_actions=True):
         """Instantiate EnvParams."""
         self.additional_params = \
             additional_params if additional_params is not None else {}
@@ -695,7 +685,6 @@ class EnvParams:
         self.sims_per_step = sims_per_step
         self.evaluate = evaluate
         self.clip_actions = clip_actions
-        self.done_at_exit = done_at_exit
 
     def get_additional_param(self, key):
         """Return a variable from additional_params."""

@@ -322,8 +322,6 @@ def energy_consumption(env, gain=.001):
     rho = 1.225  # air density (kg/m^3)
     A = 2.6  # vehicle cross sectional area (m^2)
     for veh_id in env.k.vehicle.get_ids():
-        if veh_id not in env.k.vehicle.previous_speeds.keys():
-            continue
         speed = env.k.vehicle.get_speed(veh_id)
         prev_speed = env.k.vehicle.get_previous_speed(veh_id)
 
@@ -349,9 +347,6 @@ def veh_energy_consumption(env, veh_id, gain=.001):
     Ca = 0.3  # aerodynamic drag coefficient
     rho = 1.225  # air density (kg/m^3)
     A = 2.6  # vehicle cross sectional area (m^2)
-
-    if veh_id not in env.k.vehicle.previous_speeds:
-        return 0
 
     speed = env.k.vehicle.get_speed(veh_id)
     prev_speed = env.k.vehicle.get_previous_speed(veh_id)
@@ -390,7 +385,7 @@ def miles_per_megajoule(env, veh_ids=None, gain=.001):
         speed = env.k.vehicle.get_speed(veh_id)
         # convert to be positive since the function called is a penalty
         power = -veh_energy_consumption(env, veh_id, gain=1.0)
-        if power > 0 and speed >= 0.1:
+        if power > 0 and speed >= 0.0:
             counter += 1
             # meters / joule is (v * \delta t) / (power * \delta t)
             mpj += speed / power
@@ -400,7 +395,7 @@ def miles_per_megajoule(env, veh_ids=None, gain=.001):
     # convert from meters per joule to miles per joule
     mpj /= 1609.0
     # convert from miles per joule to miles per megajoule
-    mpj *= 10 ** 6
+    mpj *= 10**6
 
     return mpj * gain
 
