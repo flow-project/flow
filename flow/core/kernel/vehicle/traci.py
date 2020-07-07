@@ -342,8 +342,7 @@ class TraCIVehicle(KernelVehicle):
             tc.VAR_POSITION,
             tc.VAR_ANGLE,
             tc.VAR_SPEED_WITHOUT_TRACI,
-            tc.VAR_FUELCONSUMPTION,
-            tc.VAR_DISTANCE
+            tc.VAR_FUELCONSUMPTION
         ])
         self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
 
