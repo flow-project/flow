@@ -131,6 +131,23 @@ class KernelVehicle(object, metaclass=ABCMeta):
     def apply_acceleration(self, veh_id, acc):
         """Apply the acceleration requested by a vehicle in the simulator.
 
+        In SUMO, this function applies slowDown method which applies smoothing.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            list of vehicle identifiers
+        acc : float or array_like
+            requested accelerations from the vehicles
+        """
+        raise NotImplementedError
+
+    def apply_acceleration_not_smooth(self, veh_id, acc):
+        """Apply the acceleration requested by a vehicle in the simulator.
+
+        In SUMO, this function applies setSpeed method which doesn't apply
+        smoothing.
+
         Parameters
         ----------
         veh_id : str or list of str
@@ -343,6 +360,20 @@ class KernelVehicle(object, metaclass=ABCMeta):
         Returns
         -------
         float
+        """
+        pass
+
+    @abstractmethod
+    def get_energy_model(self, veh_id):
+        """Return the energy model class object of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        Returns
+        -------
+        subclass of BaseEnergyModel
         """
         pass
 
@@ -740,4 +771,68 @@ class KernelVehicle(object, metaclass=ABCMeta):
         -------
         float
         """
+        pass
+
+    ###########################################################################
+    #                        Methods for Datapipeline                         #
+    ###########################################################################
+
+    @abstractmethod
+    def get_accel(self, veh_id):
+        """Return the acceleration of vehicle with veh_id."""
+        pass
+
+    @abstractmethod
+    def update_accel_no_noise_no_failsafe(self, veh_id, accel_no_noise_no_failsafe):
+        """Update stored acceleration without noise without failsafe of vehicle with veh_id."""
+        pass
+
+    @abstractmethod
+    def update_accel_no_noise_with_failsafe(self, veh_id, accel_no_noise_with_failsafe):
+        """Update stored acceleration without noise with failsafe of vehicle with veh_id."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def update_accel_with_noise_no_failsafe(self, veh_id, accel_with_noise_no_failsafe):
+        """Update stored acceleration with noise without failsafe of vehicle with veh_id."""
+        pass
+
+    @abstractmethod
+    def update_accel_with_noise_with_failsafe(self, veh_id, accel_with_noise_with_failsafe):
+        """Update stored acceleration with noise with failsafe of vehicle with veh_id."""
+        pass
+
+    @abstractmethod
+    def get_2d_position(self, veh_id, error=-1001):
+        """Return (x, y) position of vehicle with veh_id."""
+        pass
+
+    @abstractmethod
+    def get_accel_no_noise_no_failsafe(self, veh_id):
+        """Return the acceleration without noise without failsafe of vehicle with veh_id."""
+        pass
+
+    @abstractmethod
+    def get_accel_no_noise_with_failsafe(self, veh_id):
+        """Return the acceleration without noise with failsafe of vehicle with veh_id."""
+        pass
+
+    @abstractmethod
+    def get_accel_with_noise_no_failsafe(self, veh_id):
+        """Return the acceleration with noise without failsafe of vehicle with veh_id."""
+        pass
+
+    @abstractmethod
+    def get_accel_with_noise_with_failsafe(self, veh_id):
+        """Return the acceleration with noise with failsafe of vehicle with veh_id."""
+        pass
+
+    @abstractmethod
+    def get_realized_accel(self, veh_id):
+        """Return the acceleration that the vehicle actually make."""
+        pass
+
+    @abstractmethod
+    def get_road_grade(self, veh_id):
+        """Return the road-grade of the vehicle with veh_id."""
         pass
