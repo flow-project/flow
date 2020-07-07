@@ -105,6 +105,7 @@ class TraCIVehicle(KernelVehicle):
         self.num_vehicles = 0
         self.num_rl_vehicles = 0
         self.num_not_departed = 0
+
         self.__vehicles.clear()
         for typ in vehicles.initial:
             for i in range(typ['num_vehicles']):
@@ -112,7 +113,6 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id] = dict()
                 self.__vehicles[veh_id]['type'] = typ['veh_id']
                 self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
-
                 self.num_vehicles += 1
                 if typ['acceleration_controller'][0] == RLController:
                     self.num_rl_vehicles += 1
@@ -750,7 +750,7 @@ class TraCIVehicle(KernelVehicle):
         edge_dict = dict.fromkeys(tot_list)
 
         # add the vehicles to the edge_dict element
-        for veh_id in self.get_rl_ids():
+        for veh_id in self.get_ids():
             edge = self.get_edge(veh_id)
             lane = self.get_lane(veh_id)
             pos = self.get_position(veh_id)
@@ -767,7 +767,7 @@ class TraCIVehicle(KernelVehicle):
                 for lane in range(max_lanes):
                     edge_dict[edge][lane].sort(key=lambda x: x[1])
 
-        for veh_id in self.get_ids():
+        for veh_id in self.get_rl_ids():
             # collect the lane leaders, followers, headways, and tailways for
             # each vehicle
             edge = self.get_edge(veh_id)

@@ -347,7 +347,6 @@ def veh_energy_consumption(env, veh_id, gain=.001):
     Ca = 0.3  # aerodynamic drag coefficient
     rho = 1.225  # air density (kg/m^3)
     A = 2.6  # vehicle cross sectional area (m^2)
-
     speed = env.k.vehicle.get_speed(veh_id)
     prev_speed = env.k.vehicle.get_previous_speed(veh_id)
 
