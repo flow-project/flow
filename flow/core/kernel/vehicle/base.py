@@ -142,7 +142,7 @@ class KernelVehicle(object, metaclass=ABCMeta):
         smooth : bool
             whether to apply acceleration smoothly or not, default: True
         """
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def apply_lane_change(self, veh_id, direction):
