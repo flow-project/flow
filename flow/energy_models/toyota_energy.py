@@ -19,7 +19,7 @@ class ToyotaModel(BaseEnergyModel, metaclass=ABCMeta):
             self.toyota_energy = pickle.load(file)
 
         # delete pickle file
-        os.remove(file.pkl)
+        os.remove(file)
 
     @abstractmethod
     def get_instantaneous_power(self, accel, speed, grade):
