@@ -559,7 +559,11 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_energy_model(vehID) for vehID in veh_id]
-        return self.__vehicles.get(veh_id, {}).get("energy_model", error)
+        try:
+            return self.__vehicles.get(veh_id, {'energy_model': error})['energy_model']
+        except KeyError:
+            print("Energy model not specified for vehicle {}".format(veh_id))
+            raise
 
     def get_previous_speed(self, veh_id, error=-1001):
         """See parent class."""
