@@ -555,15 +555,11 @@ class TraCIVehicle(KernelVehicle):
             return [self.get_fuel_consumption(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_FUELCONSUMPTION, error) * ml_to_gallons
 
-    def get_energy_model(self, veh_id):
+    def get_energy_model(self, veh_id, error=""):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_energy_model(vehID) for vehID in veh_id]
-
-        if "energy_model" in self.__vehicles.get(veh_id, {}):
-            return self.__vehicles.get(veh_id, {})["energy_model"]
-        else:
-            raise KeyError("Energy model not set for {}".format(veh_id))
+        return self.__vehicles.get(veh_id, {}).get("energy_model", error)
 
     def get_previous_speed(self, veh_id, error=-1001):
         """See parent class."""

@@ -364,13 +364,15 @@ class KernelVehicle(object, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_energy_model(self, veh_id):
+    def get_energy_model(self, veh_id, error=""):
         """Return the energy model class object of the specified vehicle.
 
         Parameters
         ----------
         veh_id : str or list of str
             vehicle id, or list of vehicle ids
+        error : str
+            value that is returned if the vehicle is not found
         Returns
         -------
         subclass of BaseEnergyModel
