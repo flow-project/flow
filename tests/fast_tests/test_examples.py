@@ -69,8 +69,11 @@ class TestNonRLExamples(unittest.TestCase):
             'aimsun': False,
             'exp_config': 'exp_config',
             'gen_emission': False,
+            'is_baseline': False,
             'no_render': False,
-            'num_runs': 1
+            'num_runs': 1,
+            'only_query': "['all']",
+            'to_aws': None,
         })
 
         # test the case when optional args are specified
@@ -86,8 +89,11 @@ class TestNonRLExamples(unittest.TestCase):
             'aimsun': True,
             'exp_config': 'exp_config',
             'gen_emission': True,
+            'is_baseline': False,
             'no_render': True,
-            'num_runs': 2
+            'num_runs': 2,
+            'only_query': "['all']",
+            'to_aws': None,
         })
 
     def test_bottleneck(self):
@@ -167,12 +173,21 @@ class TestTrain(unittest.TestCase):
         args = parse_train_args(["exp_config"])
 
         self.assertDictEqual(vars(args), {
+            'algorithm': 'PPO',
+            'checkpoint_freq': 20,
             'exp_config': 'exp_config',
+            'exp_title': None,
+            'grid_search': False,
+            'local_mode': False,
             'rl_trainer': 'rllib',
             'num_cpus': 1,
+            'num_iterations': 200,
+            'num_rollouts': 1,
             'num_steps': 5000,
+            'render': False,
             'rollout_size': 1000,
-            'checkpoint_path': None
+            'checkpoint_path': None,
+            'use_s3': False,
         })
 
         # test the case when optional args are specified
@@ -186,12 +201,21 @@ class TestTrain(unittest.TestCase):
         ])
 
         self.assertDictEqual(vars(args), {
+            'algorithm': 'PPO',
+            'checkpoint_freq': 20,
             'checkpoint_path': '5',
             'exp_config': 'exp_config',
+            'exp_title': None,
+            'grid_search': False,
+            'local_mode': False,
             'num_cpus': 1,
+            'num_iterations': 200,
+            'num_rollouts': 1,
             'num_steps': 3,
+            'render': False,
             'rl_trainer': 'h-baselines',
-            'rollout_size': 4
+            'rollout_size': 4,
+            'use_s3': False,
         })
 
 
@@ -406,10 +430,11 @@ class TestRllibExamples(unittest.TestCase):
 
     @staticmethod
     def run_exp(flow_params, **kwargs):
-        alg_run, env_name, config = setup_rllib_exps(flow_params, 1, 1, **kwargs)
+        alg_run, env_name, config = setup_rllib_exps(
+            flow_params, 1, 1, parse_train_args([""]), **kwargs)
 
         try:
-            ray.init(num_cpus=1)
+            ray.init(num_cpus=1, local_mode=True)
         except Exception as e:
             print("ERROR", e)
         config['train_batch_size'] = 50

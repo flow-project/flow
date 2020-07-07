@@ -151,7 +151,8 @@ class Env(gym.Env, metaclass=ABCMeta):
         self.state = None
         self.obs_var_labels = []
 
-        self.num_training_iters = 0
+        # number of training iterations (used by the rllib training procedure)
+        self._num_training_iters = 0
 
         # track IDs that have ever been observed in the system
         self.observed_ids = set()
@@ -836,3 +837,7 @@ class Env(gym.Env, metaclass=ABCMeta):
             sight = self.renderer.get_sight(
                 orientation, id)
             self.sights.append(sight)
+
+    def set_iteration_num(self):
+        """Increment the number of training iterations."""
+        self._num_training_iters += 1

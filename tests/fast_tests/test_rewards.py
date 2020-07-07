@@ -169,13 +169,14 @@ class TestRewards(unittest.TestCase):
 
         # change the speed of one vehicle
         env.k.vehicle.test_set_speed("test_0", 1)
-        self.assertEqual(energy_consumption(env), -12.059337750000001)
+        self.assertAlmostEqual(energy_consumption(env), 0)
 
-        # check that stepping change the previous speeds and increases the energy consumption
+        # check that stepping change the previous speeds and increases the
+        # energy consumption
         env.step(rl_actions=None)
         env.step(rl_actions=None)
         self.assertGreater(env.k.vehicle.get_previous_speed("test_0"), 0.0)
-        self.assertLess(energy_consumption(env), -12.059337750000001)
+        self.assertAlmostEqual(energy_consumption(env), -15.808787612540163)
 
     def test_boolean_action_penalty(self):
         """Test the boolean_action_penalty method."""

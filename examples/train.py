@@ -42,10 +42,6 @@ def parse_args(args):
         help='Name of the experiment configuration file, as located in '
              'exp_configs/rl/singleagent or exp_configs/rl/multiagent.')
 
-    parser.add_argument(
-        'exp_title', type=str,
-        help='Name of experiment that results will be stored in')
-
     # optional input parameters
     parser.add_argument(
         '--rl_trainer', type=str, default="rllib",
@@ -84,6 +80,9 @@ def parse_args(args):
     parser.add_argument(
         '--checkpoint_path', type=str, default=None,
         help='Directory with checkpoint to restore training from.')
+    parser.add_argument(
+        '--exp_title', type=str, default=None,
+        help='Name of experiment that results will be stored in')
 
     return parser.parse_known_args(args)[0]
 
@@ -144,7 +143,7 @@ def setup_exps_rllib(flow_params,
         number of CPUs to run the experiment over
     n_rollouts : int
         number of rollouts per training iteration
-    flags:
+    flags : TODO
         custom arguments
     policy_graphs : dict, optional
         TODO
@@ -356,7 +355,7 @@ def train_rllib(submodule, flags):
         ray.init()
     exp_dict = {
         "run_or_experiment": alg_run,
-        "name": flags.exp_title,
+        "name": flags.exp_title or flow_params['exp_tag'],
         "config": config,
         "checkpoint_freq": flags.checkpoint_freq,
         "checkpoint_at_end": True,
@@ -368,9 +367,9 @@ def train_rllib(submodule, flags):
     }
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
-    s3_string = "s3://i210.experiments/i210/" \
-                + date + '/' + flags.exp_title
     if flags.use_s3:
+        s3_string = "s3://i210.experiments/i210/" \
+                    + date + '/' + flags.exp_title
         exp_dict['upload_dir'] = s3_string
     tune.run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
 
