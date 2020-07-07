@@ -93,7 +93,6 @@ class TraCISimulation(KernelSimulation):
 
     def update(self, reset):
         """See parent class."""
-
         if reset:
             self.time = 0
         else:
