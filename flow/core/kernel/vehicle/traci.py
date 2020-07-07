@@ -1129,7 +1129,6 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
 
-    # add for data pipeline
     def get_accel(self, veh_id, noise=True, failsafe=True):
         """See parent class."""
         metric_name = 'accel'
