@@ -1,14 +1,9 @@
 """Contains an experiment class for running simulations."""
-from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
-from flow.utils.data_pipeline import write_dict_to_csv, get_extra_info
-from collections import defaultdict
 from datetime import datetime
 import logging
 import time
-import os
 import numpy as np
-import uuid
 
 
 class Experiment:
@@ -140,20 +135,10 @@ class Experiment:
         t = time.time()
         times = []
 
-        # data pipeline
-        extra_info = defaultdict(list)
-        source_id = 'flow_{}'.format(uuid.uuid4().hex)
-
-        if convert_to_csv and self.env.simulator == "traci":
-            dir_path = self.env.sim_params.emission_path
-            trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
-
         for i in range(num_runs):
             ret = 0
             vel = []
             custom_vals = {key: [] for key in self.custom_callables.keys()}
-            run_id = "run_{}".format(i)
-            self.env.pipeline_params = (extra_info, source_id, run_id)
             state = self.env.reset()
             for j in range(num_steps):
                 t0 = time.time()
@@ -165,14 +150,6 @@ class Experiment:
                 veh_ids = self.env.k.vehicle.get_ids()
                 vel.append(np.mean(self.env.k.vehicle.get_speed(veh_ids)))
                 ret += reward
-
-                # collect additional information for the data pipeline
-                get_extra_info(self.env.k.vehicle, extra_info, veh_ids, source_id, run_id)
-
-                # write to disk every 100 steps
-                if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0:
-                    write_dict_to_csv(trajectory_table_path, extra_info, not j and not i)
-                    extra_info.clear()
 
                 # Compute the results for the custom callables.
                 for (key, lambda_func) in self.custom_callables.items():
@@ -191,6 +168,11 @@ class Experiment:
 
             print("Round {0}, return: {1}".format(i, ret))
 
+            # Save emission data at the end of every rollout. This is skipped
+            # by the internal method if no emission path was specified.
+            if self.env.simulator == "traci":
+                self.env.k.simulation.save_emission(run_id=i)
+
         # Print the averages/std for all variables in the info_dict.
         for key in info_dict.keys():
             print("Average, std {}: {}, {}".format(
@@ -199,21 +181,5 @@ class Experiment:
         print("Total time:", time.time() - t)
         print("steps/second:", np.mean(times))
         self.env.terminate()
-
-        if convert_to_csv and self.env.simulator == "traci":
-            # wait a short period of time to ensure the xml file is readable
-            time.sleep(0.1)
-
-            # collect the location of the emission file
-            emission_filename = \
-                "{0}-emission.xml".format(self.env.network.name)
-            emission_path = os.path.join(dir_path, emission_filename)
-
-            # convert the emission file into a csv
-            emission_to_csv(emission_path)
-
-            # Delete the .xml version of the emission file.
-            os.remove(emission_path)
-            write_dict_to_csv(trajectory_table_path, extra_info)
 
         return info_dict
