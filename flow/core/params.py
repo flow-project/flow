@@ -43,7 +43,7 @@ LC_MODES = {
     "only_right_drive_safe": 576
 }
 
-ENERGY_MODELS = {PriusEnergy, TacomaEnergy, PDMCombustionEngine, PDMElectric}
+ENERGY_MODELS = set([PriusEnergy, TacomaEnergy, PDMCombustionEngine, PDMElectric])
 
 # Traffic light defaults
 PROGRAM_ID = 1
@@ -268,7 +268,7 @@ class VehicleParams:
             num_vehicles=0,
             car_following_params=None,
             lane_change_params=None,
-            energy_model=(PDMCombustionEngine, {}),
+            energy_model=PDMCombustionEngine,
             color=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
