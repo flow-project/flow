@@ -304,6 +304,8 @@ class TraCISimulation(KernelSimulation):
             "lane_number",
             "distance",
             "relative_position",
+            "follower_id",
+            "leader_rel_speed",
         ]
 
         # Update the stored data to push to the csv file.

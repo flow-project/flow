@@ -182,25 +182,25 @@ class TestConvertToCSV(unittest.TestCase):
             header = next(reader)
 
         self.assertListEqual(header, [
-            "id",
             "time",
-            "speed",
-            "lane_number",
-            "edge_id",
-            "relative_position",
+            "id",
             "x",
             "y",
+            "speed",
             "headway",
             "leader_id",
-            "follower_id",
-            "leader_rel_speed",
             "target_accel_with_noise_with_failsafe",
             "target_accel_no_noise_no_failsafe",
             "target_accel_with_noise_no_failsafe",
             "target_accel_no_noise_with_failsafe",
             "realized_accel",
             "road_grade",
+            "edge_id",
+            "lane_number",
             "distance",
+            "relative_position",
+            "follower_id",
+            "leader_rel_speed",
         ])
 
         time.sleep(0.1)
