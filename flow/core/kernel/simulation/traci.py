@@ -289,33 +289,31 @@ class TraCISimulation(KernelSimulation):
 
         # The name of all stored data-points (excluding id and time)
         stored_ids = [
-            "speed",
-            "lane_number",
-            "edge_id",
-            "relative_position",
             "x",
             "y",
+            "speed",
             "headway",
             "leader_id",
-            "follower_id",
-            "leader_rel_speed",
             "target_accel_with_noise_with_failsafe",
             "target_accel_no_noise_no_failsafe",
             "target_accel_with_noise_no_failsafe",
             "target_accel_no_noise_with_failsafe",
             "realized_accel",
             "road_grade",
+            "edge_id",
+            "lane_number",
             "distance",
+            "relative_position",
         ]
 
         # Update the stored data to push to the csv file.
-        final_data = {"id": [], "time": []}
+        final_data = {"time": [], "id": []}
         final_data.update({key: [] for key in stored_ids})
 
         for veh_id in self.stored_data.keys():
             for t in self.stored_data[veh_id].keys():
-                final_data['id'].append(veh_id)
                 final_data['time'].append(t)
+                final_data['id'].append(veh_id)
                 for key in stored_ids:
                     final_data[key].append(self.stored_data[veh_id][t][key])
 
