@@ -44,6 +44,7 @@ LC_MODES = {
 }
 
 ENERGY_MODELS = set([PriusEnergy, TacomaEnergy, PDMCombustionEngine, PDMElectric])
+DEFAULT_ENERGY_MODEL = PDMCombustionEngine
 
 # Traffic light defaults
 PROGRAM_ID = 1
@@ -268,7 +269,7 @@ class VehicleParams:
             num_vehicles=0,
             car_following_params=None,
             lane_change_params=None,
-            energy_model=PDMCombustionEngine,
+            energy_model=DEFAULT_ENERGY_MODEL,
             color=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
@@ -306,7 +307,7 @@ class VehicleParams:
             lane_change_params = SumoLaneChangeParams()
 
         if energy_model not in ENERGY_MODELS:
-            energy_model = PDMCombustionEngine
+            energy_model = DEFAULT_ENERGY_MODEL
 
         type_params = {}
         type_params.update(car_following_params.controller_params)
