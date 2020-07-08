@@ -396,22 +396,22 @@ def train_rllib(submodule, flags):
                     if name.startswith('checkpoint'):
                         cp = int(name.split('_')[1])
                         checkpoint_number = max(checkpoint_number, cp)
-                break
 
-        # create dir for graphs output
-        output_dir = os.path.join(checkpoint_path, 'output_graphs')
-        if not os.path.exists(output_dir):
-            os.mkdir(output_dir)
-        
-        # run graph generation script
-        parser = create_parser()
-        args = parser.parse_args([
-            '-r', checkpoint_path, '-c', str(checkpoint_number),
-            '--gen_emission', '--use_s3', '--num_cpus', str(flags.num_cpus),
-            '--output_dir', output_dir,
-            '--submitter_name', submitter_name, '--strategy_name', strategy_name
-        ])
-        generate_graphs(args)
+                # create dir for graphs output
+                output_dir = os.path.join(checkpoint_path, 'output_graphs')
+                if not os.path.exists(output_dir):
+                    os.mkdir(output_dir)
+                
+                # run graph generation script
+                parser = create_parser()
+                args = parser.parse_args([
+                    '-r', checkpoint_path, '-c', str(checkpoint_number),
+                    '--gen_emission', '--use_s3', '--num_cpus', str(flags.num_cpus),
+                    '--output_dir', output_dir,
+                    '--submitter_name', submitter_name,
+                    '--strategy_name', strategy_name + '__' + dirpath.split('/')[-2]
+                ])
+                generate_graphs(args)
 
 
 def train_h_baselines(env_name, args, multiagent):
