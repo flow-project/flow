@@ -232,13 +232,13 @@ class Experiment:
 
             write_dict_to_csv(trajectory_table_path, extra_info)
             write_dict_to_csv(metadata_table_path, metadata, True)
-            tsd_main(trajectory_table_path,
+
+            if to_aws:
+                tsd_main(trajectory_table_path,
                      {'network': self.env.network.__class__},
                      min_speed=0,
                      max_speed=10,
                      start=self.env.env_params.warmup_steps)
-
-            if to_aws:
                 upload_to_s3('circles.data.pipeline',
                              'metadata_table/date={0}/partition_name={1}_METADATA/{1}_METADATA.csv'.format(cur_date,
                                                                                                            source_id),
