@@ -21,8 +21,8 @@ class Experiment:
     the actions of RL agents in the network, type the following:
 
         >>> from flow.envs import Env
-        >>> flow_params = dict(...)  # see the examples in exp_config
-        >>> exp = Experiment(flow_params)  # for some experiment configuration
+        {'network': >>> self.env.network.__class__} = dict(...)  # see the examples in exp_config
+        {'network': >>> exp = Experiment(self.env.network.__class__})  # for some experiment configuration
         >>> exp.run(num_runs=1)
 
     If you wish to specify the actions of RL agents in the network, this may be
@@ -40,7 +40,7 @@ class Experiment:
     ``emission_path`` attribute in ``SimParams`` to some path.
 
         >>> from flow.core.params import SimParams
-        >>> flow_params['sim'] = SimParams(emission_path="./data")
+        {'network': >>> self.env.network.__class__}['sim'] = SimParams(emission_path="./data")
 
     Once you have included this in your environment, run your Experiment object
     as follows:
@@ -232,7 +232,11 @@ class Experiment:
 
             write_dict_to_csv(trajectory_table_path, extra_info)
             write_dict_to_csv(metadata_table_path, metadata, True)
-            tsd_main(trajectory_table_path, flow_params, min_speed=0, max_speed=10, start=self.env.env_params.warmup_steps)
+            tsd_main(trajectory_table_path,
+                     {'network': self.env.network.__class__},
+                     min_speed=0,
+                     max_speed=10,
+                     start=self.env.env_params.warmup_steps)
 
             if to_aws:
                 upload_to_s3('circles.data.pipeline',

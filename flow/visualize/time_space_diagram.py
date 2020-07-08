@@ -382,7 +382,7 @@ def _get_abs_pos(df, params):
     return ret
 
 
-def plot_tsd(ax, df, segs, min_speed=0, max_speed=10, start=0, lane=None, ghost_edges=None, ghost_bounds=None):
+def plot_tsd(ax, df, segs, cmap, min_speed=0, max_speed=10, start=0, lane=None, ghost_edges=None, ghost_bounds=None):
     """Plot the time-space diagram.
 
     Take the pre-processed segments and other meta-data, then plot all the line segments.
@@ -412,7 +412,7 @@ def plot_tsd(ax, df, segs, min_speed=0, max_speed=10, start=0, lane=None, ghost_
     -------
     None
     """
-    norm = plt.Normalize(args.min_speed, args.max_speed)
+    norm = plt.Normalize(min_speed, max_speed)
 
     xmin, xmax = df['time_step'].min(), df['time_step'].max()
     xbuffer = (xmax - xmin) * 0.025  # 2.5% of range
@@ -422,7 +422,7 @@ def plot_tsd(ax, df, segs, min_speed=0, max_speed=10, start=0, lane=None, ghost_
     ax.set_xlim(xmin - xbuffer, xmax + xbuffer)
     ax.set_ylim(ymin - ybuffer, ymax + ybuffer)
 
-    lc = LineCollection(segs, cmap=my_cmap, norm=norm)
+    lc = LineCollection(segs, cmap=cmap, norm=norm)
     lc.set_array(df['speed'].values)
     lc.set_linewidth(1)
     ax.add_collection(lc)
@@ -432,15 +432,15 @@ def plot_tsd(ax, df, segs, min_speed=0, max_speed=10, start=0, lane=None, ghost_
     if ghost_edges:
         y_domain_min = df[~df['edge_id'].isin(ghost_edges)]['distance'].min()
         y_domain_max = df[~df['edge_id'].isin(ghost_edges)]['distance'].max()
-        rects.append(Rectangle((xmin, y_domain_min), args.start - xmin, y_domain_max - y_domain_min))
+        rects.append(Rectangle((xmin, y_domain_min), start - xmin, y_domain_max - y_domain_min))
         rects.append(Rectangle((xmin, ymin), xmax - xmin, y_domain_min - ymin))
         rects.append(Rectangle((xmin, y_domain_max), xmax - xmin, ymax - y_domain_max))
     elif ghost_bounds:
-        rects.append(Rectangle((xmin, ghost_bounds[0]), args.start - xmin, ghost_bounds[1] - ghost_bounds[0]))
+        rects.append(Rectangle((xmin, ghost_bounds[0]), start - xmin, ghost_bounds[1] - ghost_bounds[0]))
         rects.append(Rectangle((xmin, ymin), xmax - xmin, ghost_bounds[0] - ymin))
         rects.append(Rectangle((xmin, ghost_bounds[1]), xmax - xmin, ymax - ghost_bounds[1]))
     else:
-        rects.append(Rectangle((xmin, ymin), args.start - xmin, ymax - ymin))
+        rects.append(Rectangle((xmin, ymin), start - xmin, ymax - ymin))
 
     if rects:
         pc = PatchCollection(rects, facecolor='grey', alpha=0.5, edgecolor=None)
@@ -462,7 +462,7 @@ def plot_tsd(ax, df, segs, min_speed=0, max_speed=10, start=0, lane=None, ghost_
 
 
 def tsd_main(trajectory_path, flow_params, min_speed=0, max_speed=10, start=0):
-    """Main function for plotting time-space diagram.
+    """Prepare and plot the time-space diagram.
 
     Parameters
     ----------
@@ -499,7 +499,7 @@ def tsd_main(trajectory_path, flow_params, min_speed=0, max_speed=10, start=0):
 
     if flow_params['network'] == I210SubNetwork:
         nlanes = traj_df['lane_id'].nunique()
-        fig = plt.figure(figsize=(16, 9*nlanes))
+        plt.figure(figsize=(16, 9*nlanes))
 
         for lane, df in traj_df.groupby('lane_id'):
             ax = plt.subplot(nlanes, 1, lane+1)
@@ -507,6 +507,7 @@ def tsd_main(trajectory_path, flow_params, min_speed=0, max_speed=10, start=0):
             plot_tsd(ax=ax,
                      df=df,
                      segs=segs[lane],
+                     cmap=my_cmap,
                      min_speed=min_speed,
                      max_speed=max_speed,
                      start=start,
@@ -515,13 +516,14 @@ def tsd_main(trajectory_path, flow_params, min_speed=0, max_speed=10, start=0):
         plt.tight_layout()
     else:
         # perform plotting operation
-        fig = plt.figure(figsize=(16, 9))
+        plt.figure(figsize=(16, 9))
         ax = plt.axes()
 
         if flow_params['network'] == HighwayNetwork:
             plot_tsd(ax=ax,
                      df=traj_df,
                      segs=segs,
+                     cmap=my_cmap,
                      min_speed=min_speed,
                      max_speed=max_speed,
                      start=start,
@@ -530,6 +532,7 @@ def tsd_main(trajectory_path, flow_params, min_speed=0, max_speed=10, start=0):
             plot_tsd(ax=ax,
                      df=traj_df,
                      segs=segs,
+                     cmap=my_cmap,
                      min_speed=min_speed,
                      max_speed=max_speed,
                      start=start)
