@@ -167,12 +167,6 @@ def _merge(data):
 def _highway(data):
     r"""Generate time and position data for the highway.
 
-<<<<<<< HEAD
-    We generate plots for all lanes, so the segments are wrapped in
-    a dictionary.
-
-=======
->>>>>>> d36da2e5144a40072b11e39f9da6725cc3f4441e
     Parameters
     ----------
     data : pd.DataFrame
