@@ -169,8 +169,6 @@ class Experiment:
 
         if convert_to_csv and self.env.simulator == "traci":
             dir_path = self.env.sim_params.emission_path
-
-        if dir_path:
             trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
             metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
 

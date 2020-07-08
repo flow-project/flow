@@ -272,17 +272,22 @@ class QueryStrings(Enum):
     """
 
     FACT_SAFETY_METRICS_BINNED = """
-        WITH bins AS (
+        WITH unfilter_bins AS (
             SELECT
                 ROW_NUMBER() OVER() - 51 AS lb,
                 ROW_NUMBER() OVER() - 50 AS ub
             FROM fact_safety_metrics
-            HAVING 1 = 1
+        ), bins AS (
+            SELECT 
+                lb,
+                ub
+            FROM unfilter_bins
+            WHERE 1=1
                 AND lb >= -10
-                AND ub <= 10
+                AND ub <= 10 
         )
         SELECT
-            CONCAT('[', bins.lb, ', ', bins.ub, ')') AS safety_value_bin,
+            CONCAT('[', CAST(bins.lb AS VARCHAR), ', ', CAST(bins.ub AS VARCHAR), ')') AS safety_value_bin,
             COUNT() AS count
         FROM bins, fact_safety_metrics fsm
         WHERE 1 = 1
@@ -364,22 +369,27 @@ class QueryStrings(Enum):
     """
 
     FACT_VEHICLE_FUEL_EFFICIENCY_BINNED = """
-        WITH bins AS (
+        WITH unfilter_bins AS (
             SELECT
-                ROW_NUMBER() - 1 AS lb,
-                ROW_NUMBER() AS ub
+                ROW_NUMBER() OVER() - 1 AS lb,
+                ROW_NUMBER() OVER() AS ub
             FROM fact_safety_metrics
-            HAVING 1 = 1
+        ) bins AS (
+            SELECT
+                lb,
+                ub
+            FROM unfilter_bins
+            WHERE 1=1
                 AND lb >= 0
                 AND ub <= 20
         )
         SELECT
-            CONCAT('[', bins.lb, ', ', bins.ub, ')') AS fuel_efficiency_bin,
+            CONCAT('[', CAST(bins.lb AS VARCHAR), ', ', CAST(bins.ub AS VARCHAR), ')') AS fuel_efficiency_bin,
             COUNT() AS count
         FROM bins, fact_vehicle_fuel_efficiency_agg agg
         WHERE 1 = 1
             AND agg.date = \'{date}\'
-            AND agg.partition_name = \'{partition}_FACT_FUEL_EFFICIENCY_AGG\'
+            AND agg.partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
             AND agg.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
             AND 1000 * agg.efficiency_meters_per_joules >= bins.lb
             AND 1000 * agg.efficiency_meters_per_joules < bins.ub
