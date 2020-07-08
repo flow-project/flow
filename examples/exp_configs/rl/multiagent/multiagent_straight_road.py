@@ -86,9 +86,12 @@ additional_env_params.update({
 
     # penalize stopped vehicles
     "penalize_stops": True,
+    "stop_penalty": 0.05,
 
     # penalize accels
-    "penalize_accel": True
+    "penalize_accel": True,
+    "accel_penalty": 0.05,
+
 })
 
 

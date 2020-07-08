@@ -4,13 +4,10 @@ This method accepts as input a csv file containing the sumo-formatted emission
 file, and then uses this data to generate a time-space diagram, with the x-axis
 being the time (in seconds), the y-axis being the position of a vehicle, and
 color representing the speed of te vehicles.
-
 If the number of simulation steps is too dense, you can plot every nth step in
 the plot by setting the input `--steps=n`.
-
 Note: This script assumes that the provided network has only one lane on the
 each edge, or one lane on the main highway in the case of MergeNetwork.
-
 Usage
 -----
 ::
@@ -27,7 +24,8 @@ except ImportError:
     import matplotlib
     matplotlib.use('TkAgg')
     from matplotlib import pyplot as plt
-from matplotlib.collections import LineCollection
+from matplotlib.collections import LineCollection, PatchCollection
+from matplotlib.patches import Rectangle
 import matplotlib.colors as colors
 import numpy as np
 import pandas as pd
@@ -52,7 +50,6 @@ def import_data_from_trajectory(fp, params=dict()):
         file path (for the .csv formatted file)
     params : dict
         flow-specific parameters, including:
-
         * "network" (str): name of the network that was used when generating
           the emission file. Must be one of the network names mentioned in
           ACCEPTABLE_NETWORKS,
@@ -94,7 +91,6 @@ def get_time_space_data(data, params):
         cleaned dataframe of the trajectory data
     params : dict
         flow-specific parameters, including:
-
         * "network" (str): name of the network that was used when generating
           the emission file. Must be one of the network names mentioned in
           ACCEPTABLE_NETWORKS,
@@ -104,11 +100,10 @@ def get_time_space_data(data, params):
 
     Returns
     -------
-    ndarray (or dict of ndarray)
+    ndarray (or dict < str, np.ndarray >)
         3d array (n_segments x 2 x 2) containing segments to be plotted.
         every inner 2d array is comprised of two 1d arrays representing
         [start time, start distance] and [end time, end distance] pairs.
-
         in the case of I210, the nested arrays are wrapped into a dict,
         keyed on the lane number, so that each lane can be plotted
         separately.
@@ -122,7 +117,6 @@ def get_time_space_data(data, params):
     assert params['network'] in ACCEPTABLE_NETWORKS, \
         'Network must be one of: ' + ', '.join([network.__name__ for network in ACCEPTABLE_NETWORKS])
 
-    # switcher used to compute the positions based on the type of network
     # switcher used to compute the positions based on the type of network
     switcher = {
         RingNetwork: _ring_road,
@@ -173,6 +167,9 @@ def _merge(data):
 def _highway(data):
     r"""Generate time and position data for the highway.
 
+    We generate plots for all lanes, so the segments are wrapped in
+    a dictionary.
+
     Parameters
     ----------
     data : pd.DataFrame
@@ -187,8 +184,6 @@ def _highway(data):
     pd.DataFrame
         modified trajectory dataframe
     """
-    data.loc[:, :] = data[(data['distance'] > 500)]
-    data.loc[:, :] = data[(data['distance'] < 2300)]
     segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
 
     return segs, data
@@ -241,10 +236,6 @@ def _i210_subnetwork(data):
     pd.DataFrame
         modified trajectory dataframe
     """
-    # Omit ghost edges
-    omit_edges = {'ghost0', '119257908#3'}
-    data.loc[:, :] = data[~data['edge_id'].isin(omit_edges)]
-
     # Reset lane numbers that are offset by ramp lanes
     offset_edges = set(data[data['lane_id'] == 5]['edge_id'].unique())
     data.loc[data['edge_id'].isin(offset_edges), 'lane_id'] -= 1
@@ -391,7 +382,7 @@ def _get_abs_pos(df, params):
     return ret
 
 
-def plot_tsd(ax, df, segs, args, lane=None):
+def plot_tsd(ax, df, segs, args, lane=None, ghost_edges=None, ghost_bounds=None):
     """Plot the time-space diagram.
 
     Take the pre-processed segments and other meta-data, then plot all the line segments.
@@ -408,6 +399,10 @@ def plot_tsd(ax, df, segs, args, lane=None):
         parsed arguments
     lane : int, optional
         lane number to be shown in plot title
+    ghost_edges : list or set of str
+        ghost edge names to be greyed out, default None
+    ghost_bounds : tuple
+        lower and upper bounds of domain, excluding ghost edges, default None
 
     Returns
     -------
@@ -415,8 +410,7 @@ def plot_tsd(ax, df, segs, args, lane=None):
     """
     norm = plt.Normalize(args.min_speed, args.max_speed)
 
-    xmin = max(df['time_step'].min(), args.start)
-    xmax = min(df['time_step'].max(), args.stop)
+    xmin, xmax = df['time_step'].min(), df['time_step'].max()
     xbuffer = (xmax - xmin) * 0.025  # 2.5% of range
     ymin, ymax = df['distance'].min(), df['distance'].max()
     ybuffer = (ymax - ymin) * 0.025  # 2.5% of range
@@ -429,6 +423,25 @@ def plot_tsd(ax, df, segs, args, lane=None):
     lc.set_linewidth(1)
     ax.add_collection(lc)
     ax.autoscale()
+
+    rects = []
+    if ghost_edges:
+        y_domain_min = df[~df['edge_id'].isin(ghost_edges)]['distance'].min()
+        y_domain_max = df[~df['edge_id'].isin(ghost_edges)]['distance'].max()
+        rects.append(Rectangle((xmin, y_domain_min), args.start - xmin, y_domain_max - y_domain_min))
+        rects.append(Rectangle((xmin, ymin), xmax - xmin, y_domain_min - ymin))
+        rects.append(Rectangle((xmin, y_domain_max), xmax - xmin, ymax - y_domain_max))
+    elif ghost_bounds:
+        rects.append(Rectangle((xmin, ghost_bounds[0]), args.start - xmin, ghost_bounds[1] - ghost_bounds[0]))
+        rects.append(Rectangle((xmin, ymin), xmax - xmin, ghost_bounds[0] - ymin))
+        rects.append(Rectangle((xmin, ghost_bounds[1]), xmax - xmin, ymax - ghost_bounds[1]))
+    else:
+        rects.append(Rectangle((xmin, ymin), args.start - xmin, ymax - ymin))
+
+    if rects:
+        pc = PatchCollection(rects, facecolor='grey', alpha=0.5, edgecolor=None)
+        pc.set_zorder(20)
+        ax.add_collection(pc)
 
     if lane:
         ax.set_title('Time-Space Diagram: Lane {}'.format(lane), fontsize=25)
@@ -469,8 +482,6 @@ if __name__ == '__main__':
                         help='The minimum speed in the color range.')
     parser.add_argument('--start', type=float, default=0,
                         help='initial time (in sec) in the plot.')
-    parser.add_argument('--stop', type=float, default=float('inf'),
-                        help='final time (in sec) in the plot.')
 
     args = parser.parse_args()
 
@@ -502,13 +513,17 @@ if __name__ == '__main__':
         for lane, df in traj_df.groupby('lane_id'):
             ax = plt.subplot(nlanes, 1, lane+1)
 
-            plot_tsd(ax, df, segs[lane], args, lane)
+            plot_tsd(ax, df, segs[lane], args, int(lane+1), ghost_edges={'ghost0', '119257908#3'})
+        plt.tight_layout()
     else:
         # perform plotting operation
         fig = plt.figure(figsize=(16, 9))
         ax = plt.axes()
 
-        plot_tsd(ax, traj_df, segs, args)
+        if flow_params['network'] == HighwayNetwork:
+            plot_tsd(ax, traj_df, segs, args, ghost_bounds=(500, 2300))
+        else:
+            plot_tsd(ax, traj_df, segs, args)
 
     ###########################################################################
     #                       Note: For MergeNetwork only                       #
@@ -519,4 +534,5 @@ if __name__ == '__main__':
                  [-0.1, -0.1], linewidth=3, color="white")     #
     ###########################################################################
 
-    plt.show()
+    outfile = args.trajectory_path.replace('csv', 'png')
+    plt.savefig(outfile)

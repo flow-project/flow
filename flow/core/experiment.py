@@ -163,9 +163,10 @@ class Experiment:
         metadata['submission_time'].append(cur_time)
         metadata['network'].append(network_name_translate(self.env.network.name.split('_20')[0]))
         metadata['is_baseline'].append(str(is_baseline))
-        name, strategy = get_configuration()
-        metadata['submitter_name'].append(name)
-        metadata['strategy'].append(strategy)
+        if to_aws:
+            name, strategy = get_configuration()
+            metadata['submitter_name'].append(name)
+            metadata['strategy'].append(strategy)
 
         if convert_to_csv and self.env.simulator == "traci":
             dir_path = self.env.sim_params.emission_path
@@ -194,7 +195,7 @@ class Experiment:
                 get_extra_info(self.env.k.vehicle, extra_info, veh_ids, source_id, run_id)
 
                 # write to disk every 100 steps
-                if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0 and dir_path:
+                if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0:
                     write_dict_to_csv(trajectory_table_path, extra_info, not j)
                     extra_info.clear()
 

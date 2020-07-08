@@ -145,7 +145,7 @@ def delete_obsolete_data(s3, latest_key, table, bucket="circles.data.pipeline"):
 
 
 def update_baseline(s3, baseline_network, baseline_source_id):
-    """Update the baseline source_id for the specified network."""
+    """Update the baseline table on S3 if new baseline run is added."""
     obj = s3.get_object(Bucket='circles.data.pipeline', Key='baseline_table/baselines.csv')['Body']
     original_str = obj.read().decode()
     reader = csv.DictReader(StringIO(original_str))

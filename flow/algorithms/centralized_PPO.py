@@ -1,14 +1,14 @@
+"""An example of customizing PPO to leverage a centralized critic."""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-
-"""An example of customizing PPO to leverage a centralized critic."""
 
 import argparse
 import numpy as np
 
 from ray.rllib.agents.ppo.ppo import PPOTrainer
-from flow.algorithms.custom_ppo import CustomPPOTFPolicy
+from flow.algorithms.custom_ppo import CustomPPOTFPolicy, KLCoeffMixin
 from ray.rllib.evaluation.postprocessing import compute_advantages, \
     Postprocessing
 from ray.rllib.policy.sample_batch import SampleBatch
@@ -65,14 +65,17 @@ class CentralizedCriticModel(TFModelV2):
         self.register_variables(self.central_vf.variables)
 
     def forward(self, input_dict, state, seq_lens):
+        """Run forward inference."""
         return self.model.forward(input_dict, state, seq_lens)
 
     def central_value_function(self, central_obs):
+        """Compute the centralized value function."""
         return tf.reshape(
             self.central_vf(
                 [central_obs]), [-1])
 
     def value_function(self):
+        """Compute the normal value function; this is only here to make the code run."""
         return self.model.value_function()  # not used
 
 
@@ -145,23 +148,27 @@ class CentralizedCriticModelRNN(RecurrentTFModelV2):
 
     @override(RecurrentTFModelV2)
     def forward_rnn(self, inputs, state, seq_lens):
+        """Forward inference on the RNN."""
         model_out, self._value_out, h, c = self.model(
             [inputs, seq_lens] + state)
         return model_out, [h, c]
 
     @override(ModelV2)
     def get_initial_state(self):
+        """Set up the initial RNN state."""
         return [
             np.zeros(self.cell_size, np.float32),
             np.zeros(self.cell_size, np.float32),
         ]
 
     def central_value_function(self, central_obs):
+        """Compute the central value function."""
         return tf.reshape(
             self.central_vf(
                 [central_obs]), [-1])
 
     def value_function(self):
+        """Compute the normal value function; this is only here to make the code run."""
         return tf.reshape(self._value_out, [-1])  # not used
 
 
@@ -175,18 +182,18 @@ class CentralizedValueMixin(object):
         )
 
     def compute_central_vf(self, central_obs):
+        """Run forward inference on the model."""
         feed_dict = {
             self.get_placeholder(CENTRAL_OBS): central_obs,
         }
         return self.get_session().run(self.central_value_function, feed_dict)
 
 
-# Grabs the opponent obs/act and includes it in the experience train_batch,
-# and computes GAE using the central vf predictions.
 def centralized_critic_postprocessing(policy,
                                       sample_batch,
                                       other_agent_batches=None,
                                       episode=None):
+    """Find all other agents that overlapped with you and stack their obs to be passed to the central VF."""
     if policy.loss_initialized():
         assert other_agent_batches is not None
 
@@ -207,13 +214,6 @@ def centralized_critic_postprocessing(policy,
             agent_id: other_agent_batches[agent_id][1]["obs"].copy()
             for agent_id in other_agent_batches.keys()
         }
-        # padded_agent_obs = {agent_id:
-        #     overlap_and_pad_agent(
-        #         time_span,
-        #         rel_agent_time,
-        #         other_obs[agent_id])
-        #     for agent_id,
-        #         rel_agent_time in rel_agents.items()}
         padded_agent_obs = {
             agent_id: fill_missing(
                 agent_time,
@@ -229,7 +229,7 @@ def centralized_critic_postprocessing(policy,
             central_obs_batch = np.hstack(
                 (sample_batch["obs"], np.hstack(central_obs_list)))
         except Exception as e:
-            print(‘Error in centralized PPO: ’, e)
+            print("Error in centralized PPO: ", e)
             # TODO(@ev) this is a bug and needs to be fixed
             central_obs_batch = sample_batch["obs"]
         max_vf_agents = policy.model.max_num_agents
@@ -287,6 +287,7 @@ def time_overlap(time_span, agent_time):
 
 
 def fill_missing(agent_time, other_agent_time, obs):
+    """Pad the obs to the appropriate length for agents that don't overlap perfectly in time."""
     # shortcut, the two overlap perfectly
     if np.sum(agent_time == other_agent_time) == agent_time.shape[0]:
         return obs
@@ -315,15 +316,9 @@ def overlap_and_pad_agent(time_span, agent_time, obs):
     assert time_overlap(time_span, agent_time)
     print(time_span)
     print(agent_time)
-    if time_span[0] == 7 or agent_time[0] == 7:
-        import ipdb
-        ipdb.set_trace()
     # FIXME(ev) some of these conditions can be combined
     # no padding needed
     if agent_time[0] == time_span[0] and agent_time[1] == time_span[1]:
-        if obs.shape[0] < 200:
-            import ipdb
-            ipdb.set_trace()
         return obs
     # agent enters before time_span starts and exits before time_span end
     if agent_time[0] < time_span[0] and agent_time[1] < time_span[1]:
@@ -332,9 +327,6 @@ def overlap_and_pad_agent(time_span, agent_time, obs):
         overlap_obs = obs[non_overlap_time:]
         padding = np.zeros((missing_time, obs.shape[1]))
         obs_concat = np.concatenate((overlap_obs, padding))
-        if obs_concat.shape[0] < 200:
-            import ipdb
-            ipdb.set_trace()
         return obs_concat
     # agent enters after time_span starts and exits after time_span ends
     elif agent_time[0] > time_span[0] and agent_time[1] > time_span[1]:
@@ -343,9 +335,6 @@ def overlap_and_pad_agent(time_span, agent_time, obs):
         missing_time = agent_time[0] - time_span[0]
         padding = np.zeros((missing_time, obs.shape[1]))
         obs_concat = np.concatenate((padding, overlap_obs))
-        if obs_concat.shape[0] < 200:
-            import ipdb
-            ipdb.set_trace()
         return obs_concat
     # agent time is entirely contained in time_span
     elif agent_time[0] >= time_span[0] and agent_time[1] <= time_span[1]:
@@ -358,9 +347,6 @@ def overlap_and_pad_agent(time_span, agent_time, obs):
         if missing_right > 0:
             padding = np.zeros((missing_right, obs.shape[1]))
             obs_concat = np.concatenate((obs_concat, padding))
-        if obs_concat.shape[0] < 200:
-            import ipdb
-            ipdb.set_trace()
         return obs_concat
     # agent time totally contains time_span
     elif agent_time[0] <= time_span[0] and agent_time[1] >= time_span[1]:
@@ -371,14 +357,11 @@ def overlap_and_pad_agent(time_span, agent_time, obs):
             overlap_obs = overlap_obs[non_overlap_left:]
         if non_overlap_right > 0:
             overlap_obs = overlap_obs[:-non_overlap_right]
-        if overlap_obs.shape[0] < 200:
-            import ipdb
-            ipdb.set_trace()
         return overlap_obs
 
 
-# Copied from PPO but optimizing the central value function
 def loss_with_central_critic(policy, model, dist_class, train_batch):
+    """Set up the PPO loss but replace the VF loss with the centralized VF loss."""
     CentralizedValueMixin.__init__(policy)
 
     logits, state = model.from_batch(train_batch)
@@ -409,6 +392,8 @@ def loss_with_central_critic(policy, model, dist_class, train_batch):
 
 
 class PPOLoss(object):
+    """Object containing the PPO loss function."""
+
     def __init__(self,
                  action_space,
                  dist_class,
@@ -472,6 +457,7 @@ class PPOLoss(object):
         model_config : dict, optional
             model config for use in specifying action distributions.
         """
+
         def reduce_mean_valid(t):
             return tf.reduce_mean(tf.boolean_mask(t, valid_mask))
 
@@ -508,28 +494,13 @@ class PPOLoss(object):
 
 
 def new_ppo_surrogate_loss(policy, model, dist_class, train_batch):
+    """Return the PPO loss with the centralized value function."""
     loss = loss_with_central_critic(policy, model, dist_class, train_batch)
     return loss
 
 
-class KLCoeffMixin(object):
-    def __init__(self, config):
-        # KL Coefficient
-        self.kl_coeff_val = config["kl_coeff"]
-        self.kl_target = config["kl_target"]
-        self.kl_coeff = tf.get_variable(
-            initializer=tf.constant_initializer(self.kl_coeff_val),
-            name="kl_coeff",
-            shape=(),
-            trainable=False,
-            dtype=tf.float32)
-
-    def update_kl(self, blah):
-        pass
-
-
 def setup_mixins(policy, obs_space, action_space, config):
-    # copied from PPO
+    """Construct additional classes that add on to PPO."""
     KLCoeffMixin.__init__(policy, config)
 
     EntropyCoeffSchedule.__init__(policy, config["entropy_coeff"],
@@ -541,7 +512,7 @@ def setup_mixins(policy, obs_space, action_space, config):
 
 
 def central_vf_stats(policy, train_batch, grads):
-    # Report the explained variance of the central value function.
+    """Report the explained variance of the centralized value function."""
     return {
         "vf_explained_var": explained_variance(
             train_batch[Postprocessing.VALUE_TARGETS],
@@ -550,6 +521,7 @@ def central_vf_stats(policy, train_batch, grads):
 
 
 def kl_and_loss_stats(policy, train_batch):
+    """Trianing stats to pass to the tensorboard."""
     return {
         "cur_kl_coeff": tf.cast(policy.kl_coeff, tf.float64),
         "cur_lr": tf.cast(policy.cur_lr, tf.float64),
