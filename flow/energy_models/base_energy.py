@@ -15,6 +15,9 @@ class BaseEnergyModel(metaclass=ABCMeta):
     def __init__(self, kernel):
         self.k = kernel
 
+        # 15 kilowatts = 1 gallon/hour conversion factor
+        self.conversion = 15e3
+
     @abstractmethod
     def get_instantaneous_power(self, accel, speed, grade):
         """Calculate the instantaneous power consumption of a vehicle.
@@ -34,3 +37,23 @@ class BaseEnergyModel(metaclass=ABCMeta):
         float
         """
         pass
+
+    def get_instantaneous_fuel_consumption(self, accel, speed, grade):
+        """Calculate the instantaneous fuel consumption of a vehicle.
+
+        Fuel consumption is reported in gallons per hour, with the conversion
+        rate of 15kW = 1 gallon/hour.
+
+        Parameters
+        ----------
+        accel : float
+            Instantaneous acceleration of the vehicle
+        speed : float
+            Instantaneous speed of the vehicle
+        grade : float
+            Instantaneous road grade of the vehicle
+        Returns
+        -------
+        float
+        """
+        return self.get_instantaneous_power(accel, speed, grade) * self.conversion
