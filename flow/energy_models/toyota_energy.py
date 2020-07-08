@@ -50,5 +50,9 @@ class TacomaEnergy(ToyotaModel):
 
     def get_instantaneous_power(self, accel, speed, grade):
         """See parent class."""
+        return self.get_instantaneous_fuel_consumption(accel, speed, grade) / self.conversion
+
+    def get_instantaneous_fuel_consumption(self, accel, speed, grade):
+        """See parent class."""
         fc = self.toyota_energy(accel, speed, grade)
         return fc
