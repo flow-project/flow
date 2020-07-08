@@ -2,6 +2,7 @@
 from flow.utils.registry import make_create_env
 from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
 from flow.data_pipeline.leaderboard_utils import network_name_translate
+from flow.visualize.time_space_diagram import tsd_main
 from collections import defaultdict
 from datetime import datetime, timezone
 import logging
@@ -231,6 +232,7 @@ class Experiment:
 
             write_dict_to_csv(trajectory_table_path, extra_info)
             write_dict_to_csv(metadata_table_path, metadata, True)
+            tsd_main(trajectory_table_path, flow_params, min_speed=0, max_speed=10, start=self.env.env_params.warmup_steps)
 
             if to_aws:
                 upload_to_s3('circles.data.pipeline',
@@ -241,5 +243,8 @@ class Experiment:
                              'fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv'.format(cur_date, source_id),
                              trajectory_table_path,
                              {'network': metadata['network'][0], 'is_baseline': metadata['is_baseline'][0]})
+                upload_to_s3('circles.data.pipeline',
+                             'time_space_diagram/date={0}/partition_name={1}/{1}.csv'.format(cur_date, source_id),
+                             trajectory_table_path.replace('csv', 'png'))
 
         return info_dict
