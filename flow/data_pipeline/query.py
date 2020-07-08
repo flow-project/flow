@@ -1,68 +1,78 @@
 """stores all the pre-defined query strings."""
+from collections import defaultdict
 from enum import Enum
 
 # tags for different queries
-tags = {
-    "fact_vehicle_trace": {
-        "fact_energy_trace": [
-            "POWER_DEMAND_MODEL",
-            "POWER_DEMAND_MODEL_DENOISED_ACCEL",
-            "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL"
-        ],
-        "fact_safety_metrics": [
-            "FACT_SAFETY_METRICS"
-        ],
-        "fact_network_throughput_agg": [
-            "FACT_NETWORK_THROUGHPUT_AGG"
-        ],
-        "fact_network_inflows_outflows": [
-            "FACT_NETWORK_INFLOWS_OUTFLOWS"
-        ],
-        "fact_vehicle_counts_by_time": [
-            "FACT_VEHICLE_COUNTS_BY_TIME"
-        ]
-    },
-    "fact_energy_trace": {},
-    "fact_vehicle_counts_by_time": {},
-    "fact_safety_metrics": {
-        "fact_safety_metrics_agg": [
-            "FACT_SAFETY_METRICS_AGG"
-        ]
-    },
-    "POWER_DEMAND_MODEL_DENOISED_ACCEL": {
-        "fact_vehicle_fuel_efficiency_agg": [
-            "FACT_VEHICLE_FUEL_EFFICIENCY_AGG"
-        ],
-        "fact_network_metrics_by_distance_agg": [
-            "FACT_NETWORK_METRICS_BY_DISTANCE_AGG"
-        ],
-        "fact_network_metrics_by_time_agg": [
-            "FACT_NETWORK_METRICS_BY_TIME_AGG"
-        ]
-    },
-    "POWER_DEMAND_MODEL": {},
-    "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL": {},
-    "fact_vehicle_fuel_efficiency_agg": {
-        "fact_network_fuel_efficiency_agg": [
-            "FACT_NETWORK_FUEL_EFFICIENCY_AGG"
-        ]
-    },
-    "fact_network_fuel_efficiency_agg": {
-        "leaderboard_chart": [
-            "LEADERBOARD_CHART"
-        ]
-    },
-    "leaderboard_chart": {
-        "leaderboard_chart_agg": [
-            "LEADERBOARD_CHART_AGG"
-        ]
-    },
-    "leaderboard_chart_agg": {
-        "fact_top_scores": [
-            "FACT_TOP_SCORES"
-        ]
-    }
+prerequisites = {
+    "POWER_DEMAND_MODEL": (
+        "fact_energy_trace", {"FACT_VEHICLE_TRACE"}
+    ),
+    "POWER_DEMAND_MODEL_DENOISED_ACCEL": (
+        "fact_energy_trace", {"FACT_VEHICLE_TRACE"}
+    ),
+    "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL": (
+        "fact_energy_trace", {"FACT_VEHICLE_TRACE"}
+    ),
+    "FACT_SAFETY_METRICS": (
+        "fact_safety_metrics", {"FACT_VEHICLE_TRACE"}
+    ),
+    "FACT_NETWORK_THROUGHPUT_AGG": (
+        "fact_network_throughput_agg", {"FACT_VEHICLE_TRACE"}
+    ),
+    "FACT_NETWORK_INFLOWS_OUTFLOWS": (
+        "fact_network_inflows_outflows", {"FACT_VEHICLE_TRACE"}
+    ),
+    "FACT_VEHICLE_COUNTS_BY_TIME": (
+        "fact_vehicle_counts_by_time", {"FACT_VEHICLE_TRACE"}
+    ),
+    "FACT_VEHICLE_FUEL_EFFICIENCY_AGG": (
+        "fact_vehicle_fuel_efficiency_agg", {"FACT_VEHICLE_TRACE",
+                                             "POWER_DEMAND_MODEL_DENOISED_ACCEL"}
+    ),
+    "FACT_NETWORK_METRICS_BY_DISTANCE_AGG": (
+         "fact_network_metrics_by_distance_agg", {"FACT_VEHICLE_TRACE",
+                                                  "POWER_DEMAND_MODEL_DENOISED_ACCEL"}
+    ),
+    "FACT_NETWORK_METRICS_BY_TIME_AGG": (
+         "fact_network_metrics_by_time_agg", {"FACT_VEHICLE_TRACE",
+                                              "POWER_DEMAND_MODEL_DENOISED_ACCEL"}
+    ),
+    "FACT_VEHICLE_FUEL_EFFICIENCY_BINNED": (
+        "fact_vehicle_fuel_efficiency_binned", {"FACT_VEHICLE_FUEL_EFFICIENCY_AGG"}
+    ),
+    "FACT_NETWORK_FUEL_EFFICIENCY_AGG": (
+        "fact_network_fuel_efficiency_agg", {"FACT_VEHICLE_FUEL_EFFICIENCY_AGG"}
+    ),
+    "FACT_SAFETY_METRICS_AGG": (
+        "fact_safety_metrics_agg", {"FACT_SAFETY_METRICS"}
+    ),
+    "FACT_SAFETY_METRICS_BINNED": (
+        "fact_safety_metrics_binned", {"FACT_SAFETY_METRICS"}
+    ),
+    "LEADERBOARD_CHART": (
+        "leaderboard_chart", {"FACT_NETWORK_THROUGHPUT_AGG",
+                              "FACT_NETWORK_FUEL_EFFICIENCY_AGG",
+                              "FACT_SAFETY_METRICS_AGG"}
+    ),
+    "LEADERBOARD_CHART_AGG": (
+        "leaderboard_chart_agg", {"LEADERBOARD_CHART"}
+    ),
+    "FACT_TOP_SCORES": (
+        "fact_top_scores", {"LEADERBOARD_CHART_AGG"}
+    ),
 }
+
+triggers = [
+    "FACT_VEHICLE_TRACE",
+    "POWER_DEMAND_MODEL_DENOISED_ACCEL",
+    "FACT_VEHICLE_FUEL_EFFICIENCY_AGG",
+    "FACT_SAFETY_METRICS",
+    "FACT_NETWORK_THROUGHPUT_AGG",
+    "FACT_NETWORK_FUEL_EFFICIENCY_AGG",
+    "FACT_SAFETY_METRICS_AGG",
+    "LEADERBOARD_CHART",
+    "LEADERBOARD_CHART_AGG"
+]
 
 tables = [
     "fact_vehicle_trace",
@@ -70,9 +80,11 @@ tables = [
     "fact_vehicle_counts_by_time",
     "fact_safety_metrics",
     "fact_safety_metrics_agg",
+    "fact_safety_metrics_binned",
     "fact_network_throughput_agg",
     "fact_network_inflows_outflows",
     "fact_vehicle_fuel_efficiency_agg",
+    "fact_vehicle_fuel_efficiency_binned",
     "fact_network_metrics_by_distance_agg",
     "fact_network_metrics_by_time_agg",
     "fact_network_fuel_efficiency_agg",
@@ -84,15 +96,16 @@ tables = [
 
 summary_tables = ["leaderboard_chart_agg", "fact_top_scores"]
 
-network_using_edge = ["I-210 without Ramps"]
-
-X_FILTER = "x BETWEEN 500 AND 2300"
-
-EDGE_FILTER = "edge_id <> ALL (VALUES 'ghost0', '119257908#3')"
-
-WARMUP_STEPS = 600 * 3 * 0.4
-
-HORIZON_STEPS = 1000 * 3 * 0.4
+network_filters = defaultdict(lambda: {
+        'loc_filter': "x BETWEEN 500 AND 2300",
+        'warmup_steps': 500 * 3 * 0.4,
+        'horizon_steps': 1000 * 3 * 0.4
+    })
+network_filters['I-210 without Ramps'] = {
+        'loc_filter': "edge_id <> ALL (VALUES 'ghost0', '119257908#3')",
+        'warmup_steps': 600 * 3 * 0.4,
+        'horizon_steps': 1000 * 3 * 0.4
+    }
 
 VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT = """
     SELECT
@@ -231,7 +244,7 @@ class QueryStrings(Enum):
                 value_lower_right*(headway-headway_lower)*(rel_speed_upper-leader_rel_speed) +
                 value_upper_left*(headway_upper-headway)*(leader_rel_speed-rel_speed_lower) +
                 value_upper_right*(headway-headway_lower)*(leader_rel_speed-rel_speed_lower)
-            ) / ((headway_upper-headway_lower)*(rel_speed_upper-rel_speed_lower)), 200) AS safety_value,
+            ) / ((headway_upper-headway_lower)*(rel_speed_upper-rel_speed_lower)), 200.0) AS safety_value,
             vt.source_id
         FROM fact_vehicle_trace vt
         LEFT OUTER JOIN fact_safety_matrix sm ON 1 = 1
@@ -248,13 +261,42 @@ class QueryStrings(Enum):
     FACT_SAFETY_METRICS_AGG = """
         SELECT
             source_id,
-            SUM(CASE WHEN safety_value < 0 THEN 1 ELSE 0 END) * 100 / COUNT() safety_rate,
+            SUM(CASE WHEN safety_value < 0 THEN 1.0 ELSE 0.0 END) * 100.0 / COUNT() safety_rate,
             MAX(safety_value) AS safety_value_max
         FROM fact_safety_metrics
         WHERE 1 = 1
             AND date = \'{date}\'
             AND partition_name = \'{partition}_FACT_SAFETY_METRICS\'
         GROUP BY 1
+        ;
+    """
+
+    FACT_SAFETY_METRICS_BINNED = """
+        WITH unfilter_bins AS (
+            SELECT
+                ROW_NUMBER() OVER() - 51 AS lb,
+                ROW_NUMBER() OVER() - 50 AS ub
+            FROM fact_safety_metrics
+        ), bins AS (
+            SELECT 
+                lb,
+                ub
+            FROM unfilter_bins
+            WHERE 1=1
+                AND lb >= -10
+                AND ub <= 10 
+        )
+        SELECT
+            CONCAT('[', CAST(bins.lb AS VARCHAR), ', ', CAST(bins.ub AS VARCHAR), ')') AS safety_value_bin,
+            COUNT() AS count
+        FROM bins, fact_safety_metrics fsm
+        WHERE 1 = 1
+            AND fsm.date = \'{date}\'
+            AND fsm.partition_name = \'{partition}_FACT_SAFETY_METRICS\'
+            AND fsm.safety_value >= bins.lb
+            AND fsm.safety_value < bins.ub
+        GROUP BY 1
+        ;
     """
 
     FACT_NETWORK_THROUGHPUT_AGG = """
@@ -323,6 +365,35 @@ class QueryStrings(Enum):
         FROM sub_fact_vehicle_trace
         WHERE 1 = 1
             AND power_watts * time_step_size_seconds != 0
+        ;
+    """
+
+    FACT_VEHICLE_FUEL_EFFICIENCY_BINNED = """
+        WITH unfilter_bins AS (
+            SELECT
+                ROW_NUMBER() OVER() - 1 AS lb,
+                ROW_NUMBER() OVER() AS ub
+            FROM fact_safety_metrics
+        ) bins AS (
+            SELECT
+                lb,
+                ub
+            FROM unfilter_bins
+            WHERE 1=1
+                AND lb >= 0
+                AND ub <= 20
+        )
+        SELECT
+            CONCAT('[', CAST(bins.lb AS VARCHAR), ', ', CAST(bins.ub AS VARCHAR), ')') AS fuel_efficiency_bin,
+            COUNT() AS count
+        FROM bins, fact_vehicle_fuel_efficiency_agg agg
+        WHERE 1 = 1
+            AND agg.date = \'{date}\'
+            AND agg.partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
+            AND agg.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
+            AND 1000 * agg.efficiency_meters_per_joules >= bins.lb
+            AND 1000 * agg.efficiency_meters_per_joules < bins.ub
+        GROUP BY 1
         ;
     """
 
@@ -701,7 +772,7 @@ class QueryStrings(Enum):
             SELECT
                 network,
                 submission_date,
-                LAG(max_score, 1) OVER (PARTITION BY network ORDER BY submission_date ASC) AS max_score
+                LAG(max_score IGNORE NULLS, 1) OVER (PARTITION BY network ORDER BY submission_date ASC) AS max_score
             FROM curr_max
         ), unioned AS (
             SELECT * FROM curr_max

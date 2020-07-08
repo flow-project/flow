@@ -1,11 +1,13 @@
 """contains class and helper functions for the data pipeline."""
 import pandas as pd
 import boto3
-from flow.data_pipeline.query import QueryStrings
+from botocore.exceptions import ClientError
+from flow.data_pipeline.query import QueryStrings, prerequisites
 from time import time
 from datetime import date
 import csv
 from io import StringIO
+import json
 
 
 def generate_trajectory_table(data_path, extra_info, partition_name):
@@ -156,6 +158,42 @@ def update_baseline(s3, baseline_network, baseline_source_id):
             writer.writerow(row)
     s3.put_object(Bucket='circles.data.pipeline', Key='baseline_table/baselines.csv',
                   Body=new_str.getvalue().replace('\r', '').encode())
+
+
+def get_completed_queries(s3, source_id):
+    """Return the deserialized list of completed queries from S3."""
+    try:
+        completed_queries_obj = \
+            s3.get_object(Bucket='circles.data.pipeline', Key='lambda_temp/{}'.format(source_id))['Body']
+        completed_queries = json.loads(completed_queries_obj.read().decode('utf-8'))
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'NoSuchKey':
+            completed_queries = set()
+        else:
+            raise
+    return set(completed_queries)
+
+
+def put_completed_queries(s3, completed_queries):
+    """Put all the completed queries lists into S3 as in a serialized json format."""
+    for source_id, completed_queries_set in completed_queries.items():
+        completed_queries_list = list(completed_queries_set)
+        completed_queries_json = json.dumps(completed_queries_list)
+        s3.put_object(Bucket='circles.data.pipeline', Key='lambda_temp/{}'.format(source_id),
+                      Body=completed_queries_json.encode('utf-8'))
+
+
+def get_ready_queries(completed_queries, new_query):
+    """Return queries whose prerequisite queries are completed."""
+    readied_queries = []
+    unfinished_queries = prerequisites.keys() - completed_queries
+    upadted_completed_queries = completed_queries.copy()
+    upadted_completed_queries.add(new_query)
+    for query_name in unfinished_queries:
+        if not prerequisites[query_name][1].issubset(completed_queries):
+            if prerequisites[query_name][1].issubset(upadted_completed_queries):
+                readied_queries.append((query_name, prerequisites[query_name][0]))
+    return readied_queries
 
 
 class AthenaQuery:
