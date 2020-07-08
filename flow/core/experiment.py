@@ -244,7 +244,7 @@ class Experiment:
                              trajectory_table_path,
                              {'network': metadata['network'][0], 'is_baseline': metadata['is_baseline'][0]})
                 upload_to_s3('circles.data.pipeline',
-                             'time_space_diagram/date={0}/partition_name={1}/{1}.csv'.format(cur_date, source_id),
+                             'time_space_diagram/date={0}/partition_name={1}/{1}.png'.format(cur_date, source_id),
                              trajectory_table_path.replace('csv', 'png'))
 
         return info_dict
