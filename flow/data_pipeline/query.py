@@ -278,13 +278,13 @@ class QueryStrings(Enum):
                 ROW_NUMBER() OVER() - 50 AS ub
             FROM fact_safety_metrics
         ), bins AS (
-            SELECT 
+            SELECT
                 lb,
                 ub
             FROM unfilter_bins
             WHERE 1=1
                 AND lb >= -10
-                AND ub <= 10 
+                AND ub <= 10
         )
         SELECT
             CONCAT('[', CAST(bins.lb AS VARCHAR), ', ', CAST(bins.ub AS VARCHAR), ')') AS safety_value_bin,
