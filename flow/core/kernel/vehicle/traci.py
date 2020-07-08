@@ -292,6 +292,12 @@ class TraCIVehicle(KernelVehicle):
         # specify the type
         self.__vehicles[veh_id]["type"] = veh_type
 
+        # specify energy model
+        energy_model = \
+            self.type_parameters[veh_type]["energy_model"]
+        self.__vehicles[veh_id]["energy_model"] = \
+            energy_model[0](veh_id, **energy_model[1])
+
         car_following_params = \
             self.type_parameters[veh_type]["car_following_params"]
 
@@ -548,6 +554,16 @@ class TraCIVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_fuel_consumption(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_FUELCONSUMPTION, error) * ml_to_gallons
+
+    def get_energy_model(self, veh_id, error=""):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_energy_model(vehID) for vehID in veh_id]
+        try:
+            return self.__vehicles.get(veh_id, {'energy_model': error})['energy_model']
+        except KeyError:
+            print("Energy model not specified for vehicle {}".format(veh_id))
+            raise
 
     def get_previous_speed(self, veh_id, error=-1001):
         """See parent class."""
