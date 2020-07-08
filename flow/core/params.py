@@ -307,6 +307,9 @@ class VehicleParams:
             lane_change_params = SumoLaneChangeParams()
 
         if energy_model not in ENERGY_MODELS:
+            print('{} for vehicle {} is not a valid energy model. Defaulting to {}\n'.format(energy_model,
+                                                                                              veh_id,
+                                                                                              DEFAULT_ENERGY_MODEL))
             energy_model = DEFAULT_ENERGY_MODEL
 
         type_params = {}
