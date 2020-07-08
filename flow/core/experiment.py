@@ -25,8 +25,8 @@ class Experiment:
     the actions of RL agents in the network, type the following:
 
         >>> from flow.envs import Env
-        {'network': >>> self.env.network.__class__} = dict(...)  # see the examples in exp_config
-        {'network': >>> exp = Experiment(self.env.network.__class__})  # for some experiment configuration
+        >>> flow_params = dict(...)  # see the examples in exp_config
+        >>> exp = Experiment(flow_params)  # for some experiment configuration
         >>> exp.run(num_runs=1)
 
     If you wish to specify the actions of RL agents in the network, this may be
@@ -44,7 +44,7 @@ class Experiment:
     ``emission_path`` attribute in ``SimParams`` to some path.
 
         >>> from flow.core.params import SimParams
-        {'network': >>> self.env.network.__class__}['sim'] = SimParams(emission_path="./data")
+        >>> flow_params['sim'] = SimParams(emission_path="./data")
 
     Once you have included this in your environment, run your Experiment object
     as follows:
@@ -178,9 +178,10 @@ class Experiment:
             metadata['network'].append(
                 network_name_translate(self.env.network.name.split('_20')[0]))
             metadata['is_baseline'].append(str(is_baseline))
-            name, strategy = get_configuration()
-            metadata['submitter_name'].append(name)
-            metadata['strategy'].append(strategy)
+            if to_aws:
+                name, strategy = get_configuration()
+                metadata['submitter_name'].append(name)
+                metadata['strategy'].append(strategy)
 
             # emission-specific parameters
             dir_path = self.env.sim_params.emission_path
