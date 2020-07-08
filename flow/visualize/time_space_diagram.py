@@ -167,9 +167,12 @@ def _merge(data):
 def _highway(data):
     r"""Generate time and position data for the highway.
 
+<<<<<<< HEAD
     We generate plots for all lanes, so the segments are wrapped in
     a dictionary.
 
+=======
+>>>>>>> d36da2e5144a40072b11e39f9da6725cc3f4441e
     Parameters
     ----------
     data : pd.DataFrame
@@ -585,4 +588,10 @@ if __name__ == '__main__':
         module = __import__("examples.exp_configs.non_rl", fromlist=[args.flow_params])
         flow_params = getattr(module, args.flow_params).flow_params
 
-    tsd_main(args.trajectory_path, flow_params, min_speed=args.min_speed, max_speed=args.max_speed, start=args.start)
+    tsd_main(
+        args.trajectory_path,
+        flow_params,
+        min_speed=args.min_speed,
+        max_speed=args.max_speed,
+        start=args.start
+    )
