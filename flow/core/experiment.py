@@ -2,6 +2,7 @@
 from flow.utils.registry import make_create_env
 from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
 from flow.data_pipeline.leaderboard_utils import network_name_translate
+from flow.visualize.time_space_diagram import tsd_main
 from collections import defaultdict
 from datetime import datetime, timezone
 import logging
@@ -20,8 +21,8 @@ class Experiment:
     the actions of RL agents in the network, type the following:
 
         >>> from flow.envs import Env
-        >>> flow_params = dict(...)  # see the examples in exp_config
-        >>> exp = Experiment(flow_params)  # for some experiment configuration
+        {'network': >>> self.env.network.__class__} = dict(...)  # see the examples in exp_config
+        {'network': >>> exp = Experiment(self.env.network.__class__})  # for some experiment configuration
         >>> exp.run(num_runs=1)
 
     If you wish to specify the actions of RL agents in the network, this may be
@@ -39,7 +40,7 @@ class Experiment:
     ``emission_path`` attribute in ``SimParams`` to some path.
 
         >>> from flow.core.params import SimParams
-        >>> flow_params['sim'] = SimParams(emission_path="./data")
+        {'network': >>> self.env.network.__class__}['sim'] = SimParams(emission_path="./data")
 
     Once you have included this in your environment, run your Experiment object
     as follows:
@@ -233,6 +234,11 @@ class Experiment:
             write_dict_to_csv(metadata_table_path, metadata, True)
 
             if to_aws:
+                tsd_main(trajectory_table_path,
+                     {'network': self.env.network.__class__},
+                     min_speed=0,
+                     max_speed=10,
+                     start=self.env.env_params.warmup_steps)
                 upload_to_s3('circles.data.pipeline',
                              'metadata_table/date={0}/partition_name={1}_METADATA/{1}_METADATA.csv'.format(cur_date,
                                                                                                            source_id),
@@ -241,5 +247,8 @@ class Experiment:
                              'fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv'.format(cur_date, source_id),
                              trajectory_table_path,
                              {'network': metadata['network'][0], 'is_baseline': metadata['is_baseline'][0]})
+                upload_to_s3('circles.data.pipeline',
+                             'time_space_diagram/date={0}/partition_name={1}/{1}.png'.format(cur_date, source_id),
+                             trajectory_table_path.replace('csv', 'png'))
 
         return info_dict
