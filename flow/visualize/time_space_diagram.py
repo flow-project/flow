@@ -141,7 +141,7 @@ def get_time_space_data(data, params):
 
 
 def _merge(data):
-    r"""Generate position and speed data for the merge.
+    r"""Generate time and position data for the merge.
 
     This only include vehicles on the main highway, and not on the adjacent
     on-ramp.
@@ -172,9 +172,6 @@ def _merge(data):
 def _highway(data):
     r"""Generate time and position data for the highway.
 
-    We generate plots for all lanes, so the segments are wrapped in
-    a dictionary.
-
     Parameters
     ----------
     data : pd.DataFrame
@@ -197,7 +194,7 @@ def _highway(data):
 
 
 def _ring_road(data):
-    r"""Generate position and speed data for the ring road.
+    r"""Generate time and position data for the ring road.
 
     Vehicles that reach the top of the plot simply return to the bottom and
     continue.
@@ -259,7 +256,7 @@ def _i210_subnetwork(data):
 
 
 def _figure_eight(data):
-    r"""Generate position and speed data for the figure eight.
+    r"""Generate time and position data for the figure eight.
 
     The vehicles traveling towards the intersection from one side will be
     plotted from the top downward, while the vehicles from the other side will
