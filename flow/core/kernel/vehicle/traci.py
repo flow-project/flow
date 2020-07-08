@@ -336,7 +336,8 @@ class TraCIVehicle(KernelVehicle):
             tc.VAR_POSITION,
             tc.VAR_ANGLE,
             tc.VAR_SPEED_WITHOUT_TRACI,
-            tc.VAR_FUELCONSUMPTION
+            tc.VAR_FUELCONSUMPTION,
+            tc.VAR_DISTANCE
         ])
         self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
 
@@ -952,18 +953,22 @@ class TraCIVehicle(KernelVehicle):
 
         return tailway, follower
 
-    def apply_acceleration(self, veh_ids, acc):
+    def apply_acceleration(self, veh_ids, acc, smooth=True):
         """See parent class."""
-        # to hand the case of a single vehicle
+        # to handle the case of a single vehicle
         if type(veh_ids) == str:
             veh_ids = [veh_ids]
             acc = [acc]
 
         for i, vid in enumerate(veh_ids):
             if acc[i] is not None and vid in self.get_ids():
+                self.__vehicles[vid]["accel"] = acc[i]
                 this_vel = self.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
-                self.kernel_api.vehicle.slowDown(vid, next_vel, 1e-3)
+                if smooth:
+                    self.kernel_api.vehicle.slowDown(vid, next_vel, 1e-3)
+                else:
+                    self.kernel_api.vehicle.setSpeed(vid, next_vel)
 
     def apply_lane_change(self, veh_ids, direction):
         """See parent class."""
@@ -993,7 +998,7 @@ class TraCIVehicle(KernelVehicle):
             # perform the requested lane action action in TraCI
             if target_lane != this_lane:
                 self.kernel_api.vehicle.changeLane(
-                    veh_id, int(target_lane), 100000)
+                    veh_id, int(target_lane), self.sim_step)
 
                 if veh_id in self.get_rl_ids():
                     self.prev_last_lc[veh_id] = \
@@ -1013,6 +1018,8 @@ class TraCIVehicle(KernelVehicle):
 
     def get_x_by_id(self, veh_id):
         """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_x_by_id(vehID) for vehID in veh_id]
         if self.get_edge(veh_id) == '':
             # occurs when a vehicle crashes is teleported for some other reason
             return 0.
@@ -1121,3 +1128,52 @@ class TraCIVehicle(KernelVehicle):
     def set_max_speed(self, veh_id, max_speed):
         """See parent class."""
         self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
+
+    def get_accel(self, veh_id, noise=True, failsafe=True):
+        """See parent class."""
+        metric_name = 'accel'
+        if noise:
+            metric_name += '_with_noise'
+        else:
+            metric_name += '_no_noise'
+        if failsafe:
+            metric_name += '_with_falsafe'
+        else:
+            metric_name += '_no_failsafe'
+
+        if metric_name not in self.__vehicles[veh_id]:
+            self.__vehicles[veh_id][metric_name] = None
+        return self.__vehicles[veh_id][metric_name]
+
+    def update_accel(self, veh_id, accel, noise=True, failsafe=True):
+        """See parent class."""
+        metric_name = 'accel'
+        if noise:
+            metric_name += '_with_noise'
+        else:
+            metric_name += '_no_noise'
+        if failsafe:
+            metric_name += '_with_falsafe'
+        else:
+            metric_name += '_no_failsafe'
+
+        self.__vehicles[veh_id][metric_name] = accel
+
+    def get_realized_accel(self, veh_id):
+        """See parent class."""
+        if self.get_distance(veh_id) == 0:
+            return 0
+        return (self.get_speed(veh_id) - self.get_previous_speed(veh_id)) / self.sim_step
+
+    def get_2d_position(self, veh_id, error=-1001):
+        """See parent class."""
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_POSITION, error)
+
+    def get_distance(self, veh_id, error=-1001):
+        """See parent class."""
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_DISTANCE, error)
+
+    def get_road_grade(self, veh_id):
+        """See parent class."""
+        # TODO : Brent
+        return 0
