@@ -414,8 +414,21 @@ def plot_tsd(ax, df, segs, cmap, min_speed=0, max_speed=10, start=0, lane=None, 
     """
     norm = plt.Normalize(min_speed, max_speed)
 
+    if ghost_edges:
+        domain_bounds = (
+            df[~df['edge_id'].isin(ghost_edges)]['distance'].min(),
+            df[~df['edge_id'].isin(ghost_edges)]['distance'].max()
+            )
+    elif ghost_bounds:
+        domain_bounds = ghost_bounds
+    else:
+        domain_bounds = (df['distance'].min(), df['distance'].max())
+
+    df['time_step'] -= start
     xmin, xmax = df['time_step'].min(), df['time_step'].max()
     xbuffer = (xmax - xmin) * 0.025  # 2.5% of range
+    df['distance'] -= domain_bounds[0]
+    domain_bounds[1] -= domain_bounds[0]
     ymin, ymax = df['distance'].min(), df['distance'].max()
     ybuffer = (ymax - ymin) * 0.025  # 2.5% of range
 
@@ -429,23 +442,16 @@ def plot_tsd(ax, df, segs, cmap, min_speed=0, max_speed=10, start=0, lane=None, 
     ax.autoscale()
 
     rects = []
-    if ghost_edges:
-        y_domain_min = df[~df['edge_id'].isin(ghost_edges)]['distance'].min()
-        y_domain_max = df[~df['edge_id'].isin(ghost_edges)]['distance'].max()
-        rects.append(Rectangle((xmin, y_domain_min), start - xmin, y_domain_max - y_domain_min))
-        rects.append(Rectangle((xmin, ymin), xmax - xmin, y_domain_min - ymin))
-        rects.append(Rectangle((xmin, y_domain_max), xmax - xmin, ymax - y_domain_max))
-    elif ghost_bounds:
-        rects.append(Rectangle((xmin, ghost_bounds[0]), start - xmin, ghost_bounds[1] - ghost_bounds[0]))
-        rects.append(Rectangle((xmin, ymin), xmax - xmin, ghost_bounds[0] - ymin))
-        rects.append(Rectangle((xmin, ghost_bounds[1]), xmax - xmin, ymax - ghost_bounds[1]))
-    else:
-        rects.append(Rectangle((xmin, ymin), start - xmin, ymax - ymin))
+    # rectangle for warmup period, but not ghost edges
+    rects.append(Rectangle((xmin, 0), start, domain_bounds[1]))
+    # rectangle for lower ghost edge (including warmup period)
+    rects.append(Rectangle((xmin, ymin), xmax - xmin, domain_bounds[0]))
+    # rectangle for upper ghost edge (including warmup period)
+    rects.append(Rectangle((xmin, domain_bounds[1]), xmax - xmin, ymax - domain_bounds[1]))
 
-    if rects:
-        pc = PatchCollection(rects, facecolor='grey', alpha=0.5, edgecolor=None)
-        pc.set_zorder(20)
-        ax.add_collection(pc)
+    pc = PatchCollection(rects, facecolor='grey', alpha=0.5, edgecolor=None)
+    pc.set_zorder(20)
+    ax.add_collection(pc)
 
     if lane:
         ax.set_title('Time-Space Diagram: Lane {}'.format(lane), fontsize=25)
