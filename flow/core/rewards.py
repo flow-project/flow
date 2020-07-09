@@ -313,7 +313,7 @@ def energy_consumption(env, gain=.001):
     by a vehicle.
     """
     veh_ids = env.k.vehicle.get_ids()
-    return veh_energy_consumption(env, veh_id, gain)
+    return veh_energy_consumption(env, veh_ids, gain)
 
 
 def veh_energy_consumption(env, veh_ids=None, gain=.001):
