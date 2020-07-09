@@ -17,7 +17,7 @@ import numpy as np
 import pytz
 
 from flow.core.util import ensure_dir
-from flow.core.rewards import miles_per_gallon, miles_per_megajoule
+from flow.core.rewards import instantaneous_mpg
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 from flow.utils.registry import make_create_env
@@ -239,8 +239,7 @@ def setup_exps_rllib(flow_params,
         episode.user_data["avg_speed"] = []
         episode.user_data["avg_speed_avs"] = []
         episode.user_data["avg_energy"] = []
-        episode.user_data["avg_mpg"] = []
-        episode.user_data["avg_mpj"] = []
+        episode.user_data["inst_mpg"] = []
         episode.user_data["num_cars"] = []
         episode.user_data["avg_accel_human"] = []
         episode.user_data["avg_accel_avs"] = []
@@ -271,8 +270,7 @@ def setup_exps_rllib(flow_params,
         av_speed = np.mean([speed for speed in env.k.vehicle.get_speed(rl_ids) if speed >= 0])
         if not np.isnan(av_speed):
             episode.user_data["avg_speed_avs"].append(av_speed)
-        episode.user_data["avg_mpg"].append(miles_per_gallon(env, veh_ids, gain=1.0))
-        episode.user_data["avg_mpj"].append(miles_per_megajoule(env, veh_ids, gain=1.0))
+        episode.user_data["inst_mpg"].append(instantaneous_mpg(env, veh_ids, gain=1.0))
         episode.user_data["num_cars"].append(len(env.k.vehicle.get_ids()))
         episode.user_data["avg_accel_human"].append(np.nan_to_num(np.mean(
             [np.abs((env.k.vehicle.get_speed(veh_id) - env.k.vehicle.get_previous_speed(veh_id))/env.sim_step) for
@@ -291,8 +289,7 @@ def setup_exps_rllib(flow_params,
         episode.custom_metrics["avg_speed_avs"] = avg_speed_avs
         episode.custom_metrics["avg_accel_avs"] = np.mean(episode.user_data["avg_accel_avs"])
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
-        episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["avg_mpg"])
-        episode.custom_metrics["avg_mpj_per_veh"] = np.mean(episode.user_data["avg_mpj"])
+        episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["inst_mpg"])
         episode.custom_metrics["num_cars"] = np.mean(episode.user_data["num_cars"])
 
     def on_train_result(info):
