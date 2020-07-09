@@ -11,21 +11,16 @@ import json
 
 
 def generate_trajectory_table(emission_files, trajectory_table_path, source_id):
-    """Generate desired output for the trajectory_table based on standard SUMO emission.
+    """Generate desired output for the trajectory_table based on SUMO emissions.
 
     Parameters
     ----------
-    data_path : str
-        path to the standard SUMO emission
-    extra_info : dict
-        extra information needed in the trajectory table, collected from flow
-    partition_name : str
-        the name of the partition to put this output to
-
-    Returns
-    -------
-    output_file_path : str
-        the local path of the outputted csv file
+    emission_files : list
+        paths to the SUMO emission
+    trajectory_table_path : str
+        path to the file fot S3 upload only
+    source_id : str
+        the source id of this simulation
     """
 
     for i in range(len(emission_files)):
