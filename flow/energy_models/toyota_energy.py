@@ -9,8 +9,8 @@ from abc import ABCMeta, abstractmethod
 class ToyotaModel(BaseEnergyModel, metaclass=ABCMeta):
     """Base Toyota Energy model class."""
 
-    def __init__(self, kernel, filename=None):
-        super(ToyotaModel, self).__init__(kernel)
+    def __init__(self, filename):
+        super(ToyotaModel, self).__init__()
 
         # download file from s3 bucket
         s3 = boto3.client('s3')
@@ -30,14 +30,15 @@ class ToyotaModel(BaseEnergyModel, metaclass=ABCMeta):
 class PriusEnergy(ToyotaModel):
     """Toyota Prius (EV) energy model class."""
 
-    def __init__(self, kernel, soc=0.9):
-        super(PriusEnergy, self).__init__(kernel, filename='prius_ev.pkl')
+    def __init__(self, sim_step, soc=0.9):
+        super(PriusEnergy, self).__init__(filename='prius_ev.pkl')
+        self.sim_step = sim_step
         self.soc = soc
 
     def get_instantaneous_power(self, accel, speed, grade):
         """See parent class."""
         socdot = self.toyota_energy(self.soc, accel, speed, grade)
-        self.soc -= socdot * self.k.env.sim_step
+        self.soc -= socdot * self.sim_step
         # FIXME (Joy): convert socdot to power
         return socdot
 
@@ -45,8 +46,8 @@ class PriusEnergy(ToyotaModel):
 class TacomaEnergy(ToyotaModel):
     """Toyota Tacoma energy model class."""
 
-    def __init__(self, kernel):
-        super(TacomaEnergy, self).__init__(kernel, filename='tacoma.pkl')
+    def __init__(self):
+        super(TacomaEnergy, self).__init__(filename='tacoma.pkl')
 
     def get_instantaneous_power(self, accel, speed, grade):
         """See parent class."""

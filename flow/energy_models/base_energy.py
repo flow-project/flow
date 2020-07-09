@@ -12,9 +12,7 @@ class BaseEnergyModel(metaclass=ABCMeta):
     to be an averaged-size vehicle.
     """
 
-    def __init__(self, kernel):
-        self.k = kernel
-
+    def __init__(self):
         # 15 kilowatts = 1 gallon/hour conversion factor
         self.conversion = 15e3
 
