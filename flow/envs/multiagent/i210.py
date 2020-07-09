@@ -231,7 +231,7 @@ class I210MultiEnv(MultiEnv):
             rewards = {rl_id: reward for rl_id in valid_ids}
 
         # curriculum over time-gaps
-        if self.headway_curriculum and self.num_training_iters <= self.headway_curriculum_iters:
+        if self.headway_curriculum and self._num_training_iters <= self.headway_curriculum_iters:
             t_min = self.min_time_headway  # smallest acceptable time headway
             for veh_id, rew in rewards.items():
                 lead_id = self.k.vehicle.get_leader(veh_id)
@@ -241,12 +241,12 @@ class I210MultiEnv(MultiEnv):
                     t_headway = max(
                         self.k.vehicle.get_headway(veh_id) /
                         self.k.vehicle.get_speed(veh_id), 0)
-                    scaling_factor = max(0, 1 - self.num_training_iters / self.headway_curriculum_iters)
+                    scaling_factor = max(0, 1 - self._num_training_iters / self.headway_curriculum_iters)
                     penalty += scaling_factor * self.headway_reward_gain * min((t_headway - t_min) / t_min, 0)
 
                 rewards[veh_id] += penalty
 
-        if self.speed_curriculum and self.num_training_iters <= self.speed_curriculum_iters:
+        if self.speed_curriculum and self._num_training_iters <= self.speed_curriculum_iters:
             des_speed = self.env_params.additional_params["target_velocity"]
 
             for veh_id, rew in rewards.items():
@@ -262,7 +262,7 @@ class I210MultiEnv(MultiEnv):
                             speed_reward += ((des_speed - np.abs(speed - des_speed)) ** 2) / (des_speed ** 2)
                     else:
                         break
-                scaling_factor = max(0, 1 - self.num_training_iters / self.speed_curriculum_iters)
+                scaling_factor = max(0, 1 - self._num_training_iters / self.speed_curriculum_iters)
 
                 rewards[veh_id] += speed_reward * scaling_factor * self.speed_reward_gain
 
