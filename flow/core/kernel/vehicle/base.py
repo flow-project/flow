@@ -132,8 +132,8 @@ class KernelVehicle(object, metaclass=ABCMeta):
         """Apply the acceleration requested by a vehicle in the simulator.
 
         In SUMO, this function applies setSpeed for smooth_duration=0, otherwise
-        the slowDown method with smooth_duration applies acceleration smoothing.
-        For more information, see:
+        the slowDown method applies acceleration smoothly over the smooth_duration
+        time (in seconds). For more information, see:
         https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-slowDown
 
         Parameters
