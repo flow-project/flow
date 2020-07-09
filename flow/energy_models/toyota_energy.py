@@ -1,9 +1,10 @@
 """Script containing the Toyota energy classes."""
+from abc import ABCMeta, abstractmethod
 import dill as pickle
 import boto3
-from flow.energy_models.base_energy import BaseEnergyModel
 import os
-from abc import ABCMeta, abstractmethod
+
+from flow.energy_models.base_energy import BaseEnergyModel
 
 
 class ToyotaModel(BaseEnergyModel, metaclass=ABCMeta):
@@ -56,4 +57,4 @@ class TacomaEnergy(ToyotaModel):
     def get_instantaneous_fuel_consumption(self, accel, speed, grade):
         """See parent class."""
         fc = self.toyota_energy(accel, speed, grade)
-        return fc
+        return fc * 3600.0 / 3217.25

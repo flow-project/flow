@@ -1,8 +1,9 @@
 """Script containing the vehicle power demand model energy classes."""
+from abc import ABCMeta, abstractmethod
 import math
 import numpy as np
+
 from flow.energy_models.base_energy import BaseEnergyModel
-from abc import ABCMeta, abstractmethod
 
 
 class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
