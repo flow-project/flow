@@ -386,6 +386,13 @@ def train_rllib(submodule, flags):
         print('Generating experiment graphs and uploading them to leaderboard')
         submitter_name, strategy_name = flags.upload_graphs
 
+        # reset ray
+        ray.shutdown()
+        if flags.local_mode:
+            ray.init(local_mode=True)
+        else:
+            ray.init()
+
         # grab checkpoint path
         for (dirpath, _, _) in os.walk(os.path.expanduser("~/ray_results")):
             if "checkpoint_{}".format(flags.checkpoint_freq) in dirpath \
