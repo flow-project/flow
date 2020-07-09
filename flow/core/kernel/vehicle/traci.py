@@ -969,7 +969,7 @@ class TraCIVehicle(KernelVehicle):
 
         return tailway, follower
 
-    def apply_acceleration(self, veh_ids, acc, smooth=True):
+    def apply_acceleration(self, veh_ids, acc, smooth_duration=0):
         """See parent class."""
         # to handle the case of a single vehicle
         if type(veh_ids) == str:
@@ -981,8 +981,8 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[vid]["accel"] = acc[i]
                 this_vel = self.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
-                if smooth:
-                    self.kernel_api.vehicle.slowDown(vid, next_vel, 1e-3)
+                if smooth_duration:
+                    self.kernel_api.vehicle.slowDown(vid, next_vel, smooth_duration)
                 else:
                     self.kernel_api.vehicle.setSpeed(vid, next_vel)
 
