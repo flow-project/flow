@@ -354,7 +354,7 @@ def veh_energy_consumption(env, veh_ids=None, gain=.001):
         energy_model = env.k.vehicle.get_energy_model(veh_id)
         if energy_model != "":
             speed = env.k.vehicle.get_speed(veh_id)
-            accel = env.k.vehicle.get_accel_no_noise_with_failsafe(veh_id)
+            accel = env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
             grade = env.k.vehicle.get_road_grade(veh_id)
             power += energy_model.get_instantaneous_power(accel, speed, grade)
 
@@ -385,7 +385,7 @@ def instantaneous_mpg(env, veh_ids=None, gain=.001):
         energy_model = env.k.vehicle.get_energy_model(veh_id)
         if energy_model != "":
             speed = env.k.vehicle.get_speed(veh_id)
-            accel = env.k.vehicle.get_accel_no_noise_with_failsafe(veh_id)
+            accel = env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
             grade = env.k.vehicle.get_road_grade(veh_id)
             gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
             if speed >= 0.0:
