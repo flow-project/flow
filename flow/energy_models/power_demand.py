@@ -116,7 +116,7 @@ class PDMCombustionEngine(PowerDemandModel):
                  drag_coeff=0.7041355229,
                  p1_correction=4598.7155,
                  p3_correction=975.12719):
-        super(PDMCombustionEngine, self).__init__()
+        super(PDMCombustionEngine, self).__init__(p1_correction=p1_correction, p3_correction=p3_correction)
         self.fuel_consumption_power_coeffs = np.array([idle_coeff,
                                                        linear_friction_coeff,
                                                        quadratic_friction_coeff,
