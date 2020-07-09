@@ -3,7 +3,7 @@
 from gym.spaces import Box
 import numpy as np
 
-from flow.core.rewards import miles_per_gallon, miles_per_megajoule
+from flow.core.rewards import instantaneous_mpg
 from flow.envs.multiagent.base import MultiEnv
 
 # largest number of lanes on any given edge in the network
@@ -75,7 +75,6 @@ class I210MultiEnv(MultiEnv):
         self.control_range = env_params.additional_params.get('control_range', None)
         self.no_control_edges = env_params.additional_params.get('no_control_edges', [])
         self.mpg_reward = env_params.additional_params["mpg_reward"]
-        self.mpj_reward = env_params.additional_params["mpj_reward"]
         self.look_back_length = env_params.additional_params["look_back_length"]
 
         # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
@@ -196,23 +195,12 @@ class I210MultiEnv(MultiEnv):
             for rl_id in valid_ids:
                 rewards[rl_id] = 0
                 if self.mpg_reward:
-                    rewards[rl_id] = miles_per_gallon(self, rl_id, gain=1.0) / 100.0
+                    rewards[rl_id] = instantaneous_mpg(self, rl_id, gain=1.0) / 100.0
                     follow_id = rl_id
                     for i in range(self.look_back_length):
                         follow_id = self.k.vehicle.get_follower(follow_id)
                         if follow_id not in ["", None]:
-                            rewards[rl_id] += miles_per_gallon(self, follow_id, gain=1.0) / 100.0
-                        else:
-                            break
-                elif self.mpj_reward:
-                    rewards[rl_id] = miles_per_megajoule(self, rl_id, gain=1.0) / 100.0
-                    follow_id = rl_id
-                    for i in range(self.look_back_length):
-                        follow_id = self.k.vehicle.get_follower(follow_id)
-                        if follow_id not in ["", None]:
-                            # if self.time_counter > 700 and miles_per_megajoule(self, follow_id, gain=1.0) > 1.0:
-                            #     import ipdb; ipdb.set_trace()
-                            rewards[rl_id] += miles_per_megajoule(self, follow_id, gain=1.0) / 100.0
+                            rewards[rl_id] += instantaneous_mpg(self, follow_id, gain=1.0) / 100.0
                         else:
                             break
                 else:
@@ -229,7 +217,7 @@ class I210MultiEnv(MultiEnv):
 
         else:
             if self.mpg_reward:
-                reward = np.nan_to_num(miles_per_gallon(self, valid_human_ids, gain=1.0)) / 100.0
+                reward = np.nan_to_num(instantaneous_mpg(self, valid_human_ids, gain=1.0)) / 100.0
             else:
                 speeds = self.k.vehicle.get_speed(valid_human_ids)
                 des_speed = self.env_params.additional_params["target_velocity"]
