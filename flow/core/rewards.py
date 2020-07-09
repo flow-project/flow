@@ -306,6 +306,41 @@ def punish_rl_lane_changes(env, penalty=1):
     return total_lane_change_penalty
 
 
+def energy_consumption(env, gain=.001):
+    """Calculate power consumption of a vehicle.
+    Assumes vehicle is an average sized vehicle.
+    The power calculated here is the lower bound of the actual power consumed
+    by a vehicle.
+    """
+    veh_ids = env.k.vehicle.get_ids()
+    return veh_energy_consumption(env, veh_id, gain)
+
+
+def veh_energy_consumption(env, veh_ids=None, gain=.001):
+    """Calculate power consumption of a vehicle.
+    Assumes vehicle is an average sized vehicle.
+    The power calculated here is the lower bound of the actual power consumed
+    by a vehicle.
+    """
+    if veh_ids is None:
+        veh_ids = env.k.vehicle.get_ids()
+    elif not isinstance(veh_ids, list):
+        veh_ids = [veh_ids]
+
+    power = 0
+    for veh_id in veh_ids:
+        if veh_id not in env.k.vehicle.previous_speeds:
+            continue
+        energy_model = env.k.vehicle.get_energy_model(veh_id)
+        if energy_model != "":
+            speed = env.k.vehicle.get_speed(veh_id)
+            accel = env.k.vehicle.get_accel_no_noise_with_failsafe(veh_id)
+            grade = env.k.vehicle.get_road_grade(veh_id)
+            power += energy_model.get_instantaneous_power(accel, speed, grade)
+
+    return -gain * power
+
+
 def instantaneous_mpg(env, veh_ids=None, gain=.001):
     """Calculate the instantaneous mpg for every simulation step specific to the vehicle type.
 
@@ -333,7 +368,7 @@ def instantaneous_mpg(env, veh_ids=None, gain=.001):
             accel = env.k.vehicle.get_accel_no_noise_with_failsafe(veh_id)
             grade = env.k.vehicle.get_road_grade(veh_id)
             gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
-            if gallons_per_hr > 0 and speed >= 0.0:
+            if speed >= 0.0:
                 cumulative_gallons += gallons_per_hr
                 cumulative_distance += speed
 
