@@ -154,9 +154,12 @@ class TestNonRLExamples(unittest.TestCase):
 
     @staticmethod
     def run_simulation(flow_params):
+        flow_params = deepcopy(flow_params)
+
         # make the horizon small and set render to False
         flow_params['sim'].render = False
         flow_params['env'].horizon = 5
+        flow_params['env'].warmup_steps = 0
 
         # create an experiment object
         exp = Experiment(flow_params)
@@ -228,9 +231,8 @@ class TestStableBaselineExamples(unittest.TestCase):
     @staticmethod
     def run_exp(flow_params):
         # Reduce the number of warmup steps to speedup tests.
-        flow_params = flow_params.copy()
-        flow_params['sim'].warmup_steps = 0
-        flow_params['env'].horizon = 50
+        flow_params = deepcopy(flow_params)
+        flow_params['env'].warmup_steps = 0
 
         # Run the example.
         train_model = run_stable_baselines_model(flow_params, 1, 4, 4)
@@ -437,9 +439,8 @@ class TestRllibExamples(unittest.TestCase):
     @staticmethod
     def run_exp(flow_params, **kwargs):
         # Reduce the number of warmup steps to speedup tests.
-        flow_params = flow_params.copy()
-        flow_params['sim'].warmup_steps = 0
-        flow_params['env'].horizon = 50
+        flow_params = deepcopy(flow_params)
+        flow_params['env'].warmup_steps = 0
 
         # Run the example.
         alg_run, env_name, config = setup_rllib_exps(

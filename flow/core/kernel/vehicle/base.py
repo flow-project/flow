@@ -360,6 +360,7 @@ class KernelVehicle(object, metaclass=ABCMeta):
             vehicle id, or list of vehicle ids
         error : str
             value that is returned if the vehicle is not found
+
         Returns
         -------
         subclass of BaseEnergyModel
