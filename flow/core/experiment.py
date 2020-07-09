@@ -171,13 +171,13 @@ class Experiment:
             cur_date = cur_datetime.date().isoformat()
             cur_time = cur_datetime.time().isoformat()
 
-            # collecting information for metadata table
-            metadata['source_id'].append(source_id)
-            metadata['submission_time'].append(cur_time)
-            metadata['network'].append(
-                network_name_translate(self.env.network.name.split('_20')[0]))
-            metadata['is_baseline'].append(str(is_baseline))
             if to_aws:
+                # collecting information for metadata table
+                metadata['source_id'].append(source_id)
+                metadata['submission_time'].append(cur_time)
+                metadata['network'].append(
+                    network_name_translate(self.env.network.name.split('_20')[0]))
+                metadata['is_baseline'].append(str(is_baseline))
                 name, strategy = get_configuration()
                 metadata['submitter_name'].append(name)
                 metadata['strategy'].append(strategy)
@@ -188,7 +188,6 @@ class Experiment:
                 dir_path, '{}.csv'.format(source_id))
             metadata_table_path = os.path.join(
                 dir_path, '{}_METADATA.csv'.format(source_id))
-            write_dict_to_csv(metadata_table_path, metadata, True)
         else:
             source_id = None
             trajectory_table_path = None
@@ -246,6 +245,7 @@ class Experiment:
 
         if to_aws:
             generate_trajectory_table(emission_files, trajectory_table_path, source_id)
+            write_dict_to_csv(metadata_table_path, metadata, True)
             tsd_main(
                 trajectory_table_path,
                 {'network': self.env.network.__class__},
@@ -274,5 +274,6 @@ class Experiment:
                 trajectory_table_path.replace('csv', 'png')
             )
             os.remove(trajectory_table_path)
+            os.remove(metadata_table_path)
 
         return info_dict
