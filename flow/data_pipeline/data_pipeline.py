@@ -97,11 +97,11 @@ def get_extra_info(veh_kernel, extra_info, veh_ids, source_id, run_id):
             veh_kernel.get_leader(vid)) - veh_kernel.get_speed(vid))
         extra_info["target_accel_with_noise_with_failsafe"].append(veh_kernel.get_accel(vid))
         extra_info["target_accel_no_noise_no_failsafe"].append(
-            veh_kernel.get_accel_no_noise_no_failsafe(vid))
+            veh_kernel.get_accel(vid, noise=False, failsafe=False))
         extra_info["target_accel_with_noise_no_failsafe"].append(
-            veh_kernel.get_accel_with_noise_no_failsafe(vid))
+            veh_kernel.get_accel(vid, noise=True, failsafe=False))
         extra_info["target_accel_no_noise_with_failsafe"].append(
-            veh_kernel.get_accel_no_noise_with_failsafe(vid))
+            veh_kernel.get_accel(vid, noise=False, failsafe=True))
         extra_info["realized_accel"].append(veh_kernel.get_realized_accel(vid))
         extra_info["road_grade"].append(veh_kernel.get_road_grade(vid))
         extra_info["edge_id"].append(veh_kernel.get_edge(vid))
