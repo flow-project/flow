@@ -22,7 +22,6 @@ def generate_trajectory_table(emission_files, trajectory_table_path, source_id):
     source_id : str
         the source id of this simulation
     """
-
     for i in range(len(emission_files)):
         emission_output = pd.read_csv(emission_files[i])
         emission_output['source_id'] = source_id
