@@ -114,13 +114,12 @@ VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT = """
         speed,
         acceleration,
         road_grade,
-        GREATEST(0, 2041 * speed * ((
-            CASE
-                WHEN acceleration > 0 THEN 1
-                WHEN acceleration < 0 THEN 0
-                ELSE 0.5
-            END * (1 - {0}) + {0}) * acceleration + 9.807 * SIN(road_grade)
-            ) + 2041 * 9.807 * 0.0027 * speed + 0.5 * 1.225 * 3.2 * 0.4 * POW(speed,3)) AS power,
+        GREATEST(0, 2041 * acceleration * speed +
+            3405.5481762 +
+            83.12392997 * speed +
+            6.7650718327 * POW(speed,2) +
+            0.7041355229 * POW(speed,3)
+            ) + GREATEST(0, 4598.7155 * accel + 975.12719 * accel * speed) AS power,
         \'{1}\' AS energy_model_id,
         source_id
     FROM {2}
@@ -361,7 +360,7 @@ class QueryStrings(Enum):
             distance_meters,
             power_watts * time_step_size_seconds AS energy_joules,
             distance_meters / (power_watts * time_step_size_seconds) AS efficiency_meters_per_joules,
-            19972 * distance_meters / (power_watts * time_step_size_seconds) AS efficiency_miles_per_gallon
+            33561 * distance_meters / (power_watts * time_step_size_seconds) AS efficiency_miles_per_gallon
         FROM sub_fact_vehicle_trace
         WHERE 1 = 1
             AND power_watts * time_step_size_seconds != 0
@@ -404,7 +403,7 @@ class QueryStrings(Enum):
             SUM(distance_meters) AS distance_meters,
             SUM(energy_joules) AS energy_joules,
             SUM(distance_meters) / SUM(energy_joules) AS efficiency_meters_per_joules,
-            19972 * SUM(distance_meters) / SUM(energy_joules) AS efficiency_miles_per_gallon
+            33561 * SUM(distance_meters) / SUM(energy_joules) AS efficiency_miles_per_gallon
         FROM fact_vehicle_fuel_efficiency_agg
         WHERE 1 = 1
             AND date = \'{date}\'
@@ -420,7 +419,7 @@ class QueryStrings(Enum):
             t.source_id,
             e.energy_model_id,
             e.efficiency_meters_per_joules,
-            19972 * e.efficiency_meters_per_joules AS efficiency_miles_per_gallon,
+            33561 * e.efficiency_meters_per_joules AS efficiency_miles_per_gallon,
             t.throughput_per_hour,
             s.safety_rate,
             s.safety_value_max
