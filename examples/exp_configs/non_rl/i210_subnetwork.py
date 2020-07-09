@@ -12,8 +12,7 @@ from flow.core.params import SumoLaneChangeParams
 from flow.core.params import VehicleParams
 from flow.core.params import InitialConfig
 from flow.core.params import InFlows
-from flow.core.rewards import miles_per_gallon
-from flow.core.rewards import miles_per_megajoule
+from flow.core.rewards import instantaneous_mpg
 from flow.networks import I210SubNetwork
 from flow.networks.i210_subnetwork import EDGES_DISTRIBUTION
 from flow.envs import TestEnv
@@ -211,8 +210,6 @@ custom_callables = {
         env.k.vehicle.get_speed(valid_ids(env, env.k.vehicle.get_ids())))),
     "avg_outflow": lambda env: np.nan_to_num(
         env.k.vehicle.get_outflow_rate(120)),
-    "mpg": lambda env: miles_per_gallon(
+    "mpg": lambda env: instantaneous_mpg(
         env,  valid_ids(env, env.k.vehicle.get_ids()), gain=1.0),
-    "mpj": lambda env: miles_per_megajoule(
-        env, valid_ids(env, env.k.vehicle.get_ids()), gain=1.0),
 }
