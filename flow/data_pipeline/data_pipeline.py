@@ -20,12 +20,13 @@ def generate_trajectory_table(emission_files, trajectory_table_path, source_id):
     trajectory_table_path : str
         path to the file for S3 upload only
     source_id : str
-        the source id of this simulation
+        a unique id for the simulation that generate these emissions
     """
     for i in range(len(emission_files)):
         emission_output = pd.read_csv(emission_files[i])
         emission_output['source_id'] = source_id
         emission_output['run_id'] = "run_{}".format(i)
+        # add header row to the file only at the first run (when i==0)
         emission_output.to_csv(trajectory_table_path, mode='a+', index=False, header=(i == 0))
 
 
