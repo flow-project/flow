@@ -225,9 +225,10 @@ def visualizer_rllib(args):
     metadata['submission_time'].append(cur_time)
     metadata['network'].append(network_name_translate(env.network.name.split('_20')[0]))
     metadata['is_baseline'].append(str(args.is_baseline))
-    name, strategy = get_configuration()
-    metadata['submitter_name'].append(name)
-    metadata['strategy'].append(strategy)
+    if args.to_aws:
+        name, strategy = get_configuration()
+        metadata['submitter_name'].append(name)
+        metadata['strategy'].append(strategy)
 
     # Simulate and collect metrics
     final_outflows = []

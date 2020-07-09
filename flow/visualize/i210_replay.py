@@ -241,9 +241,11 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     metadata['submission_time'].append(cur_time)
     metadata['network'].append(network_name_translate(env.network.name.split('_20')[0]))
     metadata['is_baseline'].append(str(args.is_baseline))
-    name, strategy = get_configuration(args.submitter_name, args.strategy_name)
-    metadata['submitter_name'].append(name)
-    metadata['strategy'].append(strategy)
+
+    if args.use_s3:
+        name, strategy = get_configuration()
+        metadata['submitter_name'].append(name)
+        metadata['strategy'].append(strategy)
 
     i = 0
     while i < args.num_rollouts:
