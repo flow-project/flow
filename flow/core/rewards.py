@@ -308,9 +308,18 @@ def punish_rl_lane_changes(env, penalty=1):
 
 def energy_consumption(env, gain=.001):
     """Calculate power consumption of a vehicle.
+
     Assumes vehicle is an average sized vehicle.
     The power calculated here is the lower bound of the actual power consumed
     by a vehicle.
+
+    Parameters
+    ----------
+    env : flow.envs.Env
+        the environment variable, which contains information on the current
+        state of the system.
+    gain : float
+        scaling factor for the reward
     """
     veh_ids = env.k.vehicle.get_ids()
     return veh_energy_consumption(env, veh_ids, gain)
@@ -318,9 +327,20 @@ def energy_consumption(env, gain=.001):
 
 def veh_energy_consumption(env, veh_ids=None, gain=.001):
     """Calculate power consumption of a vehicle.
+
     Assumes vehicle is an average sized vehicle.
     The power calculated here is the lower bound of the actual power consumed
     by a vehicle.
+
+    Parameters
+    ----------
+    env : flow.envs.Env
+        the environment variable, which contains information on the current
+        state of the system.
+    veh_ids : [list] or str
+        list of veh_ids or single veh_id to compute the reward over
+    gain : float
+        scaling factor for the reward
     """
     if veh_ids is None:
         veh_ids = env.k.vehicle.get_ids()
