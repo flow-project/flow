@@ -23,6 +23,8 @@ class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
                  aerodynamic_drag_coeff=0.4,
                  p1_correction=4598.7155,
                  p3_correction=975.12719):
+        super(PowerDemandModel, self).__init__(kernel)
+
         self.k = kernel
         self.g = 9.807
         self.rho_air = 1.225
@@ -70,6 +72,7 @@ class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
             Instantaneous speed of the vehicle
         grade : float
             Instantaneous road grade of the vehicle
+
         Returns
         -------
         float
@@ -87,6 +90,7 @@ class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
             Instantaneous speed of the vehicle
         grade : float
             Instantaneous road grade of the vehicle
+
         Returns
         -------
         float

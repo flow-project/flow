@@ -395,6 +395,6 @@ def instantaneous_mpg(env, veh_ids=None, gain=.001):
     cumulative_gallons /= 3600.0
     cumulative_distance /= 1609.0
     # miles / gallon is (distance_dot * \delta t) / (gallons_dot * \delta t)
-    mpg = cumulative_distance / cumulative_gallons
+    mpg = cumulative_distance / (cumulative_gallons + 1e-6)
 
     return mpg * gain

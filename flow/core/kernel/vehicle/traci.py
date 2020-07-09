@@ -294,7 +294,7 @@ class TraCIVehicle(KernelVehicle):
 
         # specify energy model
         self.__vehicles[veh_id]["energy_model"] = self.type_parameters[
-            veh_type]["energy_model"]
+            veh_type]["energy_model"](kernel=self.master_kernel)
 
         car_following_params = \
             self.type_parameters[veh_type]["car_following_params"]
@@ -1171,9 +1171,8 @@ class TraCIVehicle(KernelVehicle):
         else:
             metric_name += '_no_failsafe'
 
-        if metric_name not in self.__vehicles[veh_id]:
-            self.__vehicles[veh_id][metric_name] = None
-        return self.__vehicles[veh_id][metric_name]
+        return self.__vehicles[veh_id].get(metric_name, None) \
+            or self.get_realized_accel(veh_id)
 
     def update_accel(self, veh_id, accel, noise=True, failsafe=True):
         """See parent class."""

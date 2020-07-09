@@ -412,16 +412,6 @@ class Env(gym.Env, metaclass=ABCMeta):
         # time horizon being met
         done = (self.time_counter >= self.env_params.sims_per_step *
                 (self.env_params.warmup_steps + self.env_params.horizon))
-        if crash:
-            print(
-                "**********************************************************\n"
-                "**********************************************************\n"
-                "**********************************************************\n"
-                "WARNING: There was a crash. \n"
-                "**********************************************************\n"
-                "**********************************************************\n"
-                "**********************************************************"
-            )
 
         # compute the info for each agent
         infos = {}

@@ -10,7 +10,7 @@ class ToyotaModel(BaseEnergyModel, metaclass=ABCMeta):
     """Base Toyota Energy model class."""
 
     def __init__(self, kernel, filename=None):
-        self.k = kernel
+        super(ToyotaModel, self).__init__(kernel)
 
         # download file from s3 bucket
         s3 = boto3.client('s3')
