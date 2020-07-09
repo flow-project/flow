@@ -155,8 +155,8 @@ class Env(gym.Env, metaclass=ABCMeta):
         self._num_training_iters = 0
 
         # track IDs that have ever been observed in the system
-        self.observed_ids = set()
-        self.observed_rl_ids = set()
+        self._observed_ids = set()
+        self._observed_rl_ids = set()
 
         # simulation step size
         self.sim_step = sim_params.sim_step
@@ -334,8 +334,8 @@ class Env(gym.Env, metaclass=ABCMeta):
         for _ in range(self.env_params.sims_per_step):
             # This tracks vehicles that have appeared during warmup steps
             if self.time_counter <= self.env_params.sims_per_step * self.env_params.warmup_steps:
-                self.observed_ids.update(self.k.vehicle.get_ids())
-                self.observed_rl_ids.update(self.k.vehicle.get_rl_ids())
+                self._observed_ids.update(self.k.vehicle.get_ids())
+                self._observed_rl_ids.update(self.k.vehicle.get_rl_ids())
 
             self.time_counter += 1
             self.step_counter += 1
@@ -455,8 +455,8 @@ class Env(gym.Env, metaclass=ABCMeta):
         self.time_counter = 0
 
         # reset the observed ids
-        self.observed_ids = set()
-        self.observed_rl_ids = set()
+        self._observed_ids = set()
+        self._observed_rl_ids = set()
 
         # Now that we've passed the possibly fake init steps some rl libraries
         # do, we can feel free to actually render things

@@ -332,7 +332,7 @@ class I210MultiEnv(MultiEnv):
             departed_ids = self.k.vehicle.get_departed_ids()
             if isinstance(departed_ids, tuple) and len(departed_ids) > 0:
                 for veh_id in departed_ids:
-                    if veh_id not in self.observed_ids:
+                    if veh_id not in self._observed_ids:
                         self.k.vehicle.remove(veh_id)
 
     def state_util(self, rl_id):

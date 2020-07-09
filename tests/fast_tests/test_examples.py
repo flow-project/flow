@@ -227,6 +227,12 @@ class TestStableBaselineExamples(unittest.TestCase):
     """
     @staticmethod
     def run_exp(flow_params):
+        # Reduce the number of warmup steps to speedup tests.
+        flow_params = flow_params.copy()
+        flow_params['sim'].warmup_steps = 0
+        flow_params['env'].horizon = 50
+
+        # Run the example.
         train_model = run_stable_baselines_model(flow_params, 1, 4, 4)
         train_model.env.close()
 
@@ -430,6 +436,12 @@ class TestRllibExamples(unittest.TestCase):
 
     @staticmethod
     def run_exp(flow_params, **kwargs):
+        # Reduce the number of warmup steps to speedup tests.
+        flow_params = flow_params.copy()
+        flow_params['sim'].warmup_steps = 0
+        flow_params['env'].horizon = 50
+
+        # Run the example.
         alg_run, env_name, config = setup_rllib_exps(
             flow_params, 1, 1, parse_train_args([""]), **kwargs)
 
