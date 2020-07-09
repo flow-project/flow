@@ -3,6 +3,7 @@ from flow.utils.registry import make_create_env
 from flow.data_pipeline.data_pipeline import upload_to_s3
 from flow.data_pipeline.data_pipeline import get_configuration
 from flow.data_pipeline.data_pipeline import generate_trajectory_table
+from flow.data_pipeline.data_pipeline import write_dict_to_csv
 from flow.data_pipeline.leaderboard_utils import network_name_translate
 from flow.visualize.time_space_diagram import tsd_main
 from collections import defaultdict
@@ -187,6 +188,7 @@ class Experiment:
                 dir_path, '{}.csv'.format(source_id))
             metadata_table_path = os.path.join(
                 dir_path, '{}_METADATA.csv'.format(source_id))
+            write_dict_to_csv(metadata_table_path, metadata, True)
         else:
             source_id = None
             trajectory_table_path = None
