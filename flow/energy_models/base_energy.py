@@ -10,6 +10,9 @@ class BaseEnergyModel(metaclass=ABCMeta):
     vehicle type: whether EV or Combustion Engine, Toyota Prius or Tacoma
     or non-Toyota vehicles. Non-Toyota vehicles are set by default
     to be an averaged-size vehicle.
+
+    Note: road grade is included as an input parameter, but the
+    functional dependence on road grade is not yet implemented.
     """
 
     def __init__(self):
