@@ -508,6 +508,7 @@ def create_parser():
 
 
 def generate_graphs(args):
+    """Run i210_replay script."""
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
 
