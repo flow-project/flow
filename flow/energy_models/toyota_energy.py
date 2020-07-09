@@ -14,8 +14,15 @@ class ToyotaModel(BaseEnergyModel, metaclass=ABCMeta):
         # download file from s3 bucket
         s3 = boto3.client('s3')
         s3.download_file('toyota.restricted', filename, 'temp.pkl')
+
         with open('temp.pkl', 'rb') as file:
-            self.toyota_energy = pickle.load(file)
+            try:
+                self.toyota_energy = pickle.load(file)
+            except TypeError:
+                print('Must use Python version 3.6.8 to unpickle')
+                # delete pickle file
+                os.remove(file)
+                raise
 
         # delete pickle file
         os.remove(file)
