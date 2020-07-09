@@ -1,8 +1,6 @@
 """Contains an experiment class for running simulations."""
 from flow.utils.registry import make_create_env
-from flow.data_pipeline.data_pipeline import write_dict_to_csv
 from flow.data_pipeline.data_pipeline import upload_to_s3
-from flow.data_pipeline.data_pipeline import get_extra_info
 from flow.data_pipeline.data_pipeline import get_configuration
 from flow.data_pipeline.leaderboard_utils import network_name_translate
 from flow.visualize.time_space_diagram import tsd_main
@@ -163,7 +161,6 @@ class Experiment:
 
         if convert_to_csv and self.env.simulator == "traci":
             # data pipeline
-            extra_info = defaultdict(lambda: [])
             source_id = 'flow_{}'.format(uuid.uuid4().hex)
             metadata = defaultdict(lambda: [])
 
@@ -191,7 +188,6 @@ class Experiment:
                 dir_path, '{}_METADATA.csv'.format(source_id))
         else:
             source_id = None
-            extra_info = None
             trajectory_table_path = None
             metadata_table_path = None
             metadata = None
@@ -201,8 +197,6 @@ class Experiment:
             ret = 0
             vel = []
             custom_vals = {key: [] for key in self.custom_callables.keys()}
-            run_id = "run_{}".format(i)
-            self.env.pipeline_params = (extra_info, source_id, run_id)
             state = self.env.reset()
             for j in range(num_steps):
                 t0 = time.time()
@@ -214,18 +208,6 @@ class Experiment:
                 veh_ids = self.env.k.vehicle.get_ids()
                 vel.append(np.mean(self.env.k.vehicle.get_speed(veh_ids)))
                 ret += reward
-
-                if convert_to_csv:
-                    # collect additional information for the data pipeline
-                    get_extra_info(
-                        self.env.k.vehicle, extra_info, veh_ids, source_id,
-                        run_id)
-
-                    # write to disk every 100 steps
-                    if self.env.simulator == "traci" and j % 100 == 0:
-                        write_dict_to_csv(
-                            trajectory_table_path, extra_info, not j)
-                        extra_info.clear()
 
                 # Compute the results for the custom callables.
                 for (key, lambda_func) in self.custom_callables.items():
