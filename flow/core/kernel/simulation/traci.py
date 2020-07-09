@@ -273,8 +273,8 @@ class TraCISimulation(KernelSimulation):
     def save_emission(self, run_id=0):
         """Save any collected emission data to a csv file.
 
-        If not data was collected, nothing happens. Moreover, any internally
-        stored data by this class is clear whenever data is stored.
+        If no data was collected, nothing happens. Moreover, any internally
+        stored data by this class is cleared whenever data is stored.
 
         Parameters
         ----------

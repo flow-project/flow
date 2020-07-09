@@ -18,7 +18,7 @@ def generate_trajectory_table(emission_files, trajectory_table_path, source_id):
     emission_files : list
         paths to the SUMO emission
     trajectory_table_path : str
-        path to the file fot S3 upload only
+        path to the file for S3 upload only
     source_id : str
         the source id of this simulation
     """

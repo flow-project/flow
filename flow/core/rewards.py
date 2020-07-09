@@ -307,7 +307,7 @@ def punish_rl_lane_changes(env, penalty=1):
 
 
 def energy_consumption(env, gain=.001):
-    """Calculate power consumption of a vehicle.
+    """Calculate power consumption for all vehicle.
 
     Assumes vehicle is an average sized vehicle.
     The power calculated here is the lower bound of the actual power consumed
