@@ -104,7 +104,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
             # crash encodes whether the simulator experienced a collision
             crash = self.k.simulation.check_collision()
-            self.crash = crash
+
             # stop collecting new simulation steps if there is a collision
             if crash:
                 print('A CRASH! A CRASH!!!!!! AAAAAAAAAH!!!!!')
@@ -322,7 +322,3 @@ class MultiEnv(MultiAgentEnv, Env):
         # clip according to the action space requirements
         clipped_actions = self.clip_actions(rl_actions)
         self._apply_rl_actions(clipped_actions)
-
-    def set_iteration_num(self):
-        """Increment the number of training iterations."""
-        self.num_training_iters += 1

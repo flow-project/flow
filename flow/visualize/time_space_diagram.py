@@ -4,10 +4,13 @@ This method accepts as input a csv file containing the sumo-formatted emission
 file, and then uses this data to generate a time-space diagram, with the x-axis
 being the time (in seconds), the y-axis being the position of a vehicle, and
 color representing the speed of te vehicles.
+
 If the number of simulation steps is too dense, you can plot every nth step in
 the plot by setting the input `--steps=n`.
+
 Note: This script assumes that the provided network has only one lane on the
 each edge, or one lane on the main highway in the case of MergeNetwork.
+
 Usage
 -----
 ::
@@ -379,10 +382,20 @@ def _get_abs_pos(df, params):
     return ret
 
 
-def plot_tsd(ax, df, segs, cmap, min_speed=0, max_speed=10, start=0, lane=None, ghost_edges=None, ghost_bounds=None):
+def plot_tsd(ax,
+             df,
+             segs,
+             cmap,
+             min_speed=0,
+             max_speed=10,
+             start=0,
+             lane=None,
+             ghost_edges=None,
+             ghost_bounds=None):
     """Plot the time-space diagram.
 
-    Take the pre-processed segments and other meta-data, then plot all the line segments.
+    Take the pre-processed segments and other meta-data, then plot all the line
+    segments.
 
     Parameters
     ----------
@@ -391,7 +404,8 @@ def plot_tsd(ax, df, segs, cmap, min_speed=0, max_speed=10, start=0, lane=None, 
     df : pd.DataFrame
         data used for axes bounds and speed coloring
     segs : list of list of lists
-        line segments to be plotted, where each segment is a list of two [x,y] pairs
+        line segments to be plotted, where each segment is a list of two [x,y]
+        pairs
     min_speed : int or float
         minimum speed in colorbar
     max_speed : int or float
@@ -404,10 +418,6 @@ def plot_tsd(ax, df, segs, cmap, min_speed=0, max_speed=10, start=0, lane=None, 
         ghost edge names to be greyed out, default None
     ghost_bounds : tuple
         lower and upper bounds of domain, excluding ghost edges, default None
-
-    Returns
-    -------
-    None
     """
     norm = plt.Normalize(min_speed, max_speed)
 

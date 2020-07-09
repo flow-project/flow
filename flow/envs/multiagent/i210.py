@@ -89,7 +89,6 @@ class I210MultiEnv(MultiEnv):
         # how many timesteps to anneal the headway curriculum over
         self.speed_curriculum_iters = env_params.additional_params["speed_curriculum_iters"]
         self.speed_reward_gain = env_params.additional_params["speed_reward_gain"]
-        self.num_training_iters = 0
         self.leader = []
 
         # penalize stops
