@@ -2,6 +2,7 @@
 from flow.utils.registry import make_create_env
 from flow.data_pipeline.data_pipeline import upload_to_s3
 from flow.data_pipeline.data_pipeline import get_configuration
+from flow.data_pipeline.data_pipeline import generate_trajectory_table
 from flow.data_pipeline.leaderboard_utils import network_name_translate
 from flow.visualize.time_space_diagram import tsd_main
 from collections import defaultdict
@@ -193,6 +194,7 @@ class Experiment:
             metadata = None
             cur_date = None
 
+        emission_files = []
         for i in range(num_runs):
             ret = 0
             vel = []
@@ -229,7 +231,7 @@ class Experiment:
             # Save emission data at the end of every rollout. This is skipped
             # by the internal method if no emission path was specified.
             if self.env.simulator == "traci":
-                self.env.k.simulation.save_emission(run_id=i)
+                emission_files.append(self.env.k.simulation.save_emission(run_id=i))
 
         # Print the averages/std for all variables in the info_dict.
         for key in info_dict.keys():
@@ -241,6 +243,7 @@ class Experiment:
         self.env.terminate()
 
         if to_aws:
+            generate_trajectory_table(emission_files, trajectory_table_path, source_id)
             tsd_main(
                 trajectory_table_path,
                 {'network': self.env.network.__class__},
@@ -268,5 +271,6 @@ class Experiment:
                 '{1}.png'.format(cur_date, source_id),
                 trajectory_table_path.replace('csv', 'png')
             )
+            os.remove(trajectory_table_path)
 
         return info_dict

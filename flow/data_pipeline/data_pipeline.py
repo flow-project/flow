@@ -10,7 +10,7 @@ from io import StringIO
 import json
 
 
-def generate_trajectory_table(data_path, extra_info, partition_name):
+def generate_trajectory_table(emission_files, trajectory_table_path, source_id):
     """Generate desired output for the trajectory_table based on standard SUMO emission.
 
     Parameters
@@ -27,20 +27,12 @@ def generate_trajectory_table(data_path, extra_info, partition_name):
     output_file_path : str
         the local path of the outputted csv file
     """
-    raw_output = pd.read_csv(data_path, index_col=["time", "id"])
-    required_cols = {"time", "id", "speed", "x", "y"}
-    raw_output = raw_output.drop(set(raw_output.columns) - required_cols, axis=1)
 
-    extra_info = pd.DataFrame.from_dict(extra_info)
-    extra_info.set_index(["time", "id"])
-    raw_output = raw_output.merge(extra_info, how="left", left_on=["time", "id"], right_on=["time", "id"])
-
-    # add the partition column
-    # raw_output['partition'] = partition_name
-    raw_output = raw_output.sort_values(by=["time", "id"])
-    output_file_path = data_path[:-4]+"_trajectory.csv"
-    raw_output.to_csv(output_file_path, index=False)
-    return output_file_path
+    for i in range(len(emission_files)):
+        emission_output = pd.read_csv(emission_files[i])
+        emission_output['source_id'] = source_id
+        emission_output['run_id'] = "run_{}".format(i)
+        emission_output.to_csv(trajectory_table_path, mode='a+', index=False, header=(i == 0))
 
 
 def write_dict_to_csv(data_path, extra_info, include_header=False):
