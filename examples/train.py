@@ -396,7 +396,7 @@ def train_rllib(submodule, flags):
         # grab checkpoint path
         for (dirpath, _, _) in os.walk(os.path.expanduser("~/ray_results")):
             if "checkpoint_{}".format(flags.checkpoint_freq) in dirpath \
-                and dirpath.split('/')[-3] == flags.exp_title:
+               and dirpath.split('/')[-3] == flags.exp_title:
                 checkpoint_path = os.path.dirname(dirpath)
                 checkpoint_number = -1
                 for name in os.listdir(checkpoint_path):
@@ -408,7 +408,7 @@ def train_rllib(submodule, flags):
                 output_dir = os.path.join(checkpoint_path, 'output_graphs')
                 if not os.path.exists(output_dir):
                     os.mkdir(output_dir)
-                
+
                 # run graph generation script
                 parser = create_parser()
                 args = parser.parse_args([
