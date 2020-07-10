@@ -281,6 +281,7 @@ class TraCISimulation(KernelSimulation):
         run_id : int
             the rollout number, appended to the name of the emission file. Used
             to store emission files from multiple rollouts run sequentially.
+
         Returns
         -------
         emission_file_path: str
