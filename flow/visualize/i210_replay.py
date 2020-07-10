@@ -243,7 +243,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     metadata['is_baseline'].append(str(args.is_baseline))
 
     if args.use_s3:
-        name, strategy = get_configuration()
+        name, strategy = get_configuration(submitter_name=args.submitter_name,
+                                           strategy_name=args.strategy_name)
         metadata['submitter_name'].append(name)
         metadata['strategy'].append(strategy)
 
