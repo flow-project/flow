@@ -191,6 +191,7 @@ class TestTrain(unittest.TestCase):
             'rollout_size': 1000,
             'checkpoint_path': None,
             'use_s3': False,
+            'multi_node': False,
         })
 
         # test the case when optional args are specified
@@ -219,6 +220,7 @@ class TestTrain(unittest.TestCase):
             'rl_trainer': 'h-baselines',
             'rollout_size': 4,
             'use_s3': False,
+            'multi_node': False,
         })
 
 
