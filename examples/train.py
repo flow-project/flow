@@ -43,6 +43,10 @@ def parse_args(args):
         help='Name of the experiment configuration file, as located in '
              'exp_configs/rl/singleagent or exp_configs/rl/multiagent.')
 
+    parser.add_argument(
+        'exp_title', type=str,
+        help='Name of experiment that results will be stored in')
+
     # optional input parameters
     parser.add_argument(
         '--rl_trainer', type=str, default="rllib",
@@ -89,9 +93,6 @@ def parse_args(args):
     parser.add_argument('--multi_node', action='store_true',
                         help='Set to true if this will be run in cluster mode.'
                              'Relevant for rllib')
-    parser.add_argument(
-        '--exp_title', type=str, default=None,
-        help='Name of experiment that results will be stored in')
 
     return parser.parse_known_args(args)[0]
 
