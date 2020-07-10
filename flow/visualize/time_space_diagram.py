@@ -82,21 +82,17 @@ def import_data_from_trajectory(fp, params=dict()):
     return df
 
 
-def get_time_space_data(data, params):
+def get_time_space_data(data, network):
     r"""Compute the unique inflows and subsequent outflow statistics.
 
     Parameters
     ----------
     data : pd.DataFrame
         cleaned dataframe of the trajectory data
-    params : dict
-        flow-specific parameters, including:
-        * "network" (str): name of the network that was used when generating
-          the emission file. Must be one of the network names mentioned in
-          ACCEPTABLE_NETWORKS,
-        * "net_params" (flow.core.params.NetParams): network-specific
-          parameters. This is used to collect the lengths of various network
-          links.
+    network : child class of Network()
+        network that was used when generating the emission file.
+        Must be one of the network names mentioned in
+        ACCEPTABLE_NETWORKS
 
     Returns
     -------
@@ -114,8 +110,8 @@ def get_time_space_data(data, params):
         if the specified network is not supported by this method
     """
     # check that the network is appropriate
-    assert params['network'] in ACCEPTABLE_NETWORKS, \
-        'Network must be one of: ' + ', '.join([network.__name__ for network in ACCEPTABLE_NETWORKS])
+    assert network in ACCEPTABLE_NETWORKS, \
+        'Network must be one of: ' + ', '.join([network_.__name__ for network_ in ACCEPTABLE_NETWORKS])
 
     # switcher used to compute the positions based on the type of network
     switcher = {
@@ -127,7 +123,7 @@ def get_time_space_data(data, params):
     }
 
     # Get the function from switcher dictionary
-    func = switcher[params['network']]
+    func = switcher[network]
 
     # Execute the function
     segs, data = func(data)
@@ -238,7 +234,7 @@ def _i210_subnetwork(data):
     """
     # Reset lane numbers that are offset by ramp lanes
     offset_edges = set(data[data['lane_id'] == 5]['edge_id'].unique())
-    data.loc[data['edge_id'].isin(offset_edges), 'lane_id'] -= 1
+    data.loc[data['edge_id'].isin(offset_edges), 'lane_id'] = data[data['edge_id'].isin(offset_edges)]['lane_id'] - 1
 
     segs = dict()
     for lane, df in data.groupby('lane_id'):
@@ -382,19 +378,21 @@ def _get_abs_pos(df, params):
     return ret
 
 
-def plot_tsd(ax, df, segs, cmap, min_speed=0, max_speed=10, start=0, lane=None, ghost_edges=None, ghost_bounds=None):
+def plot_tsd(df, network, cmap, min_speed=0, max_speed=10, start=0, lane=None, ghost_edges=None, ghost_bounds=None):
     """Plot the time-space diagram.
 
     Take the pre-processed segments and other meta-data, then plot all the line segments.
 
     Parameters
     ----------
-    ax : matplotlib.axes.Axes
-        figure axes that will be plotted on
     df : pd.DataFrame
         data used for axes bounds and speed coloring
-    segs : list of list of lists
-        line segments to be plotted, where each segment is a list of two [x,y] pairs
+    network : child class of Network()
+        network that was used when generating the emission file.
+        Must be one of the network names mentioned in
+        ACCEPTABLE_NETWORKS
+    cmap : colors.LinearSegmentedColormap
+        colormap for plotting speed
     min_speed : int or float
         minimum speed in colorbar
     max_speed : int or float
@@ -415,22 +413,47 @@ def plot_tsd(ax, df, segs, cmap, min_speed=0, max_speed=10, start=0, lane=None, 
     norm = plt.Normalize(min_speed, max_speed)
 
     if ghost_edges:
-        domain_bounds = (
-            df[~df['edge_id'].isin(ghost_edges)]['distance'].min(),
-            df[~df['edge_id'].isin(ghost_edges)]['distance'].max()
-            )
+        domain_lb = df[~df['edge_id'].isin(ghost_edges)]['distance'].min()
+        domain_ub = df[~df['edge_id'].isin(ghost_edges)]['distance'].max()
     elif ghost_bounds:
-        domain_bounds = ghost_bounds
+        domain_lb = ghost_bounds[0]
+        domain_ub = ghost_bounds[1]
     else:
-        domain_bounds = (df['distance'].min(), df['distance'].max())
+        domain_lb = df['distance'].min()
+        domain_ub = df['distance'].max()
 
-    df['time_step'] -= start
+    df.loc[:, 'time_step'] = df['time_step'].apply(lambda x: x - start)
     xmin, xmax = df['time_step'].min(), df['time_step'].max()
     xbuffer = (xmax - xmin) * 0.025  # 2.5% of range
-    df['distance'] -= domain_bounds[0]
-    domain_bounds[1] -= domain_bounds[0]
+    df.loc[:, 'distance'] = df['distance'].apply(lambda x: x - domain_lb)
+    domain_ub -= domain_lb
     ymin, ymax = df['distance'].min(), df['distance'].max()
     ybuffer = (ymax - ymin) * 0.025  # 2.5% of range
+
+    # Convert df data into segments for plotting
+    segs, df = get_time_space_data(df, network)
+
+    nlanes = traj_df['lane_id'].nunique()
+    plt.figure(figsize=(16, 9*nlanes))
+
+    ghost_dict = defaultdict(dict)
+    ghost_dict[I210SubNetwork] = {'ghost_edges': {'ghost0', '119257908#3'}}
+    ghost_dict[HighwayNetwork] = {'ghost_bounds': (500, 2300)}
+
+    if nlanes > 1:
+    for lane, df in traj_df.groupby('lane_id'):
+        ax = plt.subplot(nlanes, 1, lane+1)
+
+        plot_tsd(ax=ax,
+                 df=df,
+                 network=network,
+                 cmap=my_cmap,
+                 min_speed=min_speed,
+                 max_speed=max_speed,
+                 start=start,
+                 lane=int(lane+1),
+                 ghost_edges={'ghost0', '119257908#3'})
+    plt.tight_layout()
 
     ax.set_xlim(xmin - xbuffer, xmax + xbuffer)
     ax.set_ylim(ymin - ybuffer, ymax + ybuffer)
@@ -443,11 +466,11 @@ def plot_tsd(ax, df, segs, cmap, min_speed=0, max_speed=10, start=0, lane=None, 
 
     rects = []
     # rectangle for warmup period, but not ghost edges
-    rects.append(Rectangle((xmin, 0), start, domain_bounds[1]))
+    rects.append(Rectangle((xmin, 0), start, domain_ub))
     # rectangle for lower ghost edge (including warmup period)
-    rects.append(Rectangle((xmin, ymin), xmax - xmin, domain_bounds[0]))
+    rects.append(Rectangle((xmin, ymin), xmax - xmin, domain_lb))
     # rectangle for upper ghost edge (including warmup period)
-    rects.append(Rectangle((xmin, domain_bounds[1]), xmax - xmin, ymax - domain_bounds[1]))
+    rects.append(Rectangle((xmin, domain_ub), xmax - xmin, ymax - domain_ub))
 
     pc = PatchCollection(rects, facecolor='grey', alpha=0.5, edgecolor=None)
     pc.set_zorder(20)
@@ -500,10 +523,9 @@ def tsd_main(trajectory_path, flow_params, min_speed=0, max_speed=10, start=0):
     # Read trajectory csv into pandas dataframe
     traj_df = import_data_from_trajectory(trajectory_path, flow_params)
 
-    # Convert df data into segments for plotting
-    segs, traj_df = get_time_space_data(traj_df, flow_params)
+    network = flow_params['network']
 
-    if flow_params['network'] == I210SubNetwork:
+    if network == I210SubNetwork:
         nlanes = traj_df['lane_id'].nunique()
         plt.figure(figsize=(16, 9*nlanes))
 
@@ -512,7 +534,7 @@ def tsd_main(trajectory_path, flow_params, min_speed=0, max_speed=10, start=0):
 
             plot_tsd(ax=ax,
                      df=df,
-                     segs=segs[lane],
+                     network=network,
                      cmap=my_cmap,
                      min_speed=min_speed,
                      max_speed=max_speed,
@@ -528,7 +550,7 @@ def tsd_main(trajectory_path, flow_params, min_speed=0, max_speed=10, start=0):
         if flow_params['network'] == HighwayNetwork:
             plot_tsd(ax=ax,
                      df=traj_df,
-                     segs=segs,
+                     network=network,
                      cmap=my_cmap,
                      min_speed=min_speed,
                      max_speed=max_speed,
@@ -537,7 +559,7 @@ def tsd_main(trajectory_path, flow_params, min_speed=0, max_speed=10, start=0):
         else:
             plot_tsd(ax=ax,
                      df=traj_df,
-                     segs=segs,
+                     network=network,
                      cmap=my_cmap,
                      min_speed=min_speed,
                      max_speed=max_speed,
@@ -545,11 +567,11 @@ def tsd_main(trajectory_path, flow_params, min_speed=0, max_speed=10, start=0):
 
     ###########################################################################
     #                       Note: For MergeNetwork only                       #
-    if flow_params['network'] == 'MergeNetwork':                              #
+    if network == MergeNetwork:                                               #
         plt.plot([df['time_step'].min(), df['time_step'].max()],
-                 [0, 0], linewidth=3, color="white")        #
+                 [0, 0], linewidth=3, color="white")                          #
         plt.plot([df['time_step'].min(), df['time_step'].max()],
-                 [-0.1, -0.1], linewidth=3, color="white")     #
+                 [-0.1, -0.1], linewidth=3, color="white")                    #
     ###########################################################################
 
     outfile = trajectory_path.replace('csv', 'png')
