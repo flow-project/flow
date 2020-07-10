@@ -253,6 +253,7 @@ class Experiment:
                 max_speed=10,
                 start=self.env.env_params.warmup_steps
             )
+            exit()
             upload_to_s3(
                 'circles.data.pipeline',
                 'metadata_table/date={0}/partition_name={1}_METADATA/'
