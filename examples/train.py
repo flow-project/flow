@@ -416,12 +416,16 @@ def train_rllib(submodule, flags):
 
                 # run graph generation script
                 parser = create_parser()
+
+                if flags.grid_search:
+                    strategy_name += '__' + dirpath.split('/')[-2]
+                
                 args = parser.parse_args([
                     '-r', checkpoint_path, '-c', str(checkpoint_number),
                     '--gen_emission', '--use_s3', '--num_cpus', str(flags.num_cpus),
                     '--output_dir', output_dir,
                     '--submitter_name', submitter_name,
-                    '--strategy_name', strategy_name + '__' + dirpath.split('/')[-2]
+                    '--strategy_name', strategy_name.replace(',', '_').replace(';', '_')
                 ])
                 generate_graphs(args)
 
