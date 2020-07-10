@@ -90,6 +90,9 @@ def parse_args(args):
         help='Whether to generate and upload graphs to leaderboard at the end of training.'
              'Arguments are name of the submitter and name of the strategy.'
              'Only relevant for i210 training on rllib')
+    parser.add_argument('--multi_node', action='store_true',
+                        help='Set to true if this will be run in cluster mode.'
+                             'Relevant for rllib')
 
     return parser.parse_known_args(args)[0]
 
@@ -358,7 +361,9 @@ def train_rllib(submodule, flags):
     def trial_str_creator(trial):
         return "{}_{}".format(trial.trainable_name, trial.experiment_tag)
 
-    if flags.local_mode:
+    if flags.multi_node:
+        ray.init(redis_address='localhost:6379')
+    elif flags.local_mode:
         ray.init(local_mode=True)
     else:
         ray.init()
