@@ -281,6 +281,10 @@ class TraCISimulation(KernelSimulation):
         run_id : int
             the rollout number, appended to the name of the emission file. Used
             to store emission files from multiple rollouts run sequentially.
+        Returns
+        -------
+        emission_file_path: str
+            the relative path of the emission file
         """
         # If there is no stored data, ignore this operation. This is to ensure
         # that data isn't deleted if the operation is called twice.
@@ -323,8 +327,9 @@ class TraCISimulation(KernelSimulation):
                 for key in stored_ids:
                     final_data[key].append(self.stored_data[veh_id][t][key])
 
-        with open(os.path.join(self.emission_path, name), "w") as f:
-            print(os.path.join(self.emission_path, name), self.emission_path)
+        emission_file_path = os.path.join(self.emission_path, name)
+        with open(emission_file_path, "w") as f:
+            print(emission_file_path, self.emission_path)
             writer = csv.writer(f, delimiter=',')
             writer.writerow(final_data.keys())
             writer.writerows(zip(*final_data.values()))
@@ -332,3 +337,5 @@ class TraCISimulation(KernelSimulation):
         # Clear all memory from the stored data. This is useful if this
         # function is called in between resets.
         self.stored_data.clear()
+
+        return emission_file_path
