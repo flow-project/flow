@@ -97,7 +97,7 @@ class TestPlotters(unittest.TestCase):
         emission_data = tsd.import_data_from_trajectory(
             os.path.join(dir_path, 'test_files/fig8_emission.csv'), flow_params)
 
-        segs, _ = tsd.get_time_space_data(emission_data, flow_params)
+        segs, _ = tsd.get_time_space_data(emission_data, flow_params['network'])
 
         expected_segs = np.array([
           [[1., 60.], [2., 59.]],
@@ -153,7 +153,7 @@ class TestPlotters(unittest.TestCase):
         emission_data = tsd.import_data_from_trajectory(
             os.path.join(dir_path, 'test_files/merge_emission.csv'), flow_params)
 
-        segs, _ = tsd.get_time_space_data(emission_data, flow_params)
+        segs, _ = tsd.get_time_space_data(emission_data, flow_params['network'])
 
         expected_segs = np.array([
           [[2.0000e-01, 7.2949e+02], [4.0000e-01, 7.2953e+02]],
@@ -171,7 +171,7 @@ class TestPlotters(unittest.TestCase):
         emission_data = tsd.import_data_from_trajectory(
             os.path.join(dir_path, 'test_files/i210_emission.csv'), flow_params)
 
-        segs, _ = tsd.get_time_space_data(emission_data, flow_params)
+        segs, _ = tsd.get_time_space_data(emission_data, flow_params['network'])
 
         expected_segs = {
           1: np.array([
@@ -211,7 +211,7 @@ class TestPlotters(unittest.TestCase):
         emission_data = tsd.import_data_from_trajectory(
             os.path.join(dir_path, 'test_files/ring_230_emission.csv'), flow_params)
 
-        segs, _ = tsd.get_time_space_data(emission_data, flow_params)
+        segs, _ = tsd.get_time_space_data(emission_data, flow_params['network'])
 
         expected_segs = np.array([
           [[1.0000e-01, 0.0000e+00], [2.0000e-01, 1.0000e-02]],
