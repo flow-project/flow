@@ -396,7 +396,7 @@ class SimParams(object):
     def __init__(self,
                  sim_step=0.1,
                  render=False,
-                 restart_instance=False,
+                 restart_instance=True,
                  emission_path=None,
                  save_render=False,
                  sight_radius=25,
@@ -406,7 +406,7 @@ class SimParams(object):
         """Instantiate SimParams."""
         self.sim_step = sim_step
         self.render = render
-        self.restart_instance = restart_instance
+        self.restart_instance = True#restart_instance
         self.emission_path = emission_path
         self.save_render = save_render
         self.sight_radius = sight_radius

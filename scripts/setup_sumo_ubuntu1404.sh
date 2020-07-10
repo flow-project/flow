@@ -11,10 +11,12 @@ sudo apt-get install -y libfox-1.6-dev
 echo "Installing sumo binaries"
 mkdir -p $HOME/sumo_binaries/bin
 pushd $HOME/sumo_binaries/bin
-wget https://akreidieh.s3.amazonaws.com/sumo/flow-0.4.0/binaries-ubuntu1404.tar.xz
-tar -xf binaries-ubuntu1404.tar.xz
-rm binaries-ubuntu1404.tar.xz
+wget https://flow-sumo.s3-us-west-1.amazonaws.com/libsumo/sumo_binaries_ubuntu1404.tar.gz
+tar -xf sumo_binaries_ubuntu1404.tar.gz
+rm sumo_binaries_ubuntu1404.tar.gz
 chmod +x *
 popd
+echo '# Added by Sumo / Libsumo instalation' >> ~/.bashrc
 echo 'export PATH="$HOME/sumo_binaries/bin:$PATH"' >> ~/.bashrc
 echo 'export SUMO_HOME="$HOME/sumo_binaries/bin"' >> ~/.bashrc
+echo 'export PYTHONPATH="$PYTHONPATH:$HOME/sumo_binaries/tools"' >> ~/.bashrc
