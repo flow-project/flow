@@ -2,6 +2,7 @@
 from flow.utils.registry import make_create_env
 from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
 from flow.data_pipeline.leaderboard_utils import network_name_translate
+from flow.core.rewards import veh_energy_consumption
 from collections import defaultdict
 from datetime import datetime, timezone
 import logging
@@ -142,7 +143,13 @@ class Experiment:
         info_dict = {
             "velocities": [],
             "outflows": [],
+            "avg_trip_energy": [],
+            "avg_trip_time": [],
+            "total_completed_trips": []
         }
+        all_trip_energy_distribution = defaultdict(lambda: [])
+        all_trip_time_distribution = defaultdict(lambda: [])
+
         info_dict.update({
             key: [] for key in self.custom_callables.keys()
         })
@@ -185,10 +192,15 @@ class Experiment:
             else:
                 ret = 0
             vel = []
+            per_vehicle_energy_trace = defaultdict(lambda: [])
+            completed_veh_types = {}
+            completed_vehicle_avg_energy = {}
+            completed_vehicle_travel_time = {}
             custom_vals = {key: [] for key in self.custom_callables.keys()}
             run_id = "run_{}".format(i)
             self.env.pipeline_params = (extra_info, source_id, run_id)
             state = self.env.reset()
+            initial_vehicles = set(self.env.k.vehicle.get_ids())
             for j in range(num_steps):
                 t0 = time.time()
                 state, reward, done, _ = self.env.step(rl_actions(state))
@@ -216,6 +228,24 @@ class Experiment:
                 for (key, lambda_func) in self.custom_callables.items():
                     custom_vals[key].append(lambda_func(self.env))
 
+                for past_veh_id in per_vehicle_energy_trace.keys():
+                    if past_veh_id not in veh_ids and past_veh_id not in completed_vehicle_avg_energy:
+                        all_trip_energy_distribution[completed_veh_types[past_veh_id]].append(
+                            np.sum(per_vehicle_energy_trace[past_veh_id]))
+                        all_trip_time_distribution[completed_veh_types[past_veh_id]].append(
+                            len(per_vehicle_energy_trace[past_veh_id]))
+                        completed_vehicle_avg_energy[past_veh_id] = np.sum(per_vehicle_energy_trace[past_veh_id])
+                        completed_vehicle_travel_time[past_veh_id] = len(per_vehicle_energy_trace[past_veh_id])
+
+                for veh_id in veh_ids:
+                    if veh_id not in initial_vehicles:
+                        if veh_id not in per_vehicle_energy_trace:
+                            # we have to skip the first step's energy calculation
+                            per_vehicle_energy_trace[veh_id].append(0)
+                            completed_veh_types[veh_id] = self.env.k.vehicle.get_type(veh_id)
+                        else:
+                            per_vehicle_energy_trace[veh_id].append(-1 * veh_energy_consumption(self.env, veh_id))
+
                 if multiagent and done['__all__']:
                     break
                 if type(done) is dict and done['__all__'] or type(done) is not dict and done:
@@ -233,6 +263,9 @@ class Experiment:
                 info_dict["returns"] = rets
             info_dict["velocities"].append(np.mean(vel))
             info_dict["outflows"].append(outflow)
+            info_dict["avg_trip_energy"].append(np.mean(list(completed_vehicle_avg_energy.values())))
+            info_dict["avg_trip_time"].append(np.mean(list(completed_vehicle_travel_time.values())))
+            info_dict["total_completed_trips"].append(len(list(completed_vehicle_avg_energy.values())))
             for key in custom_vals.keys():
                 info_dict[key].append(np.mean(custom_vals[key]))
 

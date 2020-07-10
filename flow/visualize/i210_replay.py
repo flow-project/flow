@@ -484,6 +484,10 @@ def create_parser():
         action='store_true',
         help='specifies whether this is a baseline run'
     )
+    parser.add_argument(
+        '--exp_config', type=str,
+        help='Name of the experiment configuration file, as located in '
+             'exp_configs/non_rl.')
     return parser
 
 
@@ -502,7 +506,11 @@ if __name__ == '__main__':
 
         rllib_config = get_rllib_config(rllib_result_dir)
 
-    flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
+    if args.exp_config:
+        module = __import__("../../examples/exp_configs.non_rl", fromlist=[args.exp_config])
+        flow_params = getattr(module, args.exp_config).flow_params
+    else:
+        flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
 
     if args.multi_node:
         ray.init(redis_address='localhost:6379')
