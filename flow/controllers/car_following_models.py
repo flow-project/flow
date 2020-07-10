@@ -56,7 +56,8 @@ class CFMController(BaseController):
                  v_des=8,
                  time_delay=0.0,
                  noise=0,
-                 fail_safe=None):
+                 fail_safe=None,
+                 display_warnings=False):
         """Instantiate a CFM controller."""
         BaseController.__init__(
             self,
@@ -64,7 +65,9 @@ class CFMController(BaseController):
             car_following_params,
             delay=time_delay,
             fail_safe=fail_safe,
-            noise=noise)
+            noise=noise,
+            display_warnings=display_warnings,
+        )
 
         self.veh_id = veh_id
         self.k_d = k_d
@@ -132,7 +135,8 @@ class BCMController(BaseController):
                  v_des=8,
                  time_delay=0.0,
                  noise=0,
-                 fail_safe=None):
+                 fail_safe=None,
+                 display_warnings=False):
         """Instantiate a Bilateral car-following model controller."""
         BaseController.__init__(
             self,
@@ -140,7 +144,9 @@ class BCMController(BaseController):
             car_following_params,
             delay=time_delay,
             fail_safe=fail_safe,
-            noise=noise)
+            noise=noise,
+            display_warnings=display_warnings,
+        )
 
         self.veh_id = veh_id
         self.k_d = k_d
@@ -212,7 +218,8 @@ class LACController(BaseController):
                  a=0,
                  time_delay=0.0,
                  noise=0,
-                 fail_safe=None):
+                 fail_safe=None,
+                 display_warnings=False):
         """Instantiate a Linear Adaptive Cruise controller."""
         BaseController.__init__(
             self,
@@ -220,7 +227,9 @@ class LACController(BaseController):
             car_following_params,
             delay=time_delay,
             fail_safe=fail_safe,
-            noise=noise)
+            noise=noise,
+            display_warnings=display_warnings,
+        )
 
         self.veh_id = veh_id
         self.k_1 = k_1
@@ -289,7 +298,8 @@ class OVMController(BaseController):
                  v_max=30,
                  time_delay=0,
                  noise=0,
-                 fail_safe=None):
+                 fail_safe=None,
+                 display_warnings=False):
         """Instantiate an Optimal Vehicle Model controller."""
         BaseController.__init__(
             self,
@@ -297,7 +307,9 @@ class OVMController(BaseController):
             car_following_params,
             delay=time_delay,
             fail_safe=fail_safe,
-            noise=noise)
+            noise=noise,
+            display_warnings=display_warnings,
+        )
         self.veh_id = veh_id
         self.v_max = v_max
         self.alpha = alpha
@@ -364,7 +376,8 @@ class LinearOVM(BaseController):
                  h_st=5,
                  time_delay=0.0,
                  noise=0,
-                 fail_safe=None):
+                 fail_safe=None,
+                 display_warnings=False):
         """Instantiate a Linear OVM controller."""
         BaseController.__init__(
             self,
@@ -372,7 +385,9 @@ class LinearOVM(BaseController):
             car_following_params,
             delay=time_delay,
             fail_safe=fail_safe,
-            noise=noise)
+            noise=noise,
+            display_warnings=display_warnings,
+        )
         self.veh_id = veh_id
         # 4.8*1.85 for case I, 3.8*1.85 for case II, per Nakayama
         self.v_max = v_max
@@ -445,6 +460,7 @@ class IDMController(BaseController):
                  time_delay=0.0,
                  noise=0,
                  fail_safe=None,
+                 display_warnings=False,
                  car_following_params=None):
         """Instantiate an IDM controller."""
         BaseController.__init__(
@@ -453,7 +469,9 @@ class IDMController(BaseController):
             car_following_params,
             delay=time_delay,
             fail_safe=fail_safe,
-            noise=noise)
+            noise=noise,
+            display_warnings=display_warnings,
+        )
         self.v0 = v0
         self.T = T
         self.a = a
@@ -546,7 +564,8 @@ class GippsController(BaseController):
                  tau=1,
                  delay=0,
                  noise=0,
-                 fail_safe=None):
+                 fail_safe=None,
+                 display_warnings=False):
         """Instantiate a Gipps' controller."""
         BaseController.__init__(
             self,
@@ -554,8 +573,9 @@ class GippsController(BaseController):
             car_following_params,
             delay=delay,
             fail_safe=fail_safe,
-            noise=noise
-            )
+            noise=noise,
+            display_warnings=display_warnings,
+        )
 
         self.v_desired = v0
         self.acc = acc
@@ -627,7 +647,8 @@ class BandoFTLController(BaseController):
                  want_max_accel=False,
                  time_delay=0,
                  noise=0,
-                 fail_safe=None):
+                 fail_safe=None,
+                 display_warnings=False):
         """Instantiate an Bando controller."""
         BaseController.__init__(
             self,
@@ -636,6 +657,7 @@ class BandoFTLController(BaseController):
             delay=time_delay,
             fail_safe=fail_safe,
             noise=noise,
+            display_warnings=display_warnings,
         )
         self.veh_id = veh_id
         self.v_max = v_max

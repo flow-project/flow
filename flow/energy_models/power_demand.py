@@ -23,6 +23,8 @@ class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
                  aerodynamic_drag_coeff=0.4,
                  p1_correction=4598.7155,
                  p3_correction=975.12719):
+        super(PowerDemandModel, self).__init__()
+
         self.g = 9.807
         self.rho_air = 1.225
         self.gamma = 1
@@ -68,6 +70,7 @@ class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
             Instantaneous speed of the vehicle
         grade : float
             Instantaneous road grade of the vehicle
+
         Returns
         -------
         float
@@ -85,6 +88,7 @@ class PowerDemandModel(BaseEnergyModel, metaclass=ABCMeta):
             Instantaneous speed of the vehicle
         grade : float
             Instantaneous road grade of the vehicle
+
         Returns
         -------
         float
@@ -113,7 +117,7 @@ class PDMCombustionEngine(PowerDemandModel):
                  drag_coeff=0.7041355229,
                  p1_correction=4598.7155,
                  p3_correction=975.12719):
-        super(PDMCombustionEngine, self).__init__()
+        super(PDMCombustionEngine, self).__init__(p1_correction=p1_correction, p3_correction=p3_correction)
         self.fuel_consumption_power_coeffs = np.array([idle_coeff,
                                                        linear_friction_coeff,
                                                        quadratic_friction_coeff,

@@ -33,6 +33,7 @@ class BaseEnergyModel(metaclass=ABCMeta):
             Instantaneous speed of the vehicle
         grade : float
             Instantaneous road grade of the vehicle
+
         Returns
         -------
         float
@@ -53,6 +54,7 @@ class BaseEnergyModel(metaclass=ABCMeta):
             Instantaneous speed of the vehicle
         grade : float
             Instantaneous road grade of the vehicle
+
         Returns
         -------
         float

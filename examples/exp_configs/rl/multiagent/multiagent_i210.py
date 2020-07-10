@@ -29,7 +29,8 @@ from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 # Specify some configurable constants.                                        #
 # =========================================================================== #
 
-# whether to include the downstream slow-down edge in the network as well as a ghost cell at the upstream edge
+# whether to include the downstream slow-down edge in the network as well as a
+# ghost cell at the upstream edge
 WANT_BOUNDARY_CONDITIONS = True
 # whether to include vehicles on the on-ramp
 ON_RAMP = False
