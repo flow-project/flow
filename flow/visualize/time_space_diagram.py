@@ -470,7 +470,7 @@ def plot_tsd(df, network, cmap, min_speed=0, max_speed=10, start=0, domain_bound
             ax.set_title('Time-Space Diagram: Lane {}'.format(lane), fontsize=25)
         else:
             ax.set_title('Time-Space Diagram', fontsize=25)
-        
+
         ax.set_ylabel('Position (m)', fontsize=20)
         if lane == nlanes - 1:
             ax.set_xlabel('Time (s)', fontsize=20)
