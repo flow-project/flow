@@ -195,3 +195,34 @@ CustomPPOTrainer = build_trainer(
     validate_config=validate_config,
     after_optimizer_step=update_kl,
     after_train_result=warn_about_bad_reward_scales)
+
+
+from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
+def import_model(self, import_file, policy_id=DEFAULT_POLICY_ID):
+    """Imports a model from import_file.
+
+    Note: Currently, only h5 files are supported.
+
+    Args:
+        import_file (str): The file to import the model from.
+
+    Returns:
+        A dict that maps ExportFormats to successfully exported models.
+    """
+    # Check for existence.
+    if not os.path.exists(import_file):
+        raise FileNotFoundError(
+            "`import_file` '{}' does not exist! Can't import Model.".
+                format(import_file))
+    # Get the format of the given file.
+    import_format = "h5"  # TODO(sven): Support checkpoint loading.
+
+    ExportFormat.validate([import_format])
+    if import_format != ExportFormat.H5:
+        raise NotImplementedError
+    else:
+        return self.import_policy_model_from_h5(import_file, policy_id=policy_id)
+
+from ray.rllib.agents import Trainer
+print('Overriding import model')
+setattr(Trainer, 'import_model', import_model)

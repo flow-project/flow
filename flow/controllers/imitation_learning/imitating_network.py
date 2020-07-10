@@ -9,7 +9,7 @@ class ImitatingNetwork():
     Class containing neural network which learns to imitate a given expert controller.
     """
 
-    def __init__(self, sess, action_dim, obs_dim, fcnet_hiddens, replay_buffer_size, stochastic=False, variance_regularizer = 0, load_model=False, load_path='', tensorboard_path=''):
+    def __init__(self, sess, action_dim, obs_dim, fcnet_hiddens, replay_buffer_size, learning_rate, stochastic=False, variance_regularizer = 0, load_model=False, load_path='', tensorboard_path=''):
 
         """Initializes and constructs neural network.
         Parameters
@@ -41,6 +41,7 @@ class ImitatingNetwork():
         self.fcnet_hiddens = fcnet_hiddens
         self.stochastic=stochastic
         self.variance_regularizer = variance_regularizer
+        self.learning_rate = learning_rate
 
         self.train_steps = 0
         self.action_steps = 0
@@ -72,7 +73,7 @@ class ImitatingNetwork():
         Compiles Keras network with appropriate loss and optimizer
         """
         loss = get_loss(self.stochastic, self.variance_regularizer)
-        self.model.compile(loss=loss, optimizer='adam')
+        self.model.compile(loss=loss, optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate))
 
 
     def train(self, observation_batch, action_batch):

@@ -17,7 +17,9 @@ class Imitation_PPO_Trainable(tune.Trainable):
 
         env_name = config['env']
         self.trainer = custom_ppo.CustomPPOTrainer(env=env_name, config=config)
+        # kind of hacky, but don't know a better solution to the default policy not existing
         policy_id = list(self.trainer.get_weights().keys())[0]
+        print("test: ", list(self.trainer.get_weights().keys()))
         self.trainer.import_model(config['model']['custom_options']['h5_load_path'], policy_id=policy_id)
 
     def _train(self):

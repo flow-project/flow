@@ -62,7 +62,7 @@ class ImitatingController(BaseController):
 
             if not (self.veh_id in rl_ids):
                 # vehicle in non-control edge, so return None to default control to Sumo
-                return None 
+                return None
 
             # return the action taken by the vehicle
             ind = rl_ids.index(self.veh_id)

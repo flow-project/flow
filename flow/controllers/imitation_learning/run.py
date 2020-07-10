@@ -88,6 +88,7 @@ def main():
     parser.add_argument('--stochastic', type=bool, default=False, help='If true, learn a stochastic policy (MV Gaussian)')
     parser.add_argument('--variance_regularizer', type=float, default=0.5, help='Regularization hyperparameter to penalize variance in imitation learning loss, for stochastic policies.')
     parser.add_argument('--replay_buffer_size', type=int, default=1000000, help='Max size of replay buffer')
+    parser.add_argument('--lr', type=float, default=0.001, help='Learning rate for imitation learning and value function learning')
 
     parser.add_argument('--load_imitation_model', type=bool, default=False, help='Whether to load an existin imitation neural net')
     parser.add_argument('--load_imitation_path', type=str, default='', help='Path to h5 file from which to load existing imitation neural net')
@@ -119,6 +120,8 @@ def main():
     # evaluate controller on difference, compared to expert, in action taken and average reward accumulated per rollout
     if params['num_eval_episodes']  > 0:
         runner.evaluate()
+
+    print('done')
 
 if __name__ == "__main__":
     main()

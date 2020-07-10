@@ -62,7 +62,7 @@ class Trainer(object):
         self.params['obs_dim'] = obs_dim
 
         # initialize neural network class and tf variables
-        self.action_network = ImitatingNetwork(self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['fcnet_hiddens'], self.params['replay_buffer_size'], stochastic=self.params['stochastic'], variance_regularizer=self.params['variance_regularizer'], load_model=self.params['load_imitation_model'], load_path=self.params['load_imitation_path'], tensorboard_path=self.params['tensorboard_path'])
+        self.action_network = ImitatingNetwork(self.sess, self.params['action_dim'], self.params['obs_dim'], self.params['fcnet_hiddens'], self.params['replay_buffer_size'], self.params['lr'], stochastic=self.params['stochastic'], variance_regularizer=self.params['variance_regularizer'], load_model=self.params['load_imitation_model'], load_path=self.params['load_imitation_path'], tensorboard_path=self.params['tensorboard_path'])
 
 
         # controllers setup
@@ -239,7 +239,7 @@ class Trainer(object):
         print("\n\n********** Learning value function of imitation policy ************ \n")
         # init value function neural net
         vf_net = build_neural_net_deterministic(self.params['obs_dim'], 1, self.params['fcnet_hiddens'])
-        vf_net.compile(loss='mean_squared_error', optimizer = 'adam')
+        vf_net.compile(loss='mean_squared_error', optimizer = tf.keras.optimizers.Adam(learning_rate=self.params['lr']))
 
         max_decel = self.flow_params['env'].additional_params['max_decel']
         # collect trajectory samples to train on
