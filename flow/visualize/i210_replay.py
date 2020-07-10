@@ -364,8 +364,12 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
                 '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
 
             output_path = os.path.join(output_dir, '{}-emission.csv'.format(exp_name))
-            # convert the emission file into a csv file
-            emission_to_csv(emission_path, output_path=output_path)
+            if os.isfile(emission_path.replace('.xml', '.csv')):
+                # csv already exists
+                os.rename(emission_path.replace('.xml', '.csv'), output_path)
+            else:
+                # convert the emission file into a csv file
+                emission_to_csv(emission_path, output_path=output_path)
 
             # generate the trajectory output file
             trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
@@ -386,7 +390,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             print("\nGenerated emission file at " + output_path)
 
             # delete the .xml version of the emission file
-            os.remove(emission_path)
+            if os.isfile(emission_path):
+                os.remove(emission_path)
 
         all_trip_energies = os.path.join(output_dir, '{}-all_trip_energies.npy'.format(exp_name))
         np.save(all_trip_energies, dict(all_trip_energy_distribution))
