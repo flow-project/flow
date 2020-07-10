@@ -89,7 +89,7 @@ def import_data_from_trajectory(fp, params=dict()):
     if network in USE_EDGESTARTS:
         df['distance'] = _get_abs_pos(df, params)
 
-    start = flow_params['env'].warmup_steps * flow_params['env'].sims_per_step * flow_params['sim'].sim_step
+    start = params['env'].warmup_steps * params['env'].sims_per_step * params['sim'].sim_step
     # produce upper and lower bounds for the non-greyed-out domain
     ghost_edges = GHOST_DICT[network].get('ghost_edges')
     ghost_bounds = GHOST_DICT[network].get('ghost_bounds')
