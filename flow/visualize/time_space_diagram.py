@@ -43,6 +43,13 @@ ACCEPTABLE_NETWORKS = [
     HighwayNetwork
 ]
 
+# networks that use edgestarts
+USE_EDGESTARTS = set([
+    RingNetwork,
+    FigureEightNetwork,
+    MergeNetwork
+])
+
 GHOST_DICT = defaultdict(dict)
 GHOST_DICT[I210SubNetwork] = {'ghost_edges': {'ghost0', '119257908#3'}}
 GHOST_DICT[HighwayNetwork] = {'ghost_bounds': (500, 2300)}
@@ -79,7 +86,7 @@ def import_data_from_trajectory(fp, params=dict()):
         'lane_number': 'lane_id',
     }
     df = df.rename(columns=column_conversions)
-    if 'distance' not in df.columns:
+    if network in USE_EDGESTARTS:
         df['distance'] = _get_abs_pos(df, params)
 
     start = flow_params['env'].warmup_steps * flow_params['env'].sims_per_step * flow_params['sim'].sim_step
