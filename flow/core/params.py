@@ -406,7 +406,7 @@ class SimParams(object):
         """Instantiate SimParams."""
         self.sim_step = sim_step
         self.render = render
-        self.restart_instance = True#restart_instance
+        self.restart_instance = True  # restart_instance
         self.emission_path = emission_path
         self.save_render = save_render
         self.sight_radius = sight_radius
