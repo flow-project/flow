@@ -3,7 +3,7 @@
 from gym.spaces import Box
 import numpy as np
 
-from flow.core.rewards import miles_per_gallon, miles_per_megajoule
+from flow.core.rewards import instantaneous_mpg
 from flow.envs.multiagent.base import MultiEnv
 
 # largest number of lanes on any given edge in the network
@@ -75,7 +75,6 @@ class I210MultiEnv(MultiEnv):
         self.control_range = env_params.additional_params.get('control_range', None)
         self.no_control_edges = env_params.additional_params.get('no_control_edges', [])
         self.mpg_reward = env_params.additional_params["mpg_reward"]
-        self.mpj_reward = env_params.additional_params["mpj_reward"]
         self.look_back_length = env_params.additional_params["look_back_length"]
 
         # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
@@ -90,7 +89,6 @@ class I210MultiEnv(MultiEnv):
         # how many timesteps to anneal the headway curriculum over
         self.speed_curriculum_iters = env_params.additional_params["speed_curriculum_iters"]
         self.speed_reward_gain = env_params.additional_params["speed_reward_gain"]
-        self.num_training_iters = 0
         self.leader = []
 
         # penalize stops
@@ -197,23 +195,12 @@ class I210MultiEnv(MultiEnv):
             for rl_id in valid_ids:
                 rewards[rl_id] = 0
                 if self.mpg_reward:
-                    rewards[rl_id] = miles_per_gallon(self, rl_id, gain=1.0) / 100.0
+                    rewards[rl_id] = instantaneous_mpg(self, rl_id, gain=1.0) / 100.0
                     follow_id = rl_id
                     for i in range(self.look_back_length):
                         follow_id = self.k.vehicle.get_follower(follow_id)
                         if follow_id not in ["", None]:
-                            rewards[rl_id] += miles_per_gallon(self, follow_id, gain=1.0) / 100.0
-                        else:
-                            break
-                elif self.mpj_reward:
-                    rewards[rl_id] = miles_per_megajoule(self, rl_id, gain=1.0) / 100.0
-                    follow_id = rl_id
-                    for i in range(self.look_back_length):
-                        follow_id = self.k.vehicle.get_follower(follow_id)
-                        if follow_id not in ["", None]:
-                            # if self.time_counter > 700 and miles_per_megajoule(self, follow_id, gain=1.0) > 1.0:
-                            #     import ipdb; ipdb.set_trace()
-                            rewards[rl_id] += miles_per_megajoule(self, follow_id, gain=1.0) / 100.0
+                            rewards[rl_id] += instantaneous_mpg(self, follow_id, gain=1.0) / 100.0
                         else:
                             break
                 else:
@@ -230,7 +217,7 @@ class I210MultiEnv(MultiEnv):
 
         else:
             if self.mpg_reward:
-                reward = np.nan_to_num(miles_per_gallon(self, valid_human_ids, gain=1.0)) / 100.0
+                reward = np.nan_to_num(instantaneous_mpg(self, valid_human_ids, gain=1.0)) / 100.0
             else:
                 speeds = self.k.vehicle.get_speed(valid_human_ids)
                 des_speed = self.env_params.additional_params["target_velocity"]
@@ -244,7 +231,7 @@ class I210MultiEnv(MultiEnv):
             rewards = {rl_id: reward for rl_id in valid_ids}
 
         # curriculum over time-gaps
-        if self.headway_curriculum and self.num_training_iters <= self.headway_curriculum_iters:
+        if self.headway_curriculum and self._num_training_iters <= self.headway_curriculum_iters:
             t_min = self.min_time_headway  # smallest acceptable time headway
             for veh_id, rew in rewards.items():
                 lead_id = self.k.vehicle.get_leader(veh_id)
@@ -254,12 +241,12 @@ class I210MultiEnv(MultiEnv):
                     t_headway = max(
                         self.k.vehicle.get_headway(veh_id) /
                         self.k.vehicle.get_speed(veh_id), 0)
-                    scaling_factor = max(0, 1 - self.num_training_iters / self.headway_curriculum_iters)
+                    scaling_factor = max(0, 1 - self._num_training_iters / self.headway_curriculum_iters)
                     penalty += scaling_factor * self.headway_reward_gain * min((t_headway - t_min) / t_min, 0)
 
                 rewards[veh_id] += penalty
 
-        if self.speed_curriculum and self.num_training_iters <= self.speed_curriculum_iters:
+        if self.speed_curriculum and self._num_training_iters <= self.speed_curriculum_iters:
             des_speed = self.env_params.additional_params["target_velocity"]
 
             for veh_id, rew in rewards.items():
@@ -275,7 +262,7 @@ class I210MultiEnv(MultiEnv):
                             speed_reward += ((des_speed - np.abs(speed - des_speed)) ** 2) / (des_speed ** 2)
                     else:
                         break
-                scaling_factor = max(0, 1 - self.num_training_iters / self.speed_curriculum_iters)
+                scaling_factor = max(0, 1 - self._num_training_iters / self.speed_curriculum_iters)
 
                 rewards[veh_id] += speed_reward * scaling_factor * self.speed_reward_gain
 
@@ -345,7 +332,7 @@ class I210MultiEnv(MultiEnv):
             departed_ids = self.k.vehicle.get_departed_ids()
             if isinstance(departed_ids, tuple) and len(departed_ids) > 0:
                 for veh_id in departed_ids:
-                    if veh_id not in self.observed_ids:
+                    if veh_id not in self._observed_ids:
                         self.k.vehicle.remove(veh_id)
 
     def state_util(self, rl_id):

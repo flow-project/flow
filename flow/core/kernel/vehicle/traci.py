@@ -293,10 +293,8 @@ class TraCIVehicle(KernelVehicle):
         self.__vehicles[veh_id]["type"] = veh_type
 
         # specify energy model
-        energy_model = \
-            self.type_parameters[veh_type]["energy_model"]
-        self.__vehicles[veh_id]["energy_model"] = \
-            energy_model[0](veh_id, **energy_model[1])
+        self.__vehicles[veh_id]["energy_model"] = self.type_parameters[
+            veh_type]["energy_model"]()
 
         car_following_params = \
             self.type_parameters[veh_type]["car_following_params"]
@@ -971,7 +969,7 @@ class TraCIVehicle(KernelVehicle):
 
         return tailway, follower
 
-    def apply_acceleration(self, veh_ids, acc):
+    def apply_acceleration(self, veh_ids, acc, smooth_duration=0):
         """See parent class."""
         # to handle the case of a single vehicle
         if type(veh_ids) == str:
@@ -983,7 +981,10 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[vid]["accel"] = acc[i]
                 this_vel = self.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
-                self.kernel_api.vehicle.slowDown(vid, next_vel, 1e-3)
+                if smooth_duration:
+                    self.kernel_api.vehicle.slowDown(vid, next_vel, smooth_duration)
+                else:
+                    self.kernel_api.vehicle.setSpeed(vid, next_vel)
 
     def apply_acceleration_not_smooth(self, veh_ids, acc):
         """See parent class."""
@@ -1158,52 +1159,34 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
 
-    # add for data pipeline
-    def get_accel(self, veh_id):
+    def get_accel(self, veh_id, noise=True, failsafe=True):
         """See parent class."""
-        if "accel" not in self.__vehicles[veh_id]:
-            self.__vehicles[veh_id]["accel"] = None
-        return self.__vehicles[veh_id]["accel"]
+        metric_name = 'accel'
+        if noise:
+            metric_name += '_with_noise'
+        else:
+            metric_name += '_no_noise'
+        if failsafe:
+            metric_name += '_with_failsafe'
+        else:
+            metric_name += '_no_failsafe'
 
-    def update_accel_no_noise_no_failsafe(self, veh_id, accel_no_noise_no_failsafe):
-        """See parent class."""
-        self.__vehicles[veh_id]["accel_no_noise_no_failsafe"] = accel_no_noise_no_failsafe
+        return self.__vehicles[veh_id].get(metric_name, None) \
+            or self.get_realized_accel(veh_id)
 
-    def update_accel_no_noise_with_failsafe(self, veh_id, accel_no_noise_with_failsafe):
+    def update_accel(self, veh_id, accel, noise=True, failsafe=True):
         """See parent class."""
-        self.__vehicles[veh_id]["accel_no_noise_with_failsafe"] = accel_no_noise_with_failsafe
+        metric_name = 'accel'
+        if noise:
+            metric_name += '_with_noise'
+        else:
+            metric_name += '_no_noise'
+        if failsafe:
+            metric_name += '_with_failsafe'
+        else:
+            metric_name += '_no_failsafe'
 
-    def update_accel_with_noise_no_failsafe(self, veh_id, accel_with_noise_no_failsafe):
-        """See parent class."""
-        self.__vehicles[veh_id]["accel_with_noise_no_failsafe"] = accel_with_noise_no_failsafe
-
-    def update_accel_with_noise_with_failsafe(self, veh_id, accel_with_noise_with_failsafe):
-        """See parent class."""
-        self.__vehicles[veh_id]["accel_with_noise_with_failsafe"] = accel_with_noise_with_failsafe
-
-    def get_accel_no_noise_no_failsafe(self, veh_id):
-        """See parent class."""
-        if "accel_no_noise_no_failsafe" not in self.__vehicles[veh_id]:
-            self.__vehicles[veh_id]["accel_no_noise_no_failsafe"] = None
-        return self.__vehicles[veh_id]["accel_no_noise_no_failsafe"]
-
-    def get_accel_no_noise_with_failsafe(self, veh_id):
-        """See parent class."""
-        if "accel_no_noise_with_failsafe" not in self.__vehicles[veh_id]:
-            self.__vehicles[veh_id]["accel_no_noise_with_failsafe"] = None
-        return self.__vehicles[veh_id]["accel_no_noise_with_failsafe"]
-
-    def get_accel_with_noise_no_failsafe(self, veh_id):
-        """See parent class."""
-        if "accel_with_noise_no_failsafe" not in self.__vehicles[veh_id]:
-            self.__vehicles[veh_id]["accel_with_noise_no_failsafe"] = None
-        return self.__vehicles[veh_id]["accel_with_noise_no_failsafe"]
-
-    def get_accel_with_noise_with_failsafe(self, veh_id):
-        """See parent class."""
-        if "accel_with_noise_with_failsafe" not in self.__vehicles[veh_id]:
-            self.__vehicles[veh_id]["accel_with_noise_with_failsafe"] = None
-        return self.__vehicles[veh_id]["accel_with_noise_with_failsafe"]
+        self.__vehicles[veh_id][metric_name] = accel
 
     def get_realized_accel(self, veh_id):
         """See parent class."""

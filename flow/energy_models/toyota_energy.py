@@ -11,6 +11,8 @@ class ToyotaModel(BaseEnergyModel, metaclass=ABCMeta):
     """Base Toyota Energy model class."""
 
     def __init__(self, filename):
+        super(ToyotaModel, self).__init__()
+
         # download file from s3 bucket
         s3 = boto3.client('s3')
         s3.download_file('toyota.restricted', filename, 'temp.pkl')

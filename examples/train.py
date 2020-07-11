@@ -17,7 +17,7 @@ import numpy as np
 import pytz
 
 from flow.core.util import ensure_dir
-from flow.core.rewards import miles_per_gallon, miles_per_megajoule
+from flow.core.rewards import instantaneous_mpg
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 from flow.utils.registry import make_create_env
@@ -41,10 +41,6 @@ def parse_args(args):
         'exp_config', type=str,
         help='Name of the experiment configuration file, as located in '
              'exp_configs/rl/singleagent or exp_configs/rl/multiagent.')
-
-    parser.add_argument(
-        'exp_title', type=str,
-        help='Name of experiment that results will be stored in')
 
     # optional input parameters
     parser.add_argument(
@@ -76,7 +72,8 @@ def parse_args(args):
     parser.add_argument(
         '--rollout_size', type=int, default=1000,
         help='How many steps are in a training batch.')
-    parser.add_argument('--use_s3', action='store_true', help='If true, upload results to s3')
+    parser.add_argument('--use_s3', action='store_true', default=False,
+                        help='If true, upload results to s3')
     parser.add_argument('--local_mode', action='store_true', default=False,
                         help='If true only 1 CPU will be used')
     parser.add_argument('--render', action='store_true', default=False,
@@ -84,6 +81,9 @@ def parse_args(args):
     parser.add_argument(
         '--checkpoint_path', type=str, default=None,
         help='Directory with checkpoint to restore training from.')
+    parser.add_argument(
+        '--exp_title', type=str, default=None,
+        help='Name of experiment that results will be stored in')
     parser.add_argument('--multi_node', action='store_true',
                         help='Set to true if this will be run in cluster mode.'
                              'Relevant for rllib')
@@ -147,7 +147,7 @@ def setup_exps_rllib(flow_params,
         number of CPUs to run the experiment over
     n_rollouts : int
         number of rollouts per training iteration
-    flags:
+    flags : TODO
         custom arguments
     policy_graphs : dict, optional
         TODO
@@ -243,8 +243,7 @@ def setup_exps_rllib(flow_params,
         episode.user_data["avg_speed"] = []
         episode.user_data["avg_speed_avs"] = []
         episode.user_data["avg_energy"] = []
-        episode.user_data["avg_mpg"] = []
-        episode.user_data["avg_mpj"] = []
+        episode.user_data["inst_mpg"] = []
         episode.user_data["num_cars"] = []
         episode.user_data["avg_accel_human"] = []
         episode.user_data["avg_accel_avs"] = []
@@ -275,8 +274,7 @@ def setup_exps_rllib(flow_params,
         av_speed = np.mean([speed for speed in env.k.vehicle.get_speed(rl_ids) if speed >= 0])
         if not np.isnan(av_speed):
             episode.user_data["avg_speed_avs"].append(av_speed)
-        episode.user_data["avg_mpg"].append(miles_per_gallon(env, veh_ids, gain=1.0))
-        episode.user_data["avg_mpj"].append(miles_per_megajoule(env, veh_ids, gain=1.0))
+        episode.user_data["inst_mpg"].append(instantaneous_mpg(env, veh_ids, gain=1.0))
         episode.user_data["num_cars"].append(len(env.k.vehicle.get_ids()))
         episode.user_data["avg_accel_human"].append(np.nan_to_num(np.mean(
             [np.abs((env.k.vehicle.get_speed(veh_id) - env.k.vehicle.get_previous_speed(veh_id))/env.sim_step) for
@@ -295,8 +293,7 @@ def setup_exps_rllib(flow_params,
         episode.custom_metrics["avg_speed_avs"] = avg_speed_avs
         episode.custom_metrics["avg_accel_avs"] = np.mean(episode.user_data["avg_accel_avs"])
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
-        episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["avg_mpg"])
-        episode.custom_metrics["avg_mpj_per_veh"] = np.mean(episode.user_data["avg_mpj"])
+        episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["inst_mpg"])
         episode.custom_metrics["num_cars"] = np.mean(episode.user_data["num_cars"])
 
     def on_train_result(info):
@@ -361,7 +358,7 @@ def train_rllib(submodule, flags):
         ray.init()
     exp_dict = {
         "run_or_experiment": alg_run,
-        "name": flags.exp_title,
+        "name": flags.exp_title or flow_params['exp_tag'],
         "config": config,
         "checkpoint_freq": flags.checkpoint_freq,
         "checkpoint_at_end": True,
@@ -373,9 +370,9 @@ def train_rllib(submodule, flags):
     }
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
-    s3_string = "s3://i210.experiments/i210/" \
-                + date + '/' + flags.exp_title
     if flags.use_s3:
+        s3_string = "s3://i210.experiments/i210/" \
+                    + date + '/' + flags.exp_title
         exp_dict['upload_dir'] = s3_string
     tune.run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
 
