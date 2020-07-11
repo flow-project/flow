@@ -382,7 +382,7 @@ def train_rllib(submodule, flags):
         s3_string = "s3://i210.experiments/i210/" \
                     + date + '/' + flags.exp_title
         exp_dict['upload_dir'] = s3_string
-    # tune.run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
+    tune.run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
 
     if flags.upload_graphs:
         print('Generating experiment graphs and uploading them to leaderboard')
