@@ -28,7 +28,7 @@ HORIZON = 1500
 # whether to include noise in the car-following models
 INCLUDE_NOISE = True
 # penetration rate of the follower-stopper vehicles
-PENETRATION_RATE = 10.0
+PENETRATION_RATE = 0.0
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
