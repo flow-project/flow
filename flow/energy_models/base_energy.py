@@ -54,4 +54,4 @@ class BaseEnergyModel(metaclass=ABCMeta):
         -------
         float
         """
-        return self.get_instantaneous_power(accel, speed, grade) * self.conversion
+        return self.get_instantaneous_power(accel, speed, grade) / self.conversion
