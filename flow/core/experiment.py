@@ -248,10 +248,13 @@ class Experiment:
             write_dict_to_csv(metadata_table_path, metadata, True)
             tsd_main(
                 trajectory_table_path,
-                {'network': self.env.network.__class__},
+                {
+                    'network': self.env.network.__class__,
+                    'env': self.env.env_params,
+                    'sim': self.env.sim_params
+                },
                 min_speed=0,
-                max_speed=10,
-                start=self.env.env_params.warmup_steps
+                max_speed=10
             )
             exit()
             upload_to_s3(
