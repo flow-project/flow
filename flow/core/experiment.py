@@ -1,15 +1,19 @@
 """Contains an experiment class for running simulations."""
 from flow.utils.registry import make_create_env
-from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
+from flow.data_pipeline.data_pipeline import upload_to_s3
+from flow.data_pipeline.data_pipeline import get_configuration
+from flow.data_pipeline.data_pipeline import generate_trajectory_table
+from flow.data_pipeline.data_pipeline import write_dict_to_csv
 from flow.data_pipeline.leaderboard_utils import network_name_translate
 from flow.visualize.time_space_diagram import tsd_main
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import timezone
+from datetime import datetime
 import logging
 import time
-import os
 import numpy as np
 import uuid
+import os
 
 
 class Experiment:
@@ -21,8 +25,8 @@ class Experiment:
     the actions of RL agents in the network, type the following:
 
         >>> from flow.envs import Env
-        {'network': >>> self.env.network.__class__} = dict(...)  # see the examples in exp_config
-        {'network': >>> exp = Experiment(self.env.network.__class__})  # for some experiment configuration
+        >>> flow_params = dict(...)  # see the examples in exp_config
+        >>> exp = Experiment(flow_params)  # for some experiment configuration
         >>> exp.run(num_runs=1)
 
     If you wish to specify the actions of RL agents in the network, this may be
@@ -40,7 +44,7 @@ class Experiment:
     ``emission_path`` attribute in ``SimParams`` to some path.
 
         >>> from flow.core.params import SimParams
-        {'network': >>> self.env.network.__class__}['sim'] = SimParams(emission_path="./data")
+        >>> flow_params['sim'] = SimParams(emission_path="./data")
 
     Once you have included this in your environment, run your Experiment object
     as follows:
@@ -89,7 +93,13 @@ class Experiment:
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, rl_actions=None, convert_to_csv=False, to_aws=None, only_query="", is_baseline=False):
+    def run(self,
+            num_runs,
+            rl_actions=None,
+            convert_to_csv=False,
+            to_aws=None,
+            only_query="",
+            is_baseline=False):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -151,35 +161,45 @@ class Experiment:
         t = time.time()
         times = []
 
-        # data pipeline
-        extra_info = defaultdict(lambda: [])
-        source_id = 'flow_{}'.format(uuid.uuid4().hex)
-        metadata = defaultdict(lambda: [])
-        # collect current time
-        cur_datetime = datetime.now(timezone.utc)
-        cur_date = cur_datetime.date().isoformat()
-        cur_time = cur_datetime.time().isoformat()
-        # collecting information for metadata table
-        metadata['source_id'].append(source_id)
-        metadata['submission_time'].append(cur_time)
-        metadata['network'].append(network_name_translate(self.env.network.name.split('_20')[0]))
-        metadata['is_baseline'].append(str(is_baseline))
-        if to_aws:
-            name, strategy = get_configuration()
-            metadata['submitter_name'].append(name)
-            metadata['strategy'].append(strategy)
-
         if convert_to_csv and self.env.simulator == "traci":
-            dir_path = self.env.sim_params.emission_path
-            trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
-            metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
+            # data pipeline
+            source_id = 'flow_{}'.format(uuid.uuid4().hex)
+            metadata = defaultdict(lambda: [])
 
+            # collect current time
+            cur_datetime = datetime.now(timezone.utc)
+            cur_date = cur_datetime.date().isoformat()
+            cur_time = cur_datetime.time().isoformat()
+
+            if to_aws:
+                # collecting information for metadata table
+                metadata['source_id'].append(source_id)
+                metadata['submission_time'].append(cur_time)
+                metadata['network'].append(
+                    network_name_translate(self.env.network.name.split('_20')[0]))
+                metadata['is_baseline'].append(str(is_baseline))
+                name, strategy = get_configuration()
+                metadata['submitter_name'].append(name)
+                metadata['strategy'].append(strategy)
+
+            # emission-specific parameters
+            dir_path = self.env.sim_params.emission_path
+            trajectory_table_path = os.path.join(
+                dir_path, '{}.csv'.format(source_id))
+            metadata_table_path = os.path.join(
+                dir_path, '{}_METADATA.csv'.format(source_id))
+        else:
+            source_id = None
+            trajectory_table_path = None
+            metadata_table_path = None
+            metadata = None
+            cur_date = None
+
+        emission_files = []
         for i in range(num_runs):
             ret = 0
             vel = []
             custom_vals = {key: [] for key in self.custom_callables.keys()}
-            run_id = "run_{}".format(i)
-            self.env.pipeline_params = (extra_info, source_id, run_id)
             state = self.env.reset()
             for j in range(num_steps):
                 t0 = time.time()
@@ -192,19 +212,11 @@ class Experiment:
                 vel.append(np.mean(self.env.k.vehicle.get_speed(veh_ids)))
                 ret += reward
 
-                # collect additional information for the data pipeline
-                get_extra_info(self.env.k.vehicle, extra_info, veh_ids, source_id, run_id)
-
-                # write to disk every 100 steps
-                if convert_to_csv and self.env.simulator == "traci" and j % 100 == 0:
-                    write_dict_to_csv(trajectory_table_path, extra_info, not j)
-                    extra_info.clear()
-
                 # Compute the results for the custom callables.
                 for (key, lambda_func) in self.custom_callables.items():
                     custom_vals[key].append(lambda_func(self.env))
 
-                if type(done) is dict and done['__all__'] or type(done) is not dict and done:
+                if type(done) is dict and done['__all__'] or done is True:
                     break
 
             # Store the information from the run in info_dict.
@@ -217,6 +229,11 @@ class Experiment:
 
             print("Round {0}, return: {1}".format(i, ret))
 
+            # Save emission data at the end of every rollout. This is skipped
+            # by the internal method if no emission path was specified.
+            if self.env.simulator == "traci":
+                emission_files.append(self.env.k.simulation.save_emission(run_id=i))
+
         # Print the averages/std for all variables in the info_dict.
         for key in info_dict.keys():
             print("Average, std {}: {}, {}".format(
@@ -226,29 +243,38 @@ class Experiment:
         print("steps/second:", np.mean(times))
         self.env.terminate()
 
-        if convert_to_csv and self.env.simulator == "traci":
-            # wait a short period of time to ensure the xml file is readable
-            time.sleep(0.1)
-
-            write_dict_to_csv(trajectory_table_path, extra_info)
+        if to_aws:
+            generate_trajectory_table(emission_files, trajectory_table_path, source_id)
             write_dict_to_csv(metadata_table_path, metadata, True)
-
-            if to_aws:
-                tsd_main(trajectory_table_path,
-                         {'network': self.env.network.__class__},
-                         min_speed=0,
-                         max_speed=10,
-                         start=self.env.env_params.warmup_steps)
-                upload_to_s3('circles.data.pipeline',
-                             'metadata_table/date={0}/partition_name={1}_METADATA/{1}_METADATA.csv'.format(cur_date,
-                                                                                                           source_id),
-                             metadata_table_path)
-                upload_to_s3('circles.data.pipeline',
-                             'fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv'.format(cur_date, source_id),
-                             trajectory_table_path,
-                             {'network': metadata['network'][0], 'is_baseline': metadata['is_baseline'][0]})
-                upload_to_s3('circles.data.pipeline',
-                             'time_space_diagram/date={0}/partition_name={1}/{1}.png'.format(cur_date, source_id),
-                             trajectory_table_path.replace('csv', 'png'))
+            tsd_main(
+                trajectory_table_path,
+                {'network': self.env.network.__class__},
+                min_speed=0,
+                max_speed=10,
+                start=self.env.env_params.warmup_steps
+            )
+            exit()
+            upload_to_s3(
+                'circles.data.pipeline',
+                'metadata_table/date={0}/partition_name={1}_METADATA/'
+                '{1}_METADATA.csv'.format(cur_date, source_id),
+                metadata_table_path
+            )
+            upload_to_s3(
+                'circles.data.pipeline',
+                'fact_vehicle_trace/date={0}/partition_name={1}/'
+                '{1}.csv'.format(cur_date, source_id),
+                trajectory_table_path,
+                {'network': metadata['network'][0],
+                 'is_baseline': metadata['is_baseline'][0]}
+            )
+            upload_to_s3(
+                'circles.data.pipeline',
+                'time_space_diagram/date={0}/partition_name={1}/'
+                '{1}.png'.format(cur_date, source_id),
+                trajectory_table_path.replace('csv', 'png')
+            )
+            os.remove(trajectory_table_path)
+            os.remove(metadata_table_path)
 
         return info_dict
