@@ -113,7 +113,7 @@ def import_data_from_trajectory(fp, params=dict()):
     # Remove nans from data
     df = df[df['next_time'].notna()]
 
-    return df, domain_lb, domain_ub
+    return df, domain_lb, domain_ub, start
 
 
 def get_time_space_data(data, network):
@@ -491,7 +491,7 @@ def plot_tsd(df, network, cmap, min_speed=0, max_speed=10, start=0, domain_bound
     plt.tight_layout()
 
 
-def tsd_main(trajectory_path, flow_params, min_speed=0, max_speed=10, start=0):
+def tsd_main(trajectory_path, flow_params, min_speed=0, max_speed=10):
     """Prepare and plot the time-space diagram.
 
     Parameters
@@ -510,8 +510,6 @@ def tsd_main(trajectory_path, flow_params, min_speed=0, max_speed=10, start=0):
         minimum speed in colorbar
     max_speed : int or float
         maximum speed in colorbar
-    start : int or float
-        starting time_step not greyed out
     """
     network = flow_params['network']
 
@@ -524,7 +522,7 @@ def tsd_main(trajectory_path, flow_params, min_speed=0, max_speed=10, start=0):
     my_cmap = colors.LinearSegmentedColormap('my_colormap', cdict, 1024)
 
     # Read trajectory csv into pandas dataframe
-    traj_df, domain_lb, domain_ub = import_data_from_trajectory(trajectory_path, flow_params)
+    traj_df, domain_lb, domain_ub, start = import_data_from_trajectory(trajectory_path, flow_params)
 
     plot_tsd(df=traj_df,
              network=network,
@@ -580,11 +578,9 @@ if __name__ == '__main__':
         module = __import__("examples.exp_configs.non_rl", fromlist=[args.flow_params])
         flow_params = getattr(module, args.flow_params).flow_params
 
-    start = flow_params['env'].warmup_steps * flow_params['env'].sims_per_step * flow_params['sim'].sim_step
     tsd_main(
         args.trajectory_path,
         flow_params,
         min_speed=args.min_speed,
-        max_speed=args.max_speed,
-        start=start
+        max_speed=args.max_speed
     )
