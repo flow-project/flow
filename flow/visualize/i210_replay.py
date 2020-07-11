@@ -365,9 +365,9 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
                 '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
 
             output_path = os.path.join(output_dir, '{}-emission.csv'.format(exp_name))
-            if os.path.exists(emission_path.replace('.xml', '.csv')):
+            if os.path.exists(emission_path.replace('emission.xml', '0_emission.csv')):
                 # csv already exists
-                os.rename(emission_path.replace('.xml', '.csv'), output_path)
+                os.rename(emission_path.replace('emission.xml', '0_emission.csv'), output_path)
             else:
                 # convert the emission file into a csv file
                 emission_to_csv(emission_path, output_path=output_path)
