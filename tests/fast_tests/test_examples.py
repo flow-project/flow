@@ -168,7 +168,6 @@ class TestTrain(unittest.TestCase):
 
         self.assertDictEqual(vars(args), {
             'exp_config': 'exp_config',
-            'local_mode': False,
             'rl_trainer': 'rllib',
             'num_cpus': 1,
             'num_steps': 5000,
@@ -189,7 +188,6 @@ class TestTrain(unittest.TestCase):
         self.assertDictEqual(vars(args), {
             'checkpoint_path': '5',
             'exp_config': 'exp_config',
-            'local_mode': False,
             'num_cpus': 1,
             'num_steps': 3,
             'rl_trainer': 'h-baselines',
@@ -411,7 +409,7 @@ class TestRllibExamples(unittest.TestCase):
         alg_run, env_name, config = setup_rllib_exps(flow_params, 1, 1, **kwargs)
 
         try:
-            ray.init(num_cpus=1, local_mode=True)
+            ray.init(num_cpus=1)
         except Exception as e:
             print("ERROR", e)
         config['train_batch_size'] = 50
