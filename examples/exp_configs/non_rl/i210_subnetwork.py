@@ -108,16 +108,16 @@ for lane in [0, 1, 2, 3, 4]:
         veh_type="human",
         edge=highway_start_edge,
         vehs_per_hour=INFLOW_RATE * (1 - PENETRATION_RATE),
-        departLane=lane,
-        departSpeed=INFLOW_SPEED)
+        depart_lane=lane,
+        depart_speed=INFLOW_SPEED)
 
     if PENETRATION_RATE > 0.0:
         inflow.add(
             veh_type="av",
             edge=highway_start_edge,
             vehs_per_hour=INFLOW_RATE * PENETRATION_RATE,
-            departLane=lane,
-            departSpeed=INFLOW_SPEED)
+            depart_lane=lane,
+            depart_speed=INFLOW_SPEED)
 
 # on ramp
 if ON_RAMP:
@@ -125,7 +125,7 @@ if ON_RAMP:
         veh_type="human",
         edge="27414345",
         vehs_per_hour=int(ON_RAMP_INFLOW_RATE * (1 - PENETRATION_RATE)),
-        departSpeed=10,
+        depart_speed=10,
     )
 
     if PENETRATION_RATE > 0.0:
@@ -133,8 +133,8 @@ if ON_RAMP:
             veh_type="av",
             edge="27414345",
             vehs_per_hour=int(ON_RAMP_INFLOW_RATE * PENETRATION_RATE),
-            departLane="random",
-            departSpeed=10)
+            depart_lane="random",
+            depart_speed=10)
 
 # =========================================================================== #
 # Generate the flow_params dict with all relevant simulation information.     #
