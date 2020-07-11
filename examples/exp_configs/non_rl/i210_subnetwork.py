@@ -95,7 +95,7 @@ vehicles.add(
         "v_des": V_DES,
         "no_control_edges": ["ghost0", "119257908#3"]
     }),
-    routing_controller=(I210Router, {})
+    routing_controller=(I210Router, {}) if ON_RAMP else None,
 )
 
 inflow = InFlows()
