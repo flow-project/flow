@@ -20,14 +20,13 @@ class ToyotaModel(BaseEnergyModel, metaclass=ABCMeta):
         with open('temp.pkl', 'rb') as file:
             try:
                 self.toyota_energy = pickle.load(file)
+                # delete pickle file
+                os.remove('temp.pkl')
             except TypeError:
                 print('Must use Python version 3.6.8 to unpickle')
                 # delete pickle file
-                os.remove(file)
+                os.remove('temp.pkl')
                 raise
-
-        # delete pickle file
-        os.remove(file)
 
     @abstractmethod
     def get_instantaneous_power(self, accel, speed, grade):
@@ -59,7 +58,7 @@ class TacomaEnergy(ToyotaModel):
 
     def get_instantaneous_power(self, accel, speed, grade):
         """See parent class."""
-        return self.get_instantaneous_fuel_consumption(accel, speed, grade) / self.conversion
+        return self.get_instantaneous_fuel_consumption(accel, speed, grade) * self.conversion
 
     def get_instantaneous_fuel_consumption(self, accel, speed, grade):
         """See parent class."""

@@ -256,7 +256,6 @@ class Experiment:
                 min_speed=0,
                 max_speed=10
             )
-            exit()
             upload_to_s3(
                 'circles.data.pipeline',
                 'metadata_table/date={0}/partition_name={1}_METADATA/'

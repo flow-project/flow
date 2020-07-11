@@ -360,7 +360,7 @@ class QueryStrings(Enum):
             distance_meters,
             power_watts * time_step_size_seconds AS energy_joules,
             distance_meters / (power_watts * time_step_size_seconds) AS efficiency_meters_per_joules,
-            33561 * distance_meters / (power_watts * time_step_size_seconds) AS efficiency_miles_per_gallon
+            33554.13 * distance_meters / (power_watts * time_step_size_seconds) AS efficiency_miles_per_gallon
         FROM sub_fact_vehicle_trace
         WHERE 1 = 1
             AND power_watts * time_step_size_seconds != 0
@@ -403,7 +403,7 @@ class QueryStrings(Enum):
             SUM(distance_meters) AS distance_meters,
             SUM(energy_joules) AS energy_joules,
             SUM(distance_meters) / SUM(energy_joules) AS efficiency_meters_per_joules,
-            33561 * SUM(distance_meters) / SUM(energy_joules) AS efficiency_miles_per_gallon
+            33554.13 * SUM(distance_meters) / SUM(energy_joules) AS efficiency_miles_per_gallon
         FROM fact_vehicle_fuel_efficiency_agg
         WHERE 1 = 1
             AND date = \'{date}\'
@@ -419,7 +419,7 @@ class QueryStrings(Enum):
             t.source_id,
             e.energy_model_id,
             e.efficiency_meters_per_joules,
-            33561 * e.efficiency_meters_per_joules AS efficiency_miles_per_gallon,
+            33554.13 * e.efficiency_meters_per_joules AS efficiency_miles_per_gallon,
             t.throughput_per_hour,
             s.safety_rate,
             s.safety_value_max
