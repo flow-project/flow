@@ -291,10 +291,8 @@ class TraCIVehicle(KernelVehicle):
         self.__vehicles[veh_id]["type"] = veh_type
 
         # specify energy model
-        energy_model = \
-            self.type_parameters[veh_type]["energy_model"]
-        self.__vehicles[veh_id]["energy_model"] = \
-            energy_model[0](veh_id, **energy_model[1])
+        self.__vehicles[veh_id]["energy_model"] = self.type_parameters[
+            veh_type]["energy_model"]()
 
         car_following_params = \
             self.type_parameters[veh_type]["car_following_params"]
