@@ -94,7 +94,7 @@ class TestPlotters(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         flow_params = tsd.get_flow_params(
             os.path.join(dir_path, 'test_files/fig8.json'))
-        emission_data = tsd.import_data_from_trajectory(
+        emission_data, _, _ = tsd.import_data_from_trajectory(
             os.path.join(dir_path, 'test_files/fig8_emission.csv'), flow_params)
 
         segs, _ = tsd.get_time_space_data(emission_data, flow_params['network'])
@@ -150,7 +150,7 @@ class TestPlotters(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         flow_params = tsd.get_flow_params(
             os.path.join(dir_path, 'test_files/merge.json'))
-        emission_data = tsd.import_data_from_trajectory(
+        emission_data, _, _ = tsd.import_data_from_trajectory(
             os.path.join(dir_path, 'test_files/merge_emission.csv'), flow_params)
 
         segs, _ = tsd.get_time_space_data(emission_data, flow_params['network'])
@@ -168,7 +168,7 @@ class TestPlotters(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         module = __import__("examples.exp_configs.non_rl", fromlist=["i210_subnetwork"])
         flow_params = getattr(module, "i210_subnetwork").flow_params
-        emission_data = tsd.import_data_from_trajectory(
+        emission_data, _, _ = tsd.import_data_from_trajectory(
             os.path.join(dir_path, 'test_files/i210_emission.csv'), flow_params)
 
         segs, _ = tsd.get_time_space_data(emission_data, flow_params['network'])
@@ -208,7 +208,7 @@ class TestPlotters(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         flow_params = tsd.get_flow_params(
             os.path.join(dir_path, 'test_files/ring_230.json'))
-        emission_data = tsd.import_data_from_trajectory(
+        emission_data, _, _ = tsd.import_data_from_trajectory(
             os.path.join(dir_path, 'test_files/ring_230_emission.csv'), flow_params)
 
         segs, _ = tsd.get_time_space_data(emission_data, flow_params['network'])
