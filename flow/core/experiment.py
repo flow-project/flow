@@ -1,10 +1,8 @@
 """Contains an experiment class for running simulations."""
-from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
-import datetime
+from datetime import datetime
 import logging
 import time
-import os
 import numpy as np
 
 
@@ -81,7 +79,7 @@ class Experiment:
         self.env = create_env()
 
         logging.info(" Starting experiment {} at {}".format(
-            self.env.network.name, str(datetime.datetime.utcnow())))
+            self.env.network.name, str(datetime.utcnow())))
 
         logging.info("Initializing environment.")
 
@@ -170,6 +168,11 @@ class Experiment:
 
             print("Round {0}, return: {1}".format(i, ret))
 
+            # Save emission data at the end of every rollout. This is skipped
+            # by the internal method if no emission path was specified.
+            if self.env.simulator == "traci":
+                self.env.k.simulation.save_emission(run_id=i)
+
         # Print the averages/std for all variables in the info_dict.
         for key in info_dict.keys():
             print("Average, std {}: {}, {}".format(
@@ -178,21 +181,5 @@ class Experiment:
         print("Total time:", time.time() - t)
         print("steps/second:", np.mean(times))
         self.env.terminate()
-
-        if convert_to_csv and self.env.simulator == "traci":
-            # wait a short period of time to ensure the xml file is readable
-            time.sleep(0.1)
-
-            # collect the location of the emission file
-            dir_path = self.env.sim_params.emission_path
-            emission_filename = \
-                "{0}-emission.xml".format(self.env.network.name)
-            emission_path = os.path.join(dir_path, emission_filename)
-
-            # convert the emission file into a csv
-            emission_to_csv(emission_path)
-
-            # Delete the .xml version of the emission file.
-            os.remove(emission_path)
 
         return info_dict
