@@ -66,6 +66,7 @@ class BaseController(metaclass=ABCMeta):
         elif isinstance(fail_safe, list) or fail_safe is None:
             failsafe_list = fail_safe
         else:
+            failsafe_list = None
             raise ValueError("fail_safe should be string or list of strings. Setting fail_safe to None\n")
 
         failsafe_map = {
