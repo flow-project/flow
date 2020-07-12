@@ -1,4 +1,4 @@
-name: flow
+name: circles
 
 dependencies:
     - python==3.7.3
