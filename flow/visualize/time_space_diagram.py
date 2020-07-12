@@ -568,7 +568,6 @@ if __name__ == '__main__':
                         help='The maximum speed in the color range.')
     parser.add_argument('--min_speed', type=int, default=0,
                         help='The minimum speed in the color range.')
-
     args = parser.parse_args()
 
     # flow_params is imported as a dictionary
