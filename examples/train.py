@@ -71,7 +71,7 @@ def parse_args(args):
         '--checkpoint_freq', type=int, default=20,
         help='How often to checkpoint.')
     parser.add_argument(
-        '--num_rollouts', type=int, default=20,
+        '--num_rollouts', type=int, default=1,
         help='How many rollouts are in a training batch')
     parser.add_argument(
         '--rollout_size', type=int, default=1000,
@@ -192,7 +192,7 @@ def setup_exps_rllib(flow_params,
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
-        config["model"].update({"fcnet_hiddens": [32, 32, 32]})
+        config["model"].update({"fcnet_hiddens": [32, 32]})
         config["train_batch_size"] = horizon * n_rollouts
         config["gamma"] = 0.995  # discount rate
         config["use_gae"] = True
