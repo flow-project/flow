@@ -7,6 +7,10 @@ from flow.utils.flow_warnings import deprecated_attribute
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
+from flow.energy_models.toyota_energy import PriusEnergy
+from flow.energy_models.toyota_energy import TacomaEnergy
+from flow.energy_models.power_demand import PDMCombustionEngine
+from flow.energy_models.power_demand import PDMElectric
 
 
 SPEED_MODES = {
@@ -38,6 +42,9 @@ LC_MODES = {
     "only_right_drive_aggressive": 64,
     "only_right_drive_safe": 576
 }
+
+ENERGY_MODELS = set([PriusEnergy, TacomaEnergy, PDMCombustionEngine, PDMElectric])
+DEFAULT_ENERGY_MODEL = PDMCombustionEngine
 
 # Traffic light defaults
 PROGRAM_ID = 1
@@ -262,6 +269,7 @@ class VehicleParams:
             num_vehicles=0,
             car_following_params=None,
             lane_change_params=None,
+            energy_model=DEFAULT_ENERGY_MODEL,
             color=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
@@ -298,6 +306,12 @@ class VehicleParams:
             # FIXME: depends on simulator
             lane_change_params = SumoLaneChangeParams()
 
+        if energy_model not in ENERGY_MODELS:
+            print('{} for vehicle {} is not a valid energy model. Defaulting to {}\n'.format(energy_model,
+                                                                                             veh_id,
+                                                                                             DEFAULT_ENERGY_MODEL))
+            energy_model = DEFAULT_ENERGY_MODEL
+
         type_params = {}
         type_params.update(car_following_params.controller_params)
         type_params.update(lane_change_params.controller_params)
@@ -311,7 +325,8 @@ class VehicleParams:
              "routing_controller": routing_controller,
              "initial_speed": initial_speed,
              "car_following_params": car_following_params,
-             "lane_change_params": lane_change_params}
+             "lane_change_params": lane_change_params,
+             "energy_model": energy_model}
 
         if color:
             type_params['color'] = color
@@ -334,7 +349,9 @@ class VehicleParams:
             "car_following_params":
                 car_following_params,
             "lane_change_params":
-                lane_change_params
+                lane_change_params,
+            "energy_model":
+                energy_model
         })
 
         # This is used to return the actual headways from the vehicles class.

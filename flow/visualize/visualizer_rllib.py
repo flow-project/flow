@@ -26,7 +26,7 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
 
-from flow.core.rewards import miles_per_gallon, miles_per_megajoule
+from flow.core.rewards import instantaneous_mpg
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params

@@ -50,8 +50,8 @@ class MultiEnv(MultiAgentEnv, Env):
         """
         for _ in range(self.env_params.sims_per_step):
             if self.time_counter <= self.env_params.sims_per_step * self.env_params.warmup_steps:
-                self.observed_ids.update(self.k.vehicle.get_ids())
-                self.observed_rl_ids.update(self.k.vehicle.get_rl_ids())
+                self._observed_ids.update(self.k.vehicle.get_ids())
+                self._observed_rl_ids.update(self.k.vehicle.get_rl_ids())
 
             self.time_counter += 1
             self.step_counter += 1
@@ -104,7 +104,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
             # crash encodes whether the simulator experienced a collision
             crash = self.k.simulation.check_collision()
-            self.crash = crash
+
             # stop collecting new simulation steps if there is a collision
             if crash:
                 print('A CRASH! A CRASH!!!!!! AAAAAAAAAH!!!!!')
@@ -128,7 +128,7 @@ class MultiEnv(MultiAgentEnv, Env):
             reward = self.compute_reward(rl_actions, fail=crash)
 
         if self.env_params.done_at_exit:
-            for rl_id in self.k.vehicle.get_arrived_rl_ids():
+            for rl_id in self.k.vehicle.get_arrived_rl_ids(self.env_params.sims_per_step):
                 done[rl_id] = True
                 reward[rl_id] = 0
                 states[rl_id] = -1 * np.ones(self.observation_space.shape[0])
@@ -155,8 +155,8 @@ class MultiEnv(MultiAgentEnv, Env):
         self.time_counter = 0
 
         # reset the observed ids
-        self.observed_ids = set()
-        self.observed_rl_ids = set()
+        self._observed_ids = set()
+        self._observed_rl_ids = set()
 
         # Now that we've passed the possibly fake init steps some rl libraries
         # do, we can feel free to actually render things
@@ -322,7 +322,3 @@ class MultiEnv(MultiAgentEnv, Env):
         # clip according to the action space requirements
         clipped_actions = self.clip_actions(rl_actions)
         self._apply_rl_actions(clipped_actions)
-
-    def set_iteration_num(self):
-        """Increment the number of training iterations."""
-        self.num_training_iters += 1
