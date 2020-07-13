@@ -122,8 +122,6 @@ class FollowerStopper(BaseController):
                         or env.k.vehicle.get_x_by_id(self.veh_id) > self.control_length[1])) \
                     or (self.no_control_edges is not None and len(self.no_control_edges) > 0
                         and edge in self.no_control_edges):
-                # TODO(@evinitsky) put back
-                # or env.k.vehicle.get_edge(self.veh_id) in self.no_control_edges:
                 return None
             else:
                 # compute the acceleration from the desired velocity
