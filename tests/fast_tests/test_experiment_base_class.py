@@ -1,6 +1,7 @@
 import unittest
 import os
 import time
+import csv
 
 from flow.core.experiment import Experiment
 from flow.core.params import VehicleParams
@@ -168,15 +169,44 @@ class TestConvertToCSV(unittest.TestCase):
         time.sleep(1.0)
 
         # check that both the csv file exists and the xml file doesn't.
-        self.assertFalse(os.path.isfile(dir_path + "/{}-emission.xml".format(
+        self.assertFalse(os.path.isfile(dir_path + "/{}-0_emission.xml".format(
             exp.env.network.name)))
-        self.assertTrue(os.path.isfile(dir_path + "/{}-emission.csv".format(
+        self.assertTrue(os.path.isfile(dir_path + "/{}-0_emission.csv".format(
             exp.env.network.name)))
+
+        # check that the keys within the emission file matches its expected
+        # values
+        with open(dir_path + "/{}-0_emission.csv".format(
+                exp.env.network.name), "r") as f:
+            reader = csv.reader(f)
+            header = next(reader)
+
+        self.assertListEqual(header, [
+            "time",
+            "id",
+            "x",
+            "y",
+            "speed",
+            "headway",
+            "leader_id",
+            "follower_id",
+            "leader_rel_speed",
+            "target_accel_with_noise_with_failsafe",
+            "target_accel_no_noise_no_failsafe",
+            "target_accel_with_noise_no_failsafe",
+            "target_accel_no_noise_with_failsafe",
+            "realized_accel",
+            "road_grade",
+            "edge_id",
+            "lane_number",
+            "distance",
+            "relative_position",
+        ])
 
         time.sleep(0.1)
 
         # delete the files
-        os.remove(os.path.expanduser(dir_path + "/{}-emission.csv".format(
+        os.remove(os.path.expanduser(dir_path + "/{}-0_emission.csv".format(
             exp.env.network.name)))
 
 

@@ -69,8 +69,11 @@ class TestNonRLExamples(unittest.TestCase):
             'aimsun': False,
             'exp_config': 'exp_config',
             'gen_emission': False,
+            'is_baseline': False,
             'no_render': False,
-            'num_runs': 1
+            'num_runs': 1,
+            'only_query': "['all']",
+            'to_aws': None,
         })
 
         # test the case when optional args are specified
@@ -86,8 +89,11 @@ class TestNonRLExamples(unittest.TestCase):
             'aimsun': True,
             'exp_config': 'exp_config',
             'gen_emission': True,
+            'is_baseline': False,
             'no_render': True,
-            'num_runs': 2
+            'num_runs': 2,
+            'only_query': "['all']",
+            'to_aws': None,
         })
 
     def test_bottleneck(self):
@@ -148,9 +154,12 @@ class TestNonRLExamples(unittest.TestCase):
 
     @staticmethod
     def run_simulation(flow_params):
+        flow_params = deepcopy(flow_params)
+
         # make the horizon small and set render to False
         flow_params['sim'].render = False
         flow_params['env'].horizon = 5
+        flow_params['env'].warmup_steps = 0
 
         # create an experiment object
         exp = Experiment(flow_params)
@@ -167,12 +176,22 @@ class TestTrain(unittest.TestCase):
         args = parse_train_args(["exp_config"])
 
         self.assertDictEqual(vars(args), {
+            'algorithm': 'PPO',
+            'checkpoint_freq': 20,
             'exp_config': 'exp_config',
+            'exp_title': None,
+            'grid_search': False,
+            'local_mode': False,
             'rl_trainer': 'rllib',
             'num_cpus': 1,
+            'num_iterations': 200,
+            'num_rollouts': 1,
             'num_steps': 5000,
+            'render': False,
             'rollout_size': 1000,
-            'checkpoint_path': None
+            'checkpoint_path': None,
+            'use_s3': False,
+            'multi_node': False,
         })
 
         # test the case when optional args are specified
@@ -186,12 +205,22 @@ class TestTrain(unittest.TestCase):
         ])
 
         self.assertDictEqual(vars(args), {
+            'algorithm': 'PPO',
+            'checkpoint_freq': 20,
             'checkpoint_path': '5',
             'exp_config': 'exp_config',
+            'exp_title': None,
+            'grid_search': False,
+            'local_mode': False,
             'num_cpus': 1,
+            'num_iterations': 200,
+            'num_rollouts': 1,
             'num_steps': 3,
+            'render': False,
             'rl_trainer': 'h-baselines',
-            'rollout_size': 4
+            'rollout_size': 4,
+            'use_s3': False,
+            'multi_node': False,
         })
 
 
@@ -203,6 +232,11 @@ class TestStableBaselineExamples(unittest.TestCase):
     """
     @staticmethod
     def run_exp(flow_params):
+        # Reduce the number of warmup steps to speedup tests.
+        flow_params = deepcopy(flow_params)
+        flow_params['env'].warmup_steps = 0
+
+        # Run the example.
         train_model = run_stable_baselines_model(flow_params, 1, 4, 4)
         train_model.env.close()
 
@@ -229,11 +263,11 @@ class TestHBaselineExamples(unittest.TestCase):
     confirming that it runs.
     """
     @staticmethod
-    def run_exp(flow_params, multiagent):
+    def run_exp(env_name, multiagent):
         train_h_baselines(
-            flow_params=flow_params,
+            env_name=env_name,
             args=[
-                flow_params["env_name"].__name__,
+                env_name,
                 "--initial_exploration_steps", "1",
                 "--total_steps", "10"
             ],
@@ -241,10 +275,10 @@ class TestHBaselineExamples(unittest.TestCase):
         )
 
     def test_singleagent_ring(self):
-        self.run_exp(singleagent_ring.copy(), multiagent=False)
+        self.run_exp("singleagent_ring", multiagent=False)
 
     def test_multiagent_ring(self):
-        self.run_exp(multiagent_ring.copy(), multiagent=True)
+        self.run_exp("multiagent_ring", multiagent=True)
 
 
 class TestRllibExamples(unittest.TestCase):
@@ -406,10 +440,16 @@ class TestRllibExamples(unittest.TestCase):
 
     @staticmethod
     def run_exp(flow_params, **kwargs):
-        alg_run, env_name, config = setup_rllib_exps(flow_params, 1, 1, **kwargs)
+        # Reduce the number of warmup steps to speedup tests.
+        flow_params = deepcopy(flow_params)
+        flow_params['env'].warmup_steps = 0
+
+        # Run the example.
+        alg_run, env_name, config = setup_rllib_exps(
+            flow_params, 1, 1, parse_train_args([""]), **kwargs)
 
         try:
-            ray.init(num_cpus=1)
+            ray.init(num_cpus=1, local_mode=True)
         except Exception as e:
             print("ERROR", e)
         config['train_batch_size'] = 50
