@@ -1,44 +1,33 @@
 """contains class and helper functions for the data pipeline."""
 import pandas as pd
 import boto3
-from flow.data_pipeline.query import QueryStrings
+from botocore.exceptions import ClientError
+from flow.data_pipeline.query import QueryStrings, prerequisites
 from time import time
 from datetime import date
 import csv
 from io import StringIO
+import json
 
 
-def generate_trajectory_table(data_path, extra_info, partition_name):
-    """Generate desired output for the trajectory_table based on standard SUMO emission.
+def generate_trajectory_table(emission_files, trajectory_table_path, source_id):
+    """Generate desired output for the trajectory_table based on SUMO emissions.
 
     Parameters
     ----------
-    data_path : str
-        path to the standard SUMO emission
-    extra_info : dict
-        extra information needed in the trajectory table, collected from flow
-    partition_name : str
-        the name of the partition to put this output to
-
-    Returns
-    -------
-    output_file_path : str
-        the local path of the outputted csv file
+    emission_files : list
+        paths to the SUMO emission
+    trajectory_table_path : str
+        path to the file for S3 upload only
+    source_id : str
+        a unique id for the simulation that generate these emissions
     """
-    raw_output = pd.read_csv(data_path, index_col=["time", "id"])
-    required_cols = {"time", "id", "speed", "x", "y"}
-    raw_output = raw_output.drop(set(raw_output.columns) - required_cols, axis=1)
-
-    extra_info = pd.DataFrame.from_dict(extra_info)
-    extra_info.set_index(["time", "id"])
-    raw_output = raw_output.merge(extra_info, how="left", left_on=["time", "id"], right_on=["time", "id"])
-
-    # add the partition column
-    # raw_output['partition'] = partition_name
-    raw_output = raw_output.sort_values(by=["time", "id"])
-    output_file_path = data_path[:-4]+"_trajectory.csv"
-    raw_output.to_csv(output_file_path, index=False)
-    return output_file_path
+    for i in range(len(emission_files)):
+        emission_output = pd.read_csv(emission_files[i])
+        emission_output['source_id'] = source_id
+        emission_output['run_id'] = "run_{}".format(i)
+        # add header row to the file only at the first run (when i==0)
+        emission_output.to_csv(trajectory_table_path, mode='a+', index=False, header=(i == 0))
 
 
 def write_dict_to_csv(data_path, extra_info, include_header=False):
@@ -95,11 +84,11 @@ def get_extra_info(veh_kernel, extra_info, veh_ids, source_id, run_id):
             veh_kernel.get_leader(vid)) - veh_kernel.get_speed(vid))
         extra_info["target_accel_with_noise_with_failsafe"].append(veh_kernel.get_accel(vid))
         extra_info["target_accel_no_noise_no_failsafe"].append(
-            veh_kernel.get_accel_no_noise_no_failsafe(vid))
+            veh_kernel.get_accel(vid, noise=False, failsafe=False))
         extra_info["target_accel_with_noise_no_failsafe"].append(
-            veh_kernel.get_accel_with_noise_no_failsafe(vid))
+            veh_kernel.get_accel(vid, noise=True, failsafe=False))
         extra_info["target_accel_no_noise_with_failsafe"].append(
-            veh_kernel.get_accel_no_noise_with_failsafe(vid))
+            veh_kernel.get_accel(vid, noise=False, failsafe=True))
         extra_info["realized_accel"].append(veh_kernel.get_realized_accel(vid))
         extra_info["road_grade"].append(veh_kernel.get_road_grade(vid))
         extra_info["edge_id"].append(veh_kernel.get_edge(vid))
@@ -143,6 +132,7 @@ def delete_obsolete_data(s3, latest_key, table, bucket="circles.data.pipeline"):
 
 
 def update_baseline(s3, baseline_network, baseline_source_id):
+    """Update the baseline table on S3 if new baseline run is added."""
     obj = s3.get_object(Bucket='circles.data.pipeline', Key='baseline_table/baselines.csv')['Body']
     original_str = obj.read().decode()
     reader = csv.DictReader(StringIO(original_str))
@@ -155,6 +145,42 @@ def update_baseline(s3, baseline_network, baseline_source_id):
             writer.writerow(row)
     s3.put_object(Bucket='circles.data.pipeline', Key='baseline_table/baselines.csv',
                   Body=new_str.getvalue().replace('\r', '').encode())
+
+
+def get_completed_queries(s3, source_id):
+    """Return the deserialized list of completed queries from S3."""
+    try:
+        completed_queries_obj = \
+            s3.get_object(Bucket='circles.data.pipeline', Key='lambda_temp/{}'.format(source_id))['Body']
+        completed_queries = json.loads(completed_queries_obj.read().decode('utf-8'))
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'NoSuchKey':
+            completed_queries = set()
+        else:
+            raise
+    return set(completed_queries)
+
+
+def put_completed_queries(s3, completed_queries):
+    """Put all the completed queries lists into S3 as in a serialized json format."""
+    for source_id, completed_queries_set in completed_queries.items():
+        completed_queries_list = list(completed_queries_set)
+        completed_queries_json = json.dumps(completed_queries_list)
+        s3.put_object(Bucket='circles.data.pipeline', Key='lambda_temp/{}'.format(source_id),
+                      Body=completed_queries_json.encode('utf-8'))
+
+
+def get_ready_queries(completed_queries, new_query):
+    """Return queries whose prerequisite queries are completed."""
+    readied_queries = []
+    unfinished_queries = prerequisites.keys() - completed_queries
+    upadted_completed_queries = completed_queries.copy()
+    upadted_completed_queries.add(new_query)
+    for query_name in unfinished_queries:
+        if not prerequisites[query_name][1].issubset(completed_queries):
+            if prerequisites[query_name][1].issubset(upadted_completed_queries):
+                readied_queries.append((query_name, prerequisites[query_name][0]))
+    return readied_queries
 
 
 class AthenaQuery:

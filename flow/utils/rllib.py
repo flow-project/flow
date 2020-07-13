@@ -95,8 +95,9 @@ def get_flow_params(config):
     if type(config) == dict:
         flow_params = json.loads(config['env_config']['flow_params'])
     else:
-        config = json.load(open(config, 'r'))
-        flow_params = json.loads(config['env_config']['flow_params'])
+        flow_params = json.load(open(config, 'r'))
+        if 'env_config' in flow_params:
+            flow_params = json.loads(flow_params['env_config']['flow_params'])
 
     # reinitialize the vehicles class from stored data
     veh = VehicleParams()
