@@ -309,7 +309,7 @@ class Experiment:
             generate_trajectory_table(emission_files, trajectory_table_path, source_id)
             write_dict_to_csv(metadata_table_path, metadata, True)
             tsd_main(
-                trajectory_table_path,
+                emission_files[0],
                 {
                     'network': self.env.network.__class__,
                     'env': self.env.env_params,
