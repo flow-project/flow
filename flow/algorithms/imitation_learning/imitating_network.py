@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
-from flow.controllers.imitation_learning.keras_utils import build_neural_net_deterministic, build_neural_net_stochastic, get_loss, negative_log_likelihood_loss
-from flow.controllers.imitation_learning.replay_buffer import ReplayBuffer
+from flow.algorithms.imitation_learning.keras_utils import build_neural_net_deterministic, build_neural_net_stochastic, get_loss, negative_log_likelihood_loss
+from flow.algorithms.imitation_learning.replay_buffer import ReplayBuffer
 
 
 class ImitatingNetwork():

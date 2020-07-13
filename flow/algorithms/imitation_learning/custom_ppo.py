@@ -3,9 +3,12 @@ Copied from RLLib's PPO, but uses CustomPPOTFPolicy, which tracks value function
 """
 
 import logging
+import os
 
 from ray.rllib.agents import with_common_config
-from flow.controllers.imitation_learning.custom_ppo_tf_policy import CustomPPOTFPolicy
+from ray.tune.trial import ExportFormat
+
+from flow.algorithms.imitation_learning.custom_ppo_tf_policy import CustomPPOTFPolicy
 from ray.rllib.agents.trainer_template import build_trainer
 from ray.rllib.optimizers import SyncSamplesOptimizer, LocalMultiGPUOptimizer
 from ray.rllib.utils import try_import_tf
@@ -224,5 +227,4 @@ def import_model(self, import_file, policy_id=DEFAULT_POLICY_ID):
         return self.import_policy_model_from_h5(import_file, policy_id=policy_id)
 
 from ray.rllib.agents import Trainer
-print('Overriding import model')
 setattr(Trainer, 'import_model', import_model)

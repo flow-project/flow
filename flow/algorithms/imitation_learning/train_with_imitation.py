@@ -1,4 +1,4 @@
-from flow.controllers.imitation_learning.run import *
+from flow.algorithms.imitation_learning.run import *
 from examples.train import *
 
 def parse_args(args):
@@ -17,7 +17,7 @@ def parse_args(args):
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="Parse argument used when running a Flow simulation.",
-        epilog="python train.py EXP_CONFIG")
+        epilog="python train.py EXP_CONFIG EXP_TITLE")
 
     # required input parameters
     parser.add_argument(
@@ -89,6 +89,7 @@ def parse_args(args):
     parser.add_argument('--variance_regularizer', type=float, default=0.5, help='Regularization hyperparameter to penalize variance in imitation learning negative log-likelihood loss, for stochastic policies.')
     parser.add_argument('--stochastic', type=bool, default=True, help='If true, learn a stochastic policy (MV Gaussian). Must be true to continue with PPO training.')
     parser.add_argument('--replay_buffer_size', type=int, default=1000000, help='Max size of replay buffer')
+    parser.add_argument('--lr', type=float, default=0.001, help='Learning rate for imitation learning and value function learning')
 
     # loading and saving params:
     parser.add_argument('--load_imitation_model', type=bool, default=False, help='Whether to load an existing imitation neural network.')

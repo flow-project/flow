@@ -1,6 +1,6 @@
 
 from ray.rllib.models.tf.tf_modelv2 import TFModelV2
-from flow.controllers.imitation_learning.keras_utils import *
+from flow.algorithms.imitation_learning.keras_utils import *
 
 
 class PPONetwork(TFModelV2):

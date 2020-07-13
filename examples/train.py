@@ -179,7 +179,7 @@ def setup_exps_rllib(flow_params,
     alg_run = flags.algorithm.upper()
 
     if alg_run == "PPO":
-        from flow.controllers.imitation_learning.custom_ppo import CustomPPOTrainer
+        from flow.algorithms.imitation_learning.custom_ppo import CustomPPOTrainer
         from ray.rllib.agents.ppo import DEFAULT_CONFIG
         config = deepcopy(DEFAULT_CONFIG)
 
@@ -202,8 +202,8 @@ def setup_exps_rllib(flow_params,
             config["lr"] = tune.grid_search([5e-4, 5e-5])
 
         if flags.load_weights_path:
-            from flow.controllers.imitation_learning.ppo_model import PPONetwork
-            from flow.controllers.imitation_learning.custom_trainable import Imitation_PPO_Trainable
+            from flow.algorithms.imitation_learning.ppo_model import PPONetwork
+            from flow.algorithms.imitation_learning.custom_trainable import Imitation_PPO_Trainable
             from ray.rllib.models import ModelCatalog
 
             # Register custom model

@@ -5,7 +5,7 @@ model to conduct further training with Reinforcement Learning (see train_with_im
 Usage:
     python run.py EXP_CONFIG
 """
-from flow.controllers.imitation_learning.trainer import Trainer
+from flow.algorithms.imitation_learning.trainer import Trainer
 
 
 class Runner(object):
@@ -121,7 +121,6 @@ def main():
     if params['num_eval_episodes']  > 0:
         runner.evaluate()
 
-    print('done')
 
 if __name__ == "__main__":
     main()

@@ -1,17 +1,9 @@
-import time
-from collections import OrderedDict
-import pickle
-import numpy as np
-import gym
-import os
-import tensorflow as tf
-from utils import *
+from flow.algorithms.imitation_learning.utils import sample_n_trajectories, sample_trajectories
 from flow.utils.registry import make_create_env
-from flow.controllers.imitation_learning.imitating_controller import ImitatingController
-from flow.controllers.imitation_learning.imitating_network import ImitatingNetwork
-from flow.controllers.imitation_learning.utils_tensorflow import *
-from flow.controllers.imitation_learning.keras_utils import *
-from flow.controllers.car_following_models import IDMController
+from flow.algorithms.imitation_learning.imitating_controller import ImitatingController
+from flow.algorithms.imitation_learning.imitating_network import ImitatingNetwork
+from flow.algorithms.imitation_learning.utils_tensorflow import *
+from flow.algorithms.imitation_learning.keras_utils import *
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import SumoCarFollowingParams
 
@@ -255,7 +247,6 @@ class Trainer(object):
 
         # iterate over data multiple times (labels change every iteration)
         for i in range(num_iterations):
-            print("Iteration: ", i)
             # form labels
             next_state_value_preds = vf_net.predict(next_observations).flatten()
             next_state_value_preds[np.isnan(next_state_value_preds)] = 0
