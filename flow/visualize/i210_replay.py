@@ -32,11 +32,8 @@ from flow.visualize.plot_custom_callables import plot_trip_distribution
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 
-from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
-from flow.data_pipeline.leaderboard_utils import network_name_translate
-import uuid
-
 from flow.core.experiment import Experiment
+from flow.visualize.visualizer_rllib import read_result_dir, set_sim_params, set_env_params, set_agents, get_rl_action
 
 EXAMPLE_USAGE = """
 example usage:
@@ -97,44 +94,12 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             if veh_param['veh_id'] == 'av':
                 veh_param['acceleration_controller'] = (controller, test_params)
 
-    sim_params = flow_params['sim']
-    sim_params.num_clients = 1
+    sim_params = set_sim_params(flow_params['sim'], args.render_mode, args.save_render)
 
-    sim_params.restart_instance = True
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    emission_path = '{0}/test_time_rollout/'.format(dir_path)
-    sim_params.emission_path = emission_path if args.gen_emission else None
-
-    # pick your rendering mode
-    if args.render_mode == 'sumo_web3d':
-        sim_params.num_clients = 2
-        sim_params.render = False
-    elif args.render_mode == 'drgb':
-        sim_params.render = 'drgb'
-        sim_params.pxpm = 4
-    elif args.render_mode == 'sumo_gui':
-        sim_params.render = False  # will be set to True below
-    elif args.render_mode == 'no_render':
-        sim_params.render = False
-    if args.save_render:
-        if args.render_mode != 'sumo_gui':
-            sim_params.render = 'drgb'
-            sim_params.pxpm = 4
-        sim_params.save_render = True
-
-    # Start the environment with the gui turned on and a path for the
-    # emission file
-    env_params = flow_params['env']
-    env_params.restart_instance = False
-    if args.evaluate:
-        env_params.evaluate = True
-
-    # lower the horizon if testing
-    if args.horizon:
-        env_params.horizon = args.horizon
+    set_env_params(flow_params['env'], args.evaluate, args.horizon)
 
     # Create and register a gym+rllib env
-    exp = Experiment(flow_params)
+    exp = Experiment(flow_params, custom_callables=custom_callables)
 
     if args.render_mode == 'sumo_gui':
         exp.env.sim_params.render = True  # set to True after initializing agent and env
@@ -144,87 +109,25 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         exp.env.restart_simulation(sim_params=sim_params, render=sim_params.render)
 
     # reroute on exit is a training hack, it should be turned off at test time.
-    if hasattr(env, "reroute_on_exit"):
-        env.reroute_on_exit = False
+    if hasattr(exp.env, "reroute_on_exit"):
+        exp.env.reroute_on_exit = False
 
+    policy_map_fn, rets = None, None
     if rllib_config:
-        # check if we have a multiagent environment but in a
-        # backwards compatible way
-        if rllib_config.get('multiagent', {}).get('policies', None):
-            multiagent = True
-            pkl = get_rllib_pkl(result_dir)
-            rllib_config['multiagent'] = pkl['multiagent']
-        else:
-            multiagent = False
-            raise NotImplementedError
-
-        # Run on only one cpu for rendering purposes
-        rllib_config['num_workers'] = 0
+        result_dir, rllib_config, multiagent, rllib_flow_params = read_result_dir(rllib_config, True)
 
         # lower the horizon if testing
         if args.horizon:
             rllib_config['horizon'] = args.horizon
 
-        assert 'run' in rllib_config['env_config'], "Was this trained with the latest version of Flow?"
-        # Determine agent and checkpoint
-        config_run = rllib_config['env_config']['run']
-
-        rllib_flow_params = get_flow_params(rllib_config)
         agent_create_env, agent_env_name = make_create_env(params=rllib_flow_params, version=0)
         register_env(agent_env_name, agent_create_env)
 
-        if rllib_config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CCPPOTrainer'>":
-            from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
-            from ray.rllib.models import ModelCatalog
-            agent_cls = CCTrainer
-            ModelCatalog.register_custom_model("cc_model", CentralizedCriticModel)
-        elif rllib_config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CustomPPOTrainer'>":
-            from flow.algorithms.custom_ppo import CustomPPOTrainer
-            agent_cls = CustomPPOTrainer
-        elif config_run:
-            agent_cls = get_agent_class(config_run)
-        else:
-            raise Exception('You forgot to store the algorithm type')
+        assert 'run' in rllib_config['env_config'], "Was this trained with the latest version of Flow?"
+        # Determine agent and checkpoint
+        agent = set_agents(rllib_config, result_dir, agent_env_name)
 
-        # create the agent that will be used to compute the actions
-        agent = agent_cls(env=agent_env_name, config=rllib_config)
-        checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
-        checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
-        agent.restore(checkpoint)
-
-        if multiagent:
-            # map the agent id to its policy
-            policy_map_fn = rllib_config['multiagent']['policy_mapping_fn']
-
-        if rllib_config['model']['use_lstm']:
-            use_lstm = True
-            if multiagent:
-                # map the agent id to its policy
-                size = rllib_config['model']['lstm_cell_size']
-                lstm_state = defaultdict(lambda: [np.zeros(size, np.float32),
-                                                  np.zeros(size, np.float32)])
-            else:
-                lstm_state = [
-                    np.zeros(rllib_config['model']['lstm_cell_size'], np.float32),
-                    np.zeros(rllib_config['model']['lstm_cell_size'], np.float32)
-                ]
-        else:
-            use_lstm = False
-
-    # used to store
-    info_dict = {
-        "velocities": [],
-        "outflows": [],
-        "avg_trip_energy": [],
-        "avg_trip_time": [],
-        "total_completed_trips": []
-    }
-    all_trip_energy_distribution = defaultdict(lambda: [])
-    all_trip_time_distribution = defaultdict(lambda: [])
-
-    info_dict.update({
-        key: [] for key in custom_callables.keys()
-    })
+        rllib_rl_action, policy_map_fn, rets = get_rl_action(rllib_config, agent, multiagent)
 
     # reroute on exit is a training hack, it should be turned off at test time.
     if hasattr(exp.env, "reroute_on_exit"):
@@ -232,27 +135,14 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
 
     def rl_action(state):
         if rllib_config:
-            if multiagent:
-                action = {}
-                for agent_id in state.keys():
-                    if use_lstm:
-                        action[agent_id], lstm_state[agent_id], _ = \
-                            agent.compute_action(
-                                state[agent_id], state=lstm_state[agent_id],
-                                policy_id=policy_map_fn(agent_id))
-                    else:
-                        action[agent_id] = agent.compute_action(
-                            state[agent_id], policy_id=policy_map_fn(agent_id))
-            else:
-                if use_lstm:
-                    raise NotImplementedError
-                else:
-                    action = agent.compute_action(state)
+            action = rllib_rl_action(state)
         else:
             action = None
+        return action
 
     info_dict = exp.run(num_runs=args.num_rollouts, convert_to_csv=args.gen_emission, to_aws=args.use_s3,
-                        rl_actions=rl_action, multiagent=rllib_config and multiagent)
+                        rl_actions=rl_action, multiagent=rllib_config and multiagent, rets=rets,
+                        policy_map_fn=policy_map_fn)
 
     # i = 0
     # while i < args.num_rollouts:
@@ -503,14 +393,6 @@ if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
 
-    rllib_config = None
-    rllib_result_dir = None
-    if args.rllib_result_dir is not None:
-        rllib_result_dir = args.rllib_result_dir if args.rllib_result_dir[-1] != '/' \
-            else args.rllib_result_dir[:-1]
-
-        rllib_config = get_rllib_config(rllib_result_dir)
-
     if args.exp_config:
         module = __import__("../../examples/exp_configs.non_rl", fromlist=[args.exp_config])
         flow_params = getattr(module, args.exp_config).flow_params
@@ -533,7 +415,7 @@ if __name__ == '__main__':
         s = [ray.cloudpickle.dumps(transfer_test) for transfer_test in
              inflows_range(penetration_rates=[0.0, 0.1, 0.2, 0.3])]
         ray_output = [replay.remote(args, flow_params, output_dir=output_dir, transfer_test=transfer_test,
-                                    rllib_config=rllib_config, result_dir=rllib_result_dir,
+                                    rllib_config=args.rllib_result_dir, result_dir=args.rllib_result_dir,
                                     max_completed_trips=args.max_completed_trips)
                       for transfer_test in s]
         ray.get(ray_output)
@@ -542,8 +424,9 @@ if __name__ == '__main__':
         assert args.controller == 'follower_stopper'
 
         ray_output = [
-            replay.remote(args, flow_params, output_dir="{}/{}".format(output_dir, v_des), rllib_config=rllib_config,
-                          result_dir=rllib_result_dir, max_completed_trips=args.max_completed_trips, v_des=v_des)
+            replay.remote(args, flow_params, output_dir="{}/{}".format(output_dir, v_des),
+                          rllib_config=args.rllib_result_dir, result_dir=args.rllib_result_dir,
+                          max_completed_trips=args.max_completed_trips, v_des=v_des)
             for v_des in range(8, 17, 2)]
         ray.get(ray_output)
 
@@ -552,11 +435,11 @@ if __name__ == '__main__':
             pr = args.penetration_rate if args.penetration_rate is not None else 0
             single_transfer = next(inflows_range(penetration_rates=pr))
             ray.get(replay.remote(args, flow_params, output_dir=output_dir, transfer_test=single_transfer,
-                                  rllib_config=rllib_config, result_dir=rllib_result_dir,
+                                  rllib_config=args.rllib_result_dir, result_dir=args.rllib_result_dir,
                                   max_completed_trips=args.max_completed_trips))
         else:
             ray.get(replay.remote(args, flow_params, output_dir=output_dir,
-                                  rllib_config=rllib_config, result_dir=rllib_result_dir,
+                                  rllib_config=args.rllib_result_dir, result_dir=args.rllib_result_dir,
                                   max_completed_trips=args.max_completed_trips))
 
     if args.use_s3:
