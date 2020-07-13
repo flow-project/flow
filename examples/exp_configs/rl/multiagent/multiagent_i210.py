@@ -29,20 +29,23 @@ from flow.networks.i210_subnetwork import I210SubNetwork, EDGES_DISTRIBUTION
 # Specify some configurable constants.                                        #
 # =========================================================================== #
 
-# whether to include the downstream slow-down edge in the network as well as a ghost cell at the upstream edge
+# whether to include the downstream slow-down edge in the network as well as a
+# ghost cell at the upstream edge
 WANT_BOUNDARY_CONDITIONS = True
 # whether to include vehicles on the on-ramp
 ON_RAMP = False
 # the inflow rate of vehicles (in veh/hr)
 INFLOW_RATE = 2050
+# the inflow rate on the on-ramp (in veh/hr)
+ON_RAMP_INFLOW_RATE = 500
 # the speed of inflowing vehicles from the main edge (in m/s)
 INFLOW_SPEED = 25.5
 # fraction of vehicles that are RL vehicles. 0.10 corresponds to 10%
-PENETRATION_RATE = 0.10
+PENETRATION_RATE = 0.05
 # desired speed of the vehicles in the network
 V_DES = 5.0
 # horizon over which to run the env
-HORIZON = 1500
+HORIZON = 1000
 # steps to run before follower-stopper is allowed to take control
 WARMUP_STEPS = 600
 # whether to turn off the fail safes for the human-driven vehicles
@@ -83,11 +86,11 @@ additional_env_params.update({
     # whether to use the MPJ reward. Otherwise, defaults to a target velocity
     # reward
     "mpj_reward": False,
-    # how many vehicles to look back for the MPG reward
-    "look_back_length": 1,
+    # how many vehicles to look back for any reward
+    "look_back_length": 3,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": True,
-    'target_velocity': 8.0,
+    "reroute_on_exit": False,
+    'target_velocity': 5.0,
     # how many AVs there can be at once (this is only for centralized critics)
     "max_num_agents": 10,
     # which edges we shouldn't apply control on
@@ -108,12 +111,14 @@ additional_env_params.update({
     # how many timesteps to anneal the headway curriculum over
     "speed_curriculum_iters": 20,
     # weight of the headway reward
-    "speed_reward_gain": 0.5,
+    "speed_reward_gain": 5.0,
     # penalize stopped vehicles
-    "penalize_stops": True,
+    "penalize_stops": False,
+    "stop_penalty": 0.01,
 
     # penalize accels
-    "penalize_accel": True
+    "penalize_accel": False,
+    "accel_penalty": (1 / 400.0)
 })
 
 # =========================================================================== #
@@ -136,7 +141,7 @@ if ON_RAMP:
             speed_mode=19 if ALLOW_COLLISIONS else 'right_of_way'
         ),
         lane_change_params=SumoLaneChangeParams(
-            lane_change_mode="strategic",
+            lane_change_mode="sumo_default",
         ),
     )
 else:
@@ -152,7 +157,7 @@ else:
             speed_mode=19 if ALLOW_COLLISIONS else 'right_of_way'
         ),
         lane_change_params=SumoLaneChangeParams(
-            lane_change_mode="strategic",
+            lane_change_mode="sumo_default",
         ),
     )
 vehicles.add(
@@ -163,32 +168,47 @@ vehicles.add(
 
 inflow = InFlows()
 for lane in [0, 1, 2, 3, 4]:
-    # Add the inflows from the main highway.
-    inflow.add(
-        veh_type="human",
-        edge="119257914",
-        vehs_per_hour=int(INFLOW_RATE * (1 - PENETRATION_RATE)),
-        departLane=lane,
-        departSpeed=INFLOW_SPEED)
-    inflow.add(
-        veh_type="av",
-        edge="119257914",
-        vehs_per_hour=int(INFLOW_RATE * PENETRATION_RATE),
-        departLane=lane,
-        departSpeed=INFLOW_SPEED)
+    if WANT_BOUNDARY_CONDITIONS:
+        # Add the inflows from the main highway.
+        inflow.add(
+            veh_type="human",
+            edge="ghost0",
+            vehs_per_hour=int(INFLOW_RATE * (1 - PENETRATION_RATE)),
+            departLane=lane,
+            departSpeed=INFLOW_SPEED)
+        inflow.add(
+            veh_type="av",
+            edge="ghost0",
+            vehs_per_hour=int(INFLOW_RATE * PENETRATION_RATE),
+            departLane=lane,
+            departSpeed=INFLOW_SPEED)
+    else:
+        # Add the inflows from the main highway.
+        inflow.add(
+            veh_type="human",
+            edge="119257914",
+            vehs_per_hour=int(INFLOW_RATE * (1 - PENETRATION_RATE)),
+            departLane=lane,
+            departSpeed=INFLOW_SPEED)
+        inflow.add(
+            veh_type="av",
+            edge="119257914",
+            vehs_per_hour=int(INFLOW_RATE * PENETRATION_RATE),
+            departLane=lane,
+            departSpeed=INFLOW_SPEED)
 
     # Add the inflows from the on-ramps.
     if ON_RAMP:
         inflow.add(
             veh_type="human",
             edge="27414345",
-            vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
+            vehs_per_hour=int(ON_RAMP_INFLOW_RATE * (1 - PENETRATION_RATE)),
             departLane="random",
             departSpeed=10)
         inflow.add(
             veh_type="human",
             edge="27414342#0",
-            vehs_per_hour=int(500 * (1 - PENETRATION_RATE)),
+            vehs_per_hour=int(ON_RAMP_INFLOW_RATE * (1 - PENETRATION_RATE)),
             departLane="random",
             departSpeed=10)
 
@@ -225,7 +245,7 @@ flow_params = dict(
         sims_per_step=3,
         warmup_steps=WARMUP_STEPS,
         additional_params=additional_env_params,
-        done_at_exit=False
+        done_at_exit=not additional_env_params["reroute_on_exit"]
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
@@ -275,12 +295,11 @@ def policy_mapping_fn(_):
 
 
 custom_callables = {
-    "avg_speed": lambda env: np.mean([
-        speed for speed in
-        env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
-    "avg_outflow": lambda env: np.nan_to_num(
-        env.k.vehicle.get_outflow_rate(120)),
+    "avg_speed": lambda env: np.mean([speed for speed in
+                                      env.k.vehicle.get_speed(env.k.vehicle.get_ids()) if speed >= 0]),
+    "avg_outflow": lambda env: np.nan_to_num(env.k.vehicle.get_outflow_rate(120)),
     "avg_energy": lambda env: -1 * energy_consumption(env, 0.1),
-    "avg_per_step_energy": lambda env: -1 * energy_consumption(
-        env, 0.1) / env.k.vehicle.num_vehicles,
+    "avg_per_step_energy": lambda env: -1 * energy_consumption(env, 0.1) / env.k.vehicle.num_vehicles
+    if env.k.vehicle.num_vehicles > 0
+    else 0,
 }

@@ -17,7 +17,7 @@ import numpy as np
 import pytz
 
 from flow.core.util import ensure_dir
-from flow.core.rewards import miles_per_gallon, miles_per_megajoule
+from flow.core.rewards import instantaneous_mpg
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 from flow.utils.registry import make_create_env
@@ -41,10 +41,6 @@ def parse_args(args):
         'exp_config', type=str,
         help='Name of the experiment configuration file, as located in '
              'exp_configs/rl/singleagent or exp_configs/rl/multiagent.')
-
-    parser.add_argument(
-        'exp_title', type=str,
-        help='Name of experiment that results will be stored in')
 
     # optional input parameters
     parser.add_argument(
@@ -80,7 +76,8 @@ def parse_args(args):
     parser.add_argument(
         '--rollout_size', type=int, default=1000,
         help='How many steps are in a training batch.')
-    parser.add_argument('--use_s3', action='store_true', help='If true, upload results to s3')
+    parser.add_argument('--use_s3', action='store_true', default=False,
+                        help='If true, upload results to s3')
     parser.add_argument('--local_mode', action='store_true', default=False,
                         help='If true only 1 CPU will be used')
     parser.add_argument('--render', action='store_true', default=False,
@@ -88,6 +85,12 @@ def parse_args(args):
     parser.add_argument(
         '--checkpoint_path', type=str, default=None,
         help='Directory with checkpoint to restore training from.')
+    parser.add_argument(
+        '--exp_title', type=str, default=None,
+        help='Name of experiment that results will be stored in')
+    parser.add_argument('--multi_node', action='store_true',
+                        help='Set to true if this will be run in cluster mode.'
+                             'Relevant for rllib')
 
     return parser.parse_known_args(args)[0]
 
@@ -117,7 +120,6 @@ def run_model_stablebaseline(flow_params,
     """
     from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
     from stable_baselines import PPO2
-
     if num_cpus == 1:
         constructor = env_constructor(params=flow_params, version=0)()
         # The algorithms require a vectorized environment to run
@@ -149,7 +151,7 @@ def setup_exps_rllib(flow_params,
         number of CPUs to run the experiment over
     n_rollouts : int
         number of rollouts per training iteration
-    flags:
+    flags : TODO
         custom arguments
     policy_graphs : dict, optional
         TODO
@@ -194,6 +196,7 @@ def setup_exps_rllib(flow_params,
         config["train_batch_size"] = horizon * n_rollouts
         config["gamma"] = 0.995  # discount rate
         config["use_gae"] = True
+        config["no_done_at_end"] = False
         config["lambda"] = 0.97
         config["kl_target"] = 0.02
         config["num_sgd_iter"] = 10
@@ -241,8 +244,8 @@ def setup_exps_rllib(flow_params,
             config["lr"] = tune.grid_search([5e-4, 5e-5])
 
     elif alg_run == "TD3":
-        agent_cls = get_agent_class(alg_run)
-        config = deepcopy(agent_cls._default_config)
+        alg_run = get_agent_class(alg_run)
+        config = deepcopy(alg_run._default_config)
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
@@ -263,8 +266,10 @@ def setup_exps_rllib(flow_params,
         episode.user_data["avg_speed"] = []
         episode.user_data["avg_speed_avs"] = []
         episode.user_data["avg_energy"] = []
-        episode.user_data["avg_mpg"] = []
-        episode.user_data["avg_mpj"] = []
+        episode.user_data["inst_mpg"] = []
+        episode.user_data["num_cars"] = []
+        episode.user_data["avg_accel_human"] = []
+        episode.user_data["avg_accel_avs"] = []
 
     def on_episode_step(info):
         episode = info["episode"]
@@ -292,8 +297,16 @@ def setup_exps_rllib(flow_params,
         av_speed = np.mean([speed for speed in env.k.vehicle.get_speed(rl_ids) if speed >= 0])
         if not np.isnan(av_speed):
             episode.user_data["avg_speed_avs"].append(av_speed)
-        episode.user_data["avg_mpg"].append(miles_per_gallon(env, veh_ids, gain=1.0))
-        episode.user_data["avg_mpj"].append(miles_per_megajoule(env, veh_ids, gain=1.0))
+        episode.user_data["inst_mpg"].append(instantaneous_mpg(env, veh_ids, gain=1.0))
+        episode.user_data["num_cars"].append(len(env.k.vehicle.get_ids()))
+        episode.user_data["avg_accel_human"].append(np.nan_to_num(np.mean(
+            [np.abs((env.k.vehicle.get_speed(veh_id) - env.k.vehicle.get_previous_speed(veh_id))/env.sim_step) for
+             veh_id in veh_ids if veh_id in env.k.vehicle.previous_speeds.keys()]
+        )))
+        episode.user_data["avg_accel_avs"].append(np.nan_to_num(np.mean(
+            [np.abs((env.k.vehicle.get_speed(veh_id) - env.k.vehicle.get_previous_speed(veh_id))/env.sim_step) for
+             veh_id in rl_ids if veh_id in env.k.vehicle.previous_speeds.keys()]
+        )))
 
     def on_episode_end(info):
         episode = info["episode"]
@@ -301,12 +314,13 @@ def setup_exps_rllib(flow_params,
         episode.custom_metrics["avg_speed"] = avg_speed
         avg_speed_avs = np.mean(episode.user_data["avg_speed_avs"])
         episode.custom_metrics["avg_speed_avs"] = avg_speed_avs
+        episode.custom_metrics["avg_accel_avs"] = np.mean(episode.user_data["avg_accel_avs"])
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
-        episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["avg_mpg"])
-        episode.custom_metrics["avg_mpj_per_veh"] = np.mean(episode.user_data["avg_mpj"])
+        episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["inst_mpg"])
+        episode.custom_metrics["num_cars"] = np.mean(episode.user_data["num_cars"])
 
     def on_train_result(info):
-        """Store the mean score of the episode, and adjust the number of adversaries."""
+        """Store the mean score of the episode, and increment or decrement the iteration number for curriculum."""
         trainer = info["trainer"]
         trainer.workers.foreach_worker(
             lambda ev: ev.foreach_env(
@@ -358,14 +372,16 @@ def train_rllib(submodule, flags):
     def trial_str_creator(trial):
         return "{}_{}".format(trial.trainable_name, trial.experiment_tag)
 
-    if flags.local_mode:
+    if flags.multi_node:
+        ray.init(redis_address='localhost:6379')
+    elif flags.local_mode:
         ray.init(local_mode=True)
     else:
         ray.init()
 
     exp_dict = {
         "run_or_experiment": alg_run,
-        "name": flags.exp_title,
+        "name": flags.exp_title or flow_params['exp_tag'],
         "config": config,
         "checkpoint_freq": flags.checkpoint_freq,
         "checkpoint_at_end": True,
@@ -377,51 +393,23 @@ def train_rllib(submodule, flags):
     }
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
-    s3_string = "s3://i210.experiments/i210/" \
-                + date + '/' + flags.exp_title
     if flags.use_s3:
+        s3_string = "s3://i210.experiments/i210/" \
+                    + date + '/' + flags.exp_title
         exp_dict['upload_dir'] = s3_string
     tune.run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
 
 
-def train_h_baselines(flow_params, args, multiagent):
+def train_h_baselines(env_name, args, multiagent):
     """Train policies using SAC and TD3 with h-baselines."""
     from hbaselines.algorithms import OffPolicyRLAlgorithm
     from hbaselines.utils.train import parse_options, get_hyperparameters
-    from hbaselines.envs.mixed_autonomy import FlowEnv
-
-    flow_params = deepcopy(flow_params)
 
     # Get the command-line arguments that are relevant here
     args = parse_options(description="", example_usage="", args=args)
 
     # the base directory that the logged data will be stored in
     base_dir = "training_data"
-
-    # Create the training environment.
-    env = FlowEnv(
-        flow_params,
-        multiagent=multiagent,
-        shared=args.shared,
-        maddpg=args.maddpg,
-        render=args.render,
-        version=0
-    )
-
-    # Create the evaluation environment.
-    if args.evaluate:
-        eval_flow_params = deepcopy(flow_params)
-        eval_flow_params['env'].evaluate = True
-        eval_env = FlowEnv(
-            eval_flow_params,
-            multiagent=multiagent,
-            shared=args.shared,
-            maddpg=args.maddpg,
-            render=args.render_eval,
-            version=1
-        )
-    else:
-        eval_env = None
 
     for i in range(args.n_training):
         # value of the next seed
@@ -470,8 +458,8 @@ def train_h_baselines(flow_params, args, multiagent):
         # Create the algorithm object.
         alg = OffPolicyRLAlgorithm(
             policy=policy,
-            env=env,
-            eval_env=eval_env,
+            env="flow:{}".format(env_name),
+            eval_env="flow:{}".format(env_name) if args.evaluate else None,
             **hp
         )
 
@@ -489,6 +477,8 @@ def train_h_baselines(flow_params, args, multiagent):
 
 def train_stable_baselines(submodule, flags):
     """Train policies using the PPO algorithm in stable-baselines."""
+    from stable_baselines.common.vec_env import DummyVecEnv
+    from stable_baselines import PPO2
     flow_params = submodule.flow_params
     # Path to the saved files
     exp_tag = flow_params['exp_tag']
@@ -561,8 +551,7 @@ def main(args):
     elif flags.rl_trainer.lower() == "stable-baselines":
         train_stable_baselines(submodule, flags)
     elif flags.rl_trainer.lower() == "h-baselines":
-        flow_params = submodule.flow_params
-        train_h_baselines(flow_params, args, multiagent)
+        train_h_baselines(flags.exp_config, args, multiagent)
     else:
         raise ValueError("rl_trainer should be either 'rllib', 'h-baselines', "
                          "or 'stable-baselines'.")

@@ -151,11 +151,12 @@ class Env(gym.Env, metaclass=ABCMeta):
         self.state = None
         self.obs_var_labels = []
 
-        self.num_training_iters = 0
+        # number of training iterations (used by the rllib training procedure)
+        self._num_training_iters = 0
 
         # track IDs that have ever been observed in the system
-        self.observed_ids = set()
-        self.observed_rl_ids = set()
+        self._observed_ids = set()
+        self._observed_rl_ids = set()
 
         # simulation step size
         self.sim_step = sim_params.sim_step
@@ -333,8 +334,8 @@ class Env(gym.Env, metaclass=ABCMeta):
         for _ in range(self.env_params.sims_per_step):
             # This tracks vehicles that have appeared during warmup steps
             if self.time_counter <= self.env_params.sims_per_step * self.env_params.warmup_steps:
-                self.observed_ids.update(self.k.vehicle.get_ids())
-                self.observed_rl_ids.update(self.k.vehicle.get_rl_ids())
+                self._observed_ids.update(self.k.vehicle.get_ids())
+                self._observed_rl_ids.update(self.k.vehicle.get_rl_ids())
 
             self.time_counter += 1
             self.step_counter += 1
@@ -390,7 +391,7 @@ class Env(gym.Env, metaclass=ABCMeta):
 
             # crash encodes whether the simulator experienced a collision
             crash = self.k.simulation.check_collision()
-            self.crash = crash
+
             # stop collecting new simulation steps if there is a collision
             if crash:
                 break
@@ -411,16 +412,6 @@ class Env(gym.Env, metaclass=ABCMeta):
         # time horizon being met
         done = (self.time_counter >= self.env_params.sims_per_step *
                 (self.env_params.warmup_steps + self.env_params.horizon))
-        if crash:
-            print(
-                "**********************************************************\n"
-                "**********************************************************\n"
-                "**********************************************************\n"
-                "WARNING: There was a crash. \n"
-                "**********************************************************\n"
-                "**********************************************************\n"
-                "**********************************************************"
-            )
 
         # compute the info for each agent
         infos = {}
@@ -454,8 +445,8 @@ class Env(gym.Env, metaclass=ABCMeta):
         self.time_counter = 0
 
         # reset the observed ids
-        self.observed_ids = set()
-        self.observed_rl_ids = set()
+        self._observed_ids = set()
+        self._observed_rl_ids = set()
 
         # Now that we've passed the possibly fake init steps some rl libraries
         # do, we can feel free to actually render things
@@ -586,7 +577,7 @@ class Env(gym.Env, metaclass=ABCMeta):
                 veh_ids = self.k.vehicle.get_ids()
                 get_extra_info(self.k.vehicle, extra_info, veh_ids, source_id, run_id)
             # In case the attribute `pipeline_params` if not added to this instance
-            except AttributeError as e:
+            except AttributeError:
                 pass
 
         # render a frame
@@ -836,3 +827,7 @@ class Env(gym.Env, metaclass=ABCMeta):
             sight = self.renderer.get_sight(
                 orientation, id)
             self.sights.append(sight)
+
+    def set_iteration_num(self):
+        """Increment the number of training iterations."""
+        self._num_training_iters += 1

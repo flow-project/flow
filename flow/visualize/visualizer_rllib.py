@@ -26,7 +26,7 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
 
-from flow.core.rewards import miles_per_gallon, miles_per_megajoule
+from flow.core.rewards import instantaneous_mpg
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
@@ -234,15 +234,15 @@ def visualizer_rllib(args):
     metadata['submission_time'].append(cur_time)
     metadata['network'].append(network_name_translate(env.network.name.split('_20')[0]))
     metadata['is_baseline'].append(str(args.is_baseline))
-    name, strategy = get_configuration()
-    metadata['submitter_name'].append(name)
-    metadata['strategy'].append(strategy)
+    if args.to_aws:
+        name, strategy = get_configuration()
+        metadata['submitter_name'].append(name)
+        metadata['strategy'].append(strategy)
 
     # Simulate and collect metrics
     final_outflows = []
     final_inflows = []
     mpg = []
-    mpj = []
     mean_speed = []
     std_speed = []
     for i in range(args.num_rollouts):
@@ -262,8 +262,7 @@ def visualizer_rllib(args):
             if speeds:
                 vel.append(np.mean(speeds))
 
-            mpg.append(miles_per_gallon(env.unwrapped, vehicles.get_ids(), gain=1.0))
-            mpj.append(miles_per_megajoule(env.unwrapped, vehicles.get_ids(), gain=1.0))
+            mpg.append(instantaneous_mpg(env.unwrapped, vehicles.get_ids(), gain=1.0))
 
             if multiagent:
                 action = {}
@@ -336,8 +335,6 @@ def visualizer_rllib(args):
         mean_speed)))
 
     print('Average, std miles per gallon: {}, {}'.format(np.mean(mpg), np.std(mpg)))
-
-    print('Average, std miles per megajoule: {}, {}'.format(np.mean(mpj), np.std(mpj)))
 
     # Compute arrival rate of vehicles in the last 500 sec of the run
     print("\nOutflows (veh/hr):")

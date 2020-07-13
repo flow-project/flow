@@ -4,7 +4,6 @@ import csv
 import errno
 import os
 from lxml import etree
-from xml.etree import ElementTree
 
 
 def makexml(name, nsl):

@@ -11,6 +11,7 @@ import time
 import logging
 import subprocess
 import signal
+import csv
 
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
@@ -20,6 +21,32 @@ class TraCISimulation(KernelSimulation):
     """Sumo simulation kernel.
 
     Extends flow.core.kernel.simulation.KernelSimulation
+
+    Attributes
+    ----------
+    sumo_proc : subprocess.Popen
+        contains the subprocess.Popen instance used to start traci
+    sim_step : float
+        seconds per simulation step
+    emission_path : str or None
+        Path to the folder in which to create the emissions output. Emissions
+        output is not generated if this value is not specified
+    time : float
+        used to internally keep track of the simulation time
+    stored_data : dict <str, dict <float, dict <str, Any>>>
+        a dict object used to store additional data if an emission file is
+        provided. The first key corresponds to the name of the vehicle, the
+        second corresponds to the time the sample was issued, and the final
+        keys represent the additional data stored at every given time for every
+        vehicle, and consists of the following keys:
+
+        * acceleration (no noise): the accelerations issued to the vehicle,
+          excluding noise
+        * acceleration (requested): the requested acceleration by the vehicle,
+          including noise
+        * acceleration (actual): the actual acceleration by the vehicle,
+          collected by computing the difference between the speeds of the
+          vehicle and dividing it by the sim_step term
     """
 
     def __init__(self, master_kernel):
@@ -32,8 +59,12 @@ class TraCISimulation(KernelSimulation):
             sub-kernels)
         """
         KernelSimulation.__init__(self, master_kernel)
-        # contains the subprocess.Popen instance used to start traci
+
         self.sumo_proc = None
+        self.sim_step = None
+        self.emission_path = None
+        self.time = 0
+        self.stored_data = dict()
 
     def pass_api(self, kernel_api):
         """See parent class.
@@ -61,10 +92,61 @@ class TraCISimulation(KernelSimulation):
 
     def update(self, reset):
         """See parent class."""
-        pass
+        if reset:
+            self.time = 0
+        else:
+            self.time += self.sim_step
+
+        # Collect the additional data to store in the emission file.
+        if self.emission_path is not None:
+            kv = self.master_kernel.vehicle
+            for veh_id in self.master_kernel.vehicle.get_ids():
+                t = round(self.time, 2)
+
+                # some miscellaneous pre-processing
+                position = kv.get_2d_position(veh_id)
+
+                # Make sure dictionaries corresponding to the vehicle and
+                # time are available.
+                if veh_id not in self.stored_data.keys():
+                    self.stored_data[veh_id] = dict()
+                if t not in self.stored_data[veh_id].keys():
+                    self.stored_data[veh_id][t] = dict()
+
+                # Add the speed, position, and lane data.
+                self.stored_data[veh_id][t].update({
+                    "speed": kv.get_speed(veh_id),
+                    "lane_number": kv.get_lane(veh_id),
+                    "edge_id": kv.get_edge(veh_id),
+                    "relative_position": kv.get_position(veh_id),
+                    "x": position[0],
+                    "y": position[1],
+                    "headway": kv.get_headway(veh_id),
+                    "leader_id": kv.get_leader(veh_id),
+                    "follower_id": kv.get_follower(veh_id),
+                    "leader_rel_speed":
+                        kv.get_speed(kv.get_leader(veh_id))
+                        - kv.get_speed(veh_id),
+                    "target_accel_with_noise_with_failsafe":
+                        kv.get_accel(veh_id, noise=True, failsafe=True),
+                    "target_accel_no_noise_no_failsafe":
+                        kv.get_accel(veh_id, noise=False, failsafe=False),
+                    "target_accel_with_noise_no_failsafe":
+                        kv.get_accel(veh_id, noise=True, failsafe=False),
+                    "target_accel_no_noise_with_failsafe":
+                        kv.get_accel(veh_id, noise=False, failsafe=True),
+                    "realized_accel":
+                        kv.get_realized_accel(veh_id),
+                    "road_grade": kv.get_road_grade(veh_id),
+                    "distance": kv.get_distance(veh_id),
+                })
 
     def close(self):
         """See parent class."""
+        # Save the emission data to a csv.
+        if self.emission_path is not None:
+            self.save_emission()
+
         self.kernel_api.close()
 
     def check_collision(self):
@@ -74,10 +156,24 @@ class TraCISimulation(KernelSimulation):
     def start_simulation(self, network, sim_params):
         """Start a sumo simulation instance.
 
-        This method uses the configuration files created by the network class
-        to initialize a sumo instance. Also initializes a traci connection to
-        interface with sumo from Python.
+        This method performs the following operations:
+
+        1. It collect the simulation step size and the emission path
+           information. If an emission path is specifies, it ensures that the
+           path exists.
+        2. It also uses the configuration files created by the network class to
+           initialize a sumo instance.
+        3. Finally, It initializes a traci connection to interface with sumo
+           from Python and returns the connection.
         """
+        # Save the simulation step size (for later use).
+        self.sim_step = sim_params.sim_step
+
+        # Update the emission path term.
+        self.emission_path = sim_params.emission_path
+        if self.emission_path is not None:
+            ensure_dir(self.emission_path)
+
         error = None
         for _ in range(RETRIES_ON_ERROR):
             try:
@@ -113,17 +209,6 @@ class TraCISimulation(KernelSimulation):
                     sumo_call.append("--lateral-resolution")
                     sumo_call.append(str(sim_params.lateral_resolution))
 
-                # add the emission path to the sumo command (if requested)
-                if sim_params.emission_path is not None:
-                    ensure_dir(sim_params.emission_path)
-                    emission_out = os.path.join(
-                        sim_params.emission_path,
-                        "{0}-emission.xml".format(network.name))
-                    sumo_call.append("--emission-output")
-                    sumo_call.append(emission_out)
-                else:
-                    emission_out = None
-
                 if sim_params.overtake_right:
                     sumo_call.append("--lanechange.overtake-right")
                     sumo_call.append("true")
@@ -150,7 +235,7 @@ class TraCISimulation(KernelSimulation):
                 if sim_params.num_clients > 1:
                     logging.info(" Num clients are" +
                                  str(sim_params.num_clients))
-                logging.debug(" Emission file: " + str(emission_out))
+                logging.debug(" Emission file: " + str(self.emission_path))
                 logging.debug(" Step length: " + str(sim_params.sim_step))
 
                 # Opening the I/O thread to SUMO
@@ -184,3 +269,74 @@ class TraCISimulation(KernelSimulation):
             os.killpg(self.sumo_proc.pid, signal.SIGTERM)
         except Exception as e:
             print("Error during teardown: {}".format(e))
+
+    def save_emission(self, run_id=0):
+        """Save any collected emission data to a csv file.
+
+        If no data was collected, nothing happens. Moreover, any internally
+        stored data by this class is cleared whenever data is stored.
+
+        Parameters
+        ----------
+        run_id : int
+            the rollout number, appended to the name of the emission file. Used
+            to store emission files from multiple rollouts run sequentially.
+
+        Returns
+        -------
+        emission_file_path: str
+            the relative path of the emission file
+        """
+        # If there is no stored data, ignore this operation. This is to ensure
+        # that data isn't deleted if the operation is called twice.
+        if len(self.stored_data) == 0:
+            return
+
+        # Get a csv name for the emission file.
+        name = "{}-{}_emission.csv".format(
+            self.master_kernel.network.network.name, run_id)
+
+        # The name of all stored data-points (excluding id and time)
+        stored_ids = [
+            "x",
+            "y",
+            "speed",
+            "headway",
+            "leader_id",
+            "follower_id",
+            "leader_rel_speed",
+            "target_accel_with_noise_with_failsafe",
+            "target_accel_no_noise_no_failsafe",
+            "target_accel_with_noise_no_failsafe",
+            "target_accel_no_noise_with_failsafe",
+            "realized_accel",
+            "road_grade",
+            "edge_id",
+            "lane_number",
+            "distance",
+            "relative_position",
+        ]
+
+        # Update the stored data to push to the csv file.
+        final_data = {"time": [], "id": []}
+        final_data.update({key: [] for key in stored_ids})
+
+        for veh_id in self.stored_data.keys():
+            for t in self.stored_data[veh_id].keys():
+                final_data['time'].append(t)
+                final_data['id'].append(veh_id)
+                for key in stored_ids:
+                    final_data[key].append(self.stored_data[veh_id][t][key])
+
+        emission_file_path = os.path.join(self.emission_path, name)
+        with open(emission_file_path, "w") as f:
+            print(emission_file_path, self.emission_path)
+            writer = csv.writer(f, delimiter=',')
+            writer.writerow(final_data.keys())
+            writer.writerows(zip(*final_data.values()))
+
+        # Clear all memory from the stored data. This is useful if this
+        # function is called in between resets.
+        self.stored_data.clear()
+
+        return emission_file_path
