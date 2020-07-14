@@ -765,6 +765,7 @@ class QueryStrings(Enum):
             network,
             is_baseline,
             energy_model_id,
+            efficiency_miles_per_gallon,
             ROUND(efficiency_miles_per_gallon, 1) ||
                 ' (' || CASE(WHEN SIGN(fuel_improvement) = 1 THEN '+' END) ||
                 ROUND(fuel_improvement, 1) || ')' AS efficiency,
@@ -781,7 +782,7 @@ class QueryStrings(Enum):
             SELECT
                 network,
                 submission_date,
-                1000 * MAX(efficiency_meters_per_joules)
+                1000 * MAX(efficiency_miles_per_gallon)
                     OVER (PARTITION BY network ORDER BY submission_date ASC
                     ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS max_score
             FROM leaderboard_chart_agg
