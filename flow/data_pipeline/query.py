@@ -733,27 +733,47 @@ class QueryStrings(Enum):
                 AND (m.is_baseline='False'
                      OR (m.is_baseline='True'
                          AND m.source_id = b.source_id))
+        ), joined_cols AS (
+            SELECT
+                agg.submission_date,
+                agg.source_id,
+                agg.submitter_name,
+                agg.strategy,
+                agg.network,
+                agg.is_baseline,
+                agg.energy_model_id,
+                agg.efficiency_meters_per_joules,
+                agg.efficiency_miles_per_gallon,
+                100 * (1 - baseline.efficiency_miles_per_gallon / agg.efficiency_miles_per_gallon)
+                    AS fuel_improvement,
+                agg.throughput_per_hour,
+                100 * (baseline.throughput_per_hour - agg.throughput_per_hour) / baseline.throughput_per_hour
+                    AS throughput_improvement,
+                agg.safety_rate,
+                agg.safety_value_max
+            FROM agg
+            JOIN agg AS baseline ON 1 = 1
+                AND agg.network = baseline.network
+                AND baseline.is_baseline = 'True'
+                AND agg.baseline_source_id = baseline.source_id
         )
         SELECT
-            agg.submission_date,
-            agg.source_id,
-            agg.submitter_name,
-            agg.strategy,
-            agg.network,
-            agg.is_baseline,
-            agg.energy_model_id,
-            agg.efficiency_meters_per_joules,
-            agg.efficiency_miles_per_gallon,
-            100 * (1 - baseline.efficiency_miles_per_gallon / agg.efficiency_miles_per_gallon) AS percent_improvement,
-            agg.throughput_per_hour,
-            agg.safety_rate,
-            agg.safety_value_max
-        FROM agg
-        JOIN agg AS baseline ON 1 = 1
-            AND agg.network = baseline.network
-            AND baseline.is_baseline = 'True'
-            AND agg.baseline_source_id = baseline.source_id
-        ORDER BY agg.submission_date, agg.submission_time ASC
+            submission_date,
+            source_id,
+            submitter_name,
+            strategy,
+            network,
+            is_baseline,
+            energy_model_id,
+            ROUND(efficiency_miles_per_gallon, 1) ||
+                ' (' || CASE(WHEN SIGN(fuel_improvement) = 1 THEN '+' END) ||
+                ROUND(fuel_improvement, 1) || ')' AS efficiency,
+            ROUND(throughput_per_hour, 1) ||
+                ' (' || CASE(WHEN SIGN(throughput_improvement) = 1 THEN '+' END) ||
+                ROUND(throughput_improvement, 1) || ')' AS inflow,
+            ROUND(safety_rate, 1) AS safety_rate,
+            ROUND(safety_value_max, 1) AS safety_value_max
+        FROM joined_cols
         ;"""
 
     FACT_TOP_SCORES = """
