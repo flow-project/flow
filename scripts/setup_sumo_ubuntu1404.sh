@@ -12,7 +12,7 @@ echo "Installing sumo binaries"
 mkdir -p $HOME/sumo_binaries/bin
 pushd $HOME/sumo_binaries/bin
 wget https://flow-sumo.s3-us-west-1.amazonaws.com/libsumo/sumo_binaries_ubuntu1404.tar.gz
-tar -xf sumo_binaries_ubuntu1404.tar.gz
+tar -zxvf sumo_binaries_ubuntu1404.tar.gz
 rm sumo_binaries_ubuntu1404.tar.gz
 chmod +x *
 popd
