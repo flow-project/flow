@@ -38,7 +38,7 @@ before_install:
 
   # Set up requirements for flow
   - conda env create -f environment.yml
-  - source activate flow
+  - source activate circles
 
   # [sumo] dependencies and binaries
   - pushd $HOME/build/CIRCLES-consortium
