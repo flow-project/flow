@@ -13,6 +13,7 @@ import subprocess
 import signal
 import csv
 
+
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
 
