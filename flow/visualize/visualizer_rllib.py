@@ -112,11 +112,11 @@ def set_env_params(env_params, evaluate, horizon, config=None):
     # lower the horizon if testing
     if horizon:
         if config:
-            config['horizon'] = args.horizon
-        env_params.horizon = args.horizon
+            config['horizon'] = horizon
+        env_params.horizon = horizon
 
 
-def set_agents(config, result_dir, env_name, run=None):
+def set_agents(config, result_dir, env_name, run=None, checkpoint_num=None):
     """Determine and create agents that will be used to compute actions."""
     # Determine agent and checkpoint
     config_run = config['env_config']['run'] if 'run' in config['env_config'] \
@@ -150,8 +150,8 @@ def set_agents(config, result_dir, env_name, run=None):
 
     # create the agent that will be used to compute the actions
     agent = agent_cls(env=env_name, config=config)
-    checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
-    checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
+    checkpoint = result_dir + '/checkpoint_' + checkpoint_num
+    checkpoint = checkpoint + '/checkpoint-' + checkpoint_num
     agent.restore(checkpoint)
 
     return agent
@@ -231,7 +231,7 @@ def visualizer_rllib(args):
     #     env_loc = 'flow.envs.multiagent'
     set_env_params(flow_params['env'], args.evaluate, args.horizon, config)
 
-    agent = set_agents(config, result_dir, exp.env_name, run=args.run)
+    agent = set_agents(config, result_dir, exp.env_name, run=args.run, checkpoint_num=args.checkpoint_num)
 
     if hasattr(agent, "local_evaluator") and \
             os.environ.get("TEST_FLAG") != 'True':
