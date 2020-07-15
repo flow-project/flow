@@ -49,12 +49,31 @@ def parse_args(args):
         action='store_true',
         help='Specifies whether to generate an emission file from the '
              'simulation.')
+    parser.add_argument(
+        '--to_aws',
+        type=str, nargs='?', default=None, const="default",
+        help='Specifies the name of the partition to store the output'
+             'file on S3. Putting not None value for this argument'
+             'automatically set gen_emission to True.')
+    parser.add_argument(
+        '--only_query',
+        nargs='*', default="[\'all\']",
+        help='specify which query should be run by lambda'
+             'for detail, see upload_to_s3 in data_pipeline.py'
+    )
+    parser.add_argument(
+        '--is_baseline',
+        action='store_true',
+        help='specifies whether this is a baseline run'
+    )
 
     return parser.parse_known_args(args)[0]
 
 
 if __name__ == "__main__":
     flags = parse_args(sys.argv[1:])
+
+    flags.gen_emission = flags.gen_emission or flags.to_aws
 
     # Get the flow_params object.
     module = __import__("exp_configs.non_rl", fromlist=[flags.exp_config])
@@ -90,4 +109,5 @@ if __name__ == "__main__":
     exp = Experiment(flow_params, callables)
 
     # Run for the specified number of rollouts.
-    exp.run(flags.num_runs, convert_to_csv=flags.gen_emission)
+    exp.run(flags.num_runs, convert_to_csv=flags.gen_emission, to_aws=flags.to_aws,
+            only_query=flags.only_query, is_baseline=flags.is_baseline)

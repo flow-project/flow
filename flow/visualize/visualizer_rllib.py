@@ -26,12 +26,18 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
 
+from flow.core.rewards import instantaneous_mpg
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
 from flow.utils.rllib import get_rllib_pkl
 
+from flow.data_pipeline.data_pipeline import write_dict_to_csv, upload_to_s3, get_extra_info, get_configuration
+from flow.data_pipeline.leaderboard_utils import network_name_translate
+from collections import defaultdict
+from datetime import datetime, timezone
+import uuid
 
 EXAMPLE_USAGE = """
 example usage:
@@ -90,6 +96,14 @@ def visualizer_rllib(args):
             sys.exit(1)
     if args.run:
         agent_cls = get_agent_class(args.run)
+    elif config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CCPPOTrainer'>":
+        from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
+        from ray.rllib.models import ModelCatalog
+        agent_cls = CCTrainer
+        ModelCatalog.register_custom_model("cc_model", CentralizedCriticModel)
+    elif config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CustomPPOTrainer'>":
+        from flow.algorithms.custom_ppo import CustomPPOTrainer
+        agent_cls = CustomPPOTrainer
     elif config_run:
         agent_cls = get_agent_class(config_run)
     else:
@@ -160,6 +174,10 @@ def visualizer_rllib(args):
     else:
         env = gym.make(env_name)
 
+    # reroute on exit is a training hack, it should be turned off at test time.
+    if hasattr(env, "reroute_on_exit"):
+        env.reroute_on_exit = False
+
     if args.render_mode == 'sumo_gui':
         env.sim_params.render = True  # set to True after initializing agent and env
 
@@ -194,13 +212,34 @@ def visualizer_rllib(args):
     if not sim_params.restart_instance:
         env.restart_simulation(sim_params=sim_params, render=sim_params.render)
 
+    # data pipeline
+    extra_info = defaultdict(lambda: [])
+    source_id = 'flow_{}'.format(uuid.uuid4().hex)
+    metadata = defaultdict(lambda: [])
+    # collect current time
+    cur_datetime = datetime.now(timezone.utc)
+    cur_date = cur_datetime.date().isoformat()
+    cur_time = cur_datetime.time().isoformat()
+    # collecting information for metadata table
+    metadata['source_id'].append(source_id)
+    metadata['submission_time'].append(cur_time)
+    metadata['network'].append(network_name_translate(env.network.name.split('_20')[0]))
+    metadata['is_baseline'].append(str(args.is_baseline))
+    if args.to_aws:
+        name, strategy = get_configuration()
+        metadata['submitter_name'].append(name)
+        metadata['strategy'].append(strategy)
+
     # Simulate and collect metrics
     final_outflows = []
     final_inflows = []
+    mpg = []
     mean_speed = []
     std_speed = []
     for i in range(args.num_rollouts):
         vel = []
+        run_id = "run_{}".format(i)
+        env.pipeline_params = (extra_info, source_id, run_id)
         state = env.reset()
         if multiagent:
             ret = {key: [0] for key in rets.keys()}
@@ -213,6 +252,8 @@ def visualizer_rllib(args):
             # only include non-empty speeds
             if speeds:
                 vel.append(np.mean(speeds))
+
+            mpg.append(instantaneous_mpg(env.unwrapped, vehicles.get_ids(), gain=1.0))
 
             if multiagent:
                 action = {}
@@ -228,6 +269,10 @@ def visualizer_rllib(args):
             else:
                 action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
+
+            # collect data for data pipeline
+            get_extra_info(vehicles, extra_info, vehicles.get_ids(), source_id, run_id)
+
             if multiagent:
                 for actor, rew in reward.items():
                     ret[policy_map_fn(actor)][0] += rew
@@ -279,10 +324,8 @@ def visualizer_rllib(args):
     print(mean_speed)
     print('Average, std: {}, {}'.format(np.mean(mean_speed), np.std(
         mean_speed)))
-    print("\nSpeed, std (m/s):")
-    print(std_speed)
-    print('Average, std: {}, {}'.format(np.mean(std_speed), np.std(
-        std_speed)))
+
+    print('Average, std miles per gallon: {}, {}'.format(np.mean(mpg), np.std(mpg)))
 
     # Compute arrival rate of vehicles in the last 500 sec of the run
     print("\nOutflows (veh/hr):")
@@ -322,6 +365,22 @@ def visualizer_rllib(args):
 
         # delete the .xml version of the emission file
         os.remove(emission_path)
+
+        # generate datapipeline output
+        trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))
+        metadata_table_path = os.path.join(dir_path, '{}_METADATA.csv'.format(source_id))
+        write_dict_to_csv(trajectory_table_path, extra_info, True)
+        write_dict_to_csv(metadata_table_path, metadata, True)
+
+        if args.to_aws:
+            upload_to_s3('circles.data.pipeline',
+                         'metadata_table/date={0}/partition_name={1}_METADATA/{1}_METADATA.csv'.format(cur_date,
+                                                                                                       source_id),
+                         metadata_table_path)
+            upload_to_s3('circles.data.pipeline',
+                         'fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv'.format(cur_date, source_id),
+                         trajectory_table_path,
+                         {'network': metadata['network'][0]})
 
 
 def create_parser():
@@ -376,6 +435,18 @@ def create_parser():
         '--horizon',
         type=int,
         help='Specifies the horizon.')
+    parser.add_argument(
+        '--is_baseline',
+        action='store_true',
+        help='specifies whether this is a baseline run'
+    )
+    parser.add_argument(
+        '--to_aws',
+        type=str, nargs='?', default=None, const="default",
+        help='Specifies the name of the partition to store the output'
+             'file on S3. Putting not None value for this argument'
+             'automatically set gen_emission to True.'
+    )
     return parser
 
 
