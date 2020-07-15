@@ -8,7 +8,7 @@ from flow.core.params import SumoCarFollowingParams
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController, \
     OVMController, BCMController, LinearOVM, CFMController, LACController, \
-    GippsController
+    GippsController, BandoFTLController
 from flow.controllers import FollowerStopper, PISaturation, NonLocalFollowerStopper
 from tests.setup_scripts import ring_road_exp_setup
 import os
@@ -405,6 +405,175 @@ class TestSafeVelocityFailsafe(TestInstantaneousFailsafe):
         self.tearDown_failsafe()
 
 
+class TestFeasibleAccelFailsafe(TestInstantaneousFailsafe):
+    """
+    Tests that the feasible accel failsafe of the base acceleration controller
+    does not fail under extreme conditions.
+    """
+
+    def test_no_crash_OVM(self):
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(OVMController, {
+                "fail_safe": "feasible_accel"
+            }),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=10,
+        )
+
+        self.setUp_failsafe(vehicles=vehicles)
+
+        # run the experiment, see if it fails
+        self.exp.run(1)
+
+        self.tearDown_failsafe()
+
+    def test_no_crash_LinearOVM(self):
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(LinearOVM, {
+                "fail_safe": "feasible_accel"
+            }),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=10,
+        )
+
+        self.setUp_failsafe(vehicles=vehicles)
+
+        # run the experiment, see if it fails
+        self.exp.run(1)
+
+        self.tearDown_failsafe()
+
+
+class TestObeySpeedLimitFailsafe(TestInstantaneousFailsafe):
+    """
+    Tests that the obey speed limit failsafe of the base acceleration controller
+    does not fail under extreme conditions.
+    """
+
+    def test_no_crash_OVM(self):
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(OVMController, {
+                "fail_safe": "obey_speed_limit"
+            }),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=10,
+        )
+
+        self.setUp_failsafe(vehicles=vehicles)
+
+        # run the experiment, see if it fails
+        self.exp.run(1)
+
+        self.tearDown_failsafe()
+
+    def test_no_crash_LinearOVM(self):
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(LinearOVM, {
+                "fail_safe": "obey_speed_limit"
+            }),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=10,
+        )
+
+        self.setUp_failsafe(vehicles=vehicles)
+
+        # run the experiment, see if it fails
+        self.exp.run(1)
+
+        self.tearDown_failsafe()
+
+
+class TestBrokenFailsafe(TestInstantaneousFailsafe):
+    """
+    Tests that the failsafe logic triggers exceptions when instantiated
+    incorrectly.
+    """
+
+    def test_invalid_failsafe_string(self):
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(OVMController, {
+                "fail_safe": "default"
+            }),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=10,
+        )
+
+        additional_env_params = {
+            "target_velocity": 8,
+            "max_accel": 3,
+            "max_decel": 3,
+            "sort_vehicles": False
+        }
+        env_params = EnvParams(additional_params=additional_env_params)
+
+        additional_net_params = {
+            "length": 100,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40
+        }
+        net_params = NetParams(additional_params=additional_net_params)
+
+        initial_config = InitialConfig(bunching=10)
+
+        # create the environment and network classes, see that it raises ValueError
+        with self.assertRaises(ValueError):
+            ring_road_exp_setup(vehicles=vehicles,
+                                env_params=env_params,
+                                net_params=net_params,
+                                initial_config=initial_config)
+
+        self.tearDown_failsafe()
+
+    def test_invalid_failsafe_type(self):
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(LinearOVM, {
+                "fail_safe": True
+            }),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=10,
+        )
+
+        additional_env_params = {
+            "target_velocity": 8,
+            "max_accel": 3,
+            "max_decel": 3,
+            "sort_vehicles": False
+        }
+        env_params = EnvParams(additional_params=additional_env_params)
+
+        additional_net_params = {
+            "length": 100,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40
+        }
+        net_params = NetParams(additional_params=additional_net_params)
+
+        initial_config = InitialConfig(bunching=10)
+
+        # create the environment and network classes, see that it raises ValueError
+        with self.assertRaises(ValueError):
+            ring_road_exp_setup(vehicles=vehicles,
+                                env_params=env_params,
+                                net_params=net_params,
+                                initial_config=initial_config)
+
+        self.tearDown_failsafe()
+
+
 class TestStaticLaneChanger(unittest.TestCase):
     """
     Makes sure that vehicles with a static lane-changing controller do not
@@ -709,7 +878,7 @@ class TestLACController(unittest.TestCase):
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
 
-class TestGippsontroller(unittest.TestCase):
+class TestGippsController(unittest.TestCase):
     """
     Tests that the Gipps Controller returning mathematically accurate values.
     """
@@ -761,6 +930,60 @@ class TestGippsontroller(unittest.TestCase):
         ]
 
         expected_accel = [0., 5.929271, 5.929271, 5.929271, 5.929271]
+
+        np.testing.assert_array_almost_equal(requested_accel, expected_accel)
+
+
+class TestBandoFTLController(unittest.TestCase):
+    """
+    Tests that the Bando Controller returning mathematically accurate values.
+    """
+
+    def setUp(self):
+        # add a few vehicles to the network using the requested model
+        # also make sure that the input params are what is expected
+        contr_params = {
+            "alpha": .5,
+            "beta": 20,
+            "h_st": 2,
+            "h_go": 10,
+            "v_max": 32,
+            "want_max_accel": False,
+        }
+
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(BandoFTLController, contr_params),
+            routing_controller=(ContinuousRouter, {}),
+            car_following_params=SumoCarFollowingParams(
+                accel=15, decel=5),
+            num_vehicles=5)
+
+        # create the environment and network classes for a ring road
+        self.env, _, _ = ring_road_exp_setup(vehicles=vehicles)
+
+    def tearDown(self):
+        # terminate the traci instance
+        self.env.terminate()
+
+        # free data used by the class
+        self.env = None
+
+    def test_get_action(self):
+        self.env.reset()
+        ids = self.env.k.vehicle.get_ids()
+
+        test_headways = [2, 4, 6, 8, 10]
+        for i, veh_id in enumerate(ids):
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
+
+        requested_accel = [
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
+            for veh_id in ids
+        ]
+
+        expected_accel = [1.649129, 7.853475, 14.057821, 15.70695, 15.959713]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 

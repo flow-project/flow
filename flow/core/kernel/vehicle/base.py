@@ -1,7 +1,9 @@
 """Script containing the base vehicle kernel class."""
 
+from abc import ABCMeta, abstractmethod
 
-class KernelVehicle(object):
+
+class KernelVehicle(object, metaclass=ABCMeta):
     """Flow vehicle kernel.
 
     This kernel sub-class is used to interact with the simulator with regards
@@ -66,6 +68,7 @@ class KernelVehicle(object):
     #               Methods for interacting with the simulator                #
     ###########################################################################
 
+    @abstractmethod
     def update(self, reset):
         """Update the vehicle kernel with data from the current time step.
 
@@ -78,8 +81,9 @@ class KernelVehicle(object):
             specifies whether the simulator was reset in the last simulation
             step
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """Add a vehicle to the network.
 
@@ -98,12 +102,14 @@ class KernelVehicle(object):
         speed : float
             starting speed of the added vehicle
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def reset(self):
         """Reset any additional state that needs to be reset."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def remove(self, veh_id):
         """Remove a vehicle.
 
@@ -119,10 +125,16 @@ class KernelVehicle(object):
         veh_id : str
             unique identifier of the vehicle to be removed
         """
-        raise NotImplementedError
+        pass
 
-    def apply_acceleration(self, veh_id, acc):
+    @abstractmethod
+    def apply_acceleration(self, veh_id, acc, smooth_duration=0):
         """Apply the acceleration requested by a vehicle in the simulator.
+
+        In SUMO, this function applies setSpeed for smooth_duration=0, otherwise
+        the slowDown method applies acceleration smoothly over the smooth_duration
+        time (in seconds). For more information, see:
+        https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-slowDown
 
         Parameters
         ----------
@@ -130,9 +142,12 @@ class KernelVehicle(object):
             list of vehicle identifiers
         acc : float or array_like
             requested accelerations from the vehicles
+        smooth_duration : float
+            duration in seconds over which acceleration should be smoothly applied, default: 0
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def apply_lane_change(self, veh_id, direction):
         """Apply an instantaneous lane-change to a set of vehicles.
 
@@ -155,8 +170,9 @@ class KernelVehicle(object):
         ValueError
             If any of the direction values are not -1, 0, or 1.
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def choose_routes(self, veh_id, route_choices):
         """Update the route choice of vehicles in the network.
 
@@ -169,8 +185,9 @@ class KernelVehicle(object):
             edge the vehicle is currently on. If a value of None is provided,
             the vehicle does not update its route
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def set_max_speed(self, veh_id, max_speed):
         """Update the maximum allowable speed by a vehicles in the network.
 
@@ -181,115 +198,179 @@ class KernelVehicle(object):
         max_speed : float
             desired max speed by the vehicle
         """
-        raise NotImplementedError
+        pass
 
     ###########################################################################
     # Methods to visually distinguish vehicles by {RL, observed, unobserved}  #
     ###########################################################################
 
+    @abstractmethod
     def update_vehicle_colors(self):
         """Modify the color of vehicles if rendering is active."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def set_observed(self, veh_id):
         """Add a vehicle to the list of observed vehicles."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def remove_observed(self, veh_id):
         """Remove a vehicle from the list of observed vehicles."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_observed_ids(self):
         """Return the list of observed vehicles."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_color(self, veh_id):
         """Return and RGB tuple of the color of the specified vehicle."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def set_color(self, veh_id, color):
         """Set the color of the specified vehicle with the RGB tuple."""
-        raise NotImplementedError
+        pass
 
     ###########################################################################
     #                        State acquisition methods                        #
     ###########################################################################
 
+    @abstractmethod
     def get_orientation(self, veh_id):
         """Return the orientation of the vehicle of veh_id."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_timestep(self, veh_id):
         """Return the time step of the vehicle of veh_id."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_timedelta(self, veh_id):
         """Return the simulation time delta of the vehicle of veh_id."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_type(self, veh_id):
         """Return the type of the vehicle of veh_id."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_ids(self):
         """Return the names of all vehicles currently in the network."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_human_ids(self):
         """Return the names of all non-rl vehicles currently in the network."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_controlled_ids(self):
         """Return the names of all flow acceleration-controlled vehicles.
 
         This only include vehicles that are currently in the network.
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_controlled_lc_ids(self):
         """Return the names of all flow lane change-controlled vehicles.
 
         This only include vehicles that are currently in the network.
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_rl_ids(self):
         """Return the names of all rl-controlled vehicles in the network."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_ids_by_edge(self, edges):
         """Return the names of all vehicles in the specified edge.
 
         If no vehicles are currently in the edge, then returns an empty list.
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_inflow_rate(self, time_span):
         """Return the inflow rate (in veh/hr) of vehicles from the network.
 
         This value is computed over the specified **time_span** seconds.
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_outflow_rate(self, time_span):
         """Return the outflow rate (in veh/hr) of vehicles from the network.
 
         This value is computed over the specified **time_span** seconds.
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_num_arrived(self):
         """Return the number of vehicles that arrived in the last time step."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_arrived_ids(self):
         """Return the ids of vehicles that arrived in the last time step."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_departed_ids(self):
         """Return the ids of vehicles that departed in the last time step."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
+    def get_num_not_departed(self):
+        """Return the number of vehicles not departed in the last time step.
+
+        This includes vehicles that were loaded but not departed.
+        """
+        pass
+
+    @abstractmethod
+    def get_fuel_consumption(self, veh_id, error=-1001):
+        """Return the mpg / s of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        float
+        """
+        pass
+
+    @abstractmethod
+    def get_energy_model(self, veh_id, error=""):
+        """Return the energy model class object of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        error : str
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        subclass of BaseEnergyModel
+        """
+        pass
+
+    @abstractmethod
     def get_speed(self, veh_id, error=-1001):
         """Return the speed of the specified vehicle.
 
@@ -304,7 +385,26 @@ class KernelVehicle(object):
         -------
         float
         """
-        raise NotImplementedError
+        pass
+
+    @abstractmethod
+    def get_default_speed(self, veh_id, error=-1001):
+        """Return the expected speed if no control were applied.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        float
+        """
+        pass
+
+    @abstractmethod
 
     def get_position(self, veh_id, error=-1001):
         """Return the position of the vehicle relative to its current edge.
@@ -320,8 +420,9 @@ class KernelVehicle(object):
         -------
         float
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_edge(self, veh_id, error=""):
         """Return the edge the specified vehicle is currently on.
 
@@ -336,8 +437,9 @@ class KernelVehicle(object):
         -------
         str
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_lane(self, veh_id, error=-1001):
         """Return the lane index of the specified vehicle.
 
@@ -352,8 +454,9 @@ class KernelVehicle(object):
         -------
         int
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_route(self, veh_id, error=list()):
         """Return the route of the specified vehicle.
 
@@ -368,8 +471,9 @@ class KernelVehicle(object):
         -------
         list of str
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_length(self, veh_id, error=-1001):
         """Return the length of the specified vehicle.
 
@@ -384,8 +488,9 @@ class KernelVehicle(object):
         -------
         float
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_leader(self, veh_id, error=""):
         """Return the leader of the specified vehicle.
 
@@ -400,8 +505,9 @@ class KernelVehicle(object):
         -------
         str
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_follower(self, veh_id, error=""):
         """Return the follower of the specified vehicle.
 
@@ -416,8 +522,9 @@ class KernelVehicle(object):
         -------
         str
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_headway(self, veh_id, error=-1001):
         """Return the headway of the specified vehicle(s).
 
@@ -432,8 +539,9 @@ class KernelVehicle(object):
         -------
         float
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_last_lc(self, veh_id, error=-1001):
         """Return the last time step a vehicle changed lanes.
 
@@ -452,8 +560,9 @@ class KernelVehicle(object):
         -------
         int
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_acc_controller(self, veh_id, error=None):
         """Return the acceleration controller of the specified vehicle.
 
@@ -468,8 +577,9 @@ class KernelVehicle(object):
         -------
         object
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_lane_changing_controller(self, veh_id, error=None):
         """Return the lane changing controller of the specified vehicle.
 
@@ -484,8 +594,9 @@ class KernelVehicle(object):
         -------
         object
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_routing_controller(self, veh_id, error=None):
         """Return the routing controller of the specified vehicle.
 
@@ -500,8 +611,9 @@ class KernelVehicle(object):
         -------
         object
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_lane_headways(self, veh_id, error=list()):
         """Return the lane headways of the specified vehicles.
 
@@ -519,8 +631,9 @@ class KernelVehicle(object):
         -------
         list of float
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_lane_leaders_speed(self, veh_id, error=list()):
         """Return the speed of the leaders of the specified vehicles.
 
@@ -540,8 +653,9 @@ class KernelVehicle(object):
         -------
         list of float
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_lane_followers_speed(self, veh_id, error=list()):
         """Return the speed of the followers of the specified vehicles.
 
@@ -561,8 +675,9 @@ class KernelVehicle(object):
         -------
         list of float
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_lane_leaders(self, veh_id, error=list()):
         """Return the leaders for the specified vehicle in all lanes.
 
@@ -577,8 +692,9 @@ class KernelVehicle(object):
         -------
         lis of str
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_lane_tailways(self, veh_id, error=list()):
         """Return the lane tailways of the specified vehicle.
 
@@ -596,8 +712,9 @@ class KernelVehicle(object):
         -------
         list of float
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_lane_followers(self, veh_id, error=list()):
         """Return the followers for the specified vehicle in all lanes.
 
@@ -612,8 +729,9 @@ class KernelVehicle(object):
         -------
         list of str
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_x_by_id(self, veh_id):
         """Provide a 1-D representation of the position of a vehicle.
 
@@ -630,8 +748,9 @@ class KernelVehicle(object):
         -------
         float
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_max_speed(self, veh_id, error):
         """Return the max speed of the specified vehicle.
 
@@ -646,4 +765,33 @@ class KernelVehicle(object):
         -------
         float
         """
-        raise NotImplementedError
+        pass
+
+    ###########################################################################
+    #                        Methods for Datapipeline                         #
+    ###########################################################################
+
+    @abstractmethod
+    def get_accel(self, veh_id, noise=True, failsafe=True):
+        """Return the acceleration of vehicle with veh_id."""
+        pass
+
+    @abstractmethod
+    def update_accel(self, veh_id, accel, noise=True, failsafe=True):
+        """Update stored acceleration of vehicle with veh_id."""
+        pass
+
+    @abstractmethod
+    def get_2d_position(self, veh_id, error=-1001):
+        """Return (x, y) position of vehicle with veh_id."""
+        pass
+
+    @abstractmethod
+    def get_realized_accel(self, veh_id):
+        """Return the acceleration that the vehicle actually make."""
+        pass
+
+    @abstractmethod
+    def get_road_grade(self, veh_id):
+        """Return the road-grade of the vehicle with veh_id."""
+        pass

@@ -111,3 +111,5 @@ flow.ang
 *.ang.old
 *.sang
 
+# local configuration file for data pipeline
+**/data_pipeline_config
