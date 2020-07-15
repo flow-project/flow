@@ -580,6 +580,13 @@ class TraCIVehicle(KernelVehicle):
             return [self.get_speed(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
 
+    def get_default_speed(self, veh_id, error=-1001):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_default_speed(vehID, error) for vehID in veh_id]
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED_WITHOUT_TRACI,
+                                                   error)
+
     def get_position(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
