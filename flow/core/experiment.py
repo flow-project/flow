@@ -160,6 +160,8 @@ class Experiment:
             "avg_trip_time": [],
             "total_completed_trips": []
         }
+        if not multiagent:
+            info_dict["returns"] = []
         all_trip_energy_distribution = defaultdict(lambda: [])
         all_trip_time_distribution = defaultdict(lambda: [])
 
@@ -268,13 +270,11 @@ class Experiment:
             if rets and multiagent:
                 for key in rets.keys():
                     rets[key].append(ret[key])
-            elif not multiagent:
-                rets.append(ret)
 
             # Store the information from the run in info_dict.
             outflow = self.env.k.vehicle.get_outflow_rate(int(500))
             if not multiagent:
-                info_dict["returns"] = rets
+                info_dict["returns"].append(ret)
             info_dict["velocities"].append(np.mean(vel))
             info_dict["outflows"].append(outflow)
             info_dict["avg_trip_energy"].append(np.mean(list(completed_vehicle_avg_energy.values())))
