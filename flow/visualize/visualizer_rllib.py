@@ -67,7 +67,7 @@ def read_result_dir(result_dir_path, multi_only=False):
     return result_dir, config, multiagent, flow_params
 
 
-def set_sim_params(sim_params, render_mode, save_render):
+def set_sim_params(sim_params, render_mode, save_render, gen_emission):
     """Set up sim_params according to render mode."""
     # hack for old pkl files
     # TODO(ev) remove eventually
@@ -80,7 +80,7 @@ def set_sim_params(sim_params, render_mode, save_render):
     sim_params.restart_instance = True
     dir_path = os.path.dirname(os.path.realpath(__file__))
     emission_path = '{0}/test_time_rollout/'.format(dir_path)
-    sim_params.emission_path = emission_path if args.gen_emission else None
+    sim_params.emission_path = emission_path if gen_emission else None
 
     # pick your rendering mode
     if render_mode == 'sumo_web3d':
@@ -213,7 +213,8 @@ def visualizer_rllib(args):
     """
     result_dir, config, multiagent, flow_params = read_result_dir(args.result_dir)
 
-    sim_params = set_sim_params(flow_params['sim'], args.render_mode, args.save_render)
+    sim_params = set_sim_params(flow_params['sim'], args.render_mode,
+                                args.save_render, args.gen_emission)
 
     # Create and register a gym+rllib env
     exp = Experiment(flow_params, register_with_ray=True)
