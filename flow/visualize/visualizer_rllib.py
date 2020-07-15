@@ -18,7 +18,6 @@ import numpy as np
 from collections import defaultdict
 import os
 import sys
-import time
 
 import ray
 try:
@@ -27,9 +26,6 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
 
-from flow.core.rewards import instantaneous_mpg
-from flow.core.util import emission_to_csv
-from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
 from flow.utils.rllib import get_rllib_pkl
@@ -106,7 +102,7 @@ def set_sim_params(sim_params, render_mode, save_render):
 
 
 def set_env_params(env_params, evaluate, horizon, config=None):
-    """Set up env_params according to commandline arguments"""
+    """Set up env_params according to commandline arguments."""
     # Start the environment with the gui turned on and a path for the
     # emission file
     env_params.restart_instance = False
