@@ -99,7 +99,6 @@ class Experiment:
 
             logging.info("Initializing environment.")
 
-
     def run(self,
             num_runs,
             rl_actions=None,

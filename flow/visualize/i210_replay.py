@@ -1,39 +1,19 @@
 """Transfer and replay for i210 environment."""
 import argparse
-from datetime import datetime, timezone
-from collections import defaultdict
+from datetime import datetime
 from copy import deepcopy
-import numpy as np
-import json
 import os
 import pytz
 import subprocess
-import time
-
-import ray
-
-try:
-    from ray.rllib.agents.agent import get_agent_class
-except ImportError:
-    from ray.rllib.agents.registry import get_agent_class
-from ray.tune.registry import register_env
-
-from flow.core.util import emission_to_csv, ensure_dir
-from flow.core.rewards import veh_energy_consumption
-from flow.utils.registry import make_create_env
-from flow.utils.rllib import get_flow_params
-from flow.utils.rllib import get_rllib_config
-from flow.utils.rllib import get_rllib_pkl
-from flow.utils.rllib import FlowParamsEncoder
-
-from flow.visualize.transfer.util import inflows_range
-from flow.visualize.plot_custom_callables import plot_trip_distribution
 
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
-
 from flow.core.experiment import Experiment
+from flow.utils.registry import make_create_env
+from flow.visualize.transfer.util import inflows_range
 from flow.visualize.visualizer_rllib import read_result_dir, set_sim_params, set_env_params, set_agents, get_rl_action
+import ray
+from ray.tune.registry import register_env
 
 EXAMPLE_USAGE = """
 example usage:
