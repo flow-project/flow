@@ -132,7 +132,6 @@ class MultiEnv(MultiAgentEnv, Env):
                 done[rl_id] = True
                 reward[rl_id] = 0
                 states[rl_id] = -1 * np.ones(self.observation_space.shape[0])
-
         return states, reward, done, infos
 
     def reset(self, new_inflow_rate=None):

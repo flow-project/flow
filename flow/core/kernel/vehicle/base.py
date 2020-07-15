@@ -771,7 +771,7 @@ class KernelVehicle(object, metaclass=ABCMeta):
     ###########################################################################
 
     @abstractmethod
-    def get_accel(self, veh_id):
+    def get_accel(self, veh_id, noise=True, failsafe=True):
         """Return the acceleration of vehicle with veh_id."""
         pass
 
