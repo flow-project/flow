@@ -1162,7 +1162,17 @@ class TraCIVehicle(KernelVehicle):
                 tc.VAR_SPEED: self.kernel_api.vehicle.getSpeed(veh_id),
                 tc.VAR_EDGES: self.kernel_api.vehicle.getRoute(veh_id),
                 tc.VAR_LEADER:
-                    self.kernel_api.vehicle.getLeader(veh_id, dist=2000)
+                    self.kernel_api.vehicle.getLeader(veh_id, dist=2000),
+                tc.VAR_ANGLE:
+                    self.kernel_api.vehicle.getAngle(veh_id),
+                tc.VAR_DISTANCE:
+                    self.kernel_api.vehicle.getDistance(veh_id),
+                tc.VAR_FUELCONSUMPTION:
+                    self.kernel_api.vehicle.getFuelConsumption(veh_id),
+                tc.VAR_POSITION:
+                    self.kernel_api.vehicle.getPosition(veh_id),
+                tc.VAR_SPEED_WITHOUT_TRACI:
+                    self.kernel_api.vehicle.getSpeedWithoutTraCI(veh_id),
             }
         except (TraCIException, FatalTraCIError, libsumo.TraCIException):
             # This is in case a vehicle exited the network and has not been
