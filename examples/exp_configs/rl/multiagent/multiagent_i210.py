@@ -41,7 +41,7 @@ ON_RAMP_INFLOW_RATE = 500
 # the speed of inflowing vehicles from the main edge (in m/s)
 INFLOW_SPEED = 25.5
 # fraction of vehicles that are RL vehicles. 0.10 corresponds to 10%
-PENETRATION_RATE = 0.05
+PENETRATION_RATE = 0.10
 # desired speed of the vehicles in the network
 V_DES = 5.0
 # horizon over which to run the env
@@ -82,7 +82,7 @@ additional_env_params.update({
     "local_reward": True,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity
     # reward
-    "mpg_reward": False,
+    "mpg_reward": True,
     # whether to use the MPJ reward. Otherwise, defaults to a target velocity
     # reward
     "mpj_reward": False,
@@ -113,11 +113,11 @@ additional_env_params.update({
     # weight of the headway reward
     "speed_reward_gain": 5.0,
     # penalize stopped vehicles
-    "penalize_stops": False,
+    "penalize_stops": True,
     "stop_penalty": 0.01,
 
     # penalize accels
-    "penalize_accel": False,
+    "penalize_accel": True,
     "accel_penalty": (1 / 400.0)
 })
 
