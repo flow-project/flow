@@ -405,7 +405,6 @@ class KernelVehicle(object, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-
     def get_position(self, veh_id, error=-1001):
         """Return the position of the vehicle relative to its current edge.
 

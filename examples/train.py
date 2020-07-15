@@ -533,6 +533,7 @@ def main(args):
         flow_params['sim'].use_libsumo = flags.libsumo
 
     if flags.rl_trainer.lower() == "rllib":
+        import ray
         n_cpus = submodule.N_CPUS
         n_rollouts = submodule.N_ROLLOUTS
         policy_graphs = getattr(submodule, "POLICY_GRAPHS", None)
@@ -560,12 +561,7 @@ def main(args):
 
         if flags.checkpoint_path is not None:
             exp_config['restore'] = flags.checkpoint_path
-        trials = run_experiments({flow_params["exp_tag"]: exp_config})
-
-    elif flags.rl_trainer == "Stable-Baselines":
-        # Path to the saved files
-        exp_tag = flow_params['exp_tag']
-        result_name = '{}/{}'.format(exp_tag, strftime("%Y-%m-%d-%H:%M:%S"))
+        # trials = run_experiments({flow_params["exp_tag"]: exp_config})
 
     # Perform the training operation.
     if flags.rl_trainer.lower() == "rllib":

@@ -1,9 +1,5 @@
 """Script containing the TraCI simulation kernel class."""
 
-from flow.core.kernel.simulation import KernelSimulation
-import flow.config as config
-import traci.constants as tc
-import traci
 import traceback
 import os
 import time
@@ -12,6 +8,11 @@ import subprocess
 import signal
 import csv
 
+import flow.config as config
+from flow.core.kernel.simulation import KernelSimulation
+from flow.core.util import ensure_dir
+import traci.constants as tc
+import traci
 
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
