@@ -1,5 +1,9 @@
-"""Example of an open network with human-driven vehicles."""
+"""Example of an open network with human-driven vehicles and a wave."""
+
+import numpy as np
+
 from flow.controllers import IDMController
+from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import InitialConfig
@@ -7,6 +11,7 @@ from flow.core.params import InFlows
 from flow.core.params import VehicleParams
 from flow.core.params import SumoParams
 from flow.core.params import SumoLaneChangeParams
+from flow.core.rewards import instantaneous_mpg
 from flow.core.params import SumoCarFollowingParams
 from flow.networks import HighwayNetwork
 from flow.envs import TestEnv
@@ -22,6 +27,8 @@ TRAFFIC_FLOW = 2215
 HORIZON = 1500
 # whether to include noise in the car-following models
 INCLUDE_NOISE = True
+# penetration rate of the follower-stopper vehicles
+PENETRATION_RATE = 0.0
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
@@ -59,14 +66,37 @@ vehicles.add(
     ),
 )
 
+if PENETRATION_RATE > 0.0:
+    vehicles.add(
+        "av",
+        color='red',
+        num_vehicles=0,
+        acceleration_controller=(FollowerStopper, {
+            "v_des": 5.0,
+            "control_length": [500, 2300]
+        }),
+    )
+
 inflows = InFlows()
+
 inflows.add(
     veh_type="human",
     edge="highway_0",
-    vehs_per_hour=TRAFFIC_FLOW,
+    vehs_per_hour=int(TRAFFIC_FLOW * (1 - PENETRATION_RATE / 100)),
     depart_lane="free",
     depart_speed=TRAFFIC_SPEED,
     name="idm_highway_inflow")
+
+if PENETRATION_RATE > 0.0:
+    inflows.add(
+        veh_type="av",
+        edge="highway_0",
+        vehs_per_hour=int(TRAFFIC_FLOW * (PENETRATION_RATE / 100)),
+        depart_lane="free",
+        depart_speed=TRAFFIC_SPEED,
+        name="av_highway_inflow")
+
+# SET UP FLOW PARAMETERS
 
 flow_params = dict(
     # name of the experiment
@@ -111,3 +141,13 @@ flow_params = dict(
     # reset (see flow.core.params.InitialConfig)
     initial=InitialConfig(),
 )
+
+custom_callables = {
+    "avg_merge_speed": lambda env: np.nan_to_num(np.mean(
+        env.k.vehicle.get_speed(env.k.vehicle.get_ids()))),
+    "avg_outflow": lambda env: np.nan_to_num(
+        env.k.vehicle.get_outflow_rate(120)),
+    "miles_per_gallon": lambda env: np.nan_to_num(
+        instantaneous_mpg(env, env.k.vehicle.get_ids(), gain=1.0)
+    )
+}

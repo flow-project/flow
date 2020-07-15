@@ -128,10 +128,13 @@ class KernelVehicle(object, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def apply_acceleration(self, veh_id, acc, smooth=True):
+    def apply_acceleration(self, veh_id, acc, smooth_duration=0):
         """Apply the acceleration requested by a vehicle in the simulator.
 
-        In SUMO, this function applies slowDown method which applies smoothing.
+        In SUMO, this function applies setSpeed for smooth_duration=0, otherwise
+        the slowDown method applies acceleration smoothly over the smooth_duration
+        time (in seconds). For more information, see:
+        https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-slowDown
 
         Parameters
         ----------
@@ -139,8 +142,8 @@ class KernelVehicle(object, metaclass=ABCMeta):
             list of vehicle identifiers
         acc : float or array_like
             requested accelerations from the vehicles
-        smooth : bool
-            whether to apply acceleration smoothly or not, default: True
+        smooth_duration : float
+            duration in seconds over which acceleration should be smoothly applied, default: 0
         """
         pass
 
@@ -347,6 +350,23 @@ class KernelVehicle(object, metaclass=ABCMeta):
         Returns
         -------
         float
+        """
+        pass
+
+    @abstractmethod
+    def get_energy_model(self, veh_id, error=""):
+        """Return the energy model class object of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        error : str
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        subclass of BaseEnergyModel
         """
         pass
 
