@@ -16,7 +16,7 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 
 
-SIM_STEP = 0.8  # copy to run.py
+SIM_STEP = 0.8  # copy to run.py #sync time
 
 # hardcoded to AIMSUN's statistics update interval (5 minutes)
 DETECTOR_STEP = 900  # copy to run.py #Cj: every 2 minutes (typical cycle length)
@@ -27,7 +27,7 @@ HORIZON = int(TIME_HORIZON//SIM_STEP)  # 18000
 RLLIB_N_CPUS = 2
 RLLIB_HORIZON = int(TIME_HORIZON//DETECTOR_STEP)  #  15
 
-RLLIB_N_ROLLOUTS = 12  # copy to coordinated_lights.py
+RLLIB_N_ROLLOUTS = 6  # copy to coordinated_lights.py
 RLLIB_TRAINING_ITERATIONS = 1000000
 
 net_params = NetParams(template=os.path.abspath("scenario_one_hour.ang"))
@@ -75,7 +75,7 @@ def setup_exps(version=0):
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = RLLIB_N_CPUS
-    config["sgd_minibatch_size"] = 128
+    config["sgd_minibatch_size"] = RLLIB_HORIZON
     config["train_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS
     config["sample_batch_size"] = RLLIB_HORIZON * RLLIB_N_ROLLOUTS
     config["model"].update({"fcnet_hiddens": [64, 64, 64]})
@@ -85,7 +85,7 @@ def setup_exps(version=0):
     config["num_sgd_iter"] = 10
     config['clip_actions'] = False  # (ev) temporary ray bug
     config["horizon"] = RLLIB_HORIZON  # not same as env horizon.
-    config["vf_loss_coeff"] = 1e-8
+    config["vf_loss_coeff"] = 1e-3 # june27
     config["vf_clip_param"] = 600
     config["lr"] = 5e-4 #vary
 
@@ -119,7 +119,7 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": RLLIB_TRAINING_ITERATIONS,
             },
-            "restore": '/home/cjrsantos/ray_results/single_light/PPO_SingleLightEnv-v0_c4e0b454_2020-06-25_08-06-50zikh0a6r/checkpoint_970/checkpoint-970',
+            #"restore": '/home/cjrsantos/ray_results/single_light/PPO_SingleLightEnv-v0_052998d8_2020-07-10_08-19-29crdv8i6w/checkpoint_480/checkpoint-480',
             # "local_dir": os.path.abspath("./ray_results"),
             "keep_checkpoints_num": 7
         }
