@@ -119,7 +119,7 @@ VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT = """
             83.12392997 * speed +
             6.7650718327 * POW(speed,2) +
             0.7041355229 * POW(speed,3)
-            ) + GREATEST(0, 4598.7155 * accel + 975.12719 * accel * speed) AS power,
+            ) + GREATEST(0, 4598.7155 * acceleration + 975.12719 * acceleration * speed) AS power,
         \'{1}\' AS energy_model_id,
         source_id
     FROM {2}
@@ -276,6 +276,9 @@ class QueryStrings(Enum):
                 ROW_NUMBER() OVER() - 51 AS lb,
                 ROW_NUMBER() OVER() - 50 AS ub
             FROM fact_safety_metrics
+            WHERE 1 = 1
+                AND date = \'{date}\'
+                AND partition_name = \'{partition}_FACT_SAFETY_METRICS\'
         ), bins AS (
             SELECT
                 lb,
@@ -372,8 +375,11 @@ class QueryStrings(Enum):
             SELECT
                 ROW_NUMBER() OVER() - 1 AS lb,
                 ROW_NUMBER() OVER() AS ub
-            FROM fact_safety_metrics
-        ) bins AS (
+            FROM fact_vehicle_fuel_efficiency_agg
+            WHERE 1=1
+                AND date = \'{date}\'
+                AND partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
+        ), bins AS (
             SELECT
                 lb,
                 ub
@@ -771,7 +777,7 @@ class QueryStrings(Enum):
             SELECT
                 network,
                 submission_date,
-                LAG(max_score IGNORE NULLS, 1) OVER (PARTITION BY network ORDER BY submission_date ASC) AS max_score
+                LAG(max_score, 1) OVER (PARTITION BY network ORDER BY submission_date ASC) AS max_score
             FROM curr_max
         ), unioned AS (
             SELECT * FROM curr_max
