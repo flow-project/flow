@@ -87,6 +87,8 @@ class TraCIVehicle(KernelVehicle):
 
         # old speeds used to compute accelerations
         self.previous_speeds = {}
+        # The time that previous speed is recorded, used to calculate realized_accel
+        self.previous_time = 0
 
     def initialize(self, vehicles):
         """Initialize vehicle state information.
@@ -289,6 +291,10 @@ class TraCIVehicle(KernelVehicle):
 
         # specify the type
         self.__vehicles[veh_id]["type"] = veh_type
+
+        # specify energy model
+        self.__vehicles[veh_id]["energy_model"] = self.type_parameters[
+            veh_type]["energy_model"]()
 
         car_following_params = \
             self.type_parameters[veh_type]["car_following_params"]
@@ -547,6 +553,16 @@ class TraCIVehicle(KernelVehicle):
             return [self.get_fuel_consumption(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_FUELCONSUMPTION, error) * ml_to_gallons
 
+    def get_energy_model(self, veh_id, error=""):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_energy_model(vehID) for vehID in veh_id]
+        try:
+            return self.__vehicles.get(veh_id, {'energy_model': error})['energy_model']
+        except KeyError:
+            print("Energy model not specified for vehicle {}".format(veh_id))
+            raise
+
     def get_previous_speed(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
@@ -751,7 +767,7 @@ class TraCIVehicle(KernelVehicle):
                 for lane in range(max_lanes):
                     edge_dict[edge][lane].sort(key=lambda x: x[1])
 
-        for veh_id in self.get_rl_ids():
+        for veh_id in self.get_ids():
             # collect the lane leaders, followers, headways, and tailways for
             # each vehicle
             edge = self.get_edge(veh_id)
@@ -953,7 +969,7 @@ class TraCIVehicle(KernelVehicle):
 
         return tailway, follower
 
-    def apply_acceleration(self, veh_ids, acc, smooth=True):
+    def apply_acceleration(self, veh_ids, acc, smooth_duration=0):
         """See parent class."""
         # to handle the case of a single vehicle
         if type(veh_ids) == str:
@@ -965,8 +981,8 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[vid]["accel"] = acc[i]
                 this_vel = self.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
-                if smooth:
-                    self.kernel_api.vehicle.slowDown(vid, next_vel, 1e-3)
+                if smooth_duration:
+                    self.kernel_api.vehicle.slowDown(vid, next_vel, smooth_duration)
                 else:
                     self.kernel_api.vehicle.setSpeed(vid, next_vel)
 
@@ -1137,13 +1153,12 @@ class TraCIVehicle(KernelVehicle):
         else:
             metric_name += '_no_noise'
         if failsafe:
-            metric_name += '_with_falsafe'
+            metric_name += '_with_failsafe'
         else:
             metric_name += '_no_failsafe'
 
-        if metric_name not in self.__vehicles[veh_id]:
-            self.__vehicles[veh_id][metric_name] = None
-        return self.__vehicles[veh_id][metric_name]
+        return self.__vehicles[veh_id].get(metric_name, None) \
+            or self.get_realized_accel(veh_id)
 
     def update_accel(self, veh_id, accel, noise=True, failsafe=True):
         """See parent class."""
@@ -1153,7 +1168,7 @@ class TraCIVehicle(KernelVehicle):
         else:
             metric_name += '_no_noise'
         if failsafe:
-            metric_name += '_with_falsafe'
+            metric_name += '_with_failsafe'
         else:
             metric_name += '_no_failsafe'
 

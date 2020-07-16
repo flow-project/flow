@@ -1,9 +1,19 @@
 """Contains an experiment class for running simulations."""
 from flow.utils.registry import make_create_env
+from flow.data_pipeline.data_pipeline import upload_to_s3
+from flow.data_pipeline.data_pipeline import get_configuration
+from flow.data_pipeline.data_pipeline import generate_trajectory_table
+from flow.data_pipeline.data_pipeline import write_dict_to_csv
+from flow.data_pipeline.leaderboard_utils import network_name_translate
+from flow.visualize.time_space_diagram import tsd_main
+from collections import defaultdict
+from datetime import timezone
 from datetime import datetime
 import logging
 import time
 import numpy as np
+import uuid
+import os
 
 
 class Experiment:
@@ -83,7 +93,13 @@ class Experiment:
 
         logging.info("Initializing environment.")
 
-    def run(self, num_runs, rl_actions=None, convert_to_csv=False):
+    def run(self,
+            num_runs,
+            rl_actions=None,
+            convert_to_csv=False,
+            to_aws=None,
+            only_query="",
+            is_baseline=False):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -96,6 +112,16 @@ class Experiment:
         convert_to_csv : bool
             Specifies whether to convert the emission file created by sumo
             into a csv file
+        to_aws: str
+            Specifies the S3 partition you want to store the output file,
+            will be used to later for query. If NONE, won't upload output
+            to S3.
+        only_query: str
+            Specifies which queries should be automatically run when the
+            simulation data gets uploaded to S3. If an empty str is passed in,
+            then it implies no queries should be run on this.
+        is_baseline: bool
+            Specifies whether this is a baseline run.
 
         Returns
         -------
@@ -135,6 +161,41 @@ class Experiment:
         t = time.time()
         times = []
 
+        if convert_to_csv and self.env.simulator == "traci":
+            # data pipeline
+            source_id = 'flow_{}'.format(uuid.uuid4().hex)
+            metadata = defaultdict(lambda: [])
+
+            # collect current time
+            cur_datetime = datetime.now(timezone.utc)
+            cur_date = cur_datetime.date().isoformat()
+            cur_time = cur_datetime.time().isoformat()
+
+            if to_aws:
+                # collecting information for metadata table
+                metadata['source_id'].append(source_id)
+                metadata['submission_time'].append(cur_time)
+                metadata['network'].append(
+                    network_name_translate(self.env.network.name.split('_20')[0]))
+                metadata['is_baseline'].append(str(is_baseline))
+                name, strategy = get_configuration()
+                metadata['submitter_name'].append(name)
+                metadata['strategy'].append(strategy)
+
+            # emission-specific parameters
+            dir_path = self.env.sim_params.emission_path
+            trajectory_table_path = os.path.join(
+                dir_path, '{}.csv'.format(source_id))
+            metadata_table_path = os.path.join(
+                dir_path, '{}_METADATA.csv'.format(source_id))
+        else:
+            source_id = None
+            trajectory_table_path = None
+            metadata_table_path = None
+            metadata = None
+            cur_date = None
+
+        emission_files = []
         for i in range(num_runs):
             ret = 0
             vel = []
@@ -155,7 +216,7 @@ class Experiment:
                 for (key, lambda_func) in self.custom_callables.items():
                     custom_vals[key].append(lambda_func(self.env))
 
-                if done:
+                if type(done) is dict and done['__all__'] or done is True:
                     break
 
             # Store the information from the run in info_dict.
@@ -171,7 +232,7 @@ class Experiment:
             # Save emission data at the end of every rollout. This is skipped
             # by the internal method if no emission path was specified.
             if self.env.simulator == "traci":
-                self.env.k.simulation.save_emission(run_id=i)
+                emission_files.append(self.env.k.simulation.save_emission(run_id=i))
 
         # Print the averages/std for all variables in the info_dict.
         for key in info_dict.keys():
@@ -181,5 +242,41 @@ class Experiment:
         print("Total time:", time.time() - t)
         print("steps/second:", np.mean(times))
         self.env.terminate()
+
+        if to_aws:
+            generate_trajectory_table(emission_files, trajectory_table_path, source_id)
+            write_dict_to_csv(metadata_table_path, metadata, True)
+            tsd_main(
+                trajectory_table_path,
+                {
+                    'network': self.env.network.__class__,
+                    'env': self.env.env_params,
+                    'sim': self.env.sim_params
+                },
+                min_speed=0,
+                max_speed=10
+            )
+            upload_to_s3(
+                'circles.data.pipeline',
+                'metadata_table/date={0}/partition_name={1}_METADATA/'
+                '{1}_METADATA.csv'.format(cur_date, source_id),
+                metadata_table_path
+            )
+            upload_to_s3(
+                'circles.data.pipeline',
+                'fact_vehicle_trace/date={0}/partition_name={1}/'
+                '{1}.csv'.format(cur_date, source_id),
+                trajectory_table_path,
+                {'network': metadata['network'][0],
+                 'is_baseline': metadata['is_baseline'][0]}
+            )
+            upload_to_s3(
+                'circles.data.pipeline',
+                'time_space_diagram/date={0}/partition_name={1}/'
+                '{1}.png'.format(cur_date, source_id),
+                trajectory_table_path.replace('csv', 'png')
+            )
+            os.remove(trajectory_table_path)
+            os.remove(metadata_table_path)
 
         return info_dict

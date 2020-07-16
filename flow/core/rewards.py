@@ -307,58 +307,7 @@ def punish_rl_lane_changes(env, penalty=1):
 
 
 def energy_consumption(env, gain=.001):
-    """Calculate power consumption of a vehicle.
-
-    Assumes vehicle is an average sized vehicle.
-    The power calculated here is the lower bound of the actual power consumed
-    by a vehicle.
-    """
-    power = 0
-
-    M = 1200  # mass of average sized vehicle (kg)
-    g = 9.81  # gravitational acceleration (m/s^2)
-    Cr = 0.005  # rolling resistance coefficient
-    Ca = 0.3  # aerodynamic drag coefficient
-    rho = 1.225  # air density (kg/m^3)
-    A = 2.6  # vehicle cross sectional area (m^2)
-    for veh_id in env.k.vehicle.get_ids():
-        speed = env.k.vehicle.get_speed(veh_id)
-        prev_speed = env.k.vehicle.get_previous_speed(veh_id)
-
-        accel = abs(speed - prev_speed) / env.sim_step
-
-        power += M * speed * accel + M * g * Cr * speed + 0.5 * rho * A * Ca * speed ** 3
-
-    return -gain * power
-
-
-def veh_energy_consumption(env, veh_id, gain=.001):
-    """Calculate power consumption of a vehicle.
-
-    Assumes vehicle is an average sized vehicle.
-    The power calculated here is the lower bound of the actual power consumed
-    by a vehicle.
-    """
-    power = 0
-
-    M = 1200  # mass of average sized vehicle (kg)
-    g = 9.81  # gravitational acceleration (m/s^2)
-    Cr = 0.005  # rolling resistance coefficient
-    Ca = 0.3  # aerodynamic drag coefficient
-    rho = 1.225  # air density (kg/m^3)
-    A = 2.6  # vehicle cross sectional area (m^2)
-    speed = env.k.vehicle.get_speed(veh_id)
-    prev_speed = env.k.vehicle.get_previous_speed(veh_id)
-
-    accel = abs(speed - prev_speed) / env.sim_step
-
-    power += M * speed * accel + M * g * Cr * speed + 0.5 * rho * A * Ca * speed ** 3
-
-    return -gain * power
-
-
-def miles_per_megajoule(env, veh_ids=None, gain=.001):
-    """Calculate miles per mega-joule of either a particular vehicle or the total average of all the vehicles.
+    """Calculate power consumption for all vehicle.
 
     Assumes vehicle is an average sized vehicle.
     The power calculated here is the lower bound of the actual power consumed
@@ -369,38 +318,15 @@ def miles_per_megajoule(env, veh_ids=None, gain=.001):
     env : flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
-    veh_ids : [list]
-        list of veh_ids to compute the reward over
     gain : float
         scaling factor for the reward
     """
-    mpj = 0
-    counter = 0
-    if veh_ids is None:
-        veh_ids = env.k.vehicle.get_ids()
-    elif not isinstance(veh_ids, list):
-        veh_ids = [veh_ids]
-    for veh_id in veh_ids:
-        speed = env.k.vehicle.get_speed(veh_id)
-        # convert to be positive since the function called is a penalty
-        power = -veh_energy_consumption(env, veh_id, gain=1.0)
-        if power > 0 and speed >= 0.0:
-            counter += 1
-            # meters / joule is (v * \delta t) / (power * \delta t)
-            mpj += speed / power
-    if counter > 0:
-        mpj /= counter
-
-    # convert from meters per joule to miles per joule
-    mpj /= 1609.0
-    # convert from miles per joule to miles per megajoule
-    mpj *= 10**6
-
-    return mpj * gain
+    veh_ids = env.k.vehicle.get_ids()
+    return veh_energy_consumption(env, veh_ids, gain)
 
 
-def miles_per_gallon(env, veh_ids=None, gain=.001):
-    """Calculate mpg of either a particular vehicle or the total average of all the vehicles.
+def veh_energy_consumption(env, veh_ids=None, gain=.001):
+    """Calculate power consumption of a vehicle.
 
     Assumes vehicle is an average sized vehicle.
     The power calculated here is the lower bound of the actual power consumed
@@ -411,28 +337,64 @@ def miles_per_gallon(env, veh_ids=None, gain=.001):
     env : flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
-    veh_ids : [list]
-        list of veh_ids to compute the reward over
+    veh_ids : [list] or str
+        list of veh_ids or single veh_id to compute the reward over
     gain : float
         scaling factor for the reward
     """
-    mpg = 0
-    counter = 0
     if veh_ids is None:
         veh_ids = env.k.vehicle.get_ids()
     elif not isinstance(veh_ids, list):
         veh_ids = [veh_ids]
-    for veh_id in veh_ids:
-        speed = env.k.vehicle.get_speed(veh_id)
-        gallons_per_s = env.k.vehicle.get_fuel_consumption(veh_id)
-        if gallons_per_s > 0 and speed >= 0.0:
-            counter += 1
-            # meters / gallon is (v * \delta t) / (gallons_per_s * \delta t)
-            mpg += speed / gallons_per_s
-    if counter > 0:
-        mpg /= counter
 
-    # convert from meters per gallon to miles per gallon
-    mpg /= 1609.0
+    power = 0
+    for veh_id in veh_ids:
+        if veh_id not in env.k.vehicle.previous_speeds:
+            continue
+        energy_model = env.k.vehicle.get_energy_model(veh_id)
+        if energy_model != "":
+            speed = env.k.vehicle.get_speed(veh_id)
+            accel = env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
+            grade = env.k.vehicle.get_road_grade(veh_id)
+            power += energy_model.get_instantaneous_power(accel, speed, grade)
+
+    return -gain * power
+
+
+def instantaneous_mpg(env, veh_ids=None, gain=.001):
+    """Calculate the instantaneous mpg for every simulation step specific to the vehicle type.
+
+    Parameters
+    ----------
+    env : flow.envs.Env
+        the environment variable, which contains information on the current
+        state of the system.
+    veh_ids : [list] or str
+        list of veh_ids or single veh_id to compute the reward over
+    gain : float
+        scaling factor for the reward
+    """
+    if veh_ids is None:
+        veh_ids = env.k.vehicle.get_ids()
+    elif not isinstance(veh_ids, list):
+        veh_ids = [veh_ids]
+
+    cumulative_gallons = 0
+    cumulative_distance = 0
+    for veh_id in veh_ids:
+        energy_model = env.k.vehicle.get_energy_model(veh_id)
+        if energy_model != "":
+            speed = env.k.vehicle.get_speed(veh_id)
+            accel = env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
+            grade = env.k.vehicle.get_road_grade(veh_id)
+            gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
+            if speed >= 0.0:
+                cumulative_gallons += gallons_per_hr
+                cumulative_distance += speed
+
+    cumulative_gallons /= 3600.0
+    cumulative_distance /= 1609.34
+    # miles / gallon is (distance_dot * \delta t) / (gallons_dot * \delta t)
+    mpg = cumulative_distance / (cumulative_gallons + 1e-6)
 
     return mpg * gain

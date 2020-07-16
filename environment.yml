@@ -1,4 +1,4 @@
-name: flow
+name: circles
 
 dependencies:
     - python==3.7.3
@@ -26,3 +26,5 @@ dependencies:
         - opencv-python
         - boto3==1.10.45
         - redis~=2.10.6
+        - tabulate
+        - pytz
