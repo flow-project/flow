@@ -162,13 +162,12 @@ def get_completed_queries(s3, source_id):
     return set(completed_queries)
 
 
-def put_completed_queries(s3, completed_queries):
-    """Put all the completed queries lists into S3 as in a serialized json format."""
-    for source_id, completed_queries_set in completed_queries.items():
-        completed_queries_list = list(completed_queries_set)
-        completed_queries_json = json.dumps(completed_queries_list)
-        s3.put_object(Bucket='circles.data.pipeline', Key='lambda_temp/{}'.format(source_id),
-                      Body=completed_queries_json.encode('utf-8'))
+def put_completed_queries(s3, source_id, completed_queries_set):
+    """Put the completed queries list into S3 as in a serialized json format."""
+    completed_queries_list = list(completed_queries_set)
+    completed_queries_json = json.dumps(completed_queries_list)
+    s3.put_object(Bucket='circles.data.pipeline', Key='lambda_temp/{}'.format(source_id),
+                  Body=completed_queries_json.encode('utf-8'))
 
 
 def get_ready_queries(completed_queries, new_query):

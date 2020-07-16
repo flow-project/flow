@@ -72,6 +72,8 @@ def lambda_handler(event, context):
 
         readied_queries = get_ready_queries(completed[source_id], query_name)
         completed[source_id].add(query_name)
+        # stores the updated list of completed queries back to S3
+        put_completed_queries(s3, source_id, completed[source_id])
         # initialize queries and store them at appropriate locations
         for readied_query_name, table_name in readied_queries:
             result_location = 's3://circles.data.pipeline/{}/date={}/partition_name={}_{}'.format(table_name,
@@ -80,5 +82,3 @@ def lambda_handler(event, context):
                                                                                                   readied_query_name)
             queryEngine.run_query(readied_query_name, result_location, query_date, partition, loc_filter=loc_filter,
                                   start_filter=start_filter, stop_filter=stop_filter)
-    # stores all the updated lists of completed queries back to S3
-    put_completed_queries(s3, completed)
