@@ -108,7 +108,8 @@ class Experiment:
             is_baseline=False,
             multiagent=False,
             rets=None,
-            policy_map_fn=None):
+            policy_map_fn=None,
+            supplied_metadata=None):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -194,7 +195,10 @@ class Experiment:
                 metadata['network'].append(
                     network_name_translate(self.env.network.name.split('_20')[0]))
                 metadata['is_baseline'].append(str(is_baseline))
-                name, strategy = get_configuration()
+                if supplied_metadata:
+                    name, strategy = supplied_metadata
+                else:
+                    name, strategy = get_configuration()
                 metadata['submitter_name'].append(name)
                 metadata['strategy'].append(strategy)
 
