@@ -1,5 +1,6 @@
 """lambda function on AWS Lambda."""
 import boto3
+import json
 from urllib.parse import unquote_plus
 from flow.data_pipeline.data_pipeline import AthenaQuery, delete_obsolete_data, update_baseline, \
     get_ready_queries, get_completed_queries, put_completed_queries
@@ -14,6 +15,14 @@ def lambda_handler(event, context):
     # stores all lists of completed query for each source_id
     completed = {}
     records = []
+    event_records = []
+    # do a pre-sweep to put all s3 records in one list
+    for event_record in event['Records']:
+        if event_record["eventSource"] == "aws:s3":
+            event_records.append(event_record)
+        elif event_record['eventSource'] == "aws:sqs":
+            s3_event = json.loads(event_record['body'])
+            event_records.extend(s3_event['Records'])
     # do a pre-sweep to handle tasks other than initalizing a query
     for record in event['Records']:
         bucket = record['s3']['bucket']['name']

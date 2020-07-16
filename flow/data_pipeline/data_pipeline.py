@@ -2,12 +2,14 @@
 import pandas as pd
 import boto3
 from botocore.exceptions import ClientError
-from flow.data_pipeline.query import QueryStrings, prerequisites
+from flow.data_pipeline.query import QueryStrings, prerequisites, tables
 from time import time
 from datetime import date
 import csv
 from io import StringIO
 import json
+import collections
+from collections import defaultdict
 
 
 def generate_trajectory_table(emission_files, trajectory_table_path, source_id):
@@ -124,8 +126,7 @@ def get_configuration():
 
 def delete_obsolete_data(s3, latest_key, table, bucket="circles.data.pipeline"):
     """Delete the obsolete data on S3."""
-    response = s3.list_objects_v2(Bucket=bucket)
-    keys = [e["Key"] for e in response["Contents"] if e["Key"].find(table) == 0 and e["Key"][-4:] == ".csv"]
+    keys = list_object_keys(s3, bucket=bucket, prefixes=table, suffix='.csv')
     keys.remove(latest_key)
     for key in keys:
         s3.delete_object(Bucket=bucket, Key=key)
@@ -181,6 +182,132 @@ def get_ready_queries(completed_queries, new_query):
             if prerequisites[query_name][1].issubset(upadted_completed_queries):
                 readied_queries.append((query_name, prerequisites[query_name][0]))
     return readied_queries
+
+
+def list_object_keys(s3, bucket='circles.data.pipeline', prefixes='', suffix=''):
+    """Return all keys in the given bucket that start with prefix and end with suffix. Not limited by 1000."""
+    contents = []
+    if not isinstance(prefixes, collections.Iterable) or type(prefixes) is str:
+        prefixes = [prefixes]
+    for prefix in prefixes:
+        response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
+        if 'Contents' in response:
+            contents.extend(response['Contents'])
+        while response['IsTruncated']:
+            response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix,
+                                          ContinuationToken=response['NextContinuationToken'])
+            contents.extend(response['Contents'])
+    keys = [content['Key'] for content in contents if content['Key'].endswith(suffix)]
+    return keys
+
+
+def delete_table(s3, bucket='circles.data.pipeline', only_query_result=True, table='', source_id=''):
+    """Deletes the specified the table files in S3"""
+    queries = ["lambda_temp"]
+    if table:
+        queries.append(table)
+    else:
+        queries = tables
+        if only_query_result:
+            queries.remove('fact_vehicle_trace')
+            queries.remove('metadata_table')
+        if source_id:
+            queries.remove('leaderboard_chart_agg')
+            queries.remove('fact_top_scores')
+    keys = list_object_keys(s3, bucket=bucket, prefixes=queries)
+    if source_id:
+        keys = [key for key in keys if source_id in key]
+    for key in keys:
+        s3.delete_object(Bucket=bucket, Key=key)
+
+
+def rerun_query(s3, bucket='circles.data.pipeline', source_id=''):
+    """Re-run queries for simulation datas that has been uploaded to s3, will delete old data before re-run."""
+    vehicle_trace_keys = list_object_keys(s3, bucket=bucket, prefixes="fact_vehicle_trace", suffix='.csv')
+    delete_table(s3, bucket=bucket, source_id=source_id)
+    if source_id:
+        vehicle_trace_keys = [key for key in vehicle_trace_keys if source_id in key]
+    sqs_client = boto3.client('sqs')
+    event_template = """
+        {{
+          "Records": [
+            {{
+              "eventVersion": "2.0",
+              "eventSource": "aws:s3",
+              "awsRegion": "us-west-2",
+              "eventTime": "1970-01-01T00:00:00.000Z",
+              "eventName": "ObjectCreated:Put",
+              "userIdentity": {{
+                "principalId": "EXAMPLE"
+              }},
+              "requestParameters": {{
+                "sourceIPAddress": "127.0.0.1"
+              }},
+              "responseElements": {{
+                "x-amz-request-id": "EXAMPLE123456789",
+                "x-amz-id-2": "EXAMPLE123/5678abcdefghijklambdaisawesome/mnopqrstuvwxyzABCDEFGH"
+              }},
+              "s3": {{
+                "s3SchemaVersion": "1.0",
+                "configurationId": "testConfigRule",
+                "bucket": {{
+                  "name": "{bucket}",
+                  "ownerIdentity": {{
+                    "principalId": "EXAMPLE"
+                  }},
+                  "arn": "arn:aws:s3:::{bucket}"
+                }},
+                "object": {{
+                  "key": "{key}",
+                  "size": 1024,
+                  "eTag": "0123456789abcdef0123456789abcdef",
+                  "sequencer": "0A1B2C3D4E5F678901"
+                }}
+              }}
+            }}
+          ]
+        }}"""
+    for key in vehicle_trace_keys:
+        response = sqs_client.send_message(QueueUrl="https://sqs.us-west-2.amazonaws.com/409746595792/S3CreateEvents",
+                                           MessageBody=event_template.format(bucket=bucket, key=key))
+
+
+def list_source_ids(s3, bucket='circles.data.pipeline'):
+    """Return a list of the source_id of all simulations which has been uploaded to s3."""
+    vehicle_trace_keys = list_object_keys(s3, bucket=bucket, prefixes="fact_vehicle_trace", suffix='csv')
+    source_ids = ['flow_{}'.format(key.split('/')[2].split('=')[1].split('_')[1]) for key in vehicle_trace_keys]
+    return source_ids
+
+
+def sanity_check(s3, bucket='circles.data.pipeline'):
+    """Check if all the expected queries get run without error. Note that this does not check the correctness of
+       the content of the query, only that it finish without error."""
+    queries = tables
+    queries.append('lambda_temp')
+    queries.remove('leaderboard_chart_agg')
+    queries.remove('fact_top_scores')
+    expected_count = len(queries)
+    keys = list_object_keys(s3, bucket=bucket, prefixes=queries, suffix='.csv')
+    source_ids = list_source_ids(s3, bucket=bucket)
+    counts = defaultdict(lambda: [])
+    for key in keys:
+        source_id = 'flow_{}'.format(key.split('/')[2].split('=')[1].split('_')[1])
+        table = key.split('/')[0]
+        counts[source_id].append(table)
+    for sid in source_ids:
+        count = len(counts[sid])
+        if count < expected_count:
+            missing = []
+            for q in queries:
+                if q not in counts[sid]:
+                    missing.append(q)
+            print("Simulation {} is missing the following queries: \n    {}".format(sid, str(missing)))
+        elif count > expected_count:
+            extra = counts[sid].copy()
+            for q in queries:
+                if q not in counts[sid]:
+                    extra.remove(q)
+            print("Simulation {} is having too much of the following queries: \n    {}".format(sid, str(extra)))
 
 
 class AthenaQuery:
