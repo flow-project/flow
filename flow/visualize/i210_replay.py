@@ -45,6 +45,9 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     """
     assert bool(args.controller) ^ bool(rllib_config), \
         "Need to specify either controller or rllib_config, but not both"
+
+    args.gen_emission = args.gen_emission or args.use_s3
+
     if transfer_test is not None:
         if type(transfer_test) == bytes:
             transfer_test = ray.cloudpickle.loads(transfer_test)
@@ -74,7 +77,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             if veh_param['veh_id'] == 'av':
                 veh_param['acceleration_controller'] = (controller, test_params)
 
-    sim_params = set_sim_params(flow_params['sim'], args.render_mode, args.save_render)
+    sim_params = set_sim_params(flow_params['sim'], args.render_mode, args.save_render, args.gen_emission)
 
     set_env_params(flow_params['env'], args.evaluate, args.horizon)
 
@@ -121,8 +124,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         return action
 
     info_dict = exp.run(num_runs=args.num_rollouts, convert_to_csv=args.gen_emission, to_aws=args.use_s3,
-                        rl_actions=rl_action, multiagent=rllib_config and multiagent, rets=rets,
-                        policy_map_fn=policy_map_fn)
+                        rl_actions=rl_action, multiagent=True, rets=rets,
+                        policy_map_fn=policy_map_fn, supplied_metadata=("Brent", "FS;5%;v_des:{}".format(v_des)))
 
     return info_dict
 
@@ -273,7 +276,7 @@ if __name__ == '__main__':
             replay.remote(args, flow_params, output_dir="{}/{}".format(output_dir, v_des),
                           rllib_config=args.rllib_result_dir, result_dir=args.rllib_result_dir,
                           max_completed_trips=args.max_completed_trips, v_des=v_des)
-            for v_des in range(8, 17, 2)]
+            for v_des in range(8, 13, 1)]
         ray.get(ray_output)
 
     else:
@@ -288,14 +291,14 @@ if __name__ == '__main__':
                                   rllib_config=args.rllib_result_dir, result_dir=args.rllib_result_dir,
                                   max_completed_trips=args.max_completed_trips))
 
-    if args.use_s3:
-        s3_string = 's3://kanaad.experiments/i210_replay/' + date
-        if args.exp_title:
-            s3_string += '/' + args.exp_title
-
-        for i in range(4):
-            try:
-                p1 = subprocess.Popen("aws s3 sync {} {}".format(output_dir, s3_string).split(' '))
-                p1.wait(50)
-            except Exception as e:
-                print('This is the error ', e)
+    # if args.use_s3:
+    #     s3_string = 's3://kanaad.experiments/i210_replay/' + date
+    #     if args.exp_title:
+    #         s3_string += '/' + args.exp_title
+    #
+    #     for i in range(4):
+    #         try:
+    #             p1 = subprocess.Popen("aws s3 sync {} {}".format(output_dir, s3_string).split(' '))
+    #             p1.wait(50)
+    #         except Exception as e:
+    #             print('This is the error ', e)
