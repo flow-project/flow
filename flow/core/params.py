@@ -527,6 +527,7 @@ class AimsunParams(SimParams):
                  centroid_config_name=None,
                  subnetwork_name=None):
         """Instantiate AimsunParams."""
+        restart_instance = True
         super(AimsunParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
             sight_radius, show_radius, pxpm)
@@ -635,6 +636,7 @@ class SumoParams(SimParams):
                  use_ballistic=False,
                  disable_collisions=False):
         """Instantiate SumoParams."""
+        restart_instance = True
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
             sight_radius, show_radius, pxpm, force_color_update)
