@@ -288,8 +288,8 @@ class QueryStrings(Enum):
         SELECT
             CONCAT('[', CAST(bins.lb AS VARCHAR), ', ', CAST(bins.ub AS VARCHAR), ')') AS safety_value_bin,
             COUNT() AS count
-        FROM bins, fact_safety_metrics fsm
-        WHERE 1 = 1
+        FROM bins
+        LEFT JOIN fact_safety_metrics fsm ON 1 = 1
             AND fsm.date = \'{date}\'
             AND fsm.partition_name = \'{partition}_FACT_SAFETY_METRICS\'
             AND fsm.safety_value >= bins.lb
@@ -380,18 +380,18 @@ class QueryStrings(Enum):
             FROM unfilter_bins
             WHERE 1=1
                 AND lb >= 0
-                AND ub <= 20
+                AND ub <= 60
         )
         SELECT
             CONCAT('[', CAST(bins.lb AS VARCHAR), ', ', CAST(bins.ub AS VARCHAR), ')') AS fuel_efficiency_bin,
             COUNT() AS count
-        FROM bins, fact_vehicle_fuel_efficiency_agg agg
-        WHERE 1 = 1
+        FROM bins
+        LEFT JOIN fact_vehicle_fuel_efficiency_agg agg ON 1 = 1
             AND agg.date = \'{date}\'
             AND agg.partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
             AND agg.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
-            AND 1000 * agg.efficiency_meters_per_joules >= bins.lb
-            AND 1000 * agg.efficiency_meters_per_joules < bins.ub
+            AND agg.efficiency_miles_per_gallon >= bins.lb
+            AND agg.efficiency_miles_per_gallon < bins.ub
         GROUP BY 1
         ;
     """
@@ -782,7 +782,7 @@ class QueryStrings(Enum):
             SELECT
                 network,
                 submission_date,
-                1000 * MAX(efficiency_miles_per_gallon)
+                MAX(efficiency_miles_per_gallon)
                     OVER (PARTITION BY network ORDER BY submission_date ASC
                     ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS max_score
             FROM leaderboard_chart_agg
@@ -792,7 +792,7 @@ class QueryStrings(Enum):
             SELECT
                 network,
                 submission_date,
-                LAG(max_score IGNORE NULLS, 1) OVER (PARTITION BY network ORDER BY submission_date ASC) AS max_score
+                LAG(max_score, 1) OVER (PARTITION BY network ORDER BY submission_date ASC) AS max_score
             FROM curr_max
         ), unioned AS (
             SELECT * FROM curr_max
@@ -801,5 +801,7 @@ class QueryStrings(Enum):
         )
         SELECT DISTINCT *
         FROM unioned
+        WHERE 1 = 1
+            AND max_score IS NOT NULL
         ORDER BY 1, 2, 3
         ;"""
