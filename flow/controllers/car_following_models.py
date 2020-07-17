@@ -57,7 +57,7 @@ class CFMController(BaseController):
                  time_delay=0.0,
                  noise=0,
                  fail_safe=None,
-                 display_warnings=False):
+                 display_warnings=True):
         """Instantiate a CFM controller."""
         BaseController.__init__(
             self,
@@ -136,7 +136,7 @@ class BCMController(BaseController):
                  time_delay=0.0,
                  noise=0,
                  fail_safe=None,
-                 display_warnings=False):
+                 display_warnings=True):
         """Instantiate a Bilateral car-following model controller."""
         BaseController.__init__(
             self,
@@ -219,7 +219,7 @@ class LACController(BaseController):
                  time_delay=0.0,
                  noise=0,
                  fail_safe=None,
-                 display_warnings=False):
+                 display_warnings=True):
         """Instantiate a Linear Adaptive Cruise controller."""
         BaseController.__init__(
             self,
@@ -299,7 +299,7 @@ class OVMController(BaseController):
                  time_delay=0,
                  noise=0,
                  fail_safe=None,
-                 display_warnings=False):
+                 display_warnings=True):
         """Instantiate an Optimal Vehicle Model controller."""
         BaseController.__init__(
             self,
@@ -377,7 +377,7 @@ class LinearOVM(BaseController):
                  time_delay=0.0,
                  noise=0,
                  fail_safe=None,
-                 display_warnings=False):
+                 display_warnings=True):
         """Instantiate a Linear OVM controller."""
         BaseController.__init__(
             self,
@@ -460,7 +460,7 @@ class IDMController(BaseController):
                  time_delay=0.0,
                  noise=0,
                  fail_safe=None,
-                 display_warnings=False,
+                 display_warnings=True,
                  car_following_params=None):
         """Instantiate an IDM controller."""
         BaseController.__init__(
@@ -565,7 +565,7 @@ class GippsController(BaseController):
                  delay=0,
                  noise=0,
                  fail_safe=None,
-                 display_warnings=False):
+                 display_warnings=True):
         """Instantiate a Gipps' controller."""
         BaseController.__init__(
             self,
@@ -648,7 +648,7 @@ class BandoFTLController(BaseController):
                  time_delay=0,
                  noise=0,
                  fail_safe=None,
-                 display_warnings=False):
+                 display_warnings=True):
         """Instantiate an Bando controller."""
         BaseController.__init__(
             self,
