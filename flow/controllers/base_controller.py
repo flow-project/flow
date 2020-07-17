@@ -49,7 +49,7 @@ class BaseController(metaclass=ABCMeta):
                  car_following_params,
                  delay=0,
                  fail_safe=None,
-                 display_warnings=False,
+                 display_warnings=True,
                  noise=0):
         """Instantiate the base class for acceleration behavior."""
         self.veh_id = veh_id

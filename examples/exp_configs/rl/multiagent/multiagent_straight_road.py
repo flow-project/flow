@@ -28,6 +28,8 @@ INCLUDE_NOISE = True
 
 PENETRATION_RATE = 10.0
 
+WARMUP_STEPS = 500
+
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params.update({
     # length of the highway
@@ -140,11 +142,6 @@ inflows.add(
     depart_speed=TRAFFIC_SPEED,
     name="rl_highway_inflow")
 
-# SET UP FLOW PARAMETERS
-warmup_steps = 0
-if additional_env_params['reroute_on_exit']:
-    warmup_steps = 500
-
 flow_params = dict(
     # name of the experiment
     exp_tag='multiagent_highway',
@@ -161,7 +158,7 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        warmup_steps=warmup_steps,
+        warmup_steps=WARMUP_STEPS,
         sims_per_step=3,
         additional_params=additional_env_params
     ),

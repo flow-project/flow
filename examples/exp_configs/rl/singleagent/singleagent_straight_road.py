@@ -120,7 +120,7 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        warmup_steps=0,
+        warmup_steps=500,
         sims_per_step=1,  # do not put more than one
         done_at_exit=done_at_exit,
         additional_params=additional_env_params,
