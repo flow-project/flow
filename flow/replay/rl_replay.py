@@ -327,4 +327,4 @@ if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
     ray.init(num_cpus=1)
-    rl_replay(args)
+    replay_rllib(args)
