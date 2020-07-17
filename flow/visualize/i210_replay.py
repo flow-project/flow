@@ -4,7 +4,6 @@ from datetime import datetime
 from copy import deepcopy
 import os
 import pytz
-import subprocess
 
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
