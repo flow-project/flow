@@ -1,5 +1,5 @@
-from flow.replay import visualizer_rllib as vs_rllib
-from flow.replay.visualizer_rllib import visualizer_rllib
+from flow.replay import rl_replay as rl_replay
+from flow.replay.rl_replay import replay_rllib
 
 import os
 import unittest
@@ -8,11 +8,11 @@ import ray
 os.environ['TEST_FLAG'] = 'True'
 
 
-class TestVisualizerRLlib(unittest.TestCase):
-    """Tests visualizer_rllib"""
+class TestRLReplay(unittest.TestCase):
+    """Tests rl_replay"""
 
-    def test_visualizer_single(self):
-        """Test for single agent"""
+    def test_rllib_replay_single(self):
+        """Test for single agent replay"""
         try:
             ray.init(num_cpus=1)
         except Exception:
@@ -24,13 +24,13 @@ class TestVisualizerRLlib(unittest.TestCase):
         arg_str = '{}/../data/rllib_data/single_agent 1 --num_rollouts 1 ' \
                   '--render_mode no_render ' \
                   '--horizon 10'.format(current_path).split()
-        parser = vs_rllib.create_parser()
+        parser = rl_replay.create_parser()
         pass_args = parser.parse_args(arg_str)
-        visualizer_rllib(pass_args)
+        replay_rllib(pass_args)
 
     # FIXME(ev) set the horizon so that this runs faster
-    def test_visualizer_multi(self):
-        """Test for multi-agent visualization"""
+    def test_rllib_replay_multi(self):
+        """Test for multi-agent replay"""
         try:
             ray.init(num_cpus=1)
         except Exception:
@@ -42,6 +42,12 @@ class TestVisualizerRLlib(unittest.TestCase):
         arg_str = '{}/../data/rllib_data/multi_agent 1 --num_rollouts 1 ' \
                   '--render_mode no_render ' \
                   '--horizon 10'.format(current_path).split()
-        parser = vs_rllib.create_parser()
+        parser = rl_replay.create_parser()
         pass_args = parser.parse_args(arg_str)
-        visualizer_rllib(pass_args)
+        replay_rllib(pass_args)
+
+
+if __name__ == '__main__':
+    ray.init(num_cpus=1)
+    unittest.main()
+    ray.shutdown()

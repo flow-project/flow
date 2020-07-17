@@ -1,4 +1,4 @@
-"""Visualizer for rllib experiments.
+"""Replay script for rllib experiments.
 
 Attributes
 ----------
@@ -6,7 +6,7 @@ EXAMPLE_USAGE : str
     Example call to the function, which is
     ::
 
-        python ./visualizer_rllib.py /tmp/ray/result_dir 1
+        python ./rl_replay.py /tmp/ray/result_dir 1
 
 parser : ArgumentParser
     Command-line argument parser
@@ -34,7 +34,7 @@ from flow.core.experiment import Experiment
 
 EXAMPLE_USAGE = """
 example usage:
-    python ./visualizer_rllib.py /ray_results/experiment_dir/result_dir 1
+    python ./rl_replay.py /ray_results/experiment_dir/result_dir 1
 
 Here the arguments are:
 1 - the path to the simulation results
@@ -123,7 +123,7 @@ def set_agents(config, result_dir, env_name, run=None, checkpoint_num=None):
         else None
     if run and config_run:
         if run != config_run:
-            print('visualizer_rllib.py: error: run argument '
+            print('rl_replay.py: error: run argument '
                   + '\'{}\' passed in '.format(run)
                   + 'differs from the one stored in params.json '
                   + '\'{}\''.format(config_run))
@@ -141,11 +141,11 @@ def set_agents(config, result_dir, env_name, run=None, checkpoint_num=None):
     elif config_run:
         agent_cls = get_agent_class(config_run)
     else:
-        print('visualizer_rllib.py: error: could not find flow parameter '
+        print('rl_replay.py: error: could not find flow parameter '
               '\'run\' in params.json, '
               'add argument --run to provide the algorithm or model used '
               'to train the results\n e.g. '
-              'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
+              'python ./rl_replay.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
 
     # create the agent that will be used to compute the actions
@@ -204,12 +204,12 @@ def get_rl_action(config, agent, multiagent, multi_only=False):
     return policy_map_fn, rl_action, rets
 
 
-def visualizer_rllib(args):
-    """Visualizer for RLlib experiments.
+def replay_rllib(args):
+    """Replay for RLlib experiments.
 
     This function takes args (see function create_parser below for
     more detailed information on what information can be fed to this
-    visualizer), and renders the experiment associated with it.
+    replay script), and renders the experiment associated with it.
     """
     result_dir, config, multiagent, flow_params = read_result_dir(args.result_dir)
 
@@ -282,7 +282,7 @@ def create_parser():
         '--num_rollouts',
         type=int,
         default=1,
-        help='The number of rollouts to visualize.')
+        help='The number of rollouts to replay.')
     parser.add_argument(
         '--gen_emission',
         action='store_true',
@@ -327,4 +327,4 @@ if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
     ray.init(num_cpus=1)
-    visualizer_rllib(args)
+    rl_replay(args)
