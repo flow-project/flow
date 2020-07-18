@@ -242,7 +242,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
     metadata['network'].append(network_name_translate(env.network.name.split('_20')[0]))
     metadata['is_baseline'].append(str(args.is_baseline))
     if args.to_aws:
-        name, strategy = get_configuration()
+        name, strategy = get_configuration(args.submitter_name, args.strategy_name)
         metadata['submitter_name'].append(name)
         metadata['strategy'].append(strategy)
 
@@ -500,15 +500,18 @@ def create_parser():
         action='store_true',
         help='specifies whether this is a baseline run'
     )
+    parser.add_argument('--submitter_name', type=str, required=False, default=None,
+                        help='Name of the submitter (replaces the prompt asking for '
+                             'the name) (stored locally so only necessary once)')
+    parser.add_argument('--strategy_name', type=str, required=False, default=None,
+                        help='Name of the training strategy (replaces the prompt '
+                        'asking for the strategy)')
     return parser
 
 
-if __name__ == '__main__':
+def generate_graphs(args):
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
-
-    parser = create_parser()
-    args = parser.parse_args()
 
     rllib_config = None
     rllib_result_dir = None
@@ -520,12 +523,13 @@ if __name__ == '__main__':
 
     flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
 
-    if args.multi_node:
-        ray.init(redis_address='localhost:6379')
-    elif args.local:
-        ray.init(local_mode=True, object_store_memory=200 * 1024 * 1024)
-    else:
-        ray.init(num_cpus=args.num_cpus + 1, object_store_memory=200 * 1024 * 1024)
+    if not ray.is_initialized():
+        if args.multi_node:
+            ray.init(redis_address='localhost:6379')
+        elif args.local:
+            ray.init(local_mode=True, object_store_memory=200 * 1024 * 1024)
+        else:
+            ray.init(num_cpus=args.num_cpus + 1, object_store_memory=200 * 1024 * 1024)
 
     if args.exp_title:
         output_dir = os.path.join(args.output_dir, args.exp_title)
@@ -573,3 +577,10 @@ if __name__ == '__main__':
                 p1.wait(50)
             except Exception as e:
                 print('This is the error ', e)
+
+
+if __name__ == '__main__':
+    parser = create_parser()
+    args = parser.parse_args()
+
+    generate_graphs(args)
