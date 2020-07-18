@@ -658,8 +658,8 @@ class TraCIKernelNetwork(BaseKernelNetwork):
             add.append(E('vType', id=params['veh_id'], **type_params_str))
 
         # add (optional) bus stops to the .add.xml file
-        print(self.network.net_params.bus_stops.get())
-        if self.network.net_params.bus_stops is not None:
+        if self.network.net_params.bus_stops.get():
+            print('adding bus stops to cfg', self.network.net_params.bus_stops)
             stops = self.network.net_params.bus_stops.get()
             for stop in stops:
                 # do not want to affect the original values
@@ -776,22 +776,23 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                     id='route{}_{}'.format(route_id, i),
                     edges=' '.join(r)
                 ))
-        for bus_route_id, b_routes in bus_routes.items():
-            # in this case, we only have one route, convert into into a
-            # list of bus routes with one element
-            if isinstance(b_routes[0], list):
-                b_routes = [(b_routes[0], 1, b_routes[1])]
-                bus_routes[bus_route_id] = b_routes
+        if bus_routes is not None:
+            for bus_route_id, b_routes in bus_routes.items():
+                # in this case, we only have one route, convert into into a
+                # list of bus routes with one element
+                if isinstance(b_routes[0], list):
+                    b_routes = [(b_routes[0], 1, b_routes[1])]
+                    bus_routes[bus_route_id] = b_routes
 
-            # add each route incrementally, and add a second term to denote
-            # the route number of the given route at the given edge
-            for i, (edges, _, stops) in enumerate(b_routes):
-                bus_route = etree.SubElement(routes_data,
-                                             'route',
-                                             id='bus_route{}_{}'.format(bus_route_id, i),
-                                             edges=' '.join(edges))
-                for stop in stops:
-                    etree.SubElement(bus_route, 'stop', busStop=stop, duration='2')
+                # add each route incrementally, and add a second term to denote
+                # the route number of the given route at the given edge
+                for i, (edges, _, stops) in enumerate(b_routes):
+                    bus_route = etree.SubElement(routes_data,
+                                                'route',
+                                                id='bus_route{}_{}'.format(bus_route_id, i),
+                                                edges=' '.join(edges))
+                    for stop in stops:
+                        etree.SubElement(bus_route, 'stop', busStop=stop, duration='2')
 
         # add the inflows from various edges to the xml file
         if self.network.net_params.inflows is not None:
