@@ -84,10 +84,6 @@ def sugiyama_example(render=None):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a ring road.
     """
-    sim_params = SumoParams(sim_step=0.1, render=render)
-
-    if render is not None:
-        sim_params.render = render
 
     vehicles = VehicleParams()
     vehicles.add(
@@ -121,24 +117,50 @@ def sugiyama_example(render=None):
         start_pos=0,
         end_pos=15
     )
-    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
-    net_params = NetParams(
-        additional_params=additional_net_params,
-        bus_stops=stops)
+    flow_params = dict(
+        # name of the experiment
+        exp_tag='ring_bus',
 
-    initial_config = InitialConfig(bunching=20)
+        # name of the flow environment the experiment is running on
+        env_name=AccelEnv,
 
-    network = RingNetwork(
-        name="sugiyama",
-        vehicles=vehicles,
-        net_params=net_params,
-        initial_config=initial_config)
+        # name of the network class the experiment is running on
+        network=RingNetwork,
 
-    env = AccelEnv(env_params, sim_params, network)
+        # simulator that is used by the experiment
+        simulator='traci',
 
-    return Experiment(env)
+        # sumo-related parameters (see flow.core.params.SumoParams)
+        sim=SumoParams(
+            render=render,
+            sim_step=0.1,
+        ),
+
+        # environment related parameters (see flow.core.params.EnvParams)
+        env=EnvParams(
+            horizon=1500,
+            additional_params=ADDITIONAL_ENV_PARAMS,
+        ),
+
+        # network-related parameters (see flow.core.params.NetParams and the
+        # network's documentation or ADDITIONAL_NET_PARAMS component)
+        net=NetParams(
+            additional_params=ADDITIONAL_NET_PARAMS.copy(),
+            bus_stops=stops
+        ),
+
+        # vehicles to be placed in the network at the start of a rollout (see
+        # flow.core.params.VehicleParams)
+        veh=vehicles,
+
+        # parameters specifying the positioning of vehicles upon initialization/
+        # reset (see flow.core.params.InitialConfig)
+        initial=InitialConfig(
+            bunching=20,
+        ),
+    )
+    return Experiment(flow_params)
 
 
 if __name__ == "__main__":
@@ -146,4 +168,4 @@ if __name__ == "__main__":
     exp = sugiyama_example(render=True)
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 1000)
+    exp.run(1)
