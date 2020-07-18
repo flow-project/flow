@@ -1,5 +1,6 @@
 """Base environment class. This is the parent of all other environments."""
 
+from abc import ABCMeta, abstractmethod
 from copy import deepcopy
 import os
 import atexit
@@ -7,6 +8,8 @@ import time
 import traceback
 import numpy as np
 import random
+import shutil
+import subprocess
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
 from flow.utils.flow_warnings import deprecated_attribute
 
@@ -24,7 +27,7 @@ from flow.core.kernel import Kernel
 from flow.utils.exceptions import FatalFlowError
 
 
-class Env(gym.Env):
+class Env(gym.Env, metaclass=ABCMeta):
     """Base environment class.
 
     Provides the interface for interacting with various aspects of a traffic
@@ -127,7 +130,10 @@ class Env(gym.Env):
         self.network = scenario if scenario is not None else network
         self.net_params = self.network.net_params
         self.initial_config = self.network.initial_config
-        self.sim_params = sim_params
+        self.sim_params = deepcopy(sim_params)
+        # check whether we should be rendering
+        self.should_render = self.sim_params.render
+        self.sim_params.render = False
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
             # 1.0 works with stress_test_start 10k times
@@ -151,7 +157,7 @@ class Env(gym.Env):
 
         # create the Flow kernel
         self.k = Kernel(simulator=self.simulator,
-                        sim_params=sim_params)
+                        sim_params=self.sim_params)
 
         # use the network class's network parameters to generate the necessary
         # network components within the network kernel
@@ -164,7 +170,7 @@ class Env(gym.Env):
         # the network kernel as an input in order to determine what network
         # needs to be simulated.
         kernel_api = self.k.simulation.start_simulation(
-            network=self.k.network, sim_params=sim_params)
+            network=self.k.network, sim_params=self.sim_params)
 
         # pass the kernel api to the kernel and it's subclasses
         self.k.pass_api(kernel_api)
@@ -217,12 +223,8 @@ class Env(gym.Env):
         elif self.sim_params.render in [True, False]:
             # default to sumo-gui (if True) or sumo (if False)
             if (self.sim_params.render is True) and self.sim_params.save_render:
-                path = os.path.expanduser('~')+'/flow_rendering/'
-                dir_time = time.strftime("%Y-%m-%d-%H%M%S")
-                if not os.path.exists(path):
-                    os.mkdir(path)
-                self.path = path + dir_time
-                os.mkdir(self.path)
+                self.path = os.path.expanduser('~')+'/flow_rendering/' + self.network.name
+                os.makedirs(self.path, exist_ok=True)
         else:
             raise FatalFlowError(
                 'Mode %s is not supported!' % self.sim_params.render)
@@ -395,8 +397,9 @@ class Env(gym.Env):
 
         # test if the environment should terminate due to a collision or the
         # time horizon being met
-        done = (self.time_counter >= self.env_params.warmup_steps +
-                self.env_params.horizon)  # or crash
+        done = (self.time_counter >= self.env_params.sims_per_step *
+                (self.env_params.warmup_steps + self.env_params.horizon)
+                or crash)
 
         # compute the info for each agent
         infos = {}
@@ -428,6 +431,13 @@ class Env(gym.Env):
         """
         # reset the time counter
         self.time_counter = 0
+
+        # Now that we've passed the possibly fake init steps some rl libraries
+        # do, we can feel free to actually render things
+        if self.should_render:
+            self.sim_params.render = True
+            # got to restart the simulation to make it actually display anything
+            self.restart_simulation(self.sim_params)
 
         # warn about not using restart_instance when using inflows
         if len(self.net_params.inflows.get()) > 0 and \
@@ -478,6 +488,9 @@ class Env(gym.Env):
                 self.k.vehicle.remove(veh_id)
             except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
+
+        # do any additional resetting of the vehicle class needed
+        self.k.vehicle.reset()
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
@@ -603,9 +616,11 @@ class Env(gym.Env):
         rl_clipped = self.clip_actions(rl_actions)
         self._apply_rl_actions(rl_clipped)
 
+    @abstractmethod
     def _apply_rl_actions(self, rl_actions):
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_state(self):
         """Return the state of the simulation as perceived by the RL agent.
 
@@ -617,9 +632,10 @@ class Env(gym.Env):
             information on the state of the vehicles, which is provided to the
             agent
         """
-        raise NotImplementedError
+        pass
 
     @property
+    @abstractmethod
     def action_space(self):
         """Identify the dimensions and bounds of the action space.
 
@@ -630,9 +646,10 @@ class Env(gym.Env):
         gym Box or Tuple type
             a bounded box depicting the shape and bounds of the action space
         """
-        raise NotImplementedError
+        pass
 
     @property
+    @abstractmethod
     def observation_space(self):
         """Identify the dimensions and bounds of the observation space.
 
@@ -644,7 +661,7 @@ class Env(gym.Env):
             a bounded box depicting the shape and bounds of the observation
             space
         """
-        raise NotImplementedError
+        pass
 
     def compute_reward(self, rl_actions, **kwargs):
         """Reward function for the RL agent(s).
@@ -680,16 +697,13 @@ class Env(gym.Env):
                 self.renderer.close()
             # generate video
             elif (self.sim_params.render is True) and self.sim_params.save_render:
-                save_dir = os.path.expanduser('~') + '/flow_movies'
                 images_dir = self.path.split('/')[-1]
-                if not os.path.exists(save_dir):
-                    os.mkdir(save_dir)
-                speedup = 10  # speedup multiplier
+                speedup = 10  # multiplier: renders video so that `speedup` seconds is rendered in 1 real second
                 fps = speedup//self.sim_step
-                os_cmd = "ffmpeg -y -r {fps} -i {path}/frame_%06d.png".format(path=self.path, fps=fps)
-                os_cmd += " -pix_fmt yuv420p " + self.path+"/%s.mp4"%images_dir
-                os_cmd += "&& cp " + self.path+"/%s.mp4 "%images_dir + save_dir + "/"
-                os.system(os_cmd)  # only works in Unix
+                p = subprocess.Popen(["ffmpeg", "-y", "-r", str(fps), "-i", self.path+"/frame_%06d.png",
+                                      "-pix_fmt", "yuv420p", "%s/../%s.mp4" % (self.path, images_dir)])
+                p.wait()
+                shutil.rmtree(self.path)
         except FileNotFoundError:
             # Skip automatic termination. Connection is probably already closed
             print(traceback.format_exc())

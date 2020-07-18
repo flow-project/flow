@@ -1,6 +1,6 @@
 """Pending deprecation file.
 
-To view the actual content, go to: flow/scenarios/multi_ring.py
+To view the actual content, go to: flow/networks/multi_ring.py
 """
 from flow.utils.flow_warnings import deprecated
 from flow.networks.multi_ring import MultiRingNetwork

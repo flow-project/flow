@@ -17,7 +17,27 @@ SPEED_MODES = {
     "all_checks": 31
 }
 
-LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 1621}
+LC_MODES = {
+    "no_lc_safe": 512,
+    "no_lc_aggressive": 0,
+    "sumo_default": 1621,
+    "no_strategic_aggressive": 1108,
+    "no_strategic_safe": 1620,
+    "only_strategic_aggressive": 1,
+    "only_strategic_safe": 513,
+    "no_cooperative_aggressive": 1105,
+    "no_cooperative_safe": 1617,
+    "only_cooperative_aggressive": 4,
+    "only_cooperative_safe": 516,
+    "no_speed_gain_aggressive": 1093,
+    "no_speed_gain_safe": 1605,
+    "only_speed_gain_aggressive": 16,
+    "only_speed_gain_safe": 528,
+    "no_right_drive_aggressive": 1045,
+    "no_right_drive_safe": 1557,
+    "only_right_drive_aggressive": 64,
+    "only_right_drive_safe": 576
+}
 
 # Traffic light defaults
 PROGRAM_ID = 1
@@ -241,7 +261,8 @@ class VehicleParams:
             initial_speed=0,
             num_vehicles=0,
             car_following_params=None,
-            lane_change_params=None):
+            lane_change_params=None,
+            color=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
@@ -291,6 +312,10 @@ class VehicleParams:
              "initial_speed": initial_speed,
              "car_following_params": car_following_params,
              "lane_change_params": lane_change_params}
+
+        if color:
+            type_params['color'] = color
+            self.type_parameters[veh_id]['color'] = color
 
         # TODO: delete?
         self.initial.append({
@@ -384,7 +409,7 @@ class SimParams(object):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
-    color_vehicles : bool, optional
+    force_color_update : bool, optional
         whether or not to automatically color vehicles according to their types
     """
 
@@ -397,7 +422,7 @@ class SimParams(object):
                  sight_radius=25,
                  show_radius=False,
                  pxpm=2,
-                 color_vehicles=True):
+                 force_color_update=False):
         """Instantiate SimParams."""
         self.sim_step = sim_step
         self.render = render
@@ -407,7 +432,7 @@ class SimParams(object):
         self.sight_radius = sight_radius
         self.pxpm = pxpm
         self.show_radius = show_radius
-        self.color_vehicles = color_vehicles
+        self.force_color_update = force_color_update
 
 
 class AimsunParams(SimParams):
@@ -445,7 +470,7 @@ class AimsunParams(SimParams):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
-    scenario_name : str, optional
+    network_name : str, optional
         name of the network generated in Aimsun.
     experiment_name : str, optional
         name of the experiment generated in Aimsun
@@ -453,7 +478,7 @@ class AimsunParams(SimParams):
         name of the replication generated in Aimsun. When loading
         an Aimsun template, this parameter must be set to the name
         of the replication to be run by the simulation; in this case,
-        the scenario_name and experiment_name parameters are not
+        the network_name and experiment_name parameters are not
         necessary as they will be obtained from the replication name.
     centroid_config_name : str, optional
         name of the centroid configuration to load in Aimsun. This
@@ -477,7 +502,7 @@ class AimsunParams(SimParams):
                  show_radius=False,
                  pxpm=2,
                  # set to match Flow_Aimsun.ang's scenario name
-                 scenario_name="Dynamic Scenario 866",
+                 network_name="Dynamic Scenario 866",
                  # set to match Flow_Aimsun.ang's experiment name
                  experiment_name="Micro SRC Experiment 867",
                  # set to match Flow_Aimsun.ang's replication name
@@ -488,7 +513,7 @@ class AimsunParams(SimParams):
         super(AimsunParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
             sight_radius, show_radius, pxpm)
-        self.scenario_name = scenario_name
+        self.network_name = network_name
         self.experiment_name = experiment_name
         self.replication_name = replication_name
         self.centroid_config_name = centroid_config_name
@@ -539,6 +564,8 @@ class SumoParams(SimParams):
         specifies whether to render the radius of RL observation
     pxpm : int, optional
         specifies rendering resolution (pixel / meter)
+    force_color_update : bool, optional
+        whether or not to automatically color vehicles according to their types
     overtake_right : bool, optional
         whether vehicles are allowed to overtake on the right as well as
         the left
@@ -556,6 +583,11 @@ class SumoParams(SimParams):
         they teleport after teleport_time seconds
     num_clients : int, optional
         Number of clients that will connect to Traci
+    color_by_speed : bool
+        whether to color the vehicles by the speed they are moving at the
+        current time step
+    use_ballistic: bool, optional
+        If true, use a ballistic integration step instead of an euler step
     """
 
     def __init__(self,
@@ -569,16 +601,19 @@ class SumoParams(SimParams):
                  sight_radius=25,
                  show_radius=False,
                  pxpm=2,
+                 force_color_update=False,
                  overtake_right=False,
                  seed=None,
                  restart_instance=False,
                  print_warnings=True,
                  teleport_time=-1,
-                 num_clients=1):
+                 num_clients=1,
+                 color_by_speed=False,
+                 use_ballistic=False):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
-            sight_radius, show_radius, pxpm)
+            sight_radius, show_radius, pxpm, force_color_update)
         self.port = port
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
@@ -587,6 +622,8 @@ class SumoParams(SimParams):
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
         self.num_clients = num_clients
+        self.color_by_speed = color_by_speed
+        self.use_ballistic = use_ballistic
 
 
 class EnvParams:
@@ -886,14 +923,71 @@ class SumoLaneChangeParams:
     ----------
     lane_change_mode : str or int, optional
         may be one of the following:
+        * "no_lc_safe" (default): Disable all SUMO lane changing but still
+          handle safety checks (collision avoidance and safety-gap enforcement)
+          in the simulation. Binary is [001000000000]
+        * "no_lc_aggressive": SUMO lane changes are not executed, collision
+          avoidance and safety-gap enforcement are off.
+          Binary is [000000000000]
 
-        * "no_lat_collide" (default): Human cars will not make lane
-          changes, RL cars can lane change into any space, no matter how
-          likely it is to crash
-        * "strategic": Human cars make lane changes in accordance with SUMO
-          to provide speed boosts
-        * "aggressive": RL cars are not limited by sumo with regard to
-          their lane-change actions, and can crash longitudinally
+        * "sumo_default": Execute all changes requested by a custom controller
+          unless in conflict with TraCI. Binary is [011001010101].
+
+        * "no_strategic_aggressive": Execute all changes except strategic
+          (routing) lane changes unless in conflict with TraCI. Collision
+          avoidance and safety-gap enforcement are off. Binary is [010001010100]
+        * "no_strategic_safe": Execute all changes except strategic
+          (routing) lane changes unless in conflict with TraCI. Collision
+          avoidance and safety-gap enforcement are on. Binary is [011001010100]
+        * "only_strategic_aggressive": Execute only strategic (routing) lane
+          changes unless in conflict with TraCI. Collision avoidance and
+          safety-gap enforcement are off. Binary is [000000000001]
+        * "only_strategic_safe": Execute only strategic (routing) lane
+          changes unless in conflict with TraCI. Collision avoidance and
+          safety-gap enforcement are on. Binary is [001000000001]
+
+        * "no_cooperative_aggressive": Execute all changes except cooperative
+          (change in order to allow others to change) lane changes unless in
+          conflict with TraCI. Collision avoidance and safety-gap enforcement
+          are off. Binary is [010001010001]
+        * "no_cooperative_safe": Execute all changes except cooperative
+          lane changes unless in conflict with TraCI. Collision avoidance and
+          safety-gap enforcement are on. Binary is [011001010001]
+        * "only_cooperative_aggressive": Execute only cooperative lane changes
+          unless in conflict with TraCI. Collision avoidance and safety-gap
+          enforcement are off. Binary is [000000000100]
+        * "only_cooperative_safe": Execute only cooperative lane changes
+          unless in conflict with TraCI. Collision avoidance and safety-gap
+          enforcement are on. Binary is [001000000100]
+
+        * "no_speed_gain_aggressive": Execute all changes except speed gain (the
+           other lane allows for faster driving) lane changes unless in conflict
+           with TraCI. Collision avoidance and safety-gap enforcement are off.
+           Binary is [010001000101]
+        * "no_speed_gain_safe": Execute all changes except speed gain
+          lane changes unless in conflict with TraCI. Collision avoidance and
+          safety-gap enforcement are on. Binary is [011001000101]
+        * "only_speed_gain_aggressive": Execute only speed gain lane changes
+          unless in conflict with TraCI. Collision avoidance and safety-gap
+          enforcement are off. Binary is [000000010000]
+        * "only_speed_gain_safe": Execute only speed gain lane changes
+          unless in conflict with TraCI. Collision avoidance and safety-gap
+          enforcement are on. Binary is [001000010000]
+
+        * "no_right_drive_aggressive": Execute all changes except right drive
+          (obligation to drive on the right) lane changes unless in conflict
+          with TraCI. Collision avoidance and safety-gap enforcement are off.
+          Binary is [010000010101]
+        * "no_right_drive_safe": Execute all changes except right drive
+          lane changes unless in conflict with TraCI. Collision avoidance and
+          safety-gap enforcement are on. Binary is [011000010101]
+        * "only_right_drive_aggressive": Execute only right drive lane changes
+          unless in conflict with TraCI. Collision avoidance and safety-gap
+          enforcement are off. Binary is [000001000000]
+        * "only_right_drive_safe": Execute only right drive lane changes
+          unless in conflict with TraCI. Collision avoidance and safety-gap
+          enforcement are on. Binary is [001001000000]
+
         * int values may be used to define custom lane change modes for the
           given vehicles, specified at:
           http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#lane_change_mode_.280xb6.29
@@ -920,10 +1014,6 @@ class SumoLaneChangeParams:
         see lcPushyGap in Note
     lc_assertive : float, optional
         see lcAssertive in Note
-    lc_impatience : float, optional
-        see lcImpatience in Note
-    lc_time_to_impatience : float, optional
-        see lcTimeToImpatience in Note
     lc_accel_lat : float, optional
         see lcAccelLate in Note
     kwargs : dict
@@ -936,7 +1026,7 @@ class SumoLaneChangeParams:
     """
 
     def __init__(self,
-                 lane_change_mode="no_lat_collide",
+                 lane_change_mode="no_lc_safe",
                  model="LC2013",
                  lc_strategic=1.0,
                  lc_cooperative=1.0,
@@ -948,8 +1038,6 @@ class SumoLaneChangeParams:
                  lc_pushy=0,
                  lc_pushy_gap=0.6,
                  lc_assertive=1,
-                 lc_impatience=0,
-                 lc_time_to_impatience=float("inf"),
                  lc_accel_lat=1.0,
                  **kwargs):
         """Instantiate SumoLaneChangeParams."""
@@ -1004,17 +1092,6 @@ class SumoLaneChangeParams:
             deprecated_attribute(self, "lcAssertive", "lc_assertive")
             lc_assertive = kwargs["lcAssertive"]
 
-        # check for deprecations (lcImpatience)
-        if "lcImpatience" in kwargs:
-            deprecated_attribute(self, "lcImpatience", "lc_impatience")
-            lc_impatience = kwargs["lcImpatience"]
-
-        # check for deprecations (lcTimeToImpatience)
-        if "lcTimeToImpatience" in kwargs:
-            deprecated_attribute(self, "lcTimeToImpatience",
-                                 "lc_time_to_impatience")
-            lc_time_to_impatience = kwargs["lcTimeToImpatience"]
-
         # check for deprecations (lcAccelLat)
         if "lcAccelLat" in kwargs:
             deprecated_attribute(self, "lcAccelLat", "lc_accel_lat")
@@ -1032,7 +1109,7 @@ class SumoLaneChangeParams:
                 "lcCooperative": str(lc_cooperative),
                 "lcSpeedGain": str(lc_speed_gain),
                 "lcKeepRight": str(lc_keep_right),
-                # "lcLookaheadLeft": str(lcLookaheadLeft),
+                # "lcLookaheadLeft": str(lc_look_ahead_left),
                 # "lcSpeedGainRight": str(lcSpeedGainRight)
             }
         elif model == "SL2015":
@@ -1048,8 +1125,6 @@ class SumoLaneChangeParams:
                 "lcPushy": str(lc_pushy),
                 "lcPushyGap": str(lc_pushy_gap),
                 "lcAssertive": str(lc_assertive),
-                "lcImpatience": str(lc_impatience),
-                "lcTimeToImpatience": str(lc_time_to_impatience),
                 "lcAccelLat": str(lc_accel_lat)
             }
 
@@ -1059,7 +1134,7 @@ class SumoLaneChangeParams:
         elif not (isinstance(lane_change_mode, int)
                   or isinstance(lane_change_mode, float)):
             logging.error("Setting lane change mode to default.")
-            lane_change_mode = LC_MODES["no_lat_collide"]
+            lane_change_mode = LC_MODES["no_lc_safe"]
 
         self.lane_change_mode = lane_change_mode
 

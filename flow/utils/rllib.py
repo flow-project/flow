@@ -6,13 +6,17 @@ This includes: environment generation, serialization, and visualization.
 import json
 from copy import deepcopy
 import os
+import sys
 
+import flow.envs
 from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
     SumoParams, InitialConfig, EnvParams, NetParams, InFlows
 from flow.core.params import TrafficLightParams
 from flow.core.params import VehicleParams
-
+from flow.envs import Env
+from flow.networks import Network
 from ray.cloudpickle import cloudpickle
+import inspect
 
 
 class FlowParamsEncoder(json.JSONEncoder):
@@ -44,6 +48,9 @@ class FlowParamsEncoder(json.JSONEncoder):
                             (res_i["routing_controller"][0].__name__,
                              res_i["routing_controller"][1])
                 return res
+            if inspect.isclass(obj):
+                if issubclass(obj, Env) or issubclass(obj, Network):
+                    return "{}.{}".format(obj.__module__, obj.__name__)
             if hasattr(obj, '__name__'):
                 return obj.__name__
             else:
@@ -69,8 +76,9 @@ def get_flow_params(config):
         flow-related parameters, consisting of the following keys:
 
          * exp_tag: name of the experiment
-         * env_name: name of the flow environment the experiment is running on
-         * network: name of the network class the experiment uses
+         * env_name: environment class of the flow environment the experiment
+           is running on. (note: must be in an importable module.)
+         * network: network class the experiment uses.
          * simulator: simulator that is used by the experiment (e.g. aimsun)
          * sim: simulation-related parameters (see flow.core.params.SimParams)
          * env: environment related parameters (see flow.core.params.EnvParams)
@@ -149,6 +157,31 @@ def get_flow_params(config):
     if "tls" in flow_params:
         tls.__dict__ = flow_params["tls"].copy()
 
+    env_name = flow_params['env_name']
+    if "." not in env_name:  # coming from old flow_params
+        single_agent_envs = [env for env in dir(flow.envs)
+                             if not env.startswith('__')]
+        if env_name in single_agent_envs:
+            env_loc = 'flow.envs'
+        else:
+            env_loc = 'flow.envs.multiagent'
+    else:
+        env_loc = ".".join(env_name.split(".")[:-1])
+        env_name = env_name.split(".")[-1]
+    env_module = __import__(env_loc, fromlist=[env_name])
+    env_instance = getattr(env_module, env_name)
+
+    network = flow_params['network']
+    if "." not in network:  # coming from old flow_params
+        net_loc = 'flow.networks'
+    else:
+        net_loc = ".".join(network.split(".")[:-1])
+        network = network.split(".")[-1]
+    net_module = __import__(net_loc, fromlist=[network])
+    net_instance = getattr(net_module, network)
+
+    flow_params['env_name'] = env_instance
+    flow_params['network'] = net_instance
     flow_params["sim"] = sim
     flow_params["env"] = env
     flow_params["initial"] = initial
@@ -175,6 +208,9 @@ def get_rllib_config(path):
 
 def get_rllib_pkl(path):
     """Return the data from the specified rllib configuration file."""
+    dirname = os.path.dirname(__file__)
+    filename = os.path.join(dirname, '../../examples/')
+    sys.path.append(filename)
     config_path = os.path.join(path, "params.pkl")
     if not os.path.exists(config_path):
         config_path = os.path.join(path, "../params.pkl")

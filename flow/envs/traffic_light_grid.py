@@ -639,7 +639,7 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         """
         tl_box = Box(
             low=0.,
-            high=1,
+            high=3,
             shape=(3 * 4 * self.num_observed * self.num_traffic_lights +
                    2 * len(self.k.network.get_edge_list()) +
                    3 * self.num_traffic_lights,),
@@ -729,6 +729,17 @@ class TrafficLightGridPOEnv(TrafficLightGridEnv):
         """See class definition."""
         # specify observed vehicles
         [self.k.vehicle.set_observed(veh_id) for veh_id in self.observed_ids]
+
+
+class TrafficLightGridBenchmarkEnv(TrafficLightGridPOEnv):
+    """Class used for the benchmarks in `Benchmarks for reinforcement learning inmixed-autonomy traffic`."""
+
+    def compute_reward(self, rl_actions, **kwargs):
+        """See class definition."""
+        if self.env_params.evaluate:
+            return - rewards.min_delay_unscaled(self)
+        else:
+            return rewards.desired_velocity(self)
 
 
 class TrafficLightGridTestEnv(TrafficLightGridEnv):

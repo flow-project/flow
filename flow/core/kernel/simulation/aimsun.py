@@ -61,9 +61,6 @@ class AimsunKernelSimulation(KernelSimulation):
         a simulation, and creates a class to communicate with the simulation
         via an TCP connection.
         """
-        # FIXME: hack
-        sim_params.port = 9999
-
         # save the simulation step size (for later use)
         self.sim_step = sim_params.sim_step
 

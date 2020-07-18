@@ -22,7 +22,7 @@ from flow.utils.rllib import FlowParamsEncoder
 
 EXAMPLE_USAGE = """
 example usage:
-    python ars_runner.py grid0
+    python ars_runner.py --benchmark_name=grid0
 Here the arguments are:
 benchmark_name - name of the benchmark to run
 num_rollouts - number of rollouts to train across

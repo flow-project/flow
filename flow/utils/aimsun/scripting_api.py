@@ -4,12 +4,18 @@ import os
 
 import flow.config as config
 
-SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
-                            "lib/python2.7/site-packages")
-sys.path.append(SITEPACKAGES)
+try:
+    SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
+                                "lib/python2.7/site-packages")
+    sys.path.append(SITEPACKAGES)
+except TypeError:
+    raise EnvironmentError("Please declare the AIMSUN_SITEPACKAGES environment variable.")
 
-sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
-                             'programming/Aimsun Next API/AAPIPython/Micro'))
+try:
+    sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
+                                 'programming/Aimsun Next API/AAPIPython/Micro'))
+except TypeError:
+    raise EnvironmentError("Please declare the AIMSUN_NEXT_PATH environment variable.")
 
 
 class AimsunTemplate(object):

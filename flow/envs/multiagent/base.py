@@ -108,7 +108,8 @@ class MultiEnv(MultiAgentEnv, Env):
         states = self.get_state()
         done = {key: key in self.k.vehicle.get_arrived_ids()
                 for key in states.keys()}
-        if crash:
+        if crash or (self.time_counter >= self.env_params.sims_per_step *
+                     (self.env_params.warmup_steps + self.env_params.horizon)):
             done['__all__'] = True
         else:
             done['__all__'] = False
@@ -120,6 +121,11 @@ class MultiEnv(MultiAgentEnv, Env):
             reward = self.compute_reward(clipped_actions, fail=crash)
         else:
             reward = self.compute_reward(rl_actions, fail=crash)
+
+        for rl_id in self.k.vehicle.get_arrived_rl_ids(self.env_params.sims_per_step):
+            done[rl_id] = True
+            reward[rl_id] = 0
+            states[rl_id] = np.zeros(self.observation_space.shape[0])
 
         return states, reward, done, infos
 
@@ -141,6 +147,13 @@ class MultiEnv(MultiAgentEnv, Env):
         """
         # reset the time counter
         self.time_counter = 0
+
+        # Now that we've passed the possibly fake init steps some rl libraries
+        # do, we can feel free to actually render things
+        if self.should_render:
+            self.sim_params.render = True
+            # got to restart the simulation to make it actually display anything
+            self.restart_simulation(self.sim_params)
 
         # warn about not using restart_instance when using inflows
         if len(self.net_params.inflows.get()) > 0 and \
@@ -191,6 +204,9 @@ class MultiEnv(MultiAgentEnv, Env):
                 self.k.vehicle.remove(veh_id)
             except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
+
+        # do any additional resetting of the vehicle class needed
+        self.k.vehicle.reset()
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:

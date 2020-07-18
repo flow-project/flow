@@ -121,15 +121,56 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
     env = env_class(
         env_params=env_params, sim_params=sim_params, network=network)
 
-    # create a Experiment object with the "rl_actions" method as
-    # described in the inputs. Note that the state may not be that which is
+    flow_params = dict(
+        # name of the experiment
+        exp_tag=exp_tag,
+
+        # name of the flow environment the experiment is running on
+        env_name=env_class,
+
+        # name of the network class the experiment is running on
+        network=network_class,
+
+        # simulator that is used by the experiment
+        simulator='traci',
+
+        # sumo-related parameters (see flow.core.params.SumoParams)
+        sim=sim_params,
+
+        # environment related parameters (see flow.core.params.EnvParams)
+        env=env_params,
+
+        # network-related parameters (see flow.core.params.NetParams and the
+        # network's documentation or ADDITIONAL_NET_PARAMS component)
+        net=net_params,
+
+        # vehicles to be placed in the network at the start of a rollout (see
+        # flow.core.params.VehicleParams)
+        veh=vehicles,
+
+        # parameters specifying the positioning of vehicles upon initialization/
+        # reset (see flow.core.params.InitialConfig)
+        initial=initial_config,
+
+        # traffic lights to be introduced to specific nodes (see
+        # flow.core.params.TrafficLightParams)
+        tls=traffic_lights,
+    )
+
+    # number of time steps
+    flow_params['env'].horizon = env.env_params.horizon
+
+    # create a Experiment object. Note that the state may not be that which is
     # specified by the environment.
-    exp = Experiment(env=env)
+    exp = Experiment(flow_params)
+    exp.env = env
+
+    exp = Experiment(flow_params)
+    exp.env = env
 
     # run the experiment and return the reward
     res = exp.run(
         num_runs=NUM_RUNS,
-        num_steps=env.env_params.horizon,
         rl_actions=_get_actions)
 
     return np.mean(res["returns"]), np.std(res["returns"])

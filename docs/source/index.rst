@@ -9,7 +9,7 @@ Welcome to Flow
 `Flow <https://flow-project.github.io>`_ is a computational framework for deep RL and control experiments for traffic microsimulation. Visit `our website <https://flow-project.github.io>`_ for more information.
 
 Flow is a work in progress - input is welcome. Available documentation is limited for now.
-`Tutorials <https://github.com/flow-project/flow/tree/master/tutorials/exercises>`_ are available in iPython notebook format.
+`Tutorials <https://github.com/flow-project/flow/tree/master/tutorials>`_ are available in iPython notebook format.
 
 *If you are looking for Akvo Flow, their documentation can be found at* http://flowsupport.akvo.org.
 

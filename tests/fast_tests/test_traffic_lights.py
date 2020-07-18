@@ -40,7 +40,7 @@ class TestUpdateGetState(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a ring road
-        self.env, _ = ring_road_exp_setup(
+        self.env, _, _ = ring_road_exp_setup(
             net_params=net_params, traffic_lights=traffic_lights)
 
         self.env.reset()
@@ -65,7 +65,7 @@ class TestUpdateGetState(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a ring road
-        self.env, _ = ring_road_exp_setup(
+        self.env, _, _ = ring_road_exp_setup(
             net_params=net_params, traffic_lights=traffic_lights)
 
         self.env.reset()
@@ -96,7 +96,7 @@ class TestSetState(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a ring road
-        self.env, _ = ring_road_exp_setup(
+        self.env, _, _ = ring_road_exp_setup(
             net_params=net_params, traffic_lights=traffic_lights)
 
     def tearDown(self):
@@ -153,7 +153,7 @@ class TestPOEnv(unittest.TestCase):
                 min_gap=2.5, tau=1.1),
             num_vehicles=16)
 
-        self.env, _ = traffic_light_grid_mxn_exp_setup(
+        self.env, _, _ = traffic_light_grid_mxn_exp_setup(
             row_num=1, col_num=3, vehicles=vehicles)
 
     def tearDown(self):
@@ -228,17 +228,18 @@ class TestItRuns(unittest.TestCase):
                 min_gap=2.5, tau=1.1),
             num_vehicles=16)
 
-        env, _ = traffic_light_grid_mxn_exp_setup(
+        _, _, flow_params = traffic_light_grid_mxn_exp_setup(
             row_num=1, col_num=3, vehicles=vehicles)
 
-        self.exp = Experiment(env)
+        flow_params['env'].horizon = 50
+        self.exp = Experiment(flow_params)
 
     def tearDown(self):
         # free data used by the class
         self.exp = None
 
     def test_it_runs(self):
-        self.exp.run(5, 50)
+        self.exp.run(5)
 
 
 class TestIndividualLights(unittest.TestCase):
@@ -285,17 +286,18 @@ class TestIndividualLights(unittest.TestCase):
             file="testindividuallights.xml",
             freq=100)
 
-        env, _ = traffic_light_grid_mxn_exp_setup(
+        _, _, flow_params = traffic_light_grid_mxn_exp_setup(
             row_num=1, col_num=4, tl_logic=tl_logic)
 
-        self.exp = Experiment(env)
+        flow_params['env'].horizon = 50
+        self.exp = Experiment(flow_params)
 
     def tearDown(self):
         # free data used by the class
         self.exp = None
 
     def test_it_runs(self):
-        self.exp.run(5, 50)
+        self.exp.run(5)
 
 
 class TestCustomization(unittest.TestCase):
@@ -330,7 +332,7 @@ class TestCustomization(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and network classes for a ring road
-        self.env, _ = ring_road_exp_setup(
+        self.env, _, _ = ring_road_exp_setup(
             net_params=net_params, traffic_lights=traffic_lights)
 
     def tearDown(self):
