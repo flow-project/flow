@@ -13,10 +13,10 @@ ray exec ray_autoscale.yaml \
 
 # 18/07/20 -- test automatic leaderboard upload
 ray exec ray_autoscale.yaml \
-"python flow/examples/train.py multiagent_i210 --num_iterations 1 --num_rollouts 3 \
+"python flow/examples/train.py multiagent_i210 --num_iterations 1 --num_rollouts 1 \
 --checkpoint_freq 1 --use_s3 --num_cpus 17 --algorithm PPO --rl_trainer rllib --grid_search --multi_node \
---upload_graphs Nathan test_leaderboard --exp_title i210_test_leaderboard" \
---start --cluster-name nathan-i210_test_leaderboard
+--upload_graphs Nathan test_leaderboard_0p1 --exp_title i210_test_leaderboard_0p1" \
+--start --cluster-name nathan-i210_test_leaderboard_0p1
 
 # 18/07/20 -- default speed reward, penalize_stops and penalize_accel
 ray exec ray_autoscale.yaml \
