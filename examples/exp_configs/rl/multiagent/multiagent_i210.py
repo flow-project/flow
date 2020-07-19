@@ -43,7 +43,7 @@ INFLOW_SPEED = 25.5
 # fraction of vehicles that are RL vehicles. 0.10 corresponds to 10%
 PENETRATION_RATE = 0.10
 # desired speed of the vehicles in the network
-V_DES = 5.0
+V_DES = 5.0  # todo not used anywhere
 # horizon over which to run the env
 HORIZON = 1000
 # steps to run before follower-stopper is allowed to take control
@@ -113,11 +113,11 @@ additional_env_params.update({
     # weight of the headway reward
     "speed_reward_gain": 5.0,
     # penalize stopped vehicles
-    "penalize_stops": False,
+    "penalize_stops": True,
     "stop_penalty": 0.01,
 
     # penalize accels
-    "penalize_accel": False,
+    "penalize_accel": True,
     "accel_penalty": (1 / 400.0)
 })
 
