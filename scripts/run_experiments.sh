@@ -16,11 +16,19 @@ ray exec ray_autoscale.yaml \
 "python flow/examples/train.py multiagent_i210 --num_iterations 1 --num_rollouts 1 \
 --checkpoint_freq 1 --use_s3 --num_cpus 17 --algorithm PPO --rl_trainer rllib --grid_search --multi_node \
 --upload_graphs Nathan test_leaderboard_0p1 --exp_title i210_test_leaderboard_0p1" \
---start --cluster-name nathan-i210_test_leaderboard_0p1
+--start --cluster-name nathan-i210_test_leaderboard2_0p1
 
-# 18/07/20 -- default speed reward, penalize_stops and penalize_accel
+# 20/07/20 01h20 -- 10%, default local speed reward, penalize_stops and penalize_accel
+# fixed version (the one before was 5% with no penalty)
 ray exec ray_autoscale.yaml \
 "python flow/examples/train.py multiagent_i210 --num_iterations 40 --num_rollouts 20 \
 --checkpoint_freq 10 --use_s3 --num_cpus 17 --algorithm PPO --rl_trainer rllib --grid_search --multi_node \
---upload_graphs Nathan 10%_ppo_speedrwd_pstops_paccel --exp_title i210_ppo_0p1_speedrwd_pstops_paccel" \
---start --cluster-name nathan-i210_ppo_0p1_speedrwd_pstops_paccel --tmux
+--upload_graphs Nathan 10%_ppo_speedrwd_pstops_paccel_fixed --exp_title i210_ppo_0p1_speedrwd_pstops_paccel_fixed" \
+--start --cluster-name nathan-i210_ppo_0p1_speedrwd_pstops_paccel_fixed --tmux
+
+# 20/07/20 01h26 -- 10%, default local speed reward + brut mpg reward, no penalty
+ray exec ray_autoscale.yaml \
+"python flow/examples/train.py multiagent_i210 --num_iterations 40 --num_rollouts 20 \
+--checkpoint_freq 10 --use_s3 --num_cpus 17 --algorithm PPO --rl_trainer rllib --grid_search --multi_node \
+--upload_graphs Nathan 10%_ppo_speed_mpg_rwd_nop --exp_title i210_ppo_0p1_speed_mpg_rwd_nop" \
+--start --cluster-name nathan-i210_ppo_0p1_speed_mpg_rwd_nop --tmux
