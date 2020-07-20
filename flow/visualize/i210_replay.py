@@ -516,6 +516,7 @@ def create_parser():
 
 
 def generate_graphs(args):
+    """Generate the graphs."""
     date = datetime.now(tz=pytz.utc)
     date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
 
@@ -528,7 +529,7 @@ def generate_graphs(args):
         rllib_config = get_rllib_config(rllib_result_dir)
 
     flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
-    
+
     if not ray.is_initialized():
         if args.multi_node:
             ray.init(redis_address='localhost:6379')
