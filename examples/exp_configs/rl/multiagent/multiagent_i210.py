@@ -135,10 +135,11 @@ if ON_RAMP:
         acceleration_controller=(IDMController, {
             'a': 1.3,
             'b': 2.0,
-            'noise': 0.3
+            'noise': 0.3,
+            "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
         }),
         car_following_params=SumoCarFollowingParams(
-            speed_mode=19 if ALLOW_COLLISIONS else 'right_of_way'
+            speed_mode=8
         ),
         lane_change_params=SumoLaneChangeParams(
             lane_change_mode="sumo_default",
@@ -151,10 +152,11 @@ else:
         acceleration_controller=(IDMController, {
             'a': 1.3,
             'b': 2.0,
-            'noise': 0.3
+            'noise': 0.3,
+            "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
         }),
         car_following_params=SumoCarFollowingParams(
-            speed_mode=19 if ALLOW_COLLISIONS else 'right_of_way'
+            speed_mode=8
         ),
         lane_change_params=SumoLaneChangeParams(
             lane_change_mode="sumo_default",

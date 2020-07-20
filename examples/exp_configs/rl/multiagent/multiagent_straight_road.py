@@ -106,9 +106,11 @@ vehicles.add(
     acceleration_controller=(IDMController, {
         'a': 1.3,
         'b': 2.0,
-        'noise': 0.3 if INCLUDE_NOISE else 0.0
+        'noise': 0.3 if INCLUDE_NOISE else 0.0,
+        "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
     }),
     car_following_params=SumoCarFollowingParams(
+        speed_mode=8,
         min_gap=0.5
     ),
     lane_change_params=SumoLaneChangeParams(
@@ -121,7 +123,13 @@ vehicles.add(
 vehicles.add(
     color='red',
     veh_id='rl',
-    acceleration_controller=(RLController, {}))
+    car_following_params=SumoCarFollowingParams(
+        speed_mode=8,
+        min_gap=0.5
+    ),
+    acceleration_controller=(RLController, {
+        "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
+    }))
 
 # add human vehicles on the highway
 inflows.add(
