@@ -9,6 +9,7 @@ from flow.core.params import SumoParams
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import SumoLaneChangeParams
+from flow.core.params import SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.core.params import InitialConfig
 from flow.core.params import InFlows
@@ -79,10 +80,15 @@ vehicles.add(
     lane_change_params=SumoLaneChangeParams(
         lane_change_mode="sumo_default",
     ),
+    # this is only right of way on
+    car_following_params=SumoCarFollowingParams(
+        speed_mode=8
+    ),
     acceleration_controller=(IDMController, {
         "a": 1.3,
         "b": 2.0,
         "noise": 0.3,
+        "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
     }),
     routing_controller=(I210Router, {}) if ON_RAMP else None,
 )
@@ -91,9 +97,14 @@ vehicles.add(
     "av",
     num_vehicles=0,
     color="red",
+    # this is only right of way on
+    car_following_params=SumoCarFollowingParams(
+        speed_mode=8
+    ),
     acceleration_controller=(FollowerStopper, {
         "v_des": V_DES,
-        "no_control_edges": ["ghost0", "119257908#3"]
+        "no_control_edges": ["ghost0", "119257908#3"],
+        "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
     }),
     routing_controller=(I210Router, {}) if ON_RAMP else None,
 )

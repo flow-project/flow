@@ -55,10 +55,12 @@ vehicles.add(
     acceleration_controller=(IDMController, {
         'a': 1.3,
         'b': 2.0,
-        'noise': 0.3 if INCLUDE_NOISE else 0.0
+        'noise': 0.3 if INCLUDE_NOISE else 0.0,
+        "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
     }),
     car_following_params=SumoCarFollowingParams(
-        min_gap=0.5
+        min_gap=0.5,
+        speed_mode=8
     ),
     lane_change_params=SumoLaneChangeParams(
         model="SL2015",
@@ -70,10 +72,15 @@ if PENETRATION_RATE > 0.0:
     vehicles.add(
         "av",
         color='red',
+        car_following_params=SumoCarFollowingParams(
+            min_gap=0.5,
+            speed_mode=8
+        ),
         num_vehicles=0,
         acceleration_controller=(FollowerStopper, {
             "v_des": 5.0,
-            "control_length": [500, 2300]
+            "control_length": [500, 2300],
+            "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
         }),
     )
 
