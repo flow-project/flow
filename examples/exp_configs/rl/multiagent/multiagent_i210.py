@@ -87,7 +87,7 @@ additional_env_params.update({
     # reward
     "mpj_reward": False,
     # how many vehicles to look back for any reward
-    "look_back_length": 3,
+    "look_back_length": 8,
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": False,
     'target_velocity': 5.0,
@@ -107,7 +107,7 @@ additional_env_params.update({
     "min_time_headway": 2.0,
 
     # whether to add a slight reward for traveling at a desired speed
-    "speed_curriculum": True,
+    "speed_curriculum": False,
     # how many timesteps to anneal the headway curriculum over
     "speed_curriculum_iters": 20,
     # weight of the headway reward
