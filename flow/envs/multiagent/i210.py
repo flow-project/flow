@@ -295,7 +295,7 @@ class I210MultiEnv(MultiEnv):
 
         if self.reroute_on_exit and self.time_counter >= self.env_params.sims_per_step * self.env_params.warmup_steps \
                 and not self.env_params.evaluate:
-            veh_ids = self.k.vehicle.get_ids()
+            veh_ids = list(self.k.vehicle.get_ids())
             edges = self.k.vehicle.get_edge(veh_ids)
             valid_lanes = list(range(self.num_enter_lanes))
             for veh_id, edge in zip(veh_ids, edges):
@@ -305,7 +305,7 @@ class I210MultiEnv(MultiEnv):
                     continue
                 # on the exit edge, near the end, and is the vehicle furthest along
                 if edge == self.exit_edge and \
-                        (self.k.vehicle.get_position(veh_id) > self.k.network.edge_length(self.exit_edge) - 100) \
+                        (self.k.vehicle.get_position(veh_id) > self.k.network.edge_length(self.exit_edge) - 10) \
                         and self.k.vehicle.get_leader(veh_id) is None:
                     type_id = self.k.vehicle.get_type(veh_id)
                     # remove the vehicle
