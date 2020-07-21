@@ -88,7 +88,7 @@ vehicles.add(
         "a": 1.3,
         "b": 2.0,
         "noise": 0.3,
-        "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
     }),
     routing_controller=(I210Router, {}) if ON_RAMP else None,
 )
@@ -104,7 +104,7 @@ vehicles.add(
     acceleration_controller=(FollowerStopper, {
         "v_des": V_DES,
         "no_control_edges": ["ghost0", "119257908#3"],
-        "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
     }),
     routing_controller=(I210Router, {}) if ON_RAMP else None,
 )

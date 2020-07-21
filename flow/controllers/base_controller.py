@@ -321,7 +321,8 @@ class BaseController(metaclass=ABCMeta):
         """
         # check for speed limit
         this_edge = env.k.vehicle.get_edge(self.veh_id)
-        edge_speed_limit = env.k.network.speed_limit(this_edge)
+        this_lane = env.k.vehicle.get_lane(self.veh_id)
+        edge_speed_limit = env.k.network.get_max_speed(this_edge, this_lane)
 
         this_vel = env.k.vehicle.get_speed(self.veh_id)
         sim_step = env.sim_step

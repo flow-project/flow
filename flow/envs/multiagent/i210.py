@@ -1,10 +1,16 @@
 """Environment for training vehicles to reduce congestion in the I210."""
 
+from copy import deepcopy
+import random
+import traceback
 from gym.spaces import Box
 import numpy as np
 
 from flow.core.rewards import instantaneous_mpg
 from flow.envs.multiagent.base import MultiEnv
+from traci.exceptions import FatalTraCIError
+from traci.exceptions import TraCIException
+from flow.utils.exceptions import FatalFlowError
 
 # largest number of lanes on any given edge in the network
 MAX_LANES = 6
@@ -397,6 +403,153 @@ class I210MultiEnv(MultiEnv):
                     state[rl_id] = -1 * np.ones(self.observation_space.shape[0])
 
         return state, reward, done, info
+
+    def reset(self, new_inflow_rate=None):
+        """Reset the environment.
+
+        This method is performed in between rollouts. It resets the state of
+        the environment, and re-initializes the vehicles in their starting
+        positions.
+
+        If "shuffle" is set to True in InitialConfig, the initial positions of
+        vehicles is recalculated and the vehicles are shuffled.
+
+        Returns
+        -------
+        observation : dict of array_like
+            the initial observation of the space. The initial reward is assumed
+            to be zero.
+        """
+        # reset the time counter
+        self.time_counter = 0
+
+        # reset the observed ids
+        self._observed_ids = set()
+        self._observed_rl_ids = set()
+
+        # Now that we've passed the possibly fake init steps some rl libraries
+        # do, we can feel free to actually render things
+        if self.should_render:
+            self.sim_params.render = True
+            # got to restart the simulation to make it actually display anything
+            self.restart_simulation(self.sim_params)
+            self.should_render = False
+
+        # warn about not using restart_instance when using inflows
+        if len(self.net_params.inflows.get()) > 0 and \
+                not self.sim_params.restart_instance:
+            print(
+                "**********************************************************\n"
+                "**********************************************************\n"
+                "**********************************************************\n"
+                "WARNING: Inflows will cause computational performance to\n"
+                "significantly decrease after large number of rollouts. In \n"
+                "order to avoid this, set SumoParams(restart_instance=True).\n"
+                "**********************************************************\n"
+                "**********************************************************\n"
+                "**********************************************************"
+            )
+
+        if self.sim_params.restart_instance or \
+                (self.step_counter > 2e6 and self.simulator != 'aimsun'):
+            self.step_counter = 0
+            # issue a random seed to induce randomness into the next rollout
+            self.sim_params.seed = random.randint(0, 1e5)
+
+            self.k.vehicle = deepcopy(self.initial_vehicles)
+            self.k.vehicle.master_kernel = self.k
+            # restart the sumo instance
+            self.restart_simulation(self.sim_params)
+
+        # perform shuffling (if requested)
+        elif self.initial_config.shuffle:
+            self.setup_initial_state()
+
+        # clear all vehicles from the network and the vehicles class
+        if self.simulator == 'traci':
+            for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
+                try:
+                    self.k.vehicle.remove(veh_id)
+                except (FatalTraCIError, TraCIException):
+                    print(traceback.format_exc())
+
+        # clear all vehicles from the network and the vehicles class
+        # FIXME (ev, ak) this is weird and shouldn't be necessary
+        for veh_id in list(self.k.vehicle.get_ids()):
+            # do not try to remove the vehicles from the network in the first
+            # step after initializing the network, as there will be no vehicles
+            if self.step_counter == 0:
+                continue
+            try:
+                self.k.vehicle.remove(veh_id)
+            except (FatalTraCIError, TraCIException):
+                print("Error during start: {}".format(traceback.format_exc()))
+
+        # do any additional resetting of the vehicle class needed
+        self.k.vehicle.reset()
+
+        # reintroduce the initial vehicles to the network
+        for veh_id in self.initial_ids:
+            type_id, edge, lane_index, pos, speed = \
+                self.initial_state[veh_id]
+
+            try:
+                self.k.vehicle.add(
+                    veh_id=veh_id,
+                    type_id=type_id,
+                    edge=edge,
+                    lane=lane_index,
+                    pos=pos,
+                    speed=speed)
+            except (FatalTraCIError, TraCIException):
+                # if a vehicle was not removed in the first attempt, remove it
+                # now and then reintroduce it
+                self.k.vehicle.remove(veh_id)
+                if self.simulator == 'traci':
+                    self.k.kernel_api.vehicle.remove(veh_id)  # FIXME: hack
+                self.k.vehicle.add(
+                    veh_id=veh_id,
+                    type_id=type_id,
+                    edge=edge,
+                    lane=lane_index,
+                    pos=pos,
+                    speed=speed)
+
+        # advance the simulation in the simulator by one step
+        self.k.simulation.simulation_step()
+
+        # update the information in each kernel to match the current state
+        self.k.update(reset=True)
+
+        # update the colors of vehicles
+        if self.sim_params.render:
+            self.k.vehicle.update_vehicle_colors()
+
+        # check to make sure all vehicles have been spawned
+        if len(self.initial_ids) > self.k.vehicle.num_vehicles:
+            missing_vehicles = list(
+                set(self.initial_ids) - set(self.k.vehicle.get_ids()))
+            msg = '\nNot enough vehicles have spawned! Bad start?\n' \
+                  'Missing vehicles / initial state:\n'
+            for veh_id in missing_vehicles:
+                msg += '- {}: {}\n'.format(veh_id, self.initial_state[veh_id])
+            raise FatalFlowError(msg=msg)
+
+        # update the network to set the downstream edge speed
+        if self.env_params.additional_params["randomize_downstream_speed"]:
+            min_speed = self.env_params.additional_params["min_downstream_speed"]
+            max_speed = self.env_params.additional_params["max_downstream_speed"]
+            downstream_speed = np.random.uniform(low=min_speed, high=max_speed)
+            self.k.network.set_max_speed(self.exit_edge, downstream_speed)
+
+        # perform (optional) warm-up steps before training
+        for _ in range(self.env_params.warmup_steps):
+            observation, _, _, _ = self.step(rl_actions=None)
+
+        # render a frame
+        self.render(reset=True)
+
+        return self.get_state()
 
 
 class MultiStraightRoad(I210MultiEnv):

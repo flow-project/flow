@@ -74,7 +74,7 @@ vehicles.add(
     ),
     acceleration_controller=(IDMController, {"a": .3, "b": 2.0,
                                              "noise": 0.5,
-                                             "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel',
+                                             "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel',
                                                           'instantaneous'],
                                              }),
 )
@@ -87,7 +87,7 @@ vehicles.add(
         min_gap=0.5
     ),
     acceleration_controller=(RLController, {
-        "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
     }))
 
 # add human vehicles on the highway
