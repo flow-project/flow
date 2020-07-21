@@ -203,17 +203,17 @@ class I210MultiEnv(MultiEnv):
                             rewards[rl_id] += instantaneous_mpg(self, follow_id, gain=1.0) / 100.0
                         else:
                             break
-                #else:
-                follow_id = rl_id
-                for i in range(self.look_back_length + 1):
-                    if follow_id not in ["", None]:
-                        follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(follow_id))
-                        reward = (des_speed - min(np.abs(follow_speed - des_speed), des_speed)) ** 2
-                        reward /= ((des_speed ** 2) * self.look_back_length)
-                        rewards[rl_id] += reward
-                    else:
-                        break
-                    follow_id = self.k.vehicle.get_follower(follow_id)
+                else:
+                    follow_id = rl_id
+                    for i in range(self.look_back_length + 1):
+                        if follow_id not in ["", None]:
+                            follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(follow_id))
+                            reward = (des_speed - min(np.abs(follow_speed - des_speed), des_speed)) ** 2
+                            reward /= ((des_speed ** 2) * self.look_back_length)
+                            rewards[rl_id] += reward
+                        else:
+                            break
+                        follow_id = self.k.vehicle.get_follower(follow_id)
 
         else:
             if self.mpg_reward:
