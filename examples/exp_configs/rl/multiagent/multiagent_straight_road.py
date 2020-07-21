@@ -60,7 +60,7 @@ additional_env_params.update({
     'lead_obs': True,
     'control_range': [500, 2300],
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": True,
+    "reroute_on_exit": False,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
     "mpg_reward": False,
     # whether to use the joules reward. Otherwise, defaults to a target velocity reward
@@ -94,6 +94,11 @@ additional_env_params.update({
     "penalize_accel": True,
     "accel_penalty": 0.05,
 
+    # control the range of speeds of the downstream edge
+    # if true, we vary the downstream speed
+    "randomize_downstream_speed": True,
+    "max_downstream_speed": 10.0,
+    "min_downstream_speed": 3.0,
 })
 
 
@@ -107,7 +112,7 @@ vehicles.add(
         'a': 1.3,
         'b': 2.0,
         'noise': 0.3 if INCLUDE_NOISE else 0.0,
-        "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
     }),
     car_following_params=SumoCarFollowingParams(
         speed_mode=8,
@@ -123,13 +128,7 @@ vehicles.add(
 vehicles.add(
     color='red',
     veh_id='rl',
-    car_following_params=SumoCarFollowingParams(
-        speed_mode=8,
-        min_gap=0.5
-    ),
-    acceleration_controller=(RLController, {
-        "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
-    }))
+    acceleration_controller=(RLController, {}))
 
 # add human vehicles on the highway
 inflows.add(

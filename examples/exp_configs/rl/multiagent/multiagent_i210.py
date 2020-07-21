@@ -118,7 +118,13 @@ additional_env_params.update({
 
     # penalize accels
     "penalize_accel": False,
-    "accel_penalty": (1 / 400.0)
+    "accel_penalty": (1 / 400.0),
+
+    # control the range of speeds of the downstream edge
+    # if true, we vary the downstream speed
+    "randomize_downstream_speed": True,
+    "max_downstream_speed": 10.0,
+    "min_downstream_speed": 3.0,
 })
 
 # =========================================================================== #
@@ -136,7 +142,7 @@ if ON_RAMP:
             'a': 1.3,
             'b': 2.0,
             'noise': 0.3,
-            "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
+            "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
         }),
         car_following_params=SumoCarFollowingParams(
             speed_mode=8
@@ -153,7 +159,7 @@ else:
             'a': 1.3,
             'b': 2.0,
             'noise': 0.3,
-            "failsafe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
+            "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
         }),
         car_following_params=SumoCarFollowingParams(
             speed_mode=8
