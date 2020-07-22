@@ -380,7 +380,7 @@ class I210MultiEnv(MultiEnv):
         state, reward, done, info = super().step(rl_actions)
         # handle the edge case where a vehicle hasn't been put back when the rollout terminates
         if self.reroute_on_exit and done['__all__']:
-            for rl_id in self.observed_rl_ids:
+            for rl_id in self.k.vehicle.get_rl_ids():
                 if rl_id not in state.keys():
                     done[rl_id] = True
                     reward[rl_id] = 0
