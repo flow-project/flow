@@ -228,5 +228,6 @@ def get_rllib_pkl(path):
             "Could not find params.pkl in either the checkpoint dir or "
             "its parent directory.")
     with open(config_path, 'rb') as f:
+        print(f)
         config = cloudpickle.load(f)
     return config
