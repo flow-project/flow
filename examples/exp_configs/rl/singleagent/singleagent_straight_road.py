@@ -87,7 +87,7 @@ vehicles.add(
         min_gap=0.5
     ),
     acceleration_controller=(RLController, {
-        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
     }))
 
 # add human vehicles on the highway
