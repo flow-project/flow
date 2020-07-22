@@ -142,7 +142,7 @@ if ON_RAMP:
             'a': 1.3,
             'b': 2.0,
             'noise': 0.3,
-            "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
+            "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
         }),
         car_following_params=SumoCarFollowingParams(
             speed_mode=8
@@ -159,7 +159,7 @@ else:
             'a': 1.3,
             'b': 2.0,
             'noise': 0.3,
-            "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel', 'instantaneous'],
+            "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
         }),
         car_following_params=SumoCarFollowingParams(
             speed_mode=8
