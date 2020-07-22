@@ -82,7 +82,7 @@ additional_env_params.update({
     "local_reward": True,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity
     # reward
-    "mpg_reward": False,
+    "mpg_reward": True,
     # whether to use the MPJ reward. Otherwise, defaults to a target velocity
     # reward
     "mpj_reward": False,
