@@ -194,7 +194,8 @@ class I210MultiEnv(MultiEnv):
             des_speed = self.env_params.additional_params["target_velocity"]
             for rl_id in valid_ids:
                 rewards[rl_id] = 0
-                if self.mpg_reward:
+                # MPG REWARD
+                if True: #self.mpg_reward:
                     rewards[rl_id] = instantaneous_mpg(self, rl_id, gain=1.0) / 100.0
                     follow_id = rl_id
                     for i in range(self.look_back_length):
@@ -203,7 +204,10 @@ class I210MultiEnv(MultiEnv):
                             rewards[rl_id] += instantaneous_mpg(self, follow_id, gain=1.0) / 100.0
                         else:
                             break
-                else:
+                    # print('reward mpg all =', rewards[rl_id])
+                rewards[rl_id] /= 100  # final reward = mpg/100 + speed
+                # SPEED REWARD
+                if True: #else:
                     follow_id = rl_id
                     for i in range(self.look_back_length + 1):
                         if follow_id not in ["", None]:
@@ -211,9 +215,11 @@ class I210MultiEnv(MultiEnv):
                             reward = (des_speed - min(np.abs(follow_speed - des_speed), des_speed)) ** 2
                             reward /= ((des_speed ** 2) * self.look_back_length)
                             rewards[rl_id] += reward
+                            # print(f'follow_id = {follow_id}, follow_speed = {follow_speed}, des_speed = {des_speed}, look_back_length = {self.look_back_length}, reward = {reward}')
                         else:
                             break
                         follow_id = self.k.vehicle.get_follower(follow_id)
+                    # print('reward mpg + speed all =', rewards[rl_id])
 
         else:
             if self.mpg_reward:
