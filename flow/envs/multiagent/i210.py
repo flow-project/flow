@@ -384,23 +384,22 @@ class I210MultiEnv(MultiEnv):
     def step(self, rl_actions):
         """See parent class for more details; add option to reroute vehicles."""
         state, reward, done, info = super().step(rl_actions)
-        # handle the edge case where a vehicle hasn't been put back when the rollout terminates
-        if self.reroute_on_exit and done['__all__']:
-            for rl_id in self.k.vehicle.get_rl_ids():
-                if rl_id not in state.keys():
-                    done[rl_id] = True
-                    reward[rl_id] = 0
-                    state[rl_id] = -1 * np.ones(self.observation_space.shape[0])
-        else:
+        if done['__all__']:
+            # handle the edge case where a vehicle hasn't been put back when the rollout terminates
+            if self.reroute_on_exit:
+                for rl_id in self.k.vehicle.get_rl_ids():
+                    if rl_id not in state.keys():
+                        done[rl_id] = True
+                        reward[rl_id] = 0
+                        state[rl_id] = -1 * np.ones(self.observation_space.shape[0])
             # you have to catch the vehicles on the exit edge, they have not yet
             # recieved a done when the env terminates
-            if done['__all__']:
-                on_exit_edge = [rl_id for rl_id in self.k.vehicle.get_rl_ids()
-                                if self.k.vehicle.get_edge(rl_id) == self.exit_edge]
-                for rl_id in on_exit_edge:
-                    done[rl_id] = True
-                    reward[rl_id] = 0
-                    state[rl_id] = -1 * np.ones(self.observation_space.shape[0])
+            on_exit_edge = [rl_id for rl_id in self.k.vehicle.get_rl_ids()
+                            if self.k.vehicle.get_edge(rl_id) == self.exit_edge]
+            for rl_id in on_exit_edge:
+                done[rl_id] = True
+                reward[rl_id] = 0
+                state[rl_id] = -1 * np.ones(self.observation_space.shape[0])
 
         return state, reward, done, info
 
