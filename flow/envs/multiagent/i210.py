@@ -286,10 +286,6 @@ class I210MultiEnv(MultiEnv):
         # print('time to get reward is ', time() - t)
         return rewards
 
-    def reset(self):
-        super().reset()
-        self.reroute_rl_ids = None
-
     def additional_command(self):
         """See parent class.
 
@@ -347,6 +343,8 @@ class I210MultiEnv(MultiEnv):
                 for veh_id in departed_ids:
                     if veh_id not in self._observed_ids:
                         self.k.vehicle.remove(veh_id)
+        else:
+            self.reroute_rl_ids = None
 
     def state_util(self, rl_id):
         """Return an array of headway, tailway, leader speed, follower speed.
