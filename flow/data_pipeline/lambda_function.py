@@ -8,7 +8,7 @@ from flow.data_pipeline.query import tables, network_filters, summary_tables, tr
 
 s3 = boto3.client('s3')
 queryEngine = AthenaQuery()
-
+sqs = boto3.client('sqs')
 
 def lambda_handler(event, context):
     """Handle S3 put event on AWS Lambda."""
@@ -24,7 +24,7 @@ def lambda_handler(event, context):
             s3_event = json.loads(event_record['body'])
             event_records.extend(s3_event['Records'])
     # do a pre-sweep to handle tasks other than initalizing a query
-    for record in event['Records']:
+    for record in event_records:
         bucket = record['s3']['bucket']['name']
         key = unquote_plus(record['s3']['object']['key'])
         table = key.split('/')[0]
@@ -80,5 +80,9 @@ def lambda_handler(event, context):
                                                                                                   query_date,
                                                                                                   source_id,
                                                                                                   readied_query_name)
-            queryEngine.run_query(readied_query_name, result_location, query_date, partition, loc_filter=loc_filter,
-                                  start_filter=start_filter, stop_filter=stop_filter)
+            message_body = (readied_query_name, result_location, query_date, partition, loc_filter, start_filter,
+                            stop_filter)
+            message_body = json.dumps(message_body)
+            response = sqs.send_message(
+                QueueUrl="https://sqs.us-west-2.amazonaws.com/409746595792/RunQueryRequests",
+                MessageBody=message_body)

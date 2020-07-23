@@ -25,11 +25,15 @@ def generate_trajectory_table(emission_files, trajectory_table_path, source_id):
         a unique id for the simulation that generate these emissions
     """
     for i in range(len(emission_files)):
-        emission_output = pd.read_csv(emission_files[i])
-        emission_output['source_id'] = source_id
-        emission_output['run_id'] = "run_{}".format(i)
-        # add header row to the file only at the first run (when i==0)
-        emission_output.to_csv(trajectory_table_path, mode='a+', index=False, header=(i == 0))
+        # 1000000 rows are approximately 260 MB, which is an appropriate size to load into memory at once
+        emission_output = pd.read_csv(emission_files[i], iterator=True, chunksize=1000000)
+        chunk_count = 0
+        for chunk in emission_output:
+            chunk['source_id'] = source_id
+            chunk['run_id'] = "run_{}".format(i)
+            # add header row to the file only at the first run (when i==0) and the first chunk (chunk_count==0)
+            chunk.to_csv(trajectory_table_path, mode='a+', index=False, header=(chunk_count == 0) and (i == 0))
+            chunk_count += 1
 
 
 def write_dict_to_csv(data_path, extra_info, include_header=False):
