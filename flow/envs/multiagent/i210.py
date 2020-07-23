@@ -71,7 +71,7 @@ class I210MultiEnv(MultiEnv):
         self.max_lanes = MAX_LANES
         self.num_enter_lanes = 5
         self.entrance_edge = "ghost0"
-        self.exit_edge = "119257908#2"
+        self.exit_edge = "119257908#3"
         self.control_range = env_params.additional_params.get('control_range', None)
         self.no_control_edges = env_params.additional_params.get('no_control_edges', [])
         self.mpg_reward = env_params.additional_params["mpg_reward"]
@@ -311,7 +311,7 @@ class I210MultiEnv(MultiEnv):
                     continue
                 # on the exit edge, near the end, and is the vehicle furthest along
                 if edge == self.exit_edge and \
-                        (self.k.vehicle.get_position(veh_id) > self.k.network.edge_length(self.exit_edge) - 10) \
+                        (self.k.vehicle.get_position(veh_id) > self.k.network.edge_length(self.exit_edge) - 20) \
                         and self.k.vehicle.get_leader(veh_id) is None:
                     type_id = self.k.vehicle.get_type(veh_id)
                     # remove the vehicle
