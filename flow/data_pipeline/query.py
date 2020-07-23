@@ -291,8 +291,8 @@ class QueryStrings(Enum):
         SELECT
             CONCAT('[', CAST(bins.lb AS VARCHAR), ', ', CAST(bins.ub AS VARCHAR), ')') AS safety_value_bin,
             COUNT() AS count
-        FROM bins, fact_safety_metrics fsm
-        WHERE 1 = 1
+        FROM bins
+        LEFT JOIN fact_safety_metrics fsm ON 1 = 1
             AND fsm.date = \'{date}\'
             AND fsm.partition_name = \'{partition}_FACT_SAFETY_METRICS\'
             AND fsm.safety_value >= bins.lb
@@ -386,18 +386,18 @@ class QueryStrings(Enum):
             FROM unfilter_bins
             WHERE 1=1
                 AND lb >= 0
-                AND ub <= 20
+                AND ub <= 60
         )
         SELECT
             CONCAT('[', CAST(bins.lb AS VARCHAR), ', ', CAST(bins.ub AS VARCHAR), ')') AS fuel_efficiency_bin,
             COUNT() AS count
-        FROM bins, fact_vehicle_fuel_efficiency_agg agg
-        WHERE 1 = 1
+        FROM bins
+        LEFT JOIN fact_vehicle_fuel_efficiency_agg agg ON 1 = 1
             AND agg.date = \'{date}\'
             AND agg.partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
             AND agg.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
-            AND 1000 * agg.efficiency_meters_per_joules >= bins.lb
-            AND 1000 * agg.efficiency_meters_per_joules < bins.ub
+            AND agg.efficiency_miles_per_gallon >= bins.lb
+            AND agg.efficiency_miles_per_gallon < bins.ub
         GROUP BY 1
         ;
     """
@@ -739,27 +739,48 @@ class QueryStrings(Enum):
                 AND (m.is_baseline='False'
                      OR (m.is_baseline='True'
                          AND m.source_id = b.source_id))
+        ), joined_cols AS (
+            SELECT
+                agg.submission_date,
+                agg.source_id,
+                agg.submitter_name,
+                agg.strategy,
+                agg.network,
+                agg.is_baseline,
+                agg.energy_model_id,
+                agg.efficiency_meters_per_joules,
+                agg.efficiency_miles_per_gallon,
+                100 * (1 - baseline.efficiency_miles_per_gallon / agg.efficiency_miles_per_gallon)
+                    AS fuel_improvement,
+                agg.throughput_per_hour,
+                100 * (baseline.throughput_per_hour - agg.throughput_per_hour) / baseline.throughput_per_hour
+                    AS throughput_improvement,
+                agg.safety_rate,
+                agg.safety_value_max
+            FROM agg
+            JOIN agg AS baseline ON 1 = 1
+                AND agg.network = baseline.network
+                AND baseline.is_baseline = 'True'
+                AND agg.baseline_source_id = baseline.source_id
         )
         SELECT
-            agg.submission_date,
-            agg.source_id,
-            agg.submitter_name,
-            agg.strategy,
-            agg.network,
-            agg.is_baseline,
-            agg.energy_model_id,
-            agg.efficiency_meters_per_joules,
-            agg.efficiency_miles_per_gallon,
-            100 * (1 - baseline.efficiency_miles_per_gallon / agg.efficiency_miles_per_gallon) AS percent_improvement,
-            agg.throughput_per_hour,
-            agg.safety_rate,
-            agg.safety_value_max
-        FROM agg
-        JOIN agg AS baseline ON 1 = 1
-            AND agg.network = baseline.network
-            AND baseline.is_baseline = 'True'
-            AND agg.baseline_source_id = baseline.source_id
-        ORDER BY agg.submission_date, agg.submission_time ASC
+            submission_date,
+            source_id,
+            submitter_name,
+            strategy,
+            network,
+            is_baseline,
+            energy_model_id,
+            efficiency_miles_per_gallon,
+            ROUND(efficiency_miles_per_gallon, 1) ||
+                ' (' || CASE(WHEN SIGN(fuel_improvement) = 1 THEN '+' END) ||
+                ROUND(fuel_improvement, 1) || ')' AS efficiency,
+            ROUND(throughput_per_hour, 1) ||
+                ' (' || CASE(WHEN SIGN(throughput_improvement) = 1 THEN '+' END) ||
+                ROUND(throughput_improvement, 1) || ')' AS inflow,
+            ROUND(safety_rate, 1) AS safety_rate,
+            ROUND(safety_value_max, 1) AS safety_value_max
+        FROM joined_cols
         ;"""
 
     FACT_TOP_SCORES = """
@@ -767,7 +788,7 @@ class QueryStrings(Enum):
             SELECT
                 network,
                 submission_date,
-                1000 * MAX(efficiency_meters_per_joules)
+                MAX(efficiency_miles_per_gallon)
                     OVER (PARTITION BY network ORDER BY submission_date ASC
                     ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS max_score
             FROM leaderboard_chart_agg
@@ -786,5 +807,7 @@ class QueryStrings(Enum):
         )
         SELECT DISTINCT *
         FROM unioned
+        WHERE 1 = 1
+            AND max_score IS NOT NULL
         ORDER BY 1, 2, 3
         ;"""
