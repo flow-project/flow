@@ -766,12 +766,12 @@ class QueryStrings(Enum):
             is_baseline,
             energy_model_id,
             efficiency_miles_per_gallon,
-            ROUND(efficiency_miles_per_gallon, 1) ||
-                ' (' || CASE(WHEN SIGN(fuel_improvement) = 1 THEN '+' END) ||
-                ROUND(fuel_improvement, 1) || ')' AS efficiency,
-            ROUND(throughput_per_hour, 1) ||
-                ' (' || CASE(WHEN SIGN(throughput_improvement) = 1 THEN '+' END) ||
-                ROUND(throughput_improvement, 1) || ')' AS inflow,
+            CAST (ROUND(efficiency_miles_per_gallon, 1) AS VARCHAR) ||
+                ' (' || (CASE WHEN SIGN(fuel_improvement) = 1 THEN '+' ELSE '' END) ||
+                CAST (ROUND(fuel_improvement, 1) AS VARCHAR) || ')' AS efficiency,
+            CAST (ROUND(throughput_per_hour, 1) AS VARCHAR) ||
+                ' (' || (CASE WHEN SIGN(throughput_improvement) = 1 THEN '+' ELSE '' END) ||
+                CAST (ROUND(throughput_improvement, 1) AS VARCHAR) || ')' AS inflow,
             ROUND(safety_rate, 1) AS safety_rate,
             ROUND(safety_value_max, 1) AS safety_value_max
         FROM joined_cols
