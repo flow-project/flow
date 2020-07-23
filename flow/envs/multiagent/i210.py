@@ -76,6 +76,7 @@ class I210MultiEnv(MultiEnv):
         self.no_control_edges = env_params.additional_params.get('no_control_edges', [])
         self.mpg_reward = env_params.additional_params["mpg_reward"]
         self.look_back_length = env_params.additional_params["look_back_length"]
+        self.reroute_rl_ids = None  # list of RL vehicles (constant) after reroute_on_exit starts
 
         # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
         self.headway_curriculum = env_params.additional_params["headway_curriculum"]
@@ -301,6 +302,8 @@ class I210MultiEnv(MultiEnv):
 
         if self.reroute_on_exit and self.time_counter >= self.env_params.sims_per_step * self.env_params.warmup_steps \
                 and not self.env_params.evaluate:
+            if not self.reroute_rl_ids:
+                self.reroute_rl_ids = self.k.vehicle.get_rl_ids()
             veh_ids = list(self.k.vehicle.get_ids())
             edges = self.k.vehicle.get_edge(veh_ids)
             valid_lanes = list(range(self.num_enter_lanes))
@@ -387,7 +390,7 @@ class I210MultiEnv(MultiEnv):
         if done['__all__']:
             # handle the edge case where a vehicle hasn't been put back when the rollout terminates
             if self.reroute_on_exit:
-                for rl_id in self.k.vehicle.get_rl_ids():
+                for rl_id in self.reroute_rl_ids: #self.k.vehicle.get_rl_ids():
                     if rl_id not in state.keys():
                         done[rl_id] = True
                         reward[rl_id] = 0
