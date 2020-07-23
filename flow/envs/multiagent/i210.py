@@ -286,6 +286,10 @@ class I210MultiEnv(MultiEnv):
         # print('time to get reward is ', time() - t)
         return rewards
 
+    def reset(self):
+        super().reset()
+        self.reroute_rl_ids = None
+
     def additional_command(self):
         """See parent class.
 
