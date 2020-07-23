@@ -35,9 +35,9 @@ ON_RAMP_INFLOW_RATE = 500
 # the speed of inflowing vehicles from the main edge (in m/s)
 INFLOW_SPEED = 25.5
 # fraction of vehicles that are follower-stoppers. 0.10 corresponds to 10%
-PENETRATION_RATE = 0.0
+PENETRATION_RATE = 0.10
 # desired speed of the follower stopper vehicles
-V_DES = 5.0
+V_DES = 14.0
 # horizon over which to run the env
 HORIZON = 1500
 # steps to run before follower-stopper is allowed to take control

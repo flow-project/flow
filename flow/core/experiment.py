@@ -99,7 +99,8 @@ class Experiment:
             convert_to_csv=False,
             to_aws=None,
             only_query="",
-            is_baseline=False):
+            is_baseline=False,
+            supplied_metadata=None):
         """Run the given network for a set number of runs.
 
         Parameters
@@ -122,6 +123,8 @@ class Experiment:
             then it implies no queries should be run on this.
         is_baseline: bool
             Specifies whether this is a baseline run.
+        supplied_metadata: dict
+            metadata provided by the caller
 
         Returns
         -------
@@ -244,8 +247,8 @@ class Experiment:
         self.env.terminate()
 
         if to_aws:
-            generate_trajectory_table(emission_files, trajectory_table_path, source_id)
             write_dict_to_csv(metadata_table_path, metadata, True)
+            generate_trajectory_table(emission_files, trajectory_table_path, source_id)
             tsd_main(
                 trajectory_table_path,
                 {
@@ -277,6 +280,5 @@ class Experiment:
                 trajectory_table_path.replace('csv', 'png')
             )
             os.remove(trajectory_table_path)
-            os.remove(metadata_table_path)
 
         return info_dict
