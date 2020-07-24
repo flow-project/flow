@@ -19,7 +19,7 @@ ADDITIONAL_ENV_PARAMS = {'target_nodes': [3344],
                                             ]}  # 14-21
 # the replication list should be copied in load.py
 
-RLLIB_N_ROLLOUTS = 6  # copy from train_rllib.py
+RLLIB_N_ROLLOUTS = 3  # copy from train_rllib.py
 
 np.random.seed(1234567890)
 
@@ -69,6 +69,7 @@ class SingleLightEnv(Env):
         self.observed_phases = []
         self.phases = []
         self.sum_barrier = []
+        self.current_phase_timings = []
 
         # hardcode maxout values maxd_dict = {'control_id':'phase_maxout'}
         self.maxd_dict = {}
@@ -108,16 +109,17 @@ class SingleLightEnv(Env):
                     self.observed_phases.append(phase)  # compile all green phases in a list
             print(self.observed_phases)
 
-        self.current_phase_timings = np.zeros(int(len(self.observed_phases)))
+        #self.current_phase_timings = np.zeros(int(len(self.observed_phases)))
         # reset phase duration
         for node_id in self.target_nodes:
             for phase in self.observed_phases:
                 phase_duration, maxd, mind = self.k.traffic_light.get_duration_phase(node_id, phase)
                 #self.k.traffic_light.change_phase_duration(node_id, phase, phase_duration)
+                self.current_phase_timings.append(phase_duration)
                 print('initial phase: {} duration: {} max: {} min: {}'.format(phase, phase_duration, maxd, mind))
             self.cycle = self.k.traffic_light.get_cycle_length(node_id, self.control_id)
             print('cycle_length: {}'.format(self.cycle))
-
+        
         self.ignore_policy = False
 
     @property
@@ -141,11 +143,6 @@ class SingleLightEnv(Env):
         self.cycle = self.k.traffic_light.get_cycle_length(self.node_id, self.control_id)
         cycle = self.cycle - self.sum_interphase
         default_actions = np.array(rl_actions).flatten()
-        """actions = rescale_linear(default_actions, self.minimum_green, self.max_duration)
-        prob_phase = np.array([[actions[0], actions[1]], [actions[2], actions[3]]]) / 70
-        prob_barrier = [(actions[-1]/70), 1 - (actions[-1]/ 70)]
-        sum_barrier = [round(prob_barrier[0]*cycle), round(prob_barrier[1]*cycle)]
-        actionf = []""" # new code for minimum green set to 5
         actions = np.round(rescale_phase_pair(default_actions, 14, 100))
         # gives percentage for each phase pair
         prob_barrier = [actions[-1]/113, 1 - (actions[-1]/113)]
@@ -161,6 +158,7 @@ class SingleLightEnv(Env):
             ring = prob_phase[i] # [0,1]
             for j in range(len(ring)):
                 new_phase1, new_phase2 = round(ring[j]*sum_barrier[j]), sum_barrier[j] - round(ring[j]*sum_barrier[j])
+                # Setting minimum green to 5
                 if new_phase1 < 5:
                     new_phase1 = 5
                     new_phase2 = sum_barrier[j] - new_phase1
@@ -169,13 +167,6 @@ class SingleLightEnv(Env):
                     new_phase1 = sum_barrier[j] - new_phase2
                 phase_pair = [new_phase1, new_phase2]
                 actionf.append(phase_pair)
-
-        """for i in range(len(prob_phase)): # [[0,1],[2,3]]
-            ring = prob_phase[i] # [0,1]
-            for j in range(len(ring)):
-                new_phased = round(ring[j]*sum_barrier[j])
-                phase_pair = [new_phased, sum_barrier[j] - new_phased]
-                actionf.append(phase_pair)"""
 
         new_actions = np.array(actionf).flatten()
         phase_list = self.observed_phases
@@ -264,7 +255,8 @@ class SingleLightEnv(Env):
     def compute_reward(self, rl_actions, **kwargs):
         """Computes the sum of queue lengths at all intersections in the network."""
         reward = 0
-        slope = []
+        # flow/occupancy as reward
+        """slope = []
         
         for i, (node,edge) in enumerate(self.edge_detector_dict.items()):
             for j, (section, detector) in enumerate(edge.items()):
@@ -280,15 +272,16 @@ class SingleLightEnv(Env):
         #sum_slope = sum(map(lambda i : i * i, slope)) 
         sum_slope = sum(slope)
         #print(sum_slope)
-        reward = (sum_slope)
+        reward = (sum_slope)"""
         
-        """for section_id in self.past_cumul_queue:
+        # queue length as reward
+        for section_id in self.past_cumul_queue:
             current_cumul_queue = self.k.traffic_light.get_cumulative_queue_length(section_id)
             queue = current_cumul_queue - self.past_cumul_queue[section_id]
             self.past_cumul_queue[section_id] = current_cumul_queue
 
             # reward is negative queues
-            reward -= (queue**2) * 100"""
+            reward -= (queue**2) * 100
 
         print(f'{self.k.simulation.time:.0f}', '\t', f'{reward:.2f}', '\t', self.control_id, '\t',
               self.current_phase_timings[0],'\t', self.current_phase_timings[1],'\t', self.current_phase_timings[2],'\t', 
@@ -361,7 +354,7 @@ class SingleLightEnv(Env):
         self.episode_counter += 1
 
         # reset variables
-        self.current_phase_timings = np.zeros(int(len(self.observed_phases)))
+        #self.current_phase_timings = np.zeros(int(len(self.observed_phases)))
         for section_id in self.past_cumul_queue:
             self.past_cumul_queue[section_id] = 0
 

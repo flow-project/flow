@@ -16,18 +16,18 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 
 
-SIM_STEP = 0.8  # copy to run.py #sync time
+SIM_STEP = 1  # copy to run.py #sync time
 
 # hardcoded to AIMSUN's statistics update interval (5 minutes)
 DETECTOR_STEP = 900  # copy to run.py #Cj: every 2 minutes (typical cycle length)
 
-TIME_HORIZON = 3600*4 - DETECTOR_STEP  # 14280
+TIME_HORIZON = 3600*4 - DETECTOR_STEP  # 14400
 HORIZON = int(TIME_HORIZON//SIM_STEP)  # 18000
 
 RLLIB_N_CPUS = 2
-RLLIB_HORIZON = int(TIME_HORIZON//DETECTOR_STEP)  #  15
+RLLIB_HORIZON = int(TIME_HORIZON//DETECTOR_STEP)  #  16
 
-RLLIB_N_ROLLOUTS = 6  # copy to coordinated_lights.py
+RLLIB_N_ROLLOUTS = 3  # copy to coordinated_lights.py
 RLLIB_TRAINING_ITERATIONS = 1000000
 
 net_params = NetParams(template=os.path.abspath("scenario_one_hour.ang"))
