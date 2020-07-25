@@ -206,7 +206,7 @@ class I210MultiEnv(MultiEnv):
                         else:
                             break
                     # print('reward mpg all =', rewards[rl_id])
-                rewards[rl_id] /= 100  # final reward = mpg/100 + speed
+                rewards[rl_id] /= 10  # final reward = mpg/100 + speed
                 # SPEED REWARD
                 if True: #else:
                     follow_id = rl_id
