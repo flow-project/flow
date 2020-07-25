@@ -89,7 +89,7 @@ additional_env_params.update({
     # how many vehicles to look back for any reward
     "look_back_length": 8,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": False,
+    "reroute_on_exit": True,
     'target_velocity': 5.0,
     # how many AVs there can be at once (this is only for centralized critics)
     "max_num_agents": 10,
@@ -113,11 +113,11 @@ additional_env_params.update({
     # weight of the headway reward
     "speed_reward_gain": 5.0,
     # penalize stopped vehicles
-    "penalize_stops": False,
+    "penalize_stops": True,
     "stop_penalty": 0.01,
 
     # penalize accels
-    "penalize_accel": False,
+    "penalize_accel": True,
     "accel_penalty": (1 / 400.0)
 })
 
