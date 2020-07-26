@@ -121,21 +121,21 @@ ray exec ray_autoscale.yaml \
 --upload_graphs Nathan i210_ppo_0p1_speed1mpg1_reroute_nop_l0dj7 --exp_title i210_ppo_0p1_speed1mpg1_reroute_nop_l0dj7" \
 --start --stop --cluster-name nathan-i210_ppo_0p1_speed1mpg1_reroute_nop_l0dj7 --tmux
 
-# 26/07/20 11h?? -- 10% ; no reroute ; mpg + speed ; no penalties
+# 26/07/20 11h59 -- 10% ; no reroute ; mpg + speed ; no penalties
 ray exec ray_autoscale.yaml \
 "python flow/examples/train.py multiagent_i210 --num_iterations 40 --num_rollouts 20 \
 --checkpoint_freq 10 --use_s3 --num_cpus 17 --algorithm PPO --rl_trainer rllib --grid_search --multi_node \
 --upload_graphs Nathan i210_ppo_0p1_speed1mpg1_nop_pmu87 --exp_title i210_ppo_0p1_speed1mpg1_nop_pmu87" \
 --start --stop --cluster-name nathan-i210_ppo_0p1_speed1mpg1_nop_pmu87 --tmux
 
-# 26/07/20 11h?? -- 10% ; reroute ; mpg + speed ; both penalties
+# 26/07/20 12h03 -- 10% ; reroute ; mpg + speed ; both penalties
 ray exec ray_autoscale.yaml \
 "python flow/examples/train.py multiagent_i210 --num_iterations 40 --num_rollouts 20 \
 --checkpoint_freq 10 --use_s3 --num_cpus 17 --algorithm PPO --rl_trainer rllib --grid_search --multi_node \
 --upload_graphs Nathan i210_ppo_0p1_speed1mpg1_reroute_bothp_jcv2d --exp_title i210_ppo_0p1_speed1mpg1_reroute_bothp_jcv2d" \
 --start --stop --cluster-name nathan-i210_ppo_0p1_speed1mpg1_reroute_bothp_jcv2d --tmux
 
-# 26/07/20 11h?? -- 10% ; no reroute ; mpg + speed ; both penalties
+# 26/07/20 12h11 -- 10% ; no reroute ; mpg + speed ; both penalties
 ray exec ray_autoscale.yaml \
 "python flow/examples/train.py multiagent_i210 --num_iterations 40 --num_rollouts 20 \
 --checkpoint_freq 10 --use_s3 --num_cpus 17 --algorithm PPO --rl_trainer rllib --grid_search --multi_node \
