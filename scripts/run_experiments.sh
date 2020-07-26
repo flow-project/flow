@@ -142,6 +142,29 @@ ray exec ray_autoscale.yaml \
 --upload_graphs Nathan i210_ppo_0p1_speed1mpg1_bothp_rck11 --exp_title i210_ppo_0p1_speed1mpg1_bothp_rck11" \
 --start --stop --cluster-name nathan-i210_ppo_0p1_speed1mpg1_bothp_rck11 --tmux
 
+##
+
+# 26/07/20 13h01 -- 10% ; reroute ; mpg ; both penalties
+ray exec ray_autoscale.yaml \
+"python flow/examples/train.py multiagent_i210 --num_iterations 40 --num_rollouts 20 \
+--checkpoint_freq 10 --use_s3 --num_cpus 17 --algorithm PPO --rl_trainer rllib --grid_search --multi_node \
+--upload_graphs Nathan i210_ppo_0p1_mpg1_reroute_bothp_dzq98 --exp_title i210_ppo_0p1_mpg1_reroute_bothp_dzq98" \
+--start --stop --cluster-name nathan-i210_ppo_0p1_mpg1_reroute_bothp_dzq98 --tmux
+
+# 26/07/20 13h04 -- 10% ; reroute ; mpg ; stop p
+ray exec ray_autoscale.yaml \
+"python flow/examples/train.py multiagent_i210 --num_iterations 40 --num_rollouts 20 \
+--checkpoint_freq 10 --use_s3 --num_cpus 17 --algorithm PPO --rl_trainer rllib --grid_search --multi_node \
+--upload_graphs Nathan i210_ppo_0p1_mpg1_reroute_stopp_ap8sk --exp_title i210_ppo_0p1_mpg1_reroute_stopp_ap8sk" \
+--start --stop --cluster-name nathan-i210_ppo_0p1_mpg1_reroute_stopp_ap8sk --tmux
+
+# 26/07/20 13h27 -- 10% ; reroute ; mpg/100 ; stop p
+ray exec ray_autoscale.yaml \
+"python flow/examples/train.py multiagent_i210 --num_iterations 40 --num_rollouts 20 \
+--checkpoint_freq 10 --use_s3 --num_cpus 17 --algorithm PPO --rl_trainer rllib --grid_search --multi_node \
+--upload_graphs Nathan i210_ppo_0p1_mpg100_reroute_stopp_ak00p --exp_title i210_ppo_0p1_mpg100_reroute_stopp_ak00p" \
+--start --stop --cluster-name nathan-i210_ppo_0p1_mpg100_reroute_stopp_ak00p --tmux
+
 
 
 
