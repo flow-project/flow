@@ -208,7 +208,7 @@ class I210MultiEnv(MultiEnv):
                     # print('reward mpg all =', rewards[rl_id])
                 # rewards[rl_id] /= 1  # final reward = mpg/100 + speed
                 # SPEED REWARD
-                if True: #else:
+                if False: #else:
                     follow_id = rl_id
                     for i in range(self.look_back_length + 1):
                         if follow_id not in ["", None]:

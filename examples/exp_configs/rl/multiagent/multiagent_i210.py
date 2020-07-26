@@ -89,7 +89,7 @@ additional_env_params.update({
     # how many vehicles to look back for any reward
     "look_back_length": 8,
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": False,
+    "reroute_on_exit": True,
     'target_velocity': 5.0,
     # how many AVs there can be at once (this is only for centralized critics)
     "max_num_agents": 10,
