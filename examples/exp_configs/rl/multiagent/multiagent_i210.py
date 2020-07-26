@@ -117,7 +117,7 @@ additional_env_params.update({
     "stop_penalty": 0.01,
 
     # penalize accels
-    "penalize_accel": True,
+    "penalize_accel": False,
     "accel_penalty": (1 / 400.0)
 })
 
