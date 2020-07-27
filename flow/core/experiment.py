@@ -98,7 +98,6 @@ class Experiment:
             rl_actions=None,
             convert_to_csv=False,
             to_aws=None,
-            only_query="",
             is_baseline=False,
             supplied_metadata=None):
         """Run the given network for a set number of runs.
@@ -117,13 +116,9 @@ class Experiment:
             Specifies the S3 partition you want to store the output file,
             will be used to later for query. If NONE, won't upload output
             to S3.
-        only_query: str
-            Specifies which queries should be automatically run when the
-            simulation data gets uploaded to S3. If an empty str is passed in,
-            then it implies no queries should be run on this.
         is_baseline: bool
             Specifies whether this is a baseline run.
-        supplied_metadata: dict
+        supplied_metadata: dict (str: list)
             metadata provided by the caller
 
         Returns
@@ -184,6 +179,7 @@ class Experiment:
                 name, strategy = get_configuration()
                 metadata['submitter_name'].append(name)
                 metadata['strategy'].append(strategy)
+                metadata.update(supplied_metadata)
 
             # emission-specific parameters
             dir_path = self.env.sim_params.emission_path
