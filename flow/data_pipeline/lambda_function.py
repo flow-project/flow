@@ -10,6 +10,7 @@ s3 = boto3.client('s3')
 queryEngine = AthenaQuery()
 sqs = boto3.client('sqs')
 
+
 def lambda_handler(event, context):
     """Handle S3 put event on AWS Lambda."""
     # stores all lists of completed query for each source_id
@@ -83,6 +84,6 @@ def lambda_handler(event, context):
             message_body = (readied_query_name, result_location, query_date, partition, loc_filter, start_filter,
                             stop_filter)
             message_body = json.dumps(message_body)
-            response = sqs.send_message(
+            sqs.send_message(
                 QueueUrl="https://sqs.us-west-2.amazonaws.com/409746595792/RunQueryRequests",
                 MessageBody=message_body)
