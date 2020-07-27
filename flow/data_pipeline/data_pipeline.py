@@ -205,7 +205,7 @@ def list_object_keys(s3, bucket='circles.data.pipeline', prefixes='', suffix='')
 
 
 def delete_table(s3, bucket='circles.data.pipeline', only_query_result=True, table='', source_id=''):
-    """Deletes the specified data files in S3"""
+    """Delete the specified data files in S3."""
     queries = ["lambda_temp"]
     if table:
         queries.append(table)
