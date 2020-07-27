@@ -205,7 +205,7 @@ def list_object_keys(s3, bucket='circles.data.pipeline', prefixes='', suffix='')
 
 
 def delete_table(s3, bucket='circles.data.pipeline', only_query_result=True, table='', source_id=''):
-    """Deletes the specified the table files in S3"""
+    """Deletes the specified data files in S3"""
     queries = ["lambda_temp"]
     if table:
         queries.append(table)
@@ -214,6 +214,11 @@ def delete_table(s3, bucket='circles.data.pipeline', only_query_result=True, tab
         if only_query_result:
             queries.remove('fact_vehicle_trace')
             queries.remove('metadata_table')
+        else:
+            confirmation = input("Are you sure you want to delete the simulation emission file? This process is"
+                                 "irreversible. (Y/N)").strip()
+            if not (confirmation in ['y', 'Y', 'yes', 'Yes']):
+                return
         if source_id:
             queries.remove('leaderboard_chart_agg')
             queries.remove('fact_top_scores')
@@ -280,37 +285,6 @@ def list_source_ids(s3, bucket='circles.data.pipeline'):
     vehicle_trace_keys = list_object_keys(s3, bucket=bucket, prefixes="fact_vehicle_trace", suffix='csv')
     source_ids = ['flow_{}'.format(key.split('/')[2].split('=')[1].split('_')[1]) for key in vehicle_trace_keys]
     return source_ids
-
-
-def sanity_check(s3, bucket='circles.data.pipeline'):
-    """Check if all the expected queries get run without error. Note that this does not check the correctness of
-       the content of the query, only that it finish without error."""
-    queries = tables
-    queries.append('lambda_temp')
-    queries.remove('leaderboard_chart_agg')
-    queries.remove('fact_top_scores')
-    expected_count = len(queries)
-    keys = list_object_keys(s3, bucket=bucket, prefixes=queries, suffix='.csv')
-    source_ids = list_source_ids(s3, bucket=bucket)
-    counts = defaultdict(lambda: [])
-    for key in keys:
-        source_id = 'flow_{}'.format(key.split('/')[2].split('=')[1].split('_')[1])
-        table = key.split('/')[0]
-        counts[source_id].append(table)
-    for sid in source_ids:
-        count = len(counts[sid])
-        if count < expected_count:
-            missing = []
-            for q in queries:
-                if q not in counts[sid]:
-                    missing.append(q)
-            print("Simulation {} is missing the following queries: \n    {}".format(sid, str(missing)))
-        elif count > expected_count:
-            extra = counts[sid].copy()
-            for q in queries:
-                if q not in counts[sid]:
-                    extra.remove(q)
-            print("Simulation {} is having too much of the following queries: \n    {}".format(sid, str(extra)))
 
 
 class AthenaQuery:
