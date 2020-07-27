@@ -235,6 +235,7 @@ def rerun_query(s3, bucket='circles.data.pipeline', source_id=''):
     if source_id:
         vehicle_trace_keys = [key for key in vehicle_trace_keys if source_id in key]
     sqs_client = boto3.client('sqs')
+    # A s3 put event message template, used to trigger lambda for an existing submission without uploading it again
     event_template = """
         {{
           "Records": [

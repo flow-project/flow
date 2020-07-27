@@ -275,10 +275,7 @@ class QueryStrings(Enum):
             SELECT
                 ROW_NUMBER() OVER() - 51 AS lb,
                 ROW_NUMBER() OVER() - 50 AS ub
-            FROM fact_safety_metrics
-            WHERE 1 = 1
-                AND date = \'{date}\'
-                AND partition_name = \'{partition}_FACT_SAFETY_METRICS\'
+            FROM fact_safety_matrix
         ), bins AS (
             SELECT
                 lb,
@@ -375,10 +372,7 @@ class QueryStrings(Enum):
             SELECT
                 ROW_NUMBER() OVER() - 1 AS lb,
                 ROW_NUMBER() OVER() AS ub
-            FROM fact_vehicle_fuel_efficiency_agg
-            WHERE 1=1
-                AND date = \'{date}\'
-                AND partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
+            FROM fact_safety_matrix
         ), bins AS (
             SELECT
                 lb,
