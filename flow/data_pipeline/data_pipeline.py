@@ -9,7 +9,6 @@ import csv
 from io import StringIO
 import json
 import collections
-from collections import defaultdict
 
 
 def generate_trajectory_table(emission_files, trajectory_table_path, source_id):
@@ -276,8 +275,8 @@ def rerun_query(s3, bucket='circles.data.pipeline', source_id=''):
           ]
         }}"""
     for key in vehicle_trace_keys:
-        response = sqs_client.send_message(QueueUrl="https://sqs.us-west-2.amazonaws.com/409746595792/S3CreateEvents",
-                                           MessageBody=event_template.format(bucket=bucket, key=key))
+        sqs_client.send_message(QueueUrl="https://sqs.us-west-2.amazonaws.com/409746595792/S3CreateEvents",
+                                MessageBody=event_template.format(bucket=bucket, key=key))
 
 
 def list_source_ids(s3, bucket='circles.data.pipeline'):
