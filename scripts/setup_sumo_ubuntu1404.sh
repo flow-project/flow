@@ -8,15 +8,15 @@ sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev
 sudo apt-get install -y proj-bin proj-data libgdal1-dev libfox-1.6-0
 sudo apt-get install -y libfox-1.6-dev
 
-echo "Installing sumo binaries"
+echo "Installing sumo binaries - Libsumo not available on Ubuntu 1404"
 mkdir -p $HOME/sumo_binaries/bin
 pushd $HOME/sumo_binaries/bin
-wget https://flow-sumo.s3-us-west-1.amazonaws.com/libsumo/sumo_binaries_ubuntu1404.tar.gz
-tar -zxvf sumo_binaries_ubuntu1404.tar.gz
-rm sumo_binaries_ubuntu1404.tar.gz
+wget https://akreidieh.s3.amazonaws.com/sumo/flow-0.4.0/binaries-ubuntu1404.tar.xz
+tar -xf binaries-ubuntu1404.tar.xz
+rm binaries-ubuntu1404.tar.xz
 chmod +x *
 popd
-echo '# Added by Sumo / Libsumo instalation' >> ~/.bashrc
+
+echo "# Added by Sumo installation" >> ~/.bashrc
 echo 'export PATH="$HOME/sumo_binaries/bin:$PATH"' >> ~/.bashrc
 echo 'export SUMO_HOME="$HOME/sumo_binaries/bin"' >> ~/.bashrc
-echo 'export PYTHONPATH="$PYTHONPATH:$HOME/sumo_binaries/tools"' >> ~/.bashrc

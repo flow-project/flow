@@ -61,10 +61,13 @@ install everything you will need from SUMO, run one of the below scripts from
 the Flow main directory. Choose the script that matches the operating system
 you are running.
 
+
 For Ubuntu 14.04:
 
-::
+**WARNING**:
+Libsumo is not supported on Ubuntu 14.04. This script will setup a sumo without libsumo.
 
+::
     scripts/setup_sumo_ubuntu1404.sh
 
 For Ubuntu 16.04:

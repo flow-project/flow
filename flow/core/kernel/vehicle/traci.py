@@ -13,6 +13,8 @@ from flow.controllers.lane_change_controllers import SimLaneChangeController
 from bisect import bisect_left
 import itertools
 from copy import deepcopy
+import platform
+import os
 
 # colors for vehicles
 WHITE = (255, 255, 255)
@@ -87,6 +89,11 @@ class TraCIVehicle(KernelVehicle):
             self.use_libsumo = sim_params.use_libsumo
         except AttributeError:
             self.use_libsumo = False
+        if self.use_libsumo :
+            import libsumo as libsumo
+            relese = float(os.popen('lsb_release -r -s').read())
+            if platform.system()=='Linux' and not relese in [float(18.04), float(16.04)]:
+                warnings.warn('Libsumo currently supported only on Ubuntu 18.04 and 16.04 !')
 
         # whether or not to automatically color vehicles
         try:
@@ -1151,7 +1158,6 @@ class TraCIVehicle(KernelVehicle):
 
     def _get_libsumo_subscription_results(self, veh_id):
         """Create a traci-style subscription result in the case of libsumo."""
-        import libsumo as libsumo
         try:
             res = {
                 tc.VAR_LANE_INDEX:
