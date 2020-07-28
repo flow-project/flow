@@ -23,6 +23,26 @@ RLLIB_N_ROLLOUTS = 3  # copy from train_rllib.py
 
 np.random.seed(1234567890)
 
+def get_cycle_length(rep_name, simulation_time):
+    rep_name = str(rep_name)
+    rep_nums = [8050297, 8050315, 8050322]
+    cycle_dict = {'8050297': [110, 90, 120, 90], '8050315': [90, 105], '8050322': [105, 120, 105, 90]}
+    time_dict = {'8050297': [2700, 5400, 14400], '8050315':[5400], '8050322':[7200, 18000, 23400]}
+    for i in range(len(rep_nums)):
+        if rep_name == str(rep_nums[i]):
+            cycle_list = cycle_dict[(rep_name)]
+            time_list = time_dict[(rep_name)]
+            for i in range(len(time_list)):
+                if simulation_time < time_list[i]:
+                    cycle = (cycle_list[i])
+                    break
+                elif simulation_time >= time_list[-1]:
+                    cycle = (cycle_list[-1])
+                    break
+
+    return cycle
+
+
 def rescale_phase_pair(array, NewMin, NewMax):
     rescaled_action = []
     OldMin = 0
@@ -72,9 +92,9 @@ class SingleLightEnv(Env):
         self.current_phase_timings = []
 
         # hardcode maxout values maxd_dict = {'control_id':'phase_maxout'}
-        self.maxd_dict = {}
-        self.maxd_dict.update(dict.fromkeys([0,1,5], [23, 42, 23, 42, 23, 42, 23, 42]))
-        self.maxd_dict.update(dict.fromkeys([2,3,4], [28, 62, 28, 62, 28, 62, 28, 62]))   
+        self.maxd_dict = {0:[28, 62, 28, 62, 28, 62, 28, 62]}
+        #self.maxd_dict.update(dict.fromkeys([0,1,5], [23, 42, 23, 42, 23, 42, 23, 42]))
+        #self.maxd_dict.update(dict.fromkeys([2,3,4], [28, 62, 28, 62, 28, 62, 28, 62]))   
         # get cumulative queue lengths
         for node_id in self.target_nodes:
             self.node_id = node_id
@@ -117,7 +137,8 @@ class SingleLightEnv(Env):
                 #self.k.traffic_light.change_phase_duration(node_id, phase, phase_duration)
                 self.current_phase_timings.append(phase_duration)
                 print('initial phase: {} duration: {} max: {} min: {}'.format(phase, phase_duration, maxd, mind))
-            self.cycle = self.k.traffic_light.get_cycle_length(node_id, self.control_id)
+            rep_name = self.k.traffic_light.get_replication_name(node_id)
+            self.cycle = get_cycle_length(rep_name, self.k.simulation.time)
             print('cycle_length: {}'.format(self.cycle))
         
         self.ignore_policy = False
@@ -139,8 +160,6 @@ class SingleLightEnv(Env):
         if self.ignore_policy:
             #print('self.ignore_policy is True')
             return
-        self.control_id, self.num_rings = self.k.traffic_light.get_control_ids(self.node_id)
-        self.cycle = self.k.traffic_light.get_cycle_length(self.node_id, self.control_id)
         cycle = self.cycle - self.sum_interphase
         default_actions = np.array(rl_actions).flatten()
         actions = np.round(rescale_phase_pair(default_actions, 14, 100))
@@ -150,7 +169,7 @@ class SingleLightEnv(Env):
         prob_phase = np.array([[actions[0], actions[1]], [actions[2], actions[3]]]) / 113
         # gives the length of barriers
         actionf = []  
-        maxd_list = self.maxd_dict[self.control_id]
+        maxd_list = self.maxd_dict[0]
         #print(maxd_list)
 
         ### probability
@@ -282,12 +301,13 @@ class SingleLightEnv(Env):
 
             # reward is negative queues
             reward -= (queue**2) * 100
-
-        print(f'{self.k.simulation.time:.0f}', '\t', f'{reward:.2f}', '\t', self.control_id, '\t',
+        
+        ## note: self.k.simulation.time is flow time
+        ##  f'{slow_time} \t {aimsun_time}
+        print(f'{self.k.simulation.time:.0f}','\t', f'{reward:.2f}', '\t',
               self.current_phase_timings[0],'\t', self.current_phase_timings[1],'\t', self.current_phase_timings[2],'\t', 
               self.current_phase_timings[3],'\t', self.current_phase_timings[4],'\t', self.current_phase_timings[5],'\t', 
               self.current_phase_timings[6],'\t', self.current_phase_timings[7],'\t', sum(self.current_phase_timings[4:])+18, self.sum_barrier)
-        
         # print(self.phase_array)
         # print(self.maxd_list)
 
@@ -323,9 +343,11 @@ class SingleLightEnv(Env):
 
         # compute the info for each agent
         infos = {}
-        # get control_id for every step
-        #self.control_id, self.num_rings = self.k.traffic_light.get_control_ids(self.node_id) #july13
-        #self.cycle = self.k.traffic_light.get_cycle_length(self.node_id, self.control_id)
+
+        self.control_id, self.num_rings = self.k.traffic_light.get_control_ids(self.node_id)
+        rep_name = self.k.traffic_light.get_replication_name(self.node_id)
+        self.cycle = get_cycle_length(rep_name, self.k.simulation.time)
+        #print(self.k.simulation.time,rep_name, self.cycle)
 
         # compute the reward
         reward = self.compute_reward(rl_actions)
