@@ -11,6 +11,10 @@ length_car = 5  # typical car length
 def get_intersection_offset(node_id):
     return aapi.ECIGetOffset(node_id)
 
+def get_replication_name(node_id): #cj28
+    node_id = node_id
+    rep_name = aapi.ANGConnGetReplicationId()
+    return rep_name
 
 def get_cumulative_queue_length(section_id):
     catalog = model.getCatalog()
@@ -132,7 +136,6 @@ def change_phase_duration(node_id, phase, duration, maxout, time, timeSta, acycl
     aapi.ECISetActuatedParamsMaxGreen(control_id, node_id, phase, maxout)
     #phase_duration, maxd, mind = get_duration_phase(node_id, phase, timeSta)
     
-
 
 def phase_converter(phase_timings):
     raise NotImplementedError

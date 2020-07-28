@@ -704,6 +704,28 @@ class FlowAimsunAPI(object):
                            values=(node_id, offset,),
                            out_format=None)
 
+
+    def get_replication_name(self, node_id): #cj28
+        """
+        Gets the intersection's offset
+
+        Parameters
+        ----------
+        node_id : int
+            the node id of the intersection
+
+        Returns
+        -------
+        int
+            the offset of the intersection
+        """
+        rep_name, = self._send_command(ac.INT_GET_REPLICATION_NAME,
+                                     in_format='i',
+                                     values=(node_id,),
+                                     out_format='i')
+
+        return rep_name
+
     def get_duration_phase(self, node_id, phase):  # cj
         """
         Get control id and num_rings
@@ -837,7 +859,7 @@ class FlowAimsunAPI(object):
         """
         Gets an intersection's incoming edges
 
-        ParametersF
+        Parameters
         ----------
         node_id : int
             the node id of the intersection

@@ -7,6 +7,7 @@ import struct
 import socket
 import sys
 import os
+import math
 import flow.utils.aimsun.constants as ac
 import flow.config as config
 
@@ -488,6 +489,14 @@ def threaded_client(conn, **kwargs):
                 timeSta = kwargs.get('timeSta')
                 acycle = kwargs.get('acycle')
                 cp.change_offset(node_id, offset, time, timeSta, acycle)
+            
+            elif data == ac.INT_GET_REPLICATION_NAME:
+                send_message(conn, in_format='i', values=(0,))
+                node_id, = retrieve_message(conn, 'i')
+
+                rep_name = cp.get_replication_name(node_id)
+
+                send_message(conn, in_format='i', values=(rep_name,))
 
             elif data == ac.INT_GET_DURATION_PHASE:  # cj
                 send_message(conn, in_format='i', values=(0,))
@@ -591,6 +600,14 @@ def threaded_client(conn, **kwargs):
                 seed, = retrieve_message(conn, 'i')
 
                 cp.set_replication_seed(seed)
+            
+            elif data == ac.GET_AIMSUN_TIME:
+                send_message(conn, in_format='i', values=(0,))
+                #time, =retrieve_message(conn,'i')
+                # time = aimsun_api.AKIGetCurrentSimulationTime()
+                time = kwargs['time']
+                # assert time==aimsun_api.AKIGetCurrentSimulationTime(), "wow... didnt expect that"
+                send_message(conn, in_format='f', values=(time,))
 
             # in case the message is unknown, return -1001
             else:
@@ -615,9 +632,14 @@ def AAPIInit():
 def AAPIManage(time, timeSta, timeTrans, acycle):
     """Execute commands before an Aimsun simulation step."""
     # Create a thread when data needs to be sent back to FLOW
-    delta = 0
-    if not time % ((900+delta)) or time == 0: 
-        print(time)
+    delta = 0.8/2
+    # - delta < time%900 < + delta
+    ## TODO: pass sim_step, sims_per_step
+    ## compare aimsun_time with flow_time.  flow_time is sim_step*sims_per_step
+    # math.isclose(time, 900, a_tol=delta)
+    # if math.isclose(time%900, 0, abs_tol=delta) or math.isclose(time%900, 900, abs_tol=delta):
+    if ((time % 900) > -delta and (time % 900) < delta) or ((time % 900) > 900-delta and (time % 900) < 900+delta):
+        #print(time)
         # tcp/ip connection from the aimsun process
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
