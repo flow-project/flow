@@ -122,35 +122,38 @@ INT_GET_CUME_QUEUE_LENGTH = 0x20
 REPL_SET_SEED = 0x21
 
 #: get ids
-INT_GET_CONTROL_IDS = 0x27
+INT_GET_CONTROL_IDS = 0x22
 
 #: get green phases
-INT_GET_GREEN_PHASES = 0x28
+INT_GET_GREEN_PHASES = 0x23
 
 #: get total green phase timing in a ring
-INT_GET_CYCLE_LENGTH = 0x2A
+INT_GET_CYCLE_LENGTH = 0x24
 
 #: set intersection phase
-INT_CHANGE_PHASE_DURATION = 0x29
+INT_CHANGE_PHASE_DURATION = 0x25
 
 #: get duration phase
-INT_GET_DURATION_PHASE = 0x2B
+INT_GET_DURATION_PHASE = 0x26
+
+#: get replication name
+INT_GET_REPLICATION_NAME = 0x27
 
 ###############################################################################
 #                           Detector Commands                            #
 ###############################################################################
 
 #: get detector ids on an edge
-DET_GET_IDS_ON_EDGE = 0x22
+DET_GET_IDS_ON_EDGE = 0x28
 
 #: get flow and occupancy for a detector
-DET_GET_COUNT_AND_OCCUPANCY = 0x23
+DET_GET_COUNT_AND_OCCUPANCY = 0x29
 
 #: set statistical interval for the scenairo
-DET_SET_STAT_INTERVAL = 0x24
+DET_SET_STAT_INTERVAL = 0x2A
 
 #: set detection interval for the scenairo
-DET_SET_DETECTION_INTERVAL = 0x25
+DET_SET_DETECTION_INTERVAL = 0x2B
 
 #: get number detector lanes
 DET_GET_DETECTOR_LANES = 0x2C
@@ -160,4 +163,5 @@ DET_GET_DETECTOR_LANES = 0x2C
 ###############################################################################
 
 #: get the edge name in aimsun
-GET_EDGE_NAME = 0x26
+GET_EDGE_NAME = 0x2D
+
