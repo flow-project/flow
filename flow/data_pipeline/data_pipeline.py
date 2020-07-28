@@ -152,7 +152,7 @@ def update_baseline(s3, baseline_network, baseline_source_id):
 
 
 def get_completed_queries(s3, source_id):
-    """Return the deserialized list of completed queries from S3."""
+    """Return the deserialized set of completed queries from S3."""
     try:
         completed_queries_obj = \
             s3.get_object(Bucket='circles.data.pipeline', Key='lambda_temp/{}'.format(source_id))['Body']
