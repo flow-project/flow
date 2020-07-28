@@ -122,8 +122,8 @@ class EnergyOptEnv(Env):
 
         rl_id = self.k.vehicle.get_rl_ids()[0]
         # Energy_rew = self.k.vehicle.get_fuel_consumption(rl_id)
-        # Energy_rew = instantaneous_mpg(self,veh_ids = rl_id)
-        Energy_rew = instantaneous_mpg2(self, veh_ids=rl_id)
+        Energy_rew = instantaneous_mpg(self,veh_ids = rl_id)
+        # Energy_rew = instantaneous_mpg2(self, veh_ids=rl_id)
         # Energy_rew = instantaneous_mpg3(self, veh_ids=rl_id)
         # Energy_rew = instantaneous_mpg4(self, veh_ids=rl_id)
         # print( self.k.vehicle.get_energy_model(rl_id))

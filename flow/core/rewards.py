@@ -361,7 +361,7 @@ def veh_energy_consumption(env, veh_ids=None, gain=.001):
     return -gain * power
 
 
-def instantaneous_mpg(env, veh_ids=None, gain=.0001):
+def instantaneous_mpg(env, veh_ids=None, gain=.001):
     """Calculate the instantaneous mpg for every simulation step specific to the vehicle type.
 
     Parameters
@@ -389,7 +389,7 @@ def instantaneous_mpg(env, veh_ids=None, gain=.0001):
             grade = env.k.vehicle.get_road_grade(veh_id)
             gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
             if speed >= 0.0:
-                cumulative_gallons += gallons_per_hr
+                cumulative_gallons += max(gallons_per_hr, 0.2)
                 cumulative_distance += speed
     # print('//////////////////', cumulative_distance ,'//', cumulative_gallons , '/////////////')
     cumulative_gallons /= 3600.0
@@ -466,7 +466,7 @@ def instantaneous_mpg3(env, veh_ids=None, gain=.0001):
         energy_model = env.k.vehicle.get_energy_model(veh_id)
         if energy_model != "":
             speed = env.k.vehicle.get_speed(veh_id)
-            accel = env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
+            accel = 0 # env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
             grade = env.k.vehicle.get_road_grade(veh_id)
             gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
             if speed >= 0.0:
@@ -474,10 +474,10 @@ def instantaneous_mpg3(env, veh_ids=None, gain=.0001):
                 cumulative_distance += speed
     # print('//////////////////', cumulative_distance ,'//', cumulative_gallons , '/////////////')
     cumulative_gallons /= 3600.0
-    cumulative_distance /= 1609.34
+    cumulative_distance /= 16093.4
     # miles / gallon is (distance_dot * \delta t) / (gallons_dot * \delta t)
-    # mpg = cumulative_distance / (cumulative_gallons + 1e-6)
-    mpg = cumulative_distance - cumulative_gallons
+    mpg = cumulative_distance / (cumulative_gallons + 1e-6)
+    # mpg = cumulative_distance - cumulative_gallons
     return mpg * gain
 
 def instantaneous_mpg4(env, veh_ids=None, gain=.01):
