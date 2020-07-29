@@ -719,6 +719,10 @@ class QueryStrings(Enum):
                 m.strategy,
                 m.network,
                 m.is_baseline,
+                COALESCE (m.penetration_rate, 'x%') AS penetration_rate,
+                COALESCE (m.version, '2') AS version,
+                COALESCE (m.road_grade, 'False') AS road_grade,
+                COALESCE (m.on_ramp, 'False') AS on_ramp,
                 l.energy_model_id,
                 l.efficiency_meters_per_joules,
                 l.efficiency_miles_per_gallon,
@@ -739,7 +743,10 @@ class QueryStrings(Enum):
                 agg.source_id,
                 agg.submitter_name,
                 agg.strategy,
-                agg.network,
+                agg.network || '; ' || agg.version || 
+                    '; PR: ' || agg.penetration_rate ||
+                    ';' || IF(agg.on_ramp='True', ' On_Ramp;', '') ||
+                    IF(agg.road_grade='True', ' With_Road_Grade;', '') AS network,
                 agg.is_baseline,
                 agg.energy_model_id,
                 agg.efficiency_meters_per_joules,

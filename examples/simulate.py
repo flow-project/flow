@@ -81,7 +81,7 @@ if __name__ == "__main__":
     supplied_metadata = dict()
     supplied_metadata['version'] = [getattr(config_obj, 'VERSION', '2')]
     supplied_metadata['on_ramp'] = [str(getattr(config_obj, 'ON_RAMP', False))]
-    supplied_metadata['penetration_rate'] = [getattr(config_obj, 'PENETRATION_RATE', 0.0)]
+    supplied_metadata['penetration_rate'] = [str(getattr(config_obj, 'PENETRATION_RATE', 0.0))]
     supplied_metadata['road_grade'] = [str(getattr(config_obj, 'ROAD_GRADE', False))]
 
     flow_params['sim'].render = not flags.no_render
