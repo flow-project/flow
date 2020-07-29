@@ -389,7 +389,7 @@ class TestRllibExamples(unittest.TestCase):
         from examples.exp_configs.rl.multiagent.multiagent_i210 import POLICIES_TO_TRAIN as mi210pr
         from examples.exp_configs.rl.multiagent.multiagent_i210 import policy_mapping_fn as mi210mf
 
-        from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
+        from ray.rllib.agents.ppo.ppo_tf_policy import PPOTFPolicy
         from ray.tune.registry import register_env
         from flow.utils.registry import make_create_env
         # test observation space 1
