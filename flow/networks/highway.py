@@ -153,7 +153,7 @@ class HighwayNetwork(Network):
     def specify_routes(self, net_params):
         """See parent class."""
         num_edges = net_params.additional_params.get("num_edges", 1)
-        rts = {}
+        rts = {"highway_end": ["highway_end"]}
         for i in range(num_edges):
             rts["highway_{}".format(i)] = ["highway_{}".format(j) for
                                            j in range(i, num_edges)]
