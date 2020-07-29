@@ -4,13 +4,10 @@ from enum import Enum
 
 # tags for different queries
 prerequisites = {
-    "POWER_DEMAND_MODEL": (
+    "TACOMA_FIT_DENOISED_ACCEL": (
         "fact_energy_trace", {"FACT_VEHICLE_TRACE"}
     ),
-    "POWER_DEMAND_MODEL_DENOISED_ACCEL": (
-        "fact_energy_trace", {"FACT_VEHICLE_TRACE"}
-    ),
-    "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL": (
+    "PRIUS_FIT_DENOISED_ACCEL": (
         "fact_energy_trace", {"FACT_VEHICLE_TRACE"}
     ),
     "FACT_SAFETY_METRICS_2D": (
@@ -33,15 +30,15 @@ prerequisites = {
     ),
     "FACT_VEHICLE_FUEL_EFFICIENCY_AGG": (
         "fact_vehicle_fuel_efficiency_agg", {"FACT_VEHICLE_TRACE",
-                                             "POWER_DEMAND_MODEL_DENOISED_ACCEL"}
+                                             "TACOMA_FIT_DENOISED_ACCEL"}
     ),
     "FACT_NETWORK_METRICS_BY_DISTANCE_AGG": (
          "fact_network_metrics_by_distance_agg", {"FACT_VEHICLE_TRACE",
-                                                  "POWER_DEMAND_MODEL_DENOISED_ACCEL"}
+                                                  "TACOMA_FIT_DENOISED_ACCEL"}
     ),
     "FACT_NETWORK_METRICS_BY_TIME_AGG": (
          "fact_network_metrics_by_time_agg", {"FACT_VEHICLE_TRACE",
-                                              "POWER_DEMAND_MODEL_DENOISED_ACCEL"}
+                                              "TACOMA_FIT_DENOISED_ACCEL"}
     ),
     "FACT_VEHICLE_FUEL_EFFICIENCY_BINNED": (
         "fact_vehicle_fuel_efficiency_binned", {"FACT_VEHICLE_FUEL_EFFICIENCY_AGG"}
@@ -71,7 +68,7 @@ prerequisites = {
 
 triggers = [
     "FACT_VEHICLE_TRACE",
-    "POWER_DEMAND_MODEL_DENOISED_ACCEL",
+    "TACOMA_FIT_DENOISED_ACCEL",
     "FACT_VEHICLE_FUEL_EFFICIENCY_AGG",
     "FACT_SAFETY_METRICS_3D",
     "FACT_NETWORK_THROUGHPUT_AGG",
@@ -132,9 +129,9 @@ VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT = """
             6.7650718327 * POW(speed,2) +
             0.7041355229 * POW(speed,3)
             ) + GREATEST(0, 4598.7155 * acceleration + 975.12719 * acceleration * speed) AS power,
-        \'{1}\' AS energy_model_id,
+        'TACOMA_FIT_DENOISED_ACCEL' AS energy_model_id,
         source_id
-    FROM {2}
+    FROM {}
     ORDER BY id, time_step
     """
 
@@ -153,7 +150,7 @@ VEHICLE_POWER_DEMAND_PRIUS_FINAL_SELECT = """
                 0.383 * POW(speed,3) +
                 GREATEST(0, 296.66 * acceleration * speed)) AS p_mod,
             source_id
-        FROM {2}
+        FROM {}
     )
     SELECT
         id,
@@ -162,11 +159,29 @@ VEHICLE_POWER_DEMAND_PRIUS_FINAL_SELECT = """
         acceleration,
         road_grade,
         GREATEST(p_mod, 0.869 * p_mod, -2338 * speed) AS power,
-        \'{1}\' AS energy_model_id,
+        'PRIUS_FIT_DENOISED_ACCEL' AS energy_model_id,
         source_id
     FROM pmod_calculation
     ORDER BY id, time_step
     """
+
+POWER_DEMAND_MODEL_DENOISED_ACCEL = """
+        WITH denoised_accel_cte AS (
+            SELECT
+                id,
+                time_step,
+                speed,
+                COALESCE (target_accel_no_noise_with_failsafe,
+                          target_accel_no_noise_no_failsafe,
+                          realized_accel) AS acceleration,
+                road_grade,
+                source_id
+            FROM fact_vehicle_trace
+            WHERE 1 = 1
+                AND date = \'{{date}}\'
+                AND partition_name=\'{{partition}}\'
+        )
+        {}"""
 
 
 class QueryStrings(Enum):
@@ -185,76 +200,11 @@ class QueryStrings(Enum):
         ADD IF NOT EXISTS PARTITION (date = \'{date}\', partition_name=\'{partition}\');
         """
 
-    POWER_DEMAND_MODEL = """
-        WITH regular_cte AS (
-            SELECT
-                id,
-                time_step,
-                speed,
-                COALESCE (target_accel_with_noise_with_failsafe, realized_accel) AS acceleration,
-                road_grade,
-                source_id
-            FROM fact_vehicle_trace
-            WHERE 1 = 1
-                AND date = \'{{date}}\'
-                AND partition_name=\'{{partition}}\'
-        )
-        {}""".format(VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT.format(1,
-                                                                     'POWER_DEMAND_MODEL',
-                                                                     'regular_cte'))
+    TACOMA_FIT_DENOISED_ACCEL = \
+        POWER_DEMAND_MODEL_DENOISED_ACCEL.format(VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT.format('denoised_accel_cte'))
 
-    POWER_DEMAND_MODEL_DENOISED_ACCEL = """
-        WITH denoised_accel_cte AS (
-            SELECT
-                id,
-                time_step,
-                speed,
-                COALESCE (target_accel_no_noise_with_failsafe,
-                          target_accel_no_noise_no_failsafe,
-                          realized_accel) AS acceleration,
-                road_grade,
-                source_id
-            FROM fact_vehicle_trace
-            WHERE 1 = 1
-                AND date = \'{{date}}\'
-                AND partition_name=\'{{partition}}\'
-        )
-        {}""".format(VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT.format(1,
-                                                                     'POWER_DEMAND_MODEL_DENOISED_ACCEL',
-                                                                     'denoised_accel_cte'))
-
-    POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL = """
-        WITH lagged_timestep AS (
-            SELECT
-                id,
-                time_step,
-                COALESCE (target_accel_no_noise_with_failsafe,
-                          target_accel_no_noise_no_failsafe,
-                          realized_accel) AS acceleration,
-                road_grade,
-                source_id,
-                speed AS cur_speed,
-                time_step - LAG(time_step, 1)
-                  OVER (PARTITION BY id ORDER BY time_step ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) AS sim_step,
-                LAG(speed, 1)
-                  OVER (PARTITION BY id ORDER BY time_step ASC ROWS BETWEEN 1 PRECEDING and CURRENT ROW) AS prev_speed
-            FROM fact_vehicle_trace
-            WHERE 1 = 1
-                AND date = \'{{date}}\'
-                AND partition_name=\'{{partition}}\'
-        ), denoised_speed_cte AS (
-            SELECT
-                id,
-                time_step,
-                COALESCE (prev_speed + acceleration * sim_step, cur_speed) AS speed,
-                acceleration,
-                road_grade,
-                source_id
-            FROM lagged_timestep
-        )
-        {}""".format(VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT.format(1,
-                                                                     'POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL',
-                                                                     'denoised_speed_cte'))
+    PRIUS_FIT_DENOISED_ACCEL = \
+        POWER_DEMAND_MODEL_DENOISED_ACCEL.format(VEHICLE_POWER_DEMAND_PRIUS_FINAL_SELECT.format('denoised_accel_cte'))
 
     FACT_SAFETY_METRICS_2D = """
         SELECT
@@ -392,8 +342,8 @@ class QueryStrings(Enum):
                 AND e.time_step = v.time_step
                 AND e.source_id = v.source_id
                 AND e.date = \'{date}\'
-                AND e.partition_name = \'{partition}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
-                AND e.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
+                AND e.partition_name = \'{partition}_TACOMA_FIT_DENOISED_ACCEL\'
+                AND e.energy_model_id = 'TACOMA_FIT_DENOISED_ACCEL'
                 AND e.time_step >= {start_filter}
             WHERE 1 = 1
                 AND v.date = \'{date}\'
@@ -440,7 +390,7 @@ class QueryStrings(Enum):
         LEFT JOIN fact_vehicle_fuel_efficiency_agg agg ON 1 = 1
             AND agg.date = \'{date}\'
             AND agg.partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
-            AND agg.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
+            AND agg.energy_model_id = 'TACOMA_FIT_DENOISED_ACCEL'
             AND agg.efficiency_miles_per_gallon >= bins.lb
             AND agg.efficiency_miles_per_gallon < bins.ub
         GROUP BY 1
@@ -459,7 +409,7 @@ class QueryStrings(Enum):
         WHERE 1 = 1
             AND date = \'{date}\'
             AND partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
-            AND energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
+            AND energy_model_id = 'TACOMA_FIT_DENOISED_ACCEL'
         GROUP BY 1, 2
         HAVING 1=1
             AND SUM(energy_joules) != 0
@@ -511,7 +461,7 @@ class QueryStrings(Enum):
             AND fe.date = \'{date}\'
             AND fe.partition_name = \'{partition}_FACT_NETWORK_FUEL_EFFICIENCY_AGG\'
             AND nt.source_id = fe.source_id
-            AND fe.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
+            AND fe.energy_model_id = 'TACOMA_FIT_DENOISED_ACCEL'
         JOIN fact_safety_metrics_agg AS sm ON 1 = 1
             AND sm.date = \'{date}\'
             AND sm.partition_name = \'{partition}_FACT_SAFETY_METRICS_AGG\'
@@ -588,11 +538,11 @@ class QueryStrings(Enum):
             FROM fact_vehicle_trace vt
             JOIN fact_energy_trace et ON 1 = 1
                 AND et.date = \'{date}\'
-                AND et.partition_name = \'{partition}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
+                AND et.partition_name = \'{partition}_TACOMA_FIT_DENOISED_ACCEL\'
                 AND vt.id = et.id
                 AND vt.source_id = et.source_id
                 AND vt.time_step = et.time_step
-                AND et.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
+                AND et.energy_model_id = 'TACOMA_FIT_DENOISED_ACCEL'
             WHERE 1 = 1
                 AND vt.date = \'{date}\'
                 AND vt.partition_name = \'{partition}\'
@@ -688,11 +638,11 @@ class QueryStrings(Enum):
             FROM fact_vehicle_trace vt
             JOIN fact_energy_trace et ON 1 = 1
                 AND et.date = \'{date}\'
-                AND et.partition_name = \'{partition}_POWER_DEMAND_MODEL_DENOISED_ACCEL\'
+                AND et.partition_name = \'{partition}_TACOMA_FIT_DENOISED_ACCEL\'
                 AND vt.id = et.id
                 AND vt.source_id = et.source_id
                 AND vt.time_step = et.time_step
-                AND et.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
+                AND et.energy_model_id = 'TACOMA_FIT_DENOISED_ACCEL'
             WHERE 1 = 1
                 AND vt.date = \'{date}\'
                 AND vt.partition_name = \'{partition}\'
