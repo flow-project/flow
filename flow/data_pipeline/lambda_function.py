@@ -3,7 +3,7 @@ import boto3
 from urllib.parse import unquote_plus
 from flow.data_pipeline.data_pipeline import AthenaQuery, delete_obsolete_data, update_baseline, \
     get_ready_queries, get_completed_queries, put_completed_queries
-from flow.data_pipeline.query import tables, network_filters, summary_tables, triggers
+from flow.data_pipeline.query import tables, network_filters, summary_tables, triggers, max_decel, leader_max_decel
 
 s3 = boto3.client('s3')
 queryEngine = AthenaQuery()
@@ -70,6 +70,7 @@ def lambda_handler(event, context):
                                                                                                   source_id,
                                                                                                   readied_query_name)
             queryEngine.run_query(readied_query_name, result_location, query_date, partition, loc_filter=loc_filter,
-                                  start_filter=start_filter, stop_filter=stop_filter)
+                                  start_filter=start_filter, stop_filter=stop_filter,
+                                  max_decel=max_decel, leader_max_decel=leader_max_decel)
     # stores all the updated lists of completed queries back to S3
     put_completed_queries(s3, completed)
