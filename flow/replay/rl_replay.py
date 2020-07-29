@@ -173,7 +173,7 @@ def set_agents(config, result_dir, env_name, run=None, checkpoint_num=None):
         the name of the environment
     run : str
         The algorithm or model to train. This may refer to the name of a
-        built-on algorithm (e.g. RLLib\'s DQN or PPO), or a user-defined
+        built-on algorithm (e.g. RLLib's DQN or PPO), or a user-defined
         trainable function or class registered in the tune registry. Required
         for results trained with flow-0.2.0 and before.
     checkpoint_num : int
