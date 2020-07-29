@@ -199,12 +199,6 @@ class MultiEnv(MultiAgentEnv, Env):
             for veh_id in self.k.kernel_api.vehicle.getIDList():
                 self.k.vehicle._add_departed(veh_id, "human")
 
-            # Run assertions to make sure the operation was successful.
-            assert self.k.vehicle.num_vehicles == \
-                len(self.k.kernel_api.vehicle.getIDList())
-            assert set(self.k.vehicle.get_ids()) == \
-                set(self.k.kernel_api.vehicle.getIDList())
-
         else:
             # clear all vehicles from the network and the vehicles class
             if self.simulator == 'traci':
@@ -263,13 +257,6 @@ class MultiEnv(MultiAgentEnv, Env):
 
         # update the information in each kernel to match the current state
         self.k.update(reset=True)
-
-        if self.sim_params.load_state is not None:
-            # Run assertions to make sure the operation was successful.
-            assert self.k.vehicle.num_vehicles == \
-                len(self.k.kernel_api.vehicle.getIDList())
-            assert set(self.k.vehicle.get_ids()) == \
-                set(self.k.kernel_api.vehicle.getIDList())
 
         # update the colors of vehicles
         if self.sim_params.render:
