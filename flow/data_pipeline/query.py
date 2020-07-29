@@ -803,7 +803,7 @@ class QueryStrings(Enum):
                 m.network,
                 m.is_baseline,
                 COALESCE (m.penetration_rate, 'x%') AS penetration_rate,
-                COALESCE (m.version, '2') AS version,
+                COALESCE (m.version, '2.0') AS version,
                 COALESCE (m.road_grade, 'False') AS road_grade,
                 COALESCE (m.on_ramp, 'False') AS on_ramp,
                 l.energy_model_id,
@@ -828,10 +828,15 @@ class QueryStrings(Enum):
                 agg.source_id,
                 agg.submitter_name,
                 agg.strategy,
-                agg.network || '; ' || agg.version ||
-                    '; PR: ' || agg.penetration_rate ||
-                    ';' || IF(agg.on_ramp='True', ' On_Ramp;', '') ||
-                    IF(agg.road_grade='True', ' With_Road_Grade;', '') AS network,
+                agg.network || ';' ||
+                    ' v' || agg.version || ';' ||
+                    ' PR: ' || agg.penetration_rate || '%;' ||
+                    CASE agg.on_ramp WHEN
+                        'True' THEN ' with ramps;'
+                        ELSE ' no ramps;' END ||
+                    CASE agg.road_grade WHEN
+                        'True' THEN ' with grade;'
+                        ELSE ' no grade;' END AS network,
                 agg.is_baseline,
                 agg.energy_model_id,
                 agg.efficiency_meters_per_joules,
@@ -849,6 +854,9 @@ class QueryStrings(Enum):
             FROM agg
             JOIN agg AS baseline ON 1 = 1
                 AND agg.network = baseline.network
+                AND agg.version = baseline.version
+                AND agg.on_ramp = baseline.on_ramp
+                AND agg.road_grade = baseline.road_grade
                 AND baseline.is_baseline = 'True'
                 AND agg.baseline_source_id = baseline.source_id
         )
