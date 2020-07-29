@@ -139,22 +139,32 @@ VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT = """
     """
 
 VEHICLE_POWER_DEMAND_PRIUS_FINAL_SELECT = """
+    , pmod_calculation AS (
+        SELECT
+            id,
+            time_step,
+            speed,
+            acceleration,
+            road_grade,
+            GREATEST(1663 * acceleration * speed +
+                1.046 +
+                119.166 * speed +
+                0.337 * POW(speed,2) +
+                0.383 * POW(speed,3) +
+                GREATEST(0, 296.66 * acceleration * speed)) AS p_mod,
+            source_id
+        FROM {2}
+    )
     SELECT
         id,
         time_step,
         speed,
         acceleration,
         road_grade,
-        GREATEST(-2.8 * speed, 1663 * speed * ((
-            CASE
-                WHEN acceleration > 0 THEN 1
-                WHEN acceleration < 0 THEN 0
-                ELSE 0.5
-            END * (1 - {0}) + {0}) * acceleration + 9.807 * SIN(road_grade)
-            ) + 1663 * 9.807 * 0.007 * speed + 0.5 * 1.225 * 2.4 * 0.24 * POW(speed,3)) AS power,
+        GREATEST(p_mod, 0.869 * p_mod, -2338 * speed) AS power,
         \'{1}\' AS energy_model_id,
         source_id
-    FROM {2}
+    FROM pmod_calculation
     ORDER BY id, time_step
     """
 
