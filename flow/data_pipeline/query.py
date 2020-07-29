@@ -828,7 +828,7 @@ class QueryStrings(Enum):
                 agg.source_id,
                 agg.submitter_name,
                 agg.strategy,
-                agg.network || '; ' || agg.version || 
+                agg.network || '; ' || agg.version ||
                     '; PR: ' || agg.penetration_rate ||
                     ';' || IF(agg.on_ramp='True', ' On_Ramp;', '') ||
                     IF(agg.road_grade='True', ' With_Road_Grade;', '') AS network,
