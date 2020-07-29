@@ -119,7 +119,6 @@ class EnergyOptEnv(Env):
         # in the warmup steps
         if rl_actions is None:
             return 0
-
         rl_id = self.k.vehicle.get_rl_ids()[0]
         # Energy_rew = self.k.vehicle.get_fuel_consumption(rl_id)
         Energy_rew = instantaneous_mpg(self,veh_ids = rl_id)
@@ -128,7 +127,6 @@ class EnergyOptEnv(Env):
         # Energy_rew = instantaneous_mpg4(self, veh_ids=rl_id)
         # print( self.k.vehicle.get_energy_model(rl_id))
         # Energy_rew = MonetaryCost(self, veh_ids=rl_id)
-        # print(Energy_rew)
         reward = Energy_rew
         # print('rewward = ', float(reward))
 

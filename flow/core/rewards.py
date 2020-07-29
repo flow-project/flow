@@ -379,24 +379,37 @@ def instantaneous_mpg(env, veh_ids=None, gain=.001):
     elif not isinstance(veh_ids, list):
         veh_ids = [veh_ids]
 
-    cumulative_gallons = 0
-    cumulative_distance = 0
+    Total_gallons = 0
+    Total_distance = 0
     for veh_id in veh_ids:
         energy_model = env.k.vehicle.get_energy_model(veh_id)
         if energy_model != "":
+            distance = env.k.vehicle.get_distance(veh_id)
             speed = env.k.vehicle.get_speed(veh_id)
-            accel = env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
-            grade = env.k.vehicle.get_road_grade(veh_id)
-            gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
+            # accel = env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
+            # grade = env.k.vehicle.get_road_grade(veh_id)
+            # gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
+            Tgallons = env.k.vehicle.get_total_gallons(veh_id)
             if speed >= 0.0:
-                cumulative_gallons += max(gallons_per_hr, 0.2)
-                cumulative_distance += speed
+                # cumulative_gallons += max(gallons_per_hr, 0.2)
+                # cumulative_distance += speed
+                Total_distance += distance
+                Total_gallons += Tgallons
+        else:
+            print('error: NO ENERGY MODEL')
+
     # print('//////////////////', cumulative_distance ,'//', cumulative_gallons , '/////////////')
-    cumulative_gallons /= 3600.0
-    cumulative_distance /= 16093.4
+    # cumulative_gallons /= 3600.0 #over vehicles
+    # cumulative_distance /= 16093.4
+
+    Total_distance /= 16093.4
+
+
     # print('//////////////////dd     ', cumulative_distance, '//   ', cumulative_gallons, '/////////////')
     # miles / gallon is (distance_dot * \delta t) / (gallons_dot * \delta t)
-    mpg = cumulative_distance / (cumulative_gallons + 1e-6)
+    # mpg = Total_distance / (max(Total_gallons,0.2 )+ 1e-6)
+    mpg = Total_distance / (Total_gallons + 1e-6)
+    # print('////// TOTAL DIST = ', Total_distance, '///// Total GALLONS =', Total_gallons, '//// mpg =', mpg)
 
     return mpg * gain
 
@@ -424,6 +437,7 @@ def instantaneous_mpg2(env, veh_ids=None, gain=10):
     for veh_id in veh_ids:
         energy_model = env.k.vehicle.get_energy_model(veh_id)
         if energy_model != "":
+
             speed = env.k.vehicle.get_speed(veh_id)
             accel = env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
             grade = env.k.vehicle.get_road_grade(veh_id)

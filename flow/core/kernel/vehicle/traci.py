@@ -184,6 +184,8 @@ class TraCIVehicle(KernelVehicle):
             for veh_id in self.__rl_ids:
                 self.__vehicles[veh_id]["last_lc"] = -float("inf")
                 self.prev_last_lc[veh_id] = -float("inf")
+            for veh_id in self.__ids:
+                self.__vehicles[veh_id]["total_gallons"] = 0.0
             self._num_departed.clear()
             self._num_arrived.clear()
             self._departed_ids = 0
@@ -221,6 +223,17 @@ class TraCIVehicle(KernelVehicle):
             # update the number of not departed vehicles
             self.num_not_departed += sim_obs[tc.VAR_LOADED_VEHICLES_NUMBER] - \
                 sim_obs[tc.VAR_DEPARTED_VEHICLES_NUMBER]
+        # update total gallons consumed
+        for veh_id in self.__ids:
+            energy_model = self.get_energy_model(veh_id)
+            speed = self.get_speed(veh_id)
+            accel = min(1.0, self.get_accel(veh_id, noise=False, failsafe=True))
+            grade = self.get_road_grade(veh_id)
+            gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
+            # print(self.__vehicles[veh_id]["total_gallons"])
+            self.__vehicles[veh_id]["total_gallons"] += ((gallons_per_hr) * 0.1/ 3600.0)
+            # print('speed = ', speed, 'accel = ', accel, 'total_gallons = ', self.__vehicles[veh_id]["total_gallons"])
+
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
@@ -613,6 +626,12 @@ class TraCIVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_length(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("length", error)
+
+    def get_total_gallons(self, veh_id, error=""):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_leader(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("total_gallons", error)
 
     def get_leader(self, veh_id, error=""):
         """See parent class."""
