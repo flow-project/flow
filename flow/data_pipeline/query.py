@@ -802,7 +802,7 @@ class QueryStrings(Enum):
                 m.strategy,
                 m.network,
                 m.is_baseline,
-                COALESCE (m.penetration_rate, 'x%') AS penetration_rate,
+                COALESCE (m.penetration_rate, 'x') AS penetration_rate,
                 COALESCE (m.version, '2.0') AS version,
                 COALESCE (m.road_grade, 'False') AS road_grade,
                 COALESCE (m.on_ramp, 'False') AS on_ramp,
