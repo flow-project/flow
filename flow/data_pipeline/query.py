@@ -13,7 +13,10 @@ prerequisites = {
     "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL": (
         "fact_energy_trace", {"FACT_VEHICLE_TRACE"}
     ),
-    "FACT_SAFETY_METRICS": (
+    "FACT_SAFETY_METRICS_2D": (
+        "fact_safety_metrics", {"FACT_VEHICLE_TRACE"}
+    ),
+    "FACT_SAFETY_METRICS_3D": (
         "fact_safety_metrics", {"FACT_VEHICLE_TRACE"}
     ),
     "FACT_NETWORK_THROUGHPUT_AGG": (
@@ -21,6 +24,9 @@ prerequisites = {
     ),
     "FACT_NETWORK_INFLOWS_OUTFLOWS": (
         "fact_network_inflows_outflows", {"FACT_VEHICLE_TRACE"}
+    ),
+    "FACT_NETWORK_SPEED": (
+        "fact_network_speed", {"FACT_VEHICLE_TRACE"}
     ),
     "FACT_VEHICLE_COUNTS_BY_TIME": (
         "fact_vehicle_counts_by_time", {"FACT_VEHICLE_TRACE"}
@@ -44,13 +50,14 @@ prerequisites = {
         "fact_network_fuel_efficiency_agg", {"FACT_VEHICLE_FUEL_EFFICIENCY_AGG"}
     ),
     "FACT_SAFETY_METRICS_AGG": (
-        "fact_safety_metrics_agg", {"FACT_SAFETY_METRICS"}
+        "fact_safety_metrics_agg", {"FACT_SAFETY_METRICS_3D"}
     ),
     "FACT_SAFETY_METRICS_BINNED": (
-        "fact_safety_metrics_binned", {"FACT_SAFETY_METRICS"}
+        "fact_safety_metrics_binned", {"FACT_SAFETY_METRICS_3D"}
     ),
     "LEADERBOARD_CHART": (
         "leaderboard_chart", {"FACT_NETWORK_THROUGHPUT_AGG",
+                              "FACT_NETWORK_SPEED",
                               "FACT_NETWORK_FUEL_EFFICIENCY_AGG",
                               "FACT_SAFETY_METRICS_AGG"}
     ),
@@ -66,8 +73,9 @@ triggers = [
     "FACT_VEHICLE_TRACE",
     "POWER_DEMAND_MODEL_DENOISED_ACCEL",
     "FACT_VEHICLE_FUEL_EFFICIENCY_AGG",
-    "FACT_SAFETY_METRICS",
+    "FACT_SAFETY_METRICS_3D",
     "FACT_NETWORK_THROUGHPUT_AGG",
+    "FACT_NETWORK_SPEED",
     "FACT_NETWORK_FUEL_EFFICIENCY_AGG",
     "FACT_SAFETY_METRICS_AGG",
     "LEADERBOARD_CHART",
@@ -83,6 +91,7 @@ tables = [
     "fact_safety_metrics_binned",
     "fact_network_throughput_agg",
     "fact_network_inflows_outflows",
+    "fact_network_speed",
     "fact_vehicle_fuel_efficiency_agg",
     "fact_vehicle_fuel_efficiency_binned",
     "fact_network_metrics_by_distance_agg",
@@ -107,6 +116,9 @@ network_filters['I-210 without Ramps'] = {
         'horizon_steps': 1000 * 3 * 0.4
     }
 
+max_decel = -1.0
+leader_max_decel = -2.0
+
 VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT = """
     SELECT
         id,
@@ -127,22 +139,32 @@ VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT = """
     """
 
 VEHICLE_POWER_DEMAND_PRIUS_FINAL_SELECT = """
+    , pmod_calculation AS (
+        SELECT
+            id,
+            time_step,
+            speed,
+            acceleration,
+            road_grade,
+            GREATEST(1663 * acceleration * speed +
+                1.046 +
+                119.166 * speed +
+                0.337 * POW(speed,2) +
+                0.383 * POW(speed,3) +
+                GREATEST(0, 296.66 * acceleration * speed)) AS p_mod,
+            source_id
+        FROM {2}
+    )
     SELECT
         id,
         time_step,
         speed,
         acceleration,
         road_grade,
-        GREATEST(-2.8 * speed, 1663 * speed * ((
-            CASE
-                WHEN acceleration > 0 THEN 1
-                WHEN acceleration < 0 THEN 0
-                ELSE 0.5
-            END * (1 - {0}) + {0}) * acceleration + 9.807 * SIN(road_grade)
-            ) + 1663 * 9.807 * 0.007 * speed + 0.5 * 1.225 * 2.4 * 0.24 * POW(speed,3)) AS power,
+        GREATEST(p_mod, 0.869 * p_mod, -2338 * speed) AS power,
         \'{1}\' AS energy_model_id,
         source_id
-    FROM {2}
+    FROM pmod_calculation
     ORDER BY id, time_step
     """
 
@@ -234,7 +256,7 @@ class QueryStrings(Enum):
                                                                      'POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL',
                                                                      'denoised_speed_cte'))
 
-    FACT_SAFETY_METRICS = """
+    FACT_SAFETY_METRICS_2D = """
         SELECT
             vt.id,
             vt.time_step,
@@ -244,6 +266,7 @@ class QueryStrings(Enum):
                 value_upper_left*(headway_upper-headway)*(leader_rel_speed-rel_speed_lower) +
                 value_upper_right*(headway-headway_lower)*(leader_rel_speed-rel_speed_lower)
             ) / ((headway_upper-headway_lower)*(rel_speed_upper-rel_speed_lower)), 200.0) AS safety_value,
+            'v2D_HJI' AS safety_model,
             vt.source_id
         FROM fact_vehicle_trace vt
         LEFT OUTER JOIN fact_safety_matrix sm ON 1 = 1
@@ -257,15 +280,42 @@ class QueryStrings(Enum):
         ;
     """
 
+    FACT_SAFETY_METRICS_3D = """
+        SELECT
+            id,
+            time_step,
+            headway + (CASE
+                WHEN -speed/{max_decel} > -(speed+leader_rel_speed)/{leader_max_decel} THEN
+                    -0.5*POW(leader_rel_speed, 2)/{leader_max_decel} +
+                    -0.5*POW(speed,2)/{leader_max_decel} +
+                    -speed*leader_rel_speed/{leader_max_decel} +
+                    0.5*POW(speed,2)/{max_decel}
+                ELSE
+                    -leader_rel_speed*speed/{max_decel} +
+                    0.5*POW(speed,2)*{leader_max_decel}/POW({max_decel},2) +
+                    -0.5*POW(speed,2)/{max_decel}
+                END) AS safety_value,
+            'v3D' AS safety_model,
+            source_id
+        FROM fact_vehicle_trace
+        WHERE 1 = 1
+            AND date = \'{date}\'
+            AND partition_name = \'{partition}\'
+            AND time_step >= {start_filter}
+            AND {loc_filter}
+        ;
+    """
+
     FACT_SAFETY_METRICS_AGG = """
         SELECT
             source_id,
-            SUM(CASE WHEN safety_value < 0 THEN 1.0 ELSE 0.0 END) * 100.0 / COUNT() safety_rate,
-            MAX(safety_value) AS safety_value_max
+            SUM(CASE WHEN safety_value > 0 THEN 1.0 ELSE 0.0 END) * 100.0 / COUNT() safety_rate,
+            MIN(safety_value) AS safety_value_max
         FROM fact_safety_metrics
         WHERE 1 = 1
             AND date = \'{date}\'
-            AND partition_name = \'{partition}_FACT_SAFETY_METRICS\'
+            AND partition_name = \'{partition}_FACT_SAFETY_METRICS_3D\'
+            AND safety_model = 'v3D'
         GROUP BY 1
         ;
     """
@@ -282,8 +332,8 @@ class QueryStrings(Enum):
                 ub
             FROM unfilter_bins
             WHERE 1=1
-                AND lb >= -10
-                AND ub <= 10
+                AND lb >= -5
+                AND ub <= 15
         )
         SELECT
             CONCAT('[', CAST(bins.lb AS VARCHAR), ', ', CAST(bins.ub AS VARCHAR), ')') AS safety_value_bin,
@@ -291,9 +341,10 @@ class QueryStrings(Enum):
         FROM bins
         LEFT JOIN fact_safety_metrics fsm ON 1 = 1
             AND fsm.date = \'{date}\'
-            AND fsm.partition_name = \'{partition}_FACT_SAFETY_METRICS\'
+            AND fsm.partition_name = \'{partition}_FACT_SAFETY_METRICS_3D\'
             AND fsm.safety_value >= bins.lb
             AND fsm.safety_value < bins.ub
+            AND fsm.safety_model = 'v3D'
         GROUP BY 1
         ;
     """
@@ -414,28 +465,60 @@ class QueryStrings(Enum):
             AND SUM(energy_joules) != 0
         ;"""
 
+    FACT_NETWORK_SPEED = """
+        WITH vehicle_agg AS (
+            SELECT
+                id,
+                source_id,
+                AVG(speed) AS vehicle_avg_speed,
+                COUNT(DISTINCT time_step) AS n_steps,
+                MAX(time_step) - MIN(time_step) AS time_delta,
+                MAX(distance) - MIN(distance) AS distance_delta
+            FROM fact_vehicle_trace
+            WHERE 1 = 1
+                AND date = \'{date}\'
+                AND partition_name = \'{partition}\'
+                AND {loc_filter}
+                AND time_step >= {start_filter}
+                AND time_step < {stop_filter}
+            GROUP BY 1, 2
+        )
+        SELECT
+            source_id,
+            SUM(vehicle_avg_speed * n_steps) / SUM(n_steps) AS avg_instantaneous_speed,
+            SUM(distance_delta) / SUM(time_delta) AS avg_network_speed
+        FROM vehicle_agg
+        GROUP BY 1
+    ;"""
+
     LEADERBOARD_CHART = """
         SELECT
-            t.source_id,
-            e.energy_model_id,
-            e.efficiency_meters_per_joules,
-            33554.13 * e.efficiency_meters_per_joules AS efficiency_miles_per_gallon,
-            t.throughput_per_hour,
-            s.safety_rate,
-            s.safety_value_max
-        FROM fact_network_throughput_agg AS t
-        JOIN fact_network_fuel_efficiency_agg AS e ON 1 = 1
-            AND e.date = \'{date}\'
-            AND e.partition_name = \'{partition}_FACT_NETWORK_FUEL_EFFICIENCY_AGG\'
-            AND t.source_id = e.source_id
-            AND e.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
-        JOIN fact_safety_metrics_agg AS s ON 1 = 1
-            AND s.date = \'{date}\'
-            AND s.partition_name = \'{partition}_FACT_SAFETY_METRICS_AGG\'
-            AND t.source_id = s.source_id
+            nt.source_id,
+            fe.energy_model_id,
+            fe.efficiency_meters_per_joules,
+            33554.13 * fe.efficiency_meters_per_joules AS efficiency_miles_per_gallon,
+            nt.throughput_per_hour,
+            ns.avg_instantaneous_speed,
+            ns.avg_network_speed,
+            sm.safety_rate,
+            sm.safety_value_max
+        FROM fact_network_throughput_agg AS nt
+        JOIN fact_network_speed AS ns ON 1 = 1
+            AND ns.date = \'{date}\'
+            AND ns.partition_name = \'{partition}_FACT_NETWORK_SPEED\'
+            AND nt.source_id = ns.source_id
+        JOIN fact_network_fuel_efficiency_agg AS fe ON 1 = 1
+            AND fe.date = \'{date}\'
+            AND fe.partition_name = \'{partition}_FACT_NETWORK_FUEL_EFFICIENCY_AGG\'
+            AND nt.source_id = fe.source_id
+            AND fe.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
+        JOIN fact_safety_metrics_agg AS sm ON 1 = 1
+            AND sm.date = \'{date}\'
+            AND sm.partition_name = \'{partition}_FACT_SAFETY_METRICS_AGG\'
+            AND nt.source_id = sm.source_id
         WHERE 1 = 1
-            AND t.date = \'{date}\'
-            AND t.partition_name = \'{partition}_FACT_NETWORK_THROUGHPUT_AGG\'
+            AND nt.date = \'{date}\'
+            AND nt.partition_name = \'{partition}_FACT_NETWORK_THROUGHPUT_AGG\'
         ;"""
 
     FACT_NETWORK_INFLOWS_OUTFLOWS = """
@@ -727,6 +810,8 @@ class QueryStrings(Enum):
                 l.efficiency_meters_per_joules,
                 l.efficiency_miles_per_gallon,
                 l.throughput_per_hour,
+                l.avg_instantaneous_speed,
+                l.avg_network_speed,
                 l.safety_rate,
                 l.safety_value_max,
                 b.source_id AS baseline_source_id
@@ -754,8 +839,11 @@ class QueryStrings(Enum):
                 100 * (1 - baseline.efficiency_miles_per_gallon / agg.efficiency_miles_per_gallon)
                     AS fuel_improvement,
                 agg.throughput_per_hour,
-                100 * (baseline.throughput_per_hour - agg.throughput_per_hour) / baseline.throughput_per_hour
-                    AS throughput_improvement,
+                100 * (agg.throughput_per_hour - baseline.throughput_per_hour) / baseline.throughput_per_hour
+                    AS throughput_change,
+                agg.avg_network_speed,
+                100 * (agg.avg_network_speed - baseline.avg_network_speed) / baseline.avg_network_speed
+                    AS speed_change,
                 agg.safety_rate,
                 agg.safety_value_max
             FROM agg
@@ -773,12 +861,15 @@ class QueryStrings(Enum):
             is_baseline,
             energy_model_id,
             efficiency_miles_per_gallon,
-            ROUND(efficiency_miles_per_gallon, 1) ||
-                ' (' || CASE(WHEN SIGN(fuel_improvement) = 1 THEN '+' END) ||
-                ROUND(fuel_improvement, 1) || ')' AS efficiency,
-            ROUND(throughput_per_hour, 1) ||
-                ' (' || CASE(WHEN SIGN(throughput_improvement) = 1 THEN '+' END) ||
-                ROUND(throughput_improvement, 1) || ')' AS inflow,
+            CAST (ROUND(efficiency_miles_per_gallon, 1) AS VARCHAR) ||
+                ' (' || (CASE WHEN SIGN(fuel_improvement) = 1 THEN '+' ELSE '' END) ||
+                CAST (ROUND(fuel_improvement, 1) AS VARCHAR) || '%)' AS efficiency,
+            CAST (ROUND(throughput_per_hour, 1) AS VARCHAR) ||
+                ' (' || (CASE WHEN SIGN(throughput_change) = 1 THEN '+' ELSE '' END) ||
+                CAST (ROUND(throughput_change, 1) AS VARCHAR) || '%)' AS inflow,
+            CAST (ROUND(avg_network_speed, 1) AS VARCHAR) ||
+                ' (' || (CASE WHEN SIGN(speed_change) = 1 THEN '+' ELSE '' END) ||
+                CAST (ROUND(speed_change, 1) AS VARCHAR) || '%)' AS speed,
             ROUND(safety_rate, 1) AS safety_rate,
             ROUND(safety_value_max, 1) AS safety_value_max
         FROM joined_cols
