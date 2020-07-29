@@ -13,7 +13,10 @@ prerequisites = {
     "POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL": (
         "fact_energy_trace", {"FACT_VEHICLE_TRACE"}
     ),
-    "FACT_SAFETY_METRICS": (
+    "FACT_SAFETY_METRICS_2D": (
+        "fact_safety_metrics", {"FACT_VEHICLE_TRACE"}
+    ),
+    "FACT_SAFETY_METRICS_3D": (
         "fact_safety_metrics", {"FACT_VEHICLE_TRACE"}
     ),
     "FACT_NETWORK_THROUGHPUT_AGG": (
@@ -44,10 +47,10 @@ prerequisites = {
         "fact_network_fuel_efficiency_agg", {"FACT_VEHICLE_FUEL_EFFICIENCY_AGG"}
     ),
     "FACT_SAFETY_METRICS_AGG": (
-        "fact_safety_metrics_agg", {"FACT_SAFETY_METRICS"}
+        "fact_safety_metrics_agg", {"FACT_SAFETY_METRICS_3D"}
     ),
     "FACT_SAFETY_METRICS_BINNED": (
-        "fact_safety_metrics_binned", {"FACT_SAFETY_METRICS"}
+        "fact_safety_metrics_binned", {"FACT_SAFETY_METRICS_3D"}
     ),
     "LEADERBOARD_CHART": (
         "leaderboard_chart", {"FACT_NETWORK_THROUGHPUT_AGG",
@@ -66,7 +69,7 @@ triggers = [
     "FACT_VEHICLE_TRACE",
     "POWER_DEMAND_MODEL_DENOISED_ACCEL",
     "FACT_VEHICLE_FUEL_EFFICIENCY_AGG",
-    "FACT_SAFETY_METRICS",
+    "FACT_SAFETY_METRICS_3D",
     "FACT_NETWORK_THROUGHPUT_AGG",
     "FACT_NETWORK_FUEL_EFFICIENCY_AGG",
     "FACT_SAFETY_METRICS_AGG",
@@ -106,6 +109,9 @@ network_filters['I-210 without Ramps'] = {
         'warmup_steps': 600 * 3 * 0.4,
         'horizon_steps': 1000 * 3 * 0.4
     }
+
+max_decel = -1.0
+leader_max_decel = -2.0
 
 VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT = """
     SELECT
@@ -234,7 +240,7 @@ class QueryStrings(Enum):
                                                                      'POWER_DEMAND_MODEL_DENOISED_ACCEL_VEL',
                                                                      'denoised_speed_cte'))
 
-    FACT_SAFETY_METRICS = """
+    FACT_SAFETY_METRICS_2D = """
         SELECT
             vt.id,
             vt.time_step,
@@ -244,6 +250,7 @@ class QueryStrings(Enum):
                 value_upper_left*(headway_upper-headway)*(leader_rel_speed-rel_speed_lower) +
                 value_upper_right*(headway-headway_lower)*(leader_rel_speed-rel_speed_lower)
             ) / ((headway_upper-headway_lower)*(rel_speed_upper-rel_speed_lower)), 200.0) AS safety_value,
+            'v2D_HJI' AS safety_model,
             vt.source_id
         FROM fact_vehicle_trace vt
         LEFT OUTER JOIN fact_safety_matrix sm ON 1 = 1
@@ -257,15 +264,42 @@ class QueryStrings(Enum):
         ;
     """
 
+    FACT_SAFETY_METRICS_3D = """
+        SELECT
+            id,
+            time_step,
+            headway + (CASE
+                WHEN -speed/{max_decel} > -(speed+leader_rel_speed)/{leader_max_decel} THEN
+                    -0.5*POW(leader_rel_speed, 2)/{leader_max_decel} +
+                    -0.5*POW(speed,2)/{leader_max_decel} +
+                    -speed*leader_rel_speed/{leader_max_decel} +
+                    0.5*POW(speed,2)/{max_decel}
+                ELSE
+                    -leader_rel_speed*speed/{max_decel} +
+                    0.5*POW(speed,2)*{leader_max_decel}/POW({max_decel},2) +
+                    -0.5*POW(speed,2)/{max_decel}
+                END) AS safety_value,
+            'v3D' AS safety_model,
+            source_id
+        FROM fact_vehicle_trace
+        WHERE 1 = 1
+            AND date = \'{date}\'
+            AND partition_name = \'{partition}\'
+            AND time_step >= {start_filter}
+            AND {loc_filter}
+        ;
+    """
+
     FACT_SAFETY_METRICS_AGG = """
         SELECT
             source_id,
-            SUM(CASE WHEN safety_value < 0 THEN 1.0 ELSE 0.0 END) * 100.0 / COUNT() safety_rate,
-            MAX(safety_value) AS safety_value_max
+            SUM(CASE WHEN safety_value > 0 THEN 1.0 ELSE 0.0 END) * 100.0 / COUNT() safety_rate,
+            MIN(safety_value) AS safety_value_max
         FROM fact_safety_metrics
         WHERE 1 = 1
             AND date = \'{date}\'
-            AND partition_name = \'{partition}_FACT_SAFETY_METRICS\'
+            AND partition_name = \'{partition}_FACT_SAFETY_METRICS_3D\'
+            AND safety_model = 'v3D'
         GROUP BY 1
         ;
     """
@@ -275,15 +309,15 @@ class QueryStrings(Enum):
             SELECT
                 ROW_NUMBER() OVER() - 51 AS lb,
                 ROW_NUMBER() OVER() - 50 AS ub
-            FROM fact_safety_metrics
+            FROM fact_safety_matrix
         ), bins AS (
             SELECT
                 lb,
                 ub
             FROM unfilter_bins
             WHERE 1=1
-                AND lb >= -10
-                AND ub <= 10
+                AND lb >= -5
+                AND ub <= 15
         )
         SELECT
             CONCAT('[', CAST(bins.lb AS VARCHAR), ', ', CAST(bins.ub AS VARCHAR), ')') AS safety_value_bin,
@@ -291,9 +325,10 @@ class QueryStrings(Enum):
         FROM bins
         LEFT JOIN fact_safety_metrics fsm ON 1 = 1
             AND fsm.date = \'{date}\'
-            AND fsm.partition_name = \'{partition}_FACT_SAFETY_METRICS\'
+            AND fsm.partition_name = \'{partition}_FACT_SAFETY_METRICS_3D\'
             AND fsm.safety_value >= bins.lb
             AND fsm.safety_value < bins.ub
+            AND fsm.safety_model = 'v3D'
         GROUP BY 1
         ;
     """
@@ -372,7 +407,7 @@ class QueryStrings(Enum):
             SELECT
                 ROW_NUMBER() OVER() - 1 AS lb,
                 ROW_NUMBER() OVER() AS ub
-            FROM fact_safety_metrics
+            FROM fact_safety_matrix
         ) bins AS (
             SELECT
                 lb,
