@@ -68,7 +68,10 @@ class Experiment:
         the environment object the simulator will run
     """
 
-    def __init__(self, flow_params, custom_callables=None, register_with_ray=False):
+    def __init__(self,
+                 flow_params,
+                 custom_callables=None,
+                 register_with_ray=False):
         """Instantiate the Experiment class.
 
         Parameters
@@ -80,6 +83,10 @@ class Experiment:
             want to extract from the environment. The lambda will be called at
             each step to extract information from the env and it will be stored
             in a dict keyed by the str.
+        register_with_ray : bool
+            whether the environment is meant to be registered with ray. If set
+            to True, the environment is including as part of `self.env`
+            separately (i.e. not here).
         """
         self.custom_callables = custom_callables or {}
 
@@ -104,7 +111,6 @@ class Experiment:
             rl_actions=None,
             convert_to_csv=False,
             to_aws=None,
-            only_query="",
             is_baseline=False,
             multiagent=False,
             rets=None,
@@ -126,12 +132,16 @@ class Experiment:
             Specifies the S3 partition you want to store the output file,
             will be used to later for query. If NONE, won't upload output
             to S3.
-        only_query: str
-            Specifies which queries should be automatically run when the
-            simulation data gets uploaded to S3. If an empty str is passed in,
-            then it implies no queries should be run on this.
         is_baseline: bool
             Specifies whether this is a baseline run.
+        multiagent : bool
+            whether the policy is multi-agent
+        rets : TODO
+            TODO
+        policy_map_fn : TODO
+            TODO
+        supplied_metadata : TODO
+            TODO
 
         Returns
         -------
