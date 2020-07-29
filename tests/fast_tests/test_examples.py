@@ -72,7 +72,6 @@ class TestNonRLExamples(unittest.TestCase):
             'is_baseline': False,
             'no_render': False,
             'num_runs': 1,
-            'only_query': "['all']",
             'to_aws': None,
         })
 
@@ -92,7 +91,6 @@ class TestNonRLExamples(unittest.TestCase):
             'is_baseline': False,
             'no_render': True,
             'num_runs': 2,
-            'only_query': "['all']",
             'to_aws': None,
         })
 
