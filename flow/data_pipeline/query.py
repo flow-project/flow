@@ -25,6 +25,9 @@ prerequisites = {
     "FACT_NETWORK_INFLOWS_OUTFLOWS": (
         "fact_network_inflows_outflows", {"FACT_VEHICLE_TRACE"}
     ),
+    "FACT_NETWORK_SPEED": (
+        "fact_network_speed", {"FACT_VEHICLE_TRACE"}
+    ),
     "FACT_VEHICLE_COUNTS_BY_TIME": (
         "fact_vehicle_counts_by_time", {"FACT_VEHICLE_TRACE"}
     ),
@@ -54,6 +57,7 @@ prerequisites = {
     ),
     "LEADERBOARD_CHART": (
         "leaderboard_chart", {"FACT_NETWORK_THROUGHPUT_AGG",
+                              "FACT_NETWORK_SPEED",
                               "FACT_NETWORK_FUEL_EFFICIENCY_AGG",
                               "FACT_SAFETY_METRICS_AGG"}
     ),
@@ -71,6 +75,7 @@ triggers = [
     "FACT_VEHICLE_FUEL_EFFICIENCY_AGG",
     "FACT_SAFETY_METRICS_3D",
     "FACT_NETWORK_THROUGHPUT_AGG",
+    "FACT_NETWORK_SPEED",
     "FACT_NETWORK_FUEL_EFFICIENCY_AGG",
     "FACT_SAFETY_METRICS_AGG",
     "LEADERBOARD_CHART",
@@ -86,6 +91,7 @@ tables = [
     "fact_safety_metrics_binned",
     "fact_network_throughput_agg",
     "fact_network_inflows_outflows",
+    "fact_network_speed",
     "fact_vehicle_fuel_efficiency_agg",
     "fact_vehicle_fuel_efficiency_binned",
     "fact_network_metrics_by_distance_agg",
@@ -449,28 +455,60 @@ class QueryStrings(Enum):
             AND SUM(energy_joules) != 0
         ;"""
 
+    FACT_NETWORK_SPEED = """
+        WITH vehicle_agg AS (
+            SELECT
+                id,
+                source_id,
+                AVG(speed) AS vehicle_avg_speed,
+                COUNT(DISTINCT time_step) AS n_steps,
+                MAX(time_step) - MIN(time_step) AS time_delta,
+                MAX(distance) - MIN(distance) AS distance_delta
+            FROM fact_vehicle_trace
+            WHERE 1 = 1
+                AND date = \'{date}\'
+                AND partition_name = \'{partition}\'
+                AND {loc_filter}
+                AND time_step >= {start_filter}
+                AND time_step < {stop_filter}
+            GROUP BY 1, 2
+        )
+        SELECT
+            source_id,
+            SUM(vehicle_avg_speed * n_steps) / SUM(n_steps) AS avg_instantaneous_speed,
+            SUM(distance_delta) / SUM(time_delta) AS avg_network_speed
+        FROM vehicle_agg
+        GROUP BY 1
+    ;"""
+
     LEADERBOARD_CHART = """
         SELECT
-            t.source_id,
-            e.energy_model_id,
-            e.efficiency_meters_per_joules,
-            33554.13 * e.efficiency_meters_per_joules AS efficiency_miles_per_gallon,
-            t.throughput_per_hour,
-            s.safety_rate,
-            s.safety_value_max
-        FROM fact_network_throughput_agg AS t
-        JOIN fact_network_fuel_efficiency_agg AS e ON 1 = 1
-            AND e.date = \'{date}\'
-            AND e.partition_name = \'{partition}_FACT_NETWORK_FUEL_EFFICIENCY_AGG\'
-            AND t.source_id = e.source_id
-            AND e.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
-        JOIN fact_safety_metrics_agg AS s ON 1 = 1
-            AND s.date = \'{date}\'
-            AND s.partition_name = \'{partition}_FACT_SAFETY_METRICS_AGG\'
-            AND t.source_id = s.source_id
+            nt.source_id,
+            fe.energy_model_id,
+            fe.efficiency_meters_per_joules,
+            33554.13 * fe.efficiency_meters_per_joules AS efficiency_miles_per_gallon,
+            nt.throughput_per_hour,
+            ns.avg_instantaneous_speed,
+            ns.avg_network_speed,
+            sm.safety_rate,
+            sm.safety_value_max
+        FROM fact_network_throughput_agg AS nt
+        JOIN fact_network_speed AS ns ON 1 = 1
+            AND ns.date = \'{date}\'
+            AND ns.partition_name = \'{partition}_FACT_NETWORK_SPEED\'
+            AND nt.source_id = ns.source_id
+        JOIN fact_network_fuel_efficiency_agg AS fe ON 1 = 1
+            AND fe.date = \'{date}\'
+            AND fe.partition_name = \'{partition}_FACT_NETWORK_FUEL_EFFICIENCY_AGG\'
+            AND nt.source_id = fe.source_id
+            AND fe.energy_model_id = 'POWER_DEMAND_MODEL_DENOISED_ACCEL'
+        JOIN fact_safety_metrics_agg AS sm ON 1 = 1
+            AND sm.date = \'{date}\'
+            AND sm.partition_name = \'{partition}_FACT_SAFETY_METRICS_AGG\'
+            AND nt.source_id = sm.source_id
         WHERE 1 = 1
-            AND t.date = \'{date}\'
-            AND t.partition_name = \'{partition}_FACT_NETWORK_THROUGHPUT_AGG\'
+            AND nt.date = \'{date}\'
+            AND nt.partition_name = \'{partition}_FACT_NETWORK_THROUGHPUT_AGG\'
         ;"""
 
     FACT_NETWORK_INFLOWS_OUTFLOWS = """
@@ -758,6 +796,8 @@ class QueryStrings(Enum):
                 l.efficiency_meters_per_joules,
                 l.efficiency_miles_per_gallon,
                 l.throughput_per_hour,
+                l.avg_instantaneous_speed,
+                l.avg_network_speed,
                 l.safety_rate,
                 l.safety_value_max,
                 b.source_id AS baseline_source_id
@@ -782,8 +822,11 @@ class QueryStrings(Enum):
                 100 * (1 - baseline.efficiency_miles_per_gallon / agg.efficiency_miles_per_gallon)
                     AS fuel_improvement,
                 agg.throughput_per_hour,
-                100 * (baseline.throughput_per_hour - agg.throughput_per_hour) / baseline.throughput_per_hour
-                    AS throughput_improvement,
+                100 * (agg.throughput_per_hour - baseline.throughput_per_hour) / baseline.throughput_per_hour
+                    AS throughput_change,
+                agg.avg_network_speed,
+                100 * (agg.avg_network_speed - baseline.avg_network_speed) / baseline.avg_network_speed
+                    AS speed_change,
                 agg.safety_rate,
                 agg.safety_value_max
             FROM agg
@@ -805,8 +848,11 @@ class QueryStrings(Enum):
                 ' (' || (CASE WHEN SIGN(fuel_improvement) = 1 THEN '+' ELSE '' END) ||
                 CAST (ROUND(fuel_improvement, 1) AS VARCHAR) || '%)' AS efficiency,
             CAST (ROUND(throughput_per_hour, 1) AS VARCHAR) ||
-                ' (' || (CASE WHEN SIGN(throughput_improvement) = 1 THEN '+' ELSE '' END) ||
-                CAST (ROUND(throughput_improvement, 1) AS VARCHAR) || '%)' AS inflow,
+                ' (' || (CASE WHEN SIGN(throughput_change) = 1 THEN '+' ELSE '' END) ||
+                CAST (ROUND(throughput_change, 1) AS VARCHAR) || '%)' AS inflow,
+            CAST (ROUND(avg_network_speed, 1) AS VARCHAR) ||
+                ' (' || (CASE WHEN SIGN(speed_change) = 1 THEN '+' ELSE '' END) ||
+                CAST (ROUND(speed_change, 1) AS VARCHAR) || '%)' AS speed,
             ROUND(safety_rate, 1) AS safety_rate,
             ROUND(safety_value_max, 1) AS safety_value_max
         FROM joined_cols
