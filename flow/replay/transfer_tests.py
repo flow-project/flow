@@ -287,7 +287,7 @@ def create_parser():
 
 
 def main():
-    """Runs the replay according to the commandline arguments."""
+    """Run the replay according to the commandline arguments."""
     parser = create_parser()
     args = parser.parse_args()
 
