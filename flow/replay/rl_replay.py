@@ -426,6 +426,7 @@ def create_parser():
 
 
 def main():
+    """Runs the rl_replay according to the commandline arguments."""
     parser = create_parser()
     args = parser.parse_args()
     ray.init(num_cpus=1)
