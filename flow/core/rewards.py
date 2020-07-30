@@ -361,7 +361,7 @@ def veh_energy_consumption(env, veh_ids=None, gain=.001):
     return -gain * power
 
 
-def instantaneous_mpg(env, veh_ids=None, gain=.001):
+def instantaneous_mpg(env, veh_ids=None, gain=.1):
     """Calculate the instantaneous mpg for every simulation step specific to the vehicle type.
 
     Parameters
@@ -408,9 +408,10 @@ def instantaneous_mpg(env, veh_ids=None, gain=.001):
     # print('//////////////////dd     ', cumulative_distance, '//   ', cumulative_gallons, '/////////////')
     # miles / gallon is (distance_dot * \delta t) / (gallons_dot * \delta t)
     # mpg = Total_distance / (max(Total_gallons,0.2 )+ 1e-6)
-    mpg = Total_distance / (Total_gallons + 1e-6)
+    # mpg = (Total_distance+0.1) / (Total_gallons + 0.01)
+    mpg = (Total_distance ) / (Total_gallons + 1e-8)
     # print('////// TOTAL DIST = ', Total_distance, '///// Total GALLONS =', Total_gallons, '//// mpg =', mpg)
-
+    # mpg = Total_distance
     return mpg * gain
 
 

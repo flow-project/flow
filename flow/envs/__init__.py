@@ -11,7 +11,7 @@ from flow.envs.ring.accel import AccelEnv
 from flow.envs.ring.wave_attenuation import WaveAttenuationEnv, \
     WaveAttenuationPOEnv
 from flow.envs.ring.energy_optim import EnergyOptEnv, \
-    EnergyOptPOEnv
+    EnergyOptSPDEnv
 from flow.envs.merge import MergePOEnv
 from flow.envs.straightroad_env import SingleStraightRoad
 from flow.envs.test import TestEnv
@@ -35,7 +35,7 @@ __all__ = [
     'WaveAttenuationEnv',
     'WaveAttenuationPOEnv',
     'EnergyOptEnv',
-    'EnergyOptPOEnv',
+    'EnergyOptSPDEnv',
     'TrafficLightGridEnv',
     'TrafficLightGridPOEnv',
     'TrafficLightGridBenchmarkEnv',

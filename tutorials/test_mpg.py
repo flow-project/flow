@@ -3,7 +3,7 @@ from flow.core.params import EnvParams
 from flow.core.params import NetParams, InitialConfig
 from flow.core.params import SumoParams
 from flow.core.params import VehicleParams
-from flow.envs import EnergyOptPOEnv
+from flow.envs import EnergyOptSPDEnv
 from flow.networks import RingNetwork
 from flow.networks.ring import ADDITIONAL_NET_PARAMS
 from flow.controllers import IDMController, ContinuousRouter
@@ -22,18 +22,18 @@ from flow.utils.rllib import FlowParamsEncoder
 
 
 network_name = RingNetwork
-name = "training_example6"
+name = "training_mpg"
 net_params = NetParams(additional_params=ADDITIONAL_NET_PARAMS)
 initial_config = InitialConfig(spacing="uniform", perturbation=1)
 vehicles = VehicleParams()
 vehicles.add(veh_id="rl",
              acceleration_controller=(RLController, {}),
              routing_controller=(ContinuousRouter, {}),
-             initial_speed =20,
+             initial_speed =0,
              num_vehicles=1)
 sim_params = SumoParams(sim_step=0.1, render=False)
 
-HORIZON=1000
+HORIZON=2500
 
 env_params = EnvParams(
     # length of one rollout
@@ -41,15 +41,15 @@ env_params = EnvParams(
 
     additional_params={
         # maximum acceleration of autonomous vehicles
-        "max_accel": 1,
+        "max_accel": 4,
         # maximum deceleration of autonomous vehicles
-        "max_decel": 1,
+        "max_decel": -4,
         # bounds on the ranges of ring road lengths the autonomous vehicle
         # is trained on
         "ring_length": [220, 270],
     },)
 
-env_name = EnergyOptPOEnv
+env_name = EnergyOptSPDEnv
 
 flow_params = dict(
     # name of the experiment
@@ -77,7 +77,7 @@ flow_params = dict(
 
 
 
-N_CPUS = 4
+N_CPUS = 6
 # number of rollouts per training iteration
 N_ROLLOUTS = 1
 #ray.shutdown()
@@ -122,7 +122,7 @@ trials = run_experiments({
         "checkpoint_at_end": True,  # generate a checkpoint at the end
         "max_failures": 999,
         "stop": {  # stopping conditions
-            "training_iteration": 10,  # number of iterations to stop after
+            "training_iteration": 1200,  # number of iterations to stop after
         },
     },
 })

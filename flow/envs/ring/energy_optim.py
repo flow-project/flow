@@ -10,7 +10,8 @@ abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 
 from flow.core.params import InitialConfig
 from flow.core.params import NetParams
-from flow.core.rewards import instantaneous_mpg,instantaneous_mpg2, instantaneous_mpg3,instantaneous_mpg4,MonetaryCost
+from flow.core.rewards import instantaneous_mpg, instantaneous_mpg2, instantaneous_mpg3, instantaneous_mpg4, \
+    MonetaryCost
 from flow.envs.base import Env
 
 from gym.spaces.box import Box
@@ -22,9 +23,9 @@ from scipy.optimize import fsolve
 
 ADDITIONAL_ENV_PARAMS = {
     # maximum acceleration of autonomous vehicles
-    'max_accel': 1,
+    'max_accel': 4,
     # maximum deceleration of autonomous vehicles
-    'max_decel': 1,
+    'max_decel': 4,
     # bounds on the ranges of ring road lengths the autonomous vehicle is
     # trained on
     'ring_length': [220, 270],
@@ -36,7 +37,7 @@ def v_eq_max_function(v, *args):
     num_vehicles, length = args
 
     # maximum gap in the presence of one rl vehicle
-    if num_vehicles < 2 :
+    if num_vehicles < 2:
         s_eq_max = length - num_vehicles * 5
     else:
         s_eq_max = (length - num_vehicles * 5) / (num_vehicles - 1)
@@ -96,7 +97,7 @@ class EnergyOptEnv(Env):
         return Box(
             low=-np.abs(self.env_params.additional_params['max_decel']),
             high=self.env_params.additional_params['max_accel'],
-            shape=(self.initial_vehicles.num_rl_vehicles, ),
+            shape=(self.initial_vehicles.num_rl_vehicles,),
             dtype=np.float32)
 
     @property
@@ -106,7 +107,7 @@ class EnergyOptEnv(Env):
         return Box(
             low=0,
             high=1,
-            shape=(2 * self.initial_vehicles.num_vehicles, ),
+            shape=(2 * self.initial_vehicles.num_vehicles,),
             dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
@@ -121,7 +122,7 @@ class EnergyOptEnv(Env):
             return 0
         rl_id = self.k.vehicle.get_rl_ids()[0]
         # Energy_rew = self.k.vehicle.get_fuel_consumption(rl_id)
-        Energy_rew = instantaneous_mpg(self,veh_ids = rl_id)
+        Energy_rew = instantaneous_mpg(self, veh_ids=rl_id)
         # Energy_rew = instantaneous_mpg2(self, veh_ids=rl_id)
         # Energy_rew = instantaneous_mpg3(self, veh_ids=rl_id)
         # Energy_rew = instantaneous_mpg4(self, veh_ids=rl_id)
@@ -129,7 +130,6 @@ class EnergyOptEnv(Env):
         # Energy_rew = MonetaryCost(self, veh_ids=rl_id)
         reward = Energy_rew
         # print('rewward = ', float(reward))
-
 
         # vel = np.array([
         #     self.k.vehicle.get_speed(veh_id)
@@ -157,10 +157,14 @@ class EnergyOptEnv(Env):
         """See class definition."""
         speed = [self.k.vehicle.get_speed(veh_id) / self.k.network.max_speed()
                  for veh_id in self.k.vehicle.get_ids()]
-        pos = [self.k.vehicle.get_x_by_id(veh_id) / self.k.network.length()
-               for veh_id in self.k.vehicle.get_ids()]
-
-        return np.array(speed + pos)
+        # pos = [self.k.vehicle.get_x_by_id(veh_id) / self.k.network.length()
+        #        for veh_id in self.k.vehicle.get_ids()]
+        max_distance = self.k.network.max_speed() * self.sim_params.sim_step * self.env_params.horizon
+        # print('/////////////// max dist = ' , max_distance)
+        dist = [self.k.vehicle.get_distance(veh_id) / max_distance
+                for veh_id in self.k.vehicle.get_ids()]
+        # print('////////////////State = ', np.array(speed + dist))
+        return np.array(speed + dist)
 
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""
@@ -258,7 +262,7 @@ class EnergyOptPOEnv(EnergyOptEnv):
     def observation_space(self):
         """See class definition."""
         return Box(low=-float('inf'), high=float('inf'),
-                   shape=(3, ), dtype=np.float32)
+                   shape=(3,), dtype=np.float32)
 
     def get_state(self):
         """See class definition."""
@@ -292,3 +296,51 @@ class EnergyOptPOEnv(EnergyOptEnv):
         rl_id = self.k.vehicle.get_rl_ids()[0]
         lead_id = self.k.vehicle.get_leader(rl_id) or rl_id
         self.k.vehicle.set_observed(lead_id)
+
+
+class EnergyOptSPDEnv(EnergyOptEnv):
+    """POMDP version of WaveAttenuationEnv.
+
+    Note that this environment only works when there is one autonomous vehicle
+    on the network.
+
+    Required from env_params:
+
+    * max_accel: maximum acceleration of autonomous vehicles
+    * max_decel: maximum deceleration of autonomous vehicles
+    * ring_length: bounds on the ranges of ring road lengths the autonomous
+      vehicle is trained on
+
+    States
+        The state consists of the speed and headway of the ego vehicle, as well
+        as the difference in speed between the ego vehicle and its leader.
+        There is no assumption on the number of vehicles in the network.
+
+    Actions
+        See parent class
+
+    Rewards
+        See parent class
+
+    Termination
+        See parent class
+
+    """
+
+    @property
+    def observation_space(self):
+        """See class definition."""
+        return Box(low=-float('inf'), high=float('inf'),
+                   shape=(3,), dtype=np.float32)
+
+    def get_state(self):
+        """See class definition."""
+        speed = [self.k.vehicle.get_speed(veh_id) / self.k.network.max_speed()
+                 for veh_id in self.k.vehicle.get_ids()]
+        distance = [self.k.vehicle.get_distance(veh_id) / 1609.34
+                    for veh_id in self.k.vehicle.get_ids()]
+
+        fuel = [self.k.vehicle.get_total_gallons(veh_id) for veh_id in self.k.vehicle.get_ids()]
+        # print(np.array(speed + distance + fuel ))
+
+        return np.array(speed + distance + fuel )
