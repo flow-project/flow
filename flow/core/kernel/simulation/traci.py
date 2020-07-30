@@ -191,45 +191,6 @@ class TraCISimulation(KernelSimulation):
                     "--num-clients", str(sim_params.num_clients),
                 ]
 
-                # disable all collisions and teleporting in the simulation.
-                if sim_params.disable_collisions:
-                    sumo_call.extend(["--collision.mingap-factor", str(0),
-                                      "--collision.action", str("none")])
-
-                # use a ballistic integration step (if request)
-                if sim_params.use_ballistic:
-                    sumo_call.append("--step-method.ballistic")
-
-                # ignore step logs (if requested)
-                if sim_params.no_step_log:
-                    sumo_call.append("--no-step-log")
-
-                # add the lateral resolution of the sublanes (if requested)
-                if sim_params.lateral_resolution is not None:
-                    sumo_call.append("--lateral-resolution")
-                    sumo_call.append(str(sim_params.lateral_resolution))
-
-                if sim_params.overtake_right:
-                    sumo_call.append("--lanechange.overtake-right")
-                    sumo_call.append("true")
-
-                # specify a simulation seed (if requested)
-                if sim_params.seed is not None:
-                    sumo_call.append("--seed")
-                    sumo_call.append(str(sim_params.seed))
-
-                if not sim_params.print_warnings:
-                    sumo_call.append("--no-warnings")
-                    sumo_call.append("true")
-
-                # set the time it takes for a gridlock teleport to occur
-                sumo_call.append("--time-to-teleport")
-                sumo_call.append(str(int(sim_params.teleport_time)))
-
-                # check collisions at intersections
-                sumo_call.append("--collision.check-junctions")
-                sumo_call.append("true")
-
                 logging.info(" Starting SUMO on port " + str(port))
                 logging.debug(" Cfg file: " + str(network.cfg))
                 if sim_params.num_clients > 1:
@@ -238,10 +199,7 @@ class TraCISimulation(KernelSimulation):
                 logging.debug(" Emission file: " + str(self.emission_path))
                 logging.debug(" Step length: " + str(sim_params.sim_step))
 
-                try:
-                    use_libsumo = sim_params.use_libsumo
-                except AttributeError:
-                    use_libsumo = False
+                use_libsumo = getattr(sim_params, "use_libsumo", False)
 
                 if sim_params.render or not use_libsumo:
                     # Opening the I/O thread to SUMO

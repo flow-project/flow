@@ -550,7 +550,7 @@ class SumoParams(SimParams):
 
     Attributes
     ----------
-    libsumo : bool, optional
+    use_libsumo : bool, optional
         Whether to enable libsumo speedup. Note SUMO must be compiled with
         libsumo for this to work. Is not currently supported on OSX machines.
     port : int, optional
