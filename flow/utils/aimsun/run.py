@@ -601,14 +601,6 @@ def threaded_client(conn, **kwargs):
 
                 cp.set_replication_seed(seed)
             
-            elif data == ac.GET_AIMSUN_TIME:
-                send_message(conn, in_format='i', values=(0,))
-                #time, =retrieve_message(conn,'i')
-                # time = aimsun_api.AKIGetCurrentSimulationTime()
-                time = kwargs['time']
-                # assert time==aimsun_api.AKIGetCurrentSimulationTime(), "wow... didnt expect that"
-                send_message(conn, in_format='f', values=(time,))
-
             # in case the message is unknown, return -1001
             else:
                 send_message(conn, in_format='i', values=(-1001,))
