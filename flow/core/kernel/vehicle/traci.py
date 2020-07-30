@@ -85,15 +85,14 @@ class TraCIVehicle(KernelVehicle):
         self.render = sim_params.render
 
         # whether to use libsumo
-        try:
-            self.use_libsumo = sim_params.use_libsumo
-        except AttributeError:
-            self.use_libsumo = False
-        if self.use_libsumo :
+        self.use_libsumo = getattr(sim_params, "use_libsumo", False)
+        if self.use_libsumo:
             import libsumo as libsumo
             relese = float(os.popen('lsb_release -r -s').read())
-            if platform.system()=='Linux' and not relese in [float(18.04), float(16.04)]:
-                warnings.warn('Libsumo currently supported only on Ubuntu 18.04 and 16.04 !')
+            if platform.system() == 'Linux' and \
+                    relese not in [float(18.04), float(16.04)]:
+                warnings.warn('Libsumo currently supported only on Ubuntu '
+                              '18.04 and 16.04 !')
 
         # whether or not to automatically color vehicles
         try:
@@ -104,7 +103,9 @@ class TraCIVehicle(KernelVehicle):
 
         # old speeds used to compute accelerations
         self.previous_speeds = {}
-        # The time that previous speed is recorded, used to calculate realized_accel
+
+        # The time that previous speed is recorded, used to calculate
+        # realized_accel
         self.previous_time = 0
 
     def initialize(self, vehicles):
@@ -350,10 +351,16 @@ class TraCIVehicle(KernelVehicle):
         # subscribe the new vehicle and get its subscription results
         if self.render or not self.use_libsumo:
             self.kernel_api.vehicle.subscribe(veh_id, [
-                tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
-                tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
-                tc.VAR_SPEED_WITHOUT_TRACI, tc.VAR_FUELCONSUMPTION,
-                tc.VAR_DISTANCE
+                tc.VAR_LANE_INDEX,
+                tc.VAR_LANEPOSITION,
+                tc.VAR_ROAD_ID,
+                tc.VAR_SPEED,
+                tc.VAR_EDGES,
+                tc.VAR_POSITION,
+                tc.VAR_ANGLE,
+                tc.VAR_SPEED_WITHOUT_TRACI,
+                tc.VAR_FUELCONSUMPTION,
+                tc.VAR_DISTANCE,
             ])
             self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
             new_obs = self.kernel_api.vehicle.getSubscriptionResults(veh_id)
@@ -753,8 +760,8 @@ class TraCIVehicle(KernelVehicle):
             self.master_kernel.network.get_junction_list()))
 
         # maximum number of lanes in the network
-        max_lanes = max([self.master_kernel.network.num_lanes(edge_id)
-                         for edge_id in tot_list])
+        max_lanes = max(self.master_kernel.network.num_lanes(edge_id)
+                        for edge_id in tot_list)
 
         # Key = edge id
         # Element = list, with the ith element containing tuples with the name
@@ -779,7 +786,7 @@ class TraCIVehicle(KernelVehicle):
                 for lane in range(max_lanes):
                     edge_dict[edge][lane].sort(key=lambda x: x[1])
 
-        for veh_id in self.get_ids():
+        for veh_id in self.get_rl_ids():
             # collect the lane leaders, followers, headways, and tailways for
             # each vehicle
             edge = self.get_edge(veh_id)
