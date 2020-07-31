@@ -56,12 +56,6 @@ def parse_args(args):
              'file on S3. Putting not None value for this argument'
              'automatically set gen_emission to True.')
     parser.add_argument(
-        '--only_query',
-        nargs='*', default="[\'all\']",
-        help='specify which query should be run by lambda'
-             'for detail, see upload_to_s3 in data_pipeline.py'
-    )
-    parser.add_argument(
         '--is_baseline',
         action='store_true',
         help='specifies whether this is a baseline run'
@@ -77,13 +71,18 @@ if __name__ == "__main__":
 
     # Get the flow_params object.
     module = __import__("exp_configs.non_rl", fromlist=[flags.exp_config])
-    flow_params = getattr(module, flags.exp_config).flow_params
+    config_obj = getattr(module, flags.exp_config)
+    flow_params = config_obj.flow_params
 
     # Get the custom callables for the runner.
-    if hasattr(getattr(module, flags.exp_config), "custom_callables"):
-        callables = getattr(module, flags.exp_config).custom_callables
-    else:
-        callables = None
+    callables = getattr(config_obj, "custom_callables", None)
+
+    # load some metadata from the exp_config file
+    supplied_metadata = dict()
+    supplied_metadata['version'] = [getattr(config_obj, 'VERSION', '2.0')]
+    supplied_metadata['on_ramp'] = [str(getattr(config_obj, 'ON_RAMP', False))]
+    supplied_metadata['penetration_rate'] = [str(100.0 * getattr(config_obj, 'PENETRATION_RATE', 0.0))]
+    supplied_metadata['road_grade'] = [str(getattr(config_obj, 'ROAD_GRADE', False))]
 
     flow_params['sim'].render = not flags.no_render
     flow_params['simulator'] = 'aimsun' if flags.aimsun else 'traci'
@@ -110,4 +109,4 @@ if __name__ == "__main__":
 
     # Run for the specified number of rollouts.
     exp.run(flags.num_runs, convert_to_csv=flags.gen_emission, to_aws=flags.to_aws,
-            only_query=flags.only_query, is_baseline=flags.is_baseline)
+            is_baseline=flags.is_baseline, supplied_metadata=supplied_metadata)
