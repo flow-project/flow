@@ -94,7 +94,8 @@ def replay(args,
             if veh_param['veh_id'] == 'av':
                 veh_param['acceleration_controller'] = (controller, test_params)
 
-    sim_params = set_sim_params(flow_params['sim'], args.render_mode, args.save_render, args.gen_emission)
+    set_sim_params(flow_params['sim'], args.render_mode, args.save_render, args.gen_emission)
+    sim_params = flow_params['sim']
 
     set_env_params(flow_params['env'], args.evaluate, args.horizon)
 
@@ -115,7 +116,7 @@ def replay(args,
 
     policy_map_fn, rets = None, None
     if rllib_config:
-        result_dir, rllib_config, multiagent, rllib_flow_params = read_result_dir(rllib_config, True)
+        result_dir, rllib_config, multiagent, rllib_flow_params = read_result_dir(rllib_config)
 
         # lower the horizon if testing
         if args.horizon:
