@@ -85,5 +85,5 @@ def lambda_handler(event, context):
                             stop_filter, max_decel, leader_max_decel)
             message_body = json.dumps(message_body)
             sqs.send_message(
-                QueueUrl="https://sqs.us-west-2.amazonaws.com/409746595792/RunQueryRequests",
+                QueueUrl="",
                 MessageBody=message_body)
