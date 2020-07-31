@@ -92,11 +92,6 @@ def set_sim_params(sim_params, render_mode, save_render, gen_emission):
         pyglet rendering.
     gen_emission : bool
         whether to generate the emission file
-
-    Returns
-    -------
-    flow.core.params.SimParams
-        the updated sim_params object
     """
     # hack for old pkl files  TODO(ev) remove eventually
     setattr(sim_params, 'num_clients', 1)
@@ -127,8 +122,6 @@ def set_sim_params(sim_params, render_mode, save_render, gen_emission):
             sim_params.render = 'drgb'
             sim_params.pxpm = 4
         sim_params.save_render = True
-
-    return sim_params
 
 
 def set_env_params(env_params, evaluate, horizon, config=None):
@@ -306,12 +299,13 @@ def replay_rllib(args):
     result_dir, config, multiagent, flow_params = read_result_dir(
         args.result_dir)
 
-    sim_params = set_sim_params(
+    set_sim_params(
         flow_params['sim'],
         args.render_mode,
         args.save_render,
         args.gen_emission
     )
+    sim_params = flow_params['sim']
 
     # Create and register a gym+rllib env
     exp = Experiment(flow_params, register_with_ray=True)
