@@ -228,7 +228,7 @@ def delete_table(s3, bucket='circles.data.pipeline', only_query_result=True, tab
         s3.delete_object(Bucket=bucket, Key=key)
 
 
-def rerun_query(s3, bucket='circles.data.pipeline', source_id=''):
+def rerun_query(s3, queue_url, bucket='circles.data.pipeline', source_id=''):
     """Re-run queries for simulation datas that has been uploaded to s3, will delete old data before re-run."""
     vehicle_trace_keys = list_object_keys(s3, bucket=bucket, prefixes="fact_vehicle_trace", suffix='.csv')
     delete_table(s3, bucket=bucket, source_id=source_id)
@@ -276,7 +276,7 @@ def rerun_query(s3, bucket='circles.data.pipeline', source_id=''):
           ]
         }}"""
     for key in vehicle_trace_keys:
-        sqs_client.send_message(QueueUrl="https://sqs.us-west-2.amazonaws.com/409746595792/S3CreateEvents",
+        sqs_client.send_message(QueueUrl=queue_url,
                                 MessageBody=event_template.format(bucket=bucket, key=key))
 
 
