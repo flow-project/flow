@@ -1,5 +1,6 @@
 """lambda function on AWS Lambda."""
 import boto3
+import json
 from urllib.parse import unquote_plus
 from flow.data_pipeline.data_pipeline import AthenaQuery, delete_obsolete_data, update_baseline, \
     get_ready_queries, get_completed_queries, put_completed_queries
@@ -7,6 +8,7 @@ from flow.data_pipeline.query import tables, network_filters, summary_tables, tr
 
 s3 = boto3.client('s3')
 queryEngine = AthenaQuery()
+sqs = boto3.client('sqs')
 
 
 def lambda_handler(event, context):
@@ -14,8 +16,16 @@ def lambda_handler(event, context):
     # stores all lists of completed query for each source_id
     completed = {}
     records = []
+    event_records = []
+    # do a pre-sweep to put all s3 records in one list
+    for event_record in event['Records']:
+        if event_record["eventSource"] == "aws:s3":
+            event_records.append(event_record)
+        elif event_record['eventSource'] == "aws:sqs":
+            s3_event = json.loads(event_record['body'])
+            event_records.extend(s3_event['Records'])
     # do a pre-sweep to handle tasks other than initalizing a query
-    for record in event['Records']:
+    for record in event_records:
         bucket = record['s3']['bucket']['name']
         key = unquote_plus(record['s3']['object']['key'])
         table = key.split('/')[0]
@@ -63,14 +73,17 @@ def lambda_handler(event, context):
 
         readied_queries = get_ready_queries(completed[source_id], query_name)
         completed[source_id].add(query_name)
+        # stores the updated list of completed queries back to S3
+        put_completed_queries(s3, source_id, completed[source_id])
         # initialize queries and store them at appropriate locations
         for readied_query_name, table_name in readied_queries:
             result_location = 's3://circles.data.pipeline/{}/date={}/partition_name={}_{}'.format(table_name,
                                                                                                   query_date,
                                                                                                   source_id,
                                                                                                   readied_query_name)
-            queryEngine.run_query(readied_query_name, result_location, query_date, partition, loc_filter=loc_filter,
-                                  start_filter=start_filter, stop_filter=stop_filter,
-                                  max_decel=max_decel, leader_max_decel=leader_max_decel)
-    # stores all the updated lists of completed queries back to S3
-    put_completed_queries(s3, completed)
+            message_body = (readied_query_name, result_location, query_date, partition, loc_filter, start_filter,
+                            stop_filter, max_decel, leader_max_decel)
+            message_body = json.dumps(message_body)
+            sqs.send_message(
+                QueueUrl="",
+                MessageBody=message_body)
