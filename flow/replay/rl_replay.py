@@ -341,7 +341,7 @@ def replay_rllib(args):
     if args.render_mode == 'sumo_gui':
         exp.env.sim_params.render = True
 
-    rl_action, policy_map_fn, rets = get_rl_action(config, agent, multiagent)
+    policy_map_fn, rl_action, rets = get_rl_action(config, agent, multiagent)
 
     # If restart_instance, don't restart here because env.reset will restart
     # later.
