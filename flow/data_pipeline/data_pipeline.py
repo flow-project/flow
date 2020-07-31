@@ -2,12 +2,13 @@
 import pandas as pd
 import boto3
 from botocore.exceptions import ClientError
-from flow.data_pipeline.query import QueryStrings, prerequisites
+from flow.data_pipeline.query import QueryStrings, prerequisites, tables
 from time import time
 from datetime import date
 import csv
 from io import StringIO
 import json
+import collections
 
 
 def generate_trajectory_table(emission_files, trajectory_table_path, source_id):
@@ -23,11 +24,15 @@ def generate_trajectory_table(emission_files, trajectory_table_path, source_id):
         a unique id for the simulation that generate these emissions
     """
     for i in range(len(emission_files)):
-        emission_output = pd.read_csv(emission_files[i])
-        emission_output['source_id'] = source_id
-        emission_output['run_id'] = "run_{}".format(i)
-        # add header row to the file only at the first run (when i==0)
-        emission_output.to_csv(trajectory_table_path, mode='a+', index=False, header=(i == 0))
+        # 1000000 rows are approximately 260 MB, which is an appropriate size to load into memory at once
+        emission_output = pd.read_csv(emission_files[i], iterator=True, chunksize=1000000)
+        chunk_count = 0
+        for chunk in emission_output:
+            chunk['source_id'] = source_id
+            chunk['run_id'] = "run_{}".format(i)
+            # add header row to the file only at the first run (when i==0) and the first chunk (chunk_count==0)
+            chunk.to_csv(trajectory_table_path, mode='a+', index=False, header=(chunk_count == 0) and (i == 0))
+            chunk_count += 1
 
 
 def write_dict_to_csv(data_path, extra_info, include_header=False):
@@ -124,8 +129,7 @@ def get_configuration():
 
 def delete_obsolete_data(s3, latest_key, table, bucket="circles.data.pipeline"):
     """Delete the obsolete data on S3."""
-    response = s3.list_objects_v2(Bucket=bucket)
-    keys = [e["Key"] for e in response["Contents"] if e["Key"].find(table) == 0 and e["Key"][-4:] == ".csv"]
+    keys = list_object_keys(s3, bucket=bucket, prefixes=table, suffix='.csv')
     keys.remove(latest_key)
     for key in keys:
         s3.delete_object(Bucket=bucket, Key=key)
@@ -148,7 +152,7 @@ def update_baseline(s3, baseline_network, baseline_source_id):
 
 
 def get_completed_queries(s3, source_id):
-    """Return the deserialized list of completed queries from S3."""
+    """Return the deserialized set of completed queries from S3."""
     try:
         completed_queries_obj = \
             s3.get_object(Bucket='circles.data.pipeline', Key='lambda_temp/{}'.format(source_id))['Body']
@@ -161,13 +165,12 @@ def get_completed_queries(s3, source_id):
     return set(completed_queries)
 
 
-def put_completed_queries(s3, completed_queries):
-    """Put all the completed queries lists into S3 as in a serialized json format."""
-    for source_id, completed_queries_set in completed_queries.items():
-        completed_queries_list = list(completed_queries_set)
-        completed_queries_json = json.dumps(completed_queries_list)
-        s3.put_object(Bucket='circles.data.pipeline', Key='lambda_temp/{}'.format(source_id),
-                      Body=completed_queries_json.encode('utf-8'))
+def put_completed_queries(s3, source_id, completed_queries_set):
+    """Put the completed queries list into S3 as in a serialized json format."""
+    completed_queries_list = list(completed_queries_set)
+    completed_queries_json = json.dumps(completed_queries_list)
+    s3.put_object(Bucket='circles.data.pipeline', Key='lambda_temp/{}'.format(source_id),
+                  Body=completed_queries_json.encode('utf-8'))
 
 
 def get_ready_queries(completed_queries, new_query):
@@ -181,6 +184,107 @@ def get_ready_queries(completed_queries, new_query):
             if prerequisites[query_name][1].issubset(upadted_completed_queries):
                 readied_queries.append((query_name, prerequisites[query_name][0]))
     return readied_queries
+
+
+def list_object_keys(s3, bucket='circles.data.pipeline', prefixes='', suffix=''):
+    """Return all keys in the given bucket that start with prefix and end with suffix. Not limited by 1000."""
+    contents = []
+    if not isinstance(prefixes, collections.Iterable) or type(prefixes) is str:
+        prefixes = [prefixes]
+    for prefix in prefixes:
+        response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
+        if 'Contents' in response:
+            contents.extend(response['Contents'])
+        while response['IsTruncated']:
+            response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix,
+                                          ContinuationToken=response['NextContinuationToken'])
+            contents.extend(response['Contents'])
+    keys = [content['Key'] for content in contents if content['Key'].endswith(suffix)]
+    return keys
+
+
+def delete_table(s3, bucket='circles.data.pipeline', only_query_result=True, table='', source_id=''):
+    """Delete the specified data files in S3."""
+    queries = ["lambda_temp"]
+    if table:
+        queries.append(table)
+    else:
+        queries = tables
+        if only_query_result:
+            queries.remove('fact_vehicle_trace')
+            queries.remove('metadata_table')
+        else:
+            confirmation = input("Are you sure you want to delete the simulation emission file? This process is"
+                                 "irreversible. (Y/N)").strip()
+            if not (confirmation in ['y', 'Y', 'yes', 'Yes']):
+                return
+        if source_id:
+            queries.remove('leaderboard_chart_agg')
+            queries.remove('fact_top_scores')
+    keys = list_object_keys(s3, bucket=bucket, prefixes=queries)
+    if source_id:
+        keys = [key for key in keys if source_id in key]
+    for key in keys:
+        s3.delete_object(Bucket=bucket, Key=key)
+
+
+def rerun_query(s3, queue_url, bucket='circles.data.pipeline', source_id=''):
+    """Re-run queries for simulation datas that has been uploaded to s3, will delete old data before re-run."""
+    vehicle_trace_keys = list_object_keys(s3, bucket=bucket, prefixes="fact_vehicle_trace", suffix='.csv')
+    delete_table(s3, bucket=bucket, source_id=source_id)
+    if source_id:
+        vehicle_trace_keys = [key for key in vehicle_trace_keys if source_id in key]
+    sqs_client = boto3.client('sqs')
+    # A s3 put event message template, used to trigger lambda for an existing submission without uploading it again
+    event_template = """
+        {{
+          "Records": [
+            {{
+              "eventVersion": "2.0",
+              "eventSource": "aws:s3",
+              "awsRegion": "us-west-2",
+              "eventTime": "1970-01-01T00:00:00.000Z",
+              "eventName": "ObjectCreated:Put",
+              "userIdentity": {{
+                "principalId": "EXAMPLE"
+              }},
+              "requestParameters": {{
+                "sourceIPAddress": "127.0.0.1"
+              }},
+              "responseElements": {{
+                "x-amz-request-id": "EXAMPLE123456789",
+                "x-amz-id-2": "EXAMPLE123/5678abcdefghijklambdaisawesome/mnopqrstuvwxyzABCDEFGH"
+              }},
+              "s3": {{
+                "s3SchemaVersion": "1.0",
+                "configurationId": "testConfigRule",
+                "bucket": {{
+                  "name": "{bucket}",
+                  "ownerIdentity": {{
+                    "principalId": "EXAMPLE"
+                  }},
+                  "arn": "arn:aws:s3:::{bucket}"
+                }},
+                "object": {{
+                  "key": "{key}",
+                  "size": 1024,
+                  "eTag": "0123456789abcdef0123456789abcdef",
+                  "sequencer": "0A1B2C3D4E5F678901"
+                }}
+              }}
+            }}
+          ]
+        }}"""
+    for key in vehicle_trace_keys:
+        sqs_client.send_message(QueueUrl=queue_url,
+                                MessageBody=event_template.format(bucket=bucket, key=key))
+
+
+def list_source_ids(s3, bucket='circles.data.pipeline'):
+    """Return a list of the source_id of all simulations which has been uploaded to s3."""
+    vehicle_trace_keys = list_object_keys(s3, bucket=bucket, prefixes="fact_vehicle_trace", suffix='csv')
+    source_ids = ['flow_{}'.format(key.split('/')[2].split('=')[1].split('_')[1]) for key in vehicle_trace_keys]
+    return source_ids
 
 
 class AthenaQuery:

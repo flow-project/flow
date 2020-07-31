@@ -1,5 +1,6 @@
 """Contains an experiment class for running simulations."""
 from flow.utils.registry import make_create_env
+from flow.core.util import ensure_dir
 from flow.data_pipeline.data_pipeline import upload_to_s3
 from flow.data_pipeline.data_pipeline import get_configuration
 from flow.data_pipeline.data_pipeline import generate_trajectory_table
@@ -140,8 +141,8 @@ class Experiment:
             TODO
         policy_map_fn : TODO
             TODO
-        supplied_metadata : TODO
-            TODO
+        supplied_metadata: dict (str: list)
+            metadata provided by the caller
 
         Returns
         -------
@@ -162,6 +163,10 @@ class Experiment:
                 'AimsunParams) to the path of the folder where emissions '
                 'output should be generated. If you do not wish to generate '
                 'emissions, set the convert_to_csv parameter to False.')
+
+        # Make sure the emission path directory exists, and if not, create it.
+        if self.env.sim_params.emission_path is not None:
+            ensure_dir(self.env.sim_params.emission_path)
 
         # used to store
         info_dict = {
@@ -211,6 +216,7 @@ class Experiment:
                     name, strategy = get_configuration()
                 metadata['submitter_name'].append(name)
                 metadata['strategy'].append(strategy)
+                metadata.update(supplied_metadata)
 
             # emission-specific parameters
             dir_path = self.env.sim_params.emission_path
@@ -319,8 +325,8 @@ class Experiment:
         self.env.terminate()
 
         if to_aws:
-            generate_trajectory_table(emission_files, trajectory_table_path, source_id)
             write_dict_to_csv(metadata_table_path, metadata, True)
+            generate_trajectory_table(emission_files, trajectory_table_path, source_id)
             tsd_main(
                 emission_files[0],
                 {
@@ -352,6 +358,5 @@ class Experiment:
                 trajectory_table_path.replace('csv', 'png')
             )
             os.remove(trajectory_table_path)
-            os.remove(metadata_table_path)
 
         return info_dict
