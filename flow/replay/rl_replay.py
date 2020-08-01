@@ -244,7 +244,7 @@ def get_rl_action(config, agent, multiagent, multi_only=False):
     -------
     policy_map_fn : function
         a mapping from agent to their respective policy
-   rl_action : method
+    rl_action : method
         the rl_actions method to use in the Experiment object
     rets : dict
         a pre-initialized dictionary to store rewards for multi-agent simulation

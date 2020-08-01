@@ -288,7 +288,7 @@ def list_source_ids(s3, bucket='circles.data.pipeline'):
 
 
 def collect_metadata_from_config(config_obj):
-    """Collect the metadata from the exp_config files"""
+    """Collect the metadata from the exp_config files."""
     supplied_metadata = dict()
     supplied_metadata['version'] = [getattr(config_obj, 'VERSION', '2.0')]
     supplied_metadata['on_ramp'] = [str(getattr(config_obj, 'ON_RAMP', False))]
