@@ -624,7 +624,7 @@ def AAPIInit():
 def AAPIManage(time, timeSta, timeTrans, acycle):
     """Execute commands before an Aimsun simulation step."""
     # Create a thread when data needs to be sent back to FLOW
-    delta = 0.8/2
+    delta = 0.8/4
     # - delta < time%900 < + delta
     ## TODO: pass sim_step, sims_per_step
     ## compare aimsun_time with flow_time.  flow_time is sim_step*sims_per_step

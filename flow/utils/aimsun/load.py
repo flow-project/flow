@@ -9,7 +9,7 @@ sys.path.append('/home/cjrsantos/anaconda3/envs/aimsun_flow/lib/python2.7/site-p
 import numpy as np
 
 
-RLLIB_HORIZON = 6  # copy from train_rllib.py
+RLLIB_HORIZON = 3  # copy from train_rllib.py
 RLLIB_TRAINING_ITERATIONS = 1000000  # copy from train_rllib.py
 REPLICATION_LIST = ['Replication 8050297', # 5-11
                     'Replication 8050315',  # 10-14
@@ -152,6 +152,7 @@ model = AimsunTemplate(GKSystem, GKGUISystem)
 model.load(template_path)
 
 # HACK: Store port in author
+## modify this to pass lists? [port_string, sim_step, sims_per_step] #debug_time
 model.setAuthor(port_string)
 
 # collect the simulation parameters
