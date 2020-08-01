@@ -16,6 +16,8 @@ from flow.replay.rl_replay import get_rl_action
 import ray
 from ray.tune.registry import register_env
 
+from flow.data_pipeline.data_pipeline import collect_metadata_from_config
+
 EXAMPLE_USAGE = """
 example usage:
     python i210_replay.py -r /ray_results/experiment_dir/result_dir -c 1
@@ -34,9 +36,9 @@ def replay(args,
            output_dir=None,
            transfer_test=None,
            rllib_config=None,
-           result_dir=None,
            max_completed_trips=None,
-           v_des=12):
+           v_des=12,
+           supplied_metadata=None):
     """Replay or run transfer test (defined by transfer_fn) by modif.
 
     Parameters
@@ -49,15 +51,15 @@ def replay(args,
         Directory to save results.
     transfer_test : TODO
         TODO
-    rllib_config : TODO
-        TODO
-    result_dir : str
+    rllib_config : str
         Directory containing rllib results
     max_completed_trips : int
         Terminate rollout after max_completed_trips vehicles have started and
         ended.
     v_des : float
         the desired speed for the FollowerStopper vehicles
+    supplied_metadata: dict (str : list)
+        the metadata associated with this simulation.
     """
     assert bool(args.controller) ^ bool(rllib_config), \
         "Need to specify either controller or rllib_config, but not both"
@@ -94,7 +96,7 @@ def replay(args,
             if veh_param['veh_id'] == 'av':
                 veh_param['acceleration_controller'] = (controller, test_params)
 
-    set_sim_params(flow_params['sim'], args.render_mode, args.save_render, args.gen_emission)
+    set_sim_params(flow_params['sim'], args.render_mode, args.save_render, args.gen_emission, output_dir)
     sim_params = flow_params['sim']
 
     set_env_params(flow_params['env'], args.evaluate, args.horizon)
@@ -151,7 +153,7 @@ def replay(args,
         multiagent=True,
         rets=rets,
         policy_map_fn=policy_map_fn,
-        supplied_metadata=("Brent", "FS;5%;v_des:{}".format(v_des))
+        supplied_metadata=supplied_metadata
     )
 
     return info_dict
@@ -292,9 +294,11 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
+    supplied_metadata = None
     if args.exp_config:
         module = __import__("../../examples/exp_configs.non_rl", fromlist=[args.exp_config])
         flow_params = getattr(module, args.exp_config).flow_params
+        supplied_metadata = collect_metadata_from_config(getattr(module, args.exp_config))
     else:
         flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
 
@@ -320,8 +324,8 @@ def main():
                 output_dir=output_dir,
                 transfer_test=transfer_test,
                 rllib_config=args.rllib_result_dir,
-                result_dir=args.rllib_result_dir,
-                max_completed_trips=args.max_completed_trips
+                max_completed_trips=args.max_completed_trips,
+                supplied_metadata=supplied_metadata
             )
             for transfer_test in s
         ]
@@ -336,9 +340,9 @@ def main():
                 flow_params,
                 output_dir="{}/{}".format(output_dir, v_des),
                 rllib_config=args.rllib_result_dir,
-                result_dir=args.rllib_result_dir,
                 max_completed_trips=args.max_completed_trips,
-                v_des=v_des
+                v_des=v_des,
+                supplied_metadata=supplied_metadata
             )
             for v_des in range(8, 13, 1)
         ]
@@ -354,8 +358,8 @@ def main():
                 output_dir=output_dir,
                 transfer_test=single_transfer,
                 rllib_config=args.rllib_result_dir,
-                result_dir=args.rllib_result_dir,
-                max_completed_trips=args.max_completed_trips
+                max_completed_trips=args.max_completed_trips,
+                supplied_metadata=supplied_metadata
             ))
         else:
             ray.get(replay.remote(
@@ -363,8 +367,8 @@ def main():
                 flow_params,
                 output_dir=output_dir,
                 rllib_config=args.rllib_result_dir,
-                result_dir=args.rllib_result_dir,
-                max_completed_trips=args.max_completed_trips
+                max_completed_trips=args.max_completed_trips,
+                supplied_metadata=supplied_metadata
             ))
 
 

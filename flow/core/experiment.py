@@ -137,10 +137,10 @@ class Experiment:
             Specifies whether this is a baseline run.
         multiagent : bool
             whether the policy is multi-agent
-        rets : TODO
-            TODO
-        policy_map_fn : TODO
-            TODO
+        rets : dict
+            a dictionary to store the rewards for multiagent simulation
+        policy_map_fn : function
+            a mapping from each agent to their respective policy
         supplied_metadata: dict (str: list)
             metadata provided by the caller
 
@@ -210,8 +210,9 @@ class Experiment:
                 metadata['network'].append(
                     network_name_translate(self.env.network.name.split('_20')[0]))
                 metadata['is_baseline'].append(str(is_baseline))
-                if supplied_metadata:
-                    name, strategy = supplied_metadata
+                if 'name' in supplied_metadata and 'strategy' in supplied_metadata:
+                    name = supplied_metadata['name']
+                    strategy = supplied_metadata['strategy']
                 else:
                     name, strategy = get_configuration()
                 metadata['submitter_name'].append(name)
@@ -264,6 +265,7 @@ class Experiment:
                 for (key, lambda_func) in self.custom_callables.items():
                     custom_vals[key].append(lambda_func(self.env))
 
+                # Compute the results for energy metrics
                 for past_veh_id in per_vehicle_energy_trace.keys():
                     if past_veh_id not in veh_ids and past_veh_id not in completed_vehicle_avg_energy:
                         all_trip_energy_distribution[completed_veh_types[past_veh_id]].append(
@@ -273,6 +275,7 @@ class Experiment:
                         completed_vehicle_avg_energy[past_veh_id] = np.sum(per_vehicle_energy_trace[past_veh_id])
                         completed_vehicle_travel_time[past_veh_id] = len(per_vehicle_energy_trace[past_veh_id])
 
+                # Update the stored energy metrics calculation results
                 for veh_id in veh_ids:
                     if veh_id not in initial_vehicles:
                         if veh_id not in per_vehicle_energy_trace:
