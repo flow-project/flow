@@ -52,7 +52,7 @@ def rescale_bar(array, NewMin, NewMax):
     for OldValue in array:
         NewValue = (((OldValue - OldMin) * NewRange) / OldRange) + NewMin
         rescaled_action.append(NewValue)
-    return rescaled_actions
+    return rescaled_action
 
 def rescale_act(actions_array, target_value, current_value):
     rescaled_actions = []
@@ -185,8 +185,8 @@ class SingleLightEnv(Env):
             for j in range(len(ring)):
                 phase_pair = ring[j]
                 if sum(phase_pair) != sum_barrier[j]:
-                    action_rings[i][j] = rescale_act(phase_pair, sum_barrier[j], sum(phase_pair))
-        print(action_rings)
+                    action_rings[i][j] = int(rescale_act(phase_pair, sum_barrier[j], sum(phase_pair)))
+        #print(action_rings)
 
         rescaled_actions = np.array(action_rings).flatten()
         phase_list = self.observed_phases
@@ -197,8 +197,8 @@ class SingleLightEnv(Env):
                 else:
                     maxout = maxd
                 self.k.traffic_light.change_phase_duration(self.node_id, phase, action, maxd)
-                phase_duration, maxd, _ = self.k.traffic_light.get_duration_phase(self.node_id, phase)
-                print(phase, action, phase_duration)
+                #phase_duration, maxd, _ = self.k.traffic_light.get_duration_phase(self.node_id, phase)
+                #print(phase, action, phase_duration)
 
         self.current_phase_timings = rescaled_actions
         self.sum_barrier = [sum(rescaled_actions[0:2]), sum(new_actions[2:4])]
