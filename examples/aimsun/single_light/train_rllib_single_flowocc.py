@@ -46,7 +46,7 @@ sim_params = AimsunParams(sim_step=SIM_STEP,
 
 
 flow_params = dict(
-    exp_tag="single_light_queue",
+    exp_tag="single_light_flowocc",
     env_name=SingleLightEnv,
     network=CoordinatedNetwork,
     simulator='aimsun',
