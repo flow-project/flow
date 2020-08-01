@@ -78,7 +78,7 @@ def read_result_dir(result_dir_path):
     return result_dir, config, multiagent, flow_params
 
 
-def set_sim_params(sim_params, render_mode, save_render, gen_emission):
+def set_sim_params(sim_params, render_mode, save_render, gen_emission, output_dir=''):
     """Set up sim_params according to render mode.
 
     Parameters
@@ -92,6 +92,8 @@ def set_sim_params(sim_params, render_mode, save_render, gen_emission):
         pyglet rendering.
     gen_emission : bool
         whether to generate the emission file
+    output_dir : str
+        directory to store the emission, optional
     """
     # hack for old pkl files  TODO(ev) remove eventually
     setattr(sim_params, 'num_clients', 1)
@@ -100,8 +102,11 @@ def set_sim_params(sim_params, render_mode, save_render, gen_emission):
 
     # Set the emission path.
     sim_params.restart_instance = True
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    emission_path = '{0}/test_time_rollout/'.format(dir_path)
+    if not output_dir:
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        emission_path = '{0}/test_time_rollout/'.format(dir_path)
+    else:
+        emission_path = output_dir
     sim_params.emission_path = emission_path if gen_emission else None
 
     # Pick your rendering mode.
@@ -232,16 +237,17 @@ def get_rl_action(config, agent, multiagent, multi_only=False):
     multiagent : bool
         whether the policy is a multi-agent policy
     multi_only : bool
-        TODO
+        If this is set to true, the function will raise an error
+        if it is single agent use_lstm is true.
 
     Returns
     -------
-    TODO
-        TODO
-    method
+    policy_map_fn : function
+        a mapping from agent to their respective policy
+   rl_action : method
         the rl_actions method to use in the Experiment object
-    TODO
-        TODO
+    rets : dict
+        a pre-initialized dictionary to store rewards for multi-agent simulation
     """
     policy_map_fn = None
     if multiagent:
