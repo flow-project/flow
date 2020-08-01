@@ -8,11 +8,11 @@ from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 from flow.core.experiment import Experiment
 from flow.utils.registry import make_create_env
 from flow.visualize.transfer.util import inflows_range
-from flow.replay.rl_replay import read_result_dir
-from flow.replay.rl_replay import set_sim_params
-from flow.replay.rl_replay import set_env_params
-from flow.replay.rl_replay import set_agents
-from flow.replay.rl_replay import get_rl_action
+from flow.replay.rllib_replay import read_result_dir
+from flow.replay.rllib_replay import set_sim_params
+from flow.replay.rllib_replay import set_env_params
+from flow.replay.rllib_replay import set_agents
+from flow.replay.rllib_replay import get_rl_action
 import ray
 from ray.tune.registry import register_env
 
