@@ -10,8 +10,7 @@ abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 
 from flow.core.params import InitialConfig
 from flow.core.params import NetParams
-from flow.core.rewards import instantaneous_mpg, instantaneous_mpg2, instantaneous_mpg3, instantaneous_mpg4, \
-    MonetaryCost
+from flow.core.rewards import cumulative_mpg
 from flow.envs.base import Env
 
 from gym.spaces.box import Box
@@ -19,7 +18,6 @@ from gym.spaces.box import Box
 from copy import deepcopy
 import numpy as np
 import random
-from scipy.optimize import fsolve
 
 ADDITIONAL_ENV_PARAMS = {
     # maximum acceleration of autonomous vehicles
@@ -308,7 +306,7 @@ class EnergyOptSPDEnv(EnergyOptEnv):
                  for veh_id in self.k.vehicle.get_ids()]
         distance = [self.k.vehicle.get_distance(veh_id) / 1609.34
                     for veh_id in self.k.vehicle.get_ids()]
+        fuel = [self.k.vehicle.get_total_gallons(veh_id)
+                for veh_id in self.k.vehicle.get_ids()]
 
-        fuel = [self.k.vehicle.get_total_gallons(veh_id) for veh_id in self.k.vehicle.get_ids()]
-
-        return np.array(speed + distance + fuel )
+        return np.array(speed + distance + fuel)

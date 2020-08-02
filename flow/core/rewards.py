@@ -388,7 +388,6 @@ def instantaneous_mpg(env, veh_ids=None, gain=.001):
             accel = env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
             grade = env.k.vehicle.get_road_grade(veh_id)
             gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
-            Tgallons = env.k.vehicle.get_total_gallons(veh_id)
             if speed >= 0.0:
                 total_gallons += gallons_per_hr
                 total_distance += speed
@@ -424,14 +423,14 @@ def cumulative_mpg(env, veh_ids=None, gain=.001):
     for veh_id in veh_ids:
         energy_model = env.k.vehicle.get_energy_model(veh_id)
         if energy_model != "":
-            distance = env.k.vehicle.get_distance(veh_id)
-            gallons = env.k.vehicle.get_total_gallons(veh_id)
+            cumulative_distance += env.k.vehicle.get_distance(veh_id)
+            cumulative_gallons += env.k.vehicle.get_total_gallons(veh_id)
 
-    total_distance /= 1609.34
-    if total_gallons == 0:
+    cumulative_distance /= 1609.34
+    if cumulative_gallons == 0:
         return 0
     else:
-        mpg = total_distance / (total_gallons + 1e-8)
+        mpg = cumulative_distance / (cumulative_gallons + 1e-8)
         return mpg * gain
 
 
@@ -463,19 +462,13 @@ def monetary_cost(env, veh_ids=None, gain=100):
             grade = env.k.vehicle.get_road_grade(veh_id)
             gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
             if speed >= 0.0:
-                 cumulative_gallons += gallons_per_hr
-                 cumulative_distance += speed
-    # print('//////////////////', cumulative_distance ,'//', cumulative_gallons , '/////////////')
+                cumulative_gallons += gallons_per_hr
+                cumulative_distance += speed
+
     cumulative_gallons /= 3600.0
     fuel_cost = cumulative_gallons * 3.72
     cumulative_distance /= 16093.4
-    lost_time = ((1/600) - cumulative_distance)/60
+    lost_time = ((1/600) - cumulative_distance) / 60
     lt_cost = lost_time * 180.12
-    # print('//////////////////CD  ', cumulative_distance, '////LTC', lt_cost, '//CG', cumulative_gallons, '//FC', fuel_cost,
-    #           '/////////////')
-    # print('//////////////////T  ',cumulative_distance, '////', lt_cost ,'//',cumulative_gallons, '//', fuel_cost , '/////////////')
-    # miles / gallon is (distance_dot * \delta t) / (gallons_dot * \delta t)
-    # mpg = cumulative_distance / (cumulative_gallons + 1e-6)
     total_cost = fuel_cost + lt_cost
-    return - total_cost * gain
-
+    return -total_cost * gain

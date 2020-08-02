@@ -6,7 +6,6 @@ from flow.core.params import VehicleParams
 from flow.envs import EnergyOptSPDEnv
 from flow.networks import RingNetwork
 from flow.networks.ring import ADDITIONAL_NET_PARAMS
-from flow.controllers import IDMController, ContinuousRouter
 import json
 
 import ray
@@ -28,17 +27,15 @@ initial_config = InitialConfig(spacing="uniform", perturbation=1)
 vehicles = VehicleParams()
 vehicles.add(veh_id="rl",
              acceleration_controller=(RLController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             initial_speed =0,
+             initial_speed=12,
              num_vehicles=1)
 sim_params = SumoParams(sim_step=0.1, render=False)
 
-HORIZON=2500
+HORIZON = 100
 
 env_params = EnvParams(
     # length of one rollout
     horizon=HORIZON,
-
     additional_params={
         # maximum acceleration of autonomous vehicles
         "max_accel": 4,
@@ -75,12 +72,10 @@ flow_params = dict(
     initial=initial_config
 )
 
-
-
 N_CPUS = 6
 # number of rollouts per training iteration
 N_ROLLOUTS = 1
-#ray.shutdown()
+# ray.shutdown()
 ray.init(num_cpus=N_CPUS)
 
 alg_run = "PPO"
@@ -126,4 +121,3 @@ trials = run_experiments({
         },
     },
 })
-
