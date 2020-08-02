@@ -70,6 +70,9 @@ def parse_args(args):
         '--num_rollouts', type=int, default=1,
         help='How many rollouts are in a training batch')
     parser.add_argument(
+        '--lr', type=float, default=.0001,
+        help='The learning rate')
+    parser.add_argument(
         '--rollout_size', type=int, default=1000,
         help='How many steps are in a training batch.')
     parser.add_argument('--use_s3', action='store_true', default=False,
@@ -188,12 +191,13 @@ def setup_exps_rllib(flow_params,
         config["train_batch_size"] = horizon * n_rollouts
         config["gamma"] = 0.995  # discount rate
         config["use_gae"] = True
-        config["no_done_at_end"] = True
-        config["lambda"] = 0.97
-        config["kl_target"] = 0.02
-        config["num_sgd_iter"] = 10
+        config["no_done_at_end"] = False
+        config["lr"] = flags.lr
+        # config["lambda"] = 0.97
+        # config["kl_target"] = 0.02
+        # config["num_sgd_iter"] = 10
         if flags.grid_search:
-            config["lambda"] = tune.grid_search([0.5, 0.9])
+            # config["lambda"] = tune.grid_search([0.5, 0.9])
             config["lr"] = tune.grid_search([5e-4, 5e-5])
     elif alg_run == "CENTRALIZEDPPO":
         from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
