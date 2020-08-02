@@ -1,6 +1,6 @@
 """Multi-agent traffic light example (single shared policy)."""
 
-from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
+from ray.rllib.agents.ppo.ppo_tf_policy import PPOTFPolicy
 from flow.envs.multiagent import MultiTrafficLightGridPOEnv
 from flow.networks import TrafficLightGridNetwork
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
