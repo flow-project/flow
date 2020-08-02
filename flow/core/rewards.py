@@ -361,7 +361,7 @@ def veh_energy_consumption(env, veh_ids=None, gain=.001):
     return -gain * power
 
 
-def instantaneous_mpg(env, veh_ids=None, gain=.1):
+def instantaneous_mpg(env, veh_ids=None, gain=.001):
     """Calculate the instantaneous mpg for every simulation step specific to the vehicle type.
 
     Parameters
@@ -379,161 +379,63 @@ def instantaneous_mpg(env, veh_ids=None, gain=.1):
     elif not isinstance(veh_ids, list):
         veh_ids = [veh_ids]
 
-    Total_gallons = 0
-    Total_distance = 0
+    total_gallons = 0
+    total_distance = 0
+    for veh_id in veh_ids:
+        energy_model = env.k.vehicle.get_energy_model(veh_id)
+        if energy_model != "":
+            speed = env.k.vehicle.get_speed(veh_id)
+            accel = env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
+            grade = env.k.vehicle.get_road_grade(veh_id)
+            gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
+            Tgallons = env.k.vehicle.get_total_gallons(veh_id)
+            if speed >= 0.0:
+                total_gallons += gallons_per_hr
+                total_distance += speed
+
+    total_gallons /= 3600.0
+    total_distance /= 1609.34
+    # miles / gallon is (distance_dot * \delta t) / (gallons_dot * \delta t)
+    mpg = total_distance / (total_gallons + 1e-6)
+
+    return mpg * gain
+
+
+def cumulative_mpg(env, veh_ids=None, gain=.001):
+    """Calculate the total historical mpg specific to the vehicle type.
+
+    Parameters
+    ----------
+    env : flow.envs.Env
+        the environment variable, which contains information on the current
+        state of the system.
+    veh_ids : [list] or str
+        list of veh_ids or single veh_id to compute the reward over
+    gain : float
+        scaling factor for the reward
+    """
+    if veh_ids is None:
+        veh_ids = env.k.vehicle.get_ids()
+    elif not isinstance(veh_ids, list):
+        veh_ids = [veh_ids]
+
+    cumulative_gallons = 0
+    cumulative_distance = 0
     for veh_id in veh_ids:
         energy_model = env.k.vehicle.get_energy_model(veh_id)
         if energy_model != "":
             distance = env.k.vehicle.get_distance(veh_id)
-            speed = env.k.vehicle.get_speed(veh_id)
-            # accel = env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
-            # grade = env.k.vehicle.get_road_grade(veh_id)
-            # gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
-            Tgallons = env.k.vehicle.get_total_gallons(veh_id)
-            if speed >= 0.0:
-                # cumulative_gallons += max(gallons_per_hr, 0.2)
-                # cumulative_distance += speed
-                Total_distance += distance
-                Total_gallons += Tgallons
-        else:
-            print('error: NO ENERGY MODEL')
+            gallons = env.k.vehicle.get_total_gallons(veh_id)
 
-    # print('//////////////////', cumulative_distance ,'//', cumulative_gallons , '/////////////')
-    # cumulative_gallons /= 3600.0 #over vehicles
-    # cumulative_distance /= 16093.4
-
-    Total_distance /= 16093.4
+    total_distance /= 1609.34
+    if total_gallons == 0:
+        return 0
+    else:
+        mpg = total_distance / (total_gallons + 1e-8)
+        return mpg * gain
 
 
-    # print('//////////////////dd     ', cumulative_distance, '//   ', cumulative_gallons, '/////////////')
-    # miles / gallon is (distance_dot * \delta t) / (gallons_dot * \delta t)
-    # mpg = Total_distance / (max(Total_gallons,0.2 )+ 1e-6)
-    # mpg = (Total_distance+0.1) / (Total_gallons + 0.01)
-    mpg = (Total_distance ) / (Total_gallons + 1e-8)
-    # print('////// TOTAL DIST = ', Total_distance, '///// Total GALLONS =', Total_gallons, '//// mpg =', mpg)
-    # mpg = Total_distance
-    return mpg * gain
-
-
-def instantaneous_mpg2(env, veh_ids=None, gain=10):
-    """Calculate the instantaneous mpg for every simulation step specific to the vehicle type.
-
-    Parameters
-    ----------
-    env : flow.envs.Env
-        the environment variable, which contains information on the current
-        state of the system.
-    veh_ids : [list] or str
-        list of veh_ids or single veh_id to compute the reward over
-    gain : float
-        scaling factor for the reward
-    """
-    if veh_ids is None:
-        veh_ids = env.k.vehicle.get_ids()
-    elif not isinstance(veh_ids, list):
-        veh_ids = [veh_ids]
-
-    cumulative_gallons = 0
-    cumulative_distance = 0
-    for veh_id in veh_ids:
-        energy_model = env.k.vehicle.get_energy_model(veh_id)
-        if energy_model != "":
-
-            speed = env.k.vehicle.get_speed(veh_id)
-            accel = env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
-            grade = env.k.vehicle.get_road_grade(veh_id)
-            gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
-            if speed >= 0.0:
-                cumulative_gallons += gallons_per_hr
-                cumulative_distance += speed
-     # print('//////////////////', cumulative_distance ,'//', cumulative_gallons , '/////////////')
-    cumulative_gallons /= 3600.0
-    # cumulative_distance /= 1609.34
-    cumulative_distance *= 0.1
-    # print('/////////////////////////////   ',cumulative_distance)
-    # print('/////////////////////////////gg   ', cumulative_gallons)
-    # miles / gallon is (distance_dot * \delta t) / (gallons_dot * \delta t)
-    gpm = cumulative_gallons / ( cumulative_distance + 1e-6)
-
-    return - gpm * gain
-
-def instantaneous_mpg3(env, veh_ids=None, gain=.0001):
-    """Calculate the instantaneous mpg for every simulation step specific to the vehicle type.
-
-    Parameters
-    ----------
-    env : flow.envs.Env
-        the environment variable, which contains information on the current
-        state of the system.
-    veh_ids : [list] or str
-        list of veh_ids or single veh_id to compute the reward over
-    gain : float
-        scaling factor for the reward
-    """
-    if veh_ids is None:
-        veh_ids = env.k.vehicle.get_ids()
-    elif not isinstance(veh_ids, list):
-        veh_ids = [veh_ids]
-
-    cumulative_gallons = 0
-    cumulative_distance = 0
-    for veh_id in veh_ids:
-        energy_model = env.k.vehicle.get_energy_model(veh_id)
-        if energy_model != "":
-            speed = env.k.vehicle.get_speed(veh_id)
-            accel = 0 # env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
-            grade = env.k.vehicle.get_road_grade(veh_id)
-            gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
-            if speed >= 0.0:
-                cumulative_gallons += gallons_per_hr
-                cumulative_distance += speed
-    # print('//////////////////', cumulative_distance ,'//', cumulative_gallons , '/////////////')
-    cumulative_gallons /= 3600.0
-    cumulative_distance /= 16093.4
-    # miles / gallon is (distance_dot * \delta t) / (gallons_dot * \delta t)
-    mpg = cumulative_distance / (cumulative_gallons + 1e-6)
-    # mpg = cumulative_distance - cumulative_gallons
-    return mpg * gain
-
-def instantaneous_mpg4(env, veh_ids=None, gain=.01):
-    """Calculate the instantaneous mpg for every simulation step specific to the vehicle type.
-
-    Parameters
-    ----------
-    env : flow.envs.Env
-        the environment variable, which contains information on the current
-        state of the system.
-    veh_ids : [list] or str
-        list of veh_ids or single veh_id to compute the reward over
-    gain : float
-        scaling factor for the reward
-    """
-    if veh_ids is None:
-        veh_ids = env.k.vehicle.get_ids()
-    elif not isinstance(veh_ids, list):
-        veh_ids = [veh_ids]
-
-    cumulative_gallons = 0
-    cumulative_distance = 0
-    for veh_id in veh_ids:
-        energy_model = env.k.vehicle.get_energy_model(veh_id)
-        if energy_model != "":
-            speed = env.k.vehicle.get_speed(veh_id)
-            accel = env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
-            grade = env.k.vehicle.get_road_grade(veh_id)
-            gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
-            # if speed >= 0.0:
-            #     cumulative_gallons += gallons_per_hr
-            #     cumulative_distance += speed
-    # print('//////////////////', cumulative_distance ,'//', cumulative_gallons , '/////////////')
-    # cumulative_gallons /= 3600.0
-    # cumulative_distance /= 1609.34
-    # miles / gallon is (distance_dot * \delta t) / (gallons_dot * \delta t)
-    # mpg = cumulative_distance / (cumulative_gallons + 1e-6)
-    mpg = - gallons_per_hr
-    return mpg * gain
-
-def MonetaryCost(env, veh_ids=None, gain=100):
+def monetary_cost(env, veh_ids=None, gain=100):
     """Calculate the instantaneous mpg for every simulation step specific to the vehicle type.
 
     Parameters

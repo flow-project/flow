@@ -230,10 +230,8 @@ class TraCIVehicle(KernelVehicle):
                 accel = min(4.0, self.get_accel(veh_id, noise=False, failsafe=True)) # fix accel
                 grade = self.get_road_grade(veh_id)
                 gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
-                # print(self.__vehicles[veh_id]["total_gallons"])
                 self.__vehicles[veh_id]["total_gallons"] += ((gallons_per_hr) * 0.1/ 3600.0) # get sim_step
                 # print('speed = ', speed, 'accel = ', accel, 'total_gallons = ', self.__vehicles[veh_id]["total_gallons"])
-
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:

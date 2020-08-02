@@ -121,35 +121,7 @@ class EnergyOptEnv(Env):
         if rl_actions is None:
             return 0
         rl_id = self.k.vehicle.get_rl_ids()[0]
-        # Energy_rew = self.k.vehicle.get_fuel_consumption(rl_id)
-        Energy_rew = instantaneous_mpg(self, veh_ids=rl_id)
-        # Energy_rew = instantaneous_mpg2(self, veh_ids=rl_id)
-        # Energy_rew = instantaneous_mpg3(self, veh_ids=rl_id)
-        # Energy_rew = instantaneous_mpg4(self, veh_ids=rl_id)
-        # print( self.k.vehicle.get_energy_model(rl_id))
-        # Energy_rew = MonetaryCost(self, veh_ids=rl_id)
-        reward = Energy_rew
-        # print('rewward = ', float(reward))
-
-        # vel = np.array([
-        #     self.k.vehicle.get_speed(veh_id)
-        #     for veh_id in self.k.vehicle.get_ids()
-        # ])
-        #
-        # if any(vel < -100) or kwargs['fail']:
-        #     return 0.
-        #
-        # # reward average velocity
-        # eta_2 = 4.
-        # reward = eta_2 * np.mean(vel) / 20
-        #
-        # # punish accelerations (should lead to reduced stop-and-go waves)
-        # eta = 4  # 0.25
-        # mean_actions = np.mean(np.abs(np.array(rl_actions)))
-        # accel_threshold = 0
-        #
-        # if mean_actions > accel_threshold:
-        #     reward += eta * (accel_threshold - mean_actions)
+        reward = cumulative_mpg(self, veh_ids=rl_id)
 
         return float(reward)
 
@@ -284,9 +256,6 @@ class EnergyOptPOEnv(EnergyOptEnv):
              self.k.vehicle.get_x_by_id(rl_id)) % self.k.network.length()
             / max_length
         ])
-        # observation = np.array([
-        #     self.k.vehicle.get_speed(rl_id) / max_speed
-        # ])
 
         return observation
 
@@ -341,6 +310,5 @@ class EnergyOptSPDEnv(EnergyOptEnv):
                     for veh_id in self.k.vehicle.get_ids()]
 
         fuel = [self.k.vehicle.get_total_gallons(veh_id) for veh_id in self.k.vehicle.get_ids()]
-        # print(np.array(speed + distance + fuel ))
 
         return np.array(speed + distance + fuel )
