@@ -400,7 +400,7 @@ def instantaneous_mpg(env, veh_ids=None, gain=.001):
     return mpg * gain
 
 
-def cumulative_mpg(env, veh_ids=None, gain=0.1):
+def cumulative_mpg(env, veh_ids=None, gain=0.001):
     """Calculate the total historical mpg specific to the vehicle type.
 
     Parameters

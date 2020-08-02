@@ -72,9 +72,9 @@ flow_params = dict(
     initial=initial_config
 )
 
-N_CPUS = 6
+N_CPUS = 3
 # number of rollouts per training iteration
-N_ROLLOUTS = 1
+N_ROLLOUTS = 100
 # ray.shutdown()
 ray.init(num_cpus=N_CPUS)
 
@@ -113,7 +113,7 @@ trials = run_experiments({
         "config": {
             **config
         },
-        "checkpoint_freq": 10,  # number of iterations between checkpoints
+        "checkpoint_freq": 20,  # number of iterations between checkpoints
         "checkpoint_at_end": True,  # generate a checkpoint at the end
         "max_failures": 999,
         "stop": {  # stopping conditions

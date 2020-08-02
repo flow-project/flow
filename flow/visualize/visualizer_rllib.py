@@ -262,10 +262,12 @@ def visualizer_rllib(args):
                         action[agent_id], state_init[agent_id], logits = \
                             agent.compute_action(
                             state[agent_id], state=state_init[agent_id],
-                            policy_id=policy_map_fn(agent_id))
+                            policy_id=policy_map_fn(agent_id),
+                            explore=False)
                     else:
                         action[agent_id] = agent.compute_action(
-                            state[agent_id], policy_id=policy_map_fn(agent_id))
+                            state[agent_id], policy_id=policy_map_fn(agent_id),
+                        explore=False)
             else:
                 action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
