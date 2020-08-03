@@ -10,6 +10,8 @@ import warnings
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
+from flow.networks import I210SubNetwork
+from flow.networks import HighwayNetwork
 from bisect import bisect_left
 import itertools
 from copy import deepcopy
@@ -267,6 +269,10 @@ class TraCIVehicle(KernelVehicle):
         # make sure the rl vehicle list is still sorted
         self.__rl_ids.sort()
 
+        if isinstance(self.master_kernel.network.network, I210SubNetwork) or \
+                isinstance(self.master_kernel.network.network, HighwayNetwork):
+            self._update_sorted_ids()
+
     def _add_departed(self, veh_id, veh_type):
         """Add a vehicle that entered the network from an inflow or reset.
 
@@ -413,15 +419,16 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         self.previous_speeds = {}
 
-    def remove(self, veh_id):
+    def remove(self, veh_id, from_sumo=True):
         """See parent class."""
         # remove from sumo
-        if veh_id in self.kernel_api.vehicle.getIDList():
-            try:
-                self.kernel_api.vehicle.unsubscribe(veh_id)
-            except:
-                print(veh_id)
-            self.kernel_api.vehicle.remove(veh_id)
+        if from_sumo:
+            if veh_id in self.kernel_api.vehicle.getIDList():
+                try:
+                    self.kernel_api.vehicle.unsubscribe(veh_id)
+                except:
+                    print(veh_id)
+                    self.kernel_api.vehicle.remove(veh_id)
 
         if veh_id in self.__ids:
             self.__ids.remove(veh_id)
@@ -640,19 +647,94 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_leader(vehID, error) for vehID in veh_id]
-        return self.__vehicles.get(veh_id, {}).get("leader", error)
+        if isinstance(self.master_kernel.network.network, I210SubNetwork) or \
+                isinstance(self.master_kernel.network.network, HighwayNetwork):
+            return self._get_leader(veh_id)
+        else:
+            return self.__vehicles.get(veh_id, {}).get("leader", error)
 
     def get_follower(self, veh_id, error=""):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_follower(vehID, error) for vehID in veh_id]
-        return self.__vehicles.get(veh_id, {}).get("follower", error)
+
+        if isinstance(self.master_kernel.network.network, I210SubNetwork) or \
+                isinstance(self.master_kernel.network.network, HighwayNetwork):
+            return self._get_follower(veh_id)
+        else:
+            return self.__vehicles.get(veh_id, {}).get("follower", error)
 
     def get_headway(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_headway(vehID, error) for vehID in veh_id]
-        return self.__vehicles.get(veh_id, {}).get("headway", error)
+
+        if isinstance(self.master_kernel.network.network, I210SubNetwork) or \
+                isinstance(self.master_kernel.network.network, HighwayNetwork):
+            return self._get_headway(veh_id)
+        else:
+            return self.__vehicles.get(veh_id, {}).get("headway", error)
+
+    def _update_sorted_ids(self):
+        """TODO."""
+        self._sorted_ids = []
+
+        for lane in range(5):
+            self._sorted_ids.append(sorted(
+                [
+                    veh_id for veh_id in self.get_ids()
+                    if self._get_lane(veh_id) == lane
+                ],
+                key=self.get_x_by_id
+            ))
+
+    def _get_leader(self, veh_id):
+        """TODO."""
+        lane = self._get_lane(veh_id)
+        indx = self._sorted_ids[lane].index(veh_id)
+
+        if indx == len(self._sorted_ids[lane]) - 1:
+            return None
+        else:
+            return self._sorted_ids[lane][indx + 1]
+
+    def _get_follower(self, veh_id):
+        """TODO."""
+        lane = self._get_lane(veh_id)
+        indx = self._sorted_ids[lane].index(veh_id)
+
+        if indx == 0:
+            return None
+        else:
+            return self._sorted_ids[lane][indx - 1]
+
+    def _get_headway(self, veh_id):
+        """TODO."""
+        leader = self._get_leader(veh_id)
+        x1 = self.get_x_by_id(leader)
+        x0 = self.get_x_by_id(veh_id)
+        return x1 - x0 - 5
+
+    def _get_tailway(self, veh_id):
+        """TODO."""
+        follower = self._get_follower(veh_id)
+        x1 = self.get_x_by_id(veh_id)
+        x0 = self.get_x_by_id(follower)
+        return x1 - x0 - 5
+
+    def _get_lane(self, veh_id):
+        """Return a processed lane number."""
+        self._extra_lane_edges = [
+            "119257908#1-AddedOnRampEdge",
+            "119257908#1-AddedOffRampEdge",
+            ":119257908#1-AddedOnRampNode_0",
+            ":119257908#1-AddedOffRampNode_0",
+            "119257908#3",
+        ]
+
+        lane = self.get_lane(veh_id)
+        edge = self.get_edge(veh_id)
+        return lane if edge not in self._extra_lane_edges else lane - 1
 
     def get_last_lc(self, veh_id, error=-1001):
         """See parent class."""
@@ -1061,8 +1143,13 @@ class TraCIVehicle(KernelVehicle):
         if self.get_edge(veh_id) == '':
             # occurs when a vehicle crashes is teleported for some other reason
             return 0.
-        return self.master_kernel.network.get_x(
-            self.get_edge(veh_id), self.get_position(veh_id))
+
+        if isinstance(self.master_kernel.network.network, I210SubNetwork) or \
+                isinstance(self.master_kernel.network.network, HighwayNetwork):
+            return self.get_distance(veh_id)
+        else:
+            return self.master_kernel.network.get_x(
+                self.get_edge(veh_id), self.get_position(veh_id))
 
     def update_vehicle_colors(self):
         """See parent class.

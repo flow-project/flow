@@ -234,7 +234,7 @@ class TraCISimulation(KernelSimulation):
                 # save an initial state, if requested
                 if sim_params.save_state_time is not None:
                     sumo_call.append("--save-state.times")
-                    sumo_call.append(sim_params.save_state_time)
+                    sumo_call.append(str(sim_params.save_state_time))
                     sumo_call.append("--save-state.files")
                     sumo_call.append(sim_params.save_state_file)
 
