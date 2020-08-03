@@ -26,7 +26,7 @@ initial_config = InitialConfig(spacing="uniform", perturbation=1)
 vehicles = VehicleParams()
 vehicles.add(veh_id="rl",
              acceleration_controller=(RLController, {}),
-             initial_speed=12,
+             initial_speed=0.1,
              routing_controller=(ContinuousRouter, {}),
              num_vehicles=1)
 sim_params = SumoParams(sim_step=0.1, render=False)
