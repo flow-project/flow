@@ -73,6 +73,9 @@ def parse_args(args):
         '--lr', type=float, default=.0001,
         help='The learning rate')
     parser.add_argument(
+        '--use_lstm', action='store_true', default=False,
+        help='Whether to use an LSTM')
+    parser.add_argument(
         '--rollout_size', type=int, default=1000,
         help='How many steps are in a training batch.')
     parser.add_argument('--use_s3', action='store_true', default=False,
@@ -199,6 +202,8 @@ def setup_exps_rllib(flow_params,
         if flags.grid_search:
             # config["lambda"] = tune.grid_search([0.5, 0.9])
             config["lr"] = tune.grid_search([5e-4, 5e-5])
+        if flags.use_lstm:
+            config["model"]["use_lstm"] = True
     elif alg_run == "CENTRALIZEDPPO":
         from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
         from ray.rllib.agents.ppo import DEFAULT_CONFIG
@@ -295,6 +300,7 @@ def setup_exps_rllib(flow_params,
         episode.custom_metrics["avg_speed"] = avg_speed
         avg_speed_avs = np.mean(episode.user_data["avg_speed_avs"])
         episode.custom_metrics["avg_speed_avs"] = avg_speed_avs
+        episode.custom_metrics["avg_speed_var_avs"] = np.std(episode.user_data["avg_speed_avs"])
         episode.custom_metrics["avg_accel_avs"] = np.mean(episode.user_data["avg_accel_avs"])
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
         episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["inst_mpg"])
