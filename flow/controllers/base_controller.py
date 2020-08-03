@@ -130,7 +130,11 @@ class BaseController(metaclass=ABCMeta):
 
         # this allows the acceleration behavior of vehicles in a junction be
         # described by sumo instead of an explicit model
-        if env.k.vehicle.get_edge(self.veh_id)[0] == ":":
+        from flow.networks import I210SubNetwork
+        from flow.networks import HighwayNetwork
+        i210_highway = isinstance(env.k.network.network, I210SubNetwork) \
+            or isinstance(env.k.network.network, HighwayNetwork)
+        if env.k.vehicle.get_edge(self.veh_id)[0] == ":" and not i210_highway:
             return None
 
         accel = self.get_accel(env)
