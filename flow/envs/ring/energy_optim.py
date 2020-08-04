@@ -306,7 +306,7 @@ class EnergyOptSPDEnv(EnergyOptEnv):
                  for veh_id in self.k.vehicle.get_ids()]
         distance = [self.k.vehicle.get_distance(veh_id) / 1609.34
                     for veh_id in self.k.vehicle.get_ids()]
-        fuel = [self.k.vehicle.get_total_gallons(veh_id)
+        fuel = [self.k.vehicle.get_total_gallons(veh_id) * 100
                 for veh_id in self.k.vehicle.get_ids()]
 
         # print('speed at time {} is {}'.format(self.time_counter, np.array(speed) * self.k.network.max_speed()))
