@@ -289,11 +289,8 @@ def create_parser():
     return parser
 
 
-def main():
+def generate_graphs(args):
     """Run the replay according to the commandline arguments."""
-    parser = create_parser()
-    args = parser.parse_args()
-
     supplied_metadata = None
     if args.exp_config:
         module = __import__("../../examples/exp_configs.non_rl", fromlist=[args.exp_config])
@@ -373,4 +370,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = create_parser()
+    args = parser.parse_args()
+
+    generate_graphs(args)
