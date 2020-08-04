@@ -12,9 +12,9 @@ brew install Caskroom/cask/xquartz autoconf automake pkg-config libtool gdal pro
 echo "Installing sumo binaries"
 mkdir -p $HOME/sumo_binaries/bin
 pushd $HOME/sumo_binaries/bin
-wget https://flow-sumo.s3-us-west-1.amazonaws.com/libsumo/sumo_binaries_macos.zip
-unzip sumo_binaries_macos.zip
-rm sumo_binaries_macos.zip
+wget https://flow-sumo.s3-us-west-1.amazonaws.com/libsumo/sumo_binaries_MacOS.zip
+unzip sumo_binaries_MacOS.zip
+rm sumo_binaries_MacOS.zip
 chmod +x *
 popd
 export SUMO_HOME="$HOME/sumo_binaries/bin"
