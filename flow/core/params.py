@@ -552,7 +552,7 @@ class SumoParams(SimParams):
     ----------
     use_libsumo : bool, optional
         Whether to enable libsumo speedup. Note SUMO must be compiled with
-        libsumo for this to work. Is not currently supported on OSX machines.
+        libsumo for this to work.
     port : int, optional
         Port for Traci to connect to; finds an empty port by default
     sim_step : float optional

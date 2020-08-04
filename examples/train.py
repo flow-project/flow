@@ -358,7 +358,8 @@ def train_rllib(submodule, flags):
     elif flags.local_mode:
         ray.init(local_mode=True)
     else:
-        ray.init()
+        ray.init(num_cpus=flags.num_cpus + 1)
+
     exp_dict = {
         "run_or_experiment": alg_run,
         "name": flags.exp_title or flow_params['exp_tag'],
@@ -531,37 +532,6 @@ def main(args):
         import libsumo
         assert libsumo.isLibsumo(), "Failed to load libsumo"
         flow_params['sim'].use_libsumo = flags.libsumo
-
-    if flags.rl_trainer.lower() == "rllib":
-        import ray
-        n_cpus = submodule.N_CPUS
-        n_rollouts = submodule.N_ROLLOUTS
-        policy_graphs = getattr(submodule, "POLICY_GRAPHS", None)
-        policy_mapping_fn = getattr(submodule, "policy_mapping_fn", None)
-        policies_to_train = getattr(submodule, "policies_to_train", None)
-
-        alg_run, gym_name, config = setup_exps_rllib(
-            flow_params, n_cpus, n_rollouts,
-            policy_graphs, policy_mapping_fn, policies_to_train)
-
-        ray.init(num_cpus=n_cpus + 1, object_store_memory=200 * 1024 * 1024)
-        exp_config = {
-            "run": alg_run,
-            "env": gym_name,
-            "config": {
-                **config
-            },
-            "checkpoint_freq": 20,
-            "checkpoint_at_end": True,
-            "max_failures": 999,
-            "stop": {
-                "training_iteration": flags.num_steps,
-            },
-        }
-
-        if flags.checkpoint_path is not None:
-            exp_config['restore'] = flags.checkpoint_path
-        # trials = run_experiments({flow_params["exp_tag"]: exp_config})
 
     # Perform the training operation.
     if flags.rl_trainer.lower() == "rllib":

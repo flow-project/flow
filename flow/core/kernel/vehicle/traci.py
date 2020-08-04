@@ -16,6 +16,12 @@ from copy import deepcopy
 import platform
 import os
 
+try:
+    import libsumo
+except ImportError:
+    warnings.warn('You do not have libsumo installed. If you are trying to use libsumo for speed and it isn\'t '
+                  'working, that\'s why.')
+
 # colors for vehicles
 WHITE = (255, 255, 255)
 CYAN = (0, 255, 255)
@@ -87,7 +93,6 @@ class TraCIVehicle(KernelVehicle):
         # whether to use libsumo
         self.use_libsumo = getattr(sim_params, "use_libsumo", False)
         if self.use_libsumo:
-            import libsumo as libsumo
             relese = float(os.popen('lsb_release -r -s').read())
             if platform.system() == 'Linux' and \
                     relese not in [float(18.04), float(16.04)]:
