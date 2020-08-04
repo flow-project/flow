@@ -104,7 +104,7 @@ def get_extra_info(veh_kernel, extra_info, veh_ids, source_id, run_id):
         extra_info["run_id"].append(run_id)
 
 
-def get_configuration():
+def get_configuration(submitter_name=None, strategy_name=None):
     """Get configuration for the metadata table."""
     try:
         config_df = pd.read_csv('./data_pipeline_config')
@@ -112,13 +112,19 @@ def get_configuration():
         config_df = pd.DataFrame(data={"submitter_name": [""], "strategy": [""]})
 
     if not config_df['submitter_name'][0]:
-        name = input("Please enter your name:").strip()
-        while not name:
-            name = input("Please enter a non-empty name:").strip()
+        if submitter_name:
+            name = submitter_name
+        else:
+            name = input("Please enter your name:").strip()
+            while not name:
+                name = input("Please enter a non-empty name:").strip()
         config_df['submitter_name'] = [name]
 
-    strategy = input(
-        "Please enter strategy name (current: \"{}\"):".format(config_df["strategy"][0])).strip()
+    if strategy_name:
+        strategy = strategy_name
+    else:
+        strategy = input(
+            "Please enter strategy name (current: \"{}\"):".format(config_df["strategy"][0])).strip()
     if strategy:
         config_df['strategy'] = [strategy]
 

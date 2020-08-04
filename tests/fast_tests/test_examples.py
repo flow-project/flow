@@ -190,6 +190,7 @@ class TestTrain(unittest.TestCase):
             'checkpoint_path': None,
             'use_s3': False,
             'multi_node': False,
+            'upload_graphs': None
         })
 
         # test the case when optional args are specified
@@ -200,6 +201,7 @@ class TestTrain(unittest.TestCase):
             "--num_steps", "3",
             "--rollout_size", "4",
             "--checkpoint_path", "5",
+            "--upload_graphs", "name", "strategy"
         ])
 
         self.assertDictEqual(vars(args), {
@@ -219,6 +221,7 @@ class TestTrain(unittest.TestCase):
             'rollout_size': 4,
             'use_s3': False,
             'multi_node': False,
+            'upload_graphs': ['name', 'strategy']
         })
 
 
