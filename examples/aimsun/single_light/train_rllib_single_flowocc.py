@@ -8,7 +8,7 @@ from flow.utils.rllib import FlowParamsEncoder
 from flow.utils.registry import make_create_env
 from flow.core.params import AimsunParams, NetParams, VehicleParams, EnvParams, InitialConfig
 
-from single_light_nqueue import CoordinatedNetwork, SingleLightEnv, ADDITIONAL_ENV_PARAMS
+from single_light_nflowocc import CoordinatedNetwork, SingleLightEnv, ADDITIONAL_ENV_PARAMS
 
 try:
     from ray.rllib.agents.agent import get_agent_class
@@ -85,7 +85,7 @@ def setup_exps(version=0):
     config["num_sgd_iter"] = 10
     config['clip_actions'] = False  # (ev) temporary ray bug
     config["horizon"] = RLLIB_HORIZON  # not same as env horizon.
-    config["vf_loss_coeff"] = 1e-8 
+    config["vf_loss_coeff"] = 1e-3
     config["vf_clip_param"] = 600
     config["lr"] = 5e-4 #vary
 
@@ -119,7 +119,7 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": RLLIB_TRAINING_ITERATIONS,
             },
-            #"restore": '/home/cjrsantos/ray_results/single_light/PPO_SingleLightEnv-v0_052998d8_2020-07-10_08-19-29crdv8i6w/checkpoint_480/checkpoint-480',
+            "restore": '/home/damian/ray_results/single_light_flowocc/PPO_SingleLightEnv-v0_1050f3e6_2020-08-01_05-01-30knk3_yow/checkpoint_96/checkpoint-96',
             # "local_dir": os.path.abspath("./ray_results"),
             "keep_checkpoints_num": 7
         }

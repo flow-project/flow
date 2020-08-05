@@ -62,10 +62,10 @@ def rescale_act(actions_array, target_value, current_value):
             new_action = 0
         else:
             new_action = math.ceil(target_value*duration/current_value)
-        rescaled_actions.append(new_action)
+        rescaled_actions.append(int(new_action))
     if sum(rescaled_actions) > target_value:
         x = sum(rescaled_actions) - target_value
-        rescaled_actions[-1] = rescaled_actions[-1] - x
+        rescaled_actions[-1] = int(rescaled_actions[-1] - x)
     return rescaled_actions
 
 class SingleLightEnv(Env):
@@ -106,7 +106,7 @@ class SingleLightEnv(Env):
         self.current_phase_timings = []
 
         # hardcode maxout values maxd_dict = {'control_id':'phase_maxout'}
-        self.maxd_list = [28, 62, 28, 62, 28, 62, 28, 62]
+        self.maxd_list = [30, 70, 30, 70, 30, 70, 30, 70]
 
         # get cumulative queue lengths
         for node_id in self.target_nodes:
@@ -185,7 +185,7 @@ class SingleLightEnv(Env):
             for j in range(len(ring)):
                 phase_pair = ring[j]
                 if sum(phase_pair) != sum_barrier[j]:
-                    action_rings[i][j] = int(rescale_act(phase_pair, sum_barrier[j], sum(phase_pair)))
+                    action_rings[i][j] = rescale_act(phase_pair, sum_barrier[j], sum(phase_pair))
         #print(action_rings)
 
         rescaled_actions = np.array(action_rings).flatten()
@@ -193,7 +193,7 @@ class SingleLightEnv(Env):
         for phase, action, maxd in zip(phase_list, rescaled_actions, self.maxd_list):
             if action:
                 if action > maxd:
-                    maxout = action:
+                    maxout = action
                 else:
                     maxout = maxd
                 self.k.traffic_light.change_phase_duration(self.node_id, phase, action, maxd)
@@ -201,7 +201,7 @@ class SingleLightEnv(Env):
                 #print(phase, action, phase_duration)
 
         self.current_phase_timings = rescaled_actions
-        self.sum_barrier = [sum(rescaled_actions[0:2]), sum(new_actions[2:4])]
+        self.sum_barrier = [sum(rescaled_actions[0:2]), sum(rescaled_actions[2:4])]
 
 
     def get_state(self, rl_id=None, **kwargs):
@@ -268,7 +268,7 @@ class SingleLightEnv(Env):
                             state[(*index, 1)] = sum(occup)/len(occup)
                         except ZeroDivisionError:
                             state[(*index, 1)] = 0
-        print(state)
+        #print(state)
         return state.flatten()
 
     def compute_reward(self, rl_actions, **kwargs):

@@ -119,7 +119,7 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": RLLIB_TRAINING_ITERATIONS,
             },
-            #"restore": '/home/cjrsantos/ray_results/single_light/PPO_SingleLightEnv-v0_052998d8_2020-07-10_08-19-29crdv8i6w/checkpoint_480/checkpoint-480',
+            "restore": '/home/damian/ray_results/single_light_queue/PPO_SingleLightEnv-v0_ab65bf70_2020-08-01_04-58-41d_bnsz2z/checkpoint_96/checkpoint-96',
             # "local_dir": os.path.abspath("./ray_results"),
             "keep_checkpoints_num": 7
         }
