@@ -183,9 +183,9 @@ def setup_exps_rllib(flow_params,
     alg_run = flags.algorithm.upper()
 
     if alg_run == "PPO":
-        from flow.algorithms.custom_ppo import CustomPPOTrainer
+        # from flow.algorithms.custom_ppo import CustomPPOTrainer
         from ray.rllib.agents.ppo import DEFAULT_CONFIG
-        alg_run = CustomPPOTrainer
+        alg_run = "PPO"
         config = deepcopy(DEFAULT_CONFIG)
 
         config["num_workers"] = n_cpus
@@ -200,7 +200,7 @@ def setup_exps_rllib(flow_params,
         # config["kl_target"] = 0.02
         # config["num_sgd_iter"] = 10
         if flags.grid_search:
-            # config["lambda"] = tune.grid_search([0.5, 0.9])
+            config["lambda"] = tune.grid_search([0.5, 0.9])
             config["lr"] = tune.grid_search([5e-4, 5e-5])
         if flags.use_lstm:
             config["model"]["use_lstm"] = True
