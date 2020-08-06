@@ -103,14 +103,14 @@ tables = [
 summary_tables = ["leaderboard_chart_agg", "fact_top_scores"]
 
 network_filters = defaultdict(lambda: {
-        'loc_filter': "x BETWEEN 500 AND 2300",
-        'warmup_steps': 500 * 3 * 0.4,
-        'horizon_steps': 1000 * 3 * 0.4
+        'inflow_filter': "x > 500",
+        'outflow_filter': "x < 2300",
+        'warmup_steps': 500 * 3 * 0.4
     })
 network_filters['I-210 without Ramps'] = {
-        'loc_filter': "edge_id <> ALL (VALUES 'ghost0', '119257908#3')",
-        'warmup_steps': 600 * 3 * 0.4,
-        'horizon_steps': 1000 * 3 * 0.4
+        'inflow_filter': "edge_id != 'ghost0'",
+        'outflow_filter': "edge_id != '119257908#3'",
+        'warmup_steps': 600 * 3 * 0.4
     }
 
 max_decel = -1.0
@@ -226,7 +226,8 @@ class QueryStrings(Enum):
             AND vt.date = \'{date}\'
             AND vt.partition_name = \'{partition}\'
             AND vt.time_step >= {start_filter}
-            AND vt.{loc_filter}
+            AND vt.{inflow_filter}
+            AND vt.{outflow_filter}
         ;
     """
 
@@ -253,7 +254,8 @@ class QueryStrings(Enum):
             AND partition_name = \'{partition}\'
             AND leader_id IS NOT NULL
             AND time_step >= {start_filter}
-            AND {loc_filter}
+            AND {inflow_filter}
+            AND {outflow_filter}
         ;
     """
 
@@ -310,7 +312,7 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND date = \'{date}\'
                 AND partition_name = \'{partition}\'
-                AND {loc_filter}
+                AND {inflow_filter}
             GROUP BY 1, 2
         ), agg AS (
             SELECT
@@ -349,7 +351,8 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND v.date = \'{date}\'
                 AND v.partition_name = \'{partition}\'
-                AND v.{loc_filter}
+                AND v.{inflow_filter}
+                AND v.{outflow_filter}
             GROUP BY 1, 2, 3
             HAVING 1 = 1
                 AND MAX(distance) - MIN(distance) > 10
@@ -429,9 +432,9 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND date = \'{date}\'
                 AND partition_name = \'{partition}\'
-                AND {loc_filter}
+                AND {inflow_filter}
+                AND {outflow_filter}
                 AND time_step >= {start_filter}
-                AND time_step < {stop_filter}
             GROUP BY 1, 2
         )
         SELECT
@@ -473,43 +476,34 @@ class QueryStrings(Enum):
         ;"""
 
     FACT_NETWORK_INFLOWS_OUTFLOWS = """
-        WITH min_max_time_step AS (
+        WITH in_out_time_step AS (
             SELECT
                 id,
                 source_id,
-                MIN(time_step) AS min_time_step,
-                MAX(time_step) AS max_time_step
+                MIN(CASE WHEN {inflow_filter} THEN time_step - {start_filter} ELSE NULL END) AS inflow_time_step,
+                MIN(CASE WHEN {outflow_filter} THEN NULL ELSE time_step - {start_filter} END) AS outflow_time_step
             FROM fact_vehicle_trace
             WHERE 1 = 1
                 AND date = \'{date}\'
                 AND partition_name = \'{partition}\'
-                AND {loc_filter}
             GROUP BY 1, 2
         ), inflows AS (
             SELECT
-                CAST(min_time_step / 60 AS INTEGER) * 60 AS time_step,
+                CAST(inflow_time_step / 60 AS INTEGER) * 60 AS time_step,
                 source_id,
                 60 * COUNT(DISTINCT id) AS inflow_rate
-            FROM min_max_time_step
-            WHERE 1 = 1
-                AND min_time_step >= {start_filter}
-                AND min_time_step < {stop_filter}
+            FROM in_out_time_step
             GROUP BY 1, 2
         ), outflows AS (
             SELECT
-                CAST(max_time_step / 60 AS INTEGER) * 60 AS time_step,
+                CAST(outflow_time_step / 60 AS INTEGER) * 60 AS time_step,
                 source_id,
                 60 * COUNT(DISTINCT id) AS outflow_rate
-            FROM min_max_time_step
-            WHERE 1 = 1
-                AND max_time_step >= {start_filter}
-                AND max_time_step < {stop_filter}
+            FROM in_out_time_step
             GROUP BY 1, 2
         )
         SELECT
-            COALESCE(i.time_step, o.time_step) - MIN(COALESCE(i.time_step, o.time_step))
-                OVER (PARTITION BY COALESCE(i.source_id, o.source_id)
-                ORDER BY COALESCE(i.time_step, o.time_step) ASC) AS time_step,
+            COALESCE(i.time_step, o.time_step) AS time_step,
             COALESCE(i.source_id, o.source_id) AS source_id,
             COALESCE(i.inflow_rate, 0) AS inflow_rate,
             COALESCE(o.outflow_rate, 0) AS outflow_rate
@@ -517,6 +511,8 @@ class QueryStrings(Enum):
         FULL OUTER JOIN outflows o ON 1 = 1
             AND i.time_step = o.time_step
             AND i.source_id = o.source_id
+        WHERE 1 = 1
+            AND COALESCE(i.time_step, o.time_step) >= 0
         ORDER BY time_step
         ;"""
 
@@ -547,7 +543,8 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND vt.date = \'{date}\'
                 AND vt.partition_name = \'{partition}\'
-                AND vt.{loc_filter}
+                AND vt.{inflow_filter}
+                AND vt.{outflow_filter}
                 AND vt.time_step >= {start_filter}
         ), cumulative_energy AS (
             SELECT
@@ -647,7 +644,8 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND vt.date = \'{date}\'
                 AND vt.partition_name = \'{partition}\'
-                AND vt.{loc_filter}
+                AND vt.{inflow_filter}
+                AND vt.{outflow_filter}
                 AND vt.time_step >= {start_filter}
         ), cumulative_energy AS (
             SELECT
@@ -730,7 +728,8 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND vt.date = \'{date}\'
                 AND vt.partition_name = \'{partition}\'
-                AND vt.{loc_filter}
+                AND vt.{inflow_filter}
+                AND vt.{outflow_filter}
                 AND vt.time_step >= {start_filter}
             GROUP BY 1, 2
         )
