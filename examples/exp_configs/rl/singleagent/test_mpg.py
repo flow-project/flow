@@ -34,6 +34,7 @@ sim_params = SumoParams(sim_step=0.1, render=False)
 env_params = EnvParams(
     # length of one rollout
     horizon=HORIZON,
+    warmup_steps=100,
     additional_params={
         # maximum acceleration of autonomous vehicles
         "max_accel": 4,
