@@ -57,14 +57,14 @@ def lambda_handler(event, context):
         # if query already recorded before, skip it. This is to tolerate repetitive execution by Lambda
         if query_name in completed[source_id]:
             continue
-        # retrieve metadata and use it to determine the right loc_filter
+        # retrieve metadata and use it to determine the right location filters
         metadata_key = "fact_vehicle_trace/date={0}/partition_name={1}/{1}.csv".format(query_date, source_id)
         response = s3.head_object(Bucket=bucket, Key=metadata_key)
         if 'network' in response["Metadata"]:
             network = response["Metadata"]['network']
-            loc_filter = network_filters[network]['loc_filter']
+            inflow_filter = network_filters[network]['inflow_filter']
+            outflow_filter = network_filters[network]['outflow_filter']
             start_filter = network_filters[network]['warmup_steps']
-            stop_filter = network_filters[network]['horizon_steps']
 
             # update baseline if needed
             if table == 'fact_vehicle_trace' \
@@ -81,8 +81,8 @@ def lambda_handler(event, context):
                                                                                                   query_date,
                                                                                                   source_id,
                                                                                                   readied_query_name)
-            message_body = (readied_query_name, result_location, query_date, partition, loc_filter, start_filter,
-                            stop_filter, max_decel, leader_max_decel)
+            message_body = (readied_query_name, result_location, query_date, partition, inflow_filter, outflow_filter,
+                            start_filter, max_decel, leader_max_decel)
             message_body = json.dumps(message_body)
             sqs.send_message(
                 QueueUrl="",
