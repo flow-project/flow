@@ -8,6 +8,8 @@ brew install wget
 brew install swig sdl sdl_image sdl_mixer sdl_ttf portmidi
 # sumo dependencies
 brew install Caskroom/cask/xquartz autoconf automake pkg-config libtool gdal proj xerces-c fox
+# link the libproj versions because the default install does not match what sumo wants
+ln -s /usr/local/opt/proj/lib/libproj.19.dylib /usr/local/opt/proj/lib/libproj.15.dylib
 
 echo "Installing sumo binaries"
 mkdir -p $HOME/sumo_binaries/bin
