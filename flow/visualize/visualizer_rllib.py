@@ -266,11 +266,12 @@ def visualizer_rllib(args):
                             explore=False)
                     else:
                         action[agent_id] = agent.compute_action(
-                            state[agent_id], policy_id=policy_map_fn(agent_id),
-                        explore=False)
+                            state[agent_id], policy_id=policy_map_fn(agent_id), explore=False)
             else:
-                action = agent.compute_action(state)
+                action = agent.compute_action(state, explore=False)
             state, reward, done, _ = env.step(action)
+            print(state, reward, action)
+            print(env.k.vehicle.get_speed('rl_0'))
 
             # collect data for data pipeline
             get_extra_info(vehicles, extra_info, vehicles.get_ids(), source_id, run_id)
@@ -358,15 +359,15 @@ def visualizer_rllib(args):
         emission_path = \
             '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
 
-        # convert the emission file into a csv file
-        emission_to_csv(emission_path)
+        # # convert the emission file into a csv file
+        # emission_to_csv(emission_path)
 
         # print the location of the emission csv file
         emission_path_csv = emission_path[:-4] + ".csv"
         print("\nGenerated emission file at " + emission_path_csv)
 
-        # delete the .xml version of the emission file
-        os.remove(emission_path)
+        # # delete the .xml version of the emission file
+        # os.remove(emission_path)
 
         # generate datapipeline output
         trajectory_table_path = os.path.join(dir_path, '{}.csv'.format(source_id))

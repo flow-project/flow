@@ -223,14 +223,6 @@ class TraCIVehicle(KernelVehicle):
             # update the number of not departed vehicles
             self.num_not_departed += sim_obs[tc.VAR_LOADED_VEHICLES_NUMBER] - \
                 sim_obs[tc.VAR_DEPARTED_VEHICLES_NUMBER]
-            # update total gallons consumed
-            for veh_id in self.__ids:
-                energy_model = self.get_energy_model(veh_id)
-                speed = self.get_speed(veh_id)
-                accel = self.get_accel(veh_id, noise=False, failsafe=True)
-                grade = self.get_road_grade(veh_id)
-                gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
-                self.__vehicles[veh_id]["total_gallons"] += gallons_per_hr * self.sim_step / 3600.0
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
@@ -268,6 +260,16 @@ class TraCIVehicle(KernelVehicle):
 
         # update the sumo observations variable
         self.__sumo_obs = vehicle_obs.copy()
+
+        # update total gallons consumed for vehicles in the system. This has to occur AFTER we update
+        # the vehicle speeds.
+        for veh_id in self.__ids:
+            energy_model = self.get_energy_model(veh_id)
+            speed = self.get_speed(veh_id)
+            accel = self.get_accel(veh_id, noise=False, failsafe=True)
+            grade = self.get_road_grade(veh_id)
+            gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
+            self.__vehicles[veh_id]["total_gallons"] += gallons_per_hr * self.sim_step / 3600.0
 
         # update the lane leaders data for each vehicle
         self._multi_lane_headways()
