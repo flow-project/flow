@@ -251,6 +251,7 @@ class QueryStrings(Enum):
         WHERE 1 = 1
             AND date = \'{date}\'
             AND partition_name = \'{partition}\'
+            AND leader_id IS NOT NULL
             AND time_step >= {start_filter}
             AND {loc_filter}
         ;
