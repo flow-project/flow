@@ -1,46 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Fri Aug  7 16:19:56 2020 by Eclipse SUMO Version v1_6_0+0209-4a2e084345
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
-
-    <input>
-        <net-file value="/home/nier/Documents/flow/flow/core/kernel/network/debug/cfg/RingRoadTest_20200807-1619561596842396.236301.net.xml"/>
-        <route-files value="/home/nier/Documents/flow/flow/core/kernel/network/debug/cfg/RingRoadTest_20200807-1619561596842396.236301.rou.xml"/>
-        <additional-files value="/home/nier/Documents/flow/flow/core/kernel/network/debug/cfg/RingRoadTest_20200807-1619561596842396.236301.add.xml"/>
-    </input>
-
-    <output>
-        <save-state.times value="1.0"/>
-        <save-state.files value="test_save_state.xml"/>
-    </output>
-
-    <time>
-        <begin value="0"/>
-        <step-length value="0.1"/>
-    </time>
-
-    <processing>
-        <collision.check-junctions value="true"/>
-        <time-to-teleport value="-1"/>
-    </processing>
-
-    <report>
-        <no-step-log value="true"/>
-    </report>
-
-    <traci_server>
-        <remote-port value="50855"/>
-        <num-clients value="1"/>
-    </traci_server>
-
-    <gui_only>
-        <gui-settings-file value="/home/nier/Documents/flow/flow/core/kernel/network/debug/cfg/RingRoadTest_20200807-1619561596842396.236301.gui.cfg"/>
-        <tracker-interval value="0.1"/>
-    </gui_only>
-
-</configuration>
--->
-
 <snapshot xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/state_file.xsd" version="v1_6_0+0209-4a2e084345" time="1.00">
     <route id="routebottom_0" state="1" edges="bottom right top left"/>
     <route id="routeleft_0" state="1" edges="left bottom right top"/>
