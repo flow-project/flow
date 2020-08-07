@@ -659,18 +659,9 @@ class SumoParams(SimParams):
                  load_state=None):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
-            sim_step,
-            render,
-            restart_instance,
-            emission_path,
-            save_render,
-            sight_radius,
-            show_radius,
-            pxpm,
-            force_color_update,
-            save_state_time,
-            save_state_file,
-            load_state)
+            sim_step, render, restart_instance, emission_path, save_render,
+            sight_radius, show_radius, pxpm, force_color_update,
+            save_state_time, save_state_file, load_state)
         self.port = port
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
