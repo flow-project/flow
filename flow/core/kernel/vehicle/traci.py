@@ -170,13 +170,10 @@ class TraCIVehicle(KernelVehicle):
                 # updated
                 pass
             else:
-                try:
-                    veh_type = self.kernel_api.vehicle.getTypeID(veh_id)
-                    obs = self._add_departed(veh_id, veh_type)
-                    # add the subscription information of the new vehicle
-                    vehicle_obs[veh_id] = obs
-                except:
-                    print(veh_id)
+                veh_type = self.kernel_api.vehicle.getTypeID(veh_id)
+                obs = self._add_departed(veh_id, veh_type)
+                # add the subscription information of the new vehicle
+                vehicle_obs[veh_id] = obs
 
         if reset:
             self.time_counter = 0
@@ -419,11 +416,8 @@ class TraCIVehicle(KernelVehicle):
         # remove from sumo
         if from_sumo:
             if veh_id in self.kernel_api.vehicle.getIDList():
-                try:
-                    self.kernel_api.vehicle.unsubscribe(veh_id)
-                except:
-                    print(veh_id)
-                    self.kernel_api.vehicle.remove(veh_id)
+                self.kernel_api.vehicle.unsubscribe(veh_id)
+                self.kernel_api.vehicle.remove(veh_id)
 
         if veh_id in self.__ids:
             self.__ids.remove(veh_id)
