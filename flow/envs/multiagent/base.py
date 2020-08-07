@@ -196,9 +196,19 @@ class MultiEnv(MultiAgentEnv, Env):
             self.setup_initial_state()
 
         if self.sim_params.load_state is not None:
+            for veh_id in list(self.k.vehicle.get_ids()):
+                self.k.vehicle.remove(veh_id, from_sumo=False)
+
             for veh_id in self.k.kernel_api.vehicle.getIDList():
                 self.k.vehicle._add_departed(veh_id, "human")
 
+            # Run assertions to make sure the operation was successful.
+            assert self.k.vehicle.num_vehicles == \
+                len(self.k.kernel_api.vehicle.getIDList())
+            assert set(self.k.vehicle.get_ids()) == \
+                set(self.k.kernel_api.vehicle.getIDList()), \
+                list(set(self.k.vehicle.get_ids()) -
+                     set(self.k.kernel_api.vehicle.getIDList()))
         else:
             # clear all vehicles from the network and the vehicles class
             if self.simulator == 'traci':
