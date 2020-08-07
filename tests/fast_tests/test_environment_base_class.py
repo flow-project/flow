@@ -10,6 +10,11 @@ from flow.controllers import RLController
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.utils.exceptions import FatalFlowError
 from flow.envs import Env, TestEnv
+from flow.envs.multiagent import MultiAgentAccelPOEnv
+from flow.networks import RingNetwork
+from flow.core.experiment import Experiment
+from flow.utils.registry import make_create_env
+import flow.config as config
 
 from tests.setup_scripts import ring_road_exp_setup, highway_exp_setup
 import os
@@ -539,6 +544,155 @@ class TestClipTupleActions(unittest.TestCase):
         self.assertEquals(_actions[0], clipped_actions[0])
         self.assertTrue((_actions[1] == clipped_actions[1]).all())
         self.assertEquals(_actions[2], clipped_actions[2])
+
+
+class TestSaveLoadState(unittest.TestCase):
+    """Tests for the save and load state features for sumo."""
+
+    def setUp(self):
+        sim_params = SumoParams(sim_step=0.1, render=False)
+
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="human",
+            acceleration_controller=(IDMController, {}),
+            routing_controller=(ContinuousRouter, {}),
+            car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
+            num_vehicles=1,
+        )
+
+        env_params = EnvParams(
+            horizon=20,
+            additional_params={
+                "target_velocity": 8,
+                "max_accel": 1,
+                "max_decel": 1,
+                "sort_vehicles": False,
+            }
+        )
+
+        net_params = NetParams(additional_params={
+            "length": 230,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40
+        })
+
+        self.flow_params = dict(
+            exp_tag="RingRoadTest",
+            env_name=TestEnv,
+            network=RingNetwork,
+            simulator='traci',
+            sim=sim_params,
+            env=env_params,
+            net=net_params,
+            veh=vehicles,
+        )
+
+    def tearDown(self):
+        del self.flow_params
+
+    def test_save_state(self):
+        """Test the save_state option.
+
+        This verifies that:
+
+        1. the xml file is generated
+        2. the starting time is as expected.
+        """
+        # Add the save option.
+        save_state_file = "test_save_state.xml"
+        self.flow_params['sim'].save_state_time = 1.0
+        self.flow_params['sim'].save_state_file = save_state_file
+
+        # Run the simulation.
+        exp = Experiment(self.flow_params)
+        exp.run(num_runs=1)
+
+        # test case 1
+        self.assertTrue(os.path.isfile(save_state_file))
+
+        # test case 2
+        read_time = 0
+        read_file = ""
+        with open(save_state_file, 'r') as f:
+            # Read all lines in the file one by one
+            for line in f:
+                # For each line, check if line contains the string
+                if "save-state.times" in line:
+                    read_time = float(line.split("\"")[1])
+                elif "save-state.files" in line:
+                    read_file = line.split("\"")[1]
+        self.assertAlmostEqual(read_time, 1.0)
+        self.assertEqual(read_file, save_state_file)
+
+        # Remove the generated file.
+        os.remove(save_state_file)
+
+    def test_load_state_singleagent(self):
+        """Test the load_state option for single-agent environments.
+
+        This verifies that the number and initial states of vehicles are
+        correctly loaded from the xml file.
+        """
+        # Add the load option.
+        self.flow_params['sim'].load_state = os.path.join(
+            config.PROJECT_PATH,
+            "tests/fast_tests/test_files/test_save_state.xml")
+
+        # Run the reset option.
+        create_env, _ = make_create_env(self.flow_params)
+        env = create_env()
+        env.reset()
+
+        # Run assertions.
+        self.assertEqual(
+            env.k.vehicle.num_vehicles, 10)
+        self.assertEqual(
+            env.k.vehicle.get_ids(), ["human_{}".format(i) for i in range(10)])
+        np.testing.assert_almost_equal(
+            env.k.vehicle.get_speed(env.k.vehicle.get_ids()),
+            [1.2912498, 1.2912497, 1.2912498, 1.2912496, 1.290848, 1.0936806,
+             1.2912498, 1.2912495, 1.29125, 1.2920533])
+        np.testing.assert_almost_equal(
+            env.k.vehicle.get_x_by_id(env.k.vehicle.get_ids()),
+            [0.5832564, 23.5832563, 46.5832564, 69.5832564, 92.5832,
+             115.5036137, 138.5832564, 161.5832563, 184.5832564, 207.5833741])
+
+    def test_load_state_multiagent(self):
+        """Test the load_state option for multi-agent environments.
+
+        This verifies that the number and initial states of vehicles are
+        correctly loaded from the xml file.
+        """
+        # Add the load option.
+        self.flow_params['sim'].load_state = os.path.join(
+            config.PROJECT_PATH,
+            "tests/fast_tests/test_files/test_save_state.xml")
+
+        # Switch to multiagent environment.
+        self.flow_params['env_name'] = MultiAgentAccelPOEnv
+
+        # Run the reset option.
+        create_env, _ = make_create_env(self.flow_params)
+        env = create_env()
+        env.reset()
+
+        # Run assertions.
+        self.assertEqual(
+            env.k.vehicle.num_vehicles, 10)
+        self.assertEqual(
+            env.k.vehicle.get_ids(), ["human_{}".format(i) for i in range(10)])
+        np.testing.assert_almost_equal(
+            env.k.vehicle.get_speed(env.k.vehicle.get_ids()),
+            [1.2912498, 1.2912497, 1.2912498, 1.2912496, 1.290848, 1.0936806,
+             1.2912498, 1.2912495, 1.29125, 1.2920533])
+        np.testing.assert_almost_equal(
+            env.k.vehicle.get_x_by_id(env.k.vehicle.get_ids()),
+            [0.5832564, 23.5832563, 46.5832564, 69.5832564, 92.5832,
+             115.5036137, 138.5832564, 161.5832563, 184.5832564, 207.5833741])
 
 
 if __name__ == '__main__':
