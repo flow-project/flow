@@ -2392,7 +2392,7 @@
             <param key="origId" value="119257908"/>
         </lane>
     </edge>
-    <edge id="119257908#3" from="1842086610" to="632089468" name="Ventura Freeway" priority="13" type="highway.motorway" spreadType="center" shape="2148.42,1244.27 2163.41,1253.28">
+    <edge id="119257908#3" from="1842086610" to="632089468" name="Ventura Freeway" priority="13" type="highway.motorway" spreadType="center" shape="2148.42,1244.27 2233.42,1296.27">
         <lane id="119257908#3_0" index="0" allow="private emergency authority army vip passenger hov taxi bus coach delivery truck trailer motorcycle evehicle custom1 custom2" speed="5" length="17.49" acceleration="1" shape="2152.67,1237.20 2167.66,1246.21">
             <param key="origId" value="119257908"/>
         </lane>
