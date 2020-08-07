@@ -429,11 +429,14 @@ class SimParams(object):
     force_color_update : bool, optional
         whether or not to automatically color vehicles according to their types
     save_state_time : float, optional
-        TODO
+        the time to save the simulation state. States can then be reloaded
+        later. If set to None, no initial state is saved.
     save_state_file : str, optional
-        TODO
+        the path to save the initial state to. Only used is save_state_time is
+        not None.
     load_state : str, optional
-        TODO
+        the path to the initial state that the network should be initialized
+        with
     """
 
     def __init__(self,
@@ -620,11 +623,14 @@ class SumoParams(SimParams):
     disable_collisions: bool, optional
         If true, disables explicit collision checking and teleporting in SUMO
     save_state_time : float, optional
-        TODO
+        the time to save the simulation state. States can then be reloaded
+        later. If set to None, no initial state is saved.
     save_state_file : str, optional
-        TODO
+        the path to save the initial state to. Only used is save_state_time is
+        not None.
     load_state : str, optional
-        TODO
+        the path to the initial state that the network should be initialized
+        with
     """
 
     def __init__(self,
