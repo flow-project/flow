@@ -604,7 +604,7 @@ class TestSaveLoadState(unittest.TestCase):
         """
         # Add the save option.
         save_state_file = "test_save_state.xml"
-        self.flow_params['sim'].save_state_time = 1.0
+        self.flow_params['sim'].save_state_time = 1
         self.flow_params['sim'].save_state_file = save_state_file
 
         # Run the simulation.
@@ -654,12 +654,12 @@ class TestSaveLoadState(unittest.TestCase):
             env.k.vehicle.get_ids(), ["human_{}".format(i) for i in range(10)])
         np.testing.assert_almost_equal(
             env.k.vehicle.get_speed(env.k.vehicle.get_ids()),
-            [1.2912498, 1.2912497, 1.2912498, 1.2912496, 1.290848, 1.0936806,
-             1.2912498, 1.2912495, 1.29125, 1.2920533])
+            [1.281359, 1.2813589, 1.281359, 1.2813591, 1.281693, 1.4292893,
+             1.281359, 1.2813587, 1.2813592, 1.2821579])
         np.testing.assert_almost_equal(
             env.k.vehicle.get_x_by_id(env.k.vehicle.get_ids()),
-            [0.5832564, 23.5832563, 46.5832564, 69.5832564, 92.5832,
-             115.5036137, 138.5832564, 161.5832563, 184.5832564, 207.5833741])
+            [0.5812726, 23.5812725, 46.5812726, 69.5812726, 92.5813197,
+             115.6609682, 138.5812726, 161.5812725, 184.5812726, 207.5813896])
 
     def test_load_state_multiagent(self):
         """Test the load_state option for multi-agent environments.
@@ -687,12 +687,12 @@ class TestSaveLoadState(unittest.TestCase):
             env.k.vehicle.get_ids(), ["human_{}".format(i) for i in range(10)])
         np.testing.assert_almost_equal(
             env.k.vehicle.get_speed(env.k.vehicle.get_ids()),
-            [1.2912498, 1.2912497, 1.2912498, 1.2912496, 1.290848, 1.0936806,
-             1.2912498, 1.2912495, 1.29125, 1.2920533])
+            [1.281359, 1.2813589, 1.281359, 1.2813591, 1.281693, 1.4292893,
+             1.281359, 1.2813587, 1.2813592, 1.2821579])
         np.testing.assert_almost_equal(
             env.k.vehicle.get_x_by_id(env.k.vehicle.get_ids()),
-            [0.5832564, 23.5832563, 46.5832564, 69.5832564, 92.5832,
-             115.5036137, 138.5832564, 161.5832563, 184.5832564, 207.5833741])
+            [0.5812726, 23.5812725, 46.5812726, 69.5812726, 92.5813197,
+             115.6609682, 138.5812726, 161.5812725, 184.5812726, 207.5813896])
 
 
 if __name__ == '__main__':
