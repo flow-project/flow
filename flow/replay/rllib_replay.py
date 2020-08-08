@@ -7,11 +7,7 @@ EXAMPLE_USAGE : str
     ::
 
         python ./rl_replay.py /tmp/ray/result_dir 1
-
-parser : ArgumentParser
-    Command-line argument parser
 """
-
 import argparse
 import gym
 import numpy as np
@@ -42,8 +38,25 @@ Here the arguments are:
 """
 
 
-def read_result_dir(result_dir_path, multi_only=False):
-    """Read the provided result_dir and get config and flow_params."""
+def read_result_dir(result_dir_path):
+    """Read the provided result_dir and get config and flow_params.
+
+    Parameters
+    ----------
+    result_dir_path : str
+        Directory containing rllib results
+
+    Returns
+    -------
+    str
+        the path to the results directory
+    dict
+        TODO
+    bool
+        True if the agent is multi-agent, False otherwise
+    dict
+        flow-specific parameters from the results directory
+    """
     result_dir = result_dir_path if result_dir_path[-1] != '/' \
         else result_dir_path[:-1]
 
@@ -57,8 +70,6 @@ def read_result_dir(result_dir_path, multi_only=False):
         config['multiagent'] = pkl['multiagent']
     else:
         multiagent = False
-        if multi_only:
-            raise NotImplementedError
 
     # Run on only one cpu for rendering purposes
     config['num_workers'] = 0
@@ -67,22 +78,38 @@ def read_result_dir(result_dir_path, multi_only=False):
     return result_dir, config, multiagent, flow_params
 
 
-def set_sim_params(sim_params, render_mode, save_render, gen_emission):
-    """Set up sim_params according to render mode."""
-    # hack for old pkl files
-    # TODO(ev) remove eventually
-    setattr(sim_params, 'num_clients', 1)
+def set_sim_params(sim_params, render_mode, save_render, gen_emission, output_dir=''):
+    """Set up sim_params according to render mode.
 
-    # for hacks for old pkl files TODO: remove eventually
+    Parameters
+    ----------
+    sim_params : flow.core.params.SimParams
+        simulation-specific parameters
+    render_mode : str
+        the render mode. Options include sumo_web3d, rgbd and sumo_gui
+    save_render : bool
+        Saves a rendered video to a file. NOTE: Overrides render_mode with
+        pyglet rendering.
+    gen_emission : bool
+        whether to generate the emission file
+    output_dir : str
+        directory to store the emission, optional
+    """
+    # hack for old pkl files  TODO(ev) remove eventually
+    setattr(sim_params, 'num_clients', 1)
     if not hasattr(sim_params, 'use_ballistic'):
         sim_params.use_ballistic = False
 
+    # Set the emission path.
     sim_params.restart_instance = True
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    emission_path = '{0}/test_time_rollout/'.format(dir_path)
+    if not output_dir:
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        emission_path = '{0}/test_time_rollout/'.format(dir_path)
+    else:
+        emission_path = output_dir
     sim_params.emission_path = emission_path if gen_emission else None
 
-    # pick your rendering mode
+    # Pick your rendering mode.
     if render_mode == 'sumo_web3d':
         sim_params.num_clients = 2
         sim_params.render = False
@@ -93,16 +120,31 @@ def set_sim_params(sim_params, render_mode, save_render, gen_emission):
         sim_params.render = False  # will be set to True below
     elif render_mode == 'no_render':
         sim_params.render = False
+
+    # Add option for saving rendered results.
     if save_render:
         if render_mode != 'sumo_gui':
             sim_params.render = 'drgb'
             sim_params.pxpm = 4
         sim_params.save_render = True
-    return sim_params
 
 
 def set_env_params(env_params, evaluate, horizon, config=None):
-    """Set up env_params according to commandline arguments."""
+    """Set up env_params according to commandline arguments.
+
+    Parameters
+    ----------
+    env_params : flow.core.params.EnvParams
+        environment-specific parameters
+    evaluate : bool
+        flag indicating that the evaluation reward should be used so the
+        evaluation reward should be used rather than the normal reward
+    horizon : int
+        an update environment time horizon. If set to None, the original time
+        horizon is used.
+    config : dict
+        TODO
+    """
     # Start the environment with the gui turned on and a path for the
     # emission file
     env_params.restart_instance = False
@@ -117,7 +159,30 @@ def set_env_params(env_params, evaluate, horizon, config=None):
 
 
 def set_agents(config, result_dir, env_name, run=None, checkpoint_num=None):
-    """Determine and create agents that will be used to compute actions."""
+    """Determine and create agents that will be used to compute actions.
+
+    Parameters
+    ----------
+    config : dict
+        TODO
+    result_dir : str
+        Directory containing rllib results
+    env_name : str
+        the name of the environment
+    run : str
+        The algorithm or model to train. This may refer to the name of a
+        built-on algorithm (e.g. RLLib's DQN or PPO), or a user-defined
+        trainable function or class registered in the tune registry. Required
+        for results trained with flow-0.2.0 and before.
+    checkpoint_num : int
+        the checkpoint number. If set to None, the most recent checkpoint is
+        used.
+
+    Returns
+    -------
+    TODO
+        the trained agent/policy object
+    """
     # Determine agent and checkpoint
     config_run = config['env_config']['run'] if 'run' in config['env_config'] \
         else None
@@ -130,12 +195,15 @@ def set_agents(config, result_dir, env_name, run=None, checkpoint_num=None):
             sys.exit(1)
     if run:
         agent_cls = get_agent_class(run)
-    elif config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CCPPOTrainer'>":
-        from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
+    elif config['env_config']['run'] == \
+            "<class 'ray.rllib.agents.trainer_template.CCPPOTrainer'>":
+        from flow.algorithms.centralized_PPO import CCTrainer
+        from flow.algorithms.centralized_PPO import CentralizedCriticModel
         from ray.rllib.models import ModelCatalog
         agent_cls = CCTrainer
         ModelCatalog.register_custom_model("cc_model", CentralizedCriticModel)
-    elif config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CustomPPOTrainer'>":
+    elif config['env_config']['run'] == \
+            "<class 'ray.rllib.agents.trainer_template.CustomPPOTrainer'>":
         from flow.algorithms.custom_ppo import CustomPPOTrainer
         agent_cls = CustomPPOTrainer
     elif config_run:
@@ -158,7 +226,29 @@ def set_agents(config, result_dir, env_name, run=None, checkpoint_num=None):
 
 
 def get_rl_action(config, agent, multiagent, multi_only=False):
-    """Return a function that compute action based on a given state."""
+    """Return a function that compute action based on a given state.
+
+    Parameters
+    ----------
+    config : dict
+        TODO
+    agent : TODO
+        the trained agent/policy object
+    multiagent : bool
+        whether the policy is a multi-agent policy
+    multi_only : bool
+        If this is set to true, the function will raise an error
+        if it is single agent use_lstm is true.
+
+    Returns
+    -------
+    policy_map_fn : function
+        a mapping from agent to their respective policy
+    rl_action : method
+        the rl_actions method to use in the Experiment object
+    rets : dict
+        a pre-initialized dictionary to store rewards for multi-agent simulation
+    """
     policy_map_fn = None
     if multiagent:
         rets = {}
@@ -201,6 +291,7 @@ def get_rl_action(config, agent, multiagent, multi_only=False):
                 raise NotImplementedError
             action = agent.compute_action(state)
         return action
+
     return policy_map_fn, rl_action, rets
 
 
@@ -211,27 +302,30 @@ def replay_rllib(args):
     more detailed information on what information can be fed to this
     replay script), and renders the experiment associated with it.
     """
-    result_dir, config, multiagent, flow_params = read_result_dir(args.result_dir)
+    result_dir, config, multiagent, flow_params = read_result_dir(
+        args.result_dir)
 
-    sim_params = set_sim_params(flow_params['sim'], args.render_mode,
-                                args.save_render, args.gen_emission)
+    set_sim_params(
+        flow_params['sim'],
+        args.render_mode,
+        args.save_render,
+        args.gen_emission
+    )
+    sim_params = flow_params['sim']
 
     # Create and register a gym+rllib env
     exp = Experiment(flow_params, register_with_ray=True)
     register_env(exp.env_name, exp.create_env)
 
-    # check if the environment is a single or multiagent environment, and
-    # get the right address accordingly
-    # single_agent_envs = [env for env in dir(flow.envs)
-    #                      if not env.startswith('__')]
-
-    # if flow_params['env_name'] in single_agent_envs:
-    #     env_loc = 'flow.envs'
-    # else:
-    #     env_loc = 'flow.envs.multiagent'
     set_env_params(flow_params['env'], args.evaluate, args.horizon, config)
 
-    agent = set_agents(config, result_dir, exp.env_name, run=args.run, checkpoint_num=args.checkpoint_num)
+    agent = set_agents(
+        config,
+        result_dir,
+        exp.env_name,
+        run=args.run,
+        checkpoint_num=args.checkpoint_num
+    )
 
     if hasattr(agent, "local_evaluator") and \
             os.environ.get("TEST_FLAG") != 'True':
@@ -243,23 +337,31 @@ def replay_rllib(args):
     if hasattr(exp.env, "reroute_on_exit"):
         exp.env.reroute_on_exit = False
 
+    # Set to True after initializing agent and env.
     if args.render_mode == 'sumo_gui':
-        exp.env.sim_params.render = True  # set to True after initializing agent and env
+        exp.env.sim_params.render = True
 
     policy_map_fn, rl_action, rets = get_rl_action(config, agent, multiagent)
 
-    # if restart_instance, don't restart here because env.reset will restart later
+    # If restart_instance, don't restart here because env.reset will restart
+    # later.
     if not sim_params.restart_instance:
-        exp.env.restart_simulation(sim_params=sim_params, render=sim_params.render)
+        exp.env.restart_simulation(sim_params, sim_params.render)
 
-    exp.run(num_runs=args.num_rollouts, convert_to_csv=args.gen_emission, to_aws=args.to_aws,
-            rl_actions=rl_action, multiagent=multiagent, rets=rets, policy_map_fn=policy_map_fn)
+    exp.run(
+        num_runs=args.num_rollouts,
+        convert_to_csv=args.gen_emission,
+        to_aws=args.to_aws,
+        rl_actions=rl_action,
+        multiagent=multiagent,
+        rets=rets,
+        policy_map_fn=policy_map_fn
+    )
 
 
 def create_parser():
     """Create the parser to capture CLI arguments."""
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         description='[Flow] Evaluates a reinforcement learning agent '
                     'given a checkpoint.',
         epilog=EXAMPLE_USAGE)
@@ -323,8 +425,13 @@ def create_parser():
     return parser
 
 
-if __name__ == '__main__':
+def main():
+    """Run the rl_replay according to the commandline arguments."""
     parser = create_parser()
     args = parser.parse_args()
     ray.init(num_cpus=1)
     replay_rllib(args)
+
+
+if __name__ == '__main__':
+    main()

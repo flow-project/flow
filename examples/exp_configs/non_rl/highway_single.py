@@ -27,7 +27,7 @@ TRAFFIC_FLOW = 2215
 HORIZON = 1500
 # whether to include noise in the car-following models
 INCLUDE_NOISE = True
-# penetration rate of the follower-stopper vehicles
+# fraction of vehicles that are follower-stoppers. 0.10 corresponds to 10%
 PENETRATION_RATE = 0.0
 
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
@@ -89,7 +89,7 @@ inflows = InFlows()
 inflows.add(
     veh_type="human",
     edge="highway_0",
-    vehs_per_hour=int(TRAFFIC_FLOW * (1 - PENETRATION_RATE / 100)),
+    vehs_per_hour=int(TRAFFIC_FLOW * (1 - PENETRATION_RATE)),
     depart_lane="free",
     depart_speed=TRAFFIC_SPEED,
     name="idm_highway_inflow")
@@ -98,7 +98,7 @@ if PENETRATION_RATE > 0.0:
     inflows.add(
         veh_type="av",
         edge="highway_0",
-        vehs_per_hour=int(TRAFFIC_FLOW * (PENETRATION_RATE / 100)),
+        vehs_per_hour=int(TRAFFIC_FLOW * PENETRATION_RATE),
         depart_lane="free",
         depart_speed=TRAFFIC_SPEED,
         name="av_highway_inflow")
