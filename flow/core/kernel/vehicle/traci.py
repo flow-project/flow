@@ -333,6 +333,7 @@ class TraCIVehicle(KernelVehicle):
 
     def set_vehicle_type(self, veh_id, veh_type):
         """Update/initialize the type of a specific vehicle internally.
+
         Parameters
         ----------
         veh_id : str
