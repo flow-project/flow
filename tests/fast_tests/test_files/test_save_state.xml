@@ -1,26 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<snapshot xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/state_file.xsd" version="v1_6_0+0209-4a2e084345" time="1.00">
+<snapshot xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/state_file.xsd" version="v1_1_0+0000-2147d155b1" time="1.00">
     <route id="routebottom_0" state="1" edges="bottom right top left"/>
     <route id="routeleft_0" state="1" edges="left bottom right top"/>
     <route id="routeright_0" state="1" edges="right top left bottom"/>
     <route id="routetop_0" state="1" edges="top left bottom right"/>
     <delay number="10" begin="10" end="0" depart="0.00" time="0.00"/>
     <vType id="DEFAULT_BIKETYPE" vClass="bicycle"/>
-    <vType id="DEFAULT_CONTAINERTYPE" vClass="ignoring"/>
     <vType id="DEFAULT_PEDTYPE" vClass="pedestrian"/>
     <vType id="DEFAULT_VEHTYPE"/>
     <vType id="human" minGap="2.50" maxSpeed="30.00" speedFactor="normc(1.00,0.10,0.20,2.00)" impatience="0.50" laneChangeModel="LC2013" lcStrategic="1.0" lcCooperative="1.0" lcSpeedGain="1.0" lcKeepRight="1.0" carFollowModel="IDM" accel="2.6" decel="4.5" tau="1.0"/>
-    <vehicle id="human_0" type="human" depart="0.10" route="routebottom_0" speedFactor="1.06" state="100 0 0.00 0 900" pos="0.35" speed="0.79" posLat="0.00"/>
-    <vehicle id="human_1" type="human" depart="0.10" route="routebottom_0" speedFactor="0.94" state="100 0 23.00 0 900" pos="23.35" speed="0.79" posLat="0.00"/>
-    <vehicle id="human_2" type="human" depart="0.10" route="routebottom_0" speedFactor="1.01" state="100 0 46.00 0 900" pos="46.35" speed="0.79" posLat="0.00"/>
-    <vehicle id="human_3" type="human" depart="0.10" route="routeright_0" speedFactor="1.08" state="100 0 11.40 0 900" pos="11.75" speed="0.79" posLat="0.00"/>
-    <vehicle id="human_4" type="human" depart="0.10" route="routeright_0" speedFactor="1.03" state="100 0 34.40 0 900" pos="34.75" speed="0.79" posLat="0.00"/>
-    <vehicle id="human_5" type="human" depart="0.10" route="routeright_0" speedFactor="0.83" state="100 1 57.40 0 900" pos="0.11" speed="0.59" posLat="0.00"/>
-    <vehicle id="human_6" type="human" depart="0.10" route="routetop_0" speedFactor="1.05" state="100 0 22.80 0 900" pos="23.15" speed="0.79" posLat="0.00"/>
-    <vehicle id="human_7" type="human" depart="0.10" route="routetop_0" speedFactor="0.89" state="100 0 45.80 0 900" pos="46.15" speed="0.79" posLat="0.00"/>
-    <vehicle id="human_8" type="human" depart="0.10" route="routeleft_0" speedFactor="0.94" state="100 0 11.20 0 900" pos="11.55" speed="0.79" posLat="0.00"/>
-    <vehicle id="human_9" type="human" depart="0.10" route="routeleft_0" speedFactor="0.86" state="100 0 34.20 0 900" pos="34.55" speed="0.79" posLat="0.00"/>
+    <vehicle id="human_0" type="human" depart="0.10" route="routebottom_0" speedFactor="1.06" state="100 0 0.00 0 900" pos="0.35" speed="0.78" posLat="0.00"/>
+    <vehicle id="human_1" type="human" depart="0.10" route="routebottom_0" speedFactor="0.94" state="100 0 23.00 0 900" pos="23.35" speed="0.78" posLat="0.00"/>
+    <vehicle id="human_2" type="human" depart="0.10" route="routebottom_0" speedFactor="1.01" state="100 0 46.00 0 900" pos="46.35" speed="0.78" posLat="0.00"/>
+    <vehicle id="human_3" type="human" depart="0.10" route="routeright_0" speedFactor="1.08" state="100 0 11.40 0 900" pos="11.75" speed="0.78" posLat="0.00"/>
+    <vehicle id="human_4" type="human" depart="0.10" route="routeright_0" speedFactor="1.03" state="100 0 34.40 0 900" pos="34.75" speed="0.78" posLat="0.00"/>
+    <vehicle id="human_5" type="human" depart="0.10" route="routeright_0" speedFactor="0.83" state="100 1 57.40 0 900" pos="0.20" speed="0.93" posLat="0.00"/>
+    <vehicle id="human_6" type="human" depart="0.10" route="routetop_0" speedFactor="1.05" state="100 0 22.80 0 900" pos="23.15" speed="0.78" posLat="0.00"/>
+    <vehicle id="human_7" type="human" depart="0.10" route="routetop_0" speedFactor="0.89" state="100 0 45.80 0 900" pos="46.15" speed="0.78" posLat="0.00"/>
+    <vehicle id="human_8" type="human" depart="0.10" route="routeleft_0" speedFactor="0.94" state="100 0 11.20 0 900" pos="11.55" speed="0.78" posLat="0.00"/>
+    <vehicle id="human_9" type="human" depart="0.10" route="routeleft_0" speedFactor="0.86" state="100 0 34.20 0 900" pos="34.55" speed="0.78" posLat="0.00"/>
+    <lane id=":bottom_0_0">
+        <vehicles value=""/>
+    </lane>
+    <lane id=":left_0_0">
+        <vehicles value=""/>
+    </lane>
+    <lane id=":right_0_0">
+        <vehicles value=""/>
+    </lane>
+    <lane id=":top_0_0">
+        <vehicles value=""/>
+    </lane>
     <lane id="bottom_0">
         <vehicles value="human_0 human_1 human_2"/>
     </lane>
