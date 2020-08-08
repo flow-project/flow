@@ -2,13 +2,16 @@ import unittest
 import os
 import numpy as np
 
-from flow.core.params import VehicleParams
+from flow.core.params import VehicleParams, EnvParams
 from flow.core.params import SumoCarFollowingParams, NetParams, \
     InitialConfig, SumoParams, SumoLaneChangeParams
 from flow.controllers.car_following_models import IDMController, \
     SimCarFollowingController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.controllers.rlcontroller import RLController
+from flow.networks import RingNetwork
+from flow.envs import TestEnv
+from flow.utils.registry import make_create_env
 
 from tests.setup_scripts import ring_road_exp_setup, highway_exp_setup
 
@@ -194,6 +197,89 @@ class TestVehiclesClass(unittest.TestCase):
         # ensures that then num_rl_vehicles matches the actual number of rl veh
         self.assertEqual(env.k.vehicle.num_rl_vehicles,
                          len(env.k.vehicle.get_rl_ids()))
+
+    def test_set_vehicle_type(self):
+        """Validate the functionality of the set_vehicle_type method.
+
+        This test initializes a network with a human-driven vehicle and then
+        replaces it with an RL vehicles, and tests various internal parameters
+        before and after.
+        """
+        # Create the flow_params object, with types for both human and RL
+        # vehicles.
+        sim_params = SumoParams(sim_step=0.1, render=False)
+
+        vehicles = VehicleParams()
+        vehicles.add(
+            veh_id="human",
+            acceleration_controller=(IDMController, {}),
+            car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
+            num_vehicles=1,
+        )
+        vehicles.add(
+            veh_id="rl",
+            acceleration_controller=(RLController, {}),
+            car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
+            num_vehicles=0,
+        )
+
+        env_params = EnvParams(
+            horizon=20,
+            additional_params={
+                "target_velocity": 8,
+                "max_accel": 1,
+                "max_decel": 1,
+                "sort_vehicles": False,
+            }
+        )
+
+        net_params = NetParams(additional_params={
+            "length": 230,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40
+        })
+
+        flow_params = dict(
+            exp_tag="RingRoadTest",
+            env_name=TestEnv,
+            network=RingNetwork,
+            simulator='traci',
+            sim=sim_params,
+            env=env_params,
+            net=net_params,
+            veh=vehicles,
+        )
+
+        # Create the environment.
+        create_env, _ = make_create_env(flow_params)
+        env = create_env()
+        env.reset()
+
+        # Check the vehicle attributes.
+        self.assertEqual(env.k.vehicle.num_vehicles, 1)
+        self.assertEqual(env.k.vehicle.num_rl_vehicles, 0)
+        self.assertEqual(env.k.vehicle.get_ids(), ["human_0"])
+        self.assertEqual(env.k.vehicle.get_human_ids(), ["human_0"])
+        self.assertEqual(env.k.vehicle.get_rl_ids(), [])
+        self.assertTrue(isinstance(
+            env.k.vehicle.get_acc_controller("human_0"), IDMController))
+
+        # Update the vehicle type.
+        env.k.vehicle.set_vehicle_type("human_0", "rl")
+
+        # Check the vehicle attributes after updating.
+        self.assertEqual(env.k.vehicle.num_vehicles, 1)
+        self.assertEqual(env.k.vehicle.num_rl_vehicles, 1)
+        self.assertEqual(env.k.vehicle.get_ids(), ["human_0"])
+        self.assertEqual(env.k.vehicle.get_human_ids(), [])
+        self.assertEqual(env.k.vehicle.get_rl_ids(), ["human_0"])
+        self.assertTrue(isinstance(
+            env.k.vehicle.get_acc_controller("human_0"), RLController))
 
 
 class TestMultiLaneData(unittest.TestCase):
