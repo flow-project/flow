@@ -135,7 +135,6 @@ class TraCIVehicle(KernelVehicle):
             step
         """
         # copy over the previous speeds
-
         vehicle_obs = {}
         for veh_id in self.__ids:
             self.previous_speeds[veh_id] = self.get_speed(veh_id)
@@ -414,12 +413,13 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         self.previous_speeds = {}
 
-    def remove(self, veh_id):
+    def remove(self, veh_id, from_sumo=True):
         """See parent class."""
         # remove from sumo
-        if veh_id in self.kernel_api.vehicle.getIDList():
-            self.kernel_api.vehicle.unsubscribe(veh_id)
-            self.kernel_api.vehicle.remove(veh_id)
+        if from_sumo:
+            if veh_id in self.kernel_api.vehicle.getIDList():
+                self.kernel_api.vehicle.unsubscribe(veh_id)
+                self.kernel_api.vehicle.remove(veh_id)
 
         if veh_id in self.__ids:
             self.__ids.remove(veh_id)
