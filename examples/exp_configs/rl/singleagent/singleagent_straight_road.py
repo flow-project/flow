@@ -72,11 +72,17 @@ vehicles.add(
         speed_mode=8,
         min_gap=0.5
     ),
-    acceleration_controller=(IDMController, {"a": .3, "b": 2.0,
-                                             "noise": 0.5,
-                                             "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel',
-                                                          'instantaneous'],
-                                             }),
+    acceleration_controller=(IDMController, {
+        "a": .3,
+        "b": 2.0,
+        "noise": 0.5,
+        "fail_safe": [
+            'obey_speed_limit',
+            'safe_velocity',
+            'feasible_accel',
+            'instantaneous'
+        ],
+    }),
 )
 
 # autonomous vehicles
