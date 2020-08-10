@@ -415,15 +415,15 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND date = \'{date}\'
                 AND partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
-            GROUP BY 1
+            GROUP BY 1, 2
         )
         SELECT
             source_id,
             energy_model_id,
             1000 * distance_meters / energy_joules AS efficiency_meters_per_kilojoules,
-            (CASE energy_model_id WHEN
-                'TACOMA_FIT_DENOISED_ACCEL' THEN 33554.13
-                'PRIUS_FIT_DENOISED_ACCEL' THEN 75384.94
+            (CASE energy_model_id 
+                WHEN 'TACOMA_FIT_DENOISED_ACCEL' THEN 33554.13
+                WHEN 'PRIUS_FIT_DENOISED_ACCEL' THEN 75384.94
                 END) * distance_meters / energy_joules AS efficiency_miles_per_gallon
         FROM aggs
         WHERE 1 = 1
