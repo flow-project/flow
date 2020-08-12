@@ -84,8 +84,7 @@ class TestBenchmarks(unittest.TestCase):
 
         # Register as rllib env
         register_env(env_name, create_env)
-
-        alg = ppo.PPOAgent(
+        alg = ppo.ppo.PPOTrainer(
             env=env_name, config=config)
 
         for i in range(num_runs):

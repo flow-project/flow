@@ -1,18 +1,22 @@
 """Transfer and replay for i210 environment."""
 import argparse
-from datetime import datetime
 from copy import deepcopy
 import os
-import pytz
 
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 from flow.core.experiment import Experiment
 from flow.utils.registry import make_create_env
 from flow.visualize.transfer.util import inflows_range
-from flow.visualize.visualizer_rllib import read_result_dir, set_sim_params, set_env_params, set_agents, get_rl_action
+from flow.replay.rllib_replay import read_result_dir
+from flow.replay.rllib_replay import set_sim_params
+from flow.replay.rllib_replay import set_env_params
+from flow.replay.rllib_replay import set_agents
+from flow.replay.rllib_replay import get_rl_action
 import ray
 from ray.tune.registry import register_env
+
+from flow.data_pipeline.data_pipeline import collect_metadata_from_config
 
 EXAMPLE_USAGE = """
 example usage:
@@ -27,20 +31,35 @@ Here the arguments are:
 
 
 @ray.remote
-def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=None, result_dir=None,
-           max_completed_trips=None, v_des=12):
+def replay(args,
+           flow_params,
+           output_dir=None,
+           transfer_test=None,
+           rllib_config=None,
+           max_completed_trips=None,
+           v_des=12,
+           supplied_metadata=None):
     """Replay or run transfer test (defined by transfer_fn) by modif.
 
-    Arguments:
-    ---------
-        args {[Namespace]} -- [args from argparser]
-        flow_params {[flow_params object, pulled from ]} -- [description]
-        transfer_fn {[type]} -- [description]
-
-    Keyword Arguments:
-    -----------------
-        rllib_config {[type]} -- [description] (default: {None})
-        result_dir {[type]} -- [description] (default: {None})
+    Parameters
+    ----------
+    args : argparse.Namespace
+        input arguments passed via a parser. See create_parser.
+    flow_params : dict
+        flow-specific parameters
+    output_dir : str
+        Directory to save results.
+    transfer_test : TODO
+        TODO
+    rllib_config : str
+        Directory containing rllib results
+    max_completed_trips : int
+        Terminate rollout after max_completed_trips vehicles have started and
+        ended.
+    v_des : float
+        the desired speed for the FollowerStopper vehicles
+    supplied_metadata: dict (str : list)
+        the metadata associated with this simulation.
     """
     assert bool(args.controller) ^ bool(rllib_config), \
         "Need to specify either controller or rllib_config, but not both"
@@ -57,7 +76,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         if args.controller == 'idm':
             from flow.controllers.car_following_models import IDMController
             controller = IDMController
-            test_params.update({'v0': 1, 'T': 1, 'a': 0.2, 'b': 0.2})  # An example of really obvious changes
+            # An example of really obvious changes
+            test_params.update({'v0': 1, 'T': 1, 'a': 0.2, 'b': 0.2})
         elif args.controller == 'default_human':
             controller = flow_params['veh'].type_parameters['human']['acceleration_controller'][0]
             test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
@@ -76,15 +96,17 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             if veh_param['veh_id'] == 'av':
                 veh_param['acceleration_controller'] = (controller, test_params)
 
-    sim_params = set_sim_params(flow_params['sim'], args.render_mode, args.save_render, args.gen_emission)
+    set_sim_params(flow_params['sim'], args.render_mode, args.save_render, args.gen_emission, output_dir)
+    sim_params = flow_params['sim']
 
     set_env_params(flow_params['env'], args.evaluate, args.horizon)
 
     # Create and register a gym+rllib env
     exp = Experiment(flow_params, custom_callables=custom_callables)
 
+    # set to True after initializing agent and env
     if args.render_mode == 'sumo_gui':
-        exp.env.sim_params.render = True  # set to True after initializing agent and env
+        exp.env.sim_params.render = True
 
     # if restart_instance, don't restart here because env.reset will restart later
     if not sim_params.restart_instance:
@@ -96,7 +118,7 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
 
     policy_map_fn, rets = None, None
     if rllib_config:
-        result_dir, rllib_config, multiagent, rllib_flow_params = read_result_dir(rllib_config, True)
+        result_dir, rllib_config, multiagent, rllib_flow_params = read_result_dir(rllib_config)
 
         # lower the horizon if testing
         if args.horizon:
@@ -105,7 +127,8 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
         agent_create_env, agent_env_name = make_create_env(params=rllib_flow_params, version=0)
         register_env(agent_env_name, agent_create_env)
 
-        assert 'run' in rllib_config['env_config'], "Was this trained with the latest version of Flow?"
+        assert 'run' in rllib_config['env_config'], \
+            "Was this trained with the latest version of Flow?"
         # Determine agent and checkpoint
         agent = set_agents(rllib_config, result_dir, agent_env_name)
 
@@ -122,9 +145,16 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
             action = None
         return action
 
-    info_dict = exp.run(num_runs=args.num_rollouts, convert_to_csv=args.gen_emission, to_aws=args.use_s3,
-                        rl_actions=rl_action, multiagent=True, rets=rets,
-                        policy_map_fn=policy_map_fn, supplied_metadata=("Brent", "FS;5%;v_des:{}".format(v_des)))
+    info_dict = exp.run(
+        num_runs=args.num_rollouts,
+        convert_to_csv=args.gen_emission,
+        to_aws=args.use_s3,
+        rl_actions=rl_action,
+        multiagent=True,
+        rets=rets,
+        policy_map_fn=policy_map_fn,
+        supplied_metadata=supplied_metadata
+    )
 
     return info_dict
 
@@ -132,15 +162,22 @@ def replay(args, flow_params, output_dir=None, transfer_test=None, rllib_config=
 def create_parser():
     """Create the parser to capture CLI arguments."""
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         description='[Flow] Evaluates a reinforcement learning agent '
                     'given a checkpoint.',
         epilog=EXAMPLE_USAGE)
 
     parser.add_argument(
-        '--rllib_result_dir', '-r', required=False, type=str, help='Directory containing results')
-    parser.add_argument('--checkpoint_num', '-c', required=False, type=str, help='Checkpoint number.')
-
+        '--rllib_result_dir', '-r',
+        required=False,
+        type=str,
+        help='Directory containing results'
+    )
+    parser.add_argument(
+        '--checkpoint_num', '-c',
+        required=False,
+        type=str,
+        help='Checkpoint number.'
+    )
     parser.add_argument(
         '--num_rollouts',
         type=int,
@@ -197,7 +234,8 @@ def create_parser():
         '-mct',
         '--max_completed_trips',
         type=int,
-        help='Terminate rollout after max_completed_trips vehicles have started and ended.',
+        help='Terminate rollout after max_completed_trips vehicles have '
+             'started and ended.',
         default=None)
     parser.add_argument(
         '--v_des_sweep',
@@ -210,17 +248,34 @@ def create_parser():
         help='Directory to save results.',
         default=None
     )
-    parser.add_argument('--use_s3', action='store_true', help='If true, upload results to s3')
-    parser.add_argument('--num_cpus', type=int, default=1, help='Number of cpus to run experiment with')
-    parser.add_argument('--multi_node', action='store_true', help='Set to true if this will '
-                                                                  'be run in cluster mode')
-    parser.add_argument('--exp_title', type=str, required=False, default=None,
-                        help='Informative experiment title to help distinguish results')
+    parser.add_argument(
+        '--use_s3',
+        action='store_true',
+        help='If true, upload results to s3'
+    )
+    parser.add_argument(
+        '--num_cpus',
+        type=int,
+        default=1,
+        help='Number of cpus to run experiment with'
+    )
+    parser.add_argument(
+        '--multi_node',
+        action='store_true',
+        help='Set to true if this will be run in cluster mode'
+    )
+    parser.add_argument(
+        '--exp_title',
+        type=str,
+        required=False,
+        default=None,
+        help='Informative experiment title to help distinguish results'
+    )
     parser.add_argument(
         '--only_query',
         nargs='*', default="[\'all\']",
-        help='specify which query should be run by lambda'
-             'for detail, see upload_to_s3 in data_pipeline.py'
+        help='specify which query should be run by lambda for detail, see '
+             'upload_to_s3 in data_pipeline.py'
     )
     parser.add_argument(
         '--is_baseline',
@@ -234,16 +289,13 @@ def create_parser():
     return parser
 
 
-if __name__ == '__main__':
-    date = datetime.now(tz=pytz.utc)
-    date = date.astimezone(pytz.timezone('US/Pacific')).strftime("%m-%d-%Y")
-
-    parser = create_parser()
-    args = parser.parse_args()
-
+def generate_graphs(args):
+    """Run the replay according to the commandline arguments."""
+    supplied_metadata = None
     if args.exp_config:
         module = __import__("../../examples/exp_configs.non_rl", fromlist=[args.exp_config])
         flow_params = getattr(module, args.exp_config).flow_params
+        supplied_metadata = collect_metadata_from_config(getattr(module, args.exp_config))
     else:
         flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
 
@@ -262,42 +314,63 @@ if __name__ == '__main__':
     if args.run_transfer:
         s = [ray.cloudpickle.dumps(transfer_test) for transfer_test in
              inflows_range(penetration_rates=[0.0, 0.1, 0.2, 0.3])]
-        ray_output = [replay.remote(args, flow_params, output_dir=output_dir, transfer_test=transfer_test,
-                                    rllib_config=args.rllib_result_dir, result_dir=args.rllib_result_dir,
-                                    max_completed_trips=args.max_completed_trips)
-                      for transfer_test in s]
+        ray_output = [
+            replay.remote(
+                args,
+                flow_params,
+                output_dir=output_dir,
+                transfer_test=transfer_test,
+                rllib_config=args.rllib_result_dir,
+                max_completed_trips=args.max_completed_trips,
+                supplied_metadata=supplied_metadata
+            )
+            for transfer_test in s
+        ]
         ray.get(ray_output)
 
     elif args.v_des_sweep:
         assert args.controller == 'follower_stopper'
 
         ray_output = [
-            replay.remote(args, flow_params, output_dir="{}/{}".format(output_dir, v_des),
-                          rllib_config=args.rllib_result_dir, result_dir=args.rllib_result_dir,
-                          max_completed_trips=args.max_completed_trips, v_des=v_des)
-            for v_des in range(8, 13, 1)]
+            replay.remote(
+                args,
+                flow_params,
+                output_dir="{}/{}".format(output_dir, v_des),
+                rllib_config=args.rllib_result_dir,
+                max_completed_trips=args.max_completed_trips,
+                v_des=v_des,
+                supplied_metadata=supplied_metadata
+            )
+            for v_des in range(8, 13, 1)
+        ]
         ray.get(ray_output)
 
     else:
         if args.penetration_rate is not None:
-            pr = args.penetration_rate if args.penetration_rate is not None else 0
+            pr = args.penetration_rate
             single_transfer = next(inflows_range(penetration_rates=pr))
-            ray.get(replay.remote(args, flow_params, output_dir=output_dir, transfer_test=single_transfer,
-                                  rllib_config=args.rllib_result_dir, result_dir=args.rllib_result_dir,
-                                  max_completed_trips=args.max_completed_trips))
+            ray.get(replay.remote(
+                args,
+                flow_params,
+                output_dir=output_dir,
+                transfer_test=single_transfer,
+                rllib_config=args.rllib_result_dir,
+                max_completed_trips=args.max_completed_trips,
+                supplied_metadata=supplied_metadata
+            ))
         else:
-            ray.get(replay.remote(args, flow_params, output_dir=output_dir,
-                                  rllib_config=args.rllib_result_dir, result_dir=args.rllib_result_dir,
-                                  max_completed_trips=args.max_completed_trips))
+            ray.get(replay.remote(
+                args,
+                flow_params,
+                output_dir=output_dir,
+                rllib_config=args.rllib_result_dir,
+                max_completed_trips=args.max_completed_trips,
+                supplied_metadata=supplied_metadata
+            ))
 
-    # if args.use_s3:
-    #     s3_string = 's3://kanaad.experiments/i210_replay/' + date
-    #     if args.exp_title:
-    #         s3_string += '/' + args.exp_title
-    #
-    #     for i in range(4):
-    #         try:
-    #             p1 = subprocess.Popen("aws s3 sync {} {}".format(output_dir, s3_string).split(' '))
-    #             p1.wait(50)
-    #         except Exception as e:
-    #             print('This is the error ', e)
+
+if __name__ == "__main__":
+    parser = create_parser()
+    args = parser.parse_args()
+
+    generate_graphs(args)

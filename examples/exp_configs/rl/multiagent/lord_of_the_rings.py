@@ -3,7 +3,7 @@
 Creates a set of stabilizing the ring experiments to test if
  more agents -> fewer needed batches
 """
-from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
+from ray.rllib.agents.ppo.ppo_tf_policy import PPOTFPolicy
 from flow.controllers import ContinuousRouter
 from flow.controllers import IDMController
 from flow.controllers import RLController
