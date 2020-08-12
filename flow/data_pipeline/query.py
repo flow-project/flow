@@ -421,7 +421,7 @@ class QueryStrings(Enum):
             source_id,
             energy_model_id,
             1000 * distance_meters / energy_joules AS efficiency_meters_per_kilojoules,
-            (CASE energy_model_id 
+            (CASE energy_model_id
                 WHEN 'TACOMA_FIT_DENOISED_ACCEL' THEN 33554.13
                 WHEN 'PRIUS_FIT_DENOISED_ACCEL' THEN 75384.94
                 END) * distance_meters / energy_joules AS efficiency_miles_per_gallon
