@@ -145,7 +145,7 @@ if ON_RAMP:
             "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
         }),
         car_following_params=SumoCarFollowingParams(
-            speed_mode=8
+            speed_mode=12  # right of way at intersections + obey limits on deceleration
         ),
         lane_change_params=SumoLaneChangeParams(
             lane_change_mode="sumo_default",
@@ -162,7 +162,7 @@ else:
             "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
         }),
         car_following_params=SumoCarFollowingParams(
-            speed_mode=8
+            speed_mode=12  # right of way at intersections + obey limits on deceleration
         ),
         lane_change_params=SumoLaneChangeParams(
             lane_change_mode="sumo_default",
@@ -171,7 +171,12 @@ else:
 vehicles.add(
     "av",
     num_vehicles=0,
-    acceleration_controller=(RLController, {}),
+    car_following_params=SumoCarFollowingParams(
+        speed_mode=12  # right of way at intersections + obey limits on deceleration
+    ),
+    acceleration_controller=(RLController, {
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
+    }),
 )
 
 inflow = InFlows()
