@@ -78,7 +78,7 @@ vehicles.add(
     "human",
     num_vehicles=0,
     lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="no_lc_safe",
+        lane_change_mode="sumo_default",
     ),
     # this is only right of way on
     car_following_params=SumoCarFollowingParams(
