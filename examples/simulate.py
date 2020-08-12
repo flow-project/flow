@@ -100,7 +100,7 @@ if __name__ == "__main__":
         # Create the flow_params object
         fp_ = flow_params['exp_tag']
         dir_ = flow_params['sim'].emission_path
-        with open(os.path.join(dir_, "{}.json".format(fp_)), 'w') as outfile:
+        with open(os.path.join(dir_, "{}.json".format(fp_)), 'w+') as outfile:
             json.dump(flow_params, outfile,
                       cls=FlowParamsEncoder, sort_keys=True, indent=4)
 

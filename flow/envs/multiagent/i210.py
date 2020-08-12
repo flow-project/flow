@@ -191,95 +191,19 @@ class I210MultiEnv(MultiEnv):
 
         rewards = {}
         valid_ids = [rl_id for rl_id in self.k.vehicle.get_rl_ids() if self.in_control_range(rl_id)]
-        valid_human_ids = [veh_id for veh_id in self.k.vehicle.get_ids() if self.in_control_range(veh_id)]
 
-        if self.env_params.additional_params["local_reward"]:
-            des_speed = self.env_params.additional_params["target_velocity"]
-            for rl_id in valid_ids:
-                rewards[rl_id] = 0
-                if self.mpg_reward:
-                    rewards[rl_id] = instantaneous_mpg(self, rl_id, gain=1.0) / 100.0
-                    follow_id = rl_id
-                    for i in range(self.look_back_length):
-                        follow_id = self.k.vehicle.get_follower(follow_id)
-                        if follow_id not in ["", None]:
-                            rewards[rl_id] += instantaneous_mpg(self, follow_id, gain=1.0) / 100.0
-                        else:
-                            break
+        # local mpg reward
+        for rl_id in valid_ids:
+            rewards[rl_id] = 0
+            rewards[rl_id] = instantaneous_mpg(self, rl_id, gain=1.0) / 100.0
+            follow_id = rl_id
+            for _ in range(self.look_back_length):
+                follow_id = self.k.vehicle.get_follower(follow_id)
+                if follow_id not in ["", None]:
+                    rewards[rl_id] += instantaneous_mpg(self, follow_id, gain=1.0) / 100.0
                 else:
-                    follow_id = rl_id
-                    for i in range(self.look_back_length + 1):
-                        if follow_id not in ["", None]:
-                            follow_speed = self.k.vehicle.get_speed(self.k.vehicle.get_follower(follow_id))
-                            reward = (des_speed - min(np.abs(follow_speed - des_speed), des_speed)) ** 2
-                            reward /= ((des_speed ** 2) * self.look_back_length)
-                            rewards[rl_id] += reward
-                        else:
-                            break
-                        follow_id = self.k.vehicle.get_follower(follow_id)
+                    break
 
-        else:
-            if self.mpg_reward:
-                reward = np.nan_to_num(instantaneous_mpg(self, valid_human_ids, gain=1.0)) / 100.0
-            else:
-                speeds = self.k.vehicle.get_speed(valid_human_ids)
-                des_speed = self.env_params.additional_params["target_velocity"]
-                # rescale so the critic can estimate it quickly
-                if self.reroute_on_exit:
-                    reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed))
-                                                    for speed in speeds]) / des_speed)
-                else:
-                    reward = np.nan_to_num(np.mean([(des_speed - np.abs(speed - des_speed)) ** 2
-                                                    for speed in speeds]) / (des_speed ** 2))
-            rewards = {rl_id: reward for rl_id in valid_ids}
-
-        # curriculum over time-gaps
-        if self.headway_curriculum and self._num_training_iters <= self.headway_curriculum_iters:
-            t_min = self.min_time_headway  # smallest acceptable time headway
-            for veh_id, rew in rewards.items():
-                lead_id = self.k.vehicle.get_leader(veh_id)
-                penalty = 0
-                if lead_id not in ["", None] \
-                        and self.k.vehicle.get_speed(veh_id) > 0:
-                    t_headway = max(
-                        self.k.vehicle.get_headway(veh_id) /
-                        self.k.vehicle.get_speed(veh_id), 0)
-                    scaling_factor = max(0, 1 - self._num_training_iters / self.headway_curriculum_iters)
-                    penalty += scaling_factor * self.headway_reward_gain * min((t_headway - t_min) / t_min, 0)
-
-                rewards[veh_id] += penalty
-
-        if self.speed_curriculum and self._num_training_iters <= self.speed_curriculum_iters:
-            des_speed = self.env_params.additional_params["target_velocity"]
-
-            for veh_id, rew in rewards.items():
-                speed = self.k.vehicle.get_speed(veh_id)
-                speed_reward = 0.0
-                follow_id = veh_id
-                for i in range(self.look_back_length):
-                    follow_id = self.k.vehicle.get_follower(follow_id)
-                    if follow_id not in ["", None]:
-                        if self.reroute_on_exit:
-                            speed_reward += (des_speed - np.abs(speed - des_speed)) / des_speed
-                        else:
-                            speed_reward += ((des_speed - np.abs(speed - des_speed)) ** 2) / (des_speed ** 2)
-                    else:
-                        break
-                scaling_factor = max(0, 1 - self._num_training_iters / self.speed_curriculum_iters)
-
-                rewards[veh_id] += speed_reward * scaling_factor * self.speed_reward_gain
-
-        for veh_id in rewards.keys():
-            speed = self.k.vehicle.get_speed(veh_id)
-            if self.penalize_stops:
-                if speed < 1.0:
-                    rewards[veh_id] -= self.stop_penalty
-            if self.penalize_accel and veh_id in self.k.vehicle.previous_speeds:
-                prev_speed = self.k.vehicle.get_previous_speed(veh_id)
-                abs_accel = abs(speed - prev_speed) / self.sim_step
-                rewards[veh_id] -= abs_accel * self.accel_penalty
-
-        # print('time to get reward is ', time() - t)
         return rewards
 
     def additional_command(self):

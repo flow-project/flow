@@ -41,7 +41,7 @@ ON_RAMP_INFLOW_RATE = 500
 # the speed of inflowing vehicles from the main edge (in m/s)
 INFLOW_SPEED = 25.5
 # fraction of vehicles that are RL vehicles. 0.10 corresponds to 10%
-PENETRATION_RATE = 0.05
+PENETRATION_RATE = 0.10
 # desired speed of the vehicles in the network
 V_DES = 5.0
 # horizon over which to run the env
@@ -79,15 +79,15 @@ additional_env_params.update({
     # info.
     'lead_obs': True,
     # whether to add in a reward for the speed of nearby vehicles
-    "local_reward": True,
+    "local_reward": True,  # useless
     # whether to use the MPG reward. Otherwise, defaults to a target velocity
     # reward
-    "mpg_reward": False,
+    "mpg_reward": False,  # useless
     # whether to use the MPJ reward. Otherwise, defaults to a target velocity
     # reward
-    "mpj_reward": False,
+    "mpj_reward": False,  # useless
     # how many vehicles to look back for any reward
-    "look_back_length": 3,
+    "look_back_length": 8,
     # whether to reroute vehicles once they have exited
     "reroute_on_exit": False,
     'target_velocity': 5.0,
