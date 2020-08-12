@@ -381,28 +381,63 @@ class QueryStrings(Enum):
                 ROW_NUMBER() OVER() - 1 AS lb,
                 ROW_NUMBER() OVER() AS ub
             FROM fact_safety_matrix
-        ), bins AS (
+        ), tacoma_binned AS (
+            SELECT
+                bins.lb,
+                bins.ub,
+                COUNT() AS count
+            FROM unfilter_bins bins
+            LEFT JOIN fact_vehicle_fuel_efficiency_agg agg ON 1 = 1
+                AND agg.date = \'{date}\'
+                AND agg.partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
+                AND agg.efficiency_miles_per_gallon >= bins.lb
+                AND agg.efficiency_miles_per_gallon < bins.ub
+                AND agg.energy_model_id = 'TACOMA_FIT_DENOISED_ACCEL'
+            GROUP BY 1, 2
+        ), prius_binned AS (
+            SELECT
+                bins.lb,
+                bins.ub,
+                COUNT() AS count
+            FROM unfilter_bins bins
+            LEFT JOIN fact_vehicle_fuel_efficiency_agg agg ON 1 = 1
+                AND agg.date = \'{date}\'
+                AND agg.partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
+                AND agg.efficiency_miles_per_gallon >= bins.lb
+                AND agg.efficiency_miles_per_gallon < bins.ub
+                AND agg.energy_model_id = 'PRIUS_FIT_DENOISED_ACCEL'
+            GROUP BY 1, 2
+        ), tacoma_ratio_to_report AS (
             SELECT
                 lb,
-                ub
-            FROM unfilter_bins
-            WHERE 1=1
-                AND lb >= 0
-                AND ub <= 60
+                ub,
+                100.0 * count / (SUM(count) OVER()) AS count
+            FROM tacoma_binned
+        ), prius_ratio_to_report AS (
+            SELECT
+                lb,
+                ub,
+                100.0 * count / (SUM(count) OVER()) AS count
+            FROM prius_binned
         )
         SELECT
-            agg.energy_model_id,
-            CONCAT('[', CAST(bins.lb AS VARCHAR), ', ', CAST(bins.ub AS VARCHAR), ')') AS fuel_efficiency_bin,
-            COUNT() AS count
-        FROM bins
-        LEFT JOIN fact_vehicle_fuel_efficiency_agg agg ON 1 = 1
-            AND agg.date = \'{date}\'
-            AND agg.partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
-            AND agg.efficiency_miles_per_gallon >= bins.lb
-            AND agg.efficiency_miles_per_gallon < bins.ub
-        GROUP BY 1, 2
-        ;
-    """
+            'TACOMA_FIT_DENOISED_ACCEL' AS energy_model_id,
+            CONCAT('[', CAST(lb AS VARCHAR), ', ', CAST(ub AS VARCHAR), ')') AS fuel_efficiency_bin,
+            count
+        FROM tacoma_ratio_to_report
+        WHERE 1 = 1
+            AND lb >= 0
+            AND ub <= 60
+        UNION ALL
+        SELECT
+            'PRIUS_FIT_DENOISED_ACCEL' AS energy_model_id,
+            CONCAT('[', CAST(lb AS VARCHAR), ', ', CAST(ub AS VARCHAR), ')') AS fuel_efficiency_bin,
+            count
+        FROM prius_ratio_to_report
+        WHERE 1 = 1
+            AND lb >= 100
+            AND ub <= 160
+    ;"""
 
     FACT_NETWORK_FUEL_EFFICIENCY_AGG = """
         WITH aggs AS (
