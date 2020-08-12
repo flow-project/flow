@@ -213,6 +213,44 @@ class I210MultiEnv(MultiEnv):
         back once they have exited.
         """
         super().additional_command()
+
+        ##### 
+        # TMP
+        print(f'time steps {self.time_counter}, warmup {self.time_counter <= self.env_params.sims_per_step * self.env_params.warmup_steps}, '\
+              f'warmup time steps {self.env_params.sims_per_step * self.env_params.warmup_steps}, horizon time steps {self.env_params.sims_per_step * self.env_params.horizon}, warm down {self.env_params.additional_params["warm_down"]} '\
+              f'{self.env_params.sims_per_step * self.env_params.additional_params["warm_down_steps"]} time steps (warming down {self.time_counter > self.env_params.sims_per_step * (self.env_params.warmup_steps + self.env_params.horizon - self.env_params.additional_params["warm_down_steps"])}), '\
+              f'')
+              
+
+
+
+        ##### 
+
+
+        # warm down
+        if self.env_params.additional_params["warm_down"]:
+            warm_down_from_step = self.env_params.warmup_steps + self.env_params.horizon - self.env_params.additional_params["warm_down_steps"]
+            if self.time_counter > self.env_params.sims_per_step * warm_down_from_step:
+                # remove all departed av cars and add human vehicle insteads
+                for veh_id in list(self.k.vehicle.get_departed_ids()):
+                    if veh_id in self.k.vehicle.get_rl_ids():
+                        edge = self.k.vehicle.get_edge(veh_id)
+                        lane = self.k.vehicle.get_lane(veh_id)
+                        pos = self.k.vehicle.get_position(veh_id)
+                        speed = self.k.vehicle.get_speed(veh_id)
+                        self.k.vehicle.remove(veh_id)
+                        try:
+                            self.k.vehicle.add(
+                                veh_id=veh_id,
+                                edge=str(edge),
+                                type_id="human",
+                                lane=str(lane),
+                                pos=str(pos),
+                                speed=str(speed))
+                        except Exception as e:
+                            print('ERROR WHEN ADDING VEHICLE')
+                            print(e)
+
         # specify observed vehicles
         for rl_id in self.k.vehicle.get_rl_ids():
             # leader
@@ -220,6 +258,7 @@ class I210MultiEnv(MultiEnv):
             if lead_id:
                 self.k.vehicle.set_observed(lead_id)
 
+        # reroute vehicles
         if self.reroute_on_exit and self.time_counter >= self.env_params.sims_per_step * self.env_params.warmup_steps \
                 and not self.env_params.evaluate:
             veh_ids = list(self.k.vehicle.get_ids())
