@@ -121,10 +121,11 @@ additional_env_params.update({
     "accel_penalty": (1 / 400.0),
 
     # control the range of speeds of the downstream edge
-    # if true, we vary the downstream speed
+    # if true, we vary the downstream speed sampling uniformly from max and min at the start of
+    # each rollout
     "randomize_downstream_speed": True,
-    "max_downstream_speed": 10.0,
-    "min_downstream_speed": 3.0,
+    "max_downstream_speed": 5.0,
+    "min_downstream_speed": 5.0,
 })
 
 # =========================================================================== #
