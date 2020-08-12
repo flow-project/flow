@@ -413,12 +413,14 @@ class QueryStrings(Enum):
                 ub,
                 100.0 * count / (SUM(count) OVER()) AS count
             FROM tacoma_binned
+            ORDER BY lb
         ), prius_ratio_to_report AS (
             SELECT
                 lb,
                 ub,
                 100.0 * count / (SUM(count) OVER()) AS count
             FROM prius_binned
+            ORDER BY lb
         )
         SELECT
             'TACOMA_FIT_DENOISED_ACCEL' AS energy_model_id,
@@ -435,8 +437,8 @@ class QueryStrings(Enum):
             count
         FROM prius_ratio_to_report
         WHERE 1 = 1
-            AND lb >= 100
-            AND ub <= 160
+            AND lb >= 130
+            AND ub <= 190
     ;"""
 
     FACT_NETWORK_FUEL_EFFICIENCY_AGG = """
