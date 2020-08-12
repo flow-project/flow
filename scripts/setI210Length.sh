@@ -56,7 +56,7 @@ NEW_LANE1="        <lane id=\"119257908#3_1\" index=\"1\" allow=\"private emerge
 NEW_LANE2="        <lane id=\"119257908#3_2\" index=\"2\" allow=\"private emergency authority army vip passenger hov taxi bus coach delivery truck trailer motorcycle evehicle custom1 custom2\" speed=\"5\" length=\""$LENGTH"\" shape=\"2149.27,1242.86 "$X1_LANE2","$Y1_LANE2"\">"
 NEW_LANE3="        <lane id=\"119257908#3_3\" index=\"3\" allow=\"private emergency authority army vip passenger hov taxi bus coach delivery truck trailer motorcycle evehicle custom1 custom2\" speed=\"5\" length=\""$LENGTH"\" shape=\"2147.57,1245.68 "$X1_LANE3","$Y1_LANE3"\">"
 NEW_LANE4="        <lane id=\"119257908#3_4\" index=\"4\" allow=\"private emergency authority army vip passenger hov taxi bus coach delivery truck trailer motorcycle evehicle custom1 custom2\" speed=\"5\" length=\""$LENGTH"\" shape=\"2145.87,1248.51 "$X1_LANE4","$Y1_LANE4"\">"
-NEW_LANE5="        <lane id=\"119257908#3_5\" index=\"5\" allow=\"private emergency authority army vip passenger hov taxi bus coach delivery truck trailer motorcycle evehicle custom1 custom2\" speed=\"5\" length=\""$LENGTH"\" shape=\"2147.64,1253.13 "$X1_LANE5","$Y1_LANE5"\">"
+NEW_LANE5="        <lane id=\"119257908#3_5\" index=\"5\" allow=\"private emergency authority army vip passenger hov taxi bus coach delivery truck trailer motorcycle evehicle custom1 custom2\" speed=\"5\" length=\""$LENGTH"\" shape=\"2144.17,1251.34 "$X1_LANE5","$Y1_LANE5"\">"
 
 sed -i '' '/'"${OLD_EDGE}"'/s/.*/'"${NEW_EDGE}"'/' "${XML_FILE}"
 sed -i '' '/'"${OLD_LANE0}"'/s/.*/'"${NEW_LANE0}"'/' "${XML_FILE}"
