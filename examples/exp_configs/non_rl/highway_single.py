@@ -56,11 +56,11 @@ vehicles.add(
         'a': 1.3,
         'b': 2.0,
         'noise': 0.3 if INCLUDE_NOISE else 0.0,
-        # "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
     }),
     car_following_params=SumoCarFollowingParams(
         min_gap=0.5,
-        speed_mode=5
+        speed_mode=12  # right of way at intersections + obey limits on deceleration
     ),
 )
 
@@ -70,13 +70,13 @@ if PENETRATION_RATE > 0.0:
         color='red',
         car_following_params=SumoCarFollowingParams(
             min_gap=0.5,
-            speed_mode=1
+            speed_mode=12  # right of way at intersections + obey limits on deceleration
         ),
         num_vehicles=0,
         acceleration_controller=(FollowerStopper, {
             "v_des": 5.0,
             "control_length": [500, 2300],
-            # "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
+            "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
         }),
     )
 

@@ -115,7 +115,7 @@ vehicles.add(
         "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
     }),
     car_following_params=SumoCarFollowingParams(
-        speed_mode=8,
+        speed_mode=12,  # right of way at intersections + obey limits on deceleration
         min_gap=0.5
     ),
     lane_change_params=SumoLaneChangeParams(
@@ -128,7 +128,12 @@ vehicles.add(
 vehicles.add(
     color='red',
     veh_id='rl',
-    acceleration_controller=(RLController, {}))
+    car_following_params=SumoCarFollowingParams(
+        speed_mode=12  # right of way at intersections + obey limits on deceleration
+    ),
+    acceleration_controller=(RLController, {
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
+    }))
 
 # add human vehicles on the highway
 inflows.add(

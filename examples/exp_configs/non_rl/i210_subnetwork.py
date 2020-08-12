@@ -82,14 +82,13 @@ vehicles.add(
     ),
     # this is only right of way on
     car_following_params=SumoCarFollowingParams(
-        speed_mode=5
+        speed_mode=12  # right of way at intersections + obey limits on deceleration
     ),
     acceleration_controller=(IDMController, {
         "a": 1.3,
         "b": 2.0,
         "noise": 0.3,
-        # "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
-        # "fail_safe": ['obey_speed_limit'],
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
     }),
     routing_controller=(I210Router, {}) if ON_RAMP else None,
 )
@@ -100,12 +99,12 @@ vehicles.add(
     color="red",
     # this is only right of way on
     car_following_params=SumoCarFollowingParams(
-        speed_mode=0
+        speed_mode=12  # right of way at intersections + obey limits on deceleration
     ),
     acceleration_controller=(FollowerStopper, {
         "v_des": V_DES,
         "no_control_edges": ["ghost0", "119257908#3"],
-        # "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
     }),
     routing_controller=(I210Router, {}) if ON_RAMP else None,
 )
@@ -167,11 +166,10 @@ flow_params = dict(
 
     # simulation-related parameters
     sim=SumoParams(
-        sim_step=1.0,
+        sim_step=0.4,
         render=False,
         color_by_speed=False,
         use_ballistic=True,
-        disable_collisions=True # TODO(@evinitsky) remove
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)

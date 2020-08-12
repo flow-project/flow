@@ -69,7 +69,7 @@ vehicles.add(
         lane_change_mode="strategic",
     ),
     car_following_params=SumoCarFollowingParams(
-        speed_mode=8,
+        speed_mode=12,
         min_gap=0.5
     ),
     acceleration_controller=(IDMController, {
@@ -80,7 +80,6 @@ vehicles.add(
             'obey_speed_limit',
             'safe_velocity',
             'feasible_accel',
-            'instantaneous'
         ],
     }),
 )
@@ -89,7 +88,7 @@ vehicles.add(
 vehicles.add(
     veh_id='rl',
     car_following_params=SumoCarFollowingParams(
-        speed_mode=8,
+        speed_mode=12,  # right of way at intersections + obey limits on deceleration
         min_gap=0.5,
     ),
     acceleration_controller=(RLController, {
