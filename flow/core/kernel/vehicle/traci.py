@@ -657,7 +657,7 @@ class TraCIVehicle(KernelVehicle):
         """Sort all vehicle by lane (for the I210 and highway)."""
         self._sorted_ids = []
 
-        for lane in range(5):
+        for lane in range(6):
             self._sorted_ids.append(sorted(
                 [
                     veh_id for veh_id in self.get_ids()
@@ -710,13 +710,13 @@ class TraCIVehicle(KernelVehicle):
         """Return a processed lane number."""
         lane = self.get_lane(veh_id)
         edge = self.get_edge(veh_id)
-        return lane if edge not in [
+        return lane + 1 if edge not in [
             "119257908#1-AddedOnRampEdge",
             "119257908#1-AddedOffRampEdge",
             ":119257908#1-AddedOnRampNode_0",
             ":119257908#1-AddedOffRampNode_0",
             "119257908#3",
-        ] else lane - 1
+        ] else lane
 
     def get_last_lc(self, veh_id, error=-1001):
         """See parent class."""

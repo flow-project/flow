@@ -55,6 +55,7 @@ vehicles.add(
         'a': 1.3,
         'b': 2.0,
         'noise': 0.3 if INCLUDE_NOISE else 0.0,
+        "display_warnings": False,
         "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
     }),
     car_following_params=SumoCarFollowingParams(
@@ -75,6 +76,7 @@ if PENETRATION_RATE > 0.0:
         acceleration_controller=(FollowerStopper, {
             "v_des": 5.0,
             "control_length": [500, 2300],
+            "display_warnings": False,
             "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
         }),
     )
@@ -117,12 +119,12 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         warmup_steps=500,
-        sims_per_step=1,
+        sims_per_step=3,
     ),
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
-        sim_step=1.0,
+        sim_step=0.4,
         render=False,
         use_ballistic=True,
         restart_instance=False

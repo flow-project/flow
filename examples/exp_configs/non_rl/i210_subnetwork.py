@@ -88,6 +88,7 @@ vehicles.add(
         "a": 1.3,
         "b": 2.0,
         "noise": 0.3,
+        "display_warnings": False,
         "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
     }),
     routing_controller=(I210Router, {}) if ON_RAMP else None,
