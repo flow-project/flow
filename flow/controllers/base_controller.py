@@ -408,7 +408,7 @@ class BaseController(metaclass=ABCMeta):
             maximum deaccel of the vehicle
         delay : float
             the delay before an action is executed
-        if_ballistic : bool
+        is_ballistic : bool
             whether the integration stop is ballistic
         sim_step : float
             size of simulation step
