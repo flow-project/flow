@@ -146,6 +146,7 @@ if ON_RAMP:
             "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
         }),
         car_following_params=SumoCarFollowingParams(
+            min_gap=0.5,
             speed_mode=12  # right of way at intersections + obey limits on deceleration
         ),
         lane_change_params=SumoLaneChangeParams(
@@ -163,6 +164,7 @@ else:
             "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
         }),
         car_following_params=SumoCarFollowingParams(
+            min_gap=0.5,
             speed_mode=12  # right of way at intersections + obey limits on deceleration
         ),
         lane_change_params=SumoLaneChangeParams(

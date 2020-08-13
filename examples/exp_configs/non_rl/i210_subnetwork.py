@@ -82,6 +82,7 @@ vehicles.add(
     ),
     # this is only right of way on
     car_following_params=SumoCarFollowingParams(
+        min_gap=0.5,
         speed_mode=12  # right of way at intersections + obey limits on deceleration
     ),
     acceleration_controller=(IDMController, {
@@ -99,6 +100,7 @@ vehicles.add(
     color="red",
     # this is only right of way on
     car_following_params=SumoCarFollowingParams(
+        min_gap=0.5,
         speed_mode=12  # right of way at intersections + obey limits on deceleration
     ),
     acceleration_controller=(FollowerStopper, {
