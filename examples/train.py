@@ -21,7 +21,7 @@ from flow.core.rewards import instantaneous_mpg
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 from flow.utils.registry import make_create_env
-from flow.visualize.i210_replay import create_parser, generate_graphs
+from flow.replay.transfer_tests import create_parser, generate_graphs
 
 
 def parse_args(args):

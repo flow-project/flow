@@ -293,6 +293,16 @@ def list_source_ids(s3, bucket='circles.data.pipeline'):
     return source_ids
 
 
+def collect_metadata_from_config(config_obj):
+    """Collect the metadata from the exp_config files."""
+    supplied_metadata = dict()
+    supplied_metadata['version'] = [getattr(config_obj, 'VERSION', '2.0')]
+    supplied_metadata['on_ramp'] = [str(getattr(config_obj, 'ON_RAMP', False))]
+    supplied_metadata['penetration_rate'] = [str(100.0 * getattr(config_obj, 'PENETRATION_RATE', 0.0))]
+    supplied_metadata['road_grade'] = [str(getattr(config_obj, 'ROAD_GRADE', False))]
+    return supplied_metadata
+
+
 class AthenaQuery:
     """Class used to run queries.
 
