@@ -30,15 +30,18 @@ prerequisites = {
     ),
     "FACT_VEHICLE_FUEL_EFFICIENCY_AGG": (
         "fact_vehicle_fuel_efficiency_agg", {"FACT_VEHICLE_TRACE",
-                                             "TACOMA_FIT_DENOISED_ACCEL"}
+                                             "TACOMA_FIT_DENOISED_ACCEL",
+                                             "PRIUS_FIT_DENOISED_ACCEL"}
     ),
     "FACT_NETWORK_METRICS_BY_DISTANCE_AGG": (
          "fact_network_metrics_by_distance_agg", {"FACT_VEHICLE_TRACE",
-                                                  "TACOMA_FIT_DENOISED_ACCEL"}
+                                                  "TACOMA_FIT_DENOISED_ACCEL",
+                                                  "PRIUS_FIT_DENOISED_ACCEL"}
     ),
     "FACT_NETWORK_METRICS_BY_TIME_AGG": (
          "fact_network_metrics_by_time_agg", {"FACT_VEHICLE_TRACE",
-                                              "TACOMA_FIT_DENOISED_ACCEL"}
+                                              "TACOMA_FIT_DENOISED_ACCEL",
+                                              "PRIUS_FIT_DENOISED_ACCEL"}
     ),
     "FACT_VEHICLE_FUEL_EFFICIENCY_BINNED": (
         "fact_vehicle_fuel_efficiency_binned", {"FACT_VEHICLE_FUEL_EFFICIENCY_AGG"}
@@ -69,6 +72,7 @@ prerequisites = {
 triggers = [
     "FACT_VEHICLE_TRACE",
     "TACOMA_FIT_DENOISED_ACCEL",
+    "PRIUS_FIT_DENOISED_ACCEL",
     "FACT_VEHICLE_FUEL_EFFICIENCY_AGG",
     "FACT_SAFETY_METRICS_3D",
     "FACT_NETWORK_THROUGHPUT_AGG",
@@ -103,20 +107,20 @@ tables = [
 summary_tables = ["leaderboard_chart_agg", "fact_top_scores"]
 
 network_filters = defaultdict(lambda: {
-        'loc_filter': "x BETWEEN 500 AND 2300",
-        'warmup_steps': 500 * 3 * 0.4,
-        'horizon_steps': 1000 * 3 * 0.4
+        'inflow_filter': "x > 500",
+        'outflow_filter': "x < 2300",
+        'warmup_steps': 500 * 3 * 0.4
     })
 network_filters['I-210 without Ramps'] = {
-        'loc_filter': "edge_id <> ALL (VALUES 'ghost0', '119257908#3')",
-        'warmup_steps': 600 * 3 * 0.4,
-        'horizon_steps': 1000 * 3 * 0.4
+        'inflow_filter': "edge_id != 'ghost0'",
+        'outflow_filter': "edge_id != '119257908#3'",
+        'warmup_steps': 600 * 3 * 0.4
     }
 
 max_decel = -1.0
 leader_max_decel = -2.0
 
-VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT = """
+TACOMA_FIT_FINAL_SELECT = """
     SELECT
         id,
         time_step,
@@ -135,7 +139,7 @@ VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT = """
     ORDER BY id, time_step
     """
 
-VEHICLE_POWER_DEMAND_PRIUS_FINAL_SELECT = """
+PRIUS_FIT_FINAL_SELECT = """
     , pmod_calculation AS (
         SELECT
             id,
@@ -165,23 +169,23 @@ VEHICLE_POWER_DEMAND_PRIUS_FINAL_SELECT = """
     ORDER BY id, time_step
     """
 
-POWER_DEMAND_MODEL_DENOISED_ACCEL = """
-        WITH denoised_accel_cte AS (
-            SELECT
-                id,
-                time_step,
-                speed,
-                COALESCE (target_accel_no_noise_with_failsafe,
-                          target_accel_no_noise_no_failsafe,
-                          realized_accel) AS acceleration,
-                road_grade,
-                source_id
-            FROM fact_vehicle_trace
-            WHERE 1 = 1
-                AND date = \'{{date}}\'
-                AND partition_name=\'{{partition}}\'
-        )
-        {}"""
+DENOISED_ACCEL = """
+    WITH denoised_accel_cte AS (
+        SELECT
+            id,
+            time_step,
+            speed,
+            COALESCE (target_accel_no_noise_with_failsafe,
+                      target_accel_no_noise_no_failsafe,
+                      realized_accel) AS acceleration,
+            road_grade,
+            source_id
+        FROM fact_vehicle_trace
+        WHERE 1 = 1
+            AND date = \'{{date}}\'
+            AND partition_name=\'{{partition}}\'
+    )
+    {}"""
 
 
 class QueryStrings(Enum):
@@ -201,10 +205,10 @@ class QueryStrings(Enum):
         """
 
     TACOMA_FIT_DENOISED_ACCEL = \
-        POWER_DEMAND_MODEL_DENOISED_ACCEL.format(VEHICLE_POWER_DEMAND_TACOMA_FINAL_SELECT.format('denoised_accel_cte'))
+        DENOISED_ACCEL.format(TACOMA_FIT_FINAL_SELECT.format('denoised_accel_cte'))
 
     PRIUS_FIT_DENOISED_ACCEL = \
-        POWER_DEMAND_MODEL_DENOISED_ACCEL.format(VEHICLE_POWER_DEMAND_PRIUS_FINAL_SELECT.format('denoised_accel_cte'))
+        DENOISED_ACCEL.format(PRIUS_FIT_FINAL_SELECT.format('denoised_accel_cte'))
 
     FACT_SAFETY_METRICS_2D = """
         SELECT
@@ -226,7 +230,8 @@ class QueryStrings(Enum):
             AND vt.date = \'{date}\'
             AND vt.partition_name = \'{partition}\'
             AND vt.time_step >= {start_filter}
-            AND vt.{loc_filter}
+            AND vt.{inflow_filter}
+            AND vt.{outflow_filter}
         ;
     """
 
@@ -251,8 +256,10 @@ class QueryStrings(Enum):
         WHERE 1 = 1
             AND date = \'{date}\'
             AND partition_name = \'{partition}\'
+            AND leader_id IS NOT NULL
             AND time_step >= {start_filter}
-            AND {loc_filter}
+            AND {inflow_filter}
+            AND {outflow_filter}
         ;
     """
 
@@ -309,7 +316,7 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND date = \'{date}\'
                 AND partition_name = \'{partition}\'
-                AND {loc_filter}
+                AND {inflow_filter}
             GROUP BY 1, 2
         ), agg AS (
             SELECT
@@ -342,13 +349,13 @@ class QueryStrings(Enum):
                 AND e.time_step = v.time_step
                 AND e.source_id = v.source_id
                 AND e.date = \'{date}\'
-                AND e.partition_name = \'{partition}_TACOMA_FIT_DENOISED_ACCEL\'
-                AND e.energy_model_id = 'TACOMA_FIT_DENOISED_ACCEL'
+                AND e.partition_name LIKE \'{partition}_%\'
                 AND e.time_step >= {start_filter}
             WHERE 1 = 1
                 AND v.date = \'{date}\'
                 AND v.partition_name = \'{partition}\'
-                AND v.{loc_filter}
+                AND v.{inflow_filter}
+                AND v.{outflow_filter}
             GROUP BY 1, 2, 3
             HAVING 1 = 1
                 AND MAX(distance) - MIN(distance) > 10
@@ -374,45 +381,90 @@ class QueryStrings(Enum):
                 ROW_NUMBER() OVER() - 1 AS lb,
                 ROW_NUMBER() OVER() AS ub
             FROM fact_safety_matrix
-        ), bins AS (
+        ), tacoma_binned AS (
+            SELECT
+                bins.lb,
+                bins.ub,
+                COUNT() AS count
+            FROM unfilter_bins bins
+            LEFT JOIN fact_vehicle_fuel_efficiency_agg agg ON 1 = 1
+                AND agg.date = \'{date}\'
+                AND agg.partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
+                AND agg.efficiency_miles_per_gallon >= bins.lb
+                AND agg.efficiency_miles_per_gallon < bins.ub
+                AND agg.energy_model_id = 'TACOMA_FIT_DENOISED_ACCEL'
+            GROUP BY 1, 2
+        ), prius_binned AS (
+            SELECT
+                bins.lb,
+                bins.ub,
+                COUNT() AS count
+            FROM unfilter_bins bins
+            LEFT JOIN fact_vehicle_fuel_efficiency_agg agg ON 1 = 1
+                AND agg.date = \'{date}\'
+                AND agg.partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
+                AND agg.efficiency_miles_per_gallon >= bins.lb
+                AND agg.efficiency_miles_per_gallon < bins.ub
+                AND agg.energy_model_id = 'PRIUS_FIT_DENOISED_ACCEL'
+            GROUP BY 1, 2
+        ), tacoma_ratio_to_report AS (
             SELECT
                 lb,
-                ub
-            FROM unfilter_bins
-            WHERE 1=1
-                AND lb >= 0
-                AND ub <= 60
+                ub,
+                100.0 * count / (SUM(count) OVER()) AS count
+            FROM tacoma_binned
+            ORDER BY lb
+        ), prius_ratio_to_report AS (
+            SELECT
+                lb,
+                ub,
+                100.0 * count / (SUM(count) OVER()) AS count
+            FROM prius_binned
+            ORDER BY lb
         )
         SELECT
-            CONCAT('[', CAST(bins.lb AS VARCHAR), ', ', CAST(bins.ub AS VARCHAR), ')') AS fuel_efficiency_bin,
-            COUNT() AS count
-        FROM bins
-        LEFT JOIN fact_vehicle_fuel_efficiency_agg agg ON 1 = 1
-            AND agg.date = \'{date}\'
-            AND agg.partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
-            AND agg.energy_model_id = 'TACOMA_FIT_DENOISED_ACCEL'
-            AND agg.efficiency_miles_per_gallon >= bins.lb
-            AND agg.efficiency_miles_per_gallon < bins.ub
-        GROUP BY 1
-        ;
-    """
+            'TACOMA_FIT_DENOISED_ACCEL' AS energy_model_id,
+            CONCAT('[', CAST(lb AS VARCHAR), ', ', CAST(ub AS VARCHAR), ')') AS fuel_efficiency_bin,
+            count
+        FROM tacoma_ratio_to_report
+        WHERE 1 = 1
+            AND lb >= 0
+            AND ub <= 60
+        UNION ALL
+        SELECT
+            'PRIUS_FIT_DENOISED_ACCEL' AS energy_model_id,
+            CONCAT('[', CAST(lb AS VARCHAR), ', ', CAST(ub AS VARCHAR), ')') AS fuel_efficiency_bin,
+            count
+        FROM prius_ratio_to_report
+        WHERE 1 = 1
+            AND lb >= 130
+            AND ub <= 190
+    ;"""
 
     FACT_NETWORK_FUEL_EFFICIENCY_AGG = """
+        WITH aggs AS (
+            SELECT
+                source_id,
+                energy_model_id,
+                SUM(distance_meters) AS distance_meters,
+                SUM(energy_joules) AS energy_joules
+            FROM fact_vehicle_fuel_efficiency_agg
+            WHERE 1 = 1
+                AND date = \'{date}\'
+                AND partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
+            GROUP BY 1, 2
+        )
         SELECT
             source_id,
             energy_model_id,
-            SUM(distance_meters) AS distance_meters,
-            SUM(energy_joules) AS energy_joules,
-            SUM(distance_meters) / SUM(energy_joules) AS efficiency_meters_per_joules,
-            33554.13 * SUM(distance_meters) / SUM(energy_joules) AS efficiency_miles_per_gallon
-        FROM fact_vehicle_fuel_efficiency_agg
+            1000 * distance_meters / energy_joules AS efficiency_meters_per_kilojoules,
+            (CASE energy_model_id
+                WHEN 'TACOMA_FIT_DENOISED_ACCEL' THEN 33554.13
+                WHEN 'PRIUS_FIT_DENOISED_ACCEL' THEN 75384.94
+                END) * distance_meters / energy_joules AS efficiency_miles_per_gallon
+        FROM aggs
         WHERE 1 = 1
-            AND date = \'{date}\'
-            AND partition_name = \'{partition}_FACT_VEHICLE_FUEL_EFFICIENCY_AGG\'
-            AND energy_model_id = 'TACOMA_FIT_DENOISED_ACCEL'
-        GROUP BY 1, 2
-        HAVING 1=1
-            AND SUM(energy_joules) != 0
+            AND energy_joules != 0
         ;"""
 
     FACT_NETWORK_SPEED = """
@@ -428,9 +480,9 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND date = \'{date}\'
                 AND partition_name = \'{partition}\'
-                AND {loc_filter}
+                AND {inflow_filter}
+                AND {outflow_filter}
                 AND time_step >= {start_filter}
-                AND time_step < {stop_filter}
             GROUP BY 1, 2
         )
         SELECT
@@ -444,14 +496,23 @@ class QueryStrings(Enum):
     LEADERBOARD_CHART = """
         SELECT
             nt.source_id,
-            fe.energy_model_id,
-            fe.efficiency_meters_per_joules,
-            33554.13 * fe.efficiency_meters_per_joules AS efficiency_miles_per_gallon,
             nt.throughput_per_hour,
             ns.avg_instantaneous_speed,
             ns.avg_network_speed,
             sm.safety_rate,
-            sm.safety_value_max
+            sm.safety_value_max,
+            AVG(CASE
+                WHEN fe.energy_model_id = 'PRIUS_FIT_DENOISED_ACCEL'
+                THEN fe.efficiency_meters_per_kilojoules END) AS prius_efficiency_meters_per_kilojoules,
+            AVG(CASE
+                WHEN fe.energy_model_id = 'TACOMA_FIT_DENOISED_ACCEL'
+                THEN fe.efficiency_meters_per_kilojoules END) AS tacoma_efficiency_meters_per_kilojoules,
+            AVG(CASE
+                WHEN fe.energy_model_id = 'PRIUS_FIT_DENOISED_ACCEL'
+                THEN fe.efficiency_miles_per_gallon END) AS prius_efficiency_miles_per_gallon,
+            AVG(CASE
+                WHEN fe.energy_model_id = 'TACOMA_FIT_DENOISED_ACCEL'
+                THEN fe.efficiency_miles_per_gallon END) AS tacoma_efficiency_miles_per_gallon
         FROM fact_network_throughput_agg AS nt
         JOIN fact_network_speed AS ns ON 1 = 1
             AND ns.date = \'{date}\'
@@ -461,7 +522,6 @@ class QueryStrings(Enum):
             AND fe.date = \'{date}\'
             AND fe.partition_name = \'{partition}_FACT_NETWORK_FUEL_EFFICIENCY_AGG\'
             AND nt.source_id = fe.source_id
-            AND fe.energy_model_id = 'TACOMA_FIT_DENOISED_ACCEL'
         JOIN fact_safety_metrics_agg AS sm ON 1 = 1
             AND sm.date = \'{date}\'
             AND sm.partition_name = \'{partition}_FACT_SAFETY_METRICS_AGG\'
@@ -469,46 +529,38 @@ class QueryStrings(Enum):
         WHERE 1 = 1
             AND nt.date = \'{date}\'
             AND nt.partition_name = \'{partition}_FACT_NETWORK_THROUGHPUT_AGG\'
+        GROUP BY 1, 2, 3, 4, 5, 6
         ;"""
 
     FACT_NETWORK_INFLOWS_OUTFLOWS = """
-        WITH min_max_time_step AS (
+        WITH in_out_time_step AS (
             SELECT
                 id,
                 source_id,
-                MIN(time_step) AS min_time_step,
-                MAX(time_step) AS max_time_step
+                MIN(CASE WHEN {inflow_filter} THEN time_step - {start_filter} ELSE NULL END) AS inflow_time_step,
+                MIN(CASE WHEN {outflow_filter} THEN NULL ELSE time_step - {start_filter} END) AS outflow_time_step
             FROM fact_vehicle_trace
             WHERE 1 = 1
                 AND date = \'{date}\'
                 AND partition_name = \'{partition}\'
-                AND {loc_filter}
             GROUP BY 1, 2
         ), inflows AS (
             SELECT
-                CAST(min_time_step / 60 AS INTEGER) * 60 AS time_step,
+                CAST(inflow_time_step / 60 AS INTEGER) * 60 AS time_step,
                 source_id,
                 60 * COUNT(DISTINCT id) AS inflow_rate
-            FROM min_max_time_step
-            WHERE 1 = 1
-                AND min_time_step >= {start_filter}
-                AND min_time_step < {stop_filter}
+            FROM in_out_time_step
             GROUP BY 1, 2
         ), outflows AS (
             SELECT
-                CAST(max_time_step / 60 AS INTEGER) * 60 AS time_step,
+                CAST(outflow_time_step / 60 AS INTEGER) * 60 AS time_step,
                 source_id,
                 60 * COUNT(DISTINCT id) AS outflow_rate
-            FROM min_max_time_step
-            WHERE 1 = 1
-                AND max_time_step >= {start_filter}
-                AND max_time_step < {stop_filter}
+            FROM in_out_time_step
             GROUP BY 1, 2
         )
         SELECT
-            COALESCE(i.time_step, o.time_step) - MIN(COALESCE(i.time_step, o.time_step))
-                OVER (PARTITION BY COALESCE(i.source_id, o.source_id)
-                ORDER BY COALESCE(i.time_step, o.time_step) ASC) AS time_step,
+            COALESCE(i.time_step, o.time_step) AS time_step,
             COALESCE(i.source_id, o.source_id) AS source_id,
             COALESCE(i.inflow_rate, 0) AS inflow_rate,
             COALESCE(o.outflow_rate, 0) AS outflow_rate
@@ -516,6 +568,8 @@ class QueryStrings(Enum):
         FULL OUTER JOIN outflows o ON 1 = 1
             AND i.time_step = o.time_step
             AND i.source_id = o.source_id
+        WHERE 1 = 1
+            AND COALESCE(i.time_step, o.time_step) >= 0
         ORDER BY time_step
         ;"""
 
@@ -546,7 +600,8 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND vt.date = \'{date}\'
                 AND vt.partition_name = \'{partition}\'
-                AND vt.{loc_filter}
+                AND vt.{inflow_filter}
+                AND vt.{outflow_filter}
                 AND vt.time_step >= {start_filter}
         ), cumulative_energy AS (
             SELECT
@@ -646,7 +701,8 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND vt.date = \'{date}\'
                 AND vt.partition_name = \'{partition}\'
-                AND vt.{loc_filter}
+                AND vt.{inflow_filter}
+                AND vt.{outflow_filter}
                 AND vt.time_step >= {start_filter}
         ), cumulative_energy AS (
             SELECT
@@ -729,7 +785,8 @@ class QueryStrings(Enum):
             WHERE 1 = 1
                 AND vt.date = \'{date}\'
                 AND vt.partition_name = \'{partition}\'
-                AND vt.{loc_filter}
+                AND vt.{inflow_filter}
+                AND vt.{outflow_filter}
                 AND vt.time_step >= {start_filter}
             GROUP BY 1, 2
         )
@@ -756,9 +813,10 @@ class QueryStrings(Enum):
                 COALESCE (m.version, '2.0') AS version,
                 COALESCE (m.road_grade, 'False') AS road_grade,
                 COALESCE (m.on_ramp, 'False') AS on_ramp,
-                l.energy_model_id,
-                l.efficiency_meters_per_joules,
-                l.efficiency_miles_per_gallon,
+                l.prius_efficiency_meters_per_kilojoules,
+                l.tacoma_efficiency_meters_per_kilojoules,
+                l.prius_efficiency_miles_per_gallon,
+                l.tacoma_efficiency_miles_per_gallon,
                 l.throughput_per_hour,
                 l.avg_instantaneous_speed,
                 l.avg_network_speed,
@@ -788,11 +846,14 @@ class QueryStrings(Enum):
                         'True' THEN ' with grade;'
                         ELSE ' no grade;' END AS network,
                 agg.is_baseline,
-                agg.energy_model_id,
-                agg.efficiency_meters_per_joules,
-                agg.efficiency_miles_per_gallon,
-                100 * (1 - baseline.efficiency_miles_per_gallon / agg.efficiency_miles_per_gallon)
-                    AS fuel_improvement,
+                agg.prius_efficiency_miles_per_gallon,
+                agg.tacoma_efficiency_miles_per_gallon,
+                100 * (1 -
+                    baseline.prius_efficiency_meters_per_kilojoules / agg.prius_efficiency_meters_per_kilojoules)
+                    AS prius_fuel_economy_improvement,
+                100 * (1 -
+                    baseline.tacoma_efficiency_meters_per_kilojoules / agg.tacoma_efficiency_meters_per_kilojoules)
+                    AS tacoma_fuel_economy_improvement,
                 agg.throughput_per_hour,
                 100 * (agg.throughput_per_hour - baseline.throughput_per_hour) / baseline.throughput_per_hour
                     AS throughput_change,
@@ -817,11 +878,14 @@ class QueryStrings(Enum):
             strategy,
             network,
             is_baseline,
-            energy_model_id,
-            efficiency_miles_per_gallon,
-            CAST (ROUND(efficiency_miles_per_gallon, 1) AS VARCHAR) ||
-                ' (' || (CASE WHEN SIGN(fuel_improvement) = 1 THEN '+' ELSE '' END) ||
-                CAST (ROUND(fuel_improvement, 1) AS VARCHAR) || '%)' AS efficiency,
+            tacoma_efficiency_miles_per_gallon,
+            prius_efficiency_miles_per_gallon,
+            CAST (ROUND(tacoma_efficiency_miles_per_gallon, 1) AS VARCHAR) ||
+                '; ' || CAST (ROUND(prius_efficiency_miles_per_gallon, 1) AS VARCHAR) ||
+                ' (' || (CASE WHEN SIGN(tacoma_fuel_economy_improvement) = 1 THEN '+' ELSE '' END) ||
+                CAST (ROUND(tacoma_fuel_economy_improvement, 1) AS VARCHAR) || '%; ' ||
+                (CASE WHEN SIGN(prius_fuel_economy_improvement) = 1 THEN '+' ELSE '' END) ||
+                CAST (ROUND(prius_fuel_economy_improvement, 1) AS VARCHAR) || '%)' AS efficiency,
             CAST (ROUND(throughput_per_hour, 1) AS VARCHAR) ||
                 ' (' || (CASE WHEN SIGN(throughput_change) = 1 THEN '+' ELSE '' END) ||
                 CAST (ROUND(throughput_change, 1) AS VARCHAR) || '%)' AS inflow,
@@ -838,9 +902,12 @@ class QueryStrings(Enum):
             SELECT
                 network,
                 submission_date,
-                MAX(efficiency_miles_per_gallon)
+                MAX(tacoma_efficiency_miles_per_gallon)
                     OVER (PARTITION BY network ORDER BY submission_date ASC
-                    ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS max_score
+                    ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS tacoma_max_score,
+                MAX(prius_efficiency_miles_per_gallon)
+                    OVER (PARTITION BY network ORDER BY submission_date ASC
+                    ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) AS prius_max_score
             FROM leaderboard_chart_agg
             WHERE 1 = 1
                 AND is_baseline = 'False'
@@ -848,7 +915,8 @@ class QueryStrings(Enum):
             SELECT
                 network,
                 submission_date,
-                LAG(max_score, 1) OVER (PARTITION BY network ORDER BY submission_date ASC) AS max_score
+                LAG(tacoma_max_score, 1) OVER (PARTITION BY network ORDER BY submission_date ASC) AS tacoma_max_score,
+                LAG(prius_max_score, 1) OVER (PARTITION BY network ORDER BY submission_date ASC) AS prius_max_score
             FROM curr_max
         ), unioned AS (
             SELECT * FROM curr_max
@@ -858,6 +926,7 @@ class QueryStrings(Enum):
         SELECT DISTINCT *
         FROM unioned
         WHERE 1 = 1
-            AND max_score IS NOT NULL
+            AND tacoma_max_score IS NOT NULL
+            AND prius_max_score IS NOT NULL
         ORDER BY 1, 2, 3
         ;"""
