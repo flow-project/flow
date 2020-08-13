@@ -117,12 +117,12 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         warmup_steps=500,
-        sims_per_step=1,
+        sims_per_step=3,
     ),
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
-        sim_step=1.0,
+        sim_step=0.4,
         render=False,
         use_ballistic=True,
         restart_instance=False
