@@ -122,15 +122,15 @@ additional_env_params.update({
 
     # fixed distance cumulative energy settings
     "warm_down": False,  # whether to stop spawning RL vehicles after HORIZON - N steps
-    "warm_down_steps": 180, # 300,  # N
+    "warm_down_steps": 300,  # N
 
-    "late_penalty": True,  # whether RL agents start receiving a penalty every step after having been in the network for some time
+    "late_penalty": False,  # whether RL agents start receiving a penalty every step after having been in the network for some time
     "late_penalty_steps": 600,  # after how many steps agents start getting a penalty
-    "late_penalty_value": 10,  # value of the afore-mentioned penalty at each step
+    "late_penalty_value": -1.0,  # value of the afore-mentioned penalty at each step (added to the reward)
 
     "accumulated_reward": False,  # whether reward should be accumulated and given to the agents every N steps
-    "accumulated_reward_interval": 20,  # N
-    "accumulated_reward_bonus": 5,  # constant to add to the reward given every N steps
+    "accumulated_reward_interval_steps": 5,  # N
+    "accumulated_reward_bonus": 1,  # constant to add to the reward given every N steps
 })
 
 # =========================================================================== #
