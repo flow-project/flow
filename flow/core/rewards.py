@@ -398,3 +398,38 @@ def instantaneous_mpg(env, veh_ids=None, gain=.001):
     mpg = cumulative_distance / (cumulative_gallons + 1e-6)
 
     return mpg * gain
+
+def veh_fuel_consumption(env, veh_ids=None, gain=.001):
+    """Calculate fuel consumption of a vehicle.
+
+    Assumes vehicle is an average sized vehicle.
+    The power calculated here is the lower bound of the actual power consumed
+    by a vehicle.
+
+    Parameters
+    ----------
+    env : flow.envs.Env
+        the environment variable, which contains information on the current
+        state of the system.
+    veh_ids : [list] or str
+        list of veh_ids or single veh_id to compute the reward over
+    gain : float
+        scaling factor for the reward
+    """
+    if veh_ids is None:
+        veh_ids = env.k.vehicle.get_ids()
+    elif not isinstance(veh_ids, list):
+        veh_ids = [veh_ids]
+
+    fuel = 0
+    for veh_id in veh_ids:
+        if veh_id not in env.k.vehicle.previous_speeds:
+            continue
+        energy_model = env.k.vehicle.get_energy_model(veh_id)
+        if energy_model != "":
+            speed = env.k.vehicle.get_speed(veh_id)
+            accel = env.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
+            grade = env.k.vehicle.get_road_grade(veh_id)
+            fuel += energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
+
+    return -gain * fuel
