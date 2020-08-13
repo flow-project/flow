@@ -486,7 +486,8 @@ class BaseController(metaclass=ABCMeta):
         # exactly after gap and decelerate with max_deaccel every simulation step
         # h = 0.5 * n * (n-1) * b * s + n * b * t (solve for n)
         # n = ((1.0/2.0) - ((t + (pow(((s*s) + (4.0*((s*((2.0*h/b) - t)) + (t*t)))), (1.0/2.0))*sign/2.0))/s))
-        sqrt_quantity = math.sqrt(((s * s) + (4.0 * ((s * (2.0 * brake_distance / speed_reduction - t)) + (t * t))))) * -0.5
+        sqrt_quantity = math.sqrt(
+            ((s * s) + (4.0 * ((s * (2.0 * brake_distance / speed_reduction - t)) + (t * t))))) * -0.5
         n = math.floor(.5 - ((t + sqrt_quantity) / s))
         h = 0.5 * n * (n - 1) * speed_reduction * s + n * speed_reduction * t
         assert(h <= brake_distance + 1e-6)
