@@ -1,16 +1,10 @@
 """Environment for training vehicles to reduce congestion in the I210."""
 
-from copy import deepcopy
-import random
-import traceback
 from gym.spaces import Box
 import numpy as np
 
 from flow.core.rewards import instantaneous_mpg
 from flow.envs.multiagent.base import MultiEnv
-from traci.exceptions import FatalTraCIError
-from traci.exceptions import TraCIException
-from flow.utils.exceptions import FatalFlowError
 
 # largest number of lanes on any given edge in the network
 MAX_LANES = 6
