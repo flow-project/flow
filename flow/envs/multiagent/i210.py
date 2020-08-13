@@ -408,7 +408,6 @@ class I210MultiEnv(MultiEnv):
 
     def reset(self, new_inflow_rate=None):
         """Reset the environment."""
-
         state = super().reset(new_inflow_rate=new_inflow_rate)
         # update the network to set the downstream edge speed
         if self.env_params.additional_params["randomize_downstream_speed"]:
