@@ -3,8 +3,10 @@
 from gym.spaces import Box
 import numpy as np
 
-from flow.core.rewards import instantaneous_mpg
+from flow.core.rewards import instantaneous_mpg, veh_fuel_consumption
 from flow.envs.multiagent.base import MultiEnv
+
+from collections import defaultdict
 
 # largest number of lanes on any given edge in the network
 MAX_LANES = 6
@@ -102,15 +104,20 @@ class I210MultiEnv(MultiEnv):
         self.penalize_accel = env_params.additional_params.get("penalize_accel", False)
         self.accel_penalty = env_params.additional_params["accel_penalty"]
 
+        # energy reward
+        self.time_since_entered = defaultdict(int)
+        self.state_size = 4 if env_params.additional_params["late_penalty"] else 3
+
     @property
     def observation_space(self):
         """See class definition."""
         # speed, speed of leader, headway
+        assert(self.lead_obs)
         if self.lead_obs:
             return Box(
                 low=-float('inf'),
                 high=float('inf'),
-                shape=(3,),
+                shape=(self.state_size,),
                 dtype=np.float32
             )
         # speed, dist to ego vehicle, binary value which is 1 if the vehicle is
@@ -163,6 +170,7 @@ class I210MultiEnv(MultiEnv):
     def get_state(self):
         """See class definition."""
         valid_ids = [rl_id for rl_id in self.k.vehicle.get_rl_ids() if self.in_control_range(rl_id)]
+        assert(self.lead_obs)
         if self.lead_obs:
             veh_info = {}
             for rl_id in valid_ids:
@@ -175,8 +183,14 @@ class I210MultiEnv(MultiEnv):
                 else:
                     lead_speed = self.k.vehicle.get_speed(lead_id)
                     headway = self.k.vehicle.get_headway(rl_id)
-                veh_info.update({rl_id: np.array([speed / SPEED_SCALE, headway / HEADWAY_SCALE,
-                                                  lead_speed / SPEED_SCALE])})
+
+                state = [speed / SPEED_SCALE, headway / HEADWAY_SCALE, lead_speed / SPEED_SCALE]
+
+                if self.env_params.additional_params["late_penalty"]:
+                    time_since_entered = self.time_since_entered[rl_id] / self.env_params.additional_params["late_penalty_steps"]
+                    state.append(time_since_entered)
+                
+                veh_info.update({rl_id: np.array(state)})
         else:
             veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
                                                self.veh_statistics(rl_id)))
@@ -192,17 +206,23 @@ class I210MultiEnv(MultiEnv):
         rewards = {}
         valid_ids = [rl_id for rl_id in self.k.vehicle.get_rl_ids() if self.in_control_range(rl_id)]
 
-        # local mpg reward
+        # local energy reward (magnitude 10^-1 / 10^-2)
         for rl_id in valid_ids:
             rewards[rl_id] = 0
-            rewards[rl_id] = instantaneous_mpg(self, rl_id, gain=1.0) / 100.0
+            rewards[rl_id] = veh_fuel_consumption(self, rl_id) * 10
             follow_id = rl_id
             for _ in range(self.look_back_length):
                 follow_id = self.k.vehicle.get_follower(follow_id)
                 if follow_id not in ["", None]:
-                    rewards[rl_id] += instantaneous_mpg(self, follow_id, gain=1.0) / 100.0
+                    rewards[rl_id] += veh_fuel_consumption(self, follow_id) * 10
                 else:
                     break
+
+        # penalty if staying in network for too long
+        if self.env_params.additional_params["late_penalty"]:
+            for rl_id in valid_ids:
+                if self.time_since_entered[rl_id] > self.env_params.additional_params["late_penalty_steps"]:
+                    rewards[rl_id] += self.env_params.additional_params["late_penalty_value"]
 
         return rewards
 
@@ -250,6 +270,16 @@ class I210MultiEnv(MultiEnv):
                         except Exception as e:
                             print('ERROR WHEN ADDING VEHICLE')
                             print(e)
+
+        # penalty for being too slow
+        if self.env_params.additional_params["late_penalty"]:
+            rl_ids = self.k.vehicle.get_rl_ids()
+            for veh_id in rl_ids:
+                self.time_since_entered[veh_id] = min(self.time_since_entered[veh_id] + 1, self.env_params.additional_params["late_penalty_steps"])
+            for veh_id in self.time_since_entered:
+                if veh_id not in rl_ids:
+                    # vehicle has exited
+                    self.time_since_entered[veh_id] = 0
 
         # specify observed vehicles
         for rl_id in self.k.vehicle.get_rl_ids():
