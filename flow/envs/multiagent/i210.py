@@ -141,14 +141,32 @@ class I210MultiEnv(MultiEnv):
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         # in the warmup steps, rl_actions is None
-        id_list = []
-        accel_list = []
+        rl_id_set = set(self.k.vehicle.get_rl_ids())
         if rl_actions:
+            rl_ids = []
+            accels = []
             for rl_id, actions in rl_actions.items():
+                rl_id_set.remove(rl_id)
                 accel = actions[0]
-                id_list.append(rl_id)
-                accel_list.append(accel)
-            self.k.vehicle.apply_acceleration(id_list, accel_list)
+                controller = self.k.vehicle.get_acc_controller(rl_id)
+                accel = controller.compute_failsafe(accel, self)
+                accels.append(accel)
+                rl_ids.append(rl_id)
+
+            # prevent the AV from blocking the entrance
+            self.k.vehicle.apply_acceleration(rl_ids, accels)
+
+        # for vehicles that didn't get any actions, they should act like an IDM car
+        rl_ids = []
+        accels = []
+        for rl_id in rl_id_set:
+            controller = self.k.vehicle.get_acc_controller(rl_id)
+            if controller.default_controller:
+                accel = controller.default_controller.get_accel(self)
+                rl_ids.append(rl_id)
+                accels.append(accel)
+        if len(accels) > 0:
+            self.k.vehicle.apply_acceleration(rl_ids, accels)
 
     def in_control_range(self, veh_id):
         """Return if a veh_id is on an edge that is allowed to be controlled.
@@ -431,12 +449,28 @@ class MultiStraightRoad(I210MultiEnv):
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         # in the warmup steps, rl_actions is None
+        rl_id_set = set(self.k.vehicle.get_rl_ids())
         if rl_actions:
             rl_ids = []
             accels = []
             for rl_id, actions in rl_actions.items():
-                accels.append(actions[0])
+                rl_id_set.remove(rl_id)
+                accel = actions[0]
+                controller = self.k.vehicle.get_acc_controller(rl_id)
+                accel = controller.compute_failsafe(accel, self)
+                accels.append(accel)
                 rl_ids.append(rl_id)
 
             # prevent the AV from blocking the entrance
+            self.k.vehicle.apply_acceleration(rl_ids, accels)
+
+        rl_ids = []
+        accels = []
+        for rl_id in rl_id_set:
+            controller = self.k.vehicle.get_acc_controller(rl_id)
+            if controller.default_controller:
+                accel = controller.default_controller.get_accel(self)
+                rl_ids.append(rl_id)
+                accels.append(accel)
+        if len(accels) > 0:
             self.k.vehicle.apply_acceleration(rl_ids, accels)

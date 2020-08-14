@@ -36,6 +36,8 @@ WANT_BOUNDARY_CONDITIONS = True
 ON_RAMP = False
 # the inflow rate of vehicles (in veh/hr)
 INFLOW_RATE = 2050
+# if this is false, the AVs all come in as a wave, otherwise they are randomly scattered
+ENTER_AS_LINE = False
 # the inflow rate on the on-ramp (in veh/hr)
 ON_RAMP_INFLOW_RATE = 500
 # the speed of inflowing vehicles from the main edge (in m/s)
@@ -171,46 +173,102 @@ else:
             lane_change_mode="sumo_default",
         ),
     )
+
+# autonomous vehicles
+default_controller = (IDMController, {
+        "a": 1.3,
+        "b": 2.0,
+        "noise": 0.3,
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
+    }
+)
 vehicles.add(
-    "av",
-    num_vehicles=0,
+    color='red',
+    veh_id='rl',
     car_following_params=SumoCarFollowingParams(
+        min_gap=0.5,
         speed_mode=12  # right of way at intersections + obey limits on deceleration
     ),
     acceleration_controller=(RLController, {
         "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
-    }),
-)
+        "default_controller": default_controller
+    }))
+
 
 inflow = InFlows()
-for lane in [0, 1, 2, 3, 4]:
+if ENTER_AS_LINE:
+    for lane in [0, 1, 2, 3, 4]:
+        if WANT_BOUNDARY_CONDITIONS:
+            # Add the inflows from the main highway.
+            inflow.add(
+                veh_type="human",
+                edge="ghost0",
+                vehs_per_hour=int(INFLOW_RATE * (1 - PENETRATION_RATE)),
+                departLane=lane,
+                departSpeed=INFLOW_SPEED)
+            inflow.add(
+                veh_type="av",
+                edge="ghost0",
+                vehs_per_hour=int(INFLOW_RATE * PENETRATION_RATE),
+                departLane=lane,
+                departSpeed=INFLOW_SPEED)
+        else:
+            # Add the inflows from the main highway.
+            inflow.add(
+                veh_type="human",
+                edge="119257914",
+                vehs_per_hour=int(INFLOW_RATE * (1 - PENETRATION_RATE)),
+                departLane=lane,
+                departSpeed=INFLOW_SPEED)
+            inflow.add(
+                veh_type="av",
+                edge="119257914",
+                vehs_per_hour=int(INFLOW_RATE * PENETRATION_RATE),
+                departLane=lane,
+                departSpeed=INFLOW_SPEED)
+
+        # Add the inflows from the on-ramps.
+        if ON_RAMP:
+            inflow.add(
+                veh_type="human",
+                edge="27414345",
+                vehs_per_hour=int(ON_RAMP_INFLOW_RATE * (1 - PENETRATION_RATE)),
+                departLane="random",
+                departSpeed=10)
+            inflow.add(
+                veh_type="human",
+                edge="27414342#0",
+                vehs_per_hour=int(ON_RAMP_INFLOW_RATE * (1 - PENETRATION_RATE)),
+                departLane="random",
+                departSpeed=10)
+else:
     if WANT_BOUNDARY_CONDITIONS:
         # Add the inflows from the main highway.
         inflow.add(
             veh_type="human",
             edge="ghost0",
-            vehs_per_hour=int(INFLOW_RATE * (1 - PENETRATION_RATE)),
-            departLane=lane,
+            vehs_per_hour=int(INFLOW_RATE * 5 * (1 - PENETRATION_RATE)),
+            departLane="best",
             departSpeed=INFLOW_SPEED)
         inflow.add(
             veh_type="av",
             edge="ghost0",
-            vehs_per_hour=int(INFLOW_RATE * PENETRATION_RATE),
-            departLane=lane,
+            vehs_per_hour=int(INFLOW_RATE * 5 * PENETRATION_RATE),
+            departLane="best",
             departSpeed=INFLOW_SPEED)
     else:
         # Add the inflows from the main highway.
         inflow.add(
             veh_type="human",
             edge="119257914",
-            vehs_per_hour=int(INFLOW_RATE * (1 - PENETRATION_RATE)),
-            departLane=lane,
+            vehs_per_hour=int(INFLOW_RATE * 5 * (1 - PENETRATION_RATE)),
+            departLane="best",
             departSpeed=INFLOW_SPEED)
         inflow.add(
             veh_type="av",
             edge="119257914",
-            vehs_per_hour=int(INFLOW_RATE * PENETRATION_RATE),
-            departLane=lane,
+            vehs_per_hour=int(INFLOW_RATE * 5 * PENETRATION_RATE),
+            departLane="best",
             departSpeed=INFLOW_SPEED)
 
     # Add the inflows from the on-ramps.
@@ -219,13 +277,13 @@ for lane in [0, 1, 2, 3, 4]:
             veh_type="human",
             edge="27414345",
             vehs_per_hour=int(ON_RAMP_INFLOW_RATE * (1 - PENETRATION_RATE)),
-            departLane="random",
+            departLane="best",
             departSpeed=10)
         inflow.add(
             veh_type="human",
             edge="27414342#0",
             vehs_per_hour=int(ON_RAMP_INFLOW_RATE * (1 - PENETRATION_RATE)),
-            departLane="random",
+            departLane="best",
             departSpeed=10)
 
 # =========================================================================== #
