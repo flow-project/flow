@@ -31,6 +31,8 @@ WANT_DOWNSTREAM_BOUNDARY = True
 ON_RAMP = False
 # the inflow rate of vehicles (in veh/hr)
 INFLOW_RATE = 2050
+# if this is false, the AVs all come in as a wave, otherwise they are randomly scattered
+ENTER_AS_LINE = False
 # on-ramp inflow_rate
 ON_RAMP_INFLOW_RATE = 500
 # the speed of inflowing vehicles from the main edge (in m/s)
@@ -94,6 +96,13 @@ vehicles.add(
     routing_controller=(I210Router, {}) if ON_RAMP else None,
 )
 
+default_controller = (IDMController, {
+        "a": 1.3,
+        "b": 2.0,
+        "noise": 0.3,
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
+    }
+)
 vehicles.add(
     "av",
     num_vehicles=0,
@@ -107,6 +116,7 @@ vehicles.add(
         "v_des": V_DES,
         "no_control_edges": ["ghost0", "119257908#3"],
         "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
+        "default_controller": default_controller
     }),
     routing_controller=(I210Router, {}) if ON_RAMP else None,
 )
@@ -116,20 +126,36 @@ inflow = InFlows()
 # main highway
 highway_start_edge = "ghost0" if WANT_GHOST_CELL else "119257914"
 
-for lane in [0, 1, 2, 3, 4]:
+if ENTER_AS_LINE:
+    for lane in [0, 1, 2, 3, 4]:
+        inflow.add(
+            veh_type="human",
+            edge=highway_start_edge,
+            vehs_per_hour=INFLOW_RATE * (1 - PENETRATION_RATE),
+            depart_lane=lane,
+            depart_speed=INFLOW_SPEED)
+
+        if PENETRATION_RATE > 0.0:
+            inflow.add(
+                veh_type="av",
+                edge=highway_start_edge,
+                vehs_per_hour=INFLOW_RATE * PENETRATION_RATE,
+                depart_lane=lane,
+                depart_speed=INFLOW_SPEED)
+else:
     inflow.add(
         veh_type="human",
         edge=highway_start_edge,
-        vehs_per_hour=INFLOW_RATE * (1 - PENETRATION_RATE),
-        depart_lane=lane,
+        vehs_per_hour=INFLOW_RATE * 5 * (1 - PENETRATION_RATE),
+        depart_lane="best",
         depart_speed=INFLOW_SPEED)
 
     if PENETRATION_RATE > 0.0:
         inflow.add(
             veh_type="av",
             edge=highway_start_edge,
-            vehs_per_hour=INFLOW_RATE * PENETRATION_RATE,
-            depart_lane=lane,
+            vehs_per_hour=INFLOW_RATE * 5 * PENETRATION_RATE,
+            depart_lane="best",
             depart_speed=INFLOW_SPEED)
 
 # on ramp

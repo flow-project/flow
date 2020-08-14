@@ -64,6 +64,13 @@ vehicles.add(
 )
 
 if PENETRATION_RATE > 0.0:
+    default_controller = (IDMController, {
+        "a": 1.3,
+        "b": 2.0,
+        "noise": 0.3,
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
+    }
+                          )
     vehicles.add(
         "av",
         color='red',
@@ -75,6 +82,7 @@ if PENETRATION_RATE > 0.0:
         acceleration_controller=(FollowerStopper, {
             "v_des": 5.0,
             "control_length": [500, 2300],
+            "default_controller": default_controller,
             "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
         }),
     )

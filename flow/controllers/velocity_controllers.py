@@ -1,6 +1,7 @@
 """Contains a list of custom velocity controllers."""
 
 from flow.controllers.base_controller import BaseController
+from flow.controllers import IDMController
 import numpy as np
 
 
@@ -20,19 +21,30 @@ class FollowerStopper(BaseController):
         unique vehicle identifier
     v_des : float, optional
         desired speed of the vehicles (m/s)
+    no_control_edges : [str]
+        list of edges that we should not apply control on
+    default_controller : BaseController
+        controller that we use if we're on a no control edge. If none, default to SUMO.
     """
 
     def __init__(self,
                  veh_id,
                  car_following_params,
                  v_des=15,
+                 fail_safe=None,
                  danger_edges=None,
                  control_length=None,
-                 no_control_edges=None):
+                 no_control_edges=None,
+                 default_controller=None):
         """Instantiate FollowerStopper."""
-        BaseController.__init__(
-            self, veh_id, car_following_params, delay=0.0,
-            fail_safe='safe_velocity')
+        if fail_safe:
+            BaseController.__init__(
+                self, veh_id, car_following_params, delay=0.0,
+                fail_safe=fail_safe)
+        else:
+            BaseController.__init__(
+                self, veh_id, car_following_params, delay=0.0,
+                fail_safe='safe_velocity')
 
         # desired speed of the vehicle
         self.v_des = v_des
@@ -51,6 +63,8 @@ class FollowerStopper(BaseController):
         self.danger_edges = danger_edges if danger_edges else {}
         self.control_length = control_length
         self.no_control_edges = no_control_edges
+        self.default_controller = default_controller[0](veh_id=self.veh_id, car_following_params=car_following_params,
+                                                        **default_controller[1])
 
     def find_intersection_dist(self, env):
         """Find distance to intersection.
@@ -80,7 +94,10 @@ class FollowerStopper(BaseController):
     def get_accel(self, env):
         """See parent class."""
         if env.time_counter < env.env_params.warmup_steps * env.env_params.sims_per_step:
-            return None
+            if self.default_controller:
+                return self.default_controller.get_accel(env)
+            else:
+                return None
         else:
             lead_id = env.k.vehicle.get_leader(self.veh_id)
             this_vel = env.k.vehicle.get_speed(self.veh_id)
@@ -122,7 +139,10 @@ class FollowerStopper(BaseController):
                         or env.k.vehicle.get_x_by_id(self.veh_id) > self.control_length[1])) \
                     or (self.no_control_edges is not None and len(self.no_control_edges) > 0
                         and edge in self.no_control_edges):
-                return None
+                if self.default_controller:
+                    return self.default_controller.get_accel(env)
+                else:
+                    return None
             else:
                 # compute the acceleration from the desired velocity
                 return np.clip((v_cmd - this_vel) / env.sim_step, -np.abs(self.max_deaccel), self.max_accel)

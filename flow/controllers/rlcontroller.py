@@ -31,7 +31,7 @@ class RLController(BaseController):
         >>> rl_ids = env.k.vehicle.get_rl_ids()
     """
 
-    def __init__(self, veh_id, car_following_params, fail_safe=None):
+    def __init__(self, veh_id, car_following_params, fail_safe=None, default_controller=None):
         """Instantiate an RL Controller."""
         BaseController.__init__(
             self,
@@ -39,6 +39,9 @@ class RLController(BaseController):
             car_following_params,
             fail_safe=fail_safe,
         )
+        # This controller is used in the segments where the RL is not allowed to apply control
+        self.default_controller = default_controller[0](veh_id=veh_id, car_following_params=car_following_params,
+                                                        **default_controller[1])
 
     def get_accel(self, env):
         """Pass, as this is never called; required to override abstractmethod."""

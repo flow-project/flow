@@ -161,10 +161,15 @@ class BaseController(metaclass=ABCMeta):
         env.k.vehicle.update_accel(self.veh_id, accel, noise=True, failsafe=False)
 
         # run the fail-safes, if requested
-        for failsafe in self.failsafes:
-            accel = failsafe(env, accel)
+        accel = self.compute_failsafe(accel, env)
 
         env.k.vehicle.update_accel(self.veh_id, accel, noise=True, failsafe=True)
+        return accel
+
+    def compute_failsafe(self, accel, env):
+        """Take in an acceleration and compute the resultant safe acceleration"""
+        for failsafe in self.failsafes:
+            accel = failsafe(env, accel)
         return accel
 
     def get_safe_action_instantaneous(self, env, action):
@@ -298,6 +303,7 @@ class BaseController(metaclass=ABCMeta):
         lead_max_deaccel = lead_control.max_deaccel
 
         h = env.k.vehicle.get_headway(self.veh_id)
+        assert (h > 0), print('the headway is less than zero! Seems wrong.')
         min_gap = self.car_following_params.controller_params['minGap']
 
         is_ballistic = env.sim_params.use_ballistic
