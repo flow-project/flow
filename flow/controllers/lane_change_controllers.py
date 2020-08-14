@@ -1,7 +1,5 @@
 """Contains a list of custom lane change controllers."""
 
-import sys
-
 from flow.controllers.base_lane_changing_controller import \
     BaseLaneChangeController
 
@@ -104,61 +102,30 @@ class AILaneChangeController(BaseLaneChangeController):
                 # left leader velocity and headway
                 l_l_vel = env.k.vehicle.get_speed(l_l)
                 l_l_headway = lane_headways[l_lane]
-
-                # assert to make sure the CFM have the get_custom_accel()
-                try:
-                    acc_in_left_lane = ego_accel_controller.get_custom_accel(
-                        this_vel=ego_vel,
-                        lead_vel=l_l_vel,
-                        h=l_l_headway)
-                except NotImplementedError:
-                    print(
-                        "====================================================\n"
-                        "The get_custom_accel() method is not implemented for\n"
-                        "the selected Car Following model. Please implement  \n"
-                        " the method or use another Car Following model      \n"
-                        "=====================================================")
-                    sys.exit(1)
+                acc_in_left_lane = ego_accel_controller.get_custom_accel(
+                    this_vel=ego_vel,
+                    lead_vel=l_l_vel,
+                    h=l_l_headway)
             else:  # if left lane exists but left leader does not exist
                 # in this case we assign None to the leader velocity and
                 # large number to headway
                 l_l_vel = None
                 l_l_headway = 1000
-                try:
-                    acc_in_left_lane = ego_accel_controller.get_custom_accel(
-                        this_vel=ego_vel,
-                        lead_vel=l_l_vel,
-                        h=l_l_headway)
-                except NotImplementedError:
-                    print(
-                        "====================================================\n"
-                        "The get_custom_accel() method is not implemented for\n"
-                        "the selected Car Following model. Please implement  \n"
-                        " the method or use another Car Following model      \n"
-                        "=====================================================")
-                    sys.exit(1)
+                acc_in_left_lane = ego_accel_controller.get_custom_accel(
+                    this_vel=ego_vel,
+                    lead_vel=l_l_vel,
+                    h=l_l_headway)
 
             # follower acceleration if the ego vehicle is in the left lane
             if l_f not in ['', None]:
                 # left follower velocity and headway
                 l_f_vel = env.k.vehicle.get_speed(l_f)
                 l_f_tailway = lane_tailways[l_lane]
-
                 l_f_accel_controller = env.k.vehicle.get_acc_controller(l_f)
-                try:
-                    left_lane_follower_acc = l_f_accel_controller. \
-                        get_custom_accel(
-                         this_vel=l_f_vel,
-                         lead_vel=ego_vel,
-                         h=l_f_tailway)
-                except NotImplementedError:
-                    print(
-                        "====================================================\n"
-                        "The get_custom_accel() method is not implemented for\n"
-                        "the selected Car Following model. Please implement  \n"
-                        " the method or use another Car Following model      \n"
-                        "=====================================================")
-                    sys.exit(1)
+                left_lane_follower_acc = l_f_accel_controller.get_custom_accel(
+                    this_vel=l_f_vel,
+                    lead_vel=ego_vel,
+                    h=l_f_tailway)
             else:  # if left lane exists but left follower does not exist
                 # in this case we assign maximum acceleration
                 left_lane_follower_acc = ego_accel_controller.max_accel
@@ -177,60 +144,30 @@ class AILaneChangeController(BaseLaneChangeController):
                 # right leader velocity and headway
                 r_l_vel = env.k.vehicle.get_speed(r_l)
                 r_l_headway = lane_headways[r_lane]
-
-                try:
-                    acc_in_right_lane = ego_accel_controller.get_custom_accel(
-                        this_vel=ego_vel,
-                        lead_vel=r_l_vel,
-                        h=r_l_headway)
-                except NotImplementedError:
-                    print(
-                        "====================================================\n"
-                        "The get_custom_accel() method is not implemented for\n"
-                        "the selected Car Following model. Please implement  \n"
-                        " the method or use another Car Following model      \n"
-                        "=====================================================")
-                    sys.exit(1)
+                acc_in_right_lane = ego_accel_controller.get_custom_accel(
+                    this_vel=ego_vel,
+                    lead_vel=r_l_vel,
+                    h=r_l_headway)
             else:  # if right lane exists but right leader does not exist
                 # in this case we assign None to the leader velocity and
                 # large number to headway
                 r_l_vel = None
                 r_l_headway = 1000
-                try:
-                    acc_in_right_lane = ego_accel_controller.get_custom_accel(
-                        this_vel=ego_vel,
-                        lead_vel=r_l_vel,
-                        h=r_l_headway)
-                except NotImplementedError:
-                    print(
-                        "====================================================\n"
-                        "The get_custom_accel() method is not implemented for\n"
-                        "the selected Car Following model. Please implement  \n"
-                        " the method or use another Car Following model      \n"
-                        "=====================================================")
-                    sys.exit(1)
+                acc_in_right_lane = ego_accel_controller.get_custom_accel(
+                    this_vel=ego_vel,
+                    lead_vel=r_l_vel,
+                    h=r_l_headway)
 
             # follower acceleration if the ego vehicle is in the right lane
             if r_f not in ['', None]:
                 # right follower velocity and headway
                 r_f_vel = env.k.vehicle.get_speed(r_f)
                 r_f_headway = lane_tailways[r_lane]
-
                 r_f_accel_controller = env.k.vehicle.get_acc_controller(r_f)
-                try:
-                    right_lane_follower_acc = r_f_accel_controller.\
-                        get_custom_accel(
-                         this_vel=r_f_vel,
-                         lead_vel=ego_vel,
-                         h=r_f_headway)
-                except NotImplementedError:
-                    print(
-                        "====================================================\n"
-                        "The get_custom_accel() method is not implemented for\n"
-                        "the selected Car Following model. Please implement  \n"
-                        " the method or use another Car Following model      \n"
-                        "=====================================================")
-                    sys.exit(1)
+                right_lane_follower_acc = r_f_accel_controller.get_custom_accel(
+                    this_vel=r_f_vel,
+                    lead_vel=ego_vel,
+                    h=r_f_headway)
             else:  # if right lane exists but right follower does not exist
                 # assign maximum acceleration
                 right_lane_follower_acc = ego_accel_controller.max_accel
