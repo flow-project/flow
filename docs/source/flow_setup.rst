@@ -112,6 +112,22 @@ If you are a Mac user and the above command gives you the error
 ``FXApp:openDisplay: unable to open display :0.0``, make sure to open the
 application XQuartz.
 
+*Troubleshooting*:
+If you are a Mac user and the above command gives you the error
+``Segmentation fault: 11``, make sure to reinstall ``fox`` using brew.
+::
+
+  # Uninstall Catalina bottle of fox:
+  $ brew uninstall --ignore-dependencies fox
+
+  # Edit brew Formula of fox:
+  $ brew edit fox
+
+  # Comment out or delete the following line: sha256 "c6697be294c9a0458580564d59f8db32791beb5e67a05a6246e0b969ffc068bc" => :catalina
+  # Install Mojave bottle of fox:
+  $ brew install fox
+
+
 Testing your SUMO and Flow installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

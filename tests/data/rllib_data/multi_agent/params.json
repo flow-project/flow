@@ -1,54 +1,64 @@
 {
   "batch_mode": "truncate_episodes",
   "callbacks": {
-    "on_episode_end": null,
-    "on_episode_start": null,
-    "on_episode_step": null,
-    "on_postprocess_traj": null,
-    "on_sample_end": null,
-    "on_train_result": null
+    "on_episode_end": "<function setup_exps_rllib.<locals>.on_episode_end at 0x1460752f0>",
+    "on_episode_start": "<function setup_exps_rllib.<locals>.on_episode_start at 0x11d064048>",
+    "on_episode_step": "<function setup_exps_rllib.<locals>.on_episode_step at 0x146075268>",
+    "on_train_result": "<function setup_exps_rllib.<locals>.on_train_result at 0x146075378>"
   },
-  "clip_actions": false,
+  "clip_actions": true,
   "clip_param": 0.3,
   "clip_rewards": null,
   "collect_metrics_timeout": 180,
   "compress_observations": false,
+  "custom_eval_function": null,
   "custom_resources_per_worker": {},
+  "eager": false,
+  "eager_tracing": false,
   "entropy_coeff": 0.0,
   "entropy_coeff_schedule": null,
-  "env": "MultiWaveAttenuationPOEnv-v0",
+  "env": "MultiStraightRoad-v1",
   "env_config": {
-    "flow_params": "{\n    \"env\": {\n        \"additional_params\": {\n            \"max_accel\": 1,\n            \"max_decel\": 1,\n            \"ring_length\": [\n                230,\n                230\n            ],\n            \"target_velocity\": 4\n        },\n        \"clip_actions\": true,\n        \"evaluate\": false,\n        \"horizon\": 3000,\n        \"sims_per_step\": 1,\n        \"warmup_steps\": 750\n    },\n    \"env_name\": \"MultiWaveAttenuationPOEnv\",\n    \"exp_tag\": \"lord_of_numrings1\",\n    \"initial\": {\n        \"additional_params\": {},\n        \"bunching\": 20.0,\n        \"edges_distribution\": \"all\",\n        \"lanes_distribution\": Infinity,\n        \"min_gap\": 0,\n        \"perturbation\": 0.0,\n        \"shuffle\": false,\n        \"spacing\": \"custom\",\n        \"x0\": 0\n    },\n    \"net\": {\n        \"additional_params\": {\n            \"lanes\": 1,\n            \"length\": 230,\n            \"num_rings\": 1,\n            \"resolution\": 40,\n            \"speed_limit\": 30\n        },\n        \"inflows\": {\n            \"_InFlows__flows\": []\n        },\n        \"osm_path\": null,\n        \"template\": null\n    },\n    \"network\": \"MultiRingNetwork\",\n    \"sim\": {\n        \"color_vehicles\": true,\n        \"emission_path\": null,\n        \"lateral_resolution\": null,\n        \"no_step_log\": true,\n        \"num_clients\": 1,\n        \"overtake_right\": false,\n        \"port\": null,\n        \"print_warnings\": true,\n        \"pxpm\": 2,\n        \"render\": false,\n        \"restart_instance\": false,\n        \"save_render\": false,\n        \"seed\": null,\n        \"show_radius\": false,\n        \"sight_radius\": 25,\n        \"sim_step\": 0.1,\n        \"teleport_time\": -1\n    },\n    \"simulator\": \"traci\",\n    \"veh\": [\n        {\n            \"acceleration_controller\": [\n                \"IDMController\",\n                {\n                    \"noise\": 0.2\n                }\n            ],\n            \"car_following_params\": {\n                \"controller_params\": {\n                    \"accel\": 2.6,\n                    \"carFollowModel\": \"IDM\",\n                    \"decel\": 4.5,\n                    \"impatience\": 0.5,\n                    \"maxSpeed\": 30,\n                    \"minGap\": 2.5,\n                    \"sigma\": 0.5,\n                    \"speedDev\": 0.1,\n                    \"speedFactor\": 1.0,\n                    \"tau\": 1.0\n                },\n                \"speed_mode\": 25\n            },\n            \"initial_speed\": 0,\n            \"lane_change_controller\": [\n                \"SimLaneChangeController\",\n                {}\n            ],\n            \"lane_change_params\": {\n                \"controller_params\": {\n                    \"laneChangeModel\": \"LC2013\",\n                    \"lcCooperative\": \"1.0\",\n                    \"lcKeepRight\": \"1.0\",\n                    \"lcSpeedGain\": \"1.0\",\n                    \"lcStrategic\": \"1.0\"\n                },\n                \"lane_change_mode\": 512\n            },\n            \"num_vehicles\": 21,\n            \"routing_controller\": [\n                \"ContinuousRouter\",\n                {}\n            ],\n            \"veh_id\": \"human_0\"\n        },\n        {\n            \"acceleration_controller\": [\n                \"RLController\",\n                {}\n            ],\n            \"car_following_params\": {\n                \"controller_params\": {\n                    \"accel\": 2.6,\n                    \"carFollowModel\": \"IDM\",\n                    \"decel\": 4.5,\n                    \"impatience\": 0.5,\n                    \"maxSpeed\": 30,\n                    \"minGap\": 2.5,\n                    \"sigma\": 0.5,\n                    \"speedDev\": 0.1,\n                    \"speedFactor\": 1.0,\n                    \"tau\": 1.0\n                },\n                \"speed_mode\": 25\n            },\n            \"initial_speed\": 0,\n            \"lane_change_controller\": [\n                \"SimLaneChangeController\",\n                {}\n            ],\n            \"lane_change_params\": {\n                \"controller_params\": {\n                    \"laneChangeModel\": \"LC2013\",\n                    \"lcCooperative\": \"1.0\",\n                    \"lcKeepRight\": \"1.0\",\n                    \"lcSpeedGain\": \"1.0\",\n                    \"lcStrategic\": \"1.0\"\n                },\n                \"lane_change_mode\": 512\n            },\n            \"num_vehicles\": 1,\n            \"routing_controller\": [\n                \"ContinuousRouter\",\n                {}\n            ],\n            \"veh_id\": \"rl_0\"\n        }\n    ]\n}",
-    "run": "PPO"
+    "flow_params": "{\n    \"env\": {\n        \"additional_params\": {\n            \"accel_penalty\": 0.05,\n            \"control_range\": [\n                500,\n                2300\n            ],\n            \"headway_curriculum\": false,\n            \"headway_curriculum_iters\": 100,\n            \"headway_reward_gain\": 2.0,\n            \"lead_obs\": true,\n            \"local_reward\": true,\n            \"look_back_length\": 3,\n            \"max_accel\": 2.6,\n            \"max_decel\": 4.5,\n            \"max_num_agents\": 10,\n            \"min_time_headway\": 2.0,\n            \"mpg_reward\": false,\n            \"mpj_reward\": false,\n            \"penalize_accel\": true,\n            \"penalize_stops\": true,\n            \"reroute_on_exit\": true,\n            \"sort_vehicles\": false,\n            \"speed_curriculum\": true,\n            \"speed_curriculum_iters\": 20,\n            \"speed_reward_gain\": 1.0,\n            \"stop_penalty\": 0.05,\n            \"target_velocity\": 6.0\n        },\n        \"clip_actions\": true,\n        \"done_at_exit\": true,\n        \"evaluate\": false,\n        \"horizon\": 1000,\n        \"sims_per_step\": 3,\n        \"warmup_steps\": 500\n    },\n    \"env_name\": \"flow.envs.multiagent.i210.MultiStraightRoad\",\n    \"exp_tag\": \"multiagent_highway\",\n    \"initial\": {\n        \"additional_params\": {},\n        \"bunching\": 0,\n        \"edges_distribution\": \"all\",\n        \"lanes_distribution\": Infinity,\n        \"min_gap\": 0,\n        \"perturbation\": 0.0,\n        \"shuffle\": false,\n        \"spacing\": \"uniform\",\n        \"x0\": 0\n    },\n    \"net\": {\n        \"additional_params\": {\n            \"boundary_cell_length\": 300,\n            \"ghost_speed_limit\": 6.0,\n            \"lanes\": 1,\n            \"length\": 2500,\n            \"num_edges\": 2,\n            \"speed_limit\": 30,\n            \"use_ghost_edge\": true\n        },\n        \"inflows\": {\n            \"_InFlows__flows\": [\n                {\n                    \"begin\": 1,\n                    \"departLane\": \"free\",\n                    \"departSpeed\": 24.1,\n                    \"edge\": \"highway_0\",\n                    \"end\": 86400,\n                    \"name\": \"idm_highway_inflow_0\",\n                    \"vehsPerHour\": 1993,\n                    \"vtype\": \"human\"\n                },\n                {\n                    \"begin\": 1,\n                    \"departLane\": \"free\",\n                    \"departSpeed\": 24.1,\n                    \"edge\": \"highway_0\",\n                    \"end\": 86400,\n                    \"name\": \"rl_highway_inflow_1\",\n                    \"vehsPerHour\": 221,\n                    \"vtype\": \"rl\"\n                }\n            ]\n        },\n        \"osm_path\": null,\n        \"template\": null\n    },\n    \"network\": \"flow.networks.highway.HighwayNetwork\",\n    \"sim\": {\n        \"color_by_speed\": false,\n        \"disable_collisions\": false,\n        \"emission_path\": null,\n        \"force_color_update\": false,\n        \"lateral_resolution\": null,\n        \"no_step_log\": true,\n        \"num_clients\": 1,\n        \"overtake_right\": false,\n        \"port\": null,\n        \"print_warnings\": true,\n        \"pxpm\": 2,\n        \"render\": false,\n        \"restart_instance\": true,\n        \"save_render\": false,\n        \"seed\": null,\n        \"show_radius\": false,\n        \"sight_radius\": 25,\n        \"sim_step\": 0.4,\n        \"teleport_time\": -1,\n        \"use_ballistic\": true\n    },\n    \"simulator\": \"traci\",\n    \"veh\": [\n        {\n            \"acceleration_controller\": [\n                \"IDMController\",\n                {\n                    \"a\": 1.3,\n                    \"b\": 2.0,\n                    \"noise\": 0.3\n                }\n            ],\n            \"car_following_params\": {\n                \"controller_params\": {\n                    \"accel\": 2.6,\n                    \"carFollowModel\": \"IDM\",\n                    \"decel\": 4.5,\n                    \"impatience\": 0.5,\n                    \"maxSpeed\": 30,\n                    \"minGap\": 0.5,\n                    \"sigma\": 0.5,\n                    \"speedDev\": 0.1,\n                    \"speedFactor\": 1.0,\n                    \"tau\": 1.0\n                },\n                \"speed_mode\": 25\n            },\n            \"energy_model\": \"PDMCombustionEngine\",\n            \"initial_speed\": 0,\n            \"lane_change_controller\": [\n                \"SimLaneChangeController\",\n                {}\n            ],\n            \"lane_change_params\": {\n                \"controller_params\": {\n                    \"laneChangeModel\": \"SL2015\",\n                    \"lcAccelLat\": \"1.0\",\n                    \"lcAssertive\": \"1\",\n                    \"lcCooperative\": \"1.0\",\n                    \"lcKeepRight\": \"1.0\",\n                    \"lcLookaheadLeft\": \"2.0\",\n                    \"lcPushy\": \"0\",\n                    \"lcPushyGap\": \"0.6\",\n                    \"lcSpeedGain\": \"1.0\",\n                    \"lcSpeedGainRight\": \"1.0\",\n                    \"lcStrategic\": \"1.0\",\n                    \"lcSublane\": \"2.0\"\n                },\n                \"lane_change_mode\": 512\n            },\n            \"num_vehicles\": 0,\n            \"routing_controller\": null,\n            \"veh_id\": \"human\"\n        },\n        {\n            \"acceleration_controller\": [\n                \"RLController\",\n                {}\n            ],\n            \"car_following_params\": {\n                \"controller_params\": {\n                    \"accel\": 2.6,\n                    \"carFollowModel\": \"IDM\",\n                    \"decel\": 4.5,\n                    \"impatience\": 0.5,\n                    \"maxSpeed\": 30,\n                    \"minGap\": 2.5,\n                    \"sigma\": 0.5,\n                    \"speedDev\": 0.1,\n                    \"speedFactor\": 1.0,\n                    \"tau\": 1.0\n                },\n                \"speed_mode\": 25\n            },\n            \"energy_model\": \"PDMCombustionEngine\",\n            \"initial_speed\": 0,\n            \"lane_change_controller\": [\n                \"SimLaneChangeController\",\n                {}\n            ],\n            \"lane_change_params\": {\n                \"controller_params\": {\n                    \"laneChangeModel\": \"LC2013\",\n                    \"lcCooperative\": \"1.0\",\n                    \"lcKeepRight\": \"1.0\",\n                    \"lcSpeedGain\": \"1.0\",\n                    \"lcStrategic\": \"1.0\"\n                },\n                \"lane_change_mode\": 512\n            },\n            \"num_vehicles\": 0,\n            \"routing_controller\": null,\n            \"veh_id\": \"rl\"\n        }\n    ]\n}",
+    "run": "<class 'ray.rllib.agents.trainer_template.CustomPPOTrainer'>"
   },
   "evaluation_config": {},
   "evaluation_interval": null,
   "evaluation_num_episodes": 10,
-  "gamma": 0.999,
+  "evaluation_num_workers": 0,
+  "exploration_config": {
+    "type": "StochasticSampling"
+  },
+  "explore": true,
+  "gamma": 0.995,
   "grad_clip": null,
-  "horizon": 3000,
+  "horizon": 1000,
   "ignore_worker_failures": false,
+  "in_evaluation": false,
   "input": "sampler",
   "input_evaluation": [
     "is",
     "wis"
   ],
   "kl_coeff": 0.2,
-  "kl_target": 0.01,
-  "lambda": 1.0,
+  "kl_target": 0.02,
+  "lambda": 0.97,
   "local_tf_session_args": {
     "inter_op_parallelism_threads": 8,
     "intra_op_parallelism_threads": 8
   },
-  "log_level": "INFO",
+  "log_level": "WARN",
   "log_sys_usage": true,
-  "lr": 1e-05,
+  "lr": 5e-05,
   "lr_schedule": null,
+  "memory": 0,
+  "memory_per_worker": 0,
   "metrics_smoothing_episodes": 100,
   "min_iter_time_s": 0,
   "model": {
     "conv_activation": "relu",
     "conv_filters": null,
+    "custom_action_dist": null,
     "custom_model": null,
     "custom_options": {},
     "custom_preprocessor": null,
@@ -74,24 +84,27 @@
   "multiagent": {
     "policies": {
       "av": [
-        "<class 'ray.rllib.policy.tf_policy_template.PPOTFPolicy'>",
+        null,
         "Box(3,)",
         "Box(1,)",
         {}
       ]
     },
-    "policies_to_train": [
-      "av"
-    ],
-    "policy_mapping_fn": "tune.function(<function setup_exps.<locals>.policy_mapping_fn at 0x7fda132e6c80>)"
+    "policies_to_train": null,
+    "policy_mapping_fn": "<function policy_mapping_fn at 0x146012bf8>"
   },
+  "no_done_at_end": false,
+  "no_eager_on_workers": false,
+  "normalize_actions": false,
   "num_cpus_for_driver": 1,
   "num_cpus_per_worker": 1,
   "num_envs_per_worker": 1,
   "num_gpus": 0,
   "num_gpus_per_worker": 0,
-  "num_sgd_iter": 30,
-  "num_workers": 2,
+  "num_sgd_iter": 10,
+  "num_workers": 1,
+  "object_store_memory": 0,
+  "object_store_memory_per_worker": 0,
   "observation_filter": "NoFilter",
   "optimizer": {},
   "output": null,
@@ -104,13 +117,14 @@
   "preprocessor_pref": "deepmind",
   "remote_env_batch_wait_ms": 0,
   "remote_worker_envs": false,
+  "rollout_fragment_length": 200,
   "sample_async": false,
-  "sample_batch_size": 200,
+  "sample_batch_size": -1,
   "seed": null,
   "sgd_minibatch_size": 128,
   "shuffle_buffer_size": 0,
   "shuffle_sequences": true,
-  "simple_optimizer": true,
+  "simple_optimizer": false,
   "soft_horizon": false,
   "synchronize_filters": true,
   "tf_session_args": {
@@ -126,8 +140,11 @@
     "log_device_placement": false
   },
   "timesteps_per_iteration": 0,
-  "train_batch_size": 60000,
+  "train_batch_size": 1000,
+  "use_critic": true,
+  "use_exec_api": false,
   "use_gae": true,
+  "use_pytorch": false,
   "vf_clip_param": 10.0,
   "vf_loss_coeff": 1.0,
   "vf_share_layers": false
