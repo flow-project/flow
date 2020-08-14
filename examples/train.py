@@ -211,7 +211,7 @@ def setup_exps_rllib(flow_params,
         config["kl_target"] = 0.02
         config["num_sgd_iter"] = 10
         if flags.grid_search:
-            config["lambda"] = tune.grid_search([0.5, 0.9])
+            # config["lambda"] = tune.grid_search([0.5, 0.9])
             config["lr"] = tune.grid_search([5e-4, 5e-5])
     elif alg_run == "CENTRALIZEDPPO":
         from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
