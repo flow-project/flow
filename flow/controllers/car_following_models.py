@@ -729,3 +729,7 @@ class BandoFTLController(BaseController):
         s_dot = v_l - v
         u = self.alpha * (v_h - v) + self.beta * s_dot/(s**2)
         return u
+
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
