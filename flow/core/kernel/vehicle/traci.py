@@ -269,7 +269,7 @@ class TraCIVehicle(KernelVehicle):
 
         if isinstance(self.master_kernel.network.network, I210SubNetwork) or \
                 isinstance(self.master_kernel.network.network, HighwayNetwork):
-            self._update_sorted_ids()
+            self._update_headways()
 
     def _add_departed(self, veh_id, veh_type):
         """Add a vehicle that entered the network from an inflow or reset.
@@ -624,87 +624,54 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_leader(vehID, error) for vehID in veh_id]
-
-        if isinstance(self.master_kernel.network.network, I210SubNetwork) or \
-                isinstance(self.master_kernel.network.network, HighwayNetwork):
-            return self._get_leader(veh_id)
-        else:
-            return self.__vehicles.get(veh_id, {}).get("leader", error)
+        return self.__vehicles.get(veh_id, {}).get("leader", error)
 
     def get_follower(self, veh_id, error=""):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_follower(vehID, error) for vehID in veh_id]
-
-        if isinstance(self.master_kernel.network.network, I210SubNetwork) or \
-                isinstance(self.master_kernel.network.network, HighwayNetwork):
-            return self._get_follower(veh_id)
-        else:
-            return self.__vehicles.get(veh_id, {}).get("follower", error)
+        return self.__vehicles.get(veh_id, {}).get("follower", error)
 
     def get_headway(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_headway(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("headway", error)
 
-        if isinstance(self.master_kernel.network.network, I210SubNetwork) or \
-                isinstance(self.master_kernel.network.network, HighwayNetwork):
-            return self._get_headway(veh_id)
-        else:
-            return self.__vehicles.get(veh_id, {}).get("headway", error)
-
-    def _update_sorted_ids(self):
-        """Sort all vehicle by lane (for the I210 and highway)."""
-        self._sorted_ids = []
-
+    def _update_headways(self):
+        """Update the adjacent vehicle data (for the I210 and highway)."""
         for lane in range(6):
-            self._sorted_ids.append(sorted(
+            # Sort each vehicle based on the position it is on it's given lane.
+            sorted_ids = sorted(
                 [
                     veh_id for veh_id in self.get_ids()
                     if self._get_lane(veh_id) == lane
                 ],
                 key=self.get_x_by_id
-            ))
+            )
 
-    def _get_leader(self, veh_id):
-        """Return the leader from the sorted list (for I210/highway)."""
-        lane = self._get_lane(veh_id)
-        indx = self._sorted_ids[lane].index(veh_id)
+            # Update the headways, tailways, leaders, and followers for each
+            # vehicle.
+            for i, veh_id in enumerate(sorted_ids):
+                pos = self.get_x_by_id(veh_id)
 
-        if indx == len(self._sorted_ids[lane]) - 1:
-            return None
-        else:
-            return self._sorted_ids[lane][indx + 1]
+                # The front vehicle has no leaders.
+                if i == len(sorted_ids) - 1:
+                    leader = None
+                    headway = 1000
+                else:
+                    leader = sorted_ids[i + 1]
+                    headway = self.get_x_by_id(leader) - pos - 5
 
-    def _get_follower(self, veh_id):
-        """Return the follower from the sorted list (for I210/highway)."""
-        lane = self._get_lane(veh_id)
-        indx = self._sorted_ids[lane].index(veh_id)
+                # The back vehicle have no followers.
+                if i == 0:
+                    follower = None
+                else:
+                    follower = sorted_ids[i - 1]
 
-        if indx == 0:
-            return None
-        else:
-            return self._sorted_ids[lane][indx - 1]
-
-    def _get_headway(self, veh_id):
-        """Return the headway from the sorted list (for I210/highway)."""
-        leader = self._get_leader(veh_id)
-        if leader is None:
-            return 1000
-        else:
-            x1 = self.get_x_by_id(leader)
-            x0 = self.get_x_by_id(veh_id)
-            return x1 - x0 - 5
-
-    def _get_tailway(self, veh_id):
-        """Return the tailway from the sorted list (for I210/highway)."""
-        follower = self._get_follower(veh_id)
-        if follower is None:
-            return 1000
-        else:
-            x1 = self.get_x_by_id(veh_id)
-            x0 = self.get_x_by_id(follower)
-            return x1 - x0 - 5
+                self.__vehicles[veh_id]["leader"] = leader
+                self.__vehicles[veh_id]["headway"] = headway
+                self.__vehicles[veh_id]["follower"] = follower
 
     def _get_lane(self, veh_id):
         """Return a processed lane number."""
@@ -728,7 +695,7 @@ class TraCIVehicle(KernelVehicle):
                           ' {}.'.format(veh_id, error))
             return error
         else:
-            return self.__vehicles.get(veh_id, {}).get("headway", error)
+            return self.__vehicles.get(veh_id, {}).get("last_lc", error)
 
     def get_acc_controller(self, veh_id, error=None):
         """See parent class."""
