@@ -130,6 +130,7 @@ vehicles.add(
     color='red',
     veh_id='rl',
     car_following_params=SumoCarFollowingParams(
+        min_gap=0.5,
         speed_mode=12  # right of way at intersections + obey limits on deceleration
     ),
     acceleration_controller=(RLController, {
