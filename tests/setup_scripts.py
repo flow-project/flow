@@ -346,6 +346,7 @@ def highway_exp_setup(sim_params=None,
             "num_edges": 1,
             "use_ghost_edge": False,
             "ghost_speed_limit": 25,
+            "boundary_cell_length": 300,
         }
         net_params = NetParams(additional_params=additional_net_params)
 

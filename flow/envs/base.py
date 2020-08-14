@@ -1,5 +1,6 @@
 """Base environment class. This is the parent of all other environments."""
 
+from abc import ABCMeta, abstractmethod
 from copy import deepcopy
 import os
 import atexit
@@ -25,8 +26,10 @@ from flow.core.util import ensure_dir
 from flow.core.kernel import Kernel
 from flow.utils.exceptions import FatalFlowError
 
+from flow.data_pipeline.data_pipeline import get_extra_info
 
-class Env(gym.Env):
+
+class Env(gym.Env, metaclass=ABCMeta):
     """Base environment class.
 
     Provides the interface for interacting with various aspects of a traffic
@@ -147,6 +150,13 @@ class Env(gym.Env):
         self.initial_state = {}
         self.state = None
         self.obs_var_labels = []
+
+        # number of training iterations (used by the rllib training procedure)
+        self._num_training_iters = 0
+
+        # track IDs that have ever been observed in the system
+        self._observed_ids = set()
+        self._observed_rl_ids = set()
 
         # simulation step size
         self.sim_step = sim_params.sim_step
@@ -322,6 +332,11 @@ class Env(gym.Env):
             contains other diagnostic information from the previous action
         """
         for _ in range(self.env_params.sims_per_step):
+            # This tracks vehicles that have appeared during warmup steps
+            if self.time_counter <= self.env_params.sims_per_step * self.env_params.warmup_steps:
+                self._observed_ids.update(self.k.vehicle.get_ids())
+                self._observed_rl_ids.update(self.k.vehicle.get_rl_ids())
+
             self.time_counter += 1
             self.step_counter += 1
 
@@ -396,8 +411,7 @@ class Env(gym.Env):
         # test if the environment should terminate due to a collision or the
         # time horizon being met
         done = (self.time_counter >= self.env_params.sims_per_step *
-                (self.env_params.warmup_steps + self.env_params.horizon)
-                or crash)
+                (self.env_params.warmup_steps + self.env_params.horizon))
 
         # compute the info for each agent
         infos = {}
@@ -429,6 +443,10 @@ class Env(gym.Env):
         """
         # reset the time counter
         self.time_counter = 0
+
+        # reset the observed ids
+        self._observed_ids = set()
+        self._observed_rl_ids = set()
 
         # Now that we've passed the possibly fake init steps some rl libraries
         # do, we can feel free to actually render things
@@ -553,6 +571,14 @@ class Env(gym.Env):
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
             observation, _, _, _ = self.step(rl_actions=None)
+            # collect data for pipeline during the warmup period
+            try:
+                extra_info, source_id, run_id = self.pipeline_params
+                veh_ids = self.k.vehicle.get_ids()
+                get_extra_info(self.k.vehicle, extra_info, veh_ids, source_id, run_id)
+            # In case the attribute `pipeline_params` if not added to this instance
+            except AttributeError:
+                pass
 
         # render a frame
         self.render(reset=True)
@@ -614,9 +640,11 @@ class Env(gym.Env):
         rl_clipped = self.clip_actions(rl_actions)
         self._apply_rl_actions(rl_clipped)
 
+    @abstractmethod
     def _apply_rl_actions(self, rl_actions):
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def get_state(self):
         """Return the state of the simulation as perceived by the RL agent.
 
@@ -628,9 +656,10 @@ class Env(gym.Env):
             information on the state of the vehicles, which is provided to the
             agent
         """
-        raise NotImplementedError
+        pass
 
     @property
+    @abstractmethod
     def action_space(self):
         """Identify the dimensions and bounds of the action space.
 
@@ -641,9 +670,10 @@ class Env(gym.Env):
         gym Box or Tuple type
             a bounded box depicting the shape and bounds of the action space
         """
-        raise NotImplementedError
+        pass
 
     @property
+    @abstractmethod
     def observation_space(self):
         """Identify the dimensions and bounds of the observation space.
 
@@ -655,7 +685,7 @@ class Env(gym.Env):
             a bounded box depicting the shape and bounds of the observation
             space
         """
-        raise NotImplementedError
+        pass
 
     def compute_reward(self, rl_actions, **kwargs):
         """Reward function for the RL agent(s).
@@ -797,3 +827,7 @@ class Env(gym.Env):
             sight = self.renderer.get_sight(
                 orientation, id)
             self.sights.append(sight)
+
+    def set_iteration_num(self):
+        """Increment the number of training iterations."""
+        self._num_training_iters += 1

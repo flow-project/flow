@@ -18,7 +18,7 @@ vehicles.add(
         speed_mode=1,
     ),
     lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="no_lat_collide",
+        lane_change_mode="no_lc_safe",
     ),
     initial_speed=0,
     num_vehicles=90)
