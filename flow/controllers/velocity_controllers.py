@@ -249,3 +249,7 @@ class PISaturation(BaseController):
         accel = (self.v_cmd - this_vel) / env.sim_step
 
         return min(accel, self.max_accel)
+
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
