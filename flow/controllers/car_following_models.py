@@ -90,6 +90,10 @@ class CFMController(BaseController):
         return self.k_d*(d_l - self.d_des) + self.k_v*(lead_vel - this_vel) + \
             self.k_c*(self.v_des - this_vel)
 
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
+
 
 class BCMController(BaseController):
     """Bilateral car-following model controller.
@@ -181,6 +185,10 @@ class BCMController(BaseController):
             self.k_v * ((lead_vel - this_vel) - (this_vel - trail_vel)) + \
             self.k_c * (self.v_des - this_vel)
 
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
+
 
 class LACController(BaseController):
     """Linear Adaptive Cruise Control.
@@ -252,6 +260,10 @@ class LACController(BaseController):
         self.a = a_dot*env.sim_step + self.a
 
         return self.a
+
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
 
 
 class OVMController(BaseController):
@@ -339,6 +351,10 @@ class OVMController(BaseController):
 
         return self.alpha * (v_h - this_vel) + self.beta * h_dot
 
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
+
 
 class LinearOVM(BaseController):
     """Linear OVM controller.
@@ -410,6 +426,10 @@ class LinearOVM(BaseController):
             v_h = self.v_max
 
         return (v_h - this_vel) / self.adaptation
+
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
 
 
 class IDMController(BaseController):
@@ -529,6 +549,10 @@ class SimCarFollowingController(BaseController):
         """See parent class."""
         return None
 
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
+
 
 class GippsController(BaseController):
     """Gipps' Model controller.
@@ -615,6 +639,10 @@ class GippsController(BaseController):
         v_next = min(v_acc, v_safe, self.v_desired)
 
         return (v_next-v)/env.sim_step
+
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
 
 
 class BandoFTLController(BaseController):
