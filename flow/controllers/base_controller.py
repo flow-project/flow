@@ -298,12 +298,14 @@ class BaseController(metaclass=ABCMeta):
         lead_max_deaccel = lead_control.max_deaccel
 
         h = env.k.vehicle.get_headway(self.veh_id)
+        min_gap = self.car_following_params.controller_params['minGap']
 
         is_ballistic = env.sim_params.use_ballistic
         just_inserted = self.veh_id in env.k.vehicle.get_departed_ids()
         brake_distance = self.brake_distance(lead_vel, max(max_decel, lead_max_deaccel),
                                              self.delay, is_ballistic, env.sim_step)
-        v_safe = self.maximum_safe_stop_speed(h + brake_distance, this_vel, just_inserted, is_ballistic, env.sim_step)
+        v_safe = self.maximum_safe_stop_speed(h + brake_distance - min_gap, this_vel, just_inserted,
+                                              is_ballistic, env.sim_step)
 
         if this_vel > v_safe:
             if self.display_warnings:
