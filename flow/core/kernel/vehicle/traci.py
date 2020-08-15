@@ -72,12 +72,12 @@ class TraCIVehicle(KernelVehicle):
         self._ids_by_edge = dict()
 
         # number of vehicles that entered the network for every time-step
-        self._num_departed = []
-        self._departed_ids = 0
+        self._num_departed = 0
+        self._departed_ids = []
 
         # number of vehicles to exit the network for every time-step
-        self._num_arrived = []
-        self._arrived_ids = 0
+        self._num_arrived = 0
+        self._arrived_ids = []
         self._arrived_rl_ids = []
 
         # whether or not to automatically color vehicles
@@ -190,10 +190,10 @@ class TraCIVehicle(KernelVehicle):
             for veh_id in self.__rl_ids:
                 self.__vehicles[veh_id]["last_lc"] = -float("inf")
                 self.prev_last_lc[veh_id] = -float("inf")
-            self._num_departed.clear()
-            self._num_arrived.clear()
-            self._departed_ids = 0
-            self._arrived_ids = 0
+            self._num_departed = 0
+            self._num_arrived = 0
+            self._departed_ids.clear()
+            self._arrived_ids.clear()
             self._arrived_rl_ids.clear()
             self.num_not_departed = 0
 
