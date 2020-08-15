@@ -12,6 +12,8 @@ from flow.core.experiment import Experiment
 from flow.core.params import AimsunParams
 from flow.utils.rllib import FlowParamsEncoder
 
+from flow.data_pipeline.data_pipeline import collect_metadata_from_config
+
 
 def parse_args(args):
     """Parse training options user can specify in command line.
@@ -78,11 +80,7 @@ if __name__ == "__main__":
     callables = getattr(config_obj, "custom_callables", None)
 
     # load some metadata from the exp_config file
-    supplied_metadata = dict()
-    supplied_metadata['version'] = [getattr(config_obj, 'VERSION', '2.0')]
-    supplied_metadata['on_ramp'] = [str(getattr(config_obj, 'ON_RAMP', False))]
-    supplied_metadata['penetration_rate'] = [str(100.0 * getattr(config_obj, 'PENETRATION_RATE', 0.0))]
-    supplied_metadata['road_grade'] = [str(getattr(config_obj, 'ROAD_GRADE', False))]
+    supplied_metadata = collect_metadata_from_config(config_obj)
 
     flow_params['sim'].render = not flags.no_render
     flow_params['simulator'] = 'aimsun' if flags.aimsun else 'traci'
