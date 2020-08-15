@@ -173,6 +173,7 @@ flow_params = dict(
         render=False,
         color_by_speed=False,
         use_ballistic=True,
+        overtake_right=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
