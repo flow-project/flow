@@ -103,6 +103,20 @@ class BaseController(metaclass=ABCMeta):
         This method computes acceleration based on custom state information,
         while get_accel() method compute acceleration based on the current state
         information that are obtained from the environment.
+
+        Parameters
+        ----------
+        this_vel : float
+            this vehicle's velocity
+        lead_vel : float
+            leading vehicle's velocity
+        h : float
+            headway to leading vehicle
+
+        Returns
+        -------
+        float
+            the custom acceleration of the controller
         """
         pass
 
