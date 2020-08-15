@@ -92,6 +92,10 @@ class TraCIVehicle(KernelVehicle):
         # The time that previous speed is recorded, used to calculate realized_accel
         self.previous_time = 0
 
+        self._is_highway_i210 = \
+            isinstance(self.master_kernel.network.network, I210SubNetwork) or \
+            isinstance(self.master_kernel.network.network, HighwayNetwork)
+
     def initialize(self, vehicles):
         """Initialize vehicle state information.
 
@@ -224,39 +228,38 @@ class TraCIVehicle(KernelVehicle):
             self.num_not_departed += sim_obs[tc.VAR_LOADED_VEHICLES_NUMBER] - \
                 sim_obs[tc.VAR_DEPARTED_VEHICLES_NUMBER]
 
-        # update the "headway", "leader", and "follower" variables
-        for veh_id in self.__ids:
-            try:
-                _position = vehicle_obs.get(veh_id, {}).get(
-                    tc.VAR_POSITION, -1001)
-                _angle = vehicle_obs.get(veh_id, {}).get(tc.VAR_ANGLE, -1001)
-                _time_step = sim_obs[tc.VAR_TIME_STEP]
-                _time_delta = sim_obs[tc.VAR_DELTA_T]
-                self.__vehicles[veh_id]["orientation"] = \
-                    list(_position) + [_angle]
-                self.__vehicles[veh_id]["timestep"] = _time_step
-                self.__vehicles[veh_id]["timedelta"] = _time_delta
-            except TypeError:
-                print(traceback.format_exc())
-            headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
-            # check for a collided vehicle or a vehicle with no leader
-            if headway is None:
-                self.__vehicles[veh_id]["leader"] = None
-                self.__vehicles[veh_id]["follower"] = None
-                self.__vehicles[veh_id]["headway"] = 1e+3
-                self.__vehicles[veh_id]["follower_headway"] = 1e+3
-            else:
-                min_gap = self.minGap[self.get_type(veh_id)]
-                self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
-                self.__vehicles[veh_id]["leader"] = headway[0]
-                if headway[0] in self.__vehicles:
-                    leader = self.__vehicles[headway[0]]
-                    # if veh_id is closer from leader than another follower
-                    # (in case followers are in different converging edges)
-                    if ("follower_headway" not in leader or
-                            headway[1] + min_gap < leader["follower_headway"]):
-                        leader["follower"] = veh_id
-                        leader["follower_headway"] = headway[1] + min_gap
+        # Update features specific for the pyglet renderer.
+        pyglet_renderer = self.master_kernel.network.sim_params.render \
+            in ['gray', 'dgray', 'rgb', 'drgb']
+        if pyglet_renderer:
+            for veh_id in self.__ids:
+                try:
+                    _position = vehicle_obs.get(veh_id, {}).get(
+                        tc.VAR_POSITION, -1001)
+                    _angle = vehicle_obs.get(veh_id, {}).get(
+                        tc.VAR_ANGLE, -1001)
+                    _time_step = sim_obs[tc.VAR_TIME_STEP]
+                    _time_delta = sim_obs[tc.VAR_DELTA_T]
+                    self.__vehicles[veh_id]["orientation"] = \
+                        list(_position) + [_angle]
+                    self.__vehicles[veh_id]["timestep"] = _time_step
+                    self.__vehicles[veh_id]["timedelta"] = _time_delta
+                except TypeError:
+                    print(traceback.format_exc())
+
+        # Update the "headway", "leader", and "follower" variables.
+        if not self._is_highway_i210:
+            for veh_id in self.__ids:
+                headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
+                # check for a collided vehicle or a vehicle with no leader
+                if headway is None:
+                    self.__vehicles[veh_id]["leader"] = None
+                    self.__vehicles[veh_id]["follower"] = None
+                    self.__vehicles[veh_id]["headway"] = 1e+3
+                else:
+                    min_gap = self.minGap[self.get_type(veh_id)]
+                    self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
+                    self.__vehicles[veh_id]["leader"] = headway[0]
 
         # update the sumo observations variable
         self.__sumo_obs = vehicle_obs.copy()
@@ -267,8 +270,7 @@ class TraCIVehicle(KernelVehicle):
         # make sure the rl vehicle list is still sorted
         self.__rl_ids.sort()
 
-        if isinstance(self.master_kernel.network.network, I210SubNetwork) or \
-                isinstance(self.master_kernel.network.network, HighwayNetwork):
+        if self._is_highway_i210:
             self._update_headways()
 
     def _add_departed(self, veh_id, veh_type):
@@ -339,19 +341,26 @@ class TraCIVehicle(KernelVehicle):
                 if lc_controller[0] != SimLaneChangeController:
                     self.__controlled_lc_ids.append(veh_id)
 
-        # subscribe the new vehicle
-        self.kernel_api.vehicle.subscribe(veh_id, [
-            tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
+        # features to subscribe (excluding headway data)
+        subscribe_ids = [
+            tc.VAR_LANE_INDEX,
+            tc.VAR_LANEPOSITION,
             tc.VAR_ROAD_ID,
             tc.VAR_SPEED,
             tc.VAR_EDGES,
             tc.VAR_POSITION,
-            tc.VAR_ANGLE,
             tc.VAR_SPEED_WITHOUT_TRACI,
-            tc.VAR_FUELCONSUMPTION,
             tc.VAR_DISTANCE
-        ])
-        self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
+        ]
+        pyglet_renderer = self.master_kernel.network.sim_params.render \
+            in ['gray', 'dgray', 'rgb', 'drgb']
+        if pyglet_renderer:
+            subscribe_ids.append(tc.VAR_ANGLE)
+
+        # subscribe the new vehicle
+        self.kernel_api.vehicle.subscribe(veh_id, subscribe_ids)
+        if not self._is_highway_i210:
+            self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
 
         # some constant vehicle parameters to the vehicles class
         self.__vehicles[veh_id]["length"] = self.kernel_api.vehicle.getLength(
@@ -384,8 +393,6 @@ class TraCIVehicle(KernelVehicle):
             self.kernel_api.vehicle.getLaneIndex(veh_id)
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = \
             self.kernel_api.vehicle.getSpeed(veh_id)
-        self.__sumo_obs[veh_id][tc.VAR_FUELCONSUMPTION] = \
-            self.kernel_api.vehicle.getFuelConsumption(veh_id)
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
@@ -552,13 +559,6 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         return self.num_not_departed
 
-    def get_fuel_consumption(self, veh_id, error=-1001):
-        """Return fuel consumption in gallons/s."""
-        ml_to_gallons = 0.000264172
-        if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_fuel_consumption(vehID, error) for vehID in veh_id]
-        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_FUELCONSUMPTION, error) * ml_to_gallons
-
     def get_energy_model(self, veh_id, error=""):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
@@ -640,15 +640,14 @@ class TraCIVehicle(KernelVehicle):
 
     def _update_headways(self):
         """Update the adjacent vehicle data (for the I210 and highway)."""
+        # Separate the vehicles by lane.
+        veh_ids = [[] for _ in range(6)]
+        for veh_id in self.get_ids():
+            veh_ids[self._get_lane(veh_id)].append(veh_id)
+
         for lane in range(6):
             # Sort each vehicle based on the position it is on it's given lane.
-            sorted_ids = sorted(
-                [
-                    veh_id for veh_id in self.get_ids()
-                    if self._get_lane(veh_id) == lane
-                ],
-                key=self.get_x_by_id
-            )
+            sorted_ids = sorted(veh_ids[lane], key=self.get_x_by_id)
 
             # Update the headways, tailways, leaders, and followers for each
             # vehicle.
@@ -1093,8 +1092,7 @@ class TraCIVehicle(KernelVehicle):
             # occurs when a vehicle crashes is teleported for some other reason
             return 0.
 
-        if isinstance(self.master_kernel.network.network, I210SubNetwork) or \
-                isinstance(self.master_kernel.network.network, HighwayNetwork):
+        if self._is_highway_i210:
             return self.get_distance(veh_id)
         else:
             return self.master_kernel.network.get_x(
