@@ -249,7 +249,8 @@ class Experiment:
             for j in range(num_steps):
                 t0 = time.time()
                 # TMP >
-                print(state.shape)
+                for key in state:
+                    state[key] = state[key][:3]
                 # TMP <
                 state, reward, done, _ = self.env.step(rl_actions(state))
                 t1 = time.time()
