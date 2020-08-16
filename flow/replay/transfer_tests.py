@@ -311,6 +311,8 @@ def generate_graphs(args):
     else:
         flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
 
+    if ray.is_initialized():
+        ray.shutdown()
     if args.multi_node:
         ray.init(redis_address='localhost:6379')
     elif args.local:
