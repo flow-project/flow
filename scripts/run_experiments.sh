@@ -23,6 +23,10 @@ vehicles seem to spend 300-400 seconds in the network once it's getting saturate
 fuel rewards are around 0.01, 0.1 when summed over look back length of 5, 10
 -> penalty of -1 seems adequate
 -> accumulated reward bonus of interval/5 is enough to make it positive
+
+/!\ These may have been wrong bc of some issues
+- params not being saved into params.json for some reason (maybe because obtained from cli in train.py)
+- rewards seem too high?
 """
 
 # warm down + late penalty (12 exps)

@@ -10,3 +10,6 @@ python examples/train.py multiagent_i210 --num_iterations 1 --num_rollouts 2 \
         --checkpoint_freq 1 --use_s3 --num_cpus 17 --algorithm PPO --rl_trainer rllib --grid_search \
         --upload_graphs natest azerty2 \
         --exp_title azerty2
+
+
+python flow/replay/transfer_tests.py -r ~/s3/tmp/ --num_cpus 1 --output_dir ~/tmp --submitter_name nat --strategy_name test --gen_emission --use_s3
