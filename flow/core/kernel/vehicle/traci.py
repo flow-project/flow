@@ -636,13 +636,8 @@ class TraCIVehicle(KernelVehicle):
 
     def get_total_gallons(self, veh_id, error=""):
         """See parent class."""
-        print('HI1')
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_total_gallons(vehID, error) for vehID in veh_id]
-        print('HI2')
-        print(veh_id in self.__vehicles)
-        print(self.__vehicles[veh_id])
-
         return self.__vehicles.get(veh_id, {}).get("total_gallons", error)
 
     def get_follower(self, veh_id, error=""):

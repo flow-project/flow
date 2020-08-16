@@ -120,10 +120,6 @@ class I210MultiEnv(MultiEnv):
         if self.late_penalty: self.state_size += 1
         if self.accumulated_reward: self.state_size += 1
 
-        print('STATE', self.state_size) # CB
-        print('ADD_PARAMS', env_params.additional_params) #CB
-        # CB horizon & warmup
-
     @property
     def observation_space(self):
         """See class definition."""
