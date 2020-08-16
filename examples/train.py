@@ -312,8 +312,9 @@ def setup_exps_rllib(flow_params,
             episode.user_data["all_gallons"][veh_id] = env.k.vehicle.get_total_gallons(veh_id)
 
         for veh_id in env.k.vehicle.get_arrived_ids():
-            episode.user_data["total_distance"] += episode.user_data["all_distances"][veh_id]
-            episode.user_data["total_gallons"] += episode.user_data["all_gallons"][veh_id]
+            if veh_id in episode.user_data["all_distances"]:
+                episode.user_data["total_distance"] += episode.user_data["all_distances"][veh_id]
+                episode.user_data["total_gallons"] += episode.user_data["all_gallons"][veh_id]
 
     def on_episode_end(info):
         episode = info["episode"]
