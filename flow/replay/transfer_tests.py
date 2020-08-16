@@ -115,6 +115,9 @@ def replay(args,
     # reroute on exit is a training hack, it should be turned off at test time.
     if hasattr(exp.env, "reroute_on_exit"):
         exp.env.reroute_on_exit = False
+    # same for warm down
+    if hasattr(exp.env, "warm_down"):
+        exp.env.warm_down = False
 
     policy_map_fn, rets = None, None
     if rllib_config:
@@ -130,7 +133,7 @@ def replay(args,
         assert 'run' in rllib_config['env_config'], \
             "Was this trained with the latest version of Flow?"
         # Determine agent and checkpoint
-        agent = set_agents(rllib_config, result_dir, agent_env_name)
+        agent = set_agents(rllib_config, result_dir, agent_env_name, checkpoint_num=args.checkpoint_num)
 
         rllib_rl_action, policy_map_fn, rets = get_rl_action(rllib_config, agent, multiagent)
 
@@ -176,6 +179,7 @@ def create_parser():
         '--checkpoint_num', '-c',
         required=False,
         type=str,
+        default=None,
         help='Checkpoint number.'
     )
     parser.add_argument(
@@ -286,12 +290,20 @@ def create_parser():
         '--exp_config', type=str,
         help='Name of the experiment configuration file, as located in '
              'exp_configs/non_rl.')
+    parser.add_argument(
+        '--submitter_name', type=str,
+        help='Name displayed next to the submission on the leaderboard.')
+    parser.add_argument(
+        '--strategy_name', type=str,
+        help='Strategy displayed next to the submission on the leaderboard.')
     return parser
-
 
 def generate_graphs(args):
     """Run the replay according to the commandline arguments."""
     supplied_metadata = None
+    if args.submitter_name and args.strategy_name:
+        supplied_metadata = {'name': args.submitter_name,
+                             'strategy': args.strategy_name}
     if args.exp_config:
         module = __import__("../../examples/exp_configs.non_rl", fromlist=[args.exp_config])
         flow_params = getattr(module, args.exp_config).flow_params

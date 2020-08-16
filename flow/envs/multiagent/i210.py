@@ -105,11 +105,20 @@ class I210MultiEnv(MultiEnv):
         self.accel_penalty = env_params.additional_params["accel_penalty"]
 
         # energy reward
+        self.warm_down = env_params.additional_params.get("warm_down", False)
+        self.warm_down_steps = env_params.additional_params.get("warm_down_steps", 300)
+        self.late_penalty = env_params.additional_params.get("late_penalty", False)
+        self.late_penalty_steps = env_params.additional_params.get("late_penalty_steps", 600)
+        self.late_penalty_value = env_params.additional_params.get("late_penalty_value", -1.0)
+        self.accumulated_reward = env_params.additional_params.get("accumulated_reward", False)
+        self.accumulated_reward_interval_steps = env_params.additional_params.get("accumulated_reward_interval_steps", 5)
+        self.accumulated_reward_bonus = env_params.additional_params.get("accumulated_reward_bonus", 1)
+
         self.time_since_entered = defaultdict(int)
         self.accumulated_rewards = defaultdict(float)
         self.state_size = 3
-        if env_params.additional_params["late_penalty"]: self.state_size += 1
-        if env_params.additional_params["accumulated_reward"]: self.state_size += 1
+        if self.late_penalty: self.state_size += 1
+        if self.accumulated_reward: self.state_size += 1
 
     @property
     def observation_space(self):
@@ -189,12 +198,12 @@ class I210MultiEnv(MultiEnv):
 
                 state = [speed / SPEED_SCALE, headway / HEADWAY_SCALE, lead_speed / SPEED_SCALE]
 
-                if self.env_params.additional_params["late_penalty"]:
-                    time_since_entered = self.time_since_entered[rl_id] / self.env_params.additional_params["late_penalty_steps"]
+                if self.late_penalty:
+                    time_since_entered = self.time_since_entered[rl_id] / self.late_penalty_steps
                     state.append(time_since_entered)
 
-                if self.env_params.additional_params["accumulated_reward"]:
-                    interval_time_steps = self.env_params.sims_per_step * self.env_params.additional_params["accumulated_reward_interval_steps"]
+                if self.accumulated_reward:
+                    interval_time_steps = self.env_params.sims_per_step * self.accumulated_reward_interval_steps
                     time_since_last_rwd = self.time_counter % interval_time_steps
                     state.append(time_since_last_rwd / interval_time_steps)
                 
@@ -226,25 +235,25 @@ class I210MultiEnv(MultiEnv):
                 else:
                     break
         # accumulate rewards and distribute them along with a bonus every N steps
-        if self.env_params.additional_params["accumulated_reward"]:
+        if self.accumulated_reward:
             # accumulate rewards and agents get nothing
             for rl_id in valid_ids:
                 self.accumulated_rewards[rl_id] += rewards[rl_id]
                 rewards[rl_id] = 0
 
-            interval_time_steps = self.env_params.sims_per_step * self.env_params.additional_params["accumulated_reward_interval_steps"]
+            interval_time_steps = self.env_params.sims_per_step * self.accumulated_reward_interval_steps
             if self.time_counter % interval_time_steps == 0:
                 # give agents their reward
                 for rl_id in valid_ids:
-                    rewards[rl_id] = self.accumulated_rewards[rl_id] + self.env_params.additional_params["accumulated_reward_bonus"]
+                    rewards[rl_id] = self.accumulated_rewards[rl_id] + self.accumulated_reward_bonus
                     self.accumulated_rewards[rl_id] = 0
     
         # penalty if staying in network for too long
         # penalty stays independent of the accumulated rewards (should always be given)
-        if self.env_params.additional_params["late_penalty"]:
+        if self.late_penalty:
             for rl_id in valid_ids:
-                if self.time_since_entered[rl_id] > self.env_params.additional_params["late_penalty_steps"]:
-                    rewards[rl_id] += self.env_params.additional_params["late_penalty_value"]
+                if self.time_since_entered[rl_id] > self.late_penalty_steps:
+                    rewards[rl_id] += self.late_penalty_value
 
         return rewards
 
@@ -258,13 +267,13 @@ class I210MultiEnv(MultiEnv):
 
         if False:
             print(f'time steps {self.time_counter}, warmup {self.time_counter <= self.env_params.sims_per_step * self.env_params.warmup_steps}, '\
-                f'warmup time steps {self.env_params.sims_per_step * self.env_params.warmup_steps}, horizon time steps {self.env_params.sims_per_step * self.env_params.horizon}, warm down {self.env_params.additional_params["warm_down"]} '\
-                f'{self.env_params.sims_per_step * self.env_params.additional_params["warm_down_steps"]} time steps (warming down {self.time_counter > self.env_params.sims_per_step * (self.env_params.warmup_steps + self.env_params.horizon - self.env_params.additional_params["warm_down_steps"])}), '\
+                f'warmup time steps {self.env_params.sims_per_step * self.env_params.warmup_steps}, horizon time steps {self.env_params.sims_per_step * self.env_params.horizon}, warm down {self.warm_down} '\
+                f'{self.env_params.sims_per_step * self.warm_down_steps} time steps (warming down {self.time_counter > self.env_params.sims_per_step * (self.env_params.warmup_steps + self.env_params.horizon - self.warm_down_steps)}), '\
                 f'')
 
         # warm down: prevent rl cars from being inserted around the end of the simulation
-        if self.env_params.additional_params["warm_down"]:
-            warm_down_from_step = self.env_params.warmup_steps + self.env_params.horizon - self.env_params.additional_params["warm_down_steps"]
+        if self.warm_down:
+            warm_down_from_step = self.env_params.warmup_steps + self.env_params.horizon - self.warm_down_steps
             if self.time_counter > self.env_params.sims_per_step * warm_down_from_step:
                 # remove all departed av cars and add human vehicle insteads
                 for veh_id in list(self.k.vehicle.get_departed_ids()):
@@ -287,10 +296,10 @@ class I210MultiEnv(MultiEnv):
                             print(e)
 
         # penalty for being too slow: count time since each rl id entered the network
-        if self.env_params.additional_params["late_penalty"]:
+        if self.late_penalty:
             rl_ids = self.k.vehicle.get_rl_ids()
             for veh_id in rl_ids:
-                self.time_since_entered[veh_id] = min(self.time_since_entered[veh_id] + 1, self.env_params.additional_params["late_penalty_steps"])
+                self.time_since_entered[veh_id] = min(self.time_since_entered[veh_id] + 1, self.late_penalty_steps)
             for veh_id in self.time_since_entered:
                 if veh_id not in rl_ids:
                     # vehicle has exited
