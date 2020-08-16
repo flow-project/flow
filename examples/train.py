@@ -95,16 +95,16 @@ def parse_args(args):
              'Only relevant for i210 training on rllib')
 
     # for energy tests
-    parser.add_argument('--warm_down', action='store_true', default=False)
-    parser.add_argument('--warm_down_steps', type=int, default=300)
-    parser.add_argument('--late_penalty', action='store_true', default=False)
-    parser.add_argument('--late_penalty_steps', type=int, default=600)
-    parser.add_argument('--late_penalty_value', type=float, default=-1.0)
-    parser.add_argument('--accumulated_reward', action='store_true', default=False)
-    parser.add_argument('--accumulated_reward_interval_steps', type=int, default=5)
-    parser.add_argument('--accumulated_reward_bonus', type=float, default=1.0)
+    # parser.add_argument('--warm_down', action='store_true', default=False)
+    # parser.add_argument('--warm_down_steps', type=int, default=300)
+    # parser.add_argument('--late_penalty', action='store_true', default=False)
+    # parser.add_argument('--late_penalty_steps', type=int, default=600)
+    # parser.add_argument('--late_penalty_value', type=float, default=-1.0)
+    # parser.add_argument('--accumulated_reward', action='store_true', default=False)
+    # parser.add_argument('--accumulated_reward_interval_steps', type=int, default=5)
+    # parser.add_argument('--accumulated_reward_bonus', type=float, default=1.0)
     # also
-    parser.add_argument('--look_back_length', type=int, default=8)
+    # parser.add_argument('--look_back_length', type=int, default=8)
 
     return parser.parse_known_args(args)[0]
 
@@ -333,15 +333,15 @@ def setup_exps_rllib(flow_params,
                            "on_train_result": tune.function(on_train_result)}
 
     # energy tests -- setup add params from cli for faster params search
-    flow_params['env'].additional_params["warm_down"] = flags.warm_down
-    flow_params['env'].additional_params["warm_down_steps"] = flags.warm_down_steps
-    flow_params['env'].additional_params["late_penalty"] = flags.late_penalty
-    flow_params['env'].additional_params["late_penalty_steps"] = flags.late_penalty_steps
-    flow_params['env'].additional_params["late_penalty_value"] = flags.late_penalty_value
-    flow_params['env'].additional_params["accumulated_reward"] = flags.accumulated_reward
-    flow_params['env'].additional_params["accumulated_reward_interval_steps"] = flags.accumulated_reward_interval_steps
-    flow_params['env'].additional_params["accumulated_reward_bonus"] = flags.accumulated_reward_bonus
-    flow_params['env'].additional_params["look_back_length"] = flags.look_back_length
+    # flow_params['env'].additional_params["warm_down"] = flags.warm_down
+    # flow_params['env'].additional_params["warm_down_steps"] = flags.warm_down_steps
+    # flow_params['env'].additional_params["late_penalty"] = flags.late_penalty
+    # flow_params['env'].additional_params["late_penalty_steps"] = flags.late_penalty_steps
+    # flow_params['env'].additional_params["late_penalty_value"] = flags.late_penalty_value
+    # flow_params['env'].additional_params["accumulated_reward"] = flags.accumulated_reward
+    # flow_params['env'].additional_params["accumulated_reward_interval_steps"] = flags.accumulated_reward_interval_steps
+    # flow_params['env'].additional_params["accumulated_reward_bonus"] = flags.accumulated_reward_bonus
+    # flow_params['env'].additional_params["look_back_length"] = flags.look_back_length
 
     # save the flow params for replay
     flow_json = json.dumps(
