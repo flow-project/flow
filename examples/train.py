@@ -267,6 +267,8 @@ def setup_exps_rllib(flow_params,
         episode.user_data["avg_accel_avs"] = []
         episode.user_data["total_distance"] = 0
         episode.user_data["total_gallons"] = 0
+        episode.user_data["all_distances"] = {}
+        episode.user_data["all_gallons"] = {}
 
     def on_episode_step(info):
         episode = info["episode"]
@@ -305,10 +307,13 @@ def setup_exps_rllib(flow_params,
              veh_id in rl_ids if veh_id in env.k.vehicle.previous_speeds.keys()]
         )))
 
+        for veh_id in env.k.vehicle.get_ids():
+            episode.user_data["all_distances"][veh_id] = env.k.vehicle.get_distance(veh_id)
+            episode.user_data["all_gallons"][veh_id] = env.k.vehicle.get_total_gallons(veh_id)
+
         for veh_id in env.k.vehicle.get_arrived_ids():
-            episode.user_data["total_distance"] += env.k.vehicle.get_distance(veh_id)
-            print('GAL', env.k.vehicle.get_total_gallons(veh_id))
-            episode.user_data["total_gallons"] += env.k.vehicle.get_total_gallons(veh_id)
+            episode.user_data["total_distance"] += episode.user_data["all_distances"][veh_id]
+            episode.user_data["total_gallons"] += episode.user_data["all_gallons"][veh_id]
 
     def on_episode_end(info):
         episode = info["episode"]
