@@ -305,8 +305,8 @@ def setup_exps_rllib(flow_params,
         )))
 
         for veh_id in env.k.vehicle.get_arrived_ids():
-            mpg = env.k.vehicle.get_distance(veh_id) / env.k.vehicle.get_total_gallons(veh_id)
-            episode.user_data["avg_mpg"].append(mpg )
+            mpg = env.k.vehicle.get_distance(veh_id) / float(env.k.vehicle.get_total_gallons(veh_id))
+            episode.user_data["avg_mpg"].append(mpg)
 
     def on_episode_end(info):
         episode = info["episode"]
