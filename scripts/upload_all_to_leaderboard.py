@@ -7,6 +7,16 @@ for (dirpath, _, o) in os.walk(os.path.expanduser("~/ray_results")):
     if dirname.startswith('CustomPPOTrainer'):
         checkpoint_path = dirpath
         print('CP PATH =', checkpoint_path)
+
+        # in case there is no checkpoint, abort
+        hay_cp = False
+        for dir in os.listdir(checkpoint_path):
+            if dir.startswith('checkpoint'):
+                hay_cp = True
+                break
+        if not hay_cp:
+            print('No CP, aborted')
+            continue
         
         # create dir for graphs output
         output_dir = os.path.join(checkpoint_path, 'output_graphs')
