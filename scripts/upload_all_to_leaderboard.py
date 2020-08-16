@@ -6,6 +6,7 @@ for (dirpath, _, o) in os.walk(os.path.expanduser("~/ray_results")):
     dirname = dirpath.split('/')[-1]
     if dirname.startswith('CustomPPOTrainer'):
         checkpoint_path = dirpath
+        print('CP PATH =', checkpoint_path)
         
         # create dir for graphs output
         output_dir = os.path.join(checkpoint_path, 'output_graphs')
