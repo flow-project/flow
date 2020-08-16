@@ -248,6 +248,9 @@ class Experiment:
             initial_vehicles = set(self.env.k.vehicle.get_ids())
             for j in range(num_steps):
                 t0 = time.time()
+                # TMP >
+                print(state.shape)
+                # TMP <
                 state, reward, done, _ = self.env.step(rl_actions(state))
                 t1 = time.time()
                 times.append(1 / (t1 - t0))
