@@ -265,7 +265,8 @@ def setup_exps_rllib(flow_params,
         episode.user_data["num_cars"] = []
         episode.user_data["avg_accel_human"] = []
         episode.user_data["avg_accel_avs"] = []
-        episode.user_data["avg_mpg"] = []
+        episode.user_data["total_distance"] = 0
+        episode.user_data["total_gallons"] = 0
 
     def on_episode_step(info):
         episode = info["episode"]
@@ -305,8 +306,8 @@ def setup_exps_rllib(flow_params,
         )))
 
         for veh_id in env.k.vehicle.get_arrived_ids():
-            mpg = env.k.vehicle.get_distance(veh_id) / float(env.k.vehicle.get_total_gallons(veh_id))
-            episode.user_data["avg_mpg"].append(mpg)
+            episode.user_data["total_distance"] += env.k.vehicle.get_distance(veh_id)
+            episode.user_data["total_gallons"] += env.k.vehicle.get_total_gallons(veh_id)
 
     def on_episode_end(info):
         episode = info["episode"]
@@ -318,7 +319,7 @@ def setup_exps_rllib(flow_params,
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
         episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["inst_mpg"])
         episode.custom_metrics["num_cars"] = np.mean(episode.user_data["num_cars"])
-        episode.custom_metrics["avg_mpg"] = np.mean(episode.user_data["avg_mpg"])
+        episode.custom_metrics["avg_mpg"] = episode.user_data["total_distance"] / episode.user_data["total_gallons"]
 
     def on_train_result(info):
         """Store the mean score of the episode, and increment or decrement the iteration number for curriculum."""
