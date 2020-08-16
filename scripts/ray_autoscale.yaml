@@ -74,7 +74,7 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands:
-    - cd flow && git fetch && git checkout origin/nrj_i210_nathan
+    - cd flow && git fetch && git checkout origin/ev_exp_running
     - flow/scripts/setup_sumo_ubuntu1604.sh
     - pip install ray==0.8.0
     - pip install tabulate

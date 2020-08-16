@@ -39,9 +39,9 @@ PENETRATION_RATE = 0.0
 # desired speed of the follower stopper vehicles
 V_DES = 5.0
 # horizon over which to run the env
-HORIZON = 2000
+HORIZON = 1000
 # steps to run before follower-stopper is allowed to take control
-WARMUP_STEPS = 500
+WARMUP_STEPS = 600
 
 # =========================================================================== #
 # Specify the path to the network template.                                   #

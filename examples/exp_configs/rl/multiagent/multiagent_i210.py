@@ -45,9 +45,9 @@ PENETRATION_RATE = 0.10
 # desired speed of the vehicles in the network
 V_DES = 5.0
 # horizon over which to run the env
-HORIZON = 200
+HORIZON = 1000
 # steps to run before follower-stopper is allowed to take control
-WARMUP_STEPS = 20
+WARMUP_STEPS = 600
 # whether to turn off the fail safes for the human-driven vehicles
 ALLOW_COLLISIONS = False
 
@@ -121,10 +121,10 @@ additional_env_params.update({
     "accel_penalty": (1 / 400.0),
 
     # fixed distance cumulative energy settings
-    "warm_down": True,  # whether to stop spawning RL vehicles after HORIZON - N steps
-    "warm_down_steps": 20,  # N
+    "warm_down": False,  # whether to stop spawning RL vehicles after HORIZON - N steps
+    "warm_down_steps": 300,  # N
 
-    "late_penalty": True,  # whether RL agents start receiving a penalty every step after having been in the network for some time
+    "late_penalty": False,  # whether RL agents start receiving a penalty every step after having been in the network for some time
     "late_penalty_steps": 600,  # after how many steps agents start getting a penalty
     "late_penalty_value": -1.0,  # value of the afore-mentioned penalty at each step (added to the reward)
 
