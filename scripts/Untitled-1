@@ -1,0 +1,12 @@
+python flow/flow/replay/transfer_tests.py -r ~/ray_results/y8xm_i210_0p1_nrj_pen800_lb5/y8xm_i210_0p1_nrj_pen800_lb5/CustomPPOTrainer_1_lambda=0.9,lr=0.0005_2020-08-13_20-37-0152ne5rod --gen_emission --use_s3 --num_cpus 6 --output_dir ~/output --strategy_name y8xm_i210_0p1_nrj_pen800_lb5/CustomPPOTrainer_1_lambda=0.9,lr=0.0005_2020-08-13_20-37-0152ne5rod --submitter_name NatNrj &
+python flow/flow/replay/transfer_tests.py -r ~/ray_results/lxpj_i210_0p1_nrj_wd200_pen800_lb5/lxpj_i210_0p1_nrj_wd200_pen800_lb5/CustomPPOTrainer_1_lambda=0.9,lr=0.0005_2020-08-13_19-45-16qj6ke7go --gen_emission --use_s3 --num_cpus 6 --output_dir ~/output --strategy_name lxpj_i210_0p1_nrj_wd200_pen800_lb5/CustomPPOTrainer_1_lambda=0.9,lr=0.0005_2020-08-13_19-45-16qj6ke7go --submitter_name NatNrj &
+python flow/flow/replay/transfer_tests.py -r ~/ray_results/rotm_i210_0p1_nrj_wd600_pen600_lb11/rotm_i210_0p1_nrj_wd600_pen600_lb11/CustomPPOTrainer_1_lambda=0.9,lr=0.0005_2020-08-13_21-23-50b42mgn_2 --gen_emission --use_s3 --num_cpus 6 --output_dir ~/output --strategy_name rotm_i210_0p1_nrj_wd600_pen600_lb11/CustomPPOTrainer_1_lambda=0.9,lr=0.0005_2020-08-13_21-23-50b42mgn_2 --submitter_name NatNrj &
+python flow/flow/replay/transfer_tests.py -r ~/ray_results/lxpj_i210_0p1_nrj_wd600_pen700_lb5/lxpj_i210_0p1_nrj_wd600_pen700_lb5/CustomPPOTrainer_1_lambda=0.9,lr=0.0005_2020-08-13_20-17-217r0dxahm --gen_emission --use_s3 --num_cpus 6 --output_dir ~/output --strategy_name lxpj_i210_0p1_nrj_wd600_pen700_lb5/CustomPPOTrainer_1_lambda=0.9,lr=0.0005_2020-08-13_20-17-217r0dxahm --submitter_name NatNrj &
+python flow/flow/replay/transfer_tests.py -r ~/ray_results/qnck_i210_0p1_nrj_wd500_pen500_accr20_lb5/qnck_i210_0p1_nrj_wd500_pen500_accr20_lb5/CustomPPOTrainer_1_lambda=0.9,lr=0.0005_2020-08-13_20-59-215_4p07s5 --gen_emission --use_s3 --num_cpus 6 --output_dir ~/output --strategy_name qnck_i210_0p1_nrj_wd500_pen500_accr20_lb5/CustomPPOTrainer_1_lambda=0.9,lr=0.0005_2020-08-13_20-59-215_4p07s5 --submitter_name NatNrj &
+
+
+
+python examples/train.py multiagent_i210 --num_iterations 1 --num_rollouts 2 \
+        --checkpoint_freq 1 --use_s3 --num_cpus 17 --algorithm PPO --rl_trainer rllib --grid_search \
+        --upload_graphs natest azerty2 \
+        --exp_title azerty2

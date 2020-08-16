@@ -135,7 +135,7 @@ def replay(args,
         # Determine agent and checkpoint
         agent = set_agents(rllib_config, result_dir, agent_env_name, checkpoint_num=args.checkpoint_num)
 
-        rllib_rl_action, policy_map_fn, rets = get_rl_action(rllib_config, agent, multiagent)
+        policy_map_fn, rllib_rl_action, rets = get_rl_action(rllib_config, agent, multiagent)
 
     # reroute on exit is a training hack, it should be turned off at test time.
     if hasattr(exp.env, "reroute_on_exit"):
