@@ -307,6 +307,7 @@ def setup_exps_rllib(flow_params,
 
         for veh_id in env.k.vehicle.get_arrived_ids():
             episode.user_data["total_distance"] += env.k.vehicle.get_distance(veh_id)
+            print('GAL', env.k.vehicle.get_total_gallons(veh_id))
             episode.user_data["total_gallons"] += env.k.vehicle.get_total_gallons(veh_id)
 
     def on_episode_end(info):
