@@ -358,7 +358,7 @@ class Experiment:
                 'circles.data.pipeline',
                 'time_space_diagram/date={0}/partition_name={1}/'
                 '{1}.png'.format(cur_date, source_id),
-                trajectory_table_path.replace('csv', 'png')
+                emission_files[0].replace('csv', 'png')
             )
             os.remove(trajectory_table_path)
 
