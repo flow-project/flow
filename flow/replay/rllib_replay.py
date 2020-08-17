@@ -217,7 +217,7 @@ def set_agents(config, result_dir, env_name, run=None, checkpoint_num=None):
         sys.exit(1)
 
     # get checkpoint number if not provided
-    if checkpoint_num == None:
+    if checkpoint_num is None:
         dirs = os.listdir(result_dir)
         cp_numbers = [int(name.split('_')[1]) for name in dirs if name.startswith('checkpoint')]
         checkpoint_num = str(max(cp_numbers))
