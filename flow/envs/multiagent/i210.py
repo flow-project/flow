@@ -165,6 +165,12 @@ class I210MultiEnv(MultiEnv):
         if rl_actions:
             for rl_id, actions in rl_actions.items():
                 accel = actions[0]
+                if self.k.vehicle.get_speed(rl_id) > 4.5:
+                    accel = -2.0
+                elif self.k.vehicle.get_speed(rl_id) < 4:
+                    accel = 2.0
+                else:
+                    accel = 0.0
                 id_list.append(rl_id)
                 accel_list.append(accel)
             self.k.vehicle.apply_acceleration(id_list, accel_list)

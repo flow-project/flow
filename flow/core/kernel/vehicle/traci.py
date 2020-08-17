@@ -75,7 +75,7 @@ class TraCIVehicle(KernelVehicle):
 
         # number of vehicles to exit the network for every time-step
         self._num_arrived = []
-        self._arrived_ids = 0
+        self._arrived_ids = []
         self._arrived_rl_ids = []
 
         # whether or not to automatically color vehicles
@@ -190,7 +190,7 @@ class TraCIVehicle(KernelVehicle):
             self._num_departed.clear()
             self._num_arrived.clear()
             self._departed_ids = 0
-            self._arrived_ids = 0
+            self._arrived_ids = []
             self._arrived_rl_ids.clear()
             self.num_not_departed = 0
 

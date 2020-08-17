@@ -10,6 +10,7 @@ abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 
 from flow.core.params import InitialConfig
 from flow.core.params import NetParams
+from flow.core.rewards import instantaneous_mpg
 from flow.envs.base import Env
 
 from gym.spaces.box import Box
@@ -192,14 +193,14 @@ class WaveAttenuationEnv(Env):
         self.k.vehicle.master_kernel = self.k
 
         # solve for the velocity upper bound of the ring
-        v_guess = 4
-        v_eq_max = fsolve(v_eq_max_function, np.array(v_guess),
-                          args=(len(self.initial_ids), length))[0]
-
-        print('\n-----------------------')
-        print('ring length:', net_params.additional_params['length'])
-        print('v_max:', v_eq_max)
-        print('-----------------------')
+        # v_guess = 4
+        # v_eq_max = fsolve(v_eq_max_function, np.array(v_guess),
+        #                   args=(len(self.initial_ids), length))[0]
+        #
+        # print('\n-----------------------')
+        # print('ring length:', net_params.additional_params['length'])
+        # print('v_max:', v_eq_max)
+        # print('-----------------------')
 
         # restart the sumo instance
         self.restart_simulation(
@@ -274,3 +275,29 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
         rl_id = self.k.vehicle.get_rl_ids()[0]
         lead_id = self.k.vehicle.get_leader(rl_id) or rl_id
         self.k.vehicle.set_observed(lead_id)
+
+class WaveAttentionEnergyEnv(WaveAttenuationEnv):
+    @property
+    def observation_space(self):
+        """See class definition."""
+        return Box(low=-float('inf'), high=float('inf'),
+                   shape=(3, ), dtype=np.float32)
+
+    def get_state(self):
+        """See class definition."""
+        rl_id = self.k.vehicle.get_rl_ids()[0]
+        curr_speed = self.k.vehicle.get_speed(rl_id) / 10.0
+        prev_speed = self.k.vehicle.get_previous_speed(rl_id) / 10.0
+        curr_distance = self.k.vehicle.get_distance(rl_id) / 1000.0
+        total_fuel = self.k.vehicle.get_total_gallons(rl_id)
+
+        # print(np.array([curr_distance, total_fuel, curr_speed]))
+        return np.array([prev_speed, total_fuel, curr_speed])
+
+    def compute_reward(self, rl_actions, **kwargs):
+        return instantaneous_mpg(self, self.k.vehicle.get_rl_ids()[0])
+
+    # def _apply_rl_actions(self, rl_actions):
+    #     """See class definition."""
+    #     self.k.vehicle.apply_acceleration(
+    #         self.k.vehicle.get_rl_ids()[0], 0.0)

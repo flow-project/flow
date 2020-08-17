@@ -37,7 +37,7 @@ auth:
 # By default Ray creates a new private keypair, but you can also use your own.
 # If you do so, make sure to also set "KeyName" in the head and worker node
 # configurations below.
-    ssh_private_key: /Users/nathan/.ssh/nathan.pem
+    ssh_private_key: /Users/eugenevinitsky/.ssh/MyKeyPair2.pem
 
 # Provider-specific config for the head node, e.g. instance type. By default
 # Ray will auto-configure unspecified fields such as SubnetId and KeyName.
@@ -46,7 +46,7 @@ auth:
 head_node:
     InstanceType: c4.8xlarge
     ImageId: ami-03d50e10b75b75bd5 # circles_2 AMI (Ubuntu)
-    KeyName: nathan
+    KeyName: MyKeyPair2
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -62,7 +62,7 @@ head_node:
 worker_nodes:
     InstanceType: c4.8xlarge
     ImageId: ami-03d50e10b75b75bd5 # circles_2 AMI (Ubuntu)
-    KeyName: nathan
+    KeyName: MyKeyPair2
 
   #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
