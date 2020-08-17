@@ -96,6 +96,30 @@ class BaseController(metaclass=ABCMeta):
         """Return the acceleration of the controller."""
         pass
 
+    @abstractmethod
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """Return the custom computed acceleration of the controller.
+
+        This method computes acceleration based on custom state information,
+        while get_accel() method compute acceleration based on the current state
+        information that are obtained from the environment.
+
+        Parameters
+        ----------
+        this_vel : float
+            this vehicle's velocity
+        lead_vel : float
+            leading vehicle's velocity
+        h : float
+            headway to leading vehicle
+
+        Returns
+        -------
+        float
+            the custom acceleration of the controller
+        """
+        pass
+
     def get_action(self, env):
         """Convert the get_accel() acceleration into an action.
 
