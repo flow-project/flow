@@ -216,6 +216,12 @@ def set_agents(config, result_dir, env_name, run=None, checkpoint_num=None):
               'python ./rl_replay.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
 
+    # get checkpoint number if not provided
+    if checkpoint_num is None:
+        dirs = os.listdir(result_dir)
+        cp_numbers = [int(name.split('_')[1]) for name in dirs if name.startswith('checkpoint')]
+        checkpoint_num = str(max(cp_numbers))
+
     # create the agent that will be used to compute the actions
     agent = agent_cls(env=env_name, config=config)
     checkpoint = result_dir + '/checkpoint_' + checkpoint_num
