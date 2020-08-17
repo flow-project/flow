@@ -225,7 +225,7 @@ def set_agents(config, result_dir, env_name, run=None, checkpoint_num=None):
     return agent
 
 
-def get_rl_action(config, agent, multiagent, multi_only=False):
+def get_rl_action(config, agent, multiagent, multi_only=False, deterministic=False):
     """Return a function that compute action based on a given state.
 
     Parameters
@@ -239,6 +239,9 @@ def get_rl_action(config, agent, multiagent, multi_only=False):
     multi_only : bool
         If this is set to true, the function will raise an error
         if it is single agent use_lstm is true.
+    deterministic : bool
+        If this is set to true, the exploration noise in the policy
+        will be removed when computing actions.
 
     Returns
     -------
@@ -282,14 +285,16 @@ def get_rl_action(config, agent, multiagent, multi_only=False):
                     action[agent_id], state_init[agent_id], logits = \
                         agent.compute_action(
                             state[agent_id], state=state_init[agent_id],
-                            policy_id=policy_map_fn(agent_id))
+                            policy_id=policy_map_fn(agent_id),
+                            explore=not deterministic)
                 else:
                     action[agent_id] = agent.compute_action(
-                        state[agent_id], policy_id=policy_map_fn(agent_id))
+                        state[agent_id], policy_id=policy_map_fn(agent_id),
+                        explore=not deterministic)
         else:
             if use_lstm and multi_only:
                 raise NotImplementedError
-            action = agent.compute_action(state)
+            action = agent.compute_action(state, explore=not deterministic)
         return action
 
     return policy_map_fn, rl_action, rets
@@ -341,7 +346,8 @@ def replay_rllib(args):
     if args.render_mode == 'sumo_gui':
         exp.env.sim_params.render = True
 
-    policy_map_fn, rl_action, rets = get_rl_action(config, agent, multiagent)
+    policy_map_fn, rl_action, rets = get_rl_action(config, agent, multiagent,
+                                                   deterministic=args.deterministic)
 
     # If restart_instance, don't restart here because env.reset will restart
     # later.
@@ -421,6 +427,12 @@ def create_parser():
         help='Specifies the name of the partition to store the output'
              'file on S3. Putting not None value for this argument'
              'automatically set gen_emission to True.'
+    )
+    parser.add_argument(
+        '--deterministic',
+        action='store_true',
+        default=False,
+        help='specifies whether to remove exploration noise in the policy'
     )
     return parser
 
