@@ -1,7 +1,9 @@
 """Objects that define the various meta-parameters of an experiment."""
 
-import logging
 import collections
+import logging
+import sys
+from sys import platform
 
 from flow.utils.flow_warnings import deprecated_attribute
 from flow.controllers.car_following_models import SimCarFollowingController
@@ -641,6 +643,8 @@ class SumoParams(SimParams):
             sim_step, render, restart_instance, emission_path, save_render,
             sight_radius, show_radius, pxpm, force_color_update)
         self.use_libsumo = use_libsumo
+        if platform == "darwin" and self.use_libsumo:
+            sys.exit("Libsumo does not currently work on macs")
         self.port = port
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
