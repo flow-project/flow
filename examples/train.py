@@ -47,6 +47,10 @@ def parse_args(args):
         '--rl_trainer', type=str, default="rllib",
         help='the RL trainer to use. either rllib or Stable-Baselines')
     parser.add_argument(
+        '--load_weights_path', type=str, default=None,
+        help='Path to h5 file containing a pretrained model. Relevent for PPO with RLLib'
+    )
+    parser.add_argument(
         '--algorithm', type=str, default="PPO",
         help='RL algorithm to use. Options are PPO, TD3, and CENTRALIZEDPPO (which uses a centralized value function)'
              ' right now.'
@@ -177,10 +181,14 @@ def setup_exps_rllib(flow_params,
     alg_run = flags.algorithm.upper()
 
     if alg_run == "PPO":
-        from flow.algorithms.custom_ppo import CustomPPOTrainer
+        from flow.algorithms.imitation_learning.custom_ppo import CustomPPOTrainer
         from ray.rllib.agents.ppo import DEFAULT_CONFIG
-        alg_run = CustomPPOTrainer
         config = deepcopy(DEFAULT_CONFIG)
+
+
+        alg_run = CustomPPOTrainer
+
+        horizon = flow_params['env'].horizon
 
         config["num_workers"] = n_cpus
         config["horizon"] = horizon
@@ -195,6 +203,21 @@ def setup_exps_rllib(flow_params,
         if flags.grid_search:
             config["lambda"] = tune.grid_search([0.5, 0.9])
             config["lr"] = tune.grid_search([5e-4, 5e-5])
+
+        if flags.load_weights_path:
+            from flow.algorithms.imitation_learning.ppo_model import PPONetwork
+            from flow.algorithms.imitation_learning.custom_trainable import Imitation_PPO_Trainable
+            from ray.rllib.models import ModelCatalog
+
+            # Register custom model
+            ModelCatalog.register_custom_model("PPO_loaded_weights", PPONetwork)
+            # set model to the custom model for run
+            config['model']['custom_model'] = "PPO_loaded_weights"
+            config['model']['custom_options'] = {"h5_load_path": flags.load_weights_path}
+            config['observation_filter'] = 'NoFilter'
+            # alg run is the Trainable class
+            alg_run = Imitation_PPO_Trainable
+
     elif alg_run == "CENTRALIZEDPPO":
         from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
         from ray.rllib.agents.ppo import DEFAULT_CONFIG
@@ -327,7 +350,6 @@ def setup_exps_rllib(flow_params,
     register_env(gym_name, create_env)
     return alg_run, gym_name, config
 
-
 def train_rllib(submodule, flags):
     """Train policies using the PPO algorithm in RLlib."""
     import ray
@@ -356,6 +378,7 @@ def train_rllib(submodule, flags):
         ray.init(local_mode=True)
     else:
         ray.init()
+
     exp_dict = {
         "run_or_experiment": alg_run,
         "name": flags.exp_title or flow_params['exp_tag'],

@@ -96,6 +96,14 @@ def visualizer_rllib(args):
             sys.exit(1)
     if args.run:
         agent_cls = get_agent_class(args.run)
+    elif config['env_config']['run'] == "<class 'flow.controllers.imitation_learning.imitation_trainer.Imitation_PPO_Trainable'>":
+        from flow.controllers.imitation_learning.imitation_trainer import Imitation_PPO_Trainable
+        from flow.controllers.imitation_learning.ppo_model import PPONetwork
+        from ray.rllib.models import ModelCatalog
+        agent_cls = get_agent_class("PPO")
+        ModelCatalog.register_custom_model("imitation_ppo_trainable", Imitation_PPO_Trainable)
+        ModelCatalog.register_custom_model("PPO_loaded_weights", PPONetwork)
+
     elif config['env_config']['run'] == "<class 'ray.rllib.agents.trainer_template.CCPPOTrainer'>":
         from flow.algorithms.centralized_PPO import CCTrainer, CentralizedCriticModel
         from ray.rllib.models import ModelCatalog
@@ -167,6 +175,7 @@ def visualizer_rllib(args):
     checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
+
 
     if hasattr(agent, "local_evaluator") and \
             os.environ.get("TEST_FLAG") != 'True':
@@ -453,5 +462,6 @@ def create_parser():
 if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
-    ray.init(num_cpus=1)
+    print("GEN EMISSION: ", args.gen_emission)
+    ray.init(local_mode=True)
     visualizer_rllib(args)

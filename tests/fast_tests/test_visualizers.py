@@ -91,7 +91,94 @@ class TestPlotters(unittest.TestCase):
         np.testing.assert_array_almost_equal(std_outflows, expected_stds)
 
     def test_time_space_diagram_figure_eight(self):
+        # check that the exported data matches the expected emission file data
+        fig8_emission_data = {
+            'idm_3': {'pos': [27.25, 28.25, 30.22, 33.17],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.98, 2.95],
+                      'edge': ['upper_ring', 'upper_ring', 'upper_ring',
+                               'upper_ring'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
+            'idm_4': {'pos': [56.02, 57.01, 58.99, 61.93],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.98, 2.95],
+                      'edge': ['upper_ring', 'upper_ring', 'upper_ring',
+                               'upper_ring'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
+            'idm_5': {'pos': [84.79, 85.78, 87.76, 90.7],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.98, 2.95],
+                      'edge': ['upper_ring', 'upper_ring', 'upper_ring',
+                               'upper_ring'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
+            'idm_2': {'pos': [28.77, 29.76, 1.63, 4.58],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.97, 2.95],
+                      'edge': ['top', 'top', 'upper_ring', 'upper_ring'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
+            'idm_13': {'pos': [106.79, 107.79, 109.77, 112.74],
+                       'time': [1.0, 2.0, 3.0, 4.0],
+                       'vel': [0.0, 0.99, 1.98, 2.96],
+                       'edge': ['lower_ring', 'lower_ring', 'lower_ring',
+                                'lower_ring'],
+                       'lane': [0.0, 0.0, 0.0, 0.0]},
+            'idm_9': {'pos': [22.01, 23.0, 24.97, 27.92],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.97, 2.95],
+                      'edge': ['left', 'left', 'left', 'left'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
+            'idm_6': {'pos': [113.56, 114.55, 116.52, 119.47],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.97, 2.95],
+                      'edge': ['upper_ring', 'upper_ring', 'upper_ring',
+                               'upper_ring'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
+            'idm_8': {'pos': [29.44, 0.28, 2.03, 4.78],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.84, 1.76, 2.75],
+                      'edge': ['right', ':center_0', ':center_0',
+                               ':center_0'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
+            'idm_12': {'pos': [78.03, 79.02, 80.99, 83.94],
+                       'time': [1.0, 2.0, 3.0, 4.0],
+                       'vel': [0.0, 0.99, 1.98, 2.95],
+                       'edge': ['lower_ring', 'lower_ring', 'lower_ring',
+                                'lower_ring'],
+                       'lane': [0.0, 0.0, 0.0, 0.0]},
+            'idm_10': {'pos': [20.49, 21.48, 23.46, 26.41],
+                       'time': [1.0, 2.0, 3.0, 4.0],
+                       'vel': [0.0, 0.99, 1.98, 2.95],
+                       'edge': ['lower_ring', 'lower_ring', 'lower_ring',
+                                'lower_ring'],
+                       'lane': [0.0, 0.0, 0.0, 0.0]},
+            'idm_11': {'pos': [49.26, 50.25, 52.23, 55.17],
+                       'time': [1.0, 2.0, 3.0, 4.0],
+                       'vel': [0.0, 0.99, 1.98, 2.95],
+                       'edge': ['lower_ring', 'lower_ring', 'lower_ring',
+                                'lower_ring'],
+                       'lane': [0.0, 0.0, 0.0, 0.0]},
+            'idm_1': {'pos': [0.0, 0.99, 2.97, 5.91],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.98, 2.95],
+                      'edge': ['top', 'top', 'top', 'top'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
+            'idm_7': {'pos': [0.67, 1.66, 3.64, 6.58],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 0.99, 1.97, 2.94],
+                      'edge': ['right', 'right', 'right', 'right'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]},
+            'idm_0': {'pos': [0.0, 1.0, 2.98, 5.95],
+                      'time': [1.0, 2.0, 3.0, 4.0],
+                      'vel': [0.0, 1.0, 1.99, 2.97],
+                      'edge': ['bottom', 'bottom', 'bottom', 'bottom'],
+                      'lane': [0.0, 0.0, 0.0, 0.0]}
+        }
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        actual_emission_data = tsd.import_data_from_emission(
+            os.path.join(dir_path, 'test_files/fig8_emission.csv'))
+        self.assertDictEqual(fig8_emission_data, actual_emission_data)
+
+        # test get_time_space_data for figure eight networks
         flow_params = tsd.get_flow_params(
             os.path.join(dir_path, 'test_files/fig8.json'))
         emission_data, _, _, _ = tsd.import_data_from_trajectory(
@@ -143,11 +230,22 @@ class TestPlotters(unittest.TestCase):
           [[2., 202.36166941], [3., 411.80333882]],
           [[3., 411.80333882], [4., 408.85333882]]]
         )
+        expected_speed = np.array([
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99,
+             0.99, 0.84, 0.99],
+            [1.99, 1.98, 1.98, 1.98, 1.98, 1.98, 1.97, 1.98, 1.98, 1.98, 1.97,
+             1.97, 1.76, 1.97]
+        ])
 
-        np.testing.assert_array_almost_equal(segs, expected_segs)
+        np.testing.assert_array_almost_equal(pos[:-1, :], expected_pos)
+        np.testing.assert_array_almost_equal(speed[:-1, :], expected_speed)
 
     def test_time_space_diagram_merge(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        emission_data = tsd.import_data_from_emission(
+            os.path.join(dir_path, 'test_files/merge_emission.csv'))
+
         flow_params = tsd.get_flow_params(
             os.path.join(dir_path, 'test_files/merge.json'))
         emission_data, _, _, _ = tsd.import_data_from_trajectory(
@@ -162,10 +260,14 @@ class TestPlotters(unittest.TestCase):
           [[8.0000e-01, 7.2487e+02], [1.0000e+00, 7.2502e+02]]]
         )
 
-        np.testing.assert_array_almost_equal(segs, expected_segs)
+        np.testing.assert_array_almost_equal(pos, expected_pos)
+        np.testing.assert_array_almost_equal(speed, expected_speed)
 
     def test_time_space_diagram_I210(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        emission_data = tsd.import_data_from_emission(
+            os.path.join(dir_path, 'test_files/i210_emission.csv'))
+
         module = __import__("examples.exp_configs.non_rl", fromlist=["i210_subnetwork"])
         flow_params = getattr(module, "i210_subnetwork").flow_params
         emission_data, _, _, _ = tsd.import_data_from_trajectory(
@@ -206,6 +308,9 @@ class TestPlotters(unittest.TestCase):
 
     def test_time_space_diagram_ring_road(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        emission_data = tsd.import_data_from_emission(
+            os.path.join(dir_path, 'test_files/ring_230_emission.csv'))
+
         flow_params = tsd.get_flow_params(
             os.path.join(dir_path, 'test_files/ring_230.json'))
         emission_data, _, _, _ = tsd.import_data_from_trajectory(
@@ -233,8 +338,22 @@ class TestPlotters(unittest.TestCase):
           [[-7.49000000e+01, 4.77352569e+01], [-7.48000000e+01, 4.77510691e+01]],
           [[-7.48000000e+01, 4.77510691e+01], [-7.47000000e+01, 4.77745504e+01]]]
         )
+        expected_speed = np.array([
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08,
+             0.08, 0.08, 0.08, 0.1, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08],
+            [0.16, 0.16, 0.16, 0.16, 0.16, 0.16, 0.16, 0.16, 0.16, 0.16, 0.16,
+             0.16, 0.16, 0.16, 0.2, 0.16, 0.16, 0.16, 0.16, 0.16, 0.16, 0.16],
+            [0.23, 0.23, 0.23, 0.23, 0.23, 0.23, 0.23, 0.23, 0.23, 0.23, 0.23,
+             0.23, 0.23, 0.23, 0.29, 0.23, 0.23, 0.23, 0.23, 0.23, 0.23, 0.23],
+            [0.31, 0.31, 0.31, 0.31, 0.31, 0.31, 0.31, 0.31, 0.31, 0.31, 0.31,
+             0.31, 0.31, 0.31, 0.39, 0.31, 0.31, 0.31, 0.31, 0.31, 0.31, 0.31],
+            [0.41, 0.41, 0.41, 0.41, 0.41, 0.41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0]
+        ])
 
-        np.testing.assert_array_almost_equal(segs, expected_segs)
+        np.testing.assert_array_almost_equal(pos, expected_pos)
+        np.testing.assert_array_almost_equal(speed, expected_speed)
 
     def test_plot_ray_results(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))

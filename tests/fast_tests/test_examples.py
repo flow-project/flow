@@ -26,7 +26,6 @@ from examples.exp_configs.rl.multiagent.multiagent_traffic_light_grid import \
     flow_params as multiagent_traffic_light_grid
 from examples.exp_configs.rl.multiagent.multiagent_highway import flow_params as multiagent_highway
 
-from examples.simulate import parse_args as parse_simulate_args
 from examples.train import parse_args as parse_train_args
 from examples.train import run_model_stablebaseline as run_stable_baselines_model
 from examples.train import setup_exps_rllib as setup_rllib_exps
