@@ -8,7 +8,7 @@ allowed to perturb the accelerations of figure eight.
 # the negative of the AV reward
 
 from copy import deepcopy
-from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
+from ray.rllib.agents.ppo.ppo_tf_policy import PPOTFPolicy
 from flow.controllers import ContinuousRouter
 from flow.controllers import IDMController
 from flow.controllers import RLController

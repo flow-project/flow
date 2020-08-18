@@ -72,7 +72,6 @@ class TestNonRLExamples(unittest.TestCase):
             'is_baseline': False,
             'no_render': False,
             'num_runs': 1,
-            'only_query': "['all']",
             'to_aws': None,
         })
 
@@ -92,7 +91,6 @@ class TestNonRLExamples(unittest.TestCase):
             'is_baseline': False,
             'no_render': True,
             'num_runs': 2,
-            'only_query': "['all']",
             'to_aws': None,
         })
 
@@ -263,6 +261,7 @@ class TestTrain(unittest.TestCase):
             'checkpoint_path': None,
             'use_s3': False,
             'multi_node': False,
+            'upload_graphs': None
         })
 
         # test the case when optional args are specified
@@ -273,6 +272,7 @@ class TestTrain(unittest.TestCase):
             "--num_steps", "3",
             "--rollout_size", "4",
             "--checkpoint_path", "5",
+            "--upload_graphs", "name", "strategy"
         ])
 
         self.assertDictEqual(vars(args), {
@@ -292,6 +292,7 @@ class TestTrain(unittest.TestCase):
             'rollout_size': 4,
             'use_s3': False,
             'multi_node': False,
+            'upload_graphs': ['name', 'strategy']
         })
 
 
@@ -463,7 +464,7 @@ class TestRllibExamples(unittest.TestCase):
         from examples.exp_configs.rl.multiagent.multiagent_i210 import POLICIES_TO_TRAIN as mi210pr
         from examples.exp_configs.rl.multiagent.multiagent_i210 import policy_mapping_fn as mi210mf
 
-        from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
+        from ray.rllib.agents.ppo.ppo_tf_policy import PPOTFPolicy
         from ray.tune.registry import register_env
         from flow.utils.registry import make_create_env
         # test observation space 1

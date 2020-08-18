@@ -117,15 +117,19 @@ def make_create_env(params, version=0, render=None):
             entry_point = params["env_name"].__module__ + ':' + params["env_name"].__name__
 
         # register the environment with OpenAI gym
-        register(
-            id=env_name,
-            entry_point=entry_point,
-            kwargs={
-                "env_params": env_params,
-                "sim_params": sim_params,
-                "network": network,
-                "simulator": params['simulator']
-            })
+        try:
+            register(
+                id=env_name,
+                entry_point=entry_point,
+                kwargs={
+                    "env_params": env_params,
+                    "sim_params": sim_params,
+                    "network": network,
+                    "simulator": params['simulator']
+                })
+        except gym.error.Error:
+            print("WARNING: Environment {} already registered, ignoring."
+                  .format(env_name))
 
         return gym.envs.make(env_name)
 

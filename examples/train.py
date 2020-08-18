@@ -21,6 +21,7 @@ from flow.core.rewards import instantaneous_mpg
 from flow.utils.registry import env_constructor
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 from flow.utils.registry import make_create_env
+from flow.replay.transfer_tests import create_parser, generate_graphs
 
 
 def parse_args(args):
@@ -90,6 +91,11 @@ def parse_args(args):
     parser.add_argument('--multi_node', action='store_true',
                         help='Set to true if this will be run in cluster mode.'
                              'Relevant for rllib')
+    parser.add_argument(
+        '--upload_graphs', type=str, nargs=2,
+        help='Whether to generate and upload graphs to leaderboard at the end of training.'
+             'Arguments are name of the submitter and name of the strategy.'
+             'Only relevant for i210 training on rllib')
 
     return parser.parse_known_args(args)[0]
 
@@ -191,7 +197,7 @@ def setup_exps_rllib(flow_params,
         config["train_batch_size"] = horizon * n_rollouts
         config["gamma"] = 0.995  # discount rate
         config["use_gae"] = True
-        config["no_done_at_end"] = False
+        config["no_done_at_end"] = True
         config["lambda"] = 0.97
         config["kl_target"] = 0.02
         config["num_sgd_iter"] = 10
@@ -379,6 +385,49 @@ def train_rllib(submodule, flags):
                     + date + '/' + flags.exp_title
         exp_dict['upload_dir'] = s3_string
     tune.run(**exp_dict, queue_trials=False, raise_on_failed_trial=False)
+
+    if flags.upload_graphs:
+        print('Generating experiment graphs and uploading them to leaderboard')
+        submitter_name, strategy_name = flags.upload_graphs
+
+        # reset ray
+        ray.shutdown()
+        if flags.local_mode:
+            ray.init(local_mode=True)
+        else:
+            ray.init()
+
+        # grab checkpoint path
+        for (dirpath, _, _) in os.walk(os.path.expanduser("~/ray_results")):
+            if "checkpoint_{}".format(flags.checkpoint_freq) in dirpath \
+               and dirpath.split('/')[-3] == flags.exp_title:
+                checkpoint_path = os.path.dirname(dirpath)
+                checkpoint_number = -1
+                for name in os.listdir(checkpoint_path):
+                    if name.startswith('checkpoint'):
+                        cp = int(name.split('_')[1])
+                        checkpoint_number = max(checkpoint_number, cp)
+
+                # create dir for graphs output
+                output_dir = os.path.join(checkpoint_path, 'output_graphs')
+                if not os.path.exists(output_dir):
+                    os.mkdir(output_dir)
+
+                # run graph generation script
+                parser = create_parser()
+
+                strategy_name_full = str(strategy_name)
+                if flags.grid_search:
+                    strategy_name_full += '__' + dirpath.split('/')[-2]
+
+                args = parser.parse_args([
+                    '-r', checkpoint_path, '-c', str(checkpoint_number),
+                    '--gen_emission', '--use_s3', '--num_cpus', str(flags.num_cpus),
+                    '--output_dir', output_dir,
+                    '--submitter_name', submitter_name,
+                    '--strategy_name', strategy_name_full.replace(',', '_').replace(';', '_')
+                ])
+                generate_graphs(args)
 
 
 def train_h_baselines(env_name, args, multiagent):
