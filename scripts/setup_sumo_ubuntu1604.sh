@@ -10,14 +10,15 @@ sudo apt-get install -y python3-dev
 sudo pip3 install cmake cython
 
 echo "Installing sumo binaries"
+rm -rf $HOME/sumo_binaries/bin
 mkdir -p $HOME/sumo_binaries/bin
 pushd $HOME/sumo_binaries/bin
 wget https://flow-sumo.s3-us-west-1.amazonaws.com/libsumo_test/binaries-ubuntu1604.tar.gz
-tar -zxvf sumo_binaries_ubuntu1604.tar.gz
-rm sumo_binaries_ubuntu1804.tar.gz
+tar xvf binaries-ubuntu1604.tar.gz
+rm binaries-ubuntu1604.tar.gz
+popd
 cd sumo_binaries
 chmod +x *
-popd
 
 echo '# Added by Sumo / Libsumo instalation' >> ~/.bashrc
 echo 'export PATH="$HOME/sumo_binaries/bin:$PATH"' >> ~/.bashrc
