@@ -43,3 +43,7 @@ class RLController(BaseController):
     def get_accel(self, env):
         """Pass, as this is never called; required to override abstractmethod."""
         pass
+
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
