@@ -3,7 +3,7 @@
 Trains a a small percentage of rl vehicles to dissipate shockwaves caused by
 on-ramp merge to a single lane open highway network.
 """
-from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
+from ray.rllib.agents.ppo.ppo_tf_policy import PPOTFPolicy
 from ray.tune.registry import register_env
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig
