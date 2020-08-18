@@ -38,21 +38,32 @@ before_install:
 
   # Set up requirements for flow
   - conda env create -f environment.yml
-  - source activate flow
+  - source activate circles
 
   # [sumo] dependencies and binaries
-  - pushd $HOME/build/flow-project
-  -     ./flow/scripts/setup_libsumo_ubuntu.sh
+  - pushd $HOME/build/CIRCLES-consortium
+  -     ./flow/scripts/setup_sumo_ubuntu1604.sh
   - popd
   - source ~/.bashrc
 
   # [aimsun] install the conda env and update the path to the env
-  - pushd $HOME/build/flow-project
+  - pushd $HOME/build/CIRCLES-consortium
   -     ./flow/scripts/setup_aimsun.sh
   - popd
   - source ~/.bashrc
   - export AIMSUN_SITEPACKAGES="/home/travis/miniconda/envs/aimsun_flow"
   - export AIMSUN_NEXT_PATH="/home/user/Aimsun_Next_XXX"
+
+  # Install stable-baselines
+  - pip install stable_baselines==2.7.0
+
+  # Install h-baselines
+  - pushd $HOME
+  - git clone https://github.com/AboudyKreidieh/h-baselines.git
+  - pushd h-baselines
+  - pip install -e .
+  - popd
+  - popd
 
   - ls ../
 
@@ -62,7 +73,6 @@ install:
   - pip install -e .
   - pip install coveralls
   - pip install jupyter
-  - pip install stable_baselines==2.7.0
 
 script:
   - nose2 --with-coverage

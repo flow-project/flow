@@ -62,7 +62,7 @@ repository is migrating to a new SUMO version.
         cd /path/to/sumo/bin
         mkdir data
         cp -r ../data/* data
-        tar -cJf binaries-<dist>.tar.xz !(Makefile*|start-command-line.bat)
+        tar -cJf binaries-<dist>.tar.gz !(Makefile*|start-command-line.bat)
 
 5. Create a `sumotools` wheel from the python-related packages. This only needs 
    to be done once for all Ubuntu and Mac, as the python tools are distribution 

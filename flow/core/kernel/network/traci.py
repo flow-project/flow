@@ -47,7 +47,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         master_kernel : flow.core.kernel.Kernel
             the higher level kernel (used to call methods from other
             sub-kernels)
-        sim_params : flow.core.params.SimParams
+        sim_params : flow.core.params.SumoParams
             simulation-specific parameters
         """
         super(TraCIKernelNetwork, self).__init__(master_kernel, sim_params)
@@ -848,6 +848,11 @@ class TraCIKernelNetwork(BaseKernelNetwork):
 
         # check collisions at intersections
         cfg.append(E("collision.check-junctions", value="true"))
+
+        # disable all collisions and teleporting in the simulation.
+        if self.sim_params.disable_collisions:
+            cfg.append(E("collision.mingap-factor", value="0"))
+            cfg.append(E("collision.action", value=str("none")))
 
         printxml(cfg, self.cfg_path + self.sumfn)
         return self.sumfn

@@ -14,6 +14,6 @@ cmake .
 make -j$(nproc)
 popd
 
-echo 'export PATH="$PATH:$HOME/sumo_binaries/sumo/bin"' >> ~/.bashrc
+echo 'export PATH="$HOME/sumo_binaries/sumo/bin:$PATH"' >> ~/.bashrc
 echo 'export SUMO_HOME="$HOME/sumo_binaries/sumo"' >> ~/.bashrc
-echo 'export PYTHONPATH="$PYTHONPATH:$HOME/sumo_binaries/sumo/tools"' >> ~/.bashrc
+echo 'export PYTHONPATH="$HOME/sumo_binaries/sumo/tools:$PYTHONPATH"' >> ~/.bashrc

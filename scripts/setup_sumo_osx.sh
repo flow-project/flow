@@ -8,13 +8,15 @@ brew install wget
 brew install swig sdl sdl_image sdl_mixer sdl_ttf portmidi
 # sumo dependencies
 brew install Caskroom/cask/xquartz autoconf automake pkg-config libtool gdal proj xerces-c fox
+# link the libproj versions because the default install does not match what sumo wants
+ln -s /usr/local/opt/proj/lib/libproj.19.dylib /usr/local/opt/proj/lib/libproj.15.dylib
 
 echo "Installing sumo binaries"
 mkdir -p $HOME/sumo_binaries/bin
 pushd $HOME/sumo_binaries/bin
-wget https://akreidieh.s3.amazonaws.com/sumo/flow-0.4.0/binaries-mac.tar.xz
-tar -xf binaries-mac.tar.xz
-rm binaries-mac.tar.xz
+wget https://flow-sumo.s3-us-west-1.amazonaws.com/libsumo/sumo_binaries_MacOS.zip
+unzip sumo_binaries_MacOS.zip
+rm sumo_binaries_MacOS.zip
 chmod +x *
 popd
 export SUMO_HOME="$HOME/sumo_binaries/bin"
