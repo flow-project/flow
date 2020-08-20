@@ -1,7 +1,6 @@
 """Contains a list of custom velocity controllers."""
 
 from flow.controllers.base_controller import BaseController
-from flow.controllers import IDMController
 import numpy as np
 
 
