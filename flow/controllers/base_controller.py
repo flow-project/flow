@@ -67,7 +67,6 @@ class BaseController(metaclass=ABCMeta):
         elif isinstance(fail_safe, list) or fail_safe is None:
             failsafe_list = fail_safe
         else:
-            failsafe_list = None
             raise ValueError("fail_safe should be string or list of strings. Setting fail_safe to None\n")
 
         failsafe_map = {
@@ -91,6 +90,8 @@ class BaseController(metaclass=ABCMeta):
         self.max_deaccel = abs(car_following_params.controller_params['decel'])
 
         self.car_following_params = car_following_params
+
+        self._is_highway_i210 = None
 
     @abstractmethod
     def get_accel(self, env):
@@ -118,6 +119,13 @@ class BaseController(metaclass=ABCMeta):
         float
             the modified form of the acceleration
         """
+        if self._is_highway_i210 is None:
+            from flow.networks import I210SubNetwork
+            from flow.networks import HighwayNetwork
+            self._is_highway_i210 = \
+                isinstance(env.k.network.network, I210SubNetwork) or \
+                isinstance(env.k.network.network, HighwayNetwork)
+
         # clear the current stored accels of this vehicle to None
         env.k.vehicle.update_accel(self.veh_id, None, noise=False, failsafe=False)
         env.k.vehicle.update_accel(self.veh_id, None, noise=False, failsafe=True)
@@ -131,11 +139,8 @@ class BaseController(metaclass=ABCMeta):
 
         # this allows the acceleration behavior of vehicles in a junction be
         # described by sumo instead of an explicit model
-        from flow.networks import I210SubNetwork
-        from flow.networks import HighwayNetwork
-        i210_highway = isinstance(env.k.network.network, I210SubNetwork) \
-            or isinstance(env.k.network.network, HighwayNetwork)
-        if env.k.vehicle.get_edge(self.veh_id)[0] == ":" and not i210_highway:
+        if env.k.vehicle.get_edge(self.veh_id)[0] == ":" \
+                and not self._is_highway_i210:
             return None
 
         accel = self.get_accel(env)
@@ -416,7 +421,7 @@ class BaseController(metaclass=ABCMeta):
             maximum deaccel of the vehicle
         delay : float
             the delay before an action is executed
-        if_ballistic : bool
+        is_ballistic : bool
             whether the integration stop is ballistic
         sim_step : float
             size of simulation step
