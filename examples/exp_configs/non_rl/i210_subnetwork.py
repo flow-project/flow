@@ -2,6 +2,7 @@
 import os
 import numpy as np
 
+from flow.controllers.lane_change_controllers import AILaneChangeController, SimLaneChangeController
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.controllers.routing_controllers import I210Router
@@ -45,6 +46,8 @@ V_DES = 5.0
 HORIZON = 1500
 # steps to run before follower-stopper is allowed to take control
 WARMUP_STEPS = 600
+# whether to use the Rutgers lane change model
+RUTGERS_LC_MODEL = False
 
 # =========================================================================== #
 # Specify the path to the network template.                                   #
@@ -76,6 +79,11 @@ if not WANT_GHOST_CELL:
 
 vehicles = VehicleParams()
 
+if RUTGERS_LC_MODEL:
+    lc_controller = (AILaneChangeController, {})
+else:
+    lc_controller = (SimLaneChangeController, {})
+
 vehicles.add(
     "human",
     num_vehicles=0,
@@ -87,6 +95,7 @@ vehicles.add(
         min_gap=0.5,
         speed_mode=12  # right of way at intersections + obey limits on deceleration
     ),
+    lane_change_controller=lc_controller,
     acceleration_controller=(IDMController, {
         "a": 1.3,
         "b": 2.0,
