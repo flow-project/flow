@@ -428,6 +428,15 @@ class SimParams(object):
         specifies rendering resolution (pixel / meter)
     force_color_update : bool, optional
         whether or not to automatically color vehicles according to their types
+    save_state_time : float, optional
+        the time to save the simulation state. States can then be reloaded
+        later. If set to None, no initial state is saved.
+    save_state_file : str, optional
+        the path to save the initial state to. Only used is save_state_time is
+        not None.
+    load_state : str, optional
+        the path to the initial state that the network should be initialized
+        with
     """
 
     def __init__(self,
@@ -439,7 +448,10 @@ class SimParams(object):
                  sight_radius=25,
                  show_radius=False,
                  pxpm=2,
-                 force_color_update=False):
+                 force_color_update=False,
+                 save_state_time=None,
+                 save_state_file="initial_state.xml",
+                 load_state=None):
         """Instantiate SimParams."""
         self.sim_step = sim_step
         self.render = render
@@ -450,6 +462,9 @@ class SimParams(object):
         self.pxpm = pxpm
         self.show_radius = show_radius
         self.force_color_update = force_color_update
+        self.save_state_time = save_state_time
+        self.save_state_file = save_state_file
+        self.load_state = load_state
 
 
 class AimsunParams(SimParams):
@@ -607,6 +622,15 @@ class SumoParams(SimParams):
         If true, use a ballistic integration step instead of an euler step
     disable_collisions: bool, optional
         If true, disables explicit collision checking and teleporting in SUMO
+    save_state_time : float, optional
+        the time to save the simulation state. States can then be reloaded
+        later. If set to None, no initial state is saved.
+    save_state_file : str, optional
+        the path to save the initial state to. Only used is save_state_time is
+        not None.
+    load_state : str, optional
+        the path to the initial state that the network should be initialized
+        with
     """
 
     def __init__(self,
@@ -629,11 +653,15 @@ class SumoParams(SimParams):
                  num_clients=1,
                  color_by_speed=False,
                  use_ballistic=False,
-                 disable_collisions=False):
+                 disable_collisions=False,
+                 save_state_time=None,
+                 save_state_file="initial_state.xml",
+                 load_state=None):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
-            sight_radius, show_radius, pxpm, force_color_update)
+            sight_radius, show_radius, pxpm, force_color_update,
+            save_state_time, save_state_file, load_state)
         self.port = port
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
