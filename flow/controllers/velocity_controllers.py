@@ -147,6 +147,10 @@ class FollowerStopper(BaseController):
                 # compute the acceleration from the desired velocity
                 return np.clip((v_cmd - this_vel) / env.sim_step, -np.abs(self.max_deaccel), self.max_accel)
 
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
+
 
 class NonLocalFollowerStopper(FollowerStopper):
     """Follower stopper that uses the average system speed to compute its acceleration."""
@@ -265,3 +269,7 @@ class PISaturation(BaseController):
         accel = (self.v_cmd - this_vel) / env.sim_step
 
         return min(accel, self.max_accel)
+
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError

@@ -210,7 +210,7 @@ class Experiment:
                 metadata['network'].append(
                     network_name_translate(self.env.network.name.split('_20')[0]))
                 metadata['is_baseline'].append(str(is_baseline))
-                if 'name' in supplied_metadata and 'strategy' in supplied_metadata:
+                if supplied_metadata is not None and 'name' in supplied_metadata and 'strategy' in supplied_metadata:
                     name = supplied_metadata['name']
                     strategy = supplied_metadata['strategy']
                 else:
@@ -358,7 +358,7 @@ class Experiment:
                 'circles.data.pipeline',
                 'time_space_diagram/date={0}/partition_name={1}/'
                 '{1}.png'.format(cur_date, source_id),
-                trajectory_table_path.replace('csv', 'png')
+                emission_files[0].replace('csv', 'png')
             )
             os.remove(trajectory_table_path)
 

@@ -12,6 +12,7 @@ from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
 from flow.networks import I210SubNetwork
 from flow.networks import HighwayNetwork
+from flow.controllers.lane_change_controllers import AILaneChangeController
 from bisect import bisect_left
 import itertools
 from copy import deepcopy
@@ -95,6 +96,9 @@ class TraCIVehicle(KernelVehicle):
         self._is_highway_i210 = \
             isinstance(self.master_kernel.network.network, I210SubNetwork) or \
             isinstance(self.master_kernel.network.network, HighwayNetwork)
+
+        # flag to collect lane leaders/followers/headways/tailways for all
+        self.collect_info_all = False
 
     def initialize(self, vehicles):
         """Initialize vehicle state information.
@@ -320,6 +324,11 @@ class TraCIVehicle(KernelVehicle):
             self.type_parameters[veh_type]["lane_change_controller"]
         self.__vehicles[veh_id]["lane_changer"] = \
             lc_controller[0](veh_id=veh_id, **lc_controller[1])
+
+        # if lane changer is AILaneChangeController, set collect info flag True
+        if lc_controller[0] == AILaneChangeController and \
+                not self.collect_info_all:
+            self.collect_info_all = True
 
         # specify the routing controller class
         rt_controller = self.type_parameters[veh_type]["routing_controller"]
@@ -819,7 +828,11 @@ class TraCIVehicle(KernelVehicle):
                 for lane in range(max_lanes):
                     edge_dict[edge][lane].sort(key=lambda x: x[1])
 
-        for veh_id in self.get_rl_ids():
+        # get tracked vehicles IDs, for these vehicles info will be collected
+        tracked_vehs = self.get_ids() if self.collect_info_all \
+            else self.get_rl_ids()  # FIXME (yf) better collect tracked vehicles
+
+        for veh_id in tracked_vehs:
             # collect the lane leaders, followers, headways, and tailways for
             # each vehicle
             edge = self.get_edge(veh_id)
