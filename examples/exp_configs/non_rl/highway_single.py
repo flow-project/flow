@@ -55,6 +55,7 @@ vehicles.add(
         'a': 1.3,
         'b': 2.0,
         'noise': 0.3 if INCLUDE_NOISE else 0.0,
+        "display_warnings": False,
         "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
     }),
     car_following_params=SumoCarFollowingParams(
@@ -83,6 +84,7 @@ if PENETRATION_RATE > 0.0:
             "v_des": 5.0,
             "control_length": [500, 2300],
             "default_controller": default_controller,
+            "display_warnings": False,
             "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
         }),
     )
