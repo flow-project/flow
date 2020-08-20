@@ -196,7 +196,7 @@ class BaseController(metaclass=ABCMeta):
         return accel
 
     def compute_failsafe(self, accel, env):
-        """Take in an acceleration and compute the resultant safe acceleration"""
+        """Take in an acceleration and compute the resultant safe acceleration."""
         for failsafe in self.failsafes:
             accel = failsafe(env, accel)
         return accel

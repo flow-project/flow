@@ -5,7 +5,7 @@ highway with ramps network.
 """
 from flow.controllers import RLController, IDMController
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
-                             VehicleParams, SumoParams, SumoLaneChangeParams, SumoCarFollowingParams
+                             VehicleParams, SumoParams, SumoCarFollowingParams
 from flow.networks import HighwayNetwork
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.envs.multiagent import MultiStraightRoad

@@ -1083,5 +1083,6 @@ class TestMaxSpeedAcquisiton(unittest.TestCase):
         self.assertEqual(network.get_max_speed("bottom", 1), 30.0)
         self.assertEqual(network.get_max_speed("bottom", 2), 30.0)
 
+
 if __name__ == '__main__':
     unittest.main()
