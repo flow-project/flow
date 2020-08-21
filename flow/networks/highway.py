@@ -154,6 +154,12 @@ class HighwayNetwork(Network):
         """See parent class."""
         num_edges = net_params.additional_params.get("num_edges", 1)
         rts = {}
+
+        # Add the ghost edge (if needed).
+        if self.net_params.additional_params["use_ghost_edge"]:
+            rts.update({"highway_end": ["highway_end"]})
+
+        # Add the remaining edges.
         for i in range(num_edges):
             rts["highway_{}".format(i)] = ["highway_{}".format(j) for
                                            j in range(i, num_edges)]
