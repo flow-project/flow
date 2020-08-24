@@ -152,6 +152,7 @@ class HighwayNetwork(Network):
 
     def specify_routes(self, net_params):
         """See parent class."""
+        # Need to add the condition for when vehicles are spawned on the ghost edge:
         num_edges = net_params.additional_params.get("num_edges", 1)
         rts = {}
         for i in range(num_edges):
@@ -159,7 +160,7 @@ class HighwayNetwork(Network):
                                            j in range(i, num_edges)]
             if self.net_params.additional_params["use_ghost_edge"]:
                 rts["highway_{}".format(i)].append("highway_end")
-
+        rts["highway_end"] = ["highway_end"]
         return rts
 
     def specify_edge_starts(self):

@@ -16,8 +16,14 @@ from flow.controllers.car_following_models import CFMController, \
     BCMController, OVMController, LinearOVM, IDMController, \
     SimCarFollowingController, LACController, GippsController, \
     BandoFTLController
+    # ACC_Switched_Controller,ACC_Switched_Controller_Attacked,IDMController_Set_Congestion
 from flow.controllers.velocity_controllers import FollowerStopper, \
     PISaturation, NonLocalFollowerStopper
+
+# controllers for adversarial analysis:
+
+from flow.controllers.car_following_adversarial import \
+    ACC_Switched_Controller,ACC_Switched_Controller_Attacked,IDMController_Set_Congestion
 
 # lane change controllers
 from flow.controllers.base_lane_changing_controller import \

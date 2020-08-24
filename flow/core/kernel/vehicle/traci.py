@@ -32,9 +32,7 @@ class TraCIVehicle(KernelVehicle):
     Extends flow.core.kernel.vehicle.base.KernelVehicle
     """
 
-    def __init__(self,
-                 master_kernel,
-                 sim_params):
+    def __init__(self,master_kernel,sim_params):
         """See parent class."""
         KernelVehicle.__init__(self, master_kernel, sim_params)
 
@@ -111,6 +109,7 @@ class TraCIVehicle(KernelVehicle):
             for i in range(typ['num_vehicles']):
                 veh_id = '{}_{}'.format(typ['veh_id'], i)
                 self.__vehicles[veh_id] = dict()
+                self.__vehicles[veh_id]['is_malicious'] = 0 #For specific case when we have adversaries
                 self.__vehicles[veh_id]['type'] = typ['veh_id']
                 self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
                 self.num_vehicles += 1
@@ -314,6 +313,10 @@ class TraCIVehicle(KernelVehicle):
                 rt_controller[0](veh_id=veh_id, router_params=rt_controller[1])
         else:
             self.__vehicles[veh_id]["router"] = None
+
+        # Handles case when adversaries:
+        self.__vehicles[veh_id]["is_malicious"] = 0
+
 
         # add the vehicle's id to the list of vehicle ids
         if accel_controller[0] == RLController:
@@ -597,6 +600,22 @@ class TraCIVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_length(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("length", error)
+
+    #Added specifically to deal with case where some vehicles act malicious:
+
+    def get_malicious(self, veh_id, error=-1001):
+        """
+        Returns 1 if the vehicle is engaged in malicious behavior and 0 if not. By default
+        this will be 0. The set_malicious method can be used to set that value.
+        """
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_malicious(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("is_malicious", error)
+
+    def set_malicious(self, veh_id, is_malicious=0):
+        '''Set the 'is_malicious' value for this vehicle at the given time-step '''
+        self.__vehicles[veh_id]["is_malicious"] = is_malicious
+
 
     def get_leader(self, veh_id, error=""):
         """See parent class."""
