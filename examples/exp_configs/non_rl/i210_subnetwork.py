@@ -15,9 +15,10 @@ from flow.core.params import VehicleParams
 from flow.core.params import InitialConfig
 from flow.core.params import InFlows
 from flow.core.rewards import instantaneous_mpg
+from examples.exp_configs.rl.multiagent.multiagent_i210 import additional_env_params
+from flow.envs.multiagent import I210TestEnv
 from flow.networks import I210SubNetwork
 from flow.networks.i210_subnetwork import EDGES_DISTRIBUTION
-from flow.envs import TestEnv
 import flow.config as config
 
 # =========================================================================== #
@@ -106,13 +107,6 @@ vehicles.add(
     routing_controller=(I210Router, {}) if ON_RAMP else None,
 )
 
-default_controller = (IDMController, {
-        "a": 1.3,
-        "b": 2.0,
-        "noise": 0.3,
-        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
-    }
-)
 vehicles.add(
     "av",
     num_vehicles=0,
@@ -126,7 +120,6 @@ vehicles.add(
         "v_des": V_DES,
         "no_control_edges": ["ghost0", "119257908#3"],
         "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
-        "default_controller": default_controller
     }),
     routing_controller=(I210Router, {}) if ON_RAMP else None,
 )
@@ -194,7 +187,7 @@ flow_params = dict(
     exp_tag='I-210_subnetwork',
 
     # name of the flow environment the experiment is running on
-    env_name=TestEnv,
+    env_name=I210TestEnv,
 
     # name of the network class the experiment is running on
     network=I210SubNetwork,
@@ -215,7 +208,8 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         warmup_steps=WARMUP_STEPS,
-        sims_per_step=3
+        sims_per_step=3,
+        additional_params=additional_env_params,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
@@ -260,6 +254,6 @@ custom_callables = {
         env.k.vehicle.get_speed(valid_ids(env, env.k.vehicle.get_ids())))),
     "avg_outflow": lambda env: np.nan_to_num(
         env.k.vehicle.get_outflow_rate(120)),
-    "mpg": lambda env: instantaneous_mpg(
+    "instantaneous_mpg": lambda env: instantaneous_mpg(
         env,  valid_ids(env, env.k.vehicle.get_ids()), gain=1.0),
 }

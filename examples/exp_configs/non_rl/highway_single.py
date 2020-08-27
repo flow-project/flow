@@ -13,7 +13,7 @@ from flow.core.params import SumoParams
 from flow.core.rewards import instantaneous_mpg
 from flow.core.params import SumoCarFollowingParams
 from flow.networks import HighwayNetwork
-from flow.envs import TestEnv
+from flow.envs.multiagent import I210TestEnv
 from flow.networks.highway import ADDITIONAL_NET_PARAMS
 
 # the speed of vehicles entering the network
@@ -65,13 +65,6 @@ vehicles.add(
 )
 
 if PENETRATION_RATE > 0.0:
-    default_controller = (IDMController, {
-        "a": 1.3,
-        "b": 2.0,
-        "noise": 0.3,
-        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
-    }
-                          )
     vehicles.add(
         "av",
         color='red',
@@ -83,7 +76,6 @@ if PENETRATION_RATE > 0.0:
         acceleration_controller=(FollowerStopper, {
             "v_des": 5.0,
             "control_length": [500, 2300],
-            "default_controller": default_controller,
             "display_warnings": False,
             "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
         }),
@@ -115,7 +107,7 @@ flow_params = dict(
     exp_tag='highway-single',
 
     # name of the flow environment the experiment is running on
-    env_name=TestEnv,
+    env_name=I210TestEnv,
 
     # name of the network class the experiment is running on
     network=HighwayNetwork,

@@ -122,13 +122,6 @@ vehicles.add(
 )
 
 # autonomous vehicles
-default_controller = (IDMController, {
-        "a": 1.3,
-        "b": 2.0,
-        "noise": 0.3,
-        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
-    }
-)
 vehicles.add(
     color='red',
     veh_id='rl',
@@ -138,7 +131,6 @@ vehicles.add(
     ),
     acceleration_controller=(RLController, {
         "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
-        "default_controller": default_controller
     }))
 
 # add human vehicles on the highway
