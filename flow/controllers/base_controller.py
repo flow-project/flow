@@ -283,7 +283,7 @@ class BaseController(metaclass=ABCMeta):
         h = env.k.vehicle.get_headway(self.veh_id)
         dv = lead_vel - this_vel
 
-        v_safe = 2 * h / env.sim_step + dv - this_vel * (2 * self.delay)
+        v_safe = lead_vel + (h - lead_vel * self.delay) / (self.delay + (lead_vel+this_vel) / (2 * self.max_deaccel))
 
         # check for speed limit  FIXME: this is not called
         # this_edge = env.k.vehicle.get_edge(self.veh_id)
