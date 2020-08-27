@@ -458,7 +458,8 @@ class I210MultiEnv(MultiEnv):
 
 class I210TestEnv(I210MultiEnv):
     # TODO(@evinitsky) clean this up, this shouldn't actually subclass MultiEnv
-    """Version of I210 that overrides non-essential methods to speed up run-time for the non-RL case"""
+    """Version of I210 that overrides non-essential methods to speed up run-time for the non-RL case."""
+
     @property
     def action_space(self):
         """See parent class."""
