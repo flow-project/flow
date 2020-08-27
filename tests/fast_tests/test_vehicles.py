@@ -281,6 +281,16 @@ class TestVehiclesClass(unittest.TestCase):
         self.assertTrue(isinstance(
             env.k.vehicle.get_acc_controller("human_0"), RLController))
 
+        # Update the vehicle type to check the other direction
+        env.k.vehicle.set_vehicle_type("human_0", "human")
+        self.assertEqual(env.k.vehicle.num_vehicles, 1)
+        self.assertEqual(env.k.vehicle.num_rl_vehicles, 0)
+        self.assertEqual(env.k.vehicle.get_ids(), ["human_0"])
+        self.assertEqual(env.k.vehicle.get_human_ids(), ["human_0"])
+        self.assertEqual(env.k.vehicle.get_rl_ids(), [])
+        self.assertTrue(isinstance(
+            env.k.vehicle.get_acc_controller("human_0"), IDMController))
+
 
 class TestMultiLaneData(unittest.TestCase):
     """
