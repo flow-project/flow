@@ -199,7 +199,7 @@ if ENTER_AS_LINE:
                 departLane=lane,
                 departSpeed=INFLOW_SPEED)
             inflow.add(
-                veh_type="av",
+                veh_type="rl",
                 edge="ghost0",
                 vehs_per_hour=int(INFLOW_RATE * PENETRATION_RATE),
                 departLane=lane,
@@ -213,7 +213,7 @@ if ENTER_AS_LINE:
                 departLane=lane,
                 departSpeed=INFLOW_SPEED)
             inflow.add(
-                veh_type="av",
+                veh_type="rl",
                 edge="119257914",
                 vehs_per_hour=int(INFLOW_RATE * PENETRATION_RATE),
                 departLane=lane,
@@ -243,7 +243,7 @@ else:
             departLane="best",
             departSpeed=INFLOW_SPEED)
         inflow.add(
-            veh_type="av",
+            veh_type="rl",
             edge="ghost0",
             vehs_per_hour=int(INFLOW_RATE * 5 * PENETRATION_RATE),
             departLane="best",
@@ -257,7 +257,7 @@ else:
             departLane="best",
             departSpeed=INFLOW_SPEED)
         inflow.add(
-            veh_type="av",
+            veh_type="rl",
             edge="119257914",
             vehs_per_hour=int(INFLOW_RATE * 5 * PENETRATION_RATE),
             departLane="best",
