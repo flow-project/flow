@@ -1074,14 +1074,14 @@ class TestMaxSpeedAcquisiton(unittest.TestCase):
 
         env, network, _ = figure_eight_exp_setup(net_params=net_params)
 
-        self.assertEqual(network.get_max_speed("bottom", 0), 60.0)
-        self.assertEqual(network.get_max_speed("bottom", 1), 60.0)
-        self.assertEqual(network.get_max_speed("bottom", 2), 60.0)
+        self.assertEqual(env.k.network.get_max_speed("bottom", 0), 60.0)
+        self.assertEqual(env.k.network.get_max_speed("bottom", 1), 60.0)
+        self.assertEqual(env.k.network.get_max_speed("bottom", 2), 60.0)
 
-        network.set_max_speed("bottom", 30.0)
-        self.assertEqual(network.get_max_speed("bottom", 0), 30.0)
-        self.assertEqual(network.get_max_speed("bottom", 1), 30.0)
-        self.assertEqual(network.get_max_speed("bottom", 2), 30.0)
+        env.k.network.set_max_speed("bottom", 30.0)
+        self.assertEqual(env.k.network.get_max_speed("bottom", 0), 30.0)
+        self.assertEqual(env.k.network.get_max_speed("bottom", 1), 30.0)
+        self.assertEqual(env.k.network.get_max_speed("bottom", 2), 30.0)
 
 
 if __name__ == '__main__':

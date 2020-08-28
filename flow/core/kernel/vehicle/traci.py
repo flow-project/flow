@@ -263,6 +263,13 @@ class TraCIVehicle(KernelVehicle):
                     min_gap = self.minGap[self.get_type(veh_id)]
                     self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                     self.__vehicles[veh_id]["leader"] = headway[0]
+                    if headway[0] in self.__vehicles:
+                        leader = self.__vehicles[headway[0]]
+                        # if veh_id is closer from leader than another follower
+                        # (in case followers are in different converging edges)
+                        if ("follower_headway" not in leader or
+                                headway[1] + min_gap < leader["follower_headway"]):
+                            leader["follower"] = veh_id
 
         # update the sumo observations variable
         self.__sumo_obs = vehicle_obs.copy()
