@@ -1079,6 +1079,7 @@ class TestMaxSpeedAcquisiton(unittest.TestCase):
         self.assertEqual(env.k.network.get_max_speed("bottom", 2), 60.0)
 
         env.k.network.set_max_speed("bottom", 30.0)
+        env.step(None)
         self.assertEqual(env.k.network.get_max_speed("bottom", 0), 30.0)
         self.assertEqual(env.k.network.get_max_speed("bottom", 1), 30.0)
         self.assertEqual(env.k.network.get_max_speed("bottom", 2), 30.0)
