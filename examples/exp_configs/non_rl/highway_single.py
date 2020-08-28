@@ -14,7 +14,7 @@ from flow.core.params import SumoParams
 from flow.core.rewards import instantaneous_mpg
 from flow.core.params import SumoCarFollowingParams
 from flow.networks import HighwayNetwork
-from flow.envs.multiagent import I210TestEnv
+from flow.envs.multiagent import StraightRoadTestEnv
 from flow.networks.highway import ADDITIONAL_NET_PARAMS
 
 # the speed of vehicles entering the network
@@ -108,7 +108,7 @@ flow_params = dict(
     exp_tag='highway-single',
 
     # name of the flow environment the experiment is running on
-    env_name=I210TestEnv,
+    env_name=StraightRoadTestEnv,
 
     # name of the network class the experiment is running on
     network=HighwayNetwork,
