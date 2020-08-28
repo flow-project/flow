@@ -292,7 +292,7 @@ class TestRllibExamples(unittest.TestCase):
     """
     def setUp(self):
         if not ray.is_initialized():
-            ray.init(num_cpus=1)
+            ray.init(num_cpus=1, local_mode=True)
 
     def test_singleagent_figure_eight(self):
         self.run_exp(singleagent_figure_eight)
@@ -477,7 +477,7 @@ class TestRllibExamples(unittest.TestCase):
 
 if __name__ == '__main__':
     try:
-        ray.init(num_cpus=1)
+        ray.init(num_cpus=1, local_mode=True)
     except Exception as e:
         print("ERROR", e)
     unittest.main()

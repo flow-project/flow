@@ -5,7 +5,7 @@ highway with ramps network.
 """
 from flow.controllers import RLController, IDMController
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
-                             VehicleParams, SumoParams, SumoLaneChangeParams, SumoCarFollowingParams
+                             VehicleParams, SumoParams, SumoCarFollowingParams
 from flow.networks import HighwayNetwork
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.envs.multiagent import MultiStraightRoad
@@ -60,7 +60,7 @@ additional_env_params.update({
     'lead_obs': True,
     'control_range': [500, 2300],
     # whether to reroute vehicles once they have exited
-    "reroute_on_exit": True,
+    "reroute_on_exit": False,
     # whether to use the MPG reward. Otherwise, defaults to a target velocity reward
     "mpg_reward": False,
     # whether to use the joules reward. Otherwise, defaults to a target velocity reward
@@ -94,6 +94,12 @@ additional_env_params.update({
     "penalize_accel": True,
     "accel_penalty": 0.05,
 
+    # control the range of speeds of the downstream edge
+    # if true, we vary the downstream speed sampling uniformly from max and min at the start of
+    # each rollout
+    "randomize_downstream_speed": True,
+    "max_downstream_speed": 5.0,
+    "min_downstream_speed": 5.0,
 })
 
 
@@ -106,14 +112,12 @@ vehicles.add(
     acceleration_controller=(IDMController, {
         'a': 1.3,
         'b': 2.0,
-        'noise': 0.3 if INCLUDE_NOISE else 0.0
+        'noise': 0.3 if INCLUDE_NOISE else 0.0,
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
     }),
     car_following_params=SumoCarFollowingParams(
+        speed_mode=12,  # right of way at intersections + obey limits on deceleration
         min_gap=0.5
-    ),
-    lane_change_params=SumoLaneChangeParams(
-        model="SL2015",
-        lc_sublane=2.0,
     ),
 )
 
@@ -121,7 +125,13 @@ vehicles.add(
 vehicles.add(
     color='red',
     veh_id='rl',
-    acceleration_controller=(RLController, {}))
+    car_following_params=SumoCarFollowingParams(
+        min_gap=0.5,
+        speed_mode=12  # right of way at intersections + obey limits on deceleration
+    ),
+    acceleration_controller=(RLController, {
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
+    }))
 
 # add human vehicles on the highway
 inflows.add(

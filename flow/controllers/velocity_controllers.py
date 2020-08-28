@@ -20,19 +20,27 @@ class FollowerStopper(BaseController):
         unique vehicle identifier
     v_des : float, optional
         desired speed of the vehicles (m/s)
+    no_control_edges : [str]
+        list of edges that we should not apply control on
     """
 
     def __init__(self,
                  veh_id,
                  car_following_params,
                  v_des=15,
+                 fail_safe=None,
                  danger_edges=None,
                  control_length=None,
                  no_control_edges=None):
         """Instantiate FollowerStopper."""
-        BaseController.__init__(
-            self, veh_id, car_following_params, delay=0.0,
-            fail_safe='safe_velocity')
+        if fail_safe:
+            BaseController.__init__(
+                self, veh_id, car_following_params, delay=0.0,
+                fail_safe=fail_safe)
+        else:
+            BaseController.__init__(
+                self, veh_id, car_following_params, delay=0.0,
+                fail_safe='safe_velocity')
 
         # desired speed of the vehicle
         self.v_des = v_des
@@ -80,7 +88,10 @@ class FollowerStopper(BaseController):
     def get_accel(self, env):
         """See parent class."""
         if env.time_counter < env.env_params.warmup_steps * env.env_params.sims_per_step:
-            return None
+            if self.default_controller:
+                return self.default_controller.get_accel(env)
+            else:
+                return None
         else:
             lead_id = env.k.vehicle.get_leader(self.veh_id)
             this_vel = env.k.vehicle.get_speed(self.veh_id)
@@ -117,11 +128,7 @@ class FollowerStopper(BaseController):
 
             if (self.find_intersection_dist(env) <= 10 and
                     env.k.vehicle.get_edge(self.veh_id) in self.danger_edges) or \
-                    env.k.vehicle.get_edge(self.veh_id)[0] == ":" \
-                    or (self.control_length and (env.k.vehicle.get_x_by_id(self.veh_id) < self.control_length[0]
-                        or env.k.vehicle.get_x_by_id(self.veh_id) > self.control_length[1])) \
-                    or (self.no_control_edges is not None and len(self.no_control_edges) > 0
-                        and edge in self.no_control_edges):
+                    env.k.vehicle.get_edge(self.veh_id)[0] == ":":
                 return None
             else:
                 # compute the acceleration from the desired velocity
