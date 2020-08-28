@@ -2,6 +2,7 @@
 
 import numpy as np
 
+from examples.exp_configs.rl.multiagent.multiagent_straight_road import additional_env_params
 from flow.controllers import IDMController
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.core.params import EnvParams
@@ -120,6 +121,7 @@ flow_params = dict(
         horizon=HORIZON,
         warmup_steps=500,
         sims_per_step=3,
+        additional_params=additional_env_params
     ),
 
     # sumo-related parameters (see flow.core.params.SumoParams)

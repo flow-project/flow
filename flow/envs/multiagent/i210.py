@@ -506,3 +506,29 @@ class MultiStraightRoad(I210MultiEnv):
 
             # prevent the AV from blocking the entrance
             self.k.vehicle.apply_acceleration(rl_ids, accels)
+
+
+class StraightRoadTestEnv(MultiStraightRoad):
+    # TODO(@evinitsky) clean this up, this shouldn't actually subclass MultiEnv
+    """Version of I210 that overrides non-essential methods to speed up run-time for the non-RL case."""
+
+    @property
+    def action_space(self):
+        """See parent class."""
+        return Box(low=0, high=0, shape=(0,), dtype=np.float32)
+
+    @property
+    def observation_space(self):
+        """See parent class."""
+        return Box(low=0, high=0, shape=(0,), dtype=np.float32)
+
+    def _apply_rl_actions(self, rl_actions):
+        return
+
+    def compute_reward(self, rl_actions, **kwargs):
+        """See parent class."""
+        return 0
+
+    def get_state(self, **kwargs):
+        """See class definition."""
+        return {'fake': np.array([])}
