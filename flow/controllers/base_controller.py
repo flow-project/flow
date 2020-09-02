@@ -380,7 +380,6 @@ class BaseController(metaclass=ABCMeta):
         veh_speed_limit = self.max_speed
         edge_speed_limit = min(veh_speed_limit, edge_speed_limit)
 
-
         this_vel = env.k.vehicle.get_speed(self.veh_id)
         sim_step = env.sim_step
 
