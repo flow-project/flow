@@ -210,8 +210,9 @@ class Experiment:
                 metadata['network'].append(
                     network_name_translate(self.env.network.name.split('_20')[0]))
                 metadata['is_baseline'].append(str(is_baseline))
-                if supplied_metadata is not None and 'name' in supplied_metadata and 'strategy' in supplied_metadata:
-                    name = supplied_metadata.pop('name')
+                if supplied_metadata is not None \
+                        and 'submitter_name' in supplied_metadata and 'strategy' in supplied_metadata:
+                    name = supplied_metadata.pop('submitter_name')
                     strategy = supplied_metadata.pop('strategy')
                 else:
                     name, strategy = get_configuration()
