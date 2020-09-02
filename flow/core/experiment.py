@@ -212,17 +212,17 @@ class Experiment:
                 metadata['is_baseline'].append(str(is_baseline))
                 if supplied_metadata is not None \
                         and 'submitter_name' in supplied_metadata and 'strategy' in supplied_metadata:
-                    name = supplied_metadata.pop('submitter_name')
-                    strategy = supplied_metadata.pop('strategy')
+                    name = supplied_metadata.get('submitter_name')
+                    strategy = supplied_metadata.get('strategy')
                 else:
                     name, strategy = get_configuration()
                 metadata['submitter_name'].append(name)
                 metadata['strategy'].append(strategy)
                 if supplied_metadata is not None:
-                    metadata['version'].append(supplied_metadata.pop('version', None))
-                    metadata['on_ramp'].append(supplied_metadata.pop('on_ramp', None))
-                    metadata['penetration_rate'].append(supplied_metadata.pop('penetration_rate', None))
-                    metadata['road_grade'].append(supplied_metadata.pop('road_grade', None))
+                    metadata['version'].append(supplied_metadata.get('version'))
+                    metadata['on_ramp'].append(supplied_metadata.get('on_ramp'))
+                    metadata['penetration_rate'].append(supplied_metadata.get('penetration_rate'))
+                    metadata['road_grade'].append(supplied_metadata.get('road_grade'))
 
             # emission-specific parameters
             dir_path = self.env.sim_params.emission_path
