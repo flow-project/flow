@@ -69,7 +69,10 @@ class Experiment:
         the environment object the simulator will run
     """
 
-    def __init__(self, flow_params, custom_callables=None, register_with_ray=False):
+    def __init__(self,
+                 flow_params,
+                 custom_callables=None,
+                 register_with_ray=False):
         """Instantiate the Experiment class.
 
         Parameters
@@ -81,6 +84,10 @@ class Experiment:
             want to extract from the environment. The lambda will be called at
             each step to extract information from the env and it will be stored
             in a dict keyed by the str.
+        register_with_ray : bool
+            whether the environment is meant to be registered with ray. If set
+            to True, the environment is including as part of `self.env`
+            separately (i.e. not here).
         """
         self.custom_callables = custom_callables or {}
 
@@ -105,7 +112,6 @@ class Experiment:
             rl_actions=None,
             convert_to_csv=False,
             to_aws=None,
-            only_query="",
             is_baseline=False,
             multiagent=False,
             rets=None,
@@ -127,12 +133,16 @@ class Experiment:
             Specifies the S3 partition you want to store the output file,
             will be used to later for query. If NONE, won't upload output
             to S3.
-        only_query: str
-            Specifies which queries should be automatically run when the
-            simulation data gets uploaded to S3. If an empty str is passed in,
-            then it implies no queries should be run on this.
         is_baseline: bool
             Specifies whether this is a baseline run.
+        multiagent : bool
+            whether the policy is multi-agent
+        rets : dict
+            a dictionary to store the rewards for multiagent simulation
+        policy_map_fn : function
+            a mapping from each agent to their respective policy
+        supplied_metadata: dict (str: list)
+            metadata provided by the caller
 
         Returns
         -------
@@ -200,12 +210,19 @@ class Experiment:
                 metadata['network'].append(
                     network_name_translate(self.env.network.name.split('_20')[0]))
                 metadata['is_baseline'].append(str(is_baseline))
-                if supplied_metadata:
-                    name, strategy = supplied_metadata
+                if supplied_metadata is not None \
+                        and 'submitter_name' in supplied_metadata and 'strategy' in supplied_metadata:
+                    name = supplied_metadata.get('submitter_name')
+                    strategy = supplied_metadata.get('strategy')
                 else:
                     name, strategy = get_configuration()
                 metadata['submitter_name'].append(name)
                 metadata['strategy'].append(strategy)
+                if supplied_metadata is not None:
+                    metadata['version'].append(supplied_metadata.get('version'))
+                    metadata['on_ramp'].append(supplied_metadata.get('on_ramp'))
+                    metadata['penetration_rate'].append(supplied_metadata.get('penetration_rate'))
+                    metadata['road_grade'].append(supplied_metadata.get('road_grade'))
 
             # emission-specific parameters
             dir_path = self.env.sim_params.emission_path
@@ -253,6 +270,7 @@ class Experiment:
                 for (key, lambda_func) in self.custom_callables.items():
                     custom_vals[key].append(lambda_func(self.env))
 
+                # Compute the results for energy metrics
                 for past_veh_id in per_vehicle_energy_trace.keys():
                     if past_veh_id not in veh_ids and past_veh_id not in completed_vehicle_avg_energy:
                         all_trip_energy_distribution[completed_veh_types[past_veh_id]].append(
@@ -262,6 +280,7 @@ class Experiment:
                         completed_vehicle_avg_energy[past_veh_id] = np.sum(per_vehicle_energy_trace[past_veh_id])
                         completed_vehicle_travel_time[past_veh_id] = len(per_vehicle_energy_trace[past_veh_id])
 
+                # Update the stored energy metrics calculation results
                 for veh_id in veh_ids:
                     if veh_id not in initial_vehicles:
                         if veh_id not in per_vehicle_energy_trace:
@@ -314,8 +333,8 @@ class Experiment:
         self.env.terminate()
 
         if to_aws:
-            generate_trajectory_table(emission_files, trajectory_table_path, source_id)
             write_dict_to_csv(metadata_table_path, metadata, True)
+            generate_trajectory_table(emission_files, trajectory_table_path, source_id)
             tsd_main(
                 emission_files[0],
                 {
@@ -344,9 +363,8 @@ class Experiment:
                 'circles.data.pipeline',
                 'time_space_diagram/date={0}/partition_name={1}/'
                 '{1}.png'.format(cur_date, source_id),
-                trajectory_table_path.replace('csv', 'png')
+                emission_files[0].replace('csv', 'png')
             )
             os.remove(trajectory_table_path)
-            os.remove(metadata_table_path)
 
         return info_dict

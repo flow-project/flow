@@ -71,11 +71,24 @@ class I210MultiEnv(MultiEnv):
         self.max_lanes = MAX_LANES
         self.num_enter_lanes = 5
         self.entrance_edge = "ghost0"
-        self.exit_edge = "119257908#2"
+        self.exit_edge = "119257908#3"
         self.control_range = env_params.additional_params.get('control_range', None)
         self.no_control_edges = env_params.additional_params.get('no_control_edges', [])
         self.mpg_reward = env_params.additional_params["mpg_reward"]
         self.look_back_length = env_params.additional_params["look_back_length"]
+
+        # dynamics controller for uncontrolled RL vehicles (mimics humans)
+        controller = self.k.vehicle.type_parameters["human"][
+            "acceleration_controller"]
+        self._human_controller = controller[0](
+            veh_id="av",
+            car_following_params=self.k.vehicle.type_parameters["human"][
+                "car_following_params"],
+            **controller[1]
+        )
+
+        # list of all RL vehicles (even out of network) after reroute_on_exit starts
+        self.reroute_rl_ids = set()
 
         # whether to add a slight reward for opening up a gap that will be annealed out N iterations in
         self.headway_curriculum = env_params.additional_params["headway_curriculum"]
@@ -138,14 +151,18 @@ class I210MultiEnv(MultiEnv):
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         # in the warmup steps, rl_actions is None
-        id_list = []
-        accel_list = []
         if rl_actions:
+            rl_ids = []
+            accels = []
             for rl_id, actions in rl_actions.items():
                 accel = actions[0]
-                id_list.append(rl_id)
-                accel_list.append(accel)
-            self.k.vehicle.apply_acceleration(id_list, accel_list)
+                controller = self.k.vehicle.get_acc_controller(rl_id)
+                accel = controller.compute_failsafe(accel, self)
+                accels.append(accel)
+                rl_ids.append(rl_id)
+
+            # prevent the AV from blocking the entrance
+            self.k.vehicle.apply_acceleration(rl_ids, accels)
 
     def in_control_range(self, veh_id):
         """Return if a veh_id is on an edge that is allowed to be controlled.
@@ -285,6 +302,29 @@ class I210MultiEnv(MultiEnv):
         Define which vehicles are observed for visualization purposes. Additionally, optionally reroute vehicles
         back once they have exited.
         """
+        # In the warmup period all vehicles act as humans.
+        if self.time_counter < \
+                self.env_params.warmup_steps * self.env_params.sims_per_step:
+            uncontrolled_veh_ids = [veh_id for veh_id in self.k.vehicle.get_ids() if
+                                    "human" not in self.k.vehicle.get_type(veh_id)]
+
+        # If no control range is specified, all vehicles are controlled.
+        elif len(self.no_control_edges) == 0:
+            uncontrolled_veh_ids = []
+
+        # Vehicles in the control_range are controlled, others act as humans.
+        else:
+            uncontrolled_veh_ids = []
+            for veh_id in self.k.vehicle.get_ids():
+                if not self.in_control_range(veh_id) and "human" not in self.k.vehicle.get_type(veh_id):
+                    uncontrolled_veh_ids.append(veh_id)
+
+        # Assign accelerations to uncontrolled vehicles.
+        for veh_id in uncontrolled_veh_ids:
+            self._human_controller.veh_id = veh_id
+            acceleration = self._human_controller.get_action(self)
+            self.k.vehicle.apply_acceleration(veh_id, acceleration)
+
         super().additional_command()
         # specify observed vehicles
         for rl_id in self.k.vehicle.get_rl_ids():
@@ -295,7 +335,7 @@ class I210MultiEnv(MultiEnv):
 
         if self.reroute_on_exit and self.time_counter >= self.env_params.sims_per_step * self.env_params.warmup_steps \
                 and not self.env_params.evaluate:
-            veh_ids = self.k.vehicle.get_ids()
+            veh_ids = list(self.k.vehicle.get_ids())
             edges = self.k.vehicle.get_edge(veh_ids)
             valid_lanes = list(range(self.num_enter_lanes))
             for veh_id, edge in zip(veh_ids, edges):
@@ -329,11 +369,17 @@ class I210MultiEnv(MultiEnv):
                     if len(valid_lanes) == 0:
                         break
 
-            departed_ids = self.k.vehicle.get_departed_ids()
+            departed_ids = list(self.k.vehicle.get_departed_ids())
             if isinstance(departed_ids, tuple) and len(departed_ids) > 0:
                 for veh_id in departed_ids:
                     if veh_id not in self._observed_ids:
                         self.k.vehicle.remove(veh_id)
+
+            # update set of all reroute RL vehicles
+            self.reroute_rl_ids = set(self.k.vehicle.get_rl_ids()) | self.reroute_rl_ids
+        else:
+            # reset
+            self.reroute_rl_ids = set()
 
     def state_util(self, rl_id):
         """Return an array of headway, tailway, leader speed, follower speed.
@@ -378,25 +424,62 @@ class I210MultiEnv(MultiEnv):
     def step(self, rl_actions):
         """See parent class for more details; add option to reroute vehicles."""
         state, reward, done, info = super().step(rl_actions)
-        # handle the edge case where a vehicle hasn't been put back when the rollout terminates
-        if self.reroute_on_exit and done['__all__']:
-            for rl_id in self._observed_rl_ids:
-                if rl_id not in state.keys():
-                    done[rl_id] = True
-                    reward[rl_id] = 0
-                    state[rl_id] = -1 * np.ones(self.observation_space.shape[0])
-        else:
+        if done['__all__']:
+            # handle the edge case where a vehicle hasn't been put back when the rollout terminates
+            if self.reroute_on_exit:
+                for rl_id in self.reroute_rl_ids:
+                    if rl_id not in state.keys():
+                        done[rl_id] = True
+                        reward[rl_id] = 0
+                        state[rl_id] = -1 * np.ones(self.observation_space.shape[0])
             # you have to catch the vehicles on the exit edge, they have not yet
             # recieved a done when the env terminates
-            if done['__all__']:
-                on_exit_edge = [rl_id for rl_id in self.k.vehicle.get_rl_ids()
-                                if self.k.vehicle.get_edge(rl_id) == self.exit_edge]
-                for rl_id in on_exit_edge:
-                    done[rl_id] = True
-                    reward[rl_id] = 0
-                    state[rl_id] = -1 * np.ones(self.observation_space.shape[0])
+            on_exit_edge = [rl_id for rl_id in self.k.vehicle.get_rl_ids()
+                            if self.k.vehicle.get_edge(rl_id) == self.exit_edge]
+            for rl_id in on_exit_edge:
+                done[rl_id] = True
+                reward[rl_id] = 0
+                state[rl_id] = -1 * np.ones(self.observation_space.shape[0])
 
         return state, reward, done, info
+
+    def reset(self, new_inflow_rate=None):
+        """Reset the environment."""
+        state = super().reset(new_inflow_rate=new_inflow_rate)
+        # update the network to set the downstream edge speed
+        if self.env_params.additional_params["randomize_downstream_speed"]:
+            min_speed = self.env_params.additional_params["min_downstream_speed"]
+            max_speed = self.env_params.additional_params["max_downstream_speed"]
+            downstream_speed = np.random.uniform(low=min_speed, high=max_speed)
+            self.k.network.set_max_speed(self.exit_edge, downstream_speed)
+
+        return state
+
+
+class I210TestEnv(I210MultiEnv):
+    # TODO(@evinitsky) clean this up, this shouldn't actually subclass MultiEnv
+    """Version of I210 that overrides non-essential methods to speed up run-time for the non-RL case."""
+
+    @property
+    def action_space(self):
+        """See parent class."""
+        return Box(low=0, high=0, shape=(0,), dtype=np.float32)
+
+    @property
+    def observation_space(self):
+        """See parent class."""
+        return Box(low=0, high=0, shape=(0,), dtype=np.float32)
+
+    def _apply_rl_actions(self, rl_actions):
+        return
+
+    def compute_reward(self, rl_actions, **kwargs):
+        """See parent class."""
+        return 0
+
+    def get_state(self, **kwargs):
+        """See class definition."""
+        return {'fake': np.array([])}
 
 
 class MultiStraightRoad(I210MultiEnv):
@@ -415,8 +498,37 @@ class MultiStraightRoad(I210MultiEnv):
             rl_ids = []
             accels = []
             for rl_id, actions in rl_actions.items():
-                accels.append(actions[0])
+                accel = actions[0]
+                controller = self.k.vehicle.get_acc_controller(rl_id)
+                accel = controller.compute_failsafe(accel, self)
+                accels.append(accel)
                 rl_ids.append(rl_id)
 
             # prevent the AV from blocking the entrance
             self.k.vehicle.apply_acceleration(rl_ids, accels)
+
+
+class StraightRoadTestEnv(MultiStraightRoad):
+    # TODO(@evinitsky) clean this up, this shouldn't actually subclass MultiEnv
+    """Version of I210 that overrides non-essential methods to speed up run-time for the non-RL case."""
+
+    @property
+    def action_space(self):
+        """See parent class."""
+        return Box(low=0, high=0, shape=(0,), dtype=np.float32)
+
+    @property
+    def observation_space(self):
+        """See parent class."""
+        return Box(low=0, high=0, shape=(0,), dtype=np.float32)
+
+    def _apply_rl_actions(self, rl_actions):
+        return
+
+    def compute_reward(self, rl_actions, **kwargs):
+        """See parent class."""
+        return 0
+
+    def get_state(self, **kwargs):
+        """See class definition."""
+        return {'fake': np.array([])}

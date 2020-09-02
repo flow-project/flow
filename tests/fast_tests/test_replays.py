@@ -1,5 +1,5 @@
-from flow.replay import rl_replay as rl_replay
-from flow.replay.rl_replay import replay_rllib
+from flow.replay import rllib_replay as rl_replay
+from flow.replay.rllib_replay import replay_rllib
 
 import os
 import unittest
@@ -9,7 +9,7 @@ os.environ['TEST_FLAG'] = 'True'
 
 
 class TestRLReplay(unittest.TestCase):
-    """Tests rl_replay"""
+    """Tests rllib_replay"""
 
     def test_rllib_replay_single(self):
         """Test for single agent replay"""
