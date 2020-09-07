@@ -210,14 +210,19 @@ class Experiment:
                 metadata['network'].append(
                     network_name_translate(self.env.network.name.split('_20')[0]))
                 metadata['is_baseline'].append(str(is_baseline))
-                if supplied_metadata is not None and 'name' in supplied_metadata and 'strategy' in supplied_metadata:
-                    name = supplied_metadata['name']
-                    strategy = supplied_metadata['strategy']
+                if supplied_metadata is not None \
+                        and 'submitter_name' in supplied_metadata and 'strategy' in supplied_metadata:
+                    name = supplied_metadata.get('submitter_name')
+                    strategy = supplied_metadata.get('strategy')
                 else:
                     name, strategy = get_configuration()
                 metadata['submitter_name'].append(name)
                 metadata['strategy'].append(strategy)
-                metadata.update(supplied_metadata)
+                if supplied_metadata is not None:
+                    metadata['version'].append(supplied_metadata.get('version'))
+                    metadata['on_ramp'].append(supplied_metadata.get('on_ramp'))
+                    metadata['penetration_rate'].append(supplied_metadata.get('penetration_rate'))
+                    metadata['road_grade'].append(supplied_metadata.get('road_grade'))
 
             # emission-specific parameters
             dir_path = self.env.sim_params.emission_path
