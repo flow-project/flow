@@ -106,8 +106,7 @@ def setup_exps_rllib(flow_params,
                      flags,
                      policy_graphs=None,
                      policy_mapping_fn=None,
-                     policies_to_train=None,
-                     ):
+                     policies_to_train=None):
     """Return the relevant components of an RLlib experiment.
 
     Parameters
