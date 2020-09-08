@@ -143,7 +143,6 @@ act_space = test_env.action_space
 def gen_policy():
     """Generate a policy in RLlib."""
     return PPOTFPolicy, obs_space, act_space, {}
-    # return DQNTFPolicy, obs_space, act_space, {}
 
 
 # Setup PG with a single policy graph for all agents
