@@ -132,13 +132,15 @@ def replay(args,
                 veh_param['acceleration_controller'] = (default_controller, test_params)
 
     if args.lane_freq_sweep:
-        test_lane_params = {'lcSpeedGain': default_controller_params['lane_frequency']} 
+        test_lane_params = {'lcSpeedGain': str(float(default_controller_params['lane_frequency']))} 
 
         flow_params['veh'].type_parameters['human']['lane_change_params'].controller_params.update(test_lane_params)
-
         for veh_param in flow_params['veh'].initial:
             if veh_param['veh_id'] == 'human':
                 veh_param['lane_change_params'].controller_params.update(test_lane_params)
+        for vtype in flow_params['veh'].types:
+            if vtype['veh_id'] == 'human':
+                vtype['type_params']['lcSpeedGain'] = str(float(default_controller_params['lane_frequency']))
 
 
     # TODO is there a more dynamic way instead of hardcoding the start edges
@@ -403,6 +405,11 @@ def create_parser():
         help='Set warmup steps to 0. Mostly for debugging purposes'
     )
     parser.add_argument(
+        '--no_warnings',
+        action='store_true',
+        help='Sets display_warnings to False in the vehicle definition'
+    )
+    parser.add_argument(
         '--exp_config', type=str,
         help='Name of the experiment configuration file, as located in '
              'exp_configs/non_rl.')
@@ -431,6 +438,13 @@ def generate_graphs(args):
     flow_params['env_name'] = I210TransferEnv
     if args.no_warmup:
         flow_params['env'].warmup_steps = 0
+
+    if args.no_warnings:
+        for type_param in flow_params['veh'].type_parameters.values():
+            type_param['acceleration_controller'][1]['display_warnings'] = False
+        for veh_param in flow_params['veh'].initial:
+            veh_param['acceleration_controller'][1]['display_warnings'] = False
+
 
     if ray.is_initialized():
         ray.shutdown()
@@ -529,8 +543,8 @@ def generate_graphs(args):
                 rllib_config=args.rllib_result_dir,	
                 max_completed_trips=args.max_completed_trips,
                 default_controller_params={'lane_frequency': lf}
-            )	
-            for lf in range(1, 5, 1)]
+            )
+            for lf in [1, 10, 20]]
         ray.get(ray_output)	
 
     else:

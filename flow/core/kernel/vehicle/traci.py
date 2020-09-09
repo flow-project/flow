@@ -62,6 +62,8 @@ class TraCIVehicle(KernelVehicle):
         self.num_rl_vehicles = 0
         # number of vehicles  loaded but not departed vehicles
         self.num_not_departed = 0
+        # number of lane changes in an episode
+        self.lane_change_count = 0
 
         # contains the parameters associated with each type of vehicle
         self.type_parameters = {}
@@ -150,8 +152,13 @@ class TraCIVehicle(KernelVehicle):
         vehicle_obs = {}
         for veh_id in self.__ids:
             self.previous_speeds[veh_id] = self.get_speed(veh_id)
+            # used for lane_count metric
+            prev_lane = self.get_lane(veh_id)
             vehicle_obs[veh_id] = \
                 self.kernel_api.vehicle.getSubscriptionResults(veh_id)
+            if vehicle_obs[veh_id]:
+                vehicle_obs[veh_id]['prev_lane'] = prev_lane 
+        
         sim_obs = self.kernel_api.simulation.getSubscriptionResults()
 
         arrived_rl_ids = []
@@ -273,6 +280,12 @@ class TraCIVehicle(KernelVehicle):
 
         # update the sumo observations variable
         self.__sumo_obs = vehicle_obs.copy()
+
+        # update lane count
+        for veh_id, vobs in vehicle_obs.items():
+            prev_lane = vobs.get('prev_lane', -1001)
+            if prev_lane != -1001 and self.get_lane(veh_id) != -1001 and prev_lane != self.get_lane(veh_id):
+                self.lane_change_count += 1
 
         # update the lane leaders data for each vehicle
         self._multi_lane_headways()

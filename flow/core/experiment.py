@@ -308,6 +308,7 @@ class Experiment:
             info_dict["avg_trip_energy"].append(np.mean(list(completed_vehicle_avg_energy.values())))
             info_dict["avg_trip_time"].append(np.mean(list(completed_vehicle_travel_time.values())))
             info_dict["total_completed_trips"].append(len(list(completed_vehicle_avg_energy.values())))
+            info_dict["lane_change_count"] = self.env.k.vehicle.lane_change_count
             for key in custom_vals.keys():
                 info_dict[key].append(np.mean(custom_vals[key]))
 
