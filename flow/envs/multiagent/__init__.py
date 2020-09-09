@@ -10,7 +10,8 @@ from flow.envs.multiagent.ring.accel import MultiAgentAccelPOEnv
 from flow.envs.multiagent.traffic_light_grid import MultiTrafficLightGridPOEnv
 from flow.envs.multiagent.highway import MultiAgentHighwayPOEnv
 from flow.envs.multiagent.merge import MultiAgentMergePOEnv
-from flow.envs.multiagent.i210 import I210MultiEnv, MultiStraightRoad, I210TestEnv, I210TransferEnv, StraightRoadTestEnv
+from flow.envs.multiagent.i210 import I210MultiEnv, MultiStraightRoad, \
+    I210TestEnv, I210TransferEnv, StraightRoadTestEnv
 
 
 __all__ = [

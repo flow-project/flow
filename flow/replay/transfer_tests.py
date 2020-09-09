@@ -33,7 +33,7 @@ Here the arguments are:
 1 - the path to the simulation results
 2 - the number of the checkpoint
 """
-# TODO make sure that adding the IDM as a default doesn't fuck anything up 
+
 
 @ray.remote
 def replay(args,
@@ -110,29 +110,29 @@ def replay(args,
             if veh_param['veh_id'] == 'rl':
                 veh_param['acceleration_controller'] = (controller, test_params)
 
-    if args.default_controller:	
-        test_params = {}	
-        if args.default_controller == 'idm':	
+    if args.default_controller:
+        test_params = {}
+        if args.default_controller == 'idm':
             default_controller = IDMController
             if 'idm_params' in default_controller_params:
                 test_params.update(default_controller_params['idm_params'])
-        elif args.default_controller == 'follower_stopper':	
+        elif args.default_controller == 'follower_stopper':
             default_controller = FollowerStopper
             if 'v_des' in default_controller_params:
                 test_params.update({'v_des': default_controller_params['v_des']})
             else:
                 test_params.update({'v_des': 12})
-        elif args.default_controller == 'sumo':	
-            default_controller = SimCarFollowingController	
-        	
+        elif args.default_controller == 'sumo':
+            default_controller = SimCarFollowingController
+
         flow_params['veh'].type_parameters['human']['acceleration_controller'] = (default_controller, test_params)
 
-        for veh_param in flow_params['veh'].initial:	
-            if veh_param['veh_id'] == 'human':	
+        for veh_param in flow_params['veh'].initial:
+            if veh_param['veh_id'] == 'human':
                 veh_param['acceleration_controller'] = (default_controller, test_params)
 
     if args.lane_freq_sweep:
-        test_lane_params = {'lcSpeedGain': str(float(default_controller_params['lane_frequency']))} 
+        test_lane_params = {'lcSpeedGain': str(float(default_controller_params['lane_frequency']))}
 
         flow_params['veh'].type_parameters['human']['lane_change_params'].controller_params.update(test_lane_params)
         for veh_param in flow_params['veh'].initial:
@@ -142,12 +142,11 @@ def replay(args,
             if vtype['veh_id'] == 'human':
                 vtype['type_params']['lcSpeedGain'] = str(float(default_controller_params['lane_frequency']))
 
-
     # TODO is there a more dynamic way instead of hardcoding the start edges
     if args.inflow_sweep:
         from examples.exp_configs.rl.multiagent.multiagent_i210 import PENETRATION_RATE, \
             ON_RAMP, WANT_BOUNDARY_CONDITIONS, ON_RAMP_INFLOW_RATE, ENTER_AS_LINE
-        for inflow in flow_params['net'].inflows.get():	
+        for inflow in flow_params['net'].inflows.get():
             if ENTER_AS_LINE:
                 if WANT_BOUNDARY_CONDITIONS:
                     if inflow['edge'] == 'ghost0':
@@ -178,9 +177,9 @@ def replay(args,
                             inflow['vehsPerHour'] = int(inflow_rate * 5 * (1 - PENETRATION_RATE))
                         elif inflow['vtype'] == 'rl':
                             inflow['vehsPerHour'] = int(inflow_rate * 5 * PENETRATION_RATE)
-                        
-                if ON_RAMP:	
-                    if inflow['edge'] == '27414345' or inflow['edge'] == '27414342#0':	
+
+                if ON_RAMP:
+                    if inflow['edge'] == '27414345' or inflow['edge'] == '27414342#0':
                         inflow['vehsPerHour'] = int(ON_RAMP_INFLOW_RATE * (1 - PENETRATION_RATE))
 
     if args.outflow_sweep:
@@ -311,10 +310,10 @@ def create_parser():
         default='idm',
         help='Which custom controller to use. Defaults to IDM'
     )
-    parser.add_argument(	
-        '--default_controller',	
-        type=str,	
-        help='Which controller the non-controlled vehicles use. Defaults to IDM'	
+    parser.add_argument(
+        '--default_controller',
+        type=str,
+        help='Which controller the non-controlled vehicles use. Defaults to IDM'
     )
     parser.add_argument(
         '--run_transfer',
@@ -339,24 +338,24 @@ def create_parser():
         action='store_true',
         help='Runs a sweep over v_des params.',
         default=None)
-    parser.add_argument(	
-        '--idm_sweep',	
-        action='store_true',	
-        help='Runs a sweep over idm params.',	
-        default=None)	
-    parser.add_argument(	
-        '--inflow_sweep',	
-        action='store_true',	
+    parser.add_argument(
+        '--idm_sweep',
+        action='store_true',
+        help='Runs a sweep over idm params.',
+        default=None)
+    parser.add_argument(
+        '--inflow_sweep',
+        action='store_true',
         help='Runs a sweep over the inflows of other vehicles.',
         default=None)
-    parser.add_argument(	
-        '--outflow_sweep',	
-        action='store_true',	
+    parser.add_argument(
+        '--outflow_sweep',
+        action='store_true',
         help='Runs a sweep over the outflow speed.',
         default=None)
-    parser.add_argument(	
-        '--lane_freq_sweep',	
-        action='store_true',	
+    parser.add_argument(
+        '--lane_freq_sweep',
+        action='store_true',
         help='Runs a sweep over the lane change frequencies.',
         default=None)
     parser.add_argument(
@@ -445,7 +444,6 @@ def generate_graphs(args):
         for veh_param in flow_params['veh'].initial:
             veh_param['acceleration_controller'][1]['display_warnings'] = False
 
-
     if ray.is_initialized():
         ray.shutdown()
     if args.multi_node:
@@ -493,23 +491,23 @@ def generate_graphs(args):
             for v_des in range(8, 13, 1)
         ]
         ray.get(ray_output)
-    
-    elif args.idm_sweep:	
-        assert args.controller == 'idm'	
-        ray_output = [	
+
+    elif args.idm_sweep:
+        assert args.controller == 'idm'
+        ray_output = [
             replay.remote(
                 args,
                 flow_params,
                 output_dir="{}/{}".format(output_dir, a),
-                rllib_config=args.rllib_result_dir,	
+                rllib_config=args.rllib_result_dir,
                 max_completed_trips=args.max_completed_trips,
                 controller_params={'idm_params': {'a': a}}
-            )	
-            for a in np.arange(0.2, 2, 0.2)]	
-        ray.get(ray_output)	
+            )
+            for a in np.arange(0.2, 2, 0.2)]
+        ray.get(ray_output)
 
-    elif args.inflow_sweep:	
-        ray_output = [	
+    elif args.inflow_sweep:
+        ray_output = [
             replay.remote(
                 args,
                 flow_params,
@@ -518,34 +516,34 @@ def generate_graphs(args):
                 max_completed_trips=args.max_completed_trips,
                 inflow_rate=inflow_rate
             )
-            for inflow_rate in range(1800, 2500, 100)]	
+            for inflow_rate in range(1800, 2500, 100)]
         ray.get(ray_output)
 
     elif args.outflow_sweep:
-        ray_output = [	
+        ray_output = [
             replay.remote(
                 args,
                 flow_params,
                 output_dir="{}/{}".format(output_dir, outflow_speed_limit),
-                rllib_config=args.rllib_result_dir,	
+                rllib_config=args.rllib_result_dir,
                 max_completed_trips=args.max_completed_trips,
                 outflow_speed_limit=outflow_speed_limit
-            )	
+            )
             for outflow_speed_limit in range(20, 50, 10)]
-        ray.get(ray_output)	
-    
+        ray.get(ray_output)
+
     elif args.lane_freq_sweep:
-        ray_output = [	
+        ray_output = [
             replay.remote(
                 args,
                 flow_params,
                 output_dir="{}/{}".format(output_dir, lf),
-                rllib_config=args.rllib_result_dir,	
+                rllib_config=args.rllib_result_dir,
                 max_completed_trips=args.max_completed_trips,
                 default_controller_params={'lane_frequency': lf}
             )
             for lf in [1, 10, 20]]
-        ray.get(ray_output)	
+        ray.get(ray_output)
 
     else:
         if args.penetration_rate is not None:

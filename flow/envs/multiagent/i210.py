@@ -481,14 +481,19 @@ class I210TestEnv(I210MultiEnv):
         """See class definition."""
         return {'fake': np.array([])}
 
+
 class I210TransferEnv(I210MultiEnv):
-    """Almost virtually the same, but with an additional_command method that allows further
-    flexibility, in particular with outflow speed, which must be called after reset."""
+    """Env used for transfer tests.
+
+    Almost virtually the same, but with an additional_command method that allows further
+    flexibility, in particular with outflow speed, which must be called after reset.
+    """
 
     def __init__(self, env_params, sim_params, network, simulator, outflow_speed_limit=None):
         super().__init__(env_params, sim_params, network, simulator)
-        self.outflow_speed_limit = env_params.additional_params.get('outflow_speed_limit', 
-            self.env_params.additional_params.get("max_downstream_speed"))
+        self.outflow_speed_limit = \
+            env_params.additional_params.get('outflow_speed_limit',
+                                             self.env_params.additional_params.get("max_downstream_speed"))
 
     def reset(self, new_inflow_rate=None):
         """Reset the environment."""
@@ -496,6 +501,7 @@ class I210TransferEnv(I210MultiEnv):
         # Update the outflow rate
         self.k.kernel_api.edge.setMaxSpeed("119257908#3", self.outflow_speed_limit)
         return state
+
 
 class MultiStraightRoad(I210MultiEnv):
     """Partially observable multi-agent environment for a straight road. Look at superclass for more information."""

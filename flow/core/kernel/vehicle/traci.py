@@ -157,8 +157,8 @@ class TraCIVehicle(KernelVehicle):
             vehicle_obs[veh_id] = \
                 self.kernel_api.vehicle.getSubscriptionResults(veh_id)
             if vehicle_obs[veh_id]:
-                vehicle_obs[veh_id]['prev_lane'] = prev_lane 
-        
+                vehicle_obs[veh_id]['prev_lane'] = prev_lane
+
         sim_obs = self.kernel_api.simulation.getSubscriptionResults()
 
         arrived_rl_ids = []
