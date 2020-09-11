@@ -309,14 +309,16 @@ class Experiment:
                     if self.env.k.vehicle.get_speed(veh_id) >= 0
                     and self.env.k.vehicle.get_edge(veh_id) not in self.env.no_control_edges
                 ]
-                rl_ids = [s
+                rl_ids = [
                     veh_id for veh_id in self.env.k.vehicle.get_rl_ids()
                     if self.env.k.vehicle.get_speed(veh_id) >= 0
                     and self.env.k.vehicle.get_edge(veh_id) not in self.env.no_control_edges
                 ]
             else:
-                veh_ids = [veh_id for veh_id in self.env.k.vehicle.get_ids() if self.env.k.vehicle.get_speed(veh_id) >= 0]
-                rl_ids = [veh_id for veh_id in self.env.k.vehicle.get_rl_ids() if self.env.k.vehicle.get_speed(veh_id) >= 0]
+                veh_ids = [veh_id for veh_id in self.env.k.vehicle.get_ids()
+                           if self.env.k.vehicle.get_speed(veh_id) >= 0]
+                rl_ids = [veh_id for veh_id in self.env.k.vehicle.get_rl_ids()
+                          if self.env.k.vehicle.get_speed(veh_id) >= 0]
 
             outflow = self.env.k.vehicle.get_outflow_rate(int(500))
             if not multiagent:
@@ -329,8 +331,9 @@ class Experiment:
             info_dict["lane_change_count"] = self.env.k.vehicle.lane_change_count
             info_dict["inst_mpg"].append(instantaneous_mpg(self.env, veh_ids, gain=1.0))
             info_dict["avg_accel_human"].append(np.nan_to_num(np.mean(
-                [np.abs((self.env.k.vehicle.get_speed(veh_id) - self.env.k.vehicle.get_previous_speed(veh_id))/self.env.sim_step) for
-                veh_id in veh_ids if veh_id in self.env.k.vehicle.previous_speeds.keys()]
+                [np.abs((self.env.k.vehicle.get_speed(veh_id) -
+                 self.env.k.vehicle.get_previous_speed(veh_id))/self.env.sim_step) for
+                 veh_id in veh_ids if veh_id in self.env.k.vehicle.previous_speeds.keys()]
             )))
             info_dict["avg_headway"].append(self.env.k.vehicle.get_headway(veh_ids))
 
