@@ -25,9 +25,9 @@ from flow.data_pipeline.data_pipeline import collect_metadata_from_config
 
 EXAMPLE_USAGE = """
 example usage:
-    python i210_replay.py -r /ray_results/experiment_dir/result_dir -c 1
-    python i210_replay.py --controller idm
-    python i210_replay.py --controller idm --run_transfer
+    python transfer_tests.py -r /ray_results/experiment_dir/result_dir -c 1
+    python transfer_tests.py --controller idm
+    python transfer_tests.py --controller idm --run_transfer
 
 Here the arguments are:
 1 - the path to the simulation results
@@ -77,9 +77,6 @@ def replay(args,
         Custom params for the once-human vehicle e.g. If you replace the human vehicles with
         IDM vehicles, this could be IDM params
     """
-    assert bool(args.controller) ^ bool(rllib_config), \
-        "Need to specify either controller or rllib_config, but not both"
-
     args.gen_emission = args.gen_emission or args.use_s3
 
     if transfer_test is not None:
@@ -529,7 +526,7 @@ def generate_graphs(args):
                 max_completed_trips=args.max_completed_trips,
                 outflow_speed_limit=outflow_speed_limit
             )
-            for outflow_speed_limit in range(20, 50, 10)]
+            for outflow_speed_limit in range(2, 10, 2)]
         ray.get(ray_output)
 
     elif args.lane_freq_sweep:
