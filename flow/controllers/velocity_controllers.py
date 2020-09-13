@@ -25,18 +25,33 @@ class FollowerStopper(BaseController):
     def __init__(self,
                  veh_id,
                  car_following_params,
+                 fail_safe=None,
+                 display_warnings=True,
                  v_des=15,
-                 danger_edges=None):
+                 max_accel=1,
+                 max_decel=1,
+                 danger_edges=None,
+                 control_length=None,
+                 no_control_edges=None):
         """Instantiate FollowerStopper."""
         BaseController.__init__(
-            self, veh_id, car_following_params, delay=1.0,
-            fail_safe='safe_velocity')
+            self,
+            veh_id=veh_id,
+            car_following_params=car_following_params,
+            delay=0.0,
+            fail_safe=fail_safe or 'safe_velocity',
+            display_warnings=display_warnings,
+            noise=0.0,
+        )
+
+        # maximum acceleration for autonomous vehicles, in m/s^2
+        self._max_accel = max_accel
+
+        # maximum deceleration for autonomous vehicles, in m/s^2
+        self._max_decel = -abs(max_decel)
 
         # desired speed of the vehicle
         self.v_des = v_des
-
-        # maximum achievable acceleration by the vehicle
-        self.max_accel = car_following_params.controller_params['accel']
 
         # other parameters
         self.dx_1_0 = 4.5
@@ -45,7 +60,10 @@ class FollowerStopper(BaseController):
         self.d_1 = 1.5
         self.d_2 = 1.0
         self.d_3 = 0.5
+
         self.danger_edges = danger_edges if danger_edges else {}
+        self.control_length = control_length
+        self.no_control_edges = no_control_edges
 
     def find_intersection_dist(self, env):
         """Find distance to intersection.
@@ -102,18 +120,11 @@ class FollowerStopper(BaseController):
             else:
                 v_cmd = self.v_des
 
-        edge = env.k.vehicle.get_edge(self.veh_id)
+        # compute the acceleration from the desired velocity
+        accel = (v_cmd - this_vel) / env.sim_step
 
-        if edge == "":
-            return None
-
-        if self.find_intersection_dist(env) <= 10 and \
-                env.k.vehicle.get_edge(self.veh_id) in self.danger_edges or \
-                env.k.vehicle.get_edge(self.veh_id)[0] == ":":
-            return None
-        else:
-            # compute the acceleration from the desired velocity
-            return (v_cmd - this_vel) / env.sim_step
+        # clip by bounds
+        return max(min(accel, self._max_accel), self._max_decel)
 
 
 class NonLocalFollowerStopper(FollowerStopper):
