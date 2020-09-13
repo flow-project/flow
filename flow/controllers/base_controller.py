@@ -92,11 +92,11 @@ class BaseController(metaclass=ABCMeta):
         self.car_following_params = car_following_params
 
     @abstractmethod
-    def get_accel(self, env):
+    def get_accel(self, env, **kwargs):
         """Return the acceleration of the controller."""
         pass
 
-    def get_action(self, env):
+    def get_action(self, env, **kwargs):
         """Convert the get_accel() acceleration into an action.
 
         If no acceleration is specified, the action returns a None as well,
@@ -133,7 +133,7 @@ class BaseController(metaclass=ABCMeta):
         if env.k.vehicle.get_edge(self.veh_id)[0] == ":":
             return None
 
-        accel = self.get_accel(env)
+        accel = self.get_accel(env, **kwargs)
 
         # if no acceleration is specified, let sumo take over for the current
         # time step
