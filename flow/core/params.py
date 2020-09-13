@@ -693,7 +693,8 @@ class EnvParams:
                  warmup_steps=0,
                  sims_per_step=1,
                  evaluate=False,
-                 clip_actions=True):
+                 clip_actions=True,
+                 done_at_exit=False):
         """Instantiate EnvParams."""
         self.additional_params = \
             additional_params if additional_params is not None else {}
@@ -702,6 +703,7 @@ class EnvParams:
         self.sims_per_step = sims_per_step
         self.evaluate = evaluate
         self.clip_actions = clip_actions
+        self.done_at_exit = done_at_exit
 
     def get_additional_param(self, key):
         """Return a variable from additional_params."""
