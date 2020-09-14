@@ -335,7 +335,7 @@ class Experiment:
                  self.env.k.vehicle.get_previous_speed(veh_id))/self.env.sim_step) for
                  veh_id in veh_ids if veh_id in self.env.k.vehicle.previous_speeds.keys()]
             )))
-            info_dict["avg_headway"].append(self.env.k.vehicle.get_headway(veh_ids))
+            info_dict["avg_headway"].append(np.mean(self.env.k.vehicle.get_headway(veh_ids)))
 
             for key in custom_vals.keys():
                 info_dict[key].append(np.mean(custom_vals[key]))
