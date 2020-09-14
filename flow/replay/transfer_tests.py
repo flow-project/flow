@@ -5,6 +5,7 @@ import os
 from copy import deepcopy
 
 from flow.controllers.car_following_models import IDMController, SimCarFollowingController
+from flow.controllers.rlcontroller import RLController
 from flow.controllers.velocity_controllers import FollowerStopper
 
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
@@ -111,10 +112,14 @@ def replay(args,
         test_params = {}
         if args.default_controller == 'idm':
             default_controller = IDMController
+            if flow_params['veh'].type_parameters['human']['acceleration_controller'][0] == IDMController:
+                test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
             if 'idm_params' in default_controller_params:
                 test_params.update(default_controller_params['idm_params'])
         elif args.default_controller == 'follower_stopper':
             default_controller = FollowerStopper
+            if flow_params['veh'].type_parameters['human']['acceleration_controller'][0] == FollowerStopper:
+                test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
             if 'v_des' in default_controller_params:
                 test_params.update({'v_des': default_controller_params['v_des']})
             else:
@@ -127,6 +132,18 @@ def replay(args,
         for veh_param in flow_params['veh'].initial:
             if veh_param['veh_id'] == 'human':
                 veh_param['acceleration_controller'] = (default_controller, test_params)
+
+    if args.idm_sweep:
+        test_params = {}
+        test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
+        test_params.update(default_controller_params['idm_params'])
+        default_controller = IDMController
+
+        flow_params['veh'].type_parameters['human']['acceleration_controller'] = (default_controller, test_params)
+
+        for veh_param in flow_params['veh'].initial:
+            if veh_param['veh_id'] == 'human':
+                veh_param['acceleration_controller'] = (controller, test_params)
 
     if args.lane_freq_sweep:
         test_lane_params = {'lcSpeedGain': str(float(default_controller_params['lane_frequency']))}
@@ -304,7 +321,6 @@ def create_parser():
     parser.add_argument(
         '--controller',
         type=str,
-        default='idm',
         help='Which custom controller to use. Defaults to IDM'
     )
     parser.add_argument(
@@ -437,9 +453,11 @@ def generate_graphs(args):
 
     if args.no_warnings:
         for type_param in flow_params['veh'].type_parameters.values():
-            type_param['acceleration_controller'][1]['display_warnings'] = False
+            if not type_param['acceleration_controller'][0] == RLController:
+                type_param['acceleration_controller'][1]['display_warnings'] = False
         for veh_param in flow_params['veh'].initial:
-            veh_param['acceleration_controller'][1]['display_warnings'] = False
+            if not type_param['acceleration_controller'][0] == RLController:
+                veh_param['acceleration_controller'][1]['display_warnings'] = False
 
     if ray.is_initialized():
         ray.shutdown()
@@ -498,7 +516,7 @@ def generate_graphs(args):
                 output_dir="{}/{}".format(output_dir, a),
                 rllib_config=args.rllib_result_dir,
                 max_completed_trips=args.max_completed_trips,
-                controller_params={'idm_params': {'a': a}}
+                default_controller_params={'idm_params': {'a': a}}
             )
             for a in np.arange(0.2, 2, 0.2)]
         ray.get(ray_output)
