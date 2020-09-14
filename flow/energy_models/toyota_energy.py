@@ -17,16 +17,18 @@ class ToyotaModel(BaseEnergyModel, metaclass=ABCMeta):
         s3 = boto3.client('s3')
         s3.download_file('toyota.restricted', filename, 'temp.pkl')
 
-        with open('temp.pkl', 'rb') as file:
-            try:
-                self.toyota_energy = pickle.load(file)
-                # delete pickle file
-                os.remove('temp.pkl')
-            except TypeError:
-                print('Must use Python version 3.6.8 to unpickle')
-                # delete pickle file
-                os.remove('temp.pkl')
-                raise
+        file = open('temp.pkl', 'rb')
+        try:
+            self.toyota_energy = pickle.load(file)
+            # delete pickle file
+            file.close()
+            os.remove('temp.pkl')
+        except TypeError:
+            print('Must use Python version 3.6.8 to unpickle')
+            # delete pickle file
+            file.close()
+            os.remove('temp.pkl')
+            raise
 
     @abstractmethod
     def get_instantaneous_power(self, accel, speed, grade):
