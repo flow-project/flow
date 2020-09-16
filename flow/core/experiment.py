@@ -309,16 +309,16 @@ class Experiment:
                     if self.env.k.vehicle.get_speed(veh_id) >= 0
                     and self.env.k.vehicle.get_edge(veh_id) not in self.env.no_control_edges
                 ]
-                # rl_ids = [
-                #     veh_id for veh_id in self.env.k.vehicle.get_rl_ids()
-                #     if self.env.k.vehicle.get_speed(veh_id) >= 0
-                #     and self.env.k.vehicle.get_edge(veh_id) not in self.env.no_control_edges
-                # ]
+                rl_ids = [
+                    veh_id for veh_id in self.env.k.vehicle.get_rl_ids()
+                    if self.env.k.vehicle.get_speed(veh_id) >= 0
+                    and self.env.k.vehicle.get_edge(veh_id) not in self.env.no_control_edges
+                ]
             else:
                 veh_ids = [veh_id for veh_id in self.env.k.vehicle.get_ids()
                            if self.env.k.vehicle.get_speed(veh_id) >= 0]
-                # rl_ids = [veh_id for veh_id in self.env.k.vehicle.get_rl_ids()
-                #           if self.env.k.vehicle.get_speed(veh_id) >= 0]
+                rl_ids = [veh_id for veh_id in self.env.k.vehicle.get_rl_ids()
+                          if self.env.k.vehicle.get_speed(veh_id) >= 0]
 
             outflow = self.env.k.vehicle.get_outflow_rate(int(500))
             if not multiagent:
