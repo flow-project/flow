@@ -88,6 +88,7 @@ class BaseController(metaclass=ABCMeta):
         self.max_accel = car_following_params.controller_params['accel']
         # max deaccel should always be a positive
         self.max_deaccel = abs(car_following_params.controller_params['decel'])
+        self.max_speed = car_following_params.controller_params['maxSpeed']
 
         self.car_following_params = car_following_params
 
@@ -376,6 +377,8 @@ class BaseController(metaclass=ABCMeta):
         this_edge = env.k.vehicle.get_edge(self.veh_id)
         this_lane = env.k.vehicle.get_lane(self.veh_id)
         edge_speed_limit = env.k.network.get_max_speed(this_edge, this_lane)
+        veh_speed_limit = self.max_speed
+        edge_speed_limit = min(veh_speed_limit, edge_speed_limit)
 
         this_vel = env.k.vehicle.get_speed(self.veh_id)
         sim_step = env.sim_step

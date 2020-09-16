@@ -291,12 +291,10 @@ def get_rl_action(config, agent, multiagent, multi_only=False, deterministic=Fal
                     action[agent_id], state_init[agent_id], logits = \
                         agent.compute_action(
                             state[agent_id], state=state_init[agent_id],
-                            policy_id=policy_map_fn(agent_id),
-                            explore=not deterministic)
+                            policy_id=policy_map_fn(agent_id))
                 else:
-                    action[agent_id] = agent.compute_action(
-                        state[agent_id], policy_id=policy_map_fn(agent_id),
-                        explore=not deterministic)
+                    action[agent_id] = agent.compute_action(state[agent_id],
+                                                            policy_id=policy_map_fn(agent_id))
         else:
             if use_lstm and multi_only:
                 raise NotImplementedError

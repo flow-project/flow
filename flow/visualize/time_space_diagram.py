@@ -25,7 +25,7 @@ try:
     from matplotlib import pyplot as plt
 except ImportError:
     import matplotlib
-    matplotlib.use('TkAgg')
+    matplotlib.use('Agg')
     from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection, PatchCollection
 from matplotlib.patches import Rectangle
@@ -265,7 +265,8 @@ def _i210_subnetwork(data):
     """
     # Reset lane numbers that are offset by ramp lanes
     offset_edges = set(data[data['lane_id'] == 5]['edge_id'].unique())
-    data.loc[data['edge_id'].isin(offset_edges), 'lane_id'] = data[data['edge_id'].isin(offset_edges)]['lane_id'] - 1
+    data.loc[~data['edge_id'].isin(offset_edges), 'lane_id'] = \
+        data[~data['edge_id'].isin(offset_edges)]['lane_id'] + 1
 
     segs = dict()
     for lane, df in data.groupby('lane_id'):
@@ -452,9 +453,6 @@ def plot_tsd(df, network, cmap, min_speed=0, max_speed=10, start=0, domain_bound
     for lane, lane_df in df.groupby('lane_id'):
         ax = plt.subplot(nlanes, 1, lane+1)
 
-        ax.set_xlim(xmin - xbuffer, xmax + xbuffer)
-        ax.set_ylim(ymin - ybuffer, ymax + ybuffer)
-
         lc = LineCollection(segs[lane], cmap=cmap, norm=norm)
         lc.set_array(lane_df['speed'].values)
         lc.set_linewidth(1)
@@ -477,6 +475,9 @@ def plot_tsd(df, network, cmap, min_speed=0, max_speed=10, start=0, domain_bound
             ax.set_title('Time-Space Diagram: Lane {}'.format(lane), fontsize=25)
         else:
             ax.set_title('Time-Space Diagram', fontsize=25)
+
+        ax.set_xlim(xmin - xbuffer, xmax + xbuffer)
+        ax.set_ylim(ymin - ybuffer, ymax + ybuffer)
 
         ax.set_ylabel('Position (m)', fontsize=20)
         if lane == nlanes - 1:

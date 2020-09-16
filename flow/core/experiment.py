@@ -6,7 +6,7 @@ from flow.data_pipeline.data_pipeline import get_configuration
 from flow.data_pipeline.data_pipeline import generate_trajectory_table
 from flow.data_pipeline.data_pipeline import write_dict_to_csv
 from flow.data_pipeline.leaderboard_utils import network_name_translate
-from flow.core.rewards import veh_energy_consumption
+from flow.core.rewards import veh_energy_consumption, instantaneous_mpg
 from flow.visualize.time_space_diagram import tsd_main
 from collections import defaultdict
 from datetime import timezone
@@ -174,7 +174,10 @@ class Experiment:
             "outflows": [],
             "avg_trip_energy": [],
             "avg_trip_time": [],
-            "total_completed_trips": []
+            "total_completed_trips": [],
+            "inst_mpg": [],
+            "avg_accel_human": [],
+            "avg_headway": [],
         }
         if not multiagent:
             info_dict["returns"] = []
@@ -210,14 +213,19 @@ class Experiment:
                 metadata['network'].append(
                     network_name_translate(self.env.network.name.split('_20')[0]))
                 metadata['is_baseline'].append(str(is_baseline))
-                if supplied_metadata is not None and 'name' in supplied_metadata and 'strategy' in supplied_metadata:
-                    name = supplied_metadata['name']
-                    strategy = supplied_metadata['strategy']
+                if supplied_metadata is not None \
+                        and 'submitter_name' in supplied_metadata and 'strategy' in supplied_metadata:
+                    name = supplied_metadata.get('submitter_name')
+                    strategy = supplied_metadata.get('strategy')
                 else:
                     name, strategy = get_configuration()
                 metadata['submitter_name'].append(name)
                 metadata['strategy'].append(strategy)
-                metadata.update(supplied_metadata)
+                if supplied_metadata is not None:
+                    metadata['version'].append(supplied_metadata.get('version'))
+                    metadata['on_ramp'].append(supplied_metadata.get('on_ramp'))
+                    metadata['penetration_rate'].append(supplied_metadata.get('penetration_rate'))
+                    metadata['road_grade'].append(supplied_metadata.get('road_grade'))
 
             # emission-specific parameters
             dir_path = self.env.sim_params.emission_path
@@ -295,6 +303,23 @@ class Experiment:
                     rets[key].append(ret[key])
 
             # Store the information from the run in info_dict.
+            if hasattr(self.env, 'no_control_edges'):
+                veh_ids = [
+                    veh_id for veh_id in self.env.k.vehicle.get_ids()
+                    if self.env.k.vehicle.get_speed(veh_id) >= 0
+                    and self.env.k.vehicle.get_edge(veh_id) not in self.env.no_control_edges
+                ]
+                rl_ids = [
+                    veh_id for veh_id in self.env.k.vehicle.get_rl_ids()
+                    if self.env.k.vehicle.get_speed(veh_id) >= 0
+                    and self.env.k.vehicle.get_edge(veh_id) not in self.env.no_control_edges
+                ]
+            else:
+                veh_ids = [veh_id for veh_id in self.env.k.vehicle.get_ids()
+                           if self.env.k.vehicle.get_speed(veh_id) >= 0]
+                rl_ids = [veh_id for veh_id in self.env.k.vehicle.get_rl_ids()
+                          if self.env.k.vehicle.get_speed(veh_id) >= 0]
+
             outflow = self.env.k.vehicle.get_outflow_rate(int(500))
             if not multiagent:
                 info_dict["returns"].append(ret)
@@ -303,6 +328,15 @@ class Experiment:
             info_dict["avg_trip_energy"].append(np.mean(list(completed_vehicle_avg_energy.values())))
             info_dict["avg_trip_time"].append(np.mean(list(completed_vehicle_travel_time.values())))
             info_dict["total_completed_trips"].append(len(list(completed_vehicle_avg_energy.values())))
+            info_dict["lane_change_count"] = self.env.k.vehicle.lane_change_count
+            info_dict["inst_mpg"].append(instantaneous_mpg(self.env, veh_ids, gain=1.0))
+            info_dict["avg_accel_human"].append(np.nan_to_num(np.mean(
+                [np.abs((self.env.k.vehicle.get_speed(veh_id) -
+                 self.env.k.vehicle.get_previous_speed(veh_id))/self.env.sim_step) for
+                 veh_id in veh_ids if veh_id in self.env.k.vehicle.previous_speeds.keys()]
+            )))
+            info_dict["avg_headway"].append(np.mean(self.env.k.vehicle.get_headway(veh_ids)))
+
             for key in custom_vals.keys():
                 info_dict[key].append(np.mean(custom_vals[key]))
 

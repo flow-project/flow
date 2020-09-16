@@ -301,6 +301,8 @@ def setup_exps_rllib(flow_params,
         episode.custom_metrics["avg_energy_per_veh"] = np.mean(episode.user_data["avg_energy"])
         episode.custom_metrics["avg_mpg_per_veh"] = np.mean(episode.user_data["inst_mpg"])
         episode.custom_metrics["num_cars"] = np.mean(episode.user_data["num_cars"])
+        env = info["env"].get_unwrapped()[0]
+        episode.custom_metrics["num_lcs"] = env.k.vehicle.lane_change_count
 
     def on_train_result(info):
         """Store the mean score of the episode, and increment or decrement the iteration number for curriculum."""

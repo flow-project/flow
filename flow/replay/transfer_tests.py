@@ -1,11 +1,17 @@
 """Transfer and replay for i210 environment."""
 import argparse
-from copy import deepcopy
+import numpy as np
 import os
+from copy import deepcopy
+
+from flow.controllers.car_following_models import IDMController, SimCarFollowingController
+from flow.controllers.rlcontroller import RLController
+from flow.controllers.velocity_controllers import FollowerStopper
 
 from examples.exp_configs.rl.multiagent.multiagent_i210 import flow_params as I210_MA_DEFAULT_FLOW_PARAMS
 from examples.exp_configs.rl.multiagent.multiagent_i210 import custom_callables
 from flow.core.experiment import Experiment
+from flow.envs.multiagent.i210 import I210TransferEnv
 from flow.utils.registry import make_create_env
 from flow.visualize.transfer.util import inflows_range
 from flow.replay.rllib_replay import read_result_dir
@@ -20,9 +26,9 @@ from flow.data_pipeline.data_pipeline import collect_metadata_from_config
 
 EXAMPLE_USAGE = """
 example usage:
-    python i210_replay.py -r /ray_results/experiment_dir/result_dir -c 1
-    python i210_replay.py --controller idm
-    python i210_replay.py --controller idm --run_transfer
+    python transfer_tests.py -r /ray_results/experiment_dir/result_dir -c 1
+    python transfer_tests.py --controller idm
+    python transfer_tests.py --controller idm --run_transfer
 
 Here the arguments are:
 1 - the path to the simulation results
@@ -37,8 +43,11 @@ def replay(args,
            transfer_test=None,
            rllib_config=None,
            max_completed_trips=None,
-           v_des=12,
-           supplied_metadata=None):
+           supplied_metadata=None,
+           inflow_rate=None,
+           outflow_speed_limit=None,
+           controller_params={},
+           default_controller_params={}):
     """Replay or run transfer test (defined by transfer_fn) by modif.
 
     Parameters
@@ -56,14 +65,19 @@ def replay(args,
     max_completed_trips : int
         Terminate rollout after max_completed_trips vehicles have started and
         ended.
-    v_des : float
-        the desired speed for the FollowerStopper vehicles
     supplied_metadata: dict (str : list)
         the metadata associated with this simulation.
+    inflow_rate : int
+        The inflow rate. Analogous to what you see in multiagent_i210's exp_config
+    outflow_speed_limit : int
+        The speed limit of the final edge
+    controller_params : dict
+        Custom params for the once-RL vehicle. e.g. If you replace the RL vehicles with
+        IDM vehicles, this could be IDM params
+    default_controller_params : dict
+        Custom params for the once-human vehicle e.g. If you replace the human vehicles with
+        IDM vehicles, this could be IDM params
     """
-    assert bool(args.controller) ^ bool(rllib_config), \
-        "Need to specify either controller or rllib_config, but not both"
-
     args.gen_emission = args.gen_emission or args.use_s3
 
     if transfer_test is not None:
@@ -71,30 +85,131 @@ def replay(args,
             transfer_test = ray.cloudpickle.loads(transfer_test)
         flow_params = transfer_test.flow_params_modifier_fn(flow_params)
 
+    # Choose the controller to replace the AV, as well as initialize with any
+    # controller-specific parameters
     if args.controller:
         test_params = {}
         if args.controller == 'idm':
-            from flow.controllers.car_following_models import IDMController
             controller = IDMController
-            # An example of really obvious changes
-            test_params.update({'v0': 1, 'T': 1, 'a': 0.2, 'b': 0.2})
+            if 'idm_params' in controller_params:
+                test_params.update(controller_params['idm_params'])
         elif args.controller == 'default_human':
             controller = flow_params['veh'].type_parameters['human']['acceleration_controller'][0]
             test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
         elif args.controller == 'follower_stopper':
-            from flow.controllers.velocity_controllers import FollowerStopper
-            controller = FollowerStopper
-            test_params.update({'v_des': v_des})
-            # flow_params['veh'].type_parameters['av']['car_following_params']
+            if 'v_des' in controller_params:
+                test_params.update({'v_des': controller_params['v_des']})
+            else:
+                test_params.update({'v_des': 12})
         elif args.controller == 'sumo':
-            from flow.controllers.car_following_models import SimCarFollowingController
             controller = SimCarFollowingController
 
-        flow_params['veh'].type_parameters['av']['acceleration_controller'] = (controller, test_params)
-
+        # Update the parameters
+        flow_params['veh'].type_parameters['rl']['acceleration_controller'] = (controller, test_params)
         for veh_param in flow_params['veh'].initial:
-            if veh_param['veh_id'] == 'av':
+            if veh_param['veh_id'] == 'rl':
                 veh_param['acceleration_controller'] = (controller, test_params)
+
+    # Choose the controller to replace the original human controller, as well as initialize with any
+    # controller-specific parameters
+    if args.default_controller:
+        test_params = {}
+        if args.default_controller == 'idm':
+            default_controller = IDMController
+            # If the original human-controlled vehicle was IDM, first initialize with its
+            # parameters before applying other modifications.
+            if flow_params['veh'].type_parameters['human']['acceleration_controller'][0] == IDMController:
+                test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
+            if 'idm_params' in default_controller_params:
+                test_params.update(default_controller_params['idm_params'])
+        elif args.default_controller == 'follower_stopper':
+            default_controller = FollowerStopper
+            # If the original human-controlled vehicle was FollowerStopper, first initialize with its
+            # parameters before applying other modifications.
+            if flow_params['veh'].type_parameters['human']['acceleration_controller'][0] == FollowerStopper:
+                test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
+            if 'v_des' in default_controller_params:
+                test_params.update({'v_des': default_controller_params['v_des']})
+            else:
+                test_params.update({'v_des': 12})
+        elif args.default_controller == 'sumo':
+            default_controller = SimCarFollowingController
+
+        # Update the parameters
+        flow_params['veh'].type_parameters['human']['acceleration_controller'] = (default_controller, test_params)
+        for veh_param in flow_params['veh'].initial:
+            if veh_param['veh_id'] == 'human':
+                veh_param['acceleration_controller'] = (default_controller, test_params)
+
+    # Updates the values of the default IDM controller applied to once-human vehicles.
+    if args.idm_sweep:
+        test_params = {}
+        test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
+        test_params.update(default_controller_params['idm_params'])
+        default_controller = IDMController
+
+        # Update the parameters
+        flow_params['veh'].type_parameters['human']['acceleration_controller'] = (default_controller, test_params)
+        for veh_param in flow_params['veh'].initial:
+            if veh_param['veh_id'] == 'human':
+                veh_param['acceleration_controller'] = (controller, test_params)
+
+    # Modifies the lcSpeedGain parameter of once-human vehicles
+    if args.lane_freq_sweep:
+        test_lane_params = {'lcSpeedGain': str(float(default_controller_params['lane_frequency']))}
+
+        flow_params['veh'].type_parameters['human']['lane_change_params'].controller_params.update(test_lane_params)
+        for veh_param in flow_params['veh'].initial:
+            if veh_param['veh_id'] == 'human':
+                veh_param['lane_change_params'].controller_params.update(test_lane_params)
+        for vtype in flow_params['veh'].types:
+            if vtype['veh_id'] == 'human':
+                vtype['type_params']['lcSpeedGain'] = str(float(default_controller_params['lane_frequency']))
+
+    # TODO is there a more dynamic way instead of hardcoding the start edges
+    # Modifies the inflow rate
+    if args.inflow_sweep:
+        from examples.exp_configs.rl.multiagent.multiagent_i210 import PENETRATION_RATE, \
+            ON_RAMP, WANT_BOUNDARY_CONDITIONS, ON_RAMP_INFLOW_RATE, ENTER_AS_LINE
+        for inflow in flow_params['net'].inflows.get():
+            if ENTER_AS_LINE:
+                if WANT_BOUNDARY_CONDITIONS:
+                    if inflow['edge'] == 'ghost0':
+                        if inflow['vtype'] == 'human':
+                            inflow['vehsPerHour'] = int(inflow_rate * (1 - PENETRATION_RATE))
+                        elif inflow['vtype'] == 'rl':
+                            inflow['vehsPerHour'] = int(inflow_rate * PENETRATION_RATE)
+                else:
+                    if inflow['edge'] == "119257914":
+                        if inflow['vtype'] == 'human':
+                            inflow['vehsPerHour'] = int(inflow_rate * (1 - PENETRATION_RATE))
+                        elif inflow['vtype'] == 'rl':
+                            inflow['vehsPerHour'] = int(inflow_rate * PENETRATION_RATE)
+                if ON_RAMP:
+                    if inflow['edge'] == '27414345' or inflow['edge'] == "27414342#0":
+                        inflow['vehsPerHour'] = int(ON_RAMP_INFLOW_RATE * (1 - PENETRATION_RATE))
+
+            else:
+                if WANT_BOUNDARY_CONDITIONS:
+                    if inflow['edge'] == 'ghost0':
+                        if inflow['vtype'] == 'human':
+                            inflow['vehsPerHour'] = int(inflow_rate * 5 * (1 - PENETRATION_RATE))
+                        elif inflow['vtype'] == 'rl':
+                            inflow['vehsPerHour'] = int(inflow_rate * 5 * PENETRATION_RATE)
+                else:
+                    if inflow['edge'] == '119257914':
+                        if inflow['vtype'] == 'human':
+                            inflow['vehsPerHour'] = int(inflow_rate * 5 * (1 - PENETRATION_RATE))
+                        elif inflow['vtype'] == 'rl':
+                            inflow['vehsPerHour'] = int(inflow_rate * 5 * PENETRATION_RATE)
+
+                if ON_RAMP:
+                    if inflow['edge'] == '27414345' or inflow['edge'] == '27414342#0':
+                        inflow['vehsPerHour'] = int(ON_RAMP_INFLOW_RATE * (1 - PENETRATION_RATE))
+
+    # Modifies the speed limit of the last edge
+    if args.outflow_sweep:
+        flow_params['env'].additional_params['outflow_speed_limit'] = outflow_speed_limit
 
     set_sim_params(flow_params['sim'], args.render_mode, args.save_render, args.gen_emission, output_dir)
     sim_params = flow_params['sim']
@@ -221,6 +336,11 @@ def create_parser():
         help='Which custom controller to use. Defaults to IDM'
     )
     parser.add_argument(
+        '--default_controller',
+        type=str,
+        help='Which controller the non-controlled vehicles use. Defaults to IDM'
+    )
+    parser.add_argument(
         '--run_transfer',
         action='store_true',
         help='Runs transfer tests if true'
@@ -242,6 +362,26 @@ def create_parser():
         '--v_des_sweep',
         action='store_true',
         help='Runs a sweep over v_des params.',
+        default=None)
+    parser.add_argument(
+        '--idm_sweep',
+        action='store_true',
+        help='Runs a sweep over idm params.',
+        default=None)
+    parser.add_argument(
+        '--inflow_sweep',
+        action='store_true',
+        help='Runs a sweep over the inflows of other vehicles.',
+        default=None)
+    parser.add_argument(
+        '--outflow_sweep',
+        action='store_true',
+        help='Runs a sweep over the outflow speed.',
+        default=None)
+    parser.add_argument(
+        '--lane_freq_sweep',
+        action='store_true',
+        help='Runs a sweep over the lane change frequencies.',
         default=None)
     parser.add_argument(
         '--output_dir',
@@ -284,6 +424,16 @@ def create_parser():
         help='specifies whether this is a baseline run'
     )
     parser.add_argument(
+        '--no_warmup',
+        action='store_true',
+        help='Set warmup steps to 0. Mostly for debugging purposes'
+    )
+    parser.add_argument(
+        '--no_warnings',
+        action='store_true',
+        help='Sets display_warnings to False in the vehicle definition'
+    )
+    parser.add_argument(
         '--exp_config', type=str,
         help='Name of the experiment configuration file, as located in '
              'exp_configs/non_rl.')
@@ -308,6 +458,18 @@ def generate_graphs(args):
         supplied_metadata = collect_metadata_from_config(getattr(module, args.exp_config))
     else:
         flow_params = deepcopy(I210_MA_DEFAULT_FLOW_PARAMS)
+    # Use the TestEnv
+    flow_params['env_name'] = I210TransferEnv
+    if args.no_warmup:
+        flow_params['env'].warmup_steps = 0
+
+    if args.no_warnings:
+        for type_param in flow_params['veh'].type_parameters.values():
+            if not type_param['acceleration_controller'][0] == RLController:
+                type_param['acceleration_controller'][1]['display_warnings'] = False
+        for veh_param in flow_params['veh'].initial:
+            if not type_param['acceleration_controller'][0] == RLController:
+                veh_param['acceleration_controller'][1]['display_warnings'] = False
 
     if ray.is_initialized():
         ray.shutdown()
@@ -316,7 +478,7 @@ def generate_graphs(args):
     elif args.local:
         ray.init(local_mode=True, object_store_memory=200 * 1024 * 1024)
     else:
-        ray.init(num_cpus=args.num_cpus + 1, object_store_memory=200 * 1024 * 1024)
+        ray.init(num_cpus=args.num_cpus, object_store_memory=200 * 1024 * 1024)
 
     if args.exp_title:
         output_dir = os.path.join(args.output_dir, args.exp_title)
@@ -350,11 +512,64 @@ def generate_graphs(args):
                 output_dir="{}/{}".format(output_dir, v_des),
                 rllib_config=args.rllib_result_dir,
                 max_completed_trips=args.max_completed_trips,
-                v_des=v_des,
-                supplied_metadata=supplied_metadata
+                supplied_metadata=supplied_metadata,
+                controller_params={'v_des': v_des}
             )
             for v_des in range(8, 13, 1)
         ]
+        ray.get(ray_output)
+
+    elif args.idm_sweep:
+        assert args.controller == 'idm'
+        ray_output = [
+            replay.remote(
+                args,
+                flow_params,
+                output_dir="{}/{}".format(output_dir, a),
+                rllib_config=args.rllib_result_dir,
+                max_completed_trips=args.max_completed_trips,
+                default_controller_params={'idm_params': {'a': a}}
+            )
+            for a in np.arange(0.2, 2, 0.2)]
+        ray.get(ray_output)
+
+    elif args.inflow_sweep:
+        ray_output = [
+            replay.remote(
+                args,
+                flow_params,
+                output_dir="{}/{}".format(output_dir, inflow_rate),
+                rllib_config=args.rllib_result_dir,
+                max_completed_trips=args.max_completed_trips,
+                inflow_rate=inflow_rate
+            )
+            for inflow_rate in range(1800, 2500, 100)]
+        ray.get(ray_output)
+
+    elif args.outflow_sweep:
+        ray_output = [
+            replay.remote(
+                args,
+                flow_params,
+                output_dir="{}/{}".format(output_dir, outflow_speed_limit),
+                rllib_config=args.rllib_result_dir,
+                max_completed_trips=args.max_completed_trips,
+                outflow_speed_limit=outflow_speed_limit
+            )
+            for outflow_speed_limit in range(2, 10, 2)]
+        ray.get(ray_output)
+
+    elif args.lane_freq_sweep:
+        ray_output = [
+            replay.remote(
+                args,
+                flow_params,
+                output_dir="{}/{}".format(output_dir, lf),
+                rllib_config=args.rllib_result_dir,
+                max_completed_trips=args.max_completed_trips,
+                default_controller_params={'lane_frequency': lf}
+            )
+            for lf in [1, 10, 20]]
         ray.get(ray_output)
 
     else:
