@@ -85,6 +85,8 @@ def replay(args,
             transfer_test = ray.cloudpickle.loads(transfer_test)
         flow_params = transfer_test.flow_params_modifier_fn(flow_params)
 
+    # Choose the controller to replace the AV, as well as initialize with any
+    # controller-specific parameters
     if args.controller:
         test_params = {}
         if args.controller == 'idm':
@@ -102,22 +104,28 @@ def replay(args,
         elif args.controller == 'sumo':
             controller = SimCarFollowingController
 
+        # Update the parameters
         flow_params['veh'].type_parameters['rl']['acceleration_controller'] = (controller, test_params)
-
         for veh_param in flow_params['veh'].initial:
             if veh_param['veh_id'] == 'rl':
                 veh_param['acceleration_controller'] = (controller, test_params)
 
+    # Choose the controller to replace the original human controller, as well as initialize with any
+    # controller-specific parameters
     if args.default_controller:
         test_params = {}
         if args.default_controller == 'idm':
             default_controller = IDMController
+            # If the original human-controlled vehicle was IDM, first initialize with its
+            # parameters before applying other modifications.
             if flow_params['veh'].type_parameters['human']['acceleration_controller'][0] == IDMController:
                 test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
             if 'idm_params' in default_controller_params:
                 test_params.update(default_controller_params['idm_params'])
         elif args.default_controller == 'follower_stopper':
             default_controller = FollowerStopper
+            # If the original human-controlled vehicle was FollowerStopper, first initialize with its
+            # parameters before applying other modifications.
             if flow_params['veh'].type_parameters['human']['acceleration_controller'][0] == FollowerStopper:
                 test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
             if 'v_des' in default_controller_params:
@@ -127,24 +135,26 @@ def replay(args,
         elif args.default_controller == 'sumo':
             default_controller = SimCarFollowingController
 
+        # Update the parameters
         flow_params['veh'].type_parameters['human']['acceleration_controller'] = (default_controller, test_params)
-
         for veh_param in flow_params['veh'].initial:
             if veh_param['veh_id'] == 'human':
                 veh_param['acceleration_controller'] = (default_controller, test_params)
 
+    # Updates the values of the default IDM controller applied to once-human vehicles.
     if args.idm_sweep:
         test_params = {}
         test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
         test_params.update(default_controller_params['idm_params'])
         default_controller = IDMController
 
+        # Update the parameters
         flow_params['veh'].type_parameters['human']['acceleration_controller'] = (default_controller, test_params)
-
         for veh_param in flow_params['veh'].initial:
             if veh_param['veh_id'] == 'human':
                 veh_param['acceleration_controller'] = (controller, test_params)
 
+    # Modifies the lcSpeedGain parameter of once-human vehicles
     if args.lane_freq_sweep:
         test_lane_params = {'lcSpeedGain': str(float(default_controller_params['lane_frequency']))}
 
@@ -157,6 +167,7 @@ def replay(args,
                 vtype['type_params']['lcSpeedGain'] = str(float(default_controller_params['lane_frequency']))
 
     # TODO is there a more dynamic way instead of hardcoding the start edges
+    # Modifies the inflow rate
     if args.inflow_sweep:
         from examples.exp_configs.rl.multiagent.multiagent_i210 import PENETRATION_RATE, \
             ON_RAMP, WANT_BOUNDARY_CONDITIONS, ON_RAMP_INFLOW_RATE, ENTER_AS_LINE
@@ -196,6 +207,7 @@ def replay(args,
                     if inflow['edge'] == '27414345' or inflow['edge'] == '27414342#0':
                         inflow['vehsPerHour'] = int(ON_RAMP_INFLOW_RATE * (1 - PENETRATION_RATE))
 
+    # Modifies the speed limit of the last edge
     if args.outflow_sweep:
         flow_params['env'].additional_params['outflow_speed_limit'] = outflow_speed_limit
 
