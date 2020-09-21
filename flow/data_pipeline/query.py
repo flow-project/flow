@@ -368,7 +368,10 @@ class QueryStrings(Enum):
             distance_meters,
             power_watts * time_step_size_seconds AS energy_joules,
             distance_meters / (power_watts * time_step_size_seconds) AS efficiency_meters_per_joules,
-            33554.13 * distance_meters / (power_watts * time_step_size_seconds) AS efficiency_miles_per_gallon
+            (CASE energy_model_id
+                WHEN 'TACOMA_FIT_DENOISED_ACCEL' THEN 33554.13
+                WHEN 'PRIUS_FIT_DENOISED_ACCEL' THEN 75384.94
+                END) * distance_meters / (power_watts * time_step_size_seconds) AS efficiency_miles_per_gallon
         FROM sub_fact_vehicle_trace
         WHERE 1 = 1
             AND power_watts * time_step_size_seconds != 0
