@@ -229,3 +229,57 @@ class SingleStraightRoad(I210SingleEnv):
             done = True
 
         return obs, rew, done, info
+
+
+class SingleStraightRoadEnergyBracketing(I210SingleEnv):
+    """Partially observable multi-agent environment for a straight road.
+
+    Refer to superclass for more information. Used here to run the simulation and
+    collect total energy consumption as a reward (no learning is applied).
+    """
+
+    # Initialize a highway envirnmoment with one lane
+    def __init__(self, env_params, sim_params, network, simulator):
+        super().__init__(env_params, sim_params, network, simulator)
+        self.max_lanes = 1
+
+    # Define actions taken every step
+    def step(self, rl_actions):
+        """See parent class."""
+        obs, rew, done, info = super().step(rl_actions)
+        # check if all vehicles have exited the envirnoment
+        done = True
+        if self.step_counter < self.env_params.horizon and len(self.k.vehicle.get_ids()) > 0:
+            done = False
+
+        return obs, rew, done, info
+
+    def compute_reward(self, rl_actions, **kwargs):
+        """See class definition.
+
+        Reward is defined as the total fuel consumption of the vehicle in the network at each time step
+        """
+        gallons_per_step = 0
+        # sum fuel consumption of each vehicle
+        for veh_id in self.k.vehicle.get_ids():
+            energy_model = self.k.vehicle.get_energy_model(veh_id)
+            speed = self.k.vehicle.get_speed(veh_id)
+            accel = self.k.vehicle.get_accel(veh_id, noise=False, failsafe=True)
+            grade = self.k.vehicle.get_road_grade(veh_id)
+            gallons_per_hr = energy_model.get_instantaneous_fuel_consumption(accel, speed, grade)
+            gallons_per_step += gallons_per_hr * self.sim_step/3600
+        return gallons_per_step
+
+    def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
+        # in the warmup steps or if there is no rl veh, rl_actions is None
+        if rl_actions is not None:
+            accels = []
+            veh_ids = []
+            rl_ids = self.get_sorted_rl_ids()
+            # apply acceleration comaand on the controlled vehicle
+            for i, rl_id in enumerate(self.rl_id_list):
+                accels.append(rl_actions[i])
+                veh_ids.append(rl_id)
+
+            self.k.vehicle.apply_acceleration(rl_ids, accels)

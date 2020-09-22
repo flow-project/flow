@@ -254,3 +254,51 @@ class PISaturation(BaseController):
     def get_custom_accel(self, this_vel, lead_vel, h):
         """See parent class."""
         raise NotImplementedError
+
+
+class TrajectoryFollower(BaseController):
+    """Follow a set trajectory.
+
+    Usage
+    -----
+    See base class for example.
+
+    Parameters
+    ----------
+    veh_id : str
+        unique vehicle identifier
+    car_following_params : flow.core.params.SumoCarFollowingParams
+        object defining sumo-specific car-following parameters
+    func : function f that defines trajectory as speed = f(t), where t is env.time_counter
+    """
+
+    def __init__(self, veh_id, car_following_params, func):
+        """Instantiate TrajectoryFollower."""
+        BaseController.__init__(self, veh_id, car_following_params, delay=0.0, fail_safe=['instantaneous',
+                                                                                          'feasible_accel',
+                                                                                          'obey_speed_limit'])
+        # maximum achievable acceleration by the vehicle
+        self.max_accel = car_following_params.controller_params['accel']
+
+        # history used to determine AV desired velocity
+        self.v_history = []
+        self.v_target = 0
+        self.v_cmd = 0
+        self.speed_func = func
+
+    def get_accel(self, env):
+        """See parent class."""
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
+        # update the AV's velocity history
+        self.v_history.append(this_vel)
+        # compute desired velocity
+        self.v_cmd = max(self.speed_func(env.time_counter), 0)
+        # compute the acceleration
+        accel = (self.v_cmd - this_vel) / env.sim_step
+        this_edge = env.k.vehicle.get_edge(self.veh_id)
+        edge_speed_limit = env.k.network.speed_limit(this_edge)
+        if (self.v_cmd > (edge_speed_limit - 5) and this_vel == self.v_history[-2]) or \
+           (self.v_cmd < 0 and this_vel == 0):
+            accel = 0
+
+        return min(accel, self.max_accel)
