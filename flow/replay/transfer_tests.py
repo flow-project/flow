@@ -97,13 +97,13 @@ def replay(args,
             controller = flow_params['veh'].type_parameters['human']['acceleration_controller'][0]
             test_params.update(flow_params['veh'].type_parameters['human']['acceleration_controller'][1])
         elif args.controller == 'follower_stopper':
+            controller = FollowerStopper
             if 'v_des' in controller_params:
                 test_params.update({'v_des': controller_params['v_des']})
             else:
                 test_params.update({'v_des': 12})
         elif args.controller == 'sumo':
             controller = SimCarFollowingController
-
         # Update the parameters
         flow_params['veh'].type_parameters['rl']['acceleration_controller'] = (controller, test_params)
         for veh_param in flow_params['veh'].initial:
@@ -152,7 +152,7 @@ def replay(args,
         flow_params['veh'].type_parameters['human']['acceleration_controller'] = (default_controller, test_params)
         for veh_param in flow_params['veh'].initial:
             if veh_param['veh_id'] == 'human':
-                veh_param['acceleration_controller'] = (controller, test_params)
+                veh_param['acceleration_controller'] = (default_controller, test_params)
 
     # Modifies the lcSpeedGain parameter of once-human vehicles
     if args.lane_freq_sweep:
@@ -520,7 +520,7 @@ def generate_graphs(args):
         ray.get(ray_output)
 
     elif args.idm_sweep:
-        assert args.controller == 'idm'
+        assert args.default_controller == 'idm'
         ray_output = [
             replay.remote(
                 args,
@@ -560,6 +560,7 @@ def generate_graphs(args):
         ray.get(ray_output)
 
     elif args.lane_freq_sweep:
+        assert args.default_controller == 'idm'
         ray_output = [
             replay.remote(
                 args,
