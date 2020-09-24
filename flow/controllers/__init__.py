@@ -17,13 +17,13 @@ from flow.controllers.car_following_models import CFMController, \
     SimCarFollowingController, LACController, GippsController, \
     BandoFTLController
 from flow.controllers.velocity_controllers import FollowerStopper, \
-    PISaturation, NonLocalFollowerStopper
+    PISaturation, NonLocalFollowerStopper, TrajectoryFollower
 
 # lane change controllers
 from flow.controllers.base_lane_changing_controller import \
     BaseLaneChangeController
 from flow.controllers.lane_change_controllers import StaticLaneChanger, \
-    SimLaneChangeController
+    SimLaneChangeController, AILaneChangeController
 
 # routing controllers
 from flow.controllers.base_routing_controller import BaseRouter
@@ -37,5 +37,5 @@ __all__ = [
     "PISaturation", "StaticLaneChanger", "SimLaneChangeController",
     "ContinuousRouter", "GridRouter", "BayBridgeRouter", "LACController",
     "GippsController", "NonLocalFollowerStopper", "BandoFTLController",
-    "I210Router"
+    "AILaneChangeController", "I210Router", "TrajectoryFollower"
 ]

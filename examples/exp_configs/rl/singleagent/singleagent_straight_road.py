@@ -5,14 +5,13 @@ highway with ramps network.
 """
 from flow.controllers import RLController, IDMController
 from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
-                             VehicleParams, SumoParams, SumoLaneChangeParams
+    VehicleParams, SumoParams, SumoLaneChangeParams, SumoCarFollowingParams
 from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 from flow.networks import HighwayNetwork
 from flow.envs import SingleStraightRoad
 from flow.networks.highway import ADDITIONAL_NET_PARAMS
 from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
-
 
 # SET UP PARAMETERS FOR THE SIMULATION
 
@@ -23,7 +22,6 @@ HORIZON = 2000
 HIGHWAY_INFLOW_RATE = 10800 / 5
 # percentage of autonomous vehicles compared to human vehicles on highway
 PENETRATION_RATE = 10
-
 
 # SET UP PARAMETERS FOR THE NETWORK
 
@@ -38,7 +36,6 @@ additional_net_params.update({
     # number of edges to divide the highway into
     "num_edges": 2
 })
-
 
 # SET UP PARAMETERS FOR THE ENVIRONMENT
 
@@ -59,7 +56,6 @@ additional_env_params.update({
     'reward_after_exit': True
 })
 
-
 # CREATE VEHICLE TYPES AND INFLOWS
 
 vehicles = VehicleParams()
@@ -72,13 +68,33 @@ vehicles.add(
     lane_change_params=SumoLaneChangeParams(
         lane_change_mode="strategic",
     ),
-    acceleration_controller=(IDMController, {"a": .3, "b": 2.0, "noise": 0.5}),
+    car_following_params=SumoCarFollowingParams(
+        speed_mode=12,
+        min_gap=0.5
+    ),
+    acceleration_controller=(IDMController, {
+        "a": .3,
+        "b": 2.0,
+        "noise": 0.5,
+        "fail_safe": [
+            'obey_speed_limit',
+            'safe_velocity',
+            'feasible_accel',
+        ],
+    }),
 )
 
 # autonomous vehicles
 vehicles.add(
+    color='red',
     veh_id='rl',
-    acceleration_controller=(RLController, {}))
+    car_following_params=SumoCarFollowingParams(
+        min_gap=0.5,
+        speed_mode=12  # right of way at intersections + obey limits on deceleration
+    ),
+    acceleration_controller=(RLController, {
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
+    }))
 
 # add human vehicles on the highway
 inflows.add(
@@ -149,7 +165,6 @@ flow_params = dict(
     # reset (see flow.core.params.InitialConfig)
     initial=InitialConfig(),
 )
-
 
 # SET UP RLLIB MULTI-AGENT FEATURES
 

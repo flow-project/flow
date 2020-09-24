@@ -1057,5 +1057,33 @@ class TestNetworkTemplateGenerator(unittest.TestCase):
         self.assertDictEqual(network.routes, expected_routes)
 
 
+class TestMaxSpeedAcquisiton(unittest.TestCase):
+    """Tests getting and setting max speed on an edge"""
+
+    def test_num_lanes_junctions(self):
+        """
+        Tests the num_lanes() method when called on junctions
+        """
+        additional_net_params = {
+            "radius_ring": 30,
+            "lanes": 3,
+            "speed_limit": 60,
+            "resolution": 40
+        }
+        net_params = NetParams(additional_params=additional_net_params)
+
+        env, network, _ = figure_eight_exp_setup(net_params=net_params)
+
+        self.assertEqual(env.k.network.get_max_speed("bottom", 0), 60.0)
+        self.assertEqual(env.k.network.get_max_speed("bottom", 1), 60.0)
+        self.assertEqual(env.k.network.get_max_speed("bottom", 2), 60.0)
+
+        env.k.network.set_max_speed("bottom", 30.0)
+        env.step(None)
+        self.assertEqual(env.k.network.get_max_speed("bottom", 0), 30.0)
+        self.assertEqual(env.k.network.get_max_speed("bottom", 1), 30.0)
+        self.assertEqual(env.k.network.get_max_speed("bottom", 2), 30.0)
+
+
 if __name__ == '__main__':
     unittest.main()

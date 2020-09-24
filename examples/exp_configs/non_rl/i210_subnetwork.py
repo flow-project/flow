@@ -2,6 +2,7 @@
 import os
 import numpy as np
 
+from flow.controllers.lane_change_controllers import AILaneChangeController, SimLaneChangeController
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.controllers.routing_controllers import I210Router
@@ -9,13 +10,15 @@ from flow.core.params import SumoParams
 from flow.core.params import EnvParams
 from flow.core.params import NetParams
 from flow.core.params import SumoLaneChangeParams
+from flow.core.params import SumoCarFollowingParams
 from flow.core.params import VehicleParams
 from flow.core.params import InitialConfig
 from flow.core.params import InFlows
 from flow.core.rewards import instantaneous_mpg
+from examples.exp_configs.rl.multiagent.multiagent_i210 import additional_env_params
+from flow.envs.multiagent import I210TestEnv
 from flow.networks import I210SubNetwork
 from flow.networks.i210_subnetwork import EDGES_DISTRIBUTION
-from flow.envs import TestEnv
 import flow.config as config
 
 # =========================================================================== #
@@ -30,6 +33,8 @@ WANT_DOWNSTREAM_BOUNDARY = True
 ON_RAMP = False
 # the inflow rate of vehicles (in veh/hr)
 INFLOW_RATE = 2050
+# if this is false, the AVs all come in as a wave, otherwise they are randomly scattered
+ENTER_AS_LINE = False
 # on-ramp inflow_rate
 ON_RAMP_INFLOW_RATE = 500
 # the speed of inflowing vehicles from the main edge (in m/s)
@@ -42,6 +47,8 @@ V_DES = 5.0
 HORIZON = 1500
 # steps to run before follower-stopper is allowed to take control
 WARMUP_STEPS = 600
+# whether to use the Rutgers lane change model
+RUTGERS_LC_MODEL = False
 
 # =========================================================================== #
 # Specify the path to the network template.                                   #
@@ -73,16 +80,29 @@ if not WANT_GHOST_CELL:
 
 vehicles = VehicleParams()
 
+if RUTGERS_LC_MODEL:
+    lc_controller = (AILaneChangeController, {})
+else:
+    lc_controller = (SimLaneChangeController, {})
+
 vehicles.add(
     "human",
     num_vehicles=0,
     lane_change_params=SumoLaneChangeParams(
         lane_change_mode="sumo_default",
     ),
+    # this is only right of way on
+    car_following_params=SumoCarFollowingParams(
+        min_gap=0.5,
+        speed_mode=12  # right of way at intersections + obey limits on deceleration
+    ),
+    lane_change_controller=lc_controller,
     acceleration_controller=(IDMController, {
         "a": 1.3,
         "b": 2.0,
         "noise": 0.3,
+        "display_warnings": False,
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
     }),
     routing_controller=(I210Router, {}) if ON_RAMP else None,
 )
@@ -91,9 +111,15 @@ vehicles.add(
     "av",
     num_vehicles=0,
     color="red",
+    # this is only right of way on
+    car_following_params=SumoCarFollowingParams(
+        min_gap=0.5,
+        speed_mode=12  # right of way at intersections + obey limits on deceleration
+    ),
     acceleration_controller=(FollowerStopper, {
         "v_des": V_DES,
-        "no_control_edges": ["ghost0", "119257908#3"]
+        "no_control_edges": ["ghost0", "119257908#3"],
+        "fail_safe": ['obey_speed_limit', 'safe_velocity', 'feasible_accel'],
     }),
     routing_controller=(I210Router, {}) if ON_RAMP else None,
 )
@@ -103,20 +129,36 @@ inflow = InFlows()
 # main highway
 highway_start_edge = "ghost0" if WANT_GHOST_CELL else "119257914"
 
-for lane in [0, 1, 2, 3, 4]:
+if ENTER_AS_LINE:
+    for lane in [0, 1, 2, 3, 4]:
+        inflow.add(
+            veh_type="human",
+            edge=highway_start_edge,
+            vehs_per_hour=INFLOW_RATE * (1 - PENETRATION_RATE),
+            depart_lane=lane,
+            depart_speed=INFLOW_SPEED)
+
+        if PENETRATION_RATE > 0.0:
+            inflow.add(
+                veh_type="av",
+                edge=highway_start_edge,
+                vehs_per_hour=INFLOW_RATE * PENETRATION_RATE,
+                depart_lane=lane,
+                depart_speed=INFLOW_SPEED)
+else:
     inflow.add(
         veh_type="human",
         edge=highway_start_edge,
-        vehs_per_hour=INFLOW_RATE * (1 - PENETRATION_RATE),
-        depart_lane=lane,
+        vehs_per_hour=INFLOW_RATE * 5 * (1 - PENETRATION_RATE),
+        depart_lane="best",
         depart_speed=INFLOW_SPEED)
 
     if PENETRATION_RATE > 0.0:
         inflow.add(
             veh_type="av",
             edge=highway_start_edge,
-            vehs_per_hour=INFLOW_RATE * PENETRATION_RATE,
-            depart_lane=lane,
+            vehs_per_hour=INFLOW_RATE * 5 * PENETRATION_RATE,
+            depart_lane="best",
             depart_speed=INFLOW_SPEED)
 
 # on ramp
@@ -145,7 +187,7 @@ flow_params = dict(
     exp_tag='I-210_subnetwork',
 
     # name of the flow environment the experiment is running on
-    env_name=TestEnv,
+    env_name=I210TestEnv,
 
     # name of the network class the experiment is running on
     network=I210SubNetwork,
@@ -158,14 +200,16 @@ flow_params = dict(
         sim_step=0.4,
         render=False,
         color_by_speed=False,
-        use_ballistic=True
+        use_ballistic=True,
+        overtake_right=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
         warmup_steps=WARMUP_STEPS,
-        sims_per_step=3
+        sims_per_step=3,
+        additional_params=additional_env_params,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
@@ -210,6 +254,6 @@ custom_callables = {
         env.k.vehicle.get_speed(valid_ids(env, env.k.vehicle.get_ids())))),
     "avg_outflow": lambda env: np.nan_to_num(
         env.k.vehicle.get_outflow_rate(120)),
-    "mpg": lambda env: instantaneous_mpg(
+    "instantaneous_mpg": lambda env: instantaneous_mpg(
         env,  valid_ids(env, env.k.vehicle.get_ids()), gain=1.0),
 }

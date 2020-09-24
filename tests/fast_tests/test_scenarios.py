@@ -300,7 +300,13 @@ class TestI210SubNetwork(unittest.TestCase):
         )
 
         self.assertEqual(
-            ['119257914'],
+            ['119257908#0',
+             '119257908#1',
+             '119257908#1-AddedOffRampEdge',
+             '119257908#1-AddedOnRampEdge',
+             '119257908#2',
+             '119257908#3',
+             '119257914'],
             sorted(list(network.specify_routes(network.net_params).keys()))
         )
 
@@ -357,7 +363,14 @@ class TestI210SubNetwork(unittest.TestCase):
         )
 
         self.assertEqual(
-            ['119257914', 'ghost0'],
+            ['119257908#0',
+             '119257908#1',
+             '119257908#1-AddedOffRampEdge',
+             '119257908#1-AddedOnRampEdge',
+             '119257908#2',
+             '119257908#3',
+             '119257914',
+             'ghost0'],
             sorted(list(network.specify_routes(network.net_params).keys()))
         )
 

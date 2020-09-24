@@ -31,13 +31,19 @@ class RLController(BaseController):
         >>> rl_ids = env.k.vehicle.get_rl_ids()
     """
 
-    def __init__(self, veh_id, car_following_params):
+    def __init__(self, veh_id, car_following_params, fail_safe=None):
         """Instantiate an RL Controller."""
         BaseController.__init__(
             self,
             veh_id,
-            car_following_params)
+            car_following_params,
+            fail_safe=fail_safe,
+        )
 
     def get_accel(self, env):
         """Pass, as this is never called; required to override abstractmethod."""
         pass
+
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """See parent class."""
+        raise NotImplementedError
