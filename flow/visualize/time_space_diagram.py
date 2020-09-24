@@ -236,6 +236,7 @@ def _ring_road(data):
     pd.DataFrame
         unmodified trajectory dataframe
     """
+    data = data[data['next_pos'] > data['distance']]
     segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
 
     return segs, data
@@ -296,6 +297,7 @@ def _figure_eight(data):
     pd.DataFrame
         unmodified trajectory dataframe
     """
+    data = data[data['next_pos'] > data['distance']]
     segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
 
     return segs, data
