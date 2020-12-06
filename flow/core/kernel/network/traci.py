@@ -237,7 +237,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         for file in files:
             try:
                 os.remove(file)
-            except (FileNotFoundError, OSError) as e:
+            except (FileNotFoundError, OSError):
                 # the files were never created
                 # the connection file is not always created
                 # neither is the type file
