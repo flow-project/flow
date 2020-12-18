@@ -8,7 +8,7 @@ For detailed changes compared to original Flow code, please refer to the [PR](ht
 
 # Citing 
 
-For more theoretical details such as optima proof, system design, and performance comparison, please refer and cite our paper:
+For more theoretical details such as optima proof, system design, and performance comparison, please refer and cite our [paper](https://arxiv.org/pdf/2009.01502.pdf):
 
 P. Zhou, X. Chen, Z. Liu, T. Braud, P. Hui and J. Kangasharju, "DRLE: Decentralized Reinforcement Learning at the Edge for Traffic Light Control in the IoV," in IEEE Transactions on Intelligent Transportation Systems, doi: 10.1109/TITS.2020.3035841.
 
