@@ -19,7 +19,7 @@ ADDITIONAL_ENV_PARAMS = {
     "switch_time": 2.0,
     # whether the traffic lights should be actuated by sumo or RL
     # options are "controlled" and "actuated"
-    "tl_type": "controlled",
+    "tl_type": "actuated",
     # determines whether the action space is meant to be discrete or continuous
     "discrete": False,
 }

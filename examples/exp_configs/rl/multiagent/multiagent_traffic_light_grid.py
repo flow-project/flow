@@ -88,7 +88,7 @@ flow_params = dict(
             "target_velocity": 50,
             "switch_time": 3,
             "num_observed": 2,
-            "discrete": False,
+            "discrete": False,  # set True for DQN
             "tl_type": "actuated",
             "num_local_edges": 4,
             "num_local_lights": 4,

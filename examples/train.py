@@ -42,7 +42,9 @@ def parse_args(args):
     parser.add_argument(
         '--rl_trainer', type=str, default="rllib",
         help='the RL trainer to use. either rllib or Stable-Baselines')
-
+    parser.add_argument(
+        '--algorithm', type=str, default="PPO",
+        help='RL algorithm to use. Options are PPO and DQN right now.')
     parser.add_argument(
         '--num_cpus', type=int, default=1,
         help='How many CPUs to use')
@@ -101,6 +103,7 @@ def run_model_stablebaseline(flow_params,
 def setup_exps_rllib(flow_params,
                      n_cpus,
                      n_rollouts,
+                     flags,
                      policy_graphs=None,
                      policy_mapping_fn=None,
                      policies_to_train=None):
@@ -114,6 +117,8 @@ def setup_exps_rllib(flow_params,
         number of CPUs to run the experiment over
     n_rollouts : int
         number of rollouts per training iteration
+    flags:
+        custom arguments
     policy_graphs : dict, optional
         TODO
     policy_mapping_fn : function, optional
@@ -139,19 +144,31 @@ def setup_exps_rllib(flow_params,
 
     horizon = flow_params['env'].horizon
 
-    alg_run = "PPO"
+    alg_run = flags.algorithm.upper()
 
-    agent_cls = get_agent_class(alg_run)
-    config = deepcopy(agent_cls._default_config)
+    if alg_run == "PPO":
+        agent_cls = get_agent_class(alg_run)
+        config = deepcopy(agent_cls._default_config)
+        config["gamma"] = 0.999  # discount rate
+        config["model"].update({"fcnet_hiddens": [32, 32, 32]})
+        config["use_gae"] = True
+        config["lambda"] = 0.97
+        config["kl_target"] = 0.02
+        config["num_sgd_iter"] = 10
+    elif alg_run == "DQN":
+        agent_cls = get_agent_class(alg_run)
+        config = deepcopy(agent_cls._default_config)
+        config['clip_actions'] = False
+        config["timesteps_per_iteration"] = horizon * n_rollouts
+        # https://github.com/ray-project/ray/blob/master/rllib/tuned_examples/dqn/atari-dist-dqn.yaml
+        config["hiddens"] = [512]
+        config["lr"] = 0.0000625
+        config["schedule_max_timesteps"] = 2000000
+        config["buffer_size"] = 1000000
+        config["target_network_update_freq"] = 8000
 
     config["num_workers"] = n_cpus
     config["train_batch_size"] = horizon * n_rollouts
-    config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [32, 32, 32]})
-    config["use_gae"] = True
-    config["lambda"] = 0.97
-    config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 10
     config["horizon"] = horizon
 
     # save the flow params for replay
@@ -190,10 +207,10 @@ def train_rllib(submodule, flags):
     policies_to_train = getattr(submodule, "policies_to_train", None)
 
     alg_run, gym_name, config = setup_exps_rllib(
-        flow_params, n_cpus, n_rollouts,
+        flow_params, n_cpus, n_rollouts, flags,
         policy_graphs, policy_mapping_fn, policies_to_train)
 
-    ray.init(num_cpus=n_cpus + 1, object_store_memory=200 * 1024 * 1024)
+    ray.init(num_cpus=n_cpus + 1, ignore_reinit_error=True, object_store_memory=200 * 1024 * 1024)
     exp_config = {
         "run": alg_run,
         "env": gym_name,
