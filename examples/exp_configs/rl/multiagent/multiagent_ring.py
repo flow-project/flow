@@ -3,7 +3,7 @@
 Trains a number of autonomous vehicles to stabilize the flow of 22 vehicles in
 a variable length ring road.
 """
-from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
+from ray.rllib.agents.ppo.ppo_tf_policy import PPOTFPolicy
 from ray.tune.registry import register_env
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams

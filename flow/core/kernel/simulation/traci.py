@@ -192,6 +192,11 @@ class TraCISimulation(KernelSimulation):
                     "--step-length", str(sim_params.sim_step)
                 ]
 
+                # disable all collisions and teleporting in the simulation.
+                if sim_params.disable_collisions:
+                    sumo_call.extend(["--collision.mingap-factor", str(0),
+                                      "--collision.action", str("none")])
+
                 # use a ballistic integration step (if request)
                 if sim_params.use_ballistic:
                     sumo_call.append("--step-method.ballistic")
@@ -225,6 +230,18 @@ class TraCISimulation(KernelSimulation):
                 # check collisions at intersections
                 sumo_call.append("--collision.check-junctions")
                 sumo_call.append("true")
+
+                # save an initial state, if requested
+                if sim_params.save_state_time is not None:
+                    sumo_call.append("--save-state.times")
+                    sumo_call.append(str(sim_params.save_state_time))
+                    sumo_call.append("--save-state.files")
+                    sumo_call.append(sim_params.save_state_file)
+
+                # add the initial state of vehicles in the network, if provided
+                if sim_params.load_state is not None:
+                    sumo_call.append("--load-state")
+                    sumo_call.append(sim_params.load_state)
 
                 logging.info(" Starting SUMO on port " + str(port))
                 logging.debug(" Cfg file: " + str(network.cfg))
@@ -268,14 +285,19 @@ class TraCISimulation(KernelSimulation):
     def save_emission(self, run_id=0):
         """Save any collected emission data to a csv file.
 
-        If not data was collected, nothing happens. Moreover, any internally
-        stored data by this class is clear whenever data is stored.
+        If no data was collected, nothing happens. Moreover, any internally
+        stored data by this class is cleared whenever data is stored.
 
         Parameters
         ----------
         run_id : int
             the rollout number, appended to the name of the emission file. Used
             to store emission files from multiple rollouts run sequentially.
+
+        Returns
+        -------
+        emission_file_path: str
+            the relative path of the emission file
         """
         # If there is no stored data, ignore this operation. This is to ensure
         # that data isn't deleted if the operation is called twice.
@@ -293,6 +315,8 @@ class TraCISimulation(KernelSimulation):
             "speed",
             "headway",
             "leader_id",
+            "follower_id",
+            "leader_rel_speed",
             "target_accel_with_noise_with_failsafe",
             "target_accel_no_noise_no_failsafe",
             "target_accel_with_noise_no_failsafe",
@@ -303,8 +327,6 @@ class TraCISimulation(KernelSimulation):
             "lane_number",
             "distance",
             "relative_position",
-            "follower_id",
-            "leader_rel_speed",
         ]
 
         # Update the stored data to push to the csv file.
@@ -318,8 +340,9 @@ class TraCISimulation(KernelSimulation):
                 for key in stored_ids:
                     final_data[key].append(self.stored_data[veh_id][t][key])
 
-        with open(os.path.join(self.emission_path, name), "w") as f:
-            print(os.path.join(self.emission_path, name), self.emission_path)
+        emission_file_path = os.path.join(self.emission_path, name)
+        with open(emission_file_path, "w") as f:
+            print(emission_file_path, self.emission_path)
             writer = csv.writer(f, delimiter=',')
             writer.writerow(final_data.keys())
             writer.writerows(zip(*final_data.values()))
@@ -327,3 +350,5 @@ class TraCISimulation(KernelSimulation):
         # Clear all memory from the stored data. This is useful if this
         # function is called in between resets.
         self.stored_data.clear()
+
+        return emission_file_path

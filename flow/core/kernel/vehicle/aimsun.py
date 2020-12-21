@@ -664,10 +664,6 @@ class AimsunKernelVehicle(KernelVehicle):
         """See parent class."""
         raise NotImplementedError
 
-    def get_fuel_consumption(self):
-        """See parent class."""
-        raise NotImplementedError
-
     def get_type(self, veh_id):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):

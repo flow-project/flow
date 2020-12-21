@@ -1,4 +1,4 @@
-# cluster.yaml ========================================= 
+# cluster.yaml =========================================
 
 # An unique identifier for the head node and workers of this cluster.
 cluster_name: test #<YOUR NAME>
@@ -32,15 +32,15 @@ auth:
 # By default Ray creates a new private keypair, but you can also use your own.
 # If you do so, make sure to also set "KeyName" in the head and worker node
 # configurations below.
-#    ssh_private_key: /path/to/your/key.pem
+#    ssh_private_key:
 
 # Provider-specific config for the head node, e.g. instance type. By default
 # Ray will auto-configure unspecified fields such as SubnetId and KeyName.
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: c4.4xlarge
-    ImageId: ami-09544298704576518 # Flow AMI (Ubuntu)
+    InstanceType: c4.8xlarge
+    ImageId: ami-03d50e10b75b75bd5 # circles_2 AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -54,10 +54,10 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
-    InstanceType: c4.4xlarge
-    ImageId: ami-09544298704576518 # Flow AMI (Ubuntu)
+    InstanceType: c4.8xlarge
+    ImageId: ami-03d50e10b75b75bd5 # circles_2 AMI (Ubuntu)
 
-    #Run workers on spot by default. Comment this out to use on-demand.
+  #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
         MarketType: spot
          # Additional options can be found in the boto docs, e.g.
@@ -67,12 +67,19 @@ worker_nodes:
     # Additional options in the boto docs.
 
 setup_commands:
-    - cd flow && git fetch && git checkout origin/master
+    - cd flow && git fetch && git checkout origin/flow_maddpg
+    - flow/scripts/setup_sumo_ubuntu1604.sh
+    - pip install ray==0.8.0
+    - pip install tabulate
     - pip install boto3==1.10.45  # 1.4.8 adds InstanceMarketOptions
     - pip install awscli==1.16.309
+    - pip install stable-baselines
     - pip install pytz
+    - pip install torch==1.3.1
+    - pip install tensorflow==2.0.0
+    - pip install lz4
+    - pip install dm-tree
     - pip install numpy==1.18.4
-    - ./flow/scripts/setup_sumo_ubuntu1604.sh
 
 head_setup_commands: []
 

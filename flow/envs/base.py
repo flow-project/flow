@@ -26,6 +26,8 @@ from flow.core.util import ensure_dir
 from flow.core.kernel import Kernel
 from flow.utils.exceptions import FatalFlowError
 
+from flow.data_pipeline.data_pipeline import get_extra_info
+
 
 class Env(gym.Env, metaclass=ABCMeta):
     """Base environment class.
@@ -148,6 +150,13 @@ class Env(gym.Env, metaclass=ABCMeta):
         self.initial_state = {}
         self.state = None
         self.obs_var_labels = []
+
+        # number of training iterations (used by the rllib training procedure)
+        self._num_training_iters = 0
+
+        # track IDs that have ever been observed in the system
+        self._observed_ids = set()
+        self._observed_rl_ids = set()
 
         # simulation step size
         self.sim_step = sim_params.sim_step
@@ -323,6 +332,11 @@ class Env(gym.Env, metaclass=ABCMeta):
             contains other diagnostic information from the previous action
         """
         for _ in range(self.env_params.sims_per_step):
+            # This tracks vehicles that have appeared during warmup steps
+            if self.time_counter <= self.env_params.sims_per_step * self.env_params.warmup_steps:
+                self._observed_ids.update(self.k.vehicle.get_ids())
+                self._observed_rl_ids.update(self.k.vehicle.get_rl_ids())
+
             self.time_counter += 1
             self.step_counter += 1
 
@@ -397,8 +411,7 @@ class Env(gym.Env, metaclass=ABCMeta):
         # test if the environment should terminate due to a collision or the
         # time horizon being met
         done = (self.time_counter >= self.env_params.sims_per_step *
-                (self.env_params.warmup_steps + self.env_params.horizon)
-                or crash)
+                (self.env_params.warmup_steps + self.env_params.horizon))
 
         # compute the info for each agent
         infos = {}
@@ -430,6 +443,10 @@ class Env(gym.Env, metaclass=ABCMeta):
         """
         # reset the time counter
         self.time_counter = 0
+
+        # reset the observed ids
+        self._observed_ids = set()
+        self._observed_rl_ids = set()
 
         # Now that we've passed the possibly fake init steps some rl libraries
         # do, we can feel free to actually render things
@@ -468,55 +485,73 @@ class Env(gym.Env, metaclass=ABCMeta):
         elif self.initial_config.shuffle:
             self.setup_initial_state()
 
-        # clear all vehicles from the network and the vehicles class
-        if self.simulator == 'traci':
-            for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
+        if self.sim_params.load_state is not None:
+            for veh_id in list(self.k.vehicle.get_ids()):
+                self.k.vehicle.remove(veh_id, from_sumo=False)
+
+            for veh_id in self.k.kernel_api.vehicle.getIDList():
+                self.k.vehicle._add_departed(veh_id, "human")
+
+            # Run assertions to make sure the operation was successful.
+            assert self.k.vehicle.num_vehicles == \
+                len(self.k.kernel_api.vehicle.getIDList())
+            assert set(self.k.vehicle.get_ids()) == \
+                set(self.k.kernel_api.vehicle.getIDList()), \
+                list(set(self.k.vehicle.get_ids()) -
+                     set(self.k.kernel_api.vehicle.getIDList()))
+
+        else:
+            # clear all vehicles from the network and the vehicles class
+            if self.simulator == 'traci':
+                # FIXME: hack
+                for veh_id in self.k.kernel_api.vehicle.getIDList():
+                    try:
+                        self.k.vehicle.remove(veh_id)
+                    except (FatalTraCIError, TraCIException):
+                        print(traceback.format_exc())
+
+            # clear all vehicles from the network and the vehicles class
+            # FIXME (ev, ak) this is weird and shouldn't be necessary
+            for veh_id in list(self.k.vehicle.get_ids()):
+                # do not try to remove the vehicles from the network in the
+                # first step after initializing the network, as there will be
+                # no vehicles
+                if self.step_counter == 0:
+                    continue
                 try:
                     self.k.vehicle.remove(veh_id)
                 except (FatalTraCIError, TraCIException):
-                    print(traceback.format_exc())
+                    print("Error during start: {}".format(traceback.format_exc()))
 
-        # clear all vehicles from the network and the vehicles class
-        # FIXME (ev, ak) this is weird and shouldn't be necessary
-        for veh_id in list(self.k.vehicle.get_ids()):
-            # do not try to remove the vehicles from the network in the first
-            # step after initializing the network, as there will be no vehicles
-            if self.step_counter == 0:
-                continue
-            try:
-                self.k.vehicle.remove(veh_id)
-            except (FatalTraCIError, TraCIException):
-                print("Error during start: {}".format(traceback.format_exc()))
+            # do any additional resetting of the vehicle class needed
+            self.k.vehicle.reset()
 
-        # do any additional resetting of the vehicle class needed
-        self.k.vehicle.reset()
+            # reintroduce the initial vehicles to the network
+            for veh_id in self.initial_ids:
+                type_id, edge, lane_index, pos, speed = \
+                    self.initial_state[veh_id]
 
-        # reintroduce the initial vehicles to the network
-        for veh_id in self.initial_ids:
-            type_id, edge, lane_index, pos, speed = \
-                self.initial_state[veh_id]
-
-            try:
-                self.k.vehicle.add(
-                    veh_id=veh_id,
-                    type_id=type_id,
-                    edge=edge,
-                    lane=lane_index,
-                    pos=pos,
-                    speed=speed)
-            except (FatalTraCIError, TraCIException):
-                # if a vehicle was not removed in the first attempt, remove it
-                # now and then reintroduce it
-                self.k.vehicle.remove(veh_id)
-                if self.simulator == 'traci':
-                    self.k.kernel_api.vehicle.remove(veh_id)  # FIXME: hack
-                self.k.vehicle.add(
-                    veh_id=veh_id,
-                    type_id=type_id,
-                    edge=edge,
-                    lane=lane_index,
-                    pos=pos,
-                    speed=speed)
+                try:
+                    self.k.vehicle.add(
+                        veh_id=veh_id,
+                        type_id=type_id,
+                        edge=edge,
+                        lane=lane_index,
+                        pos=pos,
+                        speed=speed)
+                except (FatalTraCIError, TraCIException):
+                    # if a vehicle was not removed in the first attempt, remove
+                    # it now and then reintroduce it
+                    self.k.vehicle.remove(veh_id)
+                    if self.simulator == 'traci':
+                        self.k.kernel_api.vehicle.remove(veh_id)  # FIXME: hack
+                    self.k.vehicle.add(
+                        veh_id=veh_id,
+                        type_id=type_id,
+                        edge=edge,
+                        lane=lane_index,
+                        pos=pos,
+                        speed=speed)
 
         # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()
@@ -554,6 +589,14 @@ class Env(gym.Env, metaclass=ABCMeta):
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
             observation, _, _, _ = self.step(rl_actions=None)
+            # collect data for pipeline during the warmup period
+            try:
+                extra_info, source_id, run_id = self.pipeline_params
+                veh_ids = self.k.vehicle.get_ids()
+                get_extra_info(self.k.vehicle, extra_info, veh_ids, source_id, run_id)
+            # In case the attribute `pipeline_params` if not added to this instance
+            except AttributeError:
+                pass
 
         # render a frame
         self.render(reset=True)
@@ -802,3 +845,7 @@ class Env(gym.Env, metaclass=ABCMeta):
             sight = self.renderer.get_sight(
                 orientation, id)
             self.sights.append(sight)
+
+    def set_iteration_num(self):
+        """Increment the number of training iterations."""
+        self._num_training_iters += 1

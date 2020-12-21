@@ -2,6 +2,7 @@
 
 from abc import ABCMeta, abstractmethod
 import numpy as np
+import math
 
 
 class BaseController(metaclass=ABCMeta):
@@ -66,7 +67,6 @@ class BaseController(metaclass=ABCMeta):
         elif isinstance(fail_safe, list) or fail_safe is None:
             failsafe_list = fail_safe
         else:
-            failsafe_list = None
             raise ValueError("fail_safe should be string or list of strings. Setting fail_safe to None\n")
 
         failsafe_map = {
@@ -88,12 +88,39 @@ class BaseController(metaclass=ABCMeta):
         self.max_accel = car_following_params.controller_params['accel']
         # max deaccel should always be a positive
         self.max_deaccel = abs(car_following_params.controller_params['decel'])
+        self.max_speed = car_following_params.controller_params['maxSpeed']
 
         self.car_following_params = car_following_params
+
+        self._is_highway_i210 = None
 
     @abstractmethod
     def get_accel(self, env):
         """Return the acceleration of the controller."""
+        pass
+
+    @abstractmethod
+    def get_custom_accel(self, this_vel, lead_vel, h):
+        """Return the custom computed acceleration of the controller.
+
+        This method computes acceleration based on custom state information,
+        while get_accel() method compute acceleration based on the current state
+        information that are obtained from the environment.
+
+        Parameters
+        ----------
+        this_vel : float
+            this vehicle's velocity
+        lead_vel : float
+            leading vehicle's velocity
+        h : float
+            headway to leading vehicle
+
+        Returns
+        -------
+        float
+            the custom acceleration of the controller
+        """
         pass
 
     def get_action(self, env):
@@ -117,6 +144,13 @@ class BaseController(metaclass=ABCMeta):
         float
             the modified form of the acceleration
         """
+        if self._is_highway_i210 is None:
+            from flow.networks import I210SubNetwork
+            from flow.networks import HighwayNetwork
+            self._is_highway_i210 = \
+                isinstance(env.k.network.network, I210SubNetwork) or \
+                isinstance(env.k.network.network, HighwayNetwork)
+
         # clear the current stored accels of this vehicle to None
         env.k.vehicle.update_accel(self.veh_id, None, noise=False, failsafe=False)
         env.k.vehicle.update_accel(self.veh_id, None, noise=False, failsafe=True)
@@ -130,7 +164,8 @@ class BaseController(metaclass=ABCMeta):
 
         # this allows the acceleration behavior of vehicles in a junction be
         # described by sumo instead of an explicit model
-        if env.k.vehicle.get_edge(self.veh_id)[0] == ":":
+        if env.k.vehicle.get_edge(self.veh_id)[0] == ":" \
+                and not self._is_highway_i210:
             return None
 
         accel = self.get_accel(env)
@@ -156,10 +191,15 @@ class BaseController(metaclass=ABCMeta):
         env.k.vehicle.update_accel(self.veh_id, accel, noise=True, failsafe=False)
 
         # run the fail-safes, if requested
-        for failsafe in self.failsafes:
-            accel = failsafe(env, accel)
+        accel = self.compute_failsafe(accel, env)
 
         env.k.vehicle.update_accel(self.veh_id, accel, noise=True, failsafe=True)
+        return accel
+
+    def compute_failsafe(self, accel, env):
+        """Take in an acceleration and compute the resultant safe acceleration."""
+        for failsafe in self.failsafes:
+            accel = failsafe(env, accel)
         return accel
 
     def get_safe_action_instantaneous(self, env, action):
@@ -261,8 +301,15 @@ class BaseController(metaclass=ABCMeta):
         """Compute a safe velocity for the vehicles.
 
         Finds maximum velocity such that if the lead vehicle were to stop
-        entirely, we can bring the following vehicle to rest at the point at
+        instantaneously, we can bring the following vehicle to rest at the point at
         which the headway is zero.
+
+        WARNINGS:
+        1. We assume the lead vehicle has the same deceleration capabilities as our vehicles
+        2. We solve for this value using the discrete time approximation to the dynamics. We assume that the
+           integration scheme induces positive error in the position, which leads to a slightly more conservative
+           driving behavior than the continuous time approximation would induce. However, the continuous time
+           safety rule would not be strictly safe.
 
         Parameters
         ----------
@@ -277,17 +324,24 @@ class BaseController(metaclass=ABCMeta):
             performing the breaking action, and speed limit
         """
         lead_id = env.k.vehicle.get_leader(self.veh_id)
+        if not lead_id:
+            return 1000.0
         lead_vel = env.k.vehicle.get_speed(lead_id)
         this_vel = env.k.vehicle.get_speed(self.veh_id)
+        max_decel = self.max_deaccel
+        lead_control = env.k.vehicle.get_acc_controller(lead_id)
+        lead_max_deaccel = lead_control.max_deaccel
 
         h = env.k.vehicle.get_headway(self.veh_id)
-        dv = lead_vel - this_vel
+        assert (h > 0), print('the headway is less than zero! Seems wrong.')
+        min_gap = self.car_following_params.controller_params['minGap']
 
-        v_safe = 2 * h / env.sim_step + dv - this_vel * (2 * self.delay)
-
-        # check for speed limit  FIXME: this is not called
-        # this_edge = env.k.vehicle.get_edge(self.veh_id)
-        # edge_speed_limit = env.k.network.speed_limit(this_edge)
+        is_ballistic = env.sim_params.use_ballistic
+        just_inserted = self.veh_id in env.k.vehicle.get_departed_ids()
+        brake_distance = self.brake_distance(lead_vel, max(max_decel, lead_max_deaccel),
+                                             self.delay, is_ballistic, env.sim_step)
+        v_safe = self.maximum_safe_stop_speed(h + brake_distance - min_gap, this_vel, just_inserted,
+                                              is_ballistic, env.sim_step)
 
         if this_vel > v_safe:
             if self.display_warnings:
@@ -321,7 +375,10 @@ class BaseController(metaclass=ABCMeta):
         """
         # check for speed limit
         this_edge = env.k.vehicle.get_edge(self.veh_id)
-        edge_speed_limit = env.k.network.speed_limit(this_edge)
+        this_lane = env.k.vehicle.get_lane(self.veh_id)
+        edge_speed_limit = env.k.network.get_max_speed(this_edge, this_lane)
+        veh_speed_limit = self.max_speed
+        edge_speed_limit = min(veh_speed_limit, edge_speed_limit)
 
         this_vel = env.k.vehicle.get_speed(self.veh_id)
         sim_step = env.sim_step
@@ -379,3 +436,184 @@ class BaseController(metaclass=ABCMeta):
                     "=====================================".format(self.veh_id))
 
         return action
+
+    def brake_distance(self, speed, max_deaccel, delay, is_ballistic, sim_step):
+        """Return the distance needed to come to a full stop if braking as hard as possible.
+
+        Parameters
+        ----------
+        speed : float
+            ego speed
+        max_deaccel : float
+            maximum deaccel of the vehicle
+        delay : float
+            the delay before an action is executed
+        is_ballistic : bool
+            whether the integration stop is ballistic
+        sim_step : float
+            size of simulation step
+
+        Returns
+        -------
+        float
+            the distance required to stop
+        """
+        if is_ballistic:
+            if speed <= 0:
+                return 0.0
+            else:
+                return speed * (delay + 0.5 * speed / max_deaccel)
+        else:
+            # how much we can reduce the speed in each timestep
+            speedReduction = max_deaccel * sim_step
+            # how many steps to get the speed to zero
+            steps_to_zero = int(speed / speedReduction)
+            return sim_step * (steps_to_zero * speed - speedReduction * steps_to_zero * (steps_to_zero + 1) / 2) + \
+                speed * delay
+
+    def maximum_safe_stop_speed(self, brake_distance, speed, is_inserted, is_ballistic, sim_step):
+        """Compute the maximum speed that you can travel at and guarantee no collision.
+
+        Parameters
+        ----------
+        brake_distance : float
+            total distance the vehicle has before it must be at a full stop
+        speed : float
+            current vehicle speed
+        is_inserted : bool
+            whether the vehicle has just entered the network
+        is_ballistic : bool
+            whether the integrator is ballistic
+        sim_step : float
+            simulation step size in seconds
+
+        Returns
+        -------
+        v_safe : float
+            maximum speed that can be travelled at without crashing
+        """
+        if is_ballistic:
+            v_safe = self.maximum_safe_stop_speed_ballistic(brake_distance, speed, is_inserted,
+                                                            sim_step)
+        else:
+            v_safe = self.maximum_safe_stop_speed_euler(brake_distance, sim_step)
+        return v_safe
+
+    def maximum_safe_stop_speed_euler(self, brake_distance, sim_step):
+        """Compute the maximum speed that you can travel at and guarantee no collision for euler integration.
+
+        Parameters
+        ----------
+        brake_distance : float
+            total distance the vehicle has before it must be at a full stop
+        sim_step : float
+            simulation step size in seconds
+
+        Returns
+        -------
+        v_safe : float
+            maximum speed that can be travelled at without crashing
+        """
+        if brake_distance <= 0:
+            return 0.0
+
+        speed_reduction = self.max_deaccel * sim_step
+
+        s = sim_step
+        t = self.delay
+
+        # h = the distance that would be covered if it were possible to stop
+        # exactly after gap and decelerate with max_deaccel every simulation step
+        # h = 0.5 * n * (n-1) * b * s + n * b * t (solve for n)
+        # n = ((1.0/2.0) - ((t + (pow(((s*s) + (4.0*((s*((2.0*h/b) - t)) + (t*t)))), (1.0/2.0))*sign/2.0))/s))
+        sqrt_quantity = math.sqrt(
+            ((s * s) + (4.0 * ((s * (2.0 * brake_distance / speed_reduction - t)) + (t * t))))) * -0.5
+        n = math.floor(.5 - ((t + sqrt_quantity) / s))
+        h = 0.5 * n * (n - 1) * speed_reduction * s + n * speed_reduction * t
+        assert(h <= brake_distance + 1e-6)
+        # compute the additional speed that must be used during deceleration to fix
+        # the discrepancy between g and h
+        r = (brake_distance - h) / (n * s + t)
+        x = n * speed_reduction + r
+        assert(x >= 0)
+        return x
+
+    def maximum_safe_stop_speed_ballistic(self, brake_distance, speed, is_inserted, sim_step):
+        """Compute the maximum speed that you can travel at and guarantee no collision for ballistic integration.
+
+        Parameters
+        ----------
+        brake_distance : float
+            total distance the vehicle has before it must be at a full stop
+        speed : float
+            current vehicle speed
+        is_inserted : bool
+            whether the vehicle has just entered the network
+        sim_step : float
+            simulation step size in seconds
+
+        Returns
+        -------
+        v_safe : float
+            maximum speed that can be travelled at without crashing
+        """
+        # decrease gap slightly (to avoid passing end of lane by values of magnitude ~1e-12,
+        # when exact stop is required)
+        new_brake_gap = max(0., brake_distance - 1e-6)
+
+        # (Leo) Note that in contrast to the Euler update, for the ballistic update
+        # the distance covered in the coming step depends on the current velocity, in general.
+        # one exception is the situation when the vehicle is just being inserted.
+        # In that case, it will not cover any distance until the next timestep by convention.
+
+        # We treat the latter case first:
+        if is_inserted:
+            # The distance covered with constant insertion speed v0 until time tau is given as
+            # G1 = tau*v0
+            # The distance covered between time tau and the stopping moment at time tau+v0/b is
+            # G2 = v0^2/(2b),
+            # where b is an assumed constant deceleration (= myDecel)
+            # We solve g = G1 + G2 for v0:
+            btau = self.max_deaccel * self.delay
+            v0 = -btau + np.sqrt(btau * btau + 2 * self.max_deaccel * new_brake_gap)
+            return v0
+
+        # In the usual case during the driving task, the vehicle goes by
+        # a current speed v0=v, and we seek to determine a safe acceleration a (possibly <0)
+        # such that starting to break after accelerating with a for the time tau=self.delay
+        # still allows us to stop in time.
+
+        if self.delay == 0:
+            tau = sim_step
+        else:
+            tau = self.delay
+        v0 = max(0., speed)
+        # We first consider the case that a stop has to take place within time tau
+        if v0 * tau >= 2 * new_brake_gap:
+            if new_brake_gap == 0:
+                if v0 > 0.:
+                    # indicate to brake as hard as possible
+                    return -self.max_deaccel * sim_step
+                else:
+                    # stay stopped
+                    return 0
+            # In general we solve g = v0^2/(-2a), where the the rhs is the distance
+            # covered until stop when breaking with a<0
+            a = -v0 * v0 / (2 * new_brake_gap)
+            return v0 + a * sim_step
+
+        # The last case corresponds to a situation, where the vehicle may go with a positive
+        # speed v1 = v0 + tau*a after time tau.
+        # The distance covered until time tau is given as
+        # G1 = tau*(v0+v1)/2
+        # The distance covered between time tau and the stopping moment at time tau+v1/b is
+        # G2 = v1^2/(2b),
+        # where b is an assumed constant deceleration (= myDecel)
+        # We solve g = G1 + G2 for v1>0:
+        # <=> 0 = v1^2 + b*tau*v1 + b*tau*v0 - 2bg
+        #  => v1 = -b*tau/2 + sqrt( (b*tau)^2/4 + b(2g - tau*v0) )
+
+        btau2 = self.max_deaccel * tau / 2
+        v1 = -btau2 + np.sqrt(btau2 * btau2 + self.max_deaccel * (2 * new_brake_gap - tau * v0))
+        a = (v1 - v0) / tau
+        return v0 + a * sim_step

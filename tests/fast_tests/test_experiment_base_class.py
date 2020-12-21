@@ -189,6 +189,8 @@ class TestConvertToCSV(unittest.TestCase):
             "speed",
             "headway",
             "leader_id",
+            "follower_id",
+            "leader_rel_speed",
             "target_accel_with_noise_with_failsafe",
             "target_accel_no_noise_no_failsafe",
             "target_accel_with_noise_no_failsafe",
@@ -199,8 +201,6 @@ class TestConvertToCSV(unittest.TestCase):
             "lane_number",
             "distance",
             "relative_position",
-            "follower_id",
-            "leader_rel_speed",
         ])
 
         time.sleep(0.1)
