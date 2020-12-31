@@ -383,6 +383,9 @@ class SimParams(object):
     ----------
     sim_step : float optional
         seconds per simulation step; 0.1 by default
+    scale : float optional
+        scale demand by the given factor (by discarding or
+        duplicating vehicles); 1.0 by default
     render : str or bool, optional
         specifies whether to visualize the rollout(s)
 
@@ -415,6 +418,7 @@ class SimParams(object):
 
     def __init__(self,
                  sim_step=0.1,
+                 scale=1.0,
                  render=False,
                  restart_instance=False,
                  emission_path=None,
@@ -425,6 +429,7 @@ class SimParams(object):
                  force_color_update=False):
         """Instantiate SimParams."""
         self.sim_step = sim_step
+        self.scale = scale
         self.render = render
         self.restart_instance = restart_instance
         self.emission_path = emission_path
@@ -536,6 +541,9 @@ class SumoParams(SimParams):
         Port for Traci to connect to; finds an empty port by default
     sim_step : float optional
         seconds per simulation step; 0.1 by default
+    scale : float optional
+        scale demand by the given factor (by discarding or
+        duplicating vehicles); 1.0 by default
     emission_path : str, optional
         Path to the folder in which to create the emissions output.
         Emissions output is not generated if this value is not specified
@@ -593,6 +601,7 @@ class SumoParams(SimParams):
     def __init__(self,
                  port=None,
                  sim_step=0.1,
+                 scale=1.0,
                  emission_path=None,
                  lateral_resolution=None,
                  no_step_log=True,
@@ -612,9 +621,10 @@ class SumoParams(SimParams):
                  use_ballistic=False):
         """Instantiate SumoParams."""
         super(SumoParams, self).__init__(
-            sim_step, render, restart_instance, emission_path, save_render,
+            sim_step, scale, render, restart_instance, emission_path, save_render,
             sight_radius, show_radius, pxpm, force_color_update)
         self.port = port
+        self.scale = scale
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
         self.seed = seed

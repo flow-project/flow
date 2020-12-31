@@ -73,6 +73,7 @@ def visualizer_rllib(args):
     # TODO(ev) remove eventually
     sim_params = flow_params['sim']
     setattr(sim_params, 'num_clients', 1)
+    setattr(sim_params, 'scale', 1)
 
     # for hacks for old pkl files TODO: remove eventually
     if not hasattr(sim_params, 'use_ballistic'):
@@ -351,6 +352,11 @@ def create_parser():
         type=int,
         default=1,
         help='The number of rollouts to visualize.')
+    parser.add_argument(
+        '--scale',
+        type=float,
+        default=1.0,
+        help='Scale demand by the given factor.')
     parser.add_argument(
         '--gen_emission',
         action='store_true',
