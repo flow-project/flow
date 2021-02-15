@@ -262,6 +262,7 @@ class VehicleParams:
             num_vehicles=0,
             car_following_params=None,
             lane_change_params=None,
+            emission_class="HBEFA3/PC_G_EU5",
             color=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
@@ -301,6 +302,7 @@ class VehicleParams:
         type_params = {}
         type_params.update(car_following_params.controller_params)
         type_params.update(lane_change_params.controller_params)
+        type_params['emissionClass'] = emission_class
 
         # This dict will be used when trying to introduce new vehicles into
         # the network via a Flow. It is passed to the vehicle kernel object
