@@ -1168,7 +1168,7 @@ class TraCIVehicle(KernelVehicle):
             metric_name += '_no_failsafe'
 
         if metric_name not in self.__vehicles[veh_id]:
-            self.__vehicles[veh_id][metric_name] = None
+            self.__vehicles[veh_id][metric_name] = 0.
         return self.__vehicles[veh_id][metric_name]
 
     def update_accel(self, veh_id, accel, noise=True, failsafe=True):
