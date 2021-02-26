@@ -146,7 +146,6 @@ class Env(gym.Env, metaclass=ABCMeta):
         self.step_counter = 0
         # initial_state:
         self.initial_state = {}
-        self.state = None
         self.obs_var_labels = []
 
         # simulation step size
@@ -385,14 +384,7 @@ class Env(gym.Env, metaclass=ABCMeta):
             # render a frame
             self.render()
 
-        states = self.get_state()
-
-        # collect information of the state of the network based on the
-        # environment class used
-        self.state = np.asarray(states).T
-
-        # collect observation new state associated with action
-        next_observation = np.copy(states)
+        next_observation = self.get_state()
 
         # test if the environment should terminate due to a collision or the
         # time horizon being met
@@ -557,14 +549,7 @@ class Env(gym.Env, metaclass=ABCMeta):
                 msg += '- {}: {}\n'.format(veh_id, self.initial_state[veh_id])
             raise FatalFlowError(msg=msg)
 
-        states = self.get_state()
-
-        # collect information of the state of the network based on the
-        # environment class used
-        self.state = np.asarray(states).T
-
-        # observation associated with the reset (no warm-up steps)
-        observation = np.copy(states)
+        observation = self.get_state()
 
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
@@ -598,10 +583,18 @@ class Env(gym.Env, metaclass=ABCMeta):
 
         # clip according to the action space requirements
         if isinstance(self.action_space, Box):
-            rl_actions = np.clip(
-                rl_actions,
-                a_min=self.action_space.low,
-                a_max=self.action_space.high)
+            if isinstance(rl_actions, dict):
+                for key, action in rl_actions.items():
+                    rl_actions[key] = np.clip(
+                        action,
+                        a_min=self.action_space.low,
+                        a_max=self.action_space.high)
+            else:
+                rl_actions = np.clip(
+                    rl_actions,
+                    a_min=self.action_space.low,
+                    a_max=self.action_space.high)
+
         elif isinstance(self.action_space, Tuple):
             for idx, action in enumerate(rl_actions):
                 subspace = self.action_space[idx]
