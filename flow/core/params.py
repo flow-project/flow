@@ -1288,6 +1288,7 @@ class InFlows:
 
     def get(self):
         """Return the inflows of each edge."""
+        self.__flows.sort(key=lambda inflow: inflow['begin'])
         return self.__flows
 
 
