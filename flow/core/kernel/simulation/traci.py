@@ -190,9 +190,10 @@ class TraCISimulation(KernelSimulation):
                     "--remote-port", str(sim_params.port),
                     "--num-clients", str(sim_params.num_clients),
                     "--step-length", str(sim_params.sim_step),
-                    "--emission-output", self.emission_path+'/emi.xml'
                 ]
-
+                if sim_params.old_emission_path:
+                    sumo_call += ["--emission-output", sim_params.old_emission_path]
+                
                 # use a ballistic integration step (if request)
                 if sim_params.use_ballistic:
                     sumo_call.append("--step-method.ballistic")

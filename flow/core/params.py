@@ -596,6 +596,7 @@ class SumoParams(SimParams):
                  port=None,
                  sim_step=0.1,
                  emission_path=None,
+                 old_emission_path=None,
                  lateral_resolution=None,
                  no_step_log=True,
                  render=False,
@@ -616,6 +617,7 @@ class SumoParams(SimParams):
         super(SumoParams, self).__init__(
             sim_step, render, restart_instance, emission_path, save_render,
             sight_radius, show_radius, pxpm, force_color_update)
+        self.old_emission_path = old_emission_path
         self.port = port
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
