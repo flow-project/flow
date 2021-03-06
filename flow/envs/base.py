@@ -222,7 +222,7 @@ class Env(gym.Env, metaclass=ABCMeta):
             self.render(reset=True)
         elif self.sim_params.render in [True, False]:
             # default to sumo-gui (if True) or sumo (if False)
-            if (self.sim_params.render is True) and self.sim_params.save_render:
+            if (self.sim_params.should_render is True) and self.sim_params.save_render:
                 self.path = os.path.expanduser('~')+'/flow_rendering/' + self.network.name
                 os.makedirs(self.path, exist_ok=True)
         else:
@@ -700,8 +700,8 @@ class Env(gym.Env, metaclass=ABCMeta):
                 images_dir = self.path.split('/')[-1]
                 speedup = 10  # multiplier: renders video so that `speedup` seconds is rendered in 1 real second
                 fps = speedup//self.sim_step
-                p = subprocess.Popen(["ffmpeg", "-y", "-r", str(fps), "-i", self.path+"/frame_%06d.png",
-                                      "-pix_fmt", "yuv420p", "%s/../%s.mp4" % (self.path, images_dir)])
+                p = subprocess.Popen(["ffmpeg", "-y", "-r", str(fps), "-i", self.path+r"/frame_%06d.png",
+                                      "-vcodec", "mpeg4", "%s/../%s.mp4" % (self.path, images_dir)])
                 p.wait()
                 shutil.rmtree(self.path)
         except FileNotFoundError:
