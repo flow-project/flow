@@ -222,7 +222,7 @@ class Env(gym.Env, metaclass=ABCMeta):
             self.render(reset=True)
         elif self.sim_params.render in [True, False]:
             # default to sumo-gui (if True) or sumo (if False)
-            if (self.sim_params.should_render is True) and self.sim_params.save_render:
+            if (self.should_render is True) and self.sim_params.save_render:
                 self.path = os.path.expanduser('~')+'/flow_rendering/' + self.network.name
                 os.makedirs(self.path, exist_ok=True)
         else:
