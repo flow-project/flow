@@ -223,6 +223,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         is to prevent them from building up in the debug folder. Note that in
         the case of import .net.xml files we do not want to delete them.
         """
+        return None # don't delete for now
         if self.network.net_params.template is None:
             try:
                 os.remove(self.net_path + self.nodfn)
@@ -792,7 +793,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                                                 id='bus_route{}_{}'.format(bus_route_id, i),
                                                 edges=' '.join(edges))
                     for stop in stops:
-                        etree.SubElement(bus_route, 'stop', busStop=stop, duration='2')
+                        etree.SubElement(bus_route, 'stop', busStop=stop, duration="2")
 
         # add the inflows from various edges to the xml file
         if self.network.net_params.inflows is not None:
@@ -825,8 +826,14 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                                 int(float(inflow['number']) * ft))
 
                         routes_data.append(_flow(**sumo_inflow))
+                        xflow = routes_data[-1]
+                        if sumo_inflow['vtype'] in ["bus", "jeepney"]:
+                            xroute = etree.SubElement(xflow, 'route', edges="inflow eastave outflow")
+                            etree.SubElement(xroute, "stop", busStop="bus_stop_0", duration="10")
+                    
                 else:
-                    routes_data.append(_flow(**sumo_inflow))
+                    routes_data.append(xflow)
+
 
         printxml(routes_data, self.cfg_path + self.roufn)
 

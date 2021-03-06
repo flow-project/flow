@@ -328,7 +328,7 @@ class Network(object):
             see flow/core/params.py
         """
         self.orig_name = name  # To avoid repeated concatenation upon reset
-        self.name = name + time.strftime('_%Y%m%d-%H%M%S') + str(time.time())
+        self.name = name #+ time.strftime('_%Y%m%d-%H%M%S') + str(time.time())
 
         self.vehicles = vehicles
         self.net_params = net_params

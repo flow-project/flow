@@ -243,6 +243,7 @@ class TraCISimulation(KernelSimulation):
                     preexec_fn=os.setsid
                 )
 
+                print(' '.join(sumo_call))
                 # wait a small period of time for the subprocess to activate
                 # before trying to connect with traci
                 if os.environ.get("TEST_FLAG", 0):
