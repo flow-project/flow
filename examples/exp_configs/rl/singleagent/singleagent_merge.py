@@ -18,7 +18,7 @@ from flow.networks import MergeNetwork
 EXP_NUM = 0
 
 # time horizon of a single rollout
-HORIZON = 600
+HORIZON = 3600
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
@@ -47,6 +47,7 @@ vehicles.add(
     }),
     car_following_params=SumoCarFollowingParams(
         speed_mode="obey_safe_speed",
+        min_gap=1.0,
     ),
     num_vehicles=5)
 vehicles.add(
@@ -54,6 +55,8 @@ vehicles.add(
     acceleration_controller=(RLController, {}),
     car_following_params=SumoCarFollowingParams(
         speed_mode="obey_safe_speed",
+        accel=1.5,
+        decel=1.5,
     ),
     num_vehicles=0)
 

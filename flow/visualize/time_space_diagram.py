@@ -162,10 +162,13 @@ def _merge(data):
         modified trajectory dataframe
     """
     # Omit ghost edges
-    keep_edges = {'inflow_merge', 'bottom', ':bottom_0'}
-    data = data[data['edge_id'].isin(keep_edges)]
+    data = data[(data['edge_id'] == "left") |
+                (data['edge_id'] == ":left_0") |
+                (data['edge_id'] == "inflow_highway")]
 
-    segs = data[['time_step', 'distance', 'next_time', 'next_pos']].values.reshape((len(data), 2, 2))
+    segs = data[
+        ['time_step', 'distance', 'next_time', 'next_pos']].values.reshape(
+        (len(data), 2, 2))
 
     return segs, data
 
@@ -538,4 +541,4 @@ if __name__ == '__main__':
     ###########################################################################
 
     outfile = args.trajectory_path.replace('csv', 'png')
-    plt.savefig(outfile)
+    plt.savefig(outfile, bbox_inches='tight')

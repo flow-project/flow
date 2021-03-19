@@ -23,6 +23,7 @@ vehicles.add(
     }),
     car_following_params=SumoCarFollowingParams(
         speed_mode="obey_safe_speed",
+        min_gap=0.5,
     ),
     num_vehicles=5)
 
@@ -57,7 +58,6 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
         render=True,
-        emission_path="./data/",
         sim_step=0.2,
         restart_instance=False,
     ),

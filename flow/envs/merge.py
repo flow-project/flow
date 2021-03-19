@@ -85,6 +85,8 @@ class MergePOEnv(Env):
         # names of the rl vehicles controlled at any step
         self.rl_veh = []
 
+        self.removed_veh = []
+
         # used for visualization: the vehicles behind and after RL vehicles
         # (ie the observed vehicles) will have a different color
         self.leader = []
@@ -120,8 +122,8 @@ class MergePOEnv(Env):
         self.follower = []
 
         # normalizing constants
-        max_speed = self.k.network.max_speed()
-        max_length = self.k.network.length()
+        max_speed = 10
+        max_length = 100
 
         observation = [0 for _ in range(5 * self.num_rl)]
         for i, rl_id in enumerate(self.rl_veh):
@@ -198,9 +200,15 @@ class MergePOEnv(Env):
           Then, the next vehicle in the queue is added to the state space and
           provided with actions from the policy.
         """
+        for veh_id in self.k.vehicle.get_ids():
+            if ":center" in self.k.vehicle.get_edge(veh_id):
+                self.k.kernel_api.vehicle.setSpeedMode(veh_id, 1621)
+                self.k.kernel_api.vehicle.setMinGap(veh_id, 2)
+
         # add rl vehicles that just entered the network into the rl queue
         for veh_id in self.k.vehicle.get_rl_ids():
-            if veh_id not in list(self.rl_queue) + self.rl_veh:
+            if veh_id not in list(self.rl_queue) + self.rl_veh \
+                    + self.removed_veh:
                 self.rl_queue.append(veh_id)
 
         # remove rl vehicles that exited the network
@@ -208,8 +216,11 @@ class MergePOEnv(Env):
             if veh_id not in self.k.vehicle.get_rl_ids():
                 self.rl_queue.remove(veh_id)
         for veh_id in self.rl_veh:
-            if veh_id not in self.k.vehicle.get_rl_ids():
+            if veh_id not in self.k.vehicle.get_rl_ids() or \
+                    ":center" in self.k.vehicle.get_edge(veh_id) or \
+                    self.k.vehicle.get_edge(veh_id) == "center":
                 self.rl_veh.remove(veh_id)
+                self.removed_veh.append(veh_id)
 
         # fil up rl_veh until they are enough controlled vehicles
         while len(self.rl_queue) > 0 and len(self.rl_veh) < self.num_rl:
@@ -228,4 +239,7 @@ class MergePOEnv(Env):
         """
         self.leader = []
         self.follower = []
+        self.rl_veh = []
+        self.rl_queue = collections.deque()
+        self.removed_veh = []
         return super().reset()
