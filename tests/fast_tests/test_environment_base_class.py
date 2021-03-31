@@ -660,6 +660,11 @@ class TestSaveLoadState(unittest.TestCase):
             env.k.vehicle.get_x_by_id(env.k.vehicle.get_ids()),
             [0.5812726, 23.5812725, 46.5812726, 69.5812726, 92.5813197,
              115.6609682, 138.5812726, 161.5812725, 184.5812726, 207.5813896])
+        np.testing.assert_almost_equal(
+            [env.k.vehicle.get_distance(veh_id)
+             for veh_id in env.k.vehicle.get_ids()],
+            [0.5812726, 0.5812725, 0.5812726, 0.5812726, 0.5813197, 0.6609682,
+             0.5812726, 0.5812725, 0.5812726, 0.5813896])
 
     def test_load_state_multiagent(self):
         """Test the load_state option for multi-agent environments.
@@ -693,6 +698,11 @@ class TestSaveLoadState(unittest.TestCase):
             env.k.vehicle.get_x_by_id(env.k.vehicle.get_ids()),
             [0.5812726, 23.5812725, 46.5812726, 69.5812726, 92.5813197,
              115.6609682, 138.5812726, 161.5812725, 184.5812726, 207.5813896])
+        np.testing.assert_almost_equal(
+            [env.k.vehicle.get_distance(veh_id)
+             for veh_id in env.k.vehicle.get_ids()],
+            [0.5812726, 0.5812725, 0.5812726, 0.5812726, 0.5813197, 0.6609682,
+             0.5812726, 0.5812725, 0.5812726, 0.5813896])
 
 
 if __name__ == '__main__':
