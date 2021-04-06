@@ -278,7 +278,6 @@ def train_h_baselines(env_name, args, multiagent):
 
         # Perform training.
         alg.learn(
-            total_steps=args.total_steps,
             log_dir=dir_name,
             log_interval=args.log_interval,
             eval_interval=args.eval_interval,
