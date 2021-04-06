@@ -286,6 +286,57 @@ class TraCIVehicle(KernelVehicle):
             self.num_vehicles += 1
             self.__vehicles[veh_id] = dict()
 
+        self.set_vehicle_type(veh_id, veh_type)
+
+        # subscribe the new vehicle
+        self.kernel_api.vehicle.subscribe(veh_id, [
+            tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
+            tc.VAR_ROAD_ID,
+            tc.VAR_SPEED,
+            tc.VAR_EDGES,
+            tc.VAR_POSITION,
+            tc.VAR_ANGLE,
+            tc.VAR_SPEED_WITHOUT_TRACI,
+            tc.VAR_FUELCONSUMPTION,
+            tc.VAR_DISTANCE
+        ])
+        self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
+
+        # some constant vehicle parameters to the vehicles class
+        self.__vehicles[veh_id]["length"] = self.kernel_api.vehicle.getLength(
+            veh_id)
+
+        # set the "last_lc" parameter of the vehicle
+        self.__vehicles[veh_id]["last_lc"] = -float("inf")
+
+        # get initial state info
+        self.__sumo_obs[veh_id] = dict()
+        self.__sumo_obs[veh_id][tc.VAR_ROAD_ID] = \
+            self.kernel_api.vehicle.getRoadID(veh_id)
+        self.__sumo_obs[veh_id][tc.VAR_LANEPOSITION] = \
+            self.kernel_api.vehicle.getLanePosition(veh_id)
+        self.__sumo_obs[veh_id][tc.VAR_LANE_INDEX] = \
+            self.kernel_api.vehicle.getLaneIndex(veh_id)
+        self.__sumo_obs[veh_id][tc.VAR_SPEED] = \
+            self.kernel_api.vehicle.getSpeed(veh_id)
+        self.__sumo_obs[veh_id][tc.VAR_FUELCONSUMPTION] = \
+            self.kernel_api.vehicle.getFuelConsumption(veh_id)
+
+        # get the subscription results from the new vehicle
+        new_obs = self.kernel_api.vehicle.getSubscriptionResults(veh_id)
+
+        return new_obs
+
+    def set_vehicle_type(self, veh_id, veh_type):
+        """Update/initialize the type of a specific vehicle internally.
+
+        Parameters
+        ----------
+        veh_id : str
+            the name of the vehicle
+        veh_type : str
+            the vehicle type to use
+        """
         # specify the type
         self.__vehicles[veh_id]["type"] = veh_type
 
@@ -316,36 +367,29 @@ class TraCIVehicle(KernelVehicle):
 
         # add the vehicle's id to the list of vehicle ids
         if accel_controller[0] == RLController:
+            # Remove from the human-driven lists if it was ever there. Needed
+            # when updating the vehicle type dynamically.
+            if veh_id in self.__human_ids:
+                self.__human_ids.remove(veh_id)
+            if veh_id in self.__controlled_ids:
+                self.__controlled_ids.remove(veh_id)
+            if veh_id in self.__controlled_lc_ids:
+                self.__controlled_lc_ids.remove(veh_id)
+
             if veh_id not in self.__rl_ids:
                 self.__rl_ids.append(veh_id)
         else:
+            # Remove from the RL lists if it was ever there. Needed when
+            # updating the vehicle type dynamically.
+            if veh_id in self.__rl_ids:
+                self.__rl_ids.remove(veh_id)
+
             if veh_id not in self.__human_ids:
                 self.__human_ids.append(veh_id)
                 if accel_controller[0] != SimCarFollowingController:
                     self.__controlled_ids.append(veh_id)
                 if lc_controller[0] != SimLaneChangeController:
                     self.__controlled_lc_ids.append(veh_id)
-
-        # subscribe the new vehicle
-        self.kernel_api.vehicle.subscribe(veh_id, [
-            tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
-            tc.VAR_ROAD_ID,
-            tc.VAR_SPEED,
-            tc.VAR_EDGES,
-            tc.VAR_POSITION,
-            tc.VAR_ANGLE,
-            tc.VAR_SPEED_WITHOUT_TRACI,
-            tc.VAR_FUELCONSUMPTION,
-            tc.VAR_DISTANCE
-        ])
-        self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
-
-        # some constant vehicle parameters to the vehicles class
-        self.__vehicles[veh_id]["length"] = self.kernel_api.vehicle.getLength(
-            veh_id)
-
-        # set the "last_lc" parameter of the vehicle
-        self.__vehicles[veh_id]["last_lc"] = -float("inf")
 
         # specify the initial speed
         self.__vehicles[veh_id]["initial_speed"] = \
@@ -361,27 +405,9 @@ class TraCIVehicle(KernelVehicle):
             "lane_change_params"].lane_change_mode
         self.kernel_api.vehicle.setLaneChangeMode(veh_id, lc_mode)
 
-        # get initial state info
-        self.__sumo_obs[veh_id] = dict()
-        self.__sumo_obs[veh_id][tc.VAR_ROAD_ID] = \
-            self.kernel_api.vehicle.getRoadID(veh_id)
-        self.__sumo_obs[veh_id][tc.VAR_LANEPOSITION] = \
-            self.kernel_api.vehicle.getLanePosition(veh_id)
-        self.__sumo_obs[veh_id][tc.VAR_LANE_INDEX] = \
-            self.kernel_api.vehicle.getLaneIndex(veh_id)
-        self.__sumo_obs[veh_id][tc.VAR_SPEED] = \
-            self.kernel_api.vehicle.getSpeed(veh_id)
-        self.__sumo_obs[veh_id][tc.VAR_FUELCONSUMPTION] = \
-            self.kernel_api.vehicle.getFuelConsumption(veh_id)
-
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
         self.num_rl_vehicles = len(self.__rl_ids)
-
-        # get the subscription results from the new vehicle
-        new_obs = self.kernel_api.vehicle.getSubscriptionResults(veh_id)
-
-        return new_obs
 
     def reset(self):
         """See parent class."""
