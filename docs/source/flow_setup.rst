@@ -54,7 +54,7 @@ If the conda install fails, you can also install the requirements using pip by c
 ::
 
     # install flow within the environment
-    pip install -e .
+    pip install --use-deprecated=legacy-resolver -e .
 
 Next, we install the necessary pre-compiled SUMO binaries and python tools. In order to
 install everything you will need from SUMO, run one of the below scripts from
@@ -332,7 +332,7 @@ run the following commands:
     git clone https://github.com/AboudyKreidieh/h-baselines.git
     cd h-baselines
     source activate flow  # if using a Flow environment
-    pip install -e .
+    pip install --use-deprecated=legacy-resolver -e .
 
 
 Testing your h-baselines installation

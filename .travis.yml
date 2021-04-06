@@ -61,7 +61,7 @@ before_install:
   - pushd $HOME
   - git clone https://github.com/AboudyKreidieh/h-baselines.git
   - pushd h-baselines
-  - pip install -e .
+  - pip install --use-deprecated=legacy-resolver -e .
   - popd
   - popd
 
@@ -70,7 +70,7 @@ before_install:
 install:
   - sudo apt update
   - sudo apt install -y freeglut3-dev libgl1-mesa-dev libglu1-mesa-dev
-  - pip install -e .
+  - pip install --use-deprecated=legacy-resolver -e .
   - pip install coveralls
   - pip install jupyter
 
