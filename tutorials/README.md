@@ -43,7 +43,7 @@ tutorials, you may find the
 > source activate flow
 > python
 > ```
-> (`cd /` is to make sure that `flow` is not in the folder you run `python` from). Then, in the Python interface that opens, run `import flow`. If you get an `ImportError`, this means you haven't installed Flow in your environment. Go back to the [installation instructions](https://flow.readthedocs.io/en/latest/flow_setup.html), especially the part where you do `pip install -e .` after having done `source activate flow`.
+> (`cd /` is to make sure that `flow` is not in the folder you run `python` from). Then, in the Python interface that opens, run `import flow`. If you get an `ImportError`, this means you haven't installed Flow in your environment. Go back to the [installation instructions](https://flow.readthedocs.io/en/latest/flow_setup.html), especially the part where you do `pip install --use-deprecated=legacy-resolver -e .` after having done `source activate flow`.
 
 The content of each tutorial is as follows:
 
