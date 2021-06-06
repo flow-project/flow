@@ -83,6 +83,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         self.__non_internal_length = None  # total length of non-internal edges
         self.rts = None
         self.cfg = None
+        self._speed_limit = {}
 
     def generate_network(self, network):
         """See parent class.
@@ -212,7 +213,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
 
     def update(self, reset):
         """Perform no action of value (networks are static)."""
-        pass
+        self._speed_limit.clear()
 
     def close(self):
         """Close the network class.
@@ -935,3 +936,30 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         connection_data = {'next': next_conn_data, 'prev': prev_conn_data}
 
         return net_data, connection_data
+
+    def set_max_speed(self, edge_id, speed):
+        """Set the max speed of a network edge.
+        Parameters
+        ----------
+        edge_id : str
+            ID of a network edge
+        speed : float
+            Max speed of the network edge
+        """
+        self.kernel_api.edge.setMaxSpeed(edge_id, speed)
+
+    def get_max_speed(self, edge_id, lane_id):
+        """Get the max speed of a network lane.
+        Parameters
+        ----------
+        edge_id : str
+            ID of a network edge
+        lane_id : str
+            Index of a lane
+        """
+        edge = edge_id + '_' + str(lane_id)
+
+        if edge not in self._speed_limit.keys():
+            self._speed_limit[edge] = self.kernel_api.lane.getMaxSpeed(edge)
+
+        return self._speed_limit[edge]

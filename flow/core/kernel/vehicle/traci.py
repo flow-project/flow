@@ -1155,6 +1155,27 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
 
+    def get_max_speed(self, veh_id, error=-1001):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_max_speed(vehID, error) for vehID in veh_id]
+        return self.kernel_api.vehicle.getMaxSpeed(veh_id)
+
+    def set_max_speed(self, veh_id, max_speed):
+        """See parent class."""
+        self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
+
+    def get_energy_model(self, veh_id, error=""):
+        """See parent class."""
+        class EnergyModel(object):
+
+            def get_instantaneous_fuel_consumption(self, *_):
+                return 0
+
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_energy_model(vehID) for vehID in veh_id]
+        return EnergyModel()
+
     def get_accel(self, veh_id, noise=True, failsafe=True):
         """See parent class."""
         metric_name = 'accel'
