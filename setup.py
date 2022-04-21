@@ -14,18 +14,6 @@ def _read_requirements_file():
     with open(req_file_path) as f:
         return [line.strip() for line in f]
 
-
-class build_ext(_build_ext.build_ext):
-    """External buid commands."""
-
-    def run(self):
-        """Install traci wheels."""
-        subprocess.check_call(
-            ['python3','-m','pip', 'install',
-             'https://akreidieh.s3.amazonaws.com/sumo/flow-0.4.0/'
-             'sumotools-0.4.0-py3-none-any.whl'])
-
-
 class BinaryDistribution(Distribution):
     """See parent class."""
 
@@ -38,7 +26,6 @@ setup(
     name='flow',
     version=__version__,
     distclass=BinaryDistribution,
-    cmdclass={"build_ext": build_ext},
     packages=find_packages(),
     description=("A system for applying deep reinforcement learning and "
                  "control to autonomous vehicles and traffic infrastructure"),
