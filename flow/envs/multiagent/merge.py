@@ -246,10 +246,7 @@ class MultiAgentZSCMergePOEnv(MultiEnv):
         # (ie the observed vehicles) will have a different color
         self.leader = []
         self.follower = []
-        if self.env_params.additional_params["return_all_vehicle_states"]:
-            self.veh_id_list = deepcopy(self.initial_vehicles.get_ids())
-        else:
-            self.veh_id_list = deepcopy(self.initial_vehicles.get_rl_ids())
+        self.veh_id_list = deepcopy(self.k.vehicle.get_ids())
 
 
     @property
@@ -264,7 +261,7 @@ class MultiAgentZSCMergePOEnv(MultiEnv):
     @property
     def observation_space(self):
         """See class definition."""
-        return Box(low=-5, high=5, shape=(5,), dtype=np.float32)
+        return Box(low=-10, high=10, shape=(7,), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
@@ -336,7 +333,7 @@ class MultiAgentZSCMergePOEnv(MultiEnv):
                 # there are vehicles closer than us so return their state
                 for i, bottom_id in enumerate(bottom_ids[pos_index: pos_index + 2]):
                     concat_object[2 * i: 2 * (i + 1)] = [self.k.vehicle.get_position(bottom_id) / max_length,
-                                                       self.k.vehicle.get_speed(bottom_id) / max_speed]
+                                                         self.k.vehicle.get_speed(bottom_id) / max_speed]
             # TODO(ev) remove copypasta
             elif self.k.vehicle.get_edge(veh_id) == 'bottom':
                 veh_pos = self.k.vehicle.get_position(veh_id)
@@ -403,12 +400,8 @@ class MultiAgentZSCMergePOEnv(MultiEnv):
         num_veh = self.k.vehicle.num_vehicles
         if num_veh != len(self.veh_id_list):
             # find the vehicles that have exited
-            if self.env_params.additional_params["return_all_vehicle_states"]:
-                diff_list = list(
-                    set(self.veh_id_list).difference(self.k.vehicle.get_ids()))
-            else:
-                diff_list = list(
-                    set(self.veh_id_list).difference(self.k.vehicle.get_rl_ids()))
+            diff_list = list(
+                set(self.veh_id_list).difference(self.k.vehicle.get_ids()))
             for veh_id in diff_list:
                 # distribute rl cars evenly over lanes
                 # reintroduce it at the start of the network
@@ -439,10 +432,8 @@ class MultiAgentZSCMergePOEnv(MultiEnv):
         """
         self.leader = []
         self.follower = []
-        # id list used to keep track of which vehicles should be in the system
 
-        if self.env_params.additional_params["return_all_vehicle_states"]:
-            self.veh_id_list = deepcopy(self.initial_vehicles.get_ids())
-        else:
-            self.veh_id_list = deepcopy(self.initial_vehicles.get_rl_ids())
-        return super().reset()
+        obs = super().reset()
+        # id list used to keep track of which vehicles should be in the system
+        self.veh_id_list = deepcopy(self.k.vehicle.get_ids())
+        return obs
