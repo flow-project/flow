@@ -135,13 +135,13 @@ def setup_exps_rllib(flow_params,
     try:
         from ray.rllib.agents.agent import get_agent_class
     except ImportError:
-        from ray.rllib.agents.registry import get_agent_class
+        from ray.rllib.agents.registry import get_trainer_class
 
     horizon = flow_params['env'].horizon
 
     alg_run = "PPO"
 
-    agent_cls = get_agent_class(alg_run)
+    agent_cls = get_trainer_class(alg_run)
     config = deepcopy(agent_cls._default_config)
 
     config["num_workers"] = n_cpus
@@ -153,6 +153,8 @@ def setup_exps_rllib(flow_params,
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = horizon
+
+    config['framework']='torch'
 
     # save the flow params for replay
     flow_json = json.dumps(
