@@ -327,7 +327,7 @@ class MultiAgentZSCMergePOEnv(MultiEnv):
                 # find the position in the list
                 pos_index = np.searchsorted(bottom_positions, veh_pos)
                 # we are closer than any of the vehicles on that edge
-                if pos_index == len(bottom_positions):
+                if len(bottom_positions) > 0 and pos_index == len(bottom_positions):
                     concat_object[0:2] = [self.k.vehicle.get_position(bottom_ids[-1]) / max_length,
                                           self.k.vehicle.get_speed(bottom_ids[-1]) / max_speed]
                 # there are vehicles closer than us so return their state
@@ -340,7 +340,7 @@ class MultiAgentZSCMergePOEnv(MultiEnv):
                 # find the position in the list
                 pos_index = np.searchsorted(left_positions, veh_pos)
                 # we are closer than any of the vehicles on that edge
-                if pos_index == len(left_positions):
+                if len(left_positions) > 0 and pos_index == len(left_positions):
                     concat_object[0:2] = [self.k.vehicle.get_position(left_ids[-1]),
                                           self.k.vehicle.get_speed(left_ids[-1])]
                 # there are vehicles closer than us so return their state
