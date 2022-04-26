@@ -35,7 +35,7 @@ def main(args):
   create_env, gym_name = make_create_env(params=flow_params)
   env = create_env()
   env.reset()
-  for i in range(100):
+  for i in range(1000):
     env.step({})
 
 if __name__ == "__main__":

@@ -9,8 +9,9 @@ pip install scipy
 pip install jupyter
 pip install notebook
 
-pip install -U "ray[rllib]"
-
+install ray from well
+pip uninstall -y ray
+pip install -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-2.0.0.dev0-cp38-cp38-macosx_10_15_x86_64.whl
 # if trouble shooting with tree
 pip uninstall tree
 pip uninstall dm-tree
