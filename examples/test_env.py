@@ -31,10 +31,12 @@ def main(args):
     raise ValueError("Unable to find experiment config.")
 
   flow_params = submodule.flow_params
+  flow_params['sim'].render = True
   create_env, gym_name = make_create_env(params=flow_params)
   env = create_env()
   env.reset()
-  import ipdb; ipdb.set_trace()
+  for i in range(100):
+    env.step({})
 
 if __name__ == "__main__":
     main(sys.argv[1:])
