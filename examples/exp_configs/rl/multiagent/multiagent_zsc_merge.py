@@ -145,5 +145,14 @@ def policy_mapping_fn(_):
     """Map a policy in RLlib."""
     return 'av'
 
+### one policy per agent
 
-POLICIES_TO_TRAIN = ['av']
+# # Setup PG with an ensemble of `num_policies` different policy graphs
+# POLICY_GRAPHS = {f'rl_{i}': gen_policy() for i in range(NUM_RL)}
+
+
+# def policy_mapping_fn(agent_id):
+#     """Map a policy in RLlib."""
+#     return agent_id
+
+# POLICIES_TO_TRAIN = [f'rl_{i}' for i in range(NUM_RL)]

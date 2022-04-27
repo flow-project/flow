@@ -168,7 +168,7 @@ def setup_exps_rllib(flow_params,
         config['multiagent'].update({'policies': policy_graphs})
     if policy_mapping_fn is not None:
         config['multiagent'].update(
-            {'policy_mapping_fn': tune.function(policy_mapping_fn)})
+            {'policy_mapping_fn': policy_mapping_fn})
     if policies_to_train is not None:
         config['multiagent'].update({'policies_to_train': policies_to_train})
 
