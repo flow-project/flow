@@ -9,10 +9,9 @@ dependencies:
         - path.py
         - python-dateutil==2.7.3
         - pip>=18.0
-        - tensorflow==1.15.2
         - setuptools==41.0.0
         - plotly==2.4.0
-        - gym==0.14.0
+        - gym
         - pyprind==2.11.2
         - nose2==0.8.0
         - cached_property
@@ -20,9 +19,6 @@ dependencies:
         - matplotlib==3.0.0
         - dill
         - lz4
-        - ray==0.8.0
         - setproctitle
         - psutil
-        - opencv-python
         - boto3==1.10.45
-        - redis~=2.10.6

@@ -24,21 +24,7 @@ vehicles.add(
     car_following_params=SumoCarFollowingParams(
         speed_mode="obey_safe_speed",
     ),
-    num_vehicles=5)
-
-inflow = InFlows()
-inflow.add(
-    veh_type="human",
-    edge="inflow_highway",
-    vehs_per_hour=FLOW_RATE,
-    departLane="free",
-    departSpeed=10)
-inflow.add(
-    veh_type="human",
-    edge="inflow_merge",
-    vehs_per_hour=100,
-    departLane="free",
-    departSpeed=7.5)
+    num_vehicles=25)
 
 
 flow_params = dict(
@@ -73,9 +59,8 @@ flow_params = dict(
     # network-related parameters (see flow.core.params.NetParams and the
     # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        inflows=inflow,
         additional_params={
-            "merge_length": 100,
+            "merge_length": 500,
             "pre_merge_length": 500,
             "post_merge_length": 100,
             "merge_lanes": 1,

@@ -15,8 +15,14 @@ from flow.envs.base import Env
 from flow.utils.exceptions import FatalFlowError
 
 
-class MultiEnv(MultiAgentEnv, Env):
+class MultiEnv(Env, MultiAgentEnv):
     """Multi-agent version of base env. See parent class for info."""
+
+    # def __init__(*args, **kwargs):
+    #     Env.__init__(*args, **kwargs)
+    
+    # def render(*args, **kwargs):
+    #     return Env.render(*args, **kwargs)
 
     def step(self, rl_actions):
         """Advance the environment by one step.

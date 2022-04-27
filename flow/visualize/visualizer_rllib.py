@@ -23,7 +23,7 @@ import ray
 try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
-    from ray.rllib.agents.registry import get_agent_class
+    from ray.rllib.agents.registry import get_trainer_class
 from ray.tune.registry import register_env
 
 from flow.core.util import emission_to_csv
@@ -89,9 +89,9 @@ def visualizer_rllib(args):
                   + '\'{}\''.format(config_run))
             sys.exit(1)
     if args.run:
-        agent_cls = get_agent_class(args.run)
+        agent_cls = get_trainer_class(args.run)
     elif config_run:
-        agent_cls = get_agent_class(config_run)
+        agent_cls = get_trainer_class(config_run)
     else:
         print('visualizer_rllib.py: error: could not find flow parameter '
               '\'run\' in params.json, '
