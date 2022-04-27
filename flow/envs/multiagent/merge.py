@@ -410,7 +410,7 @@ class MultiAgentZSCMergePOEnv(MultiEnv):
                         insert_edge = 'inflow_highway'
                     else:
                         insert_edge = 'inflow_merge'
-                    if veh_id in self.k.vehicle.get_rl_ids():
+                    if 'rl' in veh_id:
                         type_id = 'rl'
                     else:
                         type_id = 'human'
