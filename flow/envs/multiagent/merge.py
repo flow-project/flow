@@ -68,6 +68,7 @@ class MultiAgentMergePOEnv(MultiEnv):
                 raise KeyError(
                     'Environment parameter "{}" not supplied'.format(p))
 
+        self._skip_env_checking = True  # hack for new RLlib
         # used for visualization: the vehicles behind and after RL vehicles
         # (ie the observed vehicles) will have a different color
         self.leader = []
@@ -242,12 +243,12 @@ class MultiAgentZSCMergePOEnv(MultiEnv):
 
     def __init__(self, env_params, sim_params, network, simulator='traci'):
         super().__init__(env_params, sim_params, network, simulator)
+        self._skip_env_checking = True  # hack for new RLlib
         # used for visualization: the vehicles behind and after RL vehicles
         # (ie the observed vehicles) will have a different color
         self.leader = []
         self.follower = []
         self.veh_id_list = deepcopy(self.k.vehicle.get_ids())
-
 
     @property
     def action_space(self):
@@ -341,14 +342,13 @@ class MultiAgentZSCMergePOEnv(MultiEnv):
                 pos_index = np.searchsorted(left_positions, veh_pos)
                 # we are closer than any of the vehicles on that edge
                 if len(left_positions) > 0 and pos_index == len(left_positions):
-                    concat_object[0:2] = [self.k.vehicle.get_position(left_ids[-1]),
-                                          self.k.vehicle.get_speed(left_ids[-1])]
+                    concat_object[0:2] = [self.k.vehicle.get_position(left_ids[-1]) / max_length,
+                                          self.k.vehicle.get_speed(left_ids[-1]) / max_speed]
                 # there are vehicles closer than us so return their state
                 for i, left_id in enumerate(left_ids[pos_index: pos_index + 2]):
                     concat_object[2 * i: 2 * (i + 1)] = [self.k.vehicle.get_position(left_id) / max_length,
-                                                       self.k.vehicle.get_speed(left_id) / max_speed]
+                                                         self.k.vehicle.get_speed(left_id) / max_speed]
             observation[veh_id] = np.concatenate((observation[veh_id], concat_object))
-
 
         return observation
 

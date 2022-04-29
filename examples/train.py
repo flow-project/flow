@@ -154,7 +154,7 @@ def setup_exps_rllib(flow_params,
     config["num_sgd_iter"] = 10
     config["horizon"] = horizon
 
-    config['framework']='torch'
+    config['framework'] = 'torch'
 
     # save the flow params for replay
     flow_json = json.dumps(

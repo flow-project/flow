@@ -20,7 +20,7 @@ class MultiEnv(Env, MultiAgentEnv):
 
     # def __init__(*args, **kwargs):
     #     Env.__init__(*args, **kwargs)
-    
+
     # def render(*args, **kwargs):
     #     return Env.render(*args, **kwargs)
 
@@ -112,8 +112,10 @@ class MultiEnv(Env, MultiAgentEnv):
                 break
 
         states = self.get_state()
-        done = {key: key in self.k.vehicle.get_arrived_ids()
-                for key in states.keys()}
+        # TODO(ev) don't just comment this out bruv
+        # done = {key: key in self.k.vehicle.get_arrived_ids()
+        #         for key in states.keys()}
+        done = {key: False for key in states.keys()}
         if crash or (self.time_counter >= self.env_params.sims_per_step *
                      (self.env_params.warmup_steps + self.env_params.horizon)):
             done['__all__'] = True
@@ -128,10 +130,11 @@ class MultiEnv(Env, MultiAgentEnv):
         else:
             reward = self.compute_reward(rl_actions, fail=crash)
 
-        for rl_id in self.k.vehicle.get_arrived_rl_ids(self.env_params.sims_per_step):
-            done[rl_id] = True
-            reward[rl_id] = 0
-            states[rl_id] = np.zeros(self.observation_space.shape[0])
+        # TODO(ev) don't just comment this out bruv
+        # for rl_id in self.k.vehicle.get_arrived_rl_ids(self.env_params.sims_per_step):
+        #     done[rl_id] = True
+        #     reward[rl_id] = 0
+        #     states[rl_id] = np.zeros(self.observation_space.shape[0])
 
         return states, reward, done, infos
 

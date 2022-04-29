@@ -124,6 +124,7 @@ class Env(gym.Env, metaclass=ABCMeta):
         flow.utils.exceptions.FatalFlowError
             if the render mode is not set to a valid value
         """
+        self._skip_env_checking = True  # hack for new RLlib
         self.env_params = env_params
         if scenario is not None:
             deprecated_attribute(self, "scenario", "network")

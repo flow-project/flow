@@ -59,7 +59,7 @@ vehicles.add(
     car_following_params=SumoCarFollowingParams(
         speed_mode="obey_safe_speed",
     ),
-    num_vehicles=0)
+    num_vehicles=1)
 
 # Vehicles are introduced from both sides of merge, with RL vehicles entering
 # from the highway portion as well
@@ -138,13 +138,15 @@ create_env, env_name = make_create_env(params=flow_params, version=0)
 register_env(env_name, create_env)
 
 test_env = create_env()
+# ipdb.set_trace()
+# ray.rllib.utils.check_env(test_env)
 obs_space = test_env.observation_space
 act_space = test_env.action_space
 
 
 def gen_policy():
     """Generate a policy in RLlib."""
-    return PPOTFPolicy, obs_space, act_space, {}
+    return None, obs_space, act_space, {}
 
 
 # Setup PG with an ensemble of `num_policies` different policy graphs
