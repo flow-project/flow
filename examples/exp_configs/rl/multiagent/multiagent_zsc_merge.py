@@ -102,7 +102,9 @@ flow_params = dict(
             "max_decel": 1.5,
             "target_velocity": 20,
             # set this to true to return IDs for both the RL and human vehicles
-            "return_all_vehicle_states": False
+            "return_all_vehicle_states": False,
+            # set this to true to return a done when vehicle crashes or exits
+            "done_on_crash_or_exit": False
         },
     ),
 
@@ -145,7 +147,7 @@ def policy_mapping_fn(_):
     """Map a policy in RLlib."""
     return 'av'
 
-### one policy per agent
+# one policy per agent
 
 # # Setup PG with an ensemble of `num_policies` different policy graphs
 # POLICY_GRAPHS = {f'rl_{i}': gen_policy() for i in range(NUM_RL)}
