@@ -21,7 +21,7 @@ setproctitle
 psutil
 opencv-python
 boto3==1.10.45
-redis~=2.10.6
+redis
 pandas==0.24.2
 plotly==2.4.0
 tabulate
