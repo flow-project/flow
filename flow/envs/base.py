@@ -133,7 +133,7 @@ class Env(gym.Env, metaclass=ABCMeta):
         self.sim_params = deepcopy(sim_params)
         # check whether we should be rendering
         self.should_render = self.sim_params.render
-        self.sim_params.render = False
+        self.sim_params.render = self.sim_params.render
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
             # 1.0 works with stress_test_start 10k times
@@ -434,7 +434,7 @@ class Env(gym.Env, metaclass=ABCMeta):
         # Now that we've passed the possibly fake init steps some rl libraries
         # do, we can feel free to actually render things
         if self.should_render:
-            self.sim_params.render = True
+            self.sim_params.render = self.should_render
             # got to restart the simulation to make it actually display anything
             self.restart_simulation(self.sim_params)
 
