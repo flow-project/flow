@@ -9,7 +9,7 @@ dependencies:
         - path.py
         - python-dateutil==2.7.3
         - pip>=18.0
-        - tensorflow==1.15.2
+        - tensorflow-gpu==1.15.2
         - setuptools==41.0.0
         - plotly==2.4.0
         - gym==0.14.0
