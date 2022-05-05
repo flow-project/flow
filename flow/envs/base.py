@@ -717,7 +717,6 @@ class Env(gym.Env, metaclass=ABCMeta):
         buffer_length : int
             length of the buffer
         """
-        print(self.sim_params.render, '720 sim params render')
         if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
             # render a frame
             self.pyglet_render()
